@@ -1,9 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 40,
+  "version": 41,
   "name": "RIBBON COAST",
-  "entrySectionId": "coast-wide",
-  "rules": { "maxLaps": 1 },
+  "entry": "coast-wide",
+  "maxLaps": 1,
   "sections": [
     {
       "id": "coast-wide",
@@ -345,9 +345,9 @@
       "walls": [
         {
           "boundary": "grass-wall",
-          "from": { "pi": "start", "offset": 1300 },
-          "to": { "pi": "start", "offset": 1320 },
-          "solid": { "freeFrom": 0.5, "freeTo": 0.5, "sound": "wall" },
+          "start": { "pi": "start", "offset": 1300 },
+          "end": { "pi": "start", "offset": 1320 },
+          "solid": { "freeStart": 0.5, "freeEnd": 0.5, "sound": "wall" },
           "strips": [
             {
               "kind": "strip",
@@ -369,7 +369,7 @@
         }
       ],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -406,7 +406,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -422,7 +422,7 @@
               "at": { "pi": "start", "offset": 230 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -439,7 +439,7 @@
               "at": { "pi": "start", "offset": 250 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -876,16 +876,16 @@
       "walls": [
         {
           "boundary": "rail-lead-in",
-          "from": { "pi": "start", "offset": 382.173048 },
-          "to": { "pi": "start", "offset": 432.173048 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
+          "start": { "pi": "start", "offset": 382.173048 },
+          "end": { "pi": "start", "offset": 432.173048 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "guardrail" },
           "strips": []
         },
         {
           "boundary": "verge-right",
-          "from": { "pi": "start", "offset": 432.173048 },
-          "to": { "pi": "start", "offset": 732.173048 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
+          "start": { "pi": "start", "offset": 432.173048 },
+          "end": { "pi": "start", "offset": 732.173048 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "guardrail" },
           "strips": [
             {
               "kind": "strip",
@@ -930,23 +930,23 @@
         },
         {
           "boundary": "rail-lead-out",
-          "from": { "pi": "start", "offset": 732.173048 },
-          "to": { "pi": "start", "offset": 782.173048 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "guardrail" },
+          "start": { "pi": "start", "offset": 732.173048 },
+          "end": { "pi": "start", "offset": 782.173048 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "guardrail" },
           "strips": []
         },
         {
           "boundary": "cliff-lead-in",
-          "from": { "pi": "start", "offset": 917.836754 },
-          "to": { "pi": "start", "offset": 967.836754 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
+          "start": { "pi": "start", "offset": 917.836754 },
+          "end": { "pi": "start", "offset": 967.836754 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "rock" },
           "strips": []
         },
         {
           "boundary": "verge-left",
-          "from": { "pi": "start", "offset": 967.836754 },
-          "to": { "pi": "start", "offset": 1167.836754 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
+          "start": { "pi": "start", "offset": 967.836754 },
+          "end": { "pi": "start", "offset": 1167.836754 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "rock" },
           "strips": [
             {
               "kind": "strip",
@@ -1117,15 +1117,15 @@
         },
         {
           "boundary": "cliff-lead-out",
-          "from": { "pi": "start", "offset": 1167.836754 },
-          "to": { "pi": "start", "offset": 1217.836754 },
-          "solid": { "freeFrom": null, "freeTo": null, "sound": "rock" },
+          "start": { "pi": "start", "offset": 1167.836754 },
+          "end": { "pi": "start", "offset": 1217.836754 },
+          "solid": { "freeStart": null, "freeEnd": null, "sound": "rock" },
           "strips": []
         },
         {
           "boundary": "verge-right",
-          "from": { "pi": "start", "offset": 1383.028484 },
-          "to": { "pi": "start", "offset": 1583.028484 },
+          "start": { "pi": "start", "offset": 1383.028484 },
+          "end": { "pi": "start", "offset": 1583.028484 },
           "solid": null,
           "strips": [
             {
@@ -1176,11 +1176,11 @@
       "openLimits": [
         {
           "side": "right",
-          "from": { "pi": "start", "offset": 1383.028484 },
-          "to": { "pi": "start", "offset": 1583.028484 }
+          "start": { "pi": "start", "offset": 1383.028484 },
+          "end": { "pi": "start", "offset": 1583.028484 }
         }
       ],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -1227,12 +1227,12 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         },
         {
           "at": { "pi": "start", "offset": 1633.028484 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -1248,7 +1248,7 @@
               "at": { "pi": "start", "offset": 260 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1265,7 +1265,7 @@
               "at": { "pi": "start", "offset": 1653.028484 },
               "lateral": { "boundary": "verge-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1282,7 +1282,7 @@
               "at": { "pi": "start", "offset": 1668.028484 },
               "lateral": { "boundary": "verge-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1497,7 +1497,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -1764,12 +1764,12 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
         },
         {
           "at": { "pi": "start", "offset": 800 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -1785,7 +1785,7 @@
               "at": { "pi": "start", "offset": 120 },
               "lateral": { "boundary": "sand-left", "offset": -4 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1802,7 +1802,7 @@
               "at": { "pi": "start", "offset": 140 },
               "lateral": { "boundary": "sand-right", "offset": 4 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -2077,7 +2077,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -2094,7 +2094,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -2110,7 +2110,7 @@
               "at": { "pi": "start", "offset": 110 },
               "lateral": { "boundary": "verge-left", "offset": -1.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": { "width": 0.6, "movable": null }
             }
           ]
@@ -2127,7 +2127,7 @@
               "at": { "pi": "start", "offset": 125 },
               "lateral": { "boundary": "verge-right", "offset": 1.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": { "width": 0.6, "movable": null }
             }
           ]
@@ -2144,7 +2144,7 @@
               "at": { "pi": "start", "offset": 140 },
               "lateral": { "boundary": "verge-right", "offset": 2.5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": { "width": 0.4, "movable": null }
             }
           ]
@@ -2477,7 +2477,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -2509,17 +2509,17 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         },
         {
           "at": { "pi": "start", "offset": 1100 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
         },
         {
           "at": { "pi": "start", "offset": 1900 },
           "name": "RIBBON COAST",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -2535,7 +2535,7 @@
               "at": { "pi": "start", "offset": 220 },
               "lateral": { "boundary": "verge-left", "offset": -6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -2552,7 +2552,7 @@
               "at": { "pi": "start", "offset": 240 },
               "lateral": { "boundary": "verge-right", "offset": 6 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -2569,7 +2569,7 @@
               "at": { "pi": "start", "offset": 1000 },
               "lateral": 5.25,
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": {
                 "width": 0.3,
                 "movable": {
@@ -2588,7 +2588,7 @@
           "at": { "pi": "start", "offset": 1800 },
           "lateral": -5.25,
           "groundOffset": 0,
-          "unselectedCarriagewayId": null,
+          "unselectedCarriageway": null,
           "body": {
             "width": 1.5,
             "movable": {
@@ -2618,23 +2618,23 @@
   "links": [
     {
       "id": "coast-wide-to-cliff-mountain",
-      "from": { "sectionId": "coast-wide", "carriagewayId": "road" },
-      "to": { "sectionId": "cliff-mountain" }
+      "from": { "section": "coast-wide", "carriageway": "road" },
+      "to": "cliff-mountain"
     },
     {
       "id": "cliff-mountain-to-rough-track",
-      "from": { "sectionId": "cliff-mountain", "carriagewayId": "road" },
-      "to": { "sectionId": "rough-track" }
+      "from": { "section": "cliff-mountain", "carriageway": "road" },
+      "to": "rough-track"
     },
     {
       "id": "rough-track-to-town",
-      "from": { "sectionId": "rough-track", "carriagewayId": "road" },
-      "to": { "sectionId": "town" }
+      "from": { "section": "rough-track", "carriageway": "road" },
+      "to": "town"
     },
     {
       "id": "town-to-coast-fast",
-      "from": { "sectionId": "town", "carriagewayId": "road" },
-      "to": { "sectionId": "coast-fast" }
+      "from": { "section": "town", "carriageway": "road" },
+      "to": "coast-fast"
     }
   ],
   "assets": [

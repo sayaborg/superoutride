@@ -47,7 +47,7 @@ export function createSectionView(canvas: HTMLCanvasElement, events: { pick(elem
       MARGIN.left + ((Math.max(lo, Math.min(hi, l)) - lo) / (hi - lo)) * (canvas.width - MARGIN.left - MARGIN.right);
     // Walls rise from the road; heights are metres above it.
     const walls = of('wall').filter(
-      (w) => (w.positions.from?.s ?? Infinity) <= s && s <= (w.positions.to?.s ?? -Infinity),
+      (w) => (w.positions.start?.s ?? Infinity) <= s && s <= (w.positions.end?.s ?? -Infinity),
     );
     const knots = of('wall-strip-knot');
     const wallPieces = walls.flatMap((wall) => {

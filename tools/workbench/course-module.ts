@@ -414,25 +414,23 @@ export const courseModule: WorkbenchModule = {
         sections.replaceChildren();
         return;
       }
-      const incoming = (section: string) => structure!.links.filter((link) => link.to.sectionId === section).length;
+      const incoming = (section: string) => structure!.links.filter((link) => link.to === section).length;
       sections.replaceChildren(
         ...structure.sections.map((section) => {
-          const outgoing = structure!.links.filter((link) => link.from.sectionId === section.id);
+          const outgoing = structure!.links.filter((link) => link.from.section === section.id);
           const item = make('li');
           const button = make('button', section.id, { type: 'button', 'data-section': section.id });
           if (section.id === sectionId) button.setAttribute('aria-pressed', 'true');
           button.addEventListener('click', () => openSection(section.id));
           const marks = [
-            section.id === structure!.entrySectionId ? 'entry' : null,
+            section.id === structure!.entry ? 'entry' : null,
             outgoing.length > 1 ? `fork ×${outgoing.length}` : null,
             incoming(section.id) > 1 ? 'merge' : null,
             section.length === null ? 'plan does not compile' : `${section.length.toFixed(1)} m`,
           ].filter(Boolean);
           item.append(button, ` ${marks.join(' · ')}`);
           for (const link of outgoing)
-            item.append(
-              make('div', `→ ${link.to.sectionId} (${link.id}, from ${link.from.carriagewayId})`, { class: 'hint' }),
-            );
+            item.append(make('div', `→ ${link.to} (${link.id}, from ${link.from.carriageway})`, { class: 'hint' }));
           return item;
         }),
       );
@@ -559,7 +557,7 @@ export const courseModule: WorkbenchModule = {
           .find((e) => e.pointer === selected!.pointer && e.kind === selected!.kind);
         selected = again ?? null;
       }
-      openSection(keep ? sectionId : (structure?.entrySectionId ?? structure?.sections[0]?.id ?? null));
+      openSection(keep ? sectionId : (structure?.entry ?? structure?.sections[0]?.id ?? null));
       showSelected();
     };
     /** The compile's diagnostics in this course's document under `pointer`. */

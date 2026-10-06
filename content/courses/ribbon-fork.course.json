@@ -1,9 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 40,
+  "version": 41,
   "name": "RIBBON FORK",
-  "entrySectionId": "junction-road",
-  "rules": { "maxLaps": 1 },
+  "entry": "junction-road",
+  "maxLaps": 1,
   "sections": [
     {
       "id": "junction-road",
@@ -409,7 +409,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -430,7 +430,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -441,7 +441,7 @@
           "at": { "pi": "start", "offset": 250 },
           "lateral": -5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "LEFT",
+          "unselectedCarriageway": "LEFT",
           "body": null
         },
         {
@@ -451,7 +451,7 @@
           "at": { "pi": "end", "offset": -200 },
           "lateral": -5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "LEFT",
+          "unselectedCarriageway": "LEFT",
           "body": null
         },
         {
@@ -461,7 +461,7 @@
           "at": { "pi": "start", "offset": 250 },
           "lateral": 5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "RIGHT",
+          "unselectedCarriageway": "RIGHT",
           "body": null
         },
         {
@@ -471,7 +471,7 @@
           "at": { "pi": "end", "offset": -200 },
           "lateral": 5.5,
           "groundOffset": 0,
-          "unselectedCarriagewayId": "RIGHT",
+          "unselectedCarriageway": "RIGHT",
           "body": null
         },
         {
@@ -486,7 +486,7 @@
               "at": { "pi": "start", "offset": 220 },
               "lateral": { "boundary": "left-outer", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -503,7 +503,7 @@
               "at": { "pi": "start", "offset": 220 },
               "lateral": { "boundary": "right-outer", "offset": 8 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -810,7 +810,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -827,7 +827,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": -20 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": -20 }
         }
       ],
       "sprites": [],
@@ -1022,7 +1022,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -1039,7 +1039,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 20 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 20 }
         }
       ],
       "sprites": [
@@ -1055,7 +1055,7 @@
               "at": { "pi": "start", "offset": 60 },
               "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1268,7 +1268,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -1290,7 +1290,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON FORK",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -1306,7 +1306,7 @@
               "at": { "pi": "start", "offset": 60 },
               "lateral": { "boundary": "road-left", "offset": -8 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1331,23 +1331,23 @@
   "links": [
     {
       "id": "left-exit",
-      "from": { "sectionId": "junction-road", "carriagewayId": "LEFT" },
-      "to": { "sectionId": "cliff-route" }
+      "from": { "section": "junction-road", "carriageway": "LEFT" },
+      "to": "cliff-route"
     },
     {
       "id": "left-merge",
-      "from": { "sectionId": "cliff-route", "carriagewayId": "road" },
-      "to": { "sectionId": "home-road" }
+      "from": { "section": "cliff-route", "carriageway": "road" },
+      "to": "home-road"
     },
     {
       "id": "right-exit",
-      "from": { "sectionId": "junction-road", "carriagewayId": "RIGHT" },
-      "to": { "sectionId": "garden-route" }
+      "from": { "section": "junction-road", "carriageway": "RIGHT" },
+      "to": "garden-route"
     },
     {
       "id": "right-merge",
-      "from": { "sectionId": "garden-route", "carriagewayId": "road" },
-      "to": { "sectionId": "home-road" }
+      "from": { "section": "garden-route", "carriageway": "road" },
+      "to": "home-road"
     }
   ],
   "assets": [

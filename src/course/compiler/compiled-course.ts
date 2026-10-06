@@ -11,7 +11,7 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course-diagnostics.js';
-import type { CourseDocument, CourseRulesDocument, SectionDocument } from '../course-document.js';
+import type { CourseDocument, CourseRules, SectionDocument } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import { validateMaterialContinuity } from '../strip-material.js';
@@ -55,7 +55,7 @@ export interface CompiledCourse {
   /** The display name. */
   readonly name: string;
   readonly type: ReturnType<typeof compileCourseTopology>;
-  readonly rules: CourseRulesDocument;
+  readonly rules: CourseRules;
   readonly gates: ReturnType<typeof compileCourseGates>;
   readonly identity: {
     readonly sourceSha256: string;
@@ -235,11 +235,11 @@ export async function compileCourseDocument(
     );
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
-    const entry = reference(sectionTable, document.entrySectionId, '/entrySectionId');
+    const entry = reference(sectionTable, document.entry, '/entry');
     // Every destination and the course entrance has one unambiguous entry cross-section.
     const entrances = new Map(
       sections
-        .filter((s) => s === entry || document.links.some((l) => l.to.sectionId === s.id))
+        .filter((s) => s === entry || document.links.some((l) => l.to === s.id))
         .map((s) => [
           s,
           entryCut(s, `/sections/${document.sections.findIndex((item) => item.id === s.id)}/carriageways`),
@@ -247,12 +247,12 @@ export async function compileCourseDocument(
     );
     const links = compileStage(document.links, (source, index) => {
       const path = `/links/${index}`;
-      const from = reference(sectionTable, source.from.sectionId, `${path}/from/sectionId`);
-      const to = reference(sectionTable, source.to.sectionId, `${path}/to/sectionId`);
+      const from = reference(sectionTable, source.from.section, `${path}/from/section`);
+      const to = reference(sectionTable, source.to, `${path}/to`);
       const road = reference(
         new Map(from.carriageways.map((r) => [r.id, r])),
-        source.from.carriagewayId,
-        `${path}/from/carriagewayId`,
+        source.from.carriageway,
+        `${path}/from/carriageway`,
       );
       const cut = compileCourseCut(from, road, from.coordinates.domain.end, `${path}/from`);
       const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
@@ -304,7 +304,7 @@ export async function compileCourseDocument(
         id,
         name: document.name,
         type,
-        rules: document.rules,
+        rules: Object.freeze({ maxLaps: document.maxLaps }),
         gates,
         identity: Object.freeze({
           sourceSha256,

@@ -16,7 +16,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 40;
+const COURSE_DOCUMENT_VERSION = 41;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 export interface CoursePosition {
@@ -48,8 +48,9 @@ interface CarriagewayDocument {
 
 interface LinkDocument {
   readonly id: string;
-  readonly from: { readonly sectionId: string; readonly carriagewayId: string };
-  readonly to: { readonly sectionId: string };
+  readonly from: { readonly section: string; readonly carriageway: string };
+  /** The Section the Link enters. */
+  readonly to: string;
 }
 
 /** External content identity only; no I/O or claim of payload readiness at this boundary. */
@@ -101,13 +102,13 @@ export type StripElementDocument = RepeatElement<
 export interface EnvironmentDocument {
   readonly at: CoursePosition;
   readonly name: string;
-  readonly background: { readonly assetId: string; readonly horizonY: number; readonly yawOrigin: number };
+  readonly background: { readonly image: string; readonly horizonY: number; readonly yawOrigin: number };
 }
 export interface SpriteDocument {
   readonly kind: 'sprite';
   readonly image: string;
   readonly palette: string;
-  readonly unselectedCarriagewayId: string | null;
+  readonly unselectedCarriageway: string | null;
   readonly at: CoursePosition;
   readonly lateral: Lateral;
   readonly groundOffset: number;
@@ -143,33 +144,33 @@ interface WallStripDocument {
 export type WallStripElementDocument = RepeatElement<WallStripDocument>;
 
 /**
- * A wall along a Boundary from `from` to `to`. A solid wall is a line vehicles cannot cross; `solid` is null for a wall
- * vehicles pass through. Its picture is its `strips`, read like the road's with height as lateral, each within
- * `[from, to]`. An invisible wall has no strips and must be solid.
+ * A wall along a Boundary from `start` to `end`. A solid wall is a line vehicles cannot cross; `solid` is null for a
+ * wall vehicles pass through. Its picture is its `strips`, read like the road's with height as lateral, each within
+ * `[start, end]`. An invisible wall has no strips and must be solid.
  */
 export interface WallDocument {
   readonly boundary: string;
-  readonly from: CoursePosition;
-  readonly to: CoursePosition;
+  readonly start: CoursePosition;
+  readonly end: CoursePosition;
   readonly solid: SolidWallDocument | null;
   readonly strips: readonly WallStripElementDocument[];
 }
 
 /**
- * A solid wall's ends, at `from` and at `to`: each null where it joins a course limit or another solid wall, or the
+ * A solid wall's ends, at `start` and at `end`: each null where it joins a course limit or another solid wall, or the
  * thickness (m) of a declared free end, a fixed object that wide; and its wall sound, an ID of the wall-sound document.
  */
 export interface SolidWallDocument {
-  readonly freeFrom: number | null;
-  readonly freeTo: number | null;
+  readonly freeStart: number | null;
+  readonly freeEnd: number | null;
   readonly sound: string;
 }
 
-/** A stretch of one side of a Section where no course limit runs: `side` from `from` to `to`. */
+/** A stretch of one side of a Section where no course limit runs: `side` from `start` to `end`. */
 export interface OpenLimitDocument {
   readonly side: 'left' | 'right';
-  readonly from: CoursePosition;
-  readonly to: CoursePosition;
+  readonly start: CoursePosition;
+  readonly end: CoursePosition;
 }
 
 export interface SectionDocument {
@@ -180,7 +181,7 @@ export interface SectionDocument {
   readonly walls: readonly WallDocument[];
   readonly openLimits: readonly OpenLimitDocument[];
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
-  readonly height: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
+  readonly profile: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
   readonly carriageways: readonly CarriagewayDocument[];
   readonly environments: readonly RepeatElement<EnvironmentDocument>[];
   readonly gates: readonly CourseGateDocument[];
@@ -199,7 +200,7 @@ export type CourseGateDocument =
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
 /** Position-free course rules; series own ARCADE settings. */
-export interface CourseRulesDocument {
+export interface CourseRules {
   readonly maxLaps: number;
 }
 
@@ -208,8 +209,10 @@ export interface CourseDocument {
   readonly version: typeof COURSE_DOCUMENT_VERSION;
   /** The course's display name: one line of printable ASCII text. */
   readonly name: string;
-  readonly entrySectionId: string;
-  readonly rules: CourseRulesDocument;
+  /** The Section a course run enters. */
+  readonly entry: string;
+  /** The most laps a Session may run on this course. */
+  readonly maxLaps: number;
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
   readonly assets: readonly CourseAssetReference[];
@@ -402,12 +405,12 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
 
 function environment(value: unknown, path: string): EnvironmentDocument {
   const e = readRecord(value, path, ['at', 'name', 'background']);
-  const b = readRecord(e.background, `${path}/background`, ['assetId', 'horizonY', 'yawOrigin']);
+  const b = readRecord(e.background, `${path}/background`, ['image', 'horizonY', 'yawOrigin']);
   return Object.freeze({
     at: position(e.at, `${path}/at`),
     name: readString(e.name, `${path}/name`, ID),
     background: Object.freeze({
-      assetId: readString(b.assetId, `${path}/background/assetId`, ID),
+      image: readString(b.image, `${path}/background/image`, ID),
       horizonY: readNumber(b.horizonY, `${path}/background/horizonY`, { min: 0, max: Number.MAX_SAFE_INTEGER }),
       yawOrigin: readNumber(b.yawOrigin, `${path}/background/yawOrigin`, { min: -360, max: 360 }),
     }),
@@ -421,7 +424,7 @@ function sprite(value: unknown, path: string): SpriteDocument {
     'at',
     'lateral',
     'groundOffset',
-    'unselectedCarriagewayId',
+    'unselectedCarriageway',
     'body',
   ]);
   if (s.kind !== 'sprite') throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Expected sprite');
@@ -435,10 +438,10 @@ function sprite(value: unknown, path: string): SpriteDocument {
       min: -COURSE_DOCUMENT_LIMITS.heightMeters,
       max: COURSE_DOCUMENT_LIMITS.heightMeters,
     }),
-    unselectedCarriagewayId:
-      s.unselectedCarriagewayId === null
+    unselectedCarriageway:
+      s.unselectedCarriageway === null
         ? null
-        : readString(s.unselectedCarriagewayId, `${path}/unselectedCarriagewayId`, ID),
+        : readString(s.unselectedCarriageway, `${path}/unselectedCarriageway`, ID),
     body: s.body === null ? null : spriteBody(s.body, `${path}/body`),
   });
 }
@@ -493,7 +496,7 @@ function wallStrip(value: unknown, path: string): WallStripDocument {
   });
 }
 function wall(value: unknown, path: string): WallDocument {
-  const v = readRecord(value, path, ['boundary', 'from', 'to', 'solid', 'strips']);
+  const v = readRecord(value, path, ['boundary', 'start', 'end', 'solid', 'strips']);
   const solid = v.solid === null ? null : solidWall(v.solid, `${path}/solid`);
   const strips = readArray(
     v.strips,
@@ -505,30 +508,30 @@ function wall(value: unknown, path: string): WallDocument {
     throw new CourseInputError('invalid_value', `${path}/solid`, 'An invisible wall (no strips) must be solid');
   return Object.freeze({
     boundary: readString(v.boundary, `${path}/boundary`, ID),
-    from: position(v.from, `${path}/from`),
-    to: position(v.to, `${path}/to`),
+    start: position(v.start, `${path}/start`),
+    end: position(v.end, `${path}/end`),
     solid,
     strips,
   });
 }
 function solidWall(value: unknown, path: string): SolidWallDocument {
-  const v = readRecord(value, path, ['freeFrom', 'freeTo', 'sound']);
+  const v = readRecord(value, path, ['freeStart', 'freeEnd', 'sound']);
   const thickness = (end: unknown, at: string) =>
     end === null
       ? null
       : readNumber(end, at, { min: 0, max: COURSE_DOCUMENT_LIMITS.lateralMeters, exclusiveMin: true });
   return Object.freeze({
-    freeFrom: thickness(v.freeFrom, `${path}/freeFrom`),
-    freeTo: thickness(v.freeTo, `${path}/freeTo`),
+    freeStart: thickness(v.freeStart, `${path}/freeStart`),
+    freeEnd: thickness(v.freeEnd, `${path}/freeEnd`),
     sound: readString(v.sound, `${path}/sound`),
   });
 }
 function openLimit(value: unknown, path: string): OpenLimitDocument {
-  const v = readRecord(value, path, ['side', 'from', 'to']);
+  const v = readRecord(value, path, ['side', 'start', 'end']);
   return Object.freeze({
     side: readEnum(v.side, ['left', 'right'] as const, `${path}/side`),
-    from: position(v.from, `${path}/from`),
-    to: position(v.to, `${path}/to`),
+    start: position(v.start, `${path}/start`),
+    end: position(v.end, `${path}/end`),
   });
 }
 
@@ -550,7 +553,7 @@ function section(value: unknown, path: string): SectionDocument {
     'walls',
     'openLimits',
     'sprites',
-    'height',
+    'profile',
     'carriageways',
     'environments',
     'gates',
@@ -572,9 +575,9 @@ function section(value: unknown, path: string): SectionDocument {
       (item, at) => repeated(item, at, COURSE_DOCUMENT_LIMITS.spriteElements, sprite),
       { max: COURSE_DOCUMENT_LIMITS.spriteElements },
     ),
-    height: readArray(
-      v.height,
-      `${path}/height`,
+    profile: readArray(
+      v.profile,
+      `${path}/profile`,
       (item, at) => {
         const node = readRecord(item, at, ['at', 'y', 'curveLength']);
         return Object.freeze({
@@ -632,13 +635,6 @@ function gate(value: unknown, path: string): CourseGateDocument {
   throw new CourseInputError('invalid_gate', `${path}/kind`, 'Unknown gate kind');
 }
 
-function rules(value: unknown, path: string): CourseRulesDocument {
-  const v = readRecord(value, path, ['maxLaps']);
-  return Object.freeze({
-    maxLaps: readNumber(v.maxLaps, path + '/maxLaps', { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
-  });
-}
-
 /**
  * The only course-document admission: own and normalize schema-valid authoring, including semantically
  * incomplete drafts, as a detached deeply frozen value. Diagnostics name `document` when supplied.
@@ -648,7 +644,7 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
       input,
-      ['rules', 'format', 'version', 'name', 'entrySectionId', 'sections', 'links', 'assets'],
+      ['format', 'version', 'name', 'entry', 'maxLaps', 'sections', 'links', 'assets'],
       'superoutride.course',
       COURSE_DOCUMENT_VERSION,
     );
@@ -660,23 +656,22 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         pattern: TEXT_CHARACTERS,
         patternMessage: 'Expected printable ASCII text',
       }),
-      entrySectionId: readString(v.entrySectionId, '/entrySectionId', ID),
-      rules: rules(v.rules, '/rules'),
+      entry: readString(v.entry, '/entry', ID),
+      maxLaps: readNumber(v.maxLaps, '/maxLaps', { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
       sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),
       links: readIdentified(
         v.links,
         '/links',
         (item, at) => {
           const link = readRecord(item, at, ['id', 'from', 'to']);
-          const from = readRecord(link.from, `${at}/from`, ['sectionId', 'carriagewayId']);
-          const to = readRecord(link.to, `${at}/to`, ['sectionId']);
+          const from = readRecord(link.from, `${at}/from`, ['section', 'carriageway']);
           return Object.freeze({
             id: readString(link.id, `${at}/id`, ID),
             from: Object.freeze({
-              sectionId: readString(from.sectionId, `${at}/from/sectionId`, ID),
-              carriagewayId: readString(from.carriagewayId, `${at}/from/carriagewayId`, ID),
+              section: readString(from.section, `${at}/from/section`, ID),
+              carriageway: readString(from.carriageway, `${at}/from/carriageway`, ID),
             }),
-            to: Object.freeze({ sectionId: readString(to.sectionId, `${at}/to/sectionId`, ID) }),
+            to: readString(link.to, `${at}/to`, ID),
           });
         },
         { max: COURSE_DOCUMENT_LIMITS.links },

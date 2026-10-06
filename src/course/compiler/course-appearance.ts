@@ -111,13 +111,12 @@ export function compileCourseAppearance(
         'resource_limit',
       );
       const b = environment.background,
-        asset = assets.get(b.assetId);
-      if (!asset)
-        throw new CourseInputError('unresolved_reference', `${at}/background/assetId`, 'Unknown course asset');
+        asset = assets.get(b.image);
+      if (!asset) throw new CourseInputError('unresolved_reference', `${at}/background/image`, 'Unknown course asset');
       if (asset.kind !== 'background')
         throw new CourseInputError(
           'invalid_image_role',
-          `${at}/background/assetId`,
+          `${at}/background/image`,
           'Background requires the single tiled plane format',
         );
       const tiled = asset;
@@ -166,13 +165,13 @@ export function compileCourseAppearance(
             ),
           })
         : null;
-    const unselectedCarriagewayId = placement.unselectedCarriagewayId;
+    const unselectedCarriagewayId = placement.unselectedCarriageway;
     const unselected =
       unselectedCarriagewayId === null ? null : carriageways.find((c) => c.id === unselectedCarriagewayId);
     if (unselected === undefined)
       throw new CourseInputError(
         'unresolved_reference',
-        `${at}/unselectedCarriagewayId`,
+        `${at}/unselectedCarriageway`,
         'Unknown state-selected carriageway',
       );
     if (unselected !== null) {

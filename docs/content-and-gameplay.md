@@ -26,13 +26,13 @@ whitespace do not affect identity. Normalized records use schema field order and
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 40,
-  name, entrySectionId,
-  sections, links, assets, rules
+  format: "superoutride.course", version: 41,
+  name, entry, maxLaps,
+  sections, links, assets
 }
 Section {
   id, pis,
-  boundaries, strips, walls, openLimits, sprites, height: [{at, y, curveLength}],
+  boundaries, strips, walls, openLimits, sprites, profile: [{at, y, curveLength}],
   carriageways, environments, gates
 }
 ```
@@ -45,7 +45,7 @@ Section {
 | Position        | `at: {pi, offset}`; interval `start`/`end` and gate `at` use the same `{pi, offset}` value |
 | Boundary        | `id`, `knots: [{at,lateral}]`                                                              |
 | Carriageway     | `id`, `left`, `right`, `lanes`                                                             |
-| Link            | `id`, `from: {sectionId,carriagewayId}`, `to: {sectionId}`                                 |
+| Link            | `id`, `from: {section, carriageway}`, `to` (a Section id)                                  |
 | Asset reference | `id`, lowercase `sha256`                                                                   |
 
 Asset references carry only logical identity and the exact saved-byte digest. Format and version
@@ -103,7 +103,7 @@ resolve authored references.
 ### Sprites and environment
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
-`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriagewayId,body}`.
+`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedCarriageway,body}`.
 `image` names a sprite image in the course `assets`; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
@@ -124,20 +124,20 @@ flying and once landed, drawn in the placement's palette (they may name one imag
 wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
 (`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
 
-`unselectedCarriagewayId` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
+`unselectedCarriageway` is null for ordinary sprites or names, by id, a canonical exit Carriageway of the
 Section's fork. Compiled appearance keeps that id, never a physical Carriageway object. A state-selected sign
 appears at a fork occurrence once that occurrence has a selected successor on the Route whose Carriageway id
 differs from the sign's; each occurrence follows its own choice, so repeated passes do not mix. The appearance
 compiler owns these checks and reads the compiled fork after it: a state-selected sign requires a fork, its id
 names one of that fork's exit Carriageways, and it lies from lock through closure (`invalid_fork` at the sprite;
-an unknown id is `unresolved_reference` at `/unselectedCarriagewayId`). Lying at or before closure already places
+an unknown id is `unresolved_reference` at `/unselectedCarriageway`). Lying at or before closure already places
 it before every exit cut; a sprite's image width is not a length along s and does not enter the check.
 
 Section `environments` is an array at the same level as `strips` and `sprites`. An empty array
 means no compiled appearance and requires an empty sprite list, while preserving authored Strips and
 geometry. A nonempty environment list must begin at s=0.
 An environment element is `{at,name,background}` or a `repeat`; background is
-`{assetId,horizonY,yawOrigin}`, naming an image in the course `assets` that uses the tiled
+`{image,horizonY,yawOrigin}`, naming an image in the course `assets` that uses the tiled
 background format. Sprite and background references are a Section's only relation to images: an
 image outside the course `assets` is `unresolved_reference`, and a Section's images are exactly those
 its sprites and backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
@@ -223,16 +223,17 @@ a piece carrying both payloads counts once. Limits reject rather than truncate.
 
 ### Walls
 
-Section `walls` is an array (empty when the Section has none) of `{boundary, from, to, solid, strips}`: a wall along the
-Section Boundary `boundary` from Position `from` to Position `to`. Compilation requires `from < to` and the Boundary to
+Section `walls` is an array (empty when the Section has none) of `{boundary, start, end, solid, strips}`: a wall along
+the Section Boundary `boundary` from Position `start` to Position `end`. Compilation requires `start < end` and the
+Boundary to
 cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` is null for a wall vehicles
-pass through (for looks only), or `{freeFrom, freeTo, sound}` for a solid one, which vehicles meet; an invisible solid
+pass through (for looks only), or `{freeStart, freeEnd, sound}` for a solid one, which vehicles meet; an invisible solid
 wall is solid too. `sound` names the wall's record in the [wall-sound document](tire-audio.md#wall-sounds), which the
 content build checks (`unresolved_reference` at `/sections/i/walls/j/solid/sound` for an unknown ID); the compiled
 barrier line carries it, and a course limit's line carries none (null): it uses the record the wall-sound document
-names for course limits. Each solid end, at `from`
-and at `to`, either joins another barrier line — it lies on a course limit, or on another solid wall from its `from`
-through its `to`, ends included — and is then null, or is declared free with its thickness, positive metres. Compilation
+names for course limits. Each solid end, at `start`
+and at `end`, either joins another barrier line — it lies on a course limit, or on another solid wall from its `start`
+through its `end`, ends included — and is then null, or is declared free with its thickness, positive metres. Compilation
 checks every solid end once, within `JOIN_TOLERANCE_METERS` (1e-6 m, reading one line through two compiled readers): an
 end declared joined that joins nothing, or declared free that joins a line, is `invalid_wall`. Authors join lines by
 referring to the same Boundary (a slanted lead-in's knot refers to the outer Boundary the material's edge follows), so
@@ -246,18 +247,18 @@ road height at that station (negative below it), the Strip's lower and upper edg
 (`bottom <= top`, so a Strip may taper to zero height; `invalid_strip` otherwise), edge interpolation, repetition, later Strips overwriting
 earlier ones, and the active-piece ceiling is those of road Strips, and a wall's Strip products count against the
 Section's Strip ceilings together with the road's ([Numeric and resource domains](#numeric-and-resource-domains)); every Strip, repeated ones included,
-lies within `[from, to]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
+lies within `[start, end]` (`invalid_wall` for an authored knot, `invalid_position` or `invalid_strip` for a repeated or
 expanded one). The wall is visible where its Strips are. A wall with no Strips is invisible and must be solid (a wall
 neither seen nor met is rejected); reading rejects this with `invalid_value`. Whether a wall is solid
 does not affect its picture. Compilation turns a visible wall's Strips, with the road's Strip compiler, into a color
-table over the wall's own interval (station `s - from`) and keeps the height range its opaque Strips span;
+table over the wall's own interval (station `s - start`) and keeps the height range its opaque Strips span;
 [Architecture](architecture.md#walls) owns how it is drawn. A visible wall needs the Section's environments.
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered
 edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. Section `openLimits`
-declares where a course limit does not run: an array (empty when the Section has none) of `{side, from, to}`, side
-`"left"` or `"right"` from Position `from` to Position `to` (`from < to`, `invalid_value` otherwise). That side has no
+declares where a course limit does not run: an array (empty when the Section has none) of `{side, start, end}`, side
+`"left"` or `"right"` from Position `start` to Position `end` (`start < end`, `invalid_value` otherwise). That side has no
 course limit over the declared interval; a wall for looks only beside it does not open it. A vehicle leaving through an
 open limit has no support beyond the material and falls; ordinary recovery returns it.
 
@@ -315,13 +316,13 @@ A circuit has exactly one finish; other circuit Sections have none. The fork sec
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
 lock or closure gates.
 
-`rules` is required: `{maxLaps}`, a position-free setting. `maxLaps` is an integer from 1 through 99;
+`entry` names the Section a run enters. `maxLaps` is a position-free setting: an integer from 1 through 99;
 non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 
 A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
 timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
 FREE PLAY and TIME TRIAL Sessions. Compilation requires the start, grid and finish coverage described
-above for every course; the grid holds at least the player. Compiled `rules` retain these settings;
+above for every course; the grid holds at least the player. Compiled `rules` retain `maxLaps`;
 compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
 
 ### Null meanings
@@ -334,11 +335,11 @@ CourseDocument nulls each have one meaning:
 | Strip `color`                    | Leave the earlier color channel unchanged                 |
 | Strip `material`                 | Leave the earlier material channel unchanged              |
 | Strip knot `left` / `right`      | That edge is open to negative / positive lateral infinity |
-| Sprite `unselectedCarriagewayId` | Ordinary sprite with no exit-selection condition          |
+| Sprite `unselectedCarriageway`   | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
 | Sprite body `movable`            | A fixed object                                            |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
-| Solid wall `freeFrom` / `freeTo` | That end joins a course limit or another solid wall       |
+| Solid wall `freeStart`/`freeEnd` | That end joins a course limit or another solid wall       |
 
 ### Numeric and resource domains
 
@@ -501,7 +502,7 @@ have exactly one positive-width Carriageway at `s=0`. Every outgoing Link names 
 Carriageway at `s=L`; outgoing Links from one Section use distinct Carriageways. Violations produce
 structured compilation diagnostics.
 
-`from` identifies the outgoing Section and Carriageway; `to` identifies the destination Section.
+`from` identifies the outgoing `section` and `carriageway`; `to` names the destination Section.
 The rigid yaw/translation maps the outgoing Carriageway center and heading at `L` to the unique
 incoming center and heading at zero. Each Link independently checks that transformed left and right
 edges match within 1e-7 m, heights within 1e-8 m and profile grades within 1e-10.
@@ -553,7 +554,7 @@ be made, leaving the document unchanged. `setCourseNumbers` sets values where a 
 `moveCourseElement` moves an element along and across the Section as written: each Position's `offset` (its PI stays)
 and each lateral's number, or a reference's `offset` (the reference stays); a repeat copy's record is its original's,
 so moving any copy moves the original and every copy, and Positions measured from a moved PI move with it. A move can
-be limited to some fields (a wall's `from`, a Strip's `left`) and snapped: each changed value goes to the nearest
+be limited to some fields (a wall's `start`, a Strip's `left`) and snapped: each changed value goes to the nearest
 multiple of a step, nothing else. Derived points do not move. `addCoursePi` inserts a PI at a plan point and radius with a new id;
 `removeCoursePi` is refused while a Position in its Section measures from it. An edit may produce a document admission
 rejects; the compile's diagnostics then say why.

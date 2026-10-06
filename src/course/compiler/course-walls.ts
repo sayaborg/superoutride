@@ -71,9 +71,9 @@ export function compileCourseWalls(
           `${at}/boundary`,
           `Unknown reference ${JSON.stringify(source.boundary)} in this scope`,
         );
-      const start = resolve(source.from, `${at}/from`).s,
-        end = resolve(source.to, `${at}/to`).s;
-      requireCourse(start < end, `${at}/to`, 'A wall needs from < to', 'invalid_wall');
+      const start = resolve(source.start, `${at}/start`).s,
+        end = resolve(source.end, `${at}/end`).s;
+      requireCourse(start < end, `${at}/end`, 'A wall needs start < end', 'invalid_wall');
       requireCourse(
         boundary.vertices[0]!.at.s <= start && boundary.vertices.at(-1)!.at.s >= end,
         `${at}/boundary`,
@@ -124,8 +124,8 @@ export function compileWallEnds(
     if (!solid) return;
     const line = own++;
     for (const [s, free, field] of [
-      [wall.start, solid.freeFrom, 'freeFrom'],
-      [wall.end, solid.freeTo, 'freeTo'],
+      [wall.start, solid.freeStart, 'freeStart'],
+      [wall.end, solid.freeEnd, 'freeEnd'],
     ] as const) {
       const l = courseBoundaryAt(wall.boundary, s);
       const joined = lines.some(
@@ -179,9 +179,9 @@ export function compileCourseBarriers(
   const open = { left: [] as [number, number][], right: [] as [number, number][] };
   openLimits.forEach((declared, index) => {
     const at = `${path}/openLimits/${index}`;
-    const start = resolve(declared.from, `${at}/from`).s,
-      end = resolve(declared.to, `${at}/to`).s;
-    requireCourse(start < end, `${at}/to`, 'An open limit needs from < to', 'invalid_value');
+    const start = resolve(declared.start, `${at}/start`).s,
+      end = resolve(declared.end, `${at}/end`).s;
+    requireCourse(start < end, `${at}/end`, 'An open limit needs start < end', 'invalid_value');
     open[declared.side].push([start, end]);
   });
   for (const side of ['left', 'right'] as const) {

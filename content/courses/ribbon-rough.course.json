@@ -1,9 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 40,
+  "version": 41,
   "name": "RIBBON ROUGH",
-  "entrySectionId": "rough-bumps",
-  "rules": { "maxLaps": 3 },
+  "entry": "rough-bumps",
+  "maxLaps": 3,
   "sections": [
     {
       "id": "rough-bumps",
@@ -450,7 +450,7 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -467,13 +467,13 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
         }
       ],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -1010,7 +1010,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON ROUGH",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "gates": [
@@ -1515,7 +1515,7 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -1532,13 +1532,13 @@
               "at": { "pi": "start", "offset": 17.5 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
         }
       ],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": -7,
@@ -1700,7 +1700,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON ROUGH",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "gates": [
@@ -1722,13 +1722,13 @@
   "links": [
     {
       "id": "bumps-to-return",
-      "from": { "sectionId": "rough-bumps", "carriagewayId": "road" },
-      "to": { "sectionId": "rough-return" }
+      "from": { "section": "rough-bumps", "carriageway": "road" },
+      "to": "rough-return"
     },
     {
       "id": "return-to-bumps",
-      "from": { "sectionId": "rough-return", "carriagewayId": "road" },
-      "to": { "sectionId": "rough-bumps" }
+      "from": { "section": "rough-return", "carriageway": "road" },
+      "to": "rough-bumps"
     }
   ],
   "assets": [

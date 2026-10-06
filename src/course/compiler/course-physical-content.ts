@@ -15,8 +15,8 @@ export function compileCoursePhysicalContent(
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
 ) {
-  const heightPath = `${path}/height`;
-  const nodes = source.height.map((node, i) => ({
+  const heightPath = `${path}/profile`;
+  const nodes = source.profile.map((node, i) => ({
     s: resolve(node.at, `${heightPath}/${i}/at`).s,
     y: node.y,
     curveLength: node.curveLength,

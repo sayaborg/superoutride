@@ -1,9 +1,9 @@
 {
   "format": "superoutride.course",
-  "version": 40,
+  "version": 41,
   "name": "RIBBON RING",
-  "entrySectionId": "ring-outward",
-  "rules": { "maxLaps": 3 },
+  "entry": "ring-outward",
+  "maxLaps": 3,
   "sections": [
     {
       "id": "ring-outward",
@@ -379,7 +379,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -396,7 +396,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON RING",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
         }
       ],
       "sprites": [
@@ -412,7 +412,7 @@
               "at": { "pi": "start", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -429,7 +429,7 @@
               "at": { "pi": "start", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -900,7 +900,7 @@
       ],
       "walls": [],
       "openLimits": [],
-      "height": [
+      "profile": [
         {
           "at": { "pi": "start", "offset": 0 },
           "y": 0,
@@ -917,7 +917,7 @@
         {
           "at": { "pi": "start", "offset": 0 },
           "name": "RIBBON RING",
-          "background": { "assetId": "coast-sky", "horizonY": 320, "yawOrigin": 180 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 180 }
         }
       ],
       "sprites": [
@@ -933,7 +933,7 @@
               "at": { "pi": "start", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-left", "offset": -5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -950,7 +950,7 @@
               "at": { "pi": "start", "offset": 17.50162686430845 },
               "lateral": { "boundary": "road-right", "offset": 5 },
               "groundOffset": 0,
-              "unselectedCarriagewayId": null,
+              "unselectedCarriageway": null,
               "body": null
             }
           ]
@@ -975,13 +975,13 @@
   "links": [
     {
       "id": "outward-to-return",
-      "from": { "sectionId": "ring-outward", "carriagewayId": "road" },
-      "to": { "sectionId": "ring-return" }
+      "from": { "section": "ring-outward", "carriageway": "road" },
+      "to": "ring-return"
     },
     {
       "id": "return-to-entry",
-      "from": { "sectionId": "ring-return", "carriagewayId": "road" },
-      "to": { "sectionId": "ring-outward" }
+      "from": { "section": "ring-return", "carriageway": "road" },
+      "to": "ring-outward"
     }
   ],
   "assets": [

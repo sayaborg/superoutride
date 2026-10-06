@@ -81,7 +81,7 @@ export interface CourseElement {
   readonly point: 'authored' | 'derived';
   /** The written element a derived point comes from. */
   readonly derivedFrom: string | null;
-  /** Each Position field (`at`, `start`, `end`, `from`, `to`) as written and resolved. */
+  /** Each Position field (`at`, `start`, `end`) as written and resolved. */
   readonly positions: Readonly<Record<string, WrittenPosition>>;
   /** Each lateral field (`lateral`, `left`, `right`) as written and resolved; an open edge is absent. */
   readonly laterals: Readonly<Record<string, WrittenLateral>>;
@@ -112,10 +112,10 @@ export interface CourseStructure {
   readonly links: readonly {
     readonly pointer: string;
     readonly id: string;
-    readonly from: { readonly sectionId: string; readonly carriagewayId: string };
-    readonly to: { readonly sectionId: string };
+    readonly from: { readonly section: string; readonly carriageway: string };
+    readonly to: string;
   }[];
-  readonly entrySectionId: string | null;
+  readonly entry: string | null;
   /** The document admission's diagnostic, when it rejects the document; the form is read as far as it goes. */
   readonly admission: { readonly code: string; readonly message: string; readonly pointer: string } | null;
 }
@@ -149,10 +149,10 @@ export function readCourseStructure(value: unknown): CourseStructure {
         pointer: `/links/${i}`,
         id: String(v.id ?? ''),
         from: record(v.from) as unknown as CourseStructure['links'][number]['from'],
-        to: record(v.to) as unknown as CourseStructure['links'][number]['to'],
+        to: String(v.to ?? ''),
       };
     }),
-    entrySectionId: typeof document.entrySectionId === 'string' ? document.entrySectionId : null,
+    entry: typeof document.entry === 'string' ? document.entry : null,
     admission: first
       ? { code: first.code, message: first.message, pointer: ('path' in first ? first.path : '') ?? '' }
       : null,
@@ -215,7 +215,7 @@ export function createSectionProfile(section: SectionDocument, pointer: string, 
     const resolve = (at: CoursePosition, path: string) => resolveCoursePosition(at, plan.stations, plan.length, path);
     return { profile: compileCoursePhysicalContent(section, plan.length, resolve, pointer).height, problem: null };
   } catch (error) {
-    return { profile: null, problem: problemOf(error, `${pointer}/height`) };
+    return { profile: null, problem: problemOf(error, `${pointer}/profile`) };
   }
 }
 
@@ -358,8 +358,8 @@ function readSection(
         add('arc-end', from, {}, { point: 'derived', derivedFrom: from, station: { s, l: 0 } });
     }
   // The profile: written PVIs and the vertical curve ends they derive.
-  list(section.height).forEach((node, i) => {
-    const at = `${pointer}/height/${i}`;
+  list(section.profile).forEach((node, i) => {
+    const at = `${pointer}/profile/${i}`;
     const v = record(node);
     add('pvi', at, v, { positions: ['at'], values: { y: v.y, curveLength: v.curveLength } });
     const pvi = elements.at(-1)!;
@@ -503,10 +503,10 @@ function readSection(
     const at = `${pointer}/walls/${i}`;
     const v = record(wall);
     const boundary = boundaries.get(String(v.boundary));
-    add('wall', at, v, { positions: ['from', 'to'], values: { boundary: v.boundary, solid: v.solid !== null } });
+    add('wall', at, v, { positions: ['start', 'end'], values: { boundary: v.boundary, solid: v.solid !== null } });
     const element = elements.at(-1)!;
-    const from = element.positions.from?.s,
-      to = element.positions.to?.s;
+    const from = element.positions.start?.s,
+      to = element.positions.end?.s;
     if (boundary && typeof from === 'number' && typeof to === 'number')
       try {
         elements[elements.length - 1] = {
@@ -541,7 +541,7 @@ function readSection(
   });
   list(section.openLimits).forEach((limit, i) =>
     add('open-limit', `${pointer}/openLimits/${i}`, record(limit), {
-      positions: ['from', 'to'],
+      positions: ['start', 'end'],
       values: { side: record(limit).side },
     }),
   );

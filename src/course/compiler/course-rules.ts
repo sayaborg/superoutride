@@ -24,7 +24,7 @@ export function compileCourseGates(
   entry: CompiledSection,
   stations: ReadonlyMap<CompiledSection, ReadonlyMap<string, number>>,
 ) {
-  const source = document.rules;
+  const source = { maxLaps: document.maxLaps };
   const check = (condition: boolean, path: string, message: string) =>
     requireCourse(condition, path, message, 'invalid_gate');
   const authored = document.sections.flatMap((source, i) =>

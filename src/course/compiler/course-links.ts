@@ -166,7 +166,7 @@ export function compileCourseTopology(entry: CompiledSection, sections: readonly
   } else {
     requireCourse(
       entry.incoming.length === 0,
-      '/entrySectionId',
+      '/entry',
       'Entry Section cannot have an incoming Link',
       'invalid_topology',
     );

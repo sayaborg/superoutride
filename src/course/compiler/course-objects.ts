@@ -81,7 +81,7 @@ export function compileCourseSpriteObjects(
     const body = source.body;
     if (body === null) return;
     requireCourse(
-      source.unselectedCarriagewayId === null,
+      source.unselectedCarriageway === null,
       `${path}/body`,
       'A state-selected sign cannot be solid',
       'invalid_placement',
