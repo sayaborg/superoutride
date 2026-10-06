@@ -8,12 +8,13 @@ import {
   type SectionPlan,
 } from '../authoring/course-structure.js';
 import type { SectionDocument } from '../../src/course/course-document.js';
+import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import type { WorkbenchContext, WorkbenchModule } from './workbench-context.js';
 import { createPlanView, PLAN_LAYERS, type PlanLayer, type PlanStyle } from './course-plan-view.js';
 import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
-import { createPlanEditing, writtenNumbers } from './course-editing.js';
+import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
 import { addCoursePi, removeCoursePi, setCourseNumbers, type CourseEditResult } from '../authoring/course-edits.js';
 
 /** The colours of the forms an element is written in. */
@@ -135,6 +136,7 @@ export const courseModule: WorkbenchModule = {
     let sectionId: string | null = null,
       sectionIndex = -1,
       plan: SectionPlan | null = null,
+      profile: ProfileReader | null = null,
       cursor = 0,
       lateral = 0,
       selected: CourseElement | null = null;
@@ -147,18 +149,19 @@ export const courseModule: WorkbenchModule = {
       if (!result.ok) note.textContent = result.reason;
       return result.ok ? result : null;
     };
+    const editing: CourseEditHost = {
+      document: () => document as Json | null,
+      selected: () => selected,
+      plan: () => plan,
+      elements: () => structure?.sections[sectionIndex]?.elements ?? [],
+      step: () => (snap.value === 'off' ? null : Number(snap.value)),
+      preview: (result) => showPending(result),
+      commit,
+    };
     const view = createPlanView(canvas, {
       pick: (picked) => select(picked),
       cursor: (s) => moveCursor(s),
-      grab: createPlanEditing({
-        document: () => document as Json | null,
-        selected: () => selected,
-        plan: () => plan,
-        elements: () => structure?.sections[sectionIndex]?.elements ?? [],
-        step: () => (snap.value === 'off' ? null : Number(snap.value)),
-        preview: (result) => showPending(result),
-        commit,
-      }),
+      grab: createPlanEditing(editing),
     });
     /**
      * A pending edit on the plan, read again through the product's functions alone (no compile); what moves with it is
@@ -169,6 +172,7 @@ export const courseModule: WorkbenchModule = {
       if (!before) return;
       if (!result) {
         view.setSection(before, plan);
+        profileView.setSection(before, plan, profile);
         showSelected();
         note.textContent = status;
         return;
@@ -177,18 +181,20 @@ export const courseModule: WorkbenchModule = {
         note.textContent = result.reason;
         return;
       }
-      const { structure: pending, plan: pendingPlan } = readCourseSection(result.document, sectionIndex);
-      view.setSection(pending, pendingPlan);
-      const moved = pending.elements.filter((e, i) => e.x !== before.elements[i]?.x || e.z !== before.elements[i]?.z);
-      view.setSelection(
-        selected?.pointer ?? null,
-        moved.map((e) => e.pointer),
-      );
+      const pending = readCourseSection(result.document, sectionIndex);
+      view.setSection(pending.structure, pending.plan);
+      profileView.setSection(pending.structure, pending.plan, pending.profile);
+      const moved = pending.structure.elements
+        .filter((e, i) => e.x !== before.elements[i]?.x || e.z !== before.elements[i]?.z)
+        .map((e) => e.pointer);
+      view.setSelection(selected?.pointer ?? null, moved);
+      profileView.setSelection(selected?.pointer ?? null, moved);
       note.textContent = `Pending: ${result.changes.map((c) => `${c.pointer} ${c.before} → ${c.after}`).join(', ')}`;
     };
     const profileView = createProfileView(profileCanvas, {
       pick: (picked) => select(picked),
       cursor: (s) => moveCursor(s),
+      grab: createProfileEditing(editing),
     });
     const sectionView = createSectionView(sectionCanvas, { pick: (picked) => select(picked) });
     const gameView = createGameView(gameCanvas, gameStatus, (query) => context.query(query));
@@ -214,14 +220,11 @@ export const courseModule: WorkbenchModule = {
         : null;
       if (selected && selected.section !== next) selected = null;
       view.setSection(section, plan);
-      profileView.setSection(
-        section,
-        plan,
-        section
-          ? createSectionProfile((document as { sections: SectionDocument[] }).sections[index]!, section.pointer, plan)
-              .profile
-          : null,
-      );
+      profile = section
+        ? createSectionProfile((document as { sections: SectionDocument[] }).sections[index]!, section.pointer, plan)
+            .profile
+        : null;
+      profileView.setSection(section, plan, profile);
       sectionView.setSection(section);
       // The cursor stays while the plan does not compile.
       if (plan) cursor = Math.min(cursor, plan.length);

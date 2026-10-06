@@ -270,13 +270,14 @@ diagnostics show on the element their Pointer falls in.
 The selected element is edited on the plan by the [edits that keep form](content-and-gameplay.md#course-authoring-operations):
 dragging a PI moves its `x` and `z`, dragging an end of its arc sets its `radius`, dragging a near end of a wall, curb or
 open limit moves that Position, and dragging anything else moves its Positions and laterals along and across the
-Section; a repeat copy drags its original, and every copy with it. While dragging, only the plan changes: it is read
-again from the pending document through the product's functions, with what moves ringed and the changed values listed,
-and the release replaces the document, one step (Escape drops it). The selection lists each written number as a field,
-including each enclosing repeat's `every` and `count`. Changed values snap to a chosen step (off, 0.01 to 10 m). "Add PI
-at cursor" inserts a PI with the chosen radius at the cursor's plan point, after the PIs before it, and "Remove selected
-PI" removes one no Position measures from. An edit is committed even when the course then fails to compile; the plan
-still shows the PIs and their polygon, and the diagnostics say why.
+Section; a repeat copy drags its original, and every copy with it. On the profile, dragging a PVI moves its Position's
+`offset` and its `y`, and dragging an end of its vertical curve sets its `curveLength`. While dragging, only the plan and
+profile change: they are read again from the pending document through the product's functions, with what moves ringed
+and the changed values listed, and the release replaces the document, one step (Escape drops it). The selection lists
+each written number as a field, including each enclosing repeat's `every` and `count`. Changed values snap to a chosen
+step (off, 0.01 to 10 m). "Add PI at cursor" inserts a PI with the chosen radius at the cursor's plan point, after the
+PIs before it, and "Remove selected PI" removes one no Position measures from. An edit is committed even when the course
+then fails to compile; the plan still shows the PIs and their polygon, and the diagnostics say why.
 
 To apply an archive to the repository, extract it at the repository root, delete the files `workbench-changes.json`
 marks `deleted`, delete `workbench-changes.json`, then run `npm run measure -- generate`, `npm run check` and

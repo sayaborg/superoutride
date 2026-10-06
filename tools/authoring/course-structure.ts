@@ -17,6 +17,7 @@ import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from 
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { valueAt, type Json } from './json-pointer.js';
+import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 
 /**
@@ -158,7 +159,7 @@ export function readCourseStructure(value: unknown): CourseStructure {
   };
 }
 
-/** One Section's form and plan, read alone: what a view redraws while an edit is pending. */
+/** One Section's form, plan and profile, read alone: what a view redraws while an edit is pending. */
 export function readCourseSection(value: unknown, index: number) {
   return readSection(record(list(record(value).sections)[index]) as unknown as SectionDocument, `/sections/${index}`);
 }
@@ -221,7 +222,7 @@ export function createSectionProfile(section: SectionDocument, pointer: string, 
 function readSection(
   section: SectionDocument,
   pointer: string,
-): { structure: SectionStructure; plan: SectionPlan | null } {
+): { structure: SectionStructure; plan: SectionPlan | null; profile: ProfileReader | null } {
   const elements: CourseElement[] = [];
   const id = String(section.id ?? '');
   // The plan: PI stations, the ruler and the coordinate reader that places (s, l) in the plan.
@@ -596,7 +597,7 @@ function readSection(
       station,
     });
   });
-  return { structure: { id, pointer, length, elements }, plan };
+  return { structure: { id, pointer, length, elements }, plan, profile: height };
 }
 
 /** An element with nothing resolved yet. */

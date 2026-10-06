@@ -7,15 +7,25 @@ const SAMPLE_METERS = 2;
 const PICK_PIXELS = 8;
 const MARGIN = { left: 48, right: 12, top: 28, bottom: 30 };
 
+/** An edit dragged on the profile: each movement's station and height, then its end, committed or dropped. */
+export interface ProfileDrag {
+  move(at: { s: number; h: number }): void;
+  end(commit: boolean): void;
+}
+
 /**
  * The profile of one Section: station s across, road height up. The road height is the compiler's profile, sampled;
  * PVIs are written points (filled), vertical-curve ends derived (hollow), each tangent's grade written on it; PIs
- * mark their stations along the top and gates along the bottom. The cursor and the selection are the plan's. A click
- * picks the nearest point or moves the cursor.
+ * mark their stations along the top and gates along the bottom. The cursor and the selection are the plan's. A press
+ * `grab` takes drags an edit; a click picks the nearest point or moves the cursor.
  */
 export function createProfileView(
   canvas: HTMLCanvasElement,
-  events: { pick(element: CourseElement | null): void; cursor(s: number): void },
+  events: {
+    pick(element: CourseElement | null): void;
+    cursor(s: number): void;
+    grab(at: { s: number; h: number }, element: CourseElement | null): ProfileDrag | null;
+  },
 ) {
   let section: SectionStructure | null = null,
     plan: SectionPlan | null = null,
@@ -31,6 +41,12 @@ export function createProfileView(
   const y = (h: number) =>
     canvas.height - MARGIN.bottom - ((h - low) / (high - low)) * (canvas.height - MARGIN.top - MARGIN.bottom);
   const sOf = (px: number) => ((px - MARGIN.left) / (canvas.width - MARGIN.left - MARGIN.right)) * (plan?.length ?? 0);
+  const toProfile = (px: number, py: number) => ({
+    s: sOf(px),
+    h: low + ((canvas.height - MARGIN.bottom - py) / (canvas.height - MARGIN.top - MARGIN.bottom)) * (high - low),
+  });
+  // While an edit drags, the height scale stays as it was at the press.
+  let frozen = false;
 
   const points = () =>
     (section?.elements ?? []).filter(
@@ -61,8 +77,10 @@ export function createProfileView(
         .filter((e) => e.kind === 'pvi')
         .map(heightOf),
     ];
-    low = Math.min(...heights) - 2;
-    high = Math.max(...heights) + 2;
+    if (!frozen) {
+      low = Math.min(...heights) - 2;
+      high = Math.max(...heights) + 2;
+    }
     c.font = '11px system-ui, sans-serif';
     // Axes: heights at the left, stations along the bottom.
     c.strokeStyle = '#2a333d';
@@ -133,11 +151,14 @@ export function createProfileView(
     );
   };
 
-  canvas.addEventListener('click', (event) => {
-    if (!section || !plan) return;
+  const local = (event: MouseEvent) => {
     const box = canvas.getBoundingClientRect();
-    const px = ((event.clientX - box.left) / box.width) * canvas.width,
-      py = ((event.clientY - box.top) / box.height) * canvas.height;
+    return {
+      x: ((event.clientX - box.left) / box.width) * canvas.width,
+      y: ((event.clientY - box.top) / box.height) * canvas.height,
+    };
+  };
+  const pickAt = (px: number, py: number) => {
     let best: CourseElement | null = null,
       distance = PICK_PIXELS;
     for (const e of points()) {
@@ -147,8 +168,41 @@ export function createProfileView(
         distance = d;
       }
     }
+    return best;
+  };
+  // A press an edit grabs drags it, the height scale held still; a click picks the nearest point or moves the cursor.
+  let press: { x: number; y: number; moved: boolean; drag: ProfileDrag | null } | null = null;
+  canvas.addEventListener('pointerdown', (event) => {
+    if (!section || !plan) return;
+    const at = local(event);
+    press = { ...at, moved: false, drag: events.grab(toProfile(at.x, at.y), pickAt(at.x, at.y)) };
+    frozen = press.drag !== null;
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener('pointermove', (event) => {
+    if (!press?.drag) return;
+    const at = local(event);
+    if (!press.moved && Math.hypot(at.x - press.x, at.y - press.y) < 3) return;
+    press.moved = true;
+    press.drag.move(toProfile(at.x, at.y));
+  });
+  const release = (commit: boolean) => {
+    const ended = press;
+    press = null;
+    frozen = false;
+    ended?.drag?.end(commit && ended.moved);
+    return ended;
+  };
+  canvas.addEventListener('pointercancel', () => release(false));
+  addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') release(false);
+  });
+  canvas.addEventListener('pointerup', () => {
+    const ended = release(true);
+    if (!ended || ended.moved || !plan) return;
+    const best = pickAt(ended.x, ended.y);
     if (best) events.pick(best);
-    else events.cursor(Math.max(0, Math.min(plan.length, sOf(px))));
+    else events.cursor(Math.max(0, Math.min(plan.length, sOf(ended.x))));
   });
 
   return {
