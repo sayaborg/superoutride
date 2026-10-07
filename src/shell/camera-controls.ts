@@ -2,7 +2,7 @@ import type { CameraDefinition } from '../view/camera.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 
 type CameraTuningKey =
-  'heightFrequency' | 'heightDampingRatio' | 'minimumClearance' | 'yawLimit' | 'yawResponseSeconds';
+  'baseDownPitch' | 'heightFrequency' | 'heightDampingRatio' | 'minimumClearance' | 'yawLimit' | 'yawResponseSeconds';
 
 /** DEV camera settings: each a choice of values for one camera definition field. */
 const CAMERA_TUNING: readonly {
@@ -13,6 +13,13 @@ const CAMERA_TUNING: readonly {
   /** The displayed value per definition unit; 1 when they agree. */
   readonly scale?: number;
 }[] = [
+  {
+    key: 'baseDownPitch',
+    label: 'Camera down pitch',
+    unit: '°',
+    choices: [12, 10, 8, 6, 4, 2, 0].map((degrees) => (degrees * Math.PI) / 180),
+    scale: 180 / Math.PI,
+  },
   { key: 'heightFrequency', label: 'Camera height frequency', unit: 'Hz', choices: [0.5, 1, 2, 3, 5, 10] },
   { key: 'heightDampingRatio', label: 'Camera height damping ratio', unit: '', choices: [0.5, 0.7, 1, 1.5, 2] },
   { key: 'minimumClearance', label: 'Camera minimum clearance', unit: 'm', choices: [0, 0.3, 0.6, 1] },

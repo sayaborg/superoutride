@@ -134,10 +134,13 @@ vehicles' route speeds (12), and lanes carried across every seam as the lanes co
 ## Camera settings
 
 The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace
-them for the session without saving, and a reload restores them.
+them for the session without saving, and a reload restores them. The down pitch sets the horizon row and the camera
+height together: the camera is solved to keep the player at its target row, so a smaller pitch moves the horizon
+down the screen and lowers the camera ([Architecture](architecture.md#camera-and-fixed-metric)).
 
 | Setting              | Value | DEV choices              | Meaning                                                                |
 | -------------------- | ----- | ------------------------ | ---------------------------------------------------------------------- |
+| Down pitch           | 12°   | 12, 10, 8, 6, 4, 2, 0°   | Base downward pitch `phi_0` (stored in radians)                        |
 | Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz   | Natural frequency of the sprung camera height                          |
 | Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2      | Damping ratio of the sprung camera height                              |
 | Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m         | Lowest camera height above the rendered road at its station            |
