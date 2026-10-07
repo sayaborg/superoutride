@@ -286,8 +286,9 @@ open limit has no support beyond the material and falls; ordinary recovery retur
 ### Roadside objects
 
 Compilation publishes each Section's solid objects, a physical product apart from appearance, in station order: each
-`{s, l, width, bottom, top, sprite, movable}`, a solid width across the road at station `s` and lateral `l`, with no depth
-along it, from height `bottom` to `top`. A solid sprite, every expanded placement with a body, is one: its body's width,
+`{s, l, width, bottom, top, sprite, movable}`, a solid width across the road at station `s` and lateral `l`, from height
+`bottom` to `top`. A fixed object has no depth along the road; a movable one's footprint is the square of its width,
+centred on (s, l), in contacts, drivers' sightings, placement and shadows alike, standing, flying or landed. A solid sprite, every expanded placement with a body, is one: its body's width,
 from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
 `sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
 `movable` holds a movable body's mass and launch elevation (null for a fixed one). A solid sprite's height, and the
@@ -1196,7 +1197,7 @@ It is a constraint of the driver's plan, braked back like a curve speed: with th
 
 ```text
 gap    = max(terminalClearance + v_a × followSeconds, escape)
-margin = max(0, Δs − (L₁ + L₂)/2 − gap − v × responseSeconds)
+margin = max(0, Δs − (F₁ + F₂)/2 − gap − v × responseSeconds)
 target² ≤ v_a² + 2 × a × margin
 ```
 
@@ -1215,8 +1216,9 @@ vehicle ahead, behind that lane's vehicle ahead under the same constraint (the c
 adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
 its constrained plan by more than `passingMargin` (0.15 m/s), and drives that speed in its new lane. It stays
 in its lane until another lane is faster by that margin. A lane is free when no
-vehicle in it lies between the driver's following distance ahead, `(L₁ + L₂)/2 + v × followSeconds`, and, behind,
-half the two lengths plus that vehicle's speed times `followSeconds`. With no faster free lane, or when it does not
+vehicle in it lies between the driver's following distance ahead, `(F₁ + F₂)/2 + v × followSeconds`, and, behind,
+half the two footprints plus that vehicle's speed times `followSeconds`. Drivers read each vehicle's footprint `F` and
+each standing object's footprint (its depth along the road, its width across) as contacts do. With no faster free lane, or when it does not
 pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
 braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
@@ -1271,19 +1273,23 @@ The race publishes traffic observations in their own list. Records do not depend
 The race computes body contact once per fixed step, from the state at the step's start, over the vehicles present
 in the Session (the competitors in competitor order, then the traffic in order of appearance); the force on each holds through that step and enters its vehicle mechanics as
 the external force ([Vehicle physics](vehicle-physics.md#body-contact)). There is no contact during READY. A
-vehicle's contact shape is its footprint laid along the road at its route position (s, l): it does not turn with the
-vehicle's yaw. Its height range runs from its bottom, its world centre-of-mass height less `desiredCgHeight`, to its
+vehicle's contact shape is its footprint, the square of its overall width (`footprint`), laid along the road at its
+route position (s, l): it does not turn with the vehicle's yaw, since a long side would collide unintuitively once the
+vehicle is yawed. Its height range runs from its bottom, its world centre-of-mass height less `desiredCgHeight`, to its
 bottom plus `overallHeight`. For two vehicles with route-coordinate differences Δs and Δl and bottoms B₁ and B₂:
 
 ```text
-overlapS = (L₁ + L₂)/2 − |Δs|     overlapL = (W₁ + W₂)/2 − |Δl|
+overlapS = (F₁ + F₂)/2 − |Δs|     overlapL = (F₁ + F₂)/2 − |Δl|
 overlapH = min(B₁ + H₁, B₂ + H₂) − max(B₁, B₂)
 ```
 
-with overall lengths L, widths W and heights H. A contact begins when all three are positive, so a vehicle in the
-air passes over one below it. Its face, an axis and a side, is decided once, as it begins, from the pair's route
+with footprints F and overall heights H. A contact begins when all three are positive, so a vehicle in the air passes
+over one below it. It also begins when the height overlap is positive and the relative position, moving linearly from
+(Δs⁻, Δl⁻) to (Δs, Δl), entered the overlap box during the step although the footprints are apart at both its ends:
+thin footprints closing fast pass through each other within one step (two motorcycles' overlap lasts about 1.4 m of
+relative travel, one step at 84 m/s), and they meet as if they had touched. Its face, an axis and a side, is decided once, as it begins, from the pair's route
 positions at the start of the previous step (Δs⁻, Δl⁻): the axis is ahead-behind when the vehicles were apart
-ahead-behind (`(L₁ + L₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
+ahead-behind (`(F₁ + F₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
 they were apart on both axes, the axis is the one that began to overlap later within the step, moving each relative
 position linearly from Δ⁻ to Δ; ahead-behind when both began together. The side is the sign of that axis's relative
 position Δ⁻. A contact begins with both axes already overlapping when two footprints overlapped while their heights did
@@ -1291,7 +1297,7 @@ not — a vehicle in the air above another vehicle or a standing object — and 
 recovery and appearance never place a vehicle on another's footprint or a standing object's, so no other contact begins
 overlapped. Such a contact's axis is the one with the smaller overlap in the step it begins, and its side the current
 relative position. The race keeps each pair's face, keyed by the two vehicles' ids, until their footprints separate: until the
-overlap along the face, `(L₁ + L₂)/2 − side × Δs` (or the width form), or the other axis's overlap is no longer
+overlap along the face, `(F₁ + F₂)/2 − side × Δs` (or the lateral form), or the other axis's overlap is no longer
 positive. The overlap along the face grows on even if a vehicle passes the other's centre. Pairs no longer in contact,
 and those of vehicles gone from the Session, are forgotten. The height overlap decides only whether the vehicles
 touch: while it is not positive there is no force, and a contact does not begin. The force acts along the
@@ -1300,12 +1306,13 @@ equal magnitude and opposite sign on the two vehicles, on the overlap along the 
 relative world velocity along that direction. The spring-damper is the Session's one `bodyContact`, read at Session resolution from the Session's driving definition
 (the player's), for every contact, wall, course limit and object in the Session.
 
-A standing object meets every vehicle present by the same rule, as a party of zero length and its width at its route
-position, with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
+A standing object meets every vehicle present by the same rule, as a party of its footprint at its route position —
+a movable object's the square of its width, a fixed object's its width with no depth — with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
 the reduced mass is the vehicle's and only the vehicle receives the force. A movable one's reduced mass comes from the
 two masses, and the push knocks it ([Roadside objects](#roadside-objects)). Each step a vehicle meets every standing
-object whose route station lies within its length, across seams, so an object just past a seam is met before the
-vehicle's centre crosses it; the pair is keyed by the vehicle's id and the object's identity, and the contact faces alone
+object whose footprint its own could have reached over the step, from its route station one step earlier to its station
+now widened by half its footprint and half the widest resident object, across seams, so an object just past a seam is met
+before the vehicle's centre crosses it and one passed within the step is met too; the pair is keyed by the vehicle's id and the object's identity, and the contact faces alone
 hold which pairs are in contact. Near a solid wall's free end both the wall's line and the end
 object can push a vehicle; their forces add.
 
@@ -1313,7 +1320,7 @@ object can push a vehicle; their forces add.
 
 Walls and course limits act on every vehicle present, in every step after READY, from the state at the step's start;
 the race adds their force to the body contact force. A barrier line acts on a vehicle whose centre's Section station
-lies within it (a wall: from its `from` through its `to`). Its overlap is half the vehicle's overall width less the
+lies within it (a wall: from its `from` through its `to`). Its overlap is half the vehicle's footprint (its overall width) less the
 centre's lateral distance from the line, measured toward the side the line keeps it on: a course limit keeps vehicles on
 its material side; a wall keeps a vehicle on the side its centre was on when it began to touch the wall, as a contact
 keeps its face, until they no longer overlap (the contact faces hold that side, keyed by the vehicle's id and the wall), so

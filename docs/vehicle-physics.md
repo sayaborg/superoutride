@@ -564,12 +564,14 @@ points to the top gear's `powertrain/gearRatios` element. A vehicle's reach must
 reach bound `MAXIMUM_VEHICLE_REACH`, 4 m, which the course layer owns and from which the Section lateral domain extends
 ([Architecture](architecture.md#plan-authority)); a violation points to `overallLength`.
 `overallLength`, `overallWidth` and `overallHeight` are the body's overall dimensions in metres, positive and
-finite. The vehicle's footprint is the `overallLength` by `overallWidth` rectangle centred on the vehicle
-centre; it must contain both contact stations (`overallLength / 2 >= max(frontAxle, rearAxle)`). Its reach is
-the footprint's half diagonal. Physics does not read the dimensions; the race's body contact reads all three, `overallHeight` for the
-vehicle's height range ([Content and gameplay](content-and-gameplay.md#body-contact)).
-A footprint that does not contain both contact stations points to `overallLength`. The compiled vehicle
-publishes the three dimensions and its derived `reach`.
+finite. The body, the `overallLength` by `overallWidth` rectangle centred on the vehicle centre, must contain both
+contact stations (`overallLength / 2 >= max(frontAxle, rearAxle)`); its reach is that rectangle's half diagonal. The
+vehicle's footprint is the square of its overall width (`footprint`), centred on its route position and laid along the
+road; it does not turn with the vehicle. Physics does not read the dimensions. The race reads the footprint and
+`overallHeight`, the height of its contact range ([Content and gameplay](content-and-gameplay.md#body-contact)), and
+nothing in the race reads `overallLength`, which stays the vehicle's recorded size and bounds its reach and stations.
+A body that does not contain both contact stations points to `overallLength`. The compiled vehicle publishes the three
+dimensions and its derived `reach` and `footprint`.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
 fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,

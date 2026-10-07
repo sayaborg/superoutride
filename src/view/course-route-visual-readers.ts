@@ -12,6 +12,12 @@ import type { RouteWall } from './course-wall.js';
 export function createCourseRouteVisualReaders(route: RouteWindow) {
   const resources = createCourseRenderResources();
   const sections = new Map<CompiledSection, ReturnType<typeof resources.createSectionReaders>>();
+  // The solid body of a Section's movable placement, found by its placement index.
+  const movableBody = (section: CompiledSection, index: number) => {
+    const body = section.objects.find((object) => object.sprite === index && object.movable);
+    if (!body) throw new Error(`Placement ${index} of Section ${section.id} has no movable body`);
+    return body;
+  };
   const sectionReaders = (section: CompiledSection) => {
     let readers = sections.get(section);
     if (!readers) {
@@ -90,11 +96,24 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       worldSprites: Object.freeze(
         placements.filter((p) => p.unselectedLink === null && !p.movable).map((p) => p.sprite),
       ),
-      // Movable placements stand until the race knocks them; the scene shows each by its Section and placement index.
+      // Movable placements stand until the race knocks them; the scene shows each by its Section and placement index,
+      // with its body's square footprint (route station and lateral, and its width) for its shadow.
       movableSprites: Object.freeze(
         placements
           .filter((p) => p.movable)
-          .map((p) => ({ section: p.occurrence.section, index: p.index, sprite: p.sprite })),
+          .map((p) => {
+            const body = movableBody(p.occurrence.section, p.index);
+            return {
+              section: p.occurrence.section,
+              index: p.index,
+              sprite: p.sprite,
+              footprint: Object.freeze({
+                s: routeS(p.occurrence, body.s),
+                l: body.l - p.occurrence.lateralOrigin,
+                side: body.width,
+              }),
+            };
+          }),
       ),
       // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
       conditionalSprites: Object.freeze(
@@ -110,6 +129,8 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       knockedPictures(section: CompiledSection, index: number) {
         return sectionReaders(section).sprites[index]!.knocked!;
       },
+      /** The body of the movable placement at `index` of a Section. */
+      movableBody,
       backgroundAt(s: number) {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;

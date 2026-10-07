@@ -87,8 +87,14 @@ export interface CompiledVehicle extends Pick<
   | 'frontDriveTorqueFraction'
   | 'quadraticDrag'
 > {
-  /** The footprint's half diagonal, `hypot(overallLength / 2, overallWidth / 2)`, in metres. */
+  /** The body's half diagonal, `hypot(overallLength / 2, overallWidth / 2)`, in metres. */
   readonly reach: number;
+  /**
+   * The side of the vehicle's square footprint, its overall width, in metres: centred on its route position and laid
+   * along the road, never turned by its yaw. Contacts, drivers, placement and shadows read it; its height range is
+   * the body's.
+   */
+  readonly footprint: number;
   readonly powertrain: CompiledAutomaticPowertrainDefinition;
   readonly frontStation: CompiledContactStation;
   readonly rearStation: CompiledContactStation;
@@ -120,11 +126,11 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     if (!(definition[field] >= 0) || !Number.isFinite(definition[field]))
       throw new DefinitionDomainError(field, `${field} must be finite and >= 0`);
   }
-  // The footprint, centred on the vehicle centre, contains both contact stations.
+  // The body, centred on the vehicle centre, contains both contact stations.
   if (!(definition.overallLength / 2 >= Math.max(definition.frontAxle, definition.rearAxle)))
     throw new DefinitionDomainError(
       'overallLength',
-      'overallLength / 2 must be at least max(frontAxle, rearAxle) so the footprint contains both contact stations',
+      'overallLength / 2 must be at least max(frontAxle, rearAxle) so the body contains both contact stations',
     );
   const reach = Math.hypot(definition.overallLength / 2, definition.overallWidth / 2);
   if (!(reach <= MAXIMUM_VEHICLE_REACH))
@@ -212,6 +218,7 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     overallWidth: definition.overallWidth,
     overallHeight: definition.overallHeight,
     reach,
+    footprint: definition.overallWidth,
     mass: definition.mass,
     yawInertia: definition.yawInertia,
     pitchInertia: definition.pitchInertia,

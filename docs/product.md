@@ -273,7 +273,10 @@ the top. The touch area does not depend on where the frame is.
 
 Competitors and traffic have physical extent and contact each other, cars and motorcycles included.
 Vehicles that touch push each other apart, ahead-behind or side to side, with equal and opposite forces
-that act through the ordinary vehicle mechanics. A vehicle in the air passes over one below it. Contact
+that act through the ordinary vehicle mechanics. Each vehicle occupies a box as wide and long as the vehicle is wide,
+and as high as it is high, laid along the road whatever way it faces; cones and barricades occupy the square of their
+width. Vehicles moving fast never pass through each other or an object between frames. A
+vehicle in the air passes over one below it. Contact
 never turns a vehicle, never topples a motorcycle, never ends a run by itself and causes no damage.
 
 A road is made of lanes. Every course has at least one lane, and the course's centre line is the centre of one of
@@ -334,9 +337,9 @@ identity within the pseudo projection and mechanics, and records deliberate depa
 ## 15. Rendering and authoring
 
 The view combines a tiled background, road and sprites with the player and HUD. Vehicle brake lamps
-select a saved palette. Every vehicle casts a shadow on the ground directly below it, grounded or in the air, so the
-height and landing point of a jump read at a glance: a rectangle of its overall length and width, aligned with the
-road rather than the vehicle, that halves the ground's brightness. Courses and assets are saved files.
+select a saved palette. Every vehicle, and every cone or barricade, casts a shadow on the ground directly below it,
+grounded or in the air, so the height and landing point of a jump read at a glance: the square it occupies (§12),
+aligned with the road rather than the vehicle, that halves the ground's brightness. Courses and assets are saved files.
 Courses, images and definitions are saved documents. One authoring core compiles them for the build, the CLI and the
 workbench. The workbench is a browser page served with each build: it edits documents, previews measured envelopes and
 reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive

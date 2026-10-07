@@ -37,8 +37,8 @@ export function createLaneDriving(options: {
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
-  // Reused records for the standing objects drivers see: zero length, the object's width, at rest in line with the
-  // road, heading for their own lateral.
+  // Reused records for the standing objects drivers see: the object's footprint, at rest in line with the road, heading
+  // for their own lateral.
   const objectSightings: VehicleSighting[] = [];
   const roadSample = createPlanCoordinateSample();
   // The road's heading at a vehicle's route position (kept in `roadSample`).
@@ -55,8 +55,8 @@ export function createLaneDriving(options: {
       Object.assign(body.sighting, {
         s: vehicle.course.s,
         l: vehicle.course.l,
-        length: model.compiledVehicle.overallLength,
-        width: model.compiledVehicle.overallWidth,
+        length: model.compiledVehicle.footprint,
+        width: model.compiledVehicle.footprint,
         speed: routeSpeed(vehicle, roadHeading(vehicle)),
         heading: wrapAngle(travelYaw(vehicle) - roadSample.heading),
         target: presentTarget(body),
@@ -71,7 +71,7 @@ export function createLaneDriving(options: {
       frontS = Math.max(frontS, body.vehicle.course.s);
     }
     let sighted = 0;
-    roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width) => {
+    roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width, depth) => {
       if (sighted === objectSightings.length)
         objectSightings.push({
           s: 0,
@@ -84,9 +84,16 @@ export function createLaneDriving(options: {
           driver: null,
           standing: true,
         });
-      const sighting = objectSightings[sighted++] as { s: number; l: number; width: number; target: number };
+      const sighting = objectSightings[sighted++] as {
+        s: number;
+        l: number;
+        length: number;
+        width: number;
+        target: number;
+      };
       sighting.s = s;
       sighting.l = sighting.target = l;
+      sighting.length = depth;
       sighting.width = width;
       sightings.push(sighting as VehicleSighting);
     });
@@ -207,8 +214,8 @@ export function createLaneDriving(options: {
       Object.assign(appearing, {
         s,
         l: lane(s),
-        length: model.compiledVehicle.overallLength,
-        width: model.compiledVehicle.overallWidth,
+        length: model.compiledVehicle.footprint,
+        width: model.compiledVehicle.footprint,
         speed: 0,
         target: lane(s),
         driver,

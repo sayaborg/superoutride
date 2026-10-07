@@ -515,9 +515,10 @@ is last among world visuals.
 
 ### Vehicle shadows
 
-Every vehicle, the player included, has a shadow on the ground directly below it, drawn by one rule. Its shape is a
-rectangle in route coordinates: from its chainage, half its vehicle definition's `overallLength` back and forth, and
-from its lateral, half its `overallWidth` left and right. Yaw, pitch, roll, lean and height do not change it; there is
+Every vehicle, the player included, and every movable object has a shadow on the ground directly below it, drawn by one
+rule. Its shape is its footprint's square in route coordinates: from its chainage and from its lateral, half the
+footprint back and forth and left and right (a vehicle's `footprint`, its overall width; a movable object's width,
+standing, flying or landed). Fixed objects cast none. Yaw, pitch, roll, lean and height do not change it; there is
 no light direction. The ground rows project it: each row tests its own chainage footprint (`[sNear, sNear + deltaS]`)
 and maps the rectangle's laterals to pixels with its projected metre ruler, so shadows follow slopes and crests with no
 projection or height of their own, and a row hidden behind a crest hides its part of a shadow.

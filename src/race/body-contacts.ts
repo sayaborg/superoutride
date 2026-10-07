@@ -10,7 +10,10 @@ import type { ContactLog } from './contact-log.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 
-/** A vehicle's footprint on the Route: its centre (route s and l) and its overall length and width. */
+/**
+ * A footprint on the Route: its centre (route s and l) and its extents along the road and across it. A vehicle's and
+ * a movable object's are squares; a fixed object's has no length.
+ */
 export interface RouteFootprint {
   readonly s: number;
   readonly l: number;
@@ -86,6 +89,31 @@ function overlapStart(before: number, now: number, half: number): number {
 }
 
 /**
+ * Whether the relative position, moving linearly from (`ps`, `pl`) to (`ds`, `dl`) through the step, entered the open
+ * overlap box `|s| < hs`, `|l| < hl` at some time within it: the pair met during the step even if it is apart at both
+ * ends, as two thin footprints passing through each other in one step are.
+ */
+function sweptOverlap(ps: number, pl: number, ds: number, dl: number, hs: number, hl: number): boolean {
+  let enter = 0,
+    leave = 1;
+  for (const [from, to, half] of [
+    [ps, ds, hs],
+    [pl, dl, hl],
+  ] as const) {
+    const move = to - from;
+    if (move === 0) {
+      if (Math.abs(from) >= half) return false;
+      continue;
+    }
+    const a = (-half - from) / move,
+      b = (half - from) / move;
+    enter = Math.max(enter, Math.min(a, b));
+    leave = Math.min(leave, Math.max(a, b));
+  }
+  return enter < leave;
+}
+
+/**
  * Decide the face of a contact beginning this step from the pair's relative positions one step earlier (`ps`, `pl`) and
  * now (`ds`, `dl`), with half sums `hs` and `hl`: the axis that was separated while the other overlapped; when both were
  * separated, the one that began to overlap later within the step (ahead-behind when equal). The sign is b's side of a
@@ -108,7 +136,8 @@ function entryFace(ps: number, pl: number, ds: number, dl: number, hs: number, h
 
 /**
  * The race's contact faces, one rule for every pair that pushes apart: two vehicles, a vehicle and an object. A contact
- * begins when the two footprints and height ranges overlap. Its face, the axis and the side each is pushed to, is decided
+ * begins when the two footprints and height ranges overlap, or when the height ranges overlap and the footprints passed
+ * through each other within the step (`sweptOverlap`), as thin footprints at a high closing speed do. Its face, the axis and the side each is pushed to, is decided
  * once as it begins (`entryFace`) and kept until the footprints separate: until the overlap along the face, the half sum
  * less the signed relative position, or the other axis's overlap is no longer positive. While the height ranges overlap
  * it pushes along that axis, the road's horizontal tangent or right read at the pair's midpoint, with the spring-damper on
@@ -174,15 +203,12 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
         if (hs - (face.alongS ? along : Math.abs(ds)) <= 0 || hl - (face.alongS ? Math.abs(dl) : along) <= 0)
           return false;
       } else {
-        if (hs - Math.abs(ds) <= 0 || hl - Math.abs(dl) <= 0) return false;
-        face = entryFace(
-          flip * (b.previousS - a.previousS),
-          flip * (b.previousL - a.previousL),
-          flip * ds,
-          flip * dl,
-          hs,
-          hl,
-        );
+        const ps = flip * (b.previousS - a.previousS),
+          pl = flip * (b.previousL - a.previousL);
+        // A pair apart now begins only if it passed through the other within the step; it is pushed back to its side.
+        if ((hs - Math.abs(ds) <= 0 || hl - Math.abs(dl) <= 0) && !sweptOverlap(ps, pl, flip * ds, flip * dl, hs, hl))
+          return false;
+        face = entryFace(ps, pl, flip * ds, flip * dl, hs, hl);
       }
       const touching = Math.min(a.top, b.top) - Math.max(a.bottom, b.bottom) > 0;
       // A contact begins only where the parties touch; once begun, its face holds while their footprints overlap.
@@ -217,14 +243,14 @@ export function createContactFaces(coordinates: PlanCoordinateReader, contact: C
 /** A vehicle as a contact party: its id, route position now and one step earlier, footprint, height range, mass and velocity. */
 export function writeVehicleParty(party: ContactParty, body: ContactBody): ContactParty {
   const { vehicle } = body,
-    { overallLength, overallWidth, overallHeight, desiredCgHeight, mass } = body.model.compiledVehicle;
+    { footprint, overallHeight, desiredCgHeight, mass } = body.model.compiledVehicle;
   party.key = body.id;
   party.s = vehicle.course.s;
   party.l = vehicle.course.l;
   party.previousS = body.previous.s;
   party.previousL = body.previous.l;
-  party.length = overallLength;
-  party.width = overallWidth;
+  party.length = footprint;
+  party.width = footprint;
   party.bottom = vehicle.y - desiredCgHeight;
   party.top = party.bottom + overallHeight;
   party.mass = mass;

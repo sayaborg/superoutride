@@ -16,7 +16,7 @@ import { createCourseWorld } from '../race/course-world.js';
 import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
-import { createVehicleShadows, type ShadowedVehicle } from './vehicle-shadow.js';
+import { createVehicleShadows, type ShadowSquare, type ShadowedVehicle } from './vehicle-shadow.js';
 
 /** A camera's loading window; reference driving and scenarios load the product camera's. */
 function courseLoadingWindow(camera: Pick<CameraDefinition, 'focalLength'>): CourseLoadingWindow {
@@ -43,6 +43,8 @@ export function createCourseScene(
   const worldSprites: CourseSprite[] = [];
   const sample = createPlanCoordinateSample();
   const shadows = createVehicleShadows(vehicles);
+  // The movable objects' square footprints for this frame's shadows: standing, flying and landed alike.
+  const objectSquares: ShadowSquare[] = [];
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
@@ -89,14 +91,20 @@ export function createCourseScene(
         lastSelection = selection;
       }
       worldSprites.length = staticSpriteCount;
+      objectSquares.length = 0;
       const down = knocked.length ? new Set(knocked.map((k) => `${k.section.id} ${k.sprite}`)) : null;
       for (const movable of renderData.movableSprites)
-        if (!down?.has(`${movable.section.id} ${movable.index}`)) worldSprites.push(movable.sprite);
+        if (!down?.has(`${movable.section.id} ${movable.index}`)) {
+          worldSprites.push(movable.sprite);
+          objectSquares.push(movable.footprint);
+        }
       for (const k of knocked) {
         const pictures = renderData.knockedPictures(k.section, k.sprite);
+        const side = renderData.movableBody(k.section, k.sprite).width;
         const show = (s: number, l: number, asset: CourseSprite['asset']) => {
           const position = readers.coordinates.toWorld(s, l, sample);
           worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset });
+          objectSquares.push({ s, l, side });
         };
         if (k.state === 'airborne') {
           if (runtime.window.at(k.s)) show(k.s, k.l, pictures.airborne);
@@ -119,7 +127,7 @@ export function createCourseScene(
           worldSprites,
           walls: renderData.walls,
           playerSet,
-          shadows: shadows(shadowed),
+          shadows: shadows(shadowed, objectSquares),
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
         measurements,

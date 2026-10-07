@@ -8,9 +8,16 @@ export interface ShadowedVehicle {
   readonly course: VehicleWorldPoseRead['course'];
 }
 
+/** A square footprint on the Route: its centre (route s and l) and its side, metres. */
+export interface ShadowSquare {
+  readonly s: number;
+  readonly l: number;
+  readonly side: number;
+}
+
 /**
- * A vehicle's shadow: its overall length and width as a rectangle in route coordinates, centred on its chainage and
- * lateral and aligned with the course whatever its yaw, pitch, roll or lean.
+ * A shadow: a footprint's square in route coordinates, centred on its chainage and lateral and aligned with the course
+ * whatever its owner's yaw, pitch, roll or lean.
  */
 export interface VehicleShadow {
   readonly sStart: number;
@@ -19,24 +26,32 @@ export interface VehicleShadow {
   readonly lRight: number;
 }
 
-/** The shadows of a frame's vehicles from their definitions' dimensions; the returned list is reused per call. */
+/**
+ * The shadows of a frame: each vehicle's from its definition's square footprint, then each given square (a movable
+ * object's). The returned list is reused per call.
+ */
 export function createVehicleShadows(vehicles: readonly CompiledVehicleDefinition[]) {
-  const dimensions = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.compiledVehicle]));
+  const footprints = new Map(
+    vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.compiledVehicle.footprint]),
+  );
   const pool: { sStart: number; sEnd: number; lLeft: number; lRight: number }[] = [];
   const shadows: VehicleShadow[] = [];
-  return (shadowed: readonly ShadowedVehicle[]): readonly VehicleShadow[] => {
+  const add = (s: number, l: number, side: number) => {
+    const shadow = (pool[shadows.length] ??= { sStart: 0, sEnd: 0, lLeft: 0, lRight: 0 });
+    shadow.sStart = s - side / 2;
+    shadow.sEnd = s + side / 2;
+    shadow.lLeft = l - side / 2;
+    shadow.lRight = l + side / 2;
+    shadows.push(shadow);
+  };
+  return (shadowed: readonly ShadowedVehicle[], squares: readonly ShadowSquare[]): readonly VehicleShadow[] => {
     shadows.length = 0;
-    for (let i = 0; i < shadowed.length; i++) {
-      const { vehicleId, course } = shadowed[i]!;
-      const vehicle = dimensions.get(vehicleId);
-      if (!vehicle) throw new Error(`No dimensions for vehicle ${vehicleId}`);
-      const shadow = (pool[i] ??= { sStart: 0, sEnd: 0, lLeft: 0, lRight: 0 });
-      shadow.sStart = course.s - vehicle.overallLength / 2;
-      shadow.sEnd = course.s + vehicle.overallLength / 2;
-      shadow.lLeft = course.l - vehicle.overallWidth / 2;
-      shadow.lRight = course.l + vehicle.overallWidth / 2;
-      shadows.push(shadow);
+    for (const { vehicleId, course } of shadowed) {
+      const footprint = footprints.get(vehicleId);
+      if (footprint === undefined) throw new Error(`No footprint for vehicle ${vehicleId}`);
+      add(course.s, course.l, footprint);
     }
+    for (const { s, l, side } of squares) add(s, l, side);
     return shadows;
   };
 }

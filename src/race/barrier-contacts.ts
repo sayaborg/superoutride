@@ -39,14 +39,14 @@ export function createBarrierContacts(
       if (!occurrence) continue;
       const s = routeSectionS(occurrence, vehicle.course.s),
         l = vehicle.course.l + occurrence.lateralOrigin;
-      const { overallWidth, mass } = body.model.compiledVehicle;
+      const { footprint, mass } = body.model.compiledVehicle;
       let heading = NaN;
       occurrence.section.barriers.forEach((line, index) => {
         if (s < line.start || s > line.end) return;
         const offset = l - line.lateralAt(s);
         const key = `line ${occurrence.section.id} ${index}`;
         const side = line.keep !== 0 ? line.keep : faces.lineSide(body.id, key, offset < 0 ? -1 : 1);
-        const overlap = overallWidth / 2 - side * offset;
+        const overlap = footprint / 2 - side * offset;
         if (overlap <= 0) return;
         const began = faces.touchLine(body.id, key, side);
         if (Number.isNaN(heading)) heading = coordinates.toWorld(vehicle.course.s, vehicle.course.l, sample).heading;

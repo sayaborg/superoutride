@@ -25,8 +25,8 @@ export function createVehiclePlacement(options: {
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
-    length: model.compiledVehicle.overallLength,
-    width: model.compiledVehicle.overallWidth,
+    length: model.compiledVehicle.footprint,
+    width: model.compiledVehicle.footprint,
   });
   // What a footprint of `model` at (s, l) would overlap — a present vehicle other than `self`, or a fixed object — as its
   // route station and length; null when the place is free.
@@ -42,11 +42,12 @@ export function createVehiclePlacement(options: {
         body.vehicle !== self &&
         footprintsOverlap(at, footprint(body.model, body.vehicle.course.s, body.vehicle.course.l))
       )
-        return { s: body.vehicle.course.s, length: body.model.compiledVehicle.overallLength };
+        return { s: body.vehicle.course.s, length: body.model.compiledVehicle.footprint };
     let object: { s: number; length: number } | null = null;
-    roadsideObjects.sight(s - at.length / 2, s + at.length / 2, (objectS, objectL, width) => {
-      if (!object && footprintsOverlap(at, { s: objectS, l: objectL, length: 0, width }))
-        object = { s: objectS, length: 0 };
+    const near = at.length / 2 + roadsideObjects.objectReach();
+    roadsideObjects.sight(s - near, s + near, (objectS, objectL, width, depth) => {
+      if (!object && footprintsOverlap(at, { s: objectS, l: objectL, length: depth, width }))
+        object = { s: objectS, length: depth };
     });
     return object;
   };
@@ -59,7 +60,7 @@ export function createVehiclePlacement(options: {
       other = occupant(self.model, s, l, self.vehicle)
     ) {
       const behind =
-        other.s - (self.model.compiledVehicle.overallLength + other.length) / 2 - RECOVERY_POLICY.placementClearance;
+        other.s - (self.model.compiledVehicle.footprint + other.length) / 2 - RECOVERY_POLICY.placementClearance;
       s = Math.max(window.start, behind);
       l = lane(s);
     }
