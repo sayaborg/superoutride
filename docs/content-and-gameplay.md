@@ -703,7 +703,8 @@ extension/retention distances. Geometry/content indexes and race cross-section l
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
 A driving scene requires Session settings and compiled start gates, and checks the rearmost grid
-station against `D_cam` (6 m with the product camera): the rearmost slot must be at least that far from the entry. Driving beyond the entry uses the same coordinate-domain recovery rule
+station against the camera's distance behind the player (`D_cam` plus half the player's footprint, 7 m for a 2 m wide
+car with the product camera): the rearmost slot must be at least that far from the entry. Driving beyond the entry uses the same coordinate-domain recovery rule
 as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
@@ -1256,7 +1257,8 @@ vehicle heads for the selected exit, else for an exit drawn from the seed, k and
 closed road recovers like any vehicle.
 
 The appearance line is the player's route station plus the farthest rendered distance ahead of it,
-`s − cameraDistance + far` from the loading coverage's view. In each step in which the line reaches a position, a
+`s − cameraDistance + far` from the loading coverage's view, whose `cameraDistance` is the camera's distance behind
+the player's route position. In each step in which the line reaches a position, a
 traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
 lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
 never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`

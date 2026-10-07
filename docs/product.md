@@ -339,7 +339,9 @@ identity within the pseudo projection and mechanics, and records deliberate depa
 The view combines a tiled background, road and sprites with the player and HUD. Vehicle brake lamps
 select a saved palette. Every vehicle, and every cone or barricade, casts a shadow on the ground directly below it,
 grounded or in the air, so the height and landing point of a jump read at a glance: the square it occupies (§12),
-aligned with the road rather than the vehicle, that halves the ground's brightness. Courses and assets are saved files.
+aligned with the road rather than the vehicle, that halves the ground's brightness. A vehicle's picture, and a cone's
+or barricade's, stands on the near edge of that square, so the picture rises from the shadow's back edge; the camera
+keeps the player's picture at the same place and size. Courses and assets are saved files.
 Courses, images and definitions are saved documents. One authoring core compiles them for the build, the CLI and the
 workbench. The workbench is a browser page served with each build: it edits documents, previews measured envelopes and
 reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive

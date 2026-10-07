@@ -13,6 +13,8 @@ export interface DrivingLifecycleOptions {
   readonly cameraDefinition: () => CameraDefinition;
   /** The player's borrowed competitor observation, current after each step and each manual recovery. */
   readonly observation: () => VehicleMotionRead;
+  /** The player vehicle's square footprint, metres: its picture stands on the footprint's near edge. */
+  readonly footprint: number;
 }
 
 /**
@@ -20,7 +22,8 @@ export interface DrivingLifecycleOptions {
  * Recovery, a Session rebuild and START reset the camera to its target.
  */
 export function createDrivingLifecycle(cameraRig: CameraRig, options: DrivingLifecycleOptions) {
-  const follow = () => updateCamera(cameraRig, options.world(), options.observation(), options.cameraDefinition());
+  const follow = () =>
+    updateCamera(cameraRig, options.world(), options.observation(), options.cameraDefinition(), options.footprint);
   let camera = follow();
   function update(recovered = false): void {
     if (recovered) resetCameraRig(cameraRig);

@@ -109,7 +109,13 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
   // ARCADE takes the test series' settings, or the delivered series' with `series: 'product'`.
   const arcade = scenario.series === 'product' ? productArcade : scenarioArcade;
   const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
+  const scene = createCourseScene(
+    course.entry,
+    course.gates,
+    definitions.vehicles,
+    { camera: CAMERA_DEFINITION, footprint: entry.compiledVehicle.footprint },
+    settings,
+  );
   // ARCADE takes the test series' settings for the course; TIME TRIAL and FREE PLAY take the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
@@ -224,7 +230,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       observed.player,
       camera,
       observed.player.brakeLampOn ? visual.on : visual.off,
-      sprites([...observed.rivals, ...observed.traffic], camera),
+      sprites([...observed.rivals, ...observed.traffic], camera, scene.world.coordinates),
       [observed.player, ...observed.rivals, ...observed.traffic],
       observed.knocked,
     );
@@ -295,7 +301,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);
     }
-    camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION);
+    camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION, entry.compiledVehicle.footprint);
     finiteState(camera, 'camera');
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;

@@ -27,8 +27,15 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
     const course = await loadDeliveredCourse(content, stem, materials);
     const settings = createDisplaySettings();
-    const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const entry = definitions.vehicles[0];
+    const footprint = entry.compiledVehicle.footprint;
+    const scene = createCourseScene(
+      course.entry,
+      course.gates,
+      definitions.vehicles,
+      { camera: CAMERA_DEFINITION, footprint },
+      settings,
+    );
     const sprites = createVehicleSprites(entry);
     const model = createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT);
     // The player's grid slot, as a product Session places it.
@@ -47,7 +54,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     ];
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
-      const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION);
+      const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, footprint);
       target.pixels.fill(0);
       const result = createRenderMeasurements();
       scene.render(target, vehicle, camera, sprites.off, [], shadowed, [], result);

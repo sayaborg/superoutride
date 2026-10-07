@@ -5,6 +5,7 @@ import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js
 import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { PLAYER_DEPTH_PIXELS_PER_METER } from './display-scale.js';
+import { standingPoint, type StandingPoint } from './standing-point.js';
 import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
@@ -31,11 +32,20 @@ export interface CameraDefinition {
 }
 
 /**
- * The player depth `D_cam`, metres: where the focal length gives the fixed player-depth display scale,
- * `f / 40 px/m`. It follows the focal length, so a field of view change keeps the player's place and size.
+ * The player depth `D_cam`, metres: from the camera to the player's standing point, where the focal length gives the
+ * fixed player-depth display scale, `f / 40 px/m`. It follows the focal length, so a field of view change keeps the
+ * player's place and size.
  */
 export function cameraDistance(definition: Pick<CameraDefinition, 'focalLength'>): number {
   return definition.focalLength / PLAYER_DEPTH_PIXELS_PER_METER;
+}
+
+/**
+ * How far along the road the camera stands behind a player of square footprint `footprint`'s route position: to its
+ * standing point, half its footprint behind it, then `D_cam`. The race's view of the camera reads this distance.
+ */
+export function cameraBehindPlayer(definition: Pick<CameraDefinition, 'focalLength'>, footprint: number): number {
+  return cameraDistance(definition) + footprint / 2;
 }
 
 /** The camera's readers: the plan for the road heading and the rendered road height for its clearance. */
@@ -68,7 +78,12 @@ export interface CameraState extends PseudoCamera {
 
 const planWorkspaces = new WeakMap<
   CameraRig,
-  { point: ReturnType<typeof createPlanCoordinateSample>; floor: { y: number; grade: number } }
+  {
+    point: ReturnType<typeof createPlanCoordinateSample>;
+    floor: { y: number; grade: number };
+    standing: StandingPoint;
+    standingSample: ReturnType<typeof createPlanCoordinateSample>;
+  }
 >();
 
 export function createCameraRig(): CameraRig {
@@ -82,18 +97,24 @@ export function resetCameraRig(rig: CameraRig): void {
 }
 
 /**
- * One fixed step of the camera (SIM_DT). A reset or new rig starts at its target; afterwards the height follows it
- * through the sprung mount.
+ * One fixed step of the camera (SIM_DT) behind a player whose square footprint is `footprint` metres. A reset or new
+ * rig starts at its target; afterwards the height follows it through the sprung mount.
  */
 export function updateCamera(
   rig: CameraRig,
   { coordinates, renderHeight }: CameraWorld,
   vehicle: VehicleMotionRead,
   definition: CameraDefinition,
+  footprint: number,
 ): CameraState {
   let workspace = planWorkspaces.get(rig);
   if (!workspace) {
-    workspace = { point: createPlanCoordinateSample(), floor: { y: 0, grade: 0 } };
+    workspace = {
+      point: createPlanCoordinateSample(),
+      floor: { y: 0, grade: 0 },
+      standing: { x: 0, y: 0, z: 0, s: 0 },
+      standingSample: createPlanCoordinateSample(),
+    };
     planWorkspaces.set(rig, workspace);
   }
   const planAtCar = coordinates.toWorld(vehicle.course.s, 0, workspace.point);
@@ -112,18 +133,20 @@ export function updateCamera(
       : limitedYaw;
 
   const dCam = cameraDistance(definition);
-  const sCamera = vehicle.course.s - dCam;
-  // The camera occupies its yaw ray behind the authoritative vehicle position. Its
-  // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
-  // places the player at centerX by construction; the camera publishes no screen position of its own.
-  const cameraX = vehicle.x - dCam * Math.sin(rig.yaw);
-  const cameraZ = vehicle.z - dCam * Math.cos(rig.yaw);
+  // The player's picture stands on its footprint's near edge: the camera keeps that point at D_cam.
+  const standing = standingPoint(coordinates, vehicle, footprint, workspace.standing, workspace.standingSample);
+  const sCamera = standing.s - dCam;
+  // The camera occupies its yaw ray behind the player's standing point. Its camera-right displacement to that point is
+  // therefore exactly zero, so the renderer's projection places the player at centerX by construction; the camera
+  // publishes no screen position of its own.
+  const cameraX = standing.x - dCam * Math.sin(rig.yaw);
+  const cameraZ = standing.z - dCam * Math.cos(rig.yaw);
 
-  // Constant depth D_cam and pitch following the body. The height target projects the player's reference point
-  // exactly to the target row. Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
+  // Constant depth D_cam and pitch following the body. The height target projects the player's standing point exactly
+  // to the target row. Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
   const cameraPitch = definition.baseDownPitch - bodyPitch;
   const targetY =
-    vehicle.renderY -
+    standing.y -
     (dCam / (definition.focalLength * Math.cos(cameraPitch))) *
       (definition.centerY - definition.focalLength * Math.sin(cameraPitch) - definition.playerTargetY);
   const floor = renderHeight.sample(sCamera, workspace.floor).y + definition.minimumClearance;

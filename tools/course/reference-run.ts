@@ -6,6 +6,7 @@ import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-doc
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -49,7 +50,10 @@ export function runCourseReference(
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
-    scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
+    scene = createCourseScene(course.entry, course.gates, catalog.vehicles, {
+      camera: CAMERA_DEFINITION,
+      footprint: entry.compiledVehicle.footprint,
+    });
   // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
   const configuration = compileSessionConfiguration(
     { mode: 'TIME_TRIAL', vehicleId: entry.compiledVehicle.id, color: null, lapCount },
