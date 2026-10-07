@@ -295,6 +295,8 @@ export function createCourseRace(options: {
       if (speed === null) continue;
       c.pacing?.pace.join(s);
       c.body.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
+      // It starts where it appears: it moved from nowhere, so its contacts sweep nothing before it.
+      Object.assign(c.body.previous, { s, l: lane(s) });
       c.observer = createRouteProgress(lines, c.actor.vehicle.course, s);
       c.present = c.appeared = true;
       appeared = true;

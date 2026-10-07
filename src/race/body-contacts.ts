@@ -36,6 +36,8 @@ export interface ContactBody {
   readonly model: VehicleModel;
   /** Its route position at the start of the previous step. */
   readonly previous: Readonly<{ s: number; l: number }>;
+  /** Whether the previous step recovered it: recovery placed it where it is, so it swept nothing to get there. */
+  readonly recovered: boolean;
   readonly contactForce: Writable<Vec3>;
 }
 
@@ -247,8 +249,9 @@ export function writeVehicleParty(party: ContactParty, body: ContactBody): Conta
   party.key = body.id;
   party.s = vehicle.course.s;
   party.l = vehicle.course.l;
-  party.previousS = body.previous.s;
-  party.previousL = body.previous.l;
+  // A vehicle recovery placed swept nothing to its place: its contacts start from where it stands.
+  party.previousS = body.recovered ? vehicle.course.s : body.previous.s;
+  party.previousL = body.recovered ? vehicle.course.l : body.previous.l;
   party.length = footprint;
   party.width = footprint;
   party.bottom = vehicle.y - desiredCgHeight;
