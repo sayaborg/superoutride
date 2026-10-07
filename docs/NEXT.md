@@ -2,8 +2,8 @@
 
 ## Current state
 
-- One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING and RIBBON ROUGH with ARCADE/FREE PLAY Sessions;
-  RIBBON ROUGH is an untimed evaluation course.
+- One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING, RIBBON ROUGH and the trial courses OUTRUN
+  TRIAL A and A STEEP with ARCADE/FREE PLAY Sessions; RIBBON ROUGH is an untimed evaluation course.
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
   and gates.
   Circuits are closed cycles of two or more Sections.

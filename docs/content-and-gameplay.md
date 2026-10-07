@@ -947,8 +947,9 @@ and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
 Session admits the course it drives.
 
-The delivered series is RIBBON, a development series; its document holds its courses, fields and traffic. RIBBON
-COAST is the [verification course](#verification-course); RIBBON ROUGH belongs to no series.
+The delivered series are RIBBON and TRIAL, development series; each document holds its courses, fields and traffic.
+RIBBON COAST is the [verification course](#verification-course); TRIAL holds the [trial courses](#trial-courses);
+RIBBON ROUGH belongs to no series.
 
 ## FREE PLAY document
 
@@ -1417,6 +1418,16 @@ profile and corners are authored for hands-on evaluation; its shape is not round
 driver cannot complete it, so no series holds it: it is untimed and delivered without reference runs or time budgets.
 Its surfaces carry color-only brightness Strips every metre, so speed and ground motion read on every surface; its
 course document holds them.
+
+## Trial courses
+
+`outrun-trial-a` (OUTRUN TRIAL A) and `outrun-trial-a-steep` (OUTRUN TRIAL A STEEP) are trial courses, not product
+courses: they try out the procedure of raising a course from a video. Each length is the source's displayed speed times
+its duration; the strongest curve is set to 0.75 of the lateral limit and each other curve in proportion to how fast the
+source's background turns there. A's hills keep the car on the ground over each crest (0.6 G at 293 km/h); A STEEP's are
+matched to how the hills look on screen instead. On A STEEP the reference driver leaves the course at a crest, so its
+time limit is generous; it stays so until the AI anticipates the load lost over a crest. Their scenery and pictures are
+provisional; the videos and their pixels are not in the repository. The development series TRIAL holds both.
 
 ## Observation formats
 
