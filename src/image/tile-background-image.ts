@@ -2,11 +2,10 @@ import { readArray, readDocument, readNumber, readRecord, readString, requireAdm
 import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 
 const BACKGROUND_TILE_SIZE = 16;
-const BACKGROUND_TILE_COLUMNS = 80;
 const BACKGROUND_TILE_ROWS = 40;
-const BACKGROUND_WIDTH = BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_SIZE;
+/** The widest map, 4096 px: a full turn at the longest DEV focal length (400 px) is 2513 px. */
+const BACKGROUND_MAX_TILE_COLUMNS = 256;
 export const BACKGROUND_HEIGHT = BACKGROUND_TILE_ROWS * BACKGROUND_TILE_SIZE;
-export const BACKGROUND_PIXELS_PER_RADIAN = BACKGROUND_WIDTH / (2 * Math.PI);
 
 /** The indexed pattern/palette format with a fixed tile arrangement rather than sprite levels. */
 export interface TileBackgroundDocument {
@@ -58,15 +57,23 @@ export function compileTileBackground(value: unknown): TileBackgroundImage {
         readNumber(palette, `${path}/1`, { min: 0, max: palettes.length - 1, integer: true }),
       ] as const;
     },
-    { length: BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
+    { min: BACKGROUND_TILE_ROWS, max: BACKGROUND_MAX_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
+  );
+  requireAdmission(
+    tiles.length % BACKGROUND_TILE_ROWS === 0,
+    'invalid_value',
+    '/tiles',
+    `A tiled background has ${BACKGROUND_TILE_ROWS} full rows of tiles`,
   );
   return new TileBackgroundImage(name, patterns, palettes, tiles);
 }
 
 /** Private packed patterns, palette table and tile bindings are borrowed read-only by the raster. */
 export class TileBackgroundImage {
-  readonly width = BACKGROUND_WIDTH;
+  /** The map's width in pixels: its tile columns, which its tiles give, times 16. */
+  readonly width: number;
   readonly height = BACKGROUND_HEIGHT;
+  readonly #columns: number;
   readonly #patterns: readonly IndexedPattern[];
   readonly #palettes: Uint16Array;
   readonly #tiles: Uint32Array;
@@ -79,10 +86,13 @@ export class TileBackgroundImage {
     tiles: readonly (readonly [patternId: number, paletteId: number])[],
   ) {
     if (
-      tiles.length !== BACKGROUND_TILE_COLUMNS * BACKGROUND_TILE_ROWS ||
+      tiles.length === 0 ||
+      tiles.length % BACKGROUND_TILE_ROWS !== 0 ||
       !tiles.every(([pattern, palette]) => pattern < patterns.length && palette < palettes.length)
     )
-      throw new RangeError('A tiled background binds every tile to an existing pattern and palette');
+      throw new RangeError('A tiled background binds 40 full rows of tiles to existing patterns and palettes');
+    this.#columns = tiles.length / BACKGROUND_TILE_ROWS;
+    this.width = this.#columns * BACKGROUND_TILE_SIZE;
     for (const pattern of patterns)
       for (let i = 0; i < 256; i++)
         if (!pattern.indexAt(i)) throw new RangeError('A tiled background pattern is opaque and has no index 0');
@@ -97,7 +107,7 @@ export class TileBackgroundImage {
   paintRow(target: Uint16Array, destination: number, imageX: number, imageY: number, width: number): void {
     let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
-    const tileRow = (imageY >>> 4) * BACKGROUND_TILE_COLUMNS,
+    const tileRow = (imageY >>> 4) * this.#columns,
       row = (imageY & 15) << 4;
     while (written < width) {
       const column = x & 15,

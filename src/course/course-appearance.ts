@@ -34,7 +34,6 @@ export interface CourseAppearance {
     readonly background: {
       readonly asset: DecodedImage<TileBackgroundImage>;
       readonly horizonY: number;
-      readonly pixelsPerRadian: number;
       readonly yawOriginRadians: number;
     };
   }[];

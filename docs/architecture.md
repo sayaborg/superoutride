@@ -420,6 +420,7 @@ place the camera at its target, at rest relative to it; route seams need no rese
 BG is one infinite tiled plane. Yaw and pitch change its view; translation does not.
 Its yaw origin uses the shared route frame across every occurrence. The background is selected
 at camera chainage `camera.s`; distant sprites and ground rows do not change that selection.
+It scrolls with camera yaw at the focal length, so it turns with distant road and sprites.
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.
 Physical support is independent of all ground colors.
 

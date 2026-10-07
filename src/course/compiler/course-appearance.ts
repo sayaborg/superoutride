@@ -4,7 +4,7 @@ import { type CoursePosition, type SectionDocument } from '../course-document.js
 import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
-import { BACKGROUND_HEIGHT, BACKGROUND_PIXELS_PER_RADIAN } from '../../image/tile-background-image.js';
+import { BACKGROUND_HEIGHT } from '../../image/tile-background-image.js';
 import type { CourseAppearance, CourseSpriteResource, CourseWallAppearance } from '../course-appearance.js';
 import type { StripGround } from '../strip-ground.js';
 import { stripEdgeAt } from '../strip-slabs.js';
@@ -126,7 +126,6 @@ export function compileCourseAppearance(
           background: Object.freeze({
             asset: tiled,
             horizonY: b.horizonY,
-            pixelsPerRadian: BACKGROUND_PIXELS_PER_RADIAN,
             yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
           }),
         }),
