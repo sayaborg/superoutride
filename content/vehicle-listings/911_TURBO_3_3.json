@@ -3,7 +3,7 @@
   "version": 2,
   "form": "car",
   "selectionOrder": 2,
-  "visuals": { "spriteSet": "coupe", "palette": "original" },
+  "visuals": { "spriteSet": "911-turbo-3-3", "palette": "original" },
   "sound": "911_TURBO_3_3",
   "metadata": {
     "manufacturer": "Porsche",

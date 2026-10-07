@@ -346,9 +346,9 @@ result (or the diagnostics, exiting 1):
 
 ```sh
 npm run sprite -- import tree
-npm run sprite -- import car-front --set coupe --cells 0:0,12:0
+npm run sprite -- import car-front --set testarossa --cells 0:0,12:0
 npm run sprite -- new-set van --image van-0 --yaw 24 --bank 1 --lamp 12321,32038
-npm run sprite -- adjust --set coupe --from original --to blue --slots 1,3 --hue 120
+npm run sprite -- adjust --set testarossa --from original --to blue --slots 1,3 --hue 120
 ```
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe: a course image is written as

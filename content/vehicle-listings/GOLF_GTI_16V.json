@@ -3,7 +3,7 @@
   "version": 2,
   "form": "car",
   "selectionOrder": 4,
-  "visuals": { "spriteSet": "coupe", "palette": "original" },
+  "visuals": { "spriteSet": "golf-gti-16v", "palette": "original" },
   "sound": "GOLF_GTI_16V",
   "metadata": {
     "manufacturer": "Volkswagen",

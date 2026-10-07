@@ -3,7 +3,7 @@
   "version": 2,
   "form": "car",
   "selectionOrder": 5,
-  "visuals": { "spriteSet": "coupe", "palette": "original" },
+  "visuals": { "spriteSet": "delta-hf-integrale", "palette": "original" },
   "sound": "DELTA_HF_INTEGRALE",
   "metadata": {
     "manufacturer": "Lancia",

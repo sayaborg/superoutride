@@ -16,8 +16,8 @@ import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from './dom.js';
 import { confirmField, finiteNumber } from './pending-edit.js';
 
-/** Lamp colors before any set is open: the provisional coupe's. */
-const FIRST_LAMP = { off: 12321, on: 32038 } as const;
+/** Lamp colors before any set is open: the provisional vehicle sets'. */
+const FIRST_LAMP = { off: 13379, on: 31974 } as const;
 
 /**
  * A vehicle sprite set: its yaw × bank grid of cells, each showing one of the set's images, edited by the sprite

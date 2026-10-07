@@ -3,7 +3,7 @@
   "version": 2,
   "form": "bike",
   "selectionOrder": 7,
-  "visuals": { "spriteSet": "motorcycle", "palette": "original" },
+  "visuals": { "spriteSet": "r80-gs-paris-dakar", "palette": "original" },
   "sound": "R80_GS_PARIS_DAKAR",
   "metadata": {
     "manufacturer": "BMW",

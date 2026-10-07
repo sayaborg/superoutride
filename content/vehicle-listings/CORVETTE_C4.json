@@ -3,7 +3,7 @@
   "version": 2,
   "form": "car",
   "selectionOrder": 3,
-  "visuals": { "spriteSet": "coupe", "palette": "original" },
+  "visuals": { "spriteSet": "corvette-c4", "palette": "original" },
   "sound": "CORVETTE_C4",
   "metadata": {
     "manufacturer": "Chevrolet",

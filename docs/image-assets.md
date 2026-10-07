@@ -277,8 +277,8 @@ set's images after the earlier sets' and its indices offset to match. The delive
 
 ```text
 {format, version, sprites: [SpriteLodDocument, ...],
- sets: {coupe: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...], brakeLamp: {off, on}},
-       motorcycle: {yawVariants, bankVariants, bankDegrees: 60, assets, brakeLamp}, ...}}
+ sets: {testarossa: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...], brakeLamp: {off, on}},
+       vfr750r: {yawVariants, bankVariants, bankDegrees: 60, assets, brakeLamp}, ...}}
 ```
 
 Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
@@ -297,7 +297,10 @@ format's only specification. The vehicle domain admits the library and owns its 
 per-vehicle color and lamp variants and yaw/bank image selection. The image domain supplies only the
 generic sprite LOD reader and palette resolution.
 
-The provisional coupe has its original palette and an alternate body color. Tail pixels use slot 15, with
-set off/on colors 12321/32038. Motorcycle tail pixels also use slot 15, with set colors 29445/32038.
-The former car slot 5 and motorcycle slot 6 are free (zero-filled). The second color changes body paint.
-Provisional yaw images remain reused; production directional art is deferred to stage 11 onward.
+The provisional pictures are one set per vehicle, named by its id in lower case with `_` as `-` (`testarossa`,
+`911-turbo-3-3`): drawn by code, original, at 40 px/m with the bottom row as the ground line, `anchorX` at the
+vehicle's position and the body's nearest point on the ground line. Cars have 24 yaw images; motorcycles 24 yaw by 5
+bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color. Their palette slots are 1–3 body
+(light, mid, dark), 4–5 glass, 6 tyres, 7 shadowed parts, 8 headlamps, 9 bumpers, 10 metal, 11–12 the rider's clothing,
+13 the helmet, 14 spare and 15 the brake lamp, with set off/on colors 13379/31974. They are baked for the product
+camera (240 px, 0°) and are rebaked when it changes; production art replaces them.

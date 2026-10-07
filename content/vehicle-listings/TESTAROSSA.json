@@ -3,7 +3,7 @@
   "version": 2,
   "form": "car",
   "selectionOrder": 1,
-  "visuals": { "spriteSet": "coupe", "palette": "original" },
+  "visuals": { "spriteSet": "testarossa", "palette": "original" },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",
