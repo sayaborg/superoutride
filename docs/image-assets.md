@@ -298,9 +298,11 @@ per-vehicle color and lamp variants and yaw/bank image selection. The image doma
 generic sprite LOD reader and palette resolution.
 
 The provisional pictures are one set per vehicle, named by its id in lower case with `_` as `-` (`testarossa`,
-`911-turbo-3-3`): drawn by code, original, at 40 px/m with the bottom row as the ground line, `anchorX` at the
-vehicle's position and the body's nearest point on the ground line. Cars have 24 yaw images; motorcycles 24 yaw by 5
-bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color. Their palette slots are 1–3 body
+`911-turbo-3-3`): drawn by code, original, at 40 px/m on the ground line, which is the bottom row (rows below the body
+are empty where it stands behind that line), with `anchorX` at the vehicle's position. Every image of a set places the
+vehicle's position at the same point, half the vehicle's width behind the ground line as the scene's camera sees it, so
+turning a vehicle does not move it up or down. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5 bank
+images (`bankDegrees` 60). Each has an `original` and an `alternate` color. Their palette slots are 1–3 body
 (light, mid, dark), 4–5 glass, 6 tyres, 7 shadowed parts, 8 headlamps, 9 bumpers, 10 metal, 11–12 the rider's clothing,
 13 the helmet, 14 spare and 15 the brake lamp, with set off/on colors 13379/31974. They are baked for the product
 camera (240 px, 0°) and are rebaked when it changes; production art replaces them.
