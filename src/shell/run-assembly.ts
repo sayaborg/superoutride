@@ -96,7 +96,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const build = (tuned: { readonly vehicle: SessionVehicle; readonly configuration: SessionConfiguration } | null) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const session = prepared.resolve(page.drawSeed(), tuned);
-    const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
+    const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings, page.cameraDefinition());
     const race = createCourseRace({ session, runtime: scene.runtime });
     // The Session's records: the HUD's record, resolved once the TIME TRIAL route is decided, and the judgement made
     // when the product Session reaches GOAL. A DEV-tuned Session compares with and records nothing.

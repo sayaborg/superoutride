@@ -4,15 +4,16 @@ import type { PseudoCamera } from './projection.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { SIM_DT } from '../race/fixed-step.js';
+import { PLAYER_DEPTH_PIXELS_PER_METER } from './display-scale.js';
 import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
 
 export interface CameraDefinition {
-  readonly dCam: number;
   /** Authored downward view angle relative to the vehicle-pitch reference. */
   readonly baseDownPitch: number;
+  /** The focal length, px: the one authority for the field of view and, through it, the player depth. */
   readonly focalLength: number;
   readonly centerX: number;
   readonly centerY: number;
@@ -27,6 +28,14 @@ export interface CameraDefinition {
   readonly yawLimit: number;
   /** The camera yaw's response time constant, seconds; 0 follows the limited body yaw at once. */
   readonly yawResponseSeconds: number;
+}
+
+/**
+ * The player depth `D_cam`, metres: where the focal length gives the fixed player-depth display scale,
+ * `f / 40 px/m`. It follows the focal length, so a field of view change keeps the player's place and size.
+ */
+export function cameraDistance(definition: Pick<CameraDefinition, 'focalLength'>): number {
+  return definition.focalLength / PLAYER_DEPTH_PIXELS_PER_METER;
 }
 
 /** The camera's readers: the plan for the road heading and the rendered road height for its clearance. */
@@ -102,19 +111,20 @@ export function updateCamera(
       ? wrapAngle(rig.yaw + wrapAngle(limitedYaw - rig.yaw) * (1 - Math.exp(-SIM_DT / definition.yawResponseSeconds)))
       : limitedYaw;
 
-  const sCamera = vehicle.course.s - definition.dCam;
+  const dCam = cameraDistance(definition);
+  const sCamera = vehicle.course.s - dCam;
   // The camera occupies its yaw ray behind the authoritative vehicle position. Its
   // camera-right displacement to the player is therefore exactly zero, so the renderer's projection
   // places the player at centerX by construction; the camera publishes no screen position of its own.
-  const cameraX = vehicle.x - definition.dCam * Math.sin(rig.yaw);
-  const cameraZ = vehicle.z - definition.dCam * Math.cos(rig.yaw);
+  const cameraX = vehicle.x - dCam * Math.sin(rig.yaw);
+  const cameraZ = vehicle.z - dCam * Math.cos(rig.yaw);
 
   // Constant depth D_cam and pitch following the body. The height target projects the player's reference point
   // exactly to the target row. Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
   const cameraPitch = definition.baseDownPitch - bodyPitch;
   const targetY =
     vehicle.renderY -
-    (definition.dCam / (definition.focalLength * Math.cos(cameraPitch))) *
+    (dCam / (definition.focalLength * Math.cos(cameraPitch))) *
       (definition.centerY - definition.focalLength * Math.sin(cameraPitch) - definition.playerTargetY);
   const floor = renderHeight.sample(sCamera, workspace.floor).y + definition.minimumClearance;
   if (!rig.initialized) {

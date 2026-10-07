@@ -420,7 +420,7 @@ resizing the game. UI pointer starts stay outside driving input. Keydown is isol
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
 The vehicle is chosen on SELECT VEHICLE; there is no vehicle selection during a Session. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
-camera definition's down pitch, height frequency, damping ratio, minimum clearance, yaw limit and yaw response for the session,
+camera definition's field of view, down pitch, height frequency, damping ratio, minimum clearance, yaw limit and yaw response for the session,
 unsaved
 ([Calibration](calibration.md#camera-settings)). RECOVER requests the race's manual recovery of the player vehicle when the active composition
 permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies

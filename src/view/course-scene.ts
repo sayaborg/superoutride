@@ -6,7 +6,7 @@ import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { CameraState } from './camera.js';
+import { cameraDistance, type CameraDefinition, type CameraState } from './camera.js';
 import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
@@ -18,12 +18,14 @@ import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { createVehicleShadows, type ShadowedVehicle } from './vehicle-shadow.js';
 
-/** The current camera's loading window; reference driving and scenarios load the same Route. */
-const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
-  cameraDistance: CAMERA_DEFINITION.dCam,
-  near: RENDER_NEAR_DEPTH_METERS,
-  far: RENDER_FAR_DEPTH_METERS,
-});
+/** A camera's loading window; reference driving and scenarios load the product camera's. */
+function courseLoadingWindow(camera: Pick<CameraDefinition, 'focalLength'>): CourseLoadingWindow {
+  return Object.freeze({
+    cameraDistance: cameraDistance(camera),
+    near: RENDER_NEAR_DEPTH_METERS,
+    far: RENDER_FAR_DEPTH_METERS,
+  });
+}
 
 /** The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks. */
 export function createCourseScene(
@@ -31,8 +33,10 @@ export function createCourseScene(
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
   displaySettings: DisplaySettings = createDisplaySettings(),
+  /** The camera the scene is viewed with; the race's loading window and view follow its player depth. */
+  camera: Pick<CameraDefinition, 'focalLength'> = CAMERA_DEFINITION,
 ) {
-  const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
+  const runtime = createCourseWorld(section, gates, vehicles, courseLoadingWindow(camera));
   const rendering = createCourseRouteVisualReaders(runtime.window);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

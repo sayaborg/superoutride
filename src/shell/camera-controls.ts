@@ -1,8 +1,18 @@
 import type { CameraDefinition } from '../view/camera.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
+import { LOGICAL_WIDTH, PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
+
+/** The player depth's resolution for a chosen field of view: a power of two, so depth arithmetic is exact. */
+const DEPTH_STEPS_PER_METER = 4096;
 
 type CameraTuningKey =
-  'baseDownPitch' | 'heightFrequency' | 'heightDampingRatio' | 'minimumClearance' | 'yawLimit' | 'yawResponseSeconds';
+  | 'focalLength'
+  | 'baseDownPitch'
+  | 'heightFrequency'
+  | 'heightDampingRatio'
+  | 'minimumClearance'
+  | 'yawLimit'
+  | 'yawResponseSeconds';
 
 /** DEV camera settings: each a choice of values for one camera definition field. */
 const CAMERA_TUNING: readonly {
@@ -13,6 +23,25 @@ const CAMERA_TUNING: readonly {
   /** The displayed value per definition unit; 1 when they agree. */
   readonly scale?: number;
 }[] = [
+  // The field of view as a 35 mm equivalent focal length, the frame's width being 36 mm: the product's 200 px
+  // (22.5 mm) and longer lenses to 50 mm. Each focal length is rounded so its player depth (f / 40 px/m) is a whole
+  // number of 1/4096 m: the camera station and the player's depth then subtract exactly and the player keeps exactly
+  // 40 px/m, as at 200 px (5 m). The rounding moves no focal length by more than 0.005 px.
+  {
+    key: 'focalLength',
+    label: 'Camera field of view (35 mm equivalent)',
+    unit: 'mm',
+    choices: [
+      CAMERA_DEFINITION.focalLength,
+      ...[24, 28, 32, 35, 40, 45, 50].map(
+        (mm) =>
+          (PLAYER_DEPTH_PIXELS_PER_METER *
+            Math.round(((mm * LOGICAL_WIDTH) / 36 / PLAYER_DEPTH_PIXELS_PER_METER) * DEPTH_STEPS_PER_METER)) /
+          DEPTH_STEPS_PER_METER,
+      ),
+    ],
+    scale: 36 / LOGICAL_WIDTH,
+  },
   {
     key: 'baseDownPitch',
     label: 'Camera down pitch',

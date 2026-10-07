@@ -377,9 +377,10 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 ## Camera and fixed metric
 
 The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m
-player reference is 80 source texels and 80 screen pixels. The camera definition is the one authority for the focal
-length and the player depth: `f=200 px` and `D_cam=f/40=5 m`; near/far depths are 2.5/200 m. FOV changes preserve
-this metric. The loading window and the renderer read `D_cam` from the camera definition. Ground and sprites share this depth interval.
+player reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for
+the field of view and the player depth, which derives from it (`cameraDistance`): `f=200 px` and `D_cam=f/40=5 m`;
+near/far depths are 2.5/200 m. FOV changes preserve this metric. The scene builds its loading window from the camera it
+is viewed with, so the race's view and the renderer read the same `D_cam`. Ground and sprites share this depth interval.
 
 Camera chainage is `s_vehicle-D_cam`; its drawn XZ is the player's route-world XZ minus `D_cam` along the camera
 yaw. There is one camera. Its yaw is the body yaw limited to the camera definition's limit angle (45 degrees) about
