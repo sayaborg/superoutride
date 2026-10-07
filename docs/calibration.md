@@ -160,7 +160,8 @@ Mass (kg) and CG height (m) describe one running rigid body including a 75 kg oc
 The provisional bike CG height is wheelbase × 0.3 for gameplay, including occupant and fuel in that
 same rigid body. Car CG heights are provisional estimates. These values are gameplay parameters,
 not claims of measured physical specifications.
-Overall length, width and height are the real vehicle's body dimensions (mirrors excluded), not tuning values.
+Overall length, width and height are the real vehicle's body dimensions (mirrors excluded), not tuning values; the
+width is also the side of the vehicle's square footprint ([Vehicle physics](vehicle-physics.md)).
 
 Torque-curve points contain RPM and torque in N m, joined linearly from idle through redline.
 Vehicle compilation derives peak-power RPM from the maximum of `rpm * torque` over the complete

@@ -172,6 +172,8 @@ vehicle-infeasible intervals as remaster departures. Footage and vehicle choices
 
 ### Inspection and art
 
+Draw vehicle bodies as polyhedra rather than pictures (K's decision; their form is not yet decided).
+
 The course editor is the human inspection and adjustment view over the file/CLI workflow. Decide the default rounding
 steps and joining tolerances of its cleaning operations while producing the first product courses, and which findings
 become build rules once those defaults hold. Show anchor displacement after geometry changes if producing courses

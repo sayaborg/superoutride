@@ -135,8 +135,8 @@ recovery backtrack with the projection window and contact reach, and one fixed s
 
 ```text
 maximumStepMeters = MAXIMUM_VEHICLE_SPEED * SIM_DT
-forwardMeters     = max(dCam + far, driver lookahead, projection window) + maximumStepMeters
-rearMeters        = max(dCam + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters
+forwardMeters     = max(cameraDistance + far, driver lookahead, projection window) + maximumStepMeters
+rearMeters        = max(cameraDistance + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters
 ```
 
 `MAXIMUM_VEHICLE_SPEED` is the product's 240 m/s (864 km/h) vehicle speed bound, which vehicle admission
@@ -144,8 +144,8 @@ enforces ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-docu
 Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)` across the catalog's
 front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
 The step allowance retains the rear footprint until the next refresh. With the current camera, driver and
-fleet the record is 4 m per step, 484 m forward (`max(dCam + 200, 480, 50) + 4`) and 64 m rear
-(`max(dCam + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
+fleet (`cameraDistance` at most 7 m: `D_cam` 6 m plus half a 2 m footprint) the record is 4 m per step, 484 m forward
+(`max(7 + 200, 480, 50) + 4`) and 64 m rear (`max(7 + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
 Until its lock decides, a fork's parent Section alone carries the forward coverage: creating the course world
 checks every fork Section reachable from the entry for `lock.s + forwardMeters <= Section end` and rejects a
 violation with a `RangeError` naming the Section.
