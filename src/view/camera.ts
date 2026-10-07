@@ -11,6 +11,16 @@ import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
 export const RENDER_NEAR_DEPTH_METERS = 2.5;
 export const RENDER_FAR_DEPTH_METERS = 200;
 
+/** The camera yaw's source: `BODY` (the product's), or `TRAVEL`, the player's velocity direction. */
+export type CameraYawSource = 'BODY' | 'TRAVEL';
+
+/**
+ * The speed, m/s, from which a `TRAVEL` camera takes the whole direction of travel. Below it the camera takes that
+ * fraction of the travel direction's angle from the body's heading, so at rest, where no direction is defined, it is
+ * the body's, and starting or stopping turns it continuously.
+ */
+const TRAVEL_YAW_FULL_SPEED = 2;
+
 export interface CameraDefinition {
   /** Authored downward view angle relative to the vehicle-pitch reference. */
   readonly baseDownPitch: number;
@@ -25,6 +35,8 @@ export interface CameraDefinition {
   readonly heightDampingRatio: number;
   /** Minimum camera height above the rendered road at the camera's station, metres. */
   readonly minimumClearance: number;
+  /** What the camera yaw follows: the body's heading, or the player's direction of travel (DEV). */
+  readonly yawSource: CameraYawSource;
   /** The camera yaw's limit about the road heading at the car, radians. */
   readonly yawLimit: number;
   /** The camera yaw's response time constant, seconds; 0 follows the limited body yaw at once. */
@@ -86,6 +98,19 @@ const planWorkspaces = new WeakMap<
   }
 >();
 
+/**
+ * The player's direction of travel as a yaw: the body yaw turned by the direction of its velocity in the body frame,
+ * by the fraction `speed / TRAVEL_YAW_FULL_SPEED` (at most 1) of that turn.
+ */
+function travelYaw(vehicle: VehicleMotionRead): number {
+  const { longitudinalSpeed, lateralSpeed } = vehicle;
+  const speed = Math.hypot(longitudinalSpeed, lateralSpeed);
+  if (speed === 0) return vehicle.yaw;
+  return wrapAngle(
+    vehicle.yaw + Math.min(1, speed / TRAVEL_YAW_FULL_SPEED) * Math.atan2(lateralSpeed, longitudinalSpeed),
+  );
+}
+
 export function createCameraRig(): CameraRig {
   return { yaw: 0, height: 0, heightVelocity: 0, previousTarget: 0, previousFloor: 0, initialized: false };
 }
@@ -121,12 +146,14 @@ export function updateCamera(
   const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
   const bodyPitch = vehicle.sprungPitch;
 
-  // The camera yaw is the body's yaw limited to the definition's angle about the road heading at the car; beyond it
+  // The camera yaw is its source's yaw limited to the definition's angle about the road heading at the car; beyond it
   // the camera stays at the limit and the vehicle is shown turned. A response time follows the limited yaw with lag.
+  const sourceYaw = definition.yawSource === 'TRAVEL' ? travelYaw(vehicle) : vehicle.yaw;
+  const sourcePlanYawDelta = wrapAngle(sourceYaw - planAtCar.heading);
   const limitedYaw =
-    Math.abs(vehiclePlanYawDelta) <= definition.yawLimit
-      ? vehicle.yaw
-      : wrapAngle(planAtCar.heading + Math.sign(vehiclePlanYawDelta) * definition.yawLimit);
+    Math.abs(sourcePlanYawDelta) <= definition.yawLimit
+      ? sourceYaw
+      : wrapAngle(planAtCar.heading + Math.sign(sourcePlanYawDelta) * definition.yawLimit);
   rig.yaw =
     rig.initialized && definition.yawResponseSeconds > 0
       ? wrapAngle(rig.yaw + wrapAngle(limitedYaw - rig.yaw) * (1 - Math.exp(-SIM_DT / definition.yawResponseSeconds)))

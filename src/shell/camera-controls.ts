@@ -8,6 +8,7 @@ type CameraTuningKey =
   | 'heightFrequency'
   | 'heightDampingRatio'
   | 'minimumClearance'
+  | 'yawSource'
   | 'yawLimit'
   | 'yawResponseSeconds';
 
@@ -16,8 +17,8 @@ const CAMERA_TUNING: readonly {
   readonly key: CameraTuningKey;
   readonly label: string;
   readonly unit: string;
-  readonly choices: readonly number[];
-  /** The displayed value per definition unit; 1 when they agree. */
+  readonly choices: readonly (number | string)[];
+  /** The displayed value per definition unit of a numeric choice; 1 when they agree. */
   readonly scale?: number;
 }[] = [
   // The field of view in focal length px, shown as a 35 mm equivalent (the frame's width being 36 mm). Each choice's
@@ -39,6 +40,7 @@ const CAMERA_TUNING: readonly {
   { key: 'heightFrequency', label: 'Camera height frequency', unit: 'Hz', choices: [0.5, 1, 2, 3, 5, 10] },
   { key: 'heightDampingRatio', label: 'Camera height damping ratio', unit: '', choices: [0.5, 0.7, 1, 1.5, 2] },
   { key: 'minimumClearance', label: 'Camera minimum clearance', unit: 'm', choices: [0, 0.3, 0.6, 1] },
+  { key: 'yawSource', label: 'Camera yaw source', unit: '', choices: ['BODY', 'TRAVEL'] },
   {
     key: 'yawLimit',
     label: 'Camera yaw limit',
@@ -68,7 +70,7 @@ export function mountCameraControls(change: (definition: CameraDefinition) => vo
     const buttons = choices.map((value) => {
       const button = document.createElement('button');
       button.type = 'button';
-      const shown = Math.round(value * scale * 1000) / 1000;
+      const shown = typeof value === 'number' ? Math.round(value * scale * 1000) / 1000 : value;
       button.textContent = unit ? `${shown} ${unit}` : String(shown);
       button.addEventListener('click', () => {
         definition = Object.freeze({ ...definition, [key]: value });

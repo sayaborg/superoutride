@@ -389,9 +389,12 @@ motorcycle. The scene builds its loading window from its viewer, the camera and 
 distance, so the race's view and the renderer place the camera at the same station. Ground and sprites share this depth interval.
 
 Camera chainage is `s_standing-D_cam`; its drawn XZ is the player's standing point's route-world XZ minus `D_cam` along
-the camera yaw. There is one camera. Its yaw is the body yaw limited to the camera definition's limit angle (45 degrees) about
-the plan heading at the car's chainage; with a response time above zero (the definition's is 0 s) it follows that
-limited yaw as a first-order lag at the fixed step. Beyond the limit the camera stays at it, and the player sprite's
+the camera yaw. There is one camera. Its yaw follows the camera definition's yaw source: the body yaw (the product's), or
+with DEV the player's direction of travel, the body yaw turned by its velocity's direction in the body frame (below
+2 m/s by that fraction of the turn, so at rest the body yaw, and stopping or starting turns the camera continuously).
+That yaw is limited to the definition's limit angle (45 degrees) about the plan heading at the car's chainage; with a
+response time above zero (the definition's is 0 s) the camera follows the limited yaw as a first-order lag at the fixed
+step. Beyond the limit the camera stays at it, and the player sprite's
 yaw variant shows the body turned by the relative yaw, as for every vehicle sprite. A reset places it at the limited
 yaw. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
