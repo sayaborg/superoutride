@@ -378,7 +378,7 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 
 The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m
 player reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for
-the field of view and the player depth, which derives from it (`cameraDistance`): `f=200 px` and `D_cam=f/40=5 m`;
+the field of view and the player depth, which derives from it (`cameraDistance`): `f=240 px` and `D_cam=f/40=6 m`;
 near/far depths are 2.5/200 m. FOV changes preserve this metric. The scene builds its loading window from the camera it
 is viewed with, so the race's view and the renderer read the same `D_cam`. Ground and sprites share this depth interval.
 
@@ -393,8 +393,9 @@ projection of its reference point, its one authority, and the camera on the play
 column by construction. Camera roll is zero.
 
 The player's depth `D_cam` and the camera pitch relative to the body stay constant, so the player never scales or
-changes pitch on screen. Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 12 degrees, body pitch `theta`
-nose-up positive). The height target is solved from the projection with the player's reference height `Y_p`
+changes pitch on screen. Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 0 degrees, body pitch `theta`
+nose-up positive). With a level body the horizon is row 120 (`cy`) and the camera stands 1.75 m above the player's
+reference point. The height target is solved from the projection with the player's reference height `Y_p`
 (`renderY`) at target row `y_t` = 190:
 
 ```text

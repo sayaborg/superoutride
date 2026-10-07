@@ -702,7 +702,7 @@ extension/retention distances. Geometry/content indexes and race cross-section l
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
 A driving scene requires Session settings and compiled start gates, and checks the rearmost grid
-station against `D_cam`. Driving beyond the entry uses the same coordinate-domain recovery rule
+station against `D_cam` (6 m with the product camera): the rearmost slot must be at least that far from the entry. Driving beyond the entry uses the same coordinate-domain recovery rule
 as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 

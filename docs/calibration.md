@@ -140,15 +140,15 @@ down the screen and lowers the camera ([Architecture](architecture.md#camera-and
 with the focal length, so the player keeps its row and size; a run's race takes that depth when the run is assembled,
 so choosing a field of view during a run runs it again, as RETRY does. The background's angular scale stays fixed.
 
-| Setting              | Value   | DEV choices                         | Meaning                                                                                                                                                 |
-| -------------------- | ------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Field of view        | 22.5 mm | 22.5, 24, 28, 32, 35, 40, 45, 50 mm | 35 mm equivalent focal length: `f = mm * 320 / 36` px, rounded so `D_cam = f / 40` is a whole number of 1/4096 m (exact depth arithmetic); stored in px |
-| Down pitch           | 12°     | 12, 10, 8, 6, 4, 2, 0°              | Base downward pitch `phi_0` (stored in radians)                                                                                                         |
-| Height frequency     | 2 Hz    | 0.5, 1, 2, 3, 5, 10 Hz              | Natural frequency of the sprung camera height                                                                                                           |
-| Height damping ratio | 1.0     | 0.5, 0.7, 1, 1.5, 2                 | Damping ratio of the sprung camera height                                                                                                               |
-| Minimum clearance    | 0.3 m   | 0, 0.3, 0.6, 1 m                    | Lowest camera height above the rendered road at its station                                                                                             |
-| Yaw limit            | 45°     | 15, 30, 45, 60, 90, 180°            | Camera yaw limit about the road heading at the car (stored in radians)                                                                                  |
-| Yaw response         | 0 s     | 0, 0.1, 0.25, 0.5, 1 s              | Time constant following the limited body yaw; 0 follows it at once                                                                                      |
+| Setting              | Value | DEV choices                             | Meaning                                                                                                                                                                  |
+| -------------------- | ----- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Field of view        | 27 mm | 22.5, 24.75, 27, 29.25, 31.5, 36, 45 mm | Focal length 240 px (200, 220, 240, 260, 280, 320, 400 px), shown as its 35 mm equivalent `mm = f * 36 / 320`; `D_cam = f / 40` follows it and is exact for every choice |
+| Down pitch           | 0°    | 12, 10, 8, 6, 4, 2, 0°                  | Base downward pitch `phi_0` (stored in radians)                                                                                                                          |
+| Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz                  | Natural frequency of the sprung camera height                                                                                                                            |
+| Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2                     | Damping ratio of the sprung camera height                                                                                                                                |
+| Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m                        | Lowest camera height above the rendered road at its station                                                                                                              |
+| Yaw limit            | 45°   | 15, 30, 45, 60, 90, 180°                | Camera yaw limit about the road heading at the car (stored in radians)                                                                                                   |
+| Yaw response         | 0 s   | 0, 0.1, 0.25, 0.5, 1 s                  | Time constant following the limited body yaw; 0 follows it at once                                                                                                       |
 
 ## Vehicle values
 
