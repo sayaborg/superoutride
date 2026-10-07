@@ -304,3 +304,8 @@ bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color.
 (light, mid, dark), 4–5 glass, 6 tyres, 7 shadowed parts, 8 headlamps, 9 bumpers, 10 metal, 11–12 the rider's clothing,
 13 the helmet, 14 spare and 15 the brake lamp, with set off/on colors 13379/31974. They are baked for the product
 camera (240 px, 0°) and are rebaked when it changes; production art replaces them.
+
+Vehicle pictures are baked with a camera `k` times as far from the vehicle as the scene's camera and with `k` times its
+focal length, `k = 2` (`VEHICLE_SPRITE_CAMERA_FACTOR`): the scene's size with a flatter perspective. The renderer
+selects a vehicle's yaw image by that camera's direction of view
+([Architecture](architecture.md#sprites-and-painter)), and every set is baked with this factor.

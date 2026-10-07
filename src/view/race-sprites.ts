@@ -10,7 +10,8 @@ import { standingPoint, type StandingPoint } from './standing-point.js';
 /**
  * Observer-owned sprite assembly over borrowed, camera-independent competitor observations. Each competitor is
  * drawn from its own vehicle's sprite set in its observed color, bound once per vehicle and color on first use, standing
- * on its footprint's near edge on the scene's route coordinates.
+ * on its footprint's near edge on the scene's route coordinates and seen from the camera's direction of view to its
+ * square's centre. Each keeps its previous frame's yaw image near that image's sector.
  */
 export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]) {
   const sprites: CourseSprite[] = [];
@@ -29,21 +30,33 @@ export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]
     vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.compiledVehicle.footprint]),
   );
   const standing: StandingPoint = { x: 0, y: 0, z: 0, s: 0 },
+    position = { x: 0, z: 0, s: 0 },
     sample = createPlanCoordinateSample();
+  // Each competitor's yaw image in the previous frame, held near its sector; only the previous frame's are kept.
+  let held = new Map<string, number>(),
+    shown = new Map<string, number>();
   return (actors: readonly CompetitorObservation[], camera: CameraState, coordinates: PlanCoordinateReader) => {
     sprites.length = 0;
+    [held, shown] = [shown, held];
+    shown.clear();
     for (const actor of actors) {
       const states = statesOf(actor.vehicleId, actor.color);
       standingPoint(coordinates, actor, footprints.get(actor.vehicleId)!, standing, sample);
-      sprites.push(
-        createDynamicVehicleCourseSprite(
-          actor.id,
-          actor,
-          standing,
-          camera.yaw,
-          actor.brakeLampOn ? states.on : states.off,
-        ),
+      const centre = coordinates.toWorld(actor.course.s, actor.course.l, sample);
+      position.x = centre.x;
+      position.z = centre.z;
+      position.s = actor.course.s;
+      const { sprite, yawIndex } = createDynamicVehicleCourseSprite(
+        actor.id,
+        actor,
+        standing,
+        position,
+        camera,
+        actor.brakeLampOn ? states.on : states.off,
+        held.get(actor.id),
       );
+      shown.set(actor.id, yawIndex);
+      sprites.push(sprite);
     }
     return sprites;
   };

@@ -496,7 +496,8 @@ rack, requested/delivered torques, the clutch lock and transmitted clutch torque
 The race copies the product HUD's subset into each competitor observation ([Architecture](architecture.md)). The bike
 lean display is
 `atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
-discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch.
+discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch. Yaw images
+are chosen by the body's yaw as seen along the direction of view ([Architecture](architecture.md#sprites-and-painter)).
 
 Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
 substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and

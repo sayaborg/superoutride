@@ -510,6 +510,13 @@ Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chai
 movable objects stand at their standing points, from their observed chainage and lateral, so the rows of their own
 shadows lie at or beyond their anchors' depth. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
+A vehicle's yaw image is the one for its body yaw relative to the camera yaw less its direction of view: the direction
+from which the pictures' camera sees its position (its square's centre), `atan(x / (k*d))` for that position's
+camera-right distance `x` and depth `d` and the pictures' camera factor `k`
+([Image assets](image-assets.md#vehicle-sprite-library)). A vehicle beside the player, facing the same way, thus shows
+the side nearer the centre of the screen. The player, on the camera's axis, takes the relative yaw alone. Each other
+vehicle keeps its previous frame's yaw image until that angle passes a quarter step beyond the image's sector, so a
+turning vehicle changes image one step at a time and an angle wavering at a boundary keeps one image.
 
 The product render draws the frame and returns nothing. Measurements of a frame (the Strip ground's metrics, terrain
 and sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV

@@ -34,6 +34,16 @@ export function pseudoDepth(sObject: number, sCamera: number): number {
   return sObject - sCamera;
 }
 
+/** A world point's distance to the right of the camera's axis, in its yaw frame. */
+export function cameraRightDistance(
+  point: Readonly<Pick<PseudoAnchor, 'x' | 'z'>>,
+  camera: Readonly<Pick<PseudoCamera, 'x' | 'z' | 'yaw'>>,
+): number {
+  const dx = point.x - camera.x;
+  const dz = point.z - camera.z;
+  return dx * Math.cos(camera.yaw) + dz * -Math.sin(camera.yaw);
+}
+
 export function horizonY(camera: Pick<PseudoCamera, 'centerY' | 'focalLength' | 'pitch'>): number {
   return camera.centerY - camera.focalLength * Math.sin(camera.pitch);
 }
@@ -46,9 +56,7 @@ export function pseudoProject(
   const depth = pseudoDepth(anchor.s, camera.s);
   if (!(depth > 0)) throw new RangeError('pseudoProject requires a forward anchor with d > 0');
 
-  const dx = anchor.x - camera.x;
-  const dz = anchor.z - camera.z;
-  const xRight = dx * Math.cos(camera.yaw) + dz * -Math.sin(camera.yaw);
+  const xRight = cameraRightDistance(anchor, camera);
   const invDepth = 1 / depth;
   const scale = camera.focalLength * invDepth;
   const vertical = anchor.y - camera.y;
