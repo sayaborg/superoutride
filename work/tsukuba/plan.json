@@ -1,0 +1,144 @@
+{
+ "E": [
+  {
+   "id": "home-a",
+   "kind": "straight",
+   "length": 186.47
+  },
+  {
+   "id": "t1-entry",
+   "kind": "arc",
+   "length": 34.31,
+   "radius": 51.0,
+   "turn": "right"
+  },
+  {
+   "id": "t1",
+   "kind": "arc",
+   "length": 85.53,
+   "radius": 33.0,
+   "turn": "right"
+  },
+  {
+   "id": "s-in",
+   "kind": "straight",
+   "length": 112.15
+  },
+  {
+   "id": "s1",
+   "kind": "arc",
+   "length": 44.32,
+   "radius": 105.0,
+   "turn": "left"
+  },
+  {
+   "id": "s-mid",
+   "kind": "straight",
+   "length": 48.27
+  },
+  {
+   "id": "s2",
+   "kind": "arc",
+   "length": 36.73,
+   "radius": 69.0,
+   "turn": "right"
+  },
+  {
+   "id": "s-out",
+   "kind": "straight",
+   "length": 38.86
+  },
+  {
+   "id": "hairpin1",
+   "kind": "arc",
+   "length": 93.51,
+   "radius": 27.0,
+   "turn": "left"
+  },
+  {
+   "id": "infield",
+   "kind": "straight",
+   "length": 120.48
+  },
+  {
+   "id": "dunlop",
+   "kind": "arc",
+   "length": 49.98,
+   "radius": 35.0,
+   "turn": "right"
+  },
+  {
+   "id": "dunlop-out",
+   "kind": "straight",
+   "length": 74.07
+  },
+  {
+   "id": "r80",
+   "kind": "arc",
+   "length": 80.94,
+   "radius": 84.0,
+   "turn": "left"
+  },
+  {
+   "id": "r80-out",
+   "kind": "straight",
+   "length": 67.73
+  },
+  {
+   "id": "left-fast",
+   "kind": "arc",
+   "length": 47.69,
+   "radius": 159.0,
+   "turn": "left"
+  },
+  {
+   "id": "hairpin2-in",
+   "kind": "straight",
+   "length": 55.45
+  },
+  {
+   "id": "hairpin2",
+   "kind": "arc",
+   "length": 74.77,
+   "radius": 24.0,
+   "turn": "right"
+  },
+  {
+   "id": "hairpin2-exit",
+   "kind": "arc",
+   "length": 37.7,
+   "radius": 102.0,
+   "turn": "right"
+  },
+  {
+   "id": "back",
+   "kind": "straight",
+   "length": 419.2545425012001
+  },
+  {
+   "id": "final-entry",
+   "kind": "arc",
+   "length": 145.96,
+   "radius": 96.0,
+   "turn": "right"
+  },
+  {
+   "id": "final-exit",
+   "kind": "arc",
+   "length": 98.54752760959057,
+   "radius": 82.0,
+   "turn": "right"
+  },
+  {
+   "id": "home-b",
+   "kind": "straight",
+   "length": 92.23892991893703
+  }
+ ],
+ "TOT": 2044.961000029728,
+ "align": [
+  0.37587385626078595,
+  0.575199605210902,
+  0.0029737519781697797
+ ]
+}
