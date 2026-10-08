@@ -5,13 +5,13 @@
   "crop": {
     "x": 0,
     "y": 0,
-    "width": 430,
-    "height": 303
+    "width": 240,
+    "height": 314
   },
-  "widthMeters": 26.0,
+  "widthMeters": 10.5,
   "anchor": {
-    "x": 214.5,
-    "y": 302
+    "x": 119.5,
+    "y": 313
   },
   "mask": [],
   "palette": null,
