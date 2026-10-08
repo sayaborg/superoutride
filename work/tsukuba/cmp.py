@@ -1,11 +1,12 @@
 import numpy as np, subprocess, sys, json, os
 from PIL import Image, ImageDraw
 VID=os.environ.get('VID','v2')
+VF={'v3':'crop=1920:760:0:0,scale=427:-1,pad=427:240:0:36','v2':'scale=427:240','v1':'scale=427:240'}[VID]
 S=os.path.dirname(os.path.abspath(__file__)); REPO='/home/claude/superoutride'
 ts=np.load(S+'/'+VID+'_ts.npy'); cuts=[0.0,785.63,1608.21,2044.96]; SID=['sector-1','sector-2','sector-3']
 def pair(s,tag):
     t=float(np.interp(s,ts[:,1],ts[:,0])); vf=f'{S}/cmp/v_{tag}.png'; gf=f'{S}/cmp/g_{tag}.png'
-    subprocess.run(['ffmpeg','-v','error','-y','-ss',f'{t:.3f}','-i',S+'/in/'+VID+'.mp4','-frames:v','1','-vf','scale=427:240',vf],check=True)
+    subprocess.run(['ffmpeg','-v','error','-y','-ss',f'{t:.3f}','-i',S+'/in/'+VID+'.mp4','-frames:v','1','-vf',VF,vf],check=True)
     k=max(i for i in range(3) if cuts[i]<=s)
     r=subprocess.run(['npm','run','-s','course','--','render','content/courses/tsukuba.course.json','--section',SID[k],'--s',f'{s-cuts[k]:.2f}','--l','0','--vehicle','GOLF_GTI_16V','--out',gf],cwd=REPO,capture_output=True,text=True)
     if not os.path.exists(gf): print(r.stdout[:300])

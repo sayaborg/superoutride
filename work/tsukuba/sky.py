@@ -38,7 +38,7 @@ def blob(cx,cy,rx,ry,col,shade):
             d=((x-cx)/rx)**2+((y-cy)/ry)**2
             if d<=1:
                 img[y,x%W]=shade if (y-cy)/ry>0.45 else col
-for i in range(26):
+for i in range(11):
     cx=rng.uniform(0,W); cy=rng.uniform(190,285); n=rng.integers(3,7)
     for j in range(n):
         blob(cx+rng.uniform(-40,40),cy+rng.uniform(-6,6)-abs(j-n/2)*0,rng.uniform(14,34),rng.uniform(5,11),5,6)

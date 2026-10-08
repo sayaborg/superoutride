@@ -2,7 +2,8 @@ import numpy as np, cv2, sys
 S='/tmp/claude-0/-home-claude/4053901e-89b9-5428-8587-851d0a595dcc/scratchpad/tsukuba/'
 sys.path.insert(0,S)
 from cut import *
-def frame(t): return cv2.imread(S+f'v2/src/f_{t}.png')
+VSRC='v2'
+def frame(t): return cv2.imread(S+f'{VSRC}/src/f_{t}.png')
 def blue(bgr):
     hsv=cv2.cvtColor(bgr,cv2.COLOR_BGR2HSV); h,s,v=[hsv[...,i].astype(int) for i in range(3)]
     return (h>92)&(h<128)&(s>50)&(v>120)
@@ -26,4 +27,12 @@ def cut(t,box,name,width,pts=None,keepblue=None,drop=None,cloud=False):
     for p in (drop or []):
         d=np.zeros_like(inside); cv2.fillPoly(d,[np.array(p,np.int32)],1); m&=~(d>0)
     m=cv2.morphologyEx(m.astype(np.uint8),cv2.MORPH_OPEN,np.ones((3,3),np.uint8))
+    save_rgba(c,m,S+f'spr/{name}.png'); publish(name,c,m,width)
+
+def cut_dark(t,box,name,width,vmax=120,close=3,keep_largest=False):
+    """Thin dark things against the sky: poles, pylons."""
+    x0,y0,x1,y1=box; c=frame(t)[y0:y1,x0:x1].copy(); hsv=cv2.cvtColor(c,cv2.COLOR_BGR2HSV)
+    m=(hsv[...,2]<vmax).astype(np.uint8)
+    if close: m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,np.ones((close,close),np.uint8))
+    if keep_largest: m=largest(m)
     save_rgba(c,m,S+f'spr/{name}.png'); publish(name,c,m,width)

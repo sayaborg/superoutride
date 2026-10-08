@@ -234,8 +234,7 @@ def section(k):
     for (a0,b0,l0,l1,col) in D.PATCHES:
         p=pieces(a0,b0,k)
         if p: strips.append(st(l0 if not isinstance(l0,dict) else lat(l0),l1 if not isinstance(l1,dict) else lat(l1),col,None,pos(k,p[0]),pos(k,p[1])))
-    strips.append(st(ref('line',-D.RUBBER/2),ref('line',D.RUBBER/2),D.ASPHALT[1],None))
-    strips.append(rep(k,D.RUBBER_BAND[0],D.RUBBER_BAND[1],3.0,ref('line',-D.RUBBER/2),ref('line',D.RUBBER/2),D.ASPHALT[2]))
+    for o in (-D.TRACK/2,D.TRACK/2): strips.append(st(ref('line',o-D.RUBBER/2),ref('line',o+D.RUBBER/2),D.ASPHALT[1],None))
     strips+=ground_extras(k)
     strips+=[st(rl_,ref('road-left',0.15),D.LINE,None),st(ref('road-right',-0.15),rr_,D.LINE,None)]
     if k==0:
