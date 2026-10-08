@@ -27,12 +27,13 @@ def joints(k):
     for e in secs[k]: j.append((e['id'],s)); s+=e['length']
     j.append(('end',s)); return j
 J=[joints(k) for k in range(3)]
+L=[cuts[k+1]-cuts[k] for k in range(3)]
 def pos(k,s):
+    s=min(max(s,0.0),L[k])
     """Position in Section k at local station s: measured from the nearest joint, the earlier of two as near."""
     best=min(J[k],key=lambda j:(round(abs(s-j[1]),9),j[1]))
     off=s-best[1]
     return {'joint':best[0],'offset':0 if abs(off)<1e-9 else round(off,6)}
-L=[cuts[k+1]-cuts[k] for k in range(3)]
 # ---- profile ---------------------------------------------------------------
 sz=np.load('profile_sz.npy'); ps=sz[:,0]*TOT/2045.0; pz=sz[:,1]
 def zraw(s):
@@ -76,7 +77,7 @@ def lanes(k):
     return [{'kind':'lane','id':i,'width':wl} for i in 'abc']
 # ---- ground ----------------------------------------------------------------
 GRASS,ASPHALT,WHITE=5575,9548,32765
-VERGE=25.0
+VERGE=14.0
 def centre(ds=2.0):
     out=[]; x=z=h=0.; s0=0.
     for e in E:
@@ -124,6 +125,55 @@ def verge_profile(side):
     for p,q,r in zip(ev,ev[1:],ev[2:]):
         if abs((q[1]-p[1])-(r[1]-q[1]))>1e-9: keep.append(q)
     keep.append(ev[-1]); return keep
+import os
+DECOR=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'decor.json')))
+def lat(v):
+    if isinstance(v,dict):
+        if 'verge' in v: return {'boundary':'verge-'+v['verge'],'offset':v.get('offset',0)}
+        if 'road' in v: return {'boundary':'road-'+v['road'],'offset':v.get('offset',0)}
+    return v
+def sprites(k):
+    out=[]
+    for d in DECOR['sprites']:
+        if not (cuts[k]<=d['s']<cuts[k+1]): continue
+        sp={'kind':'sprite','image':d['image'],'palette':'original','at':pos(k,round(d['s']-cuts[k],3)),'lateral':lat(d['l']),
+            'groundOffset':d.get('up',0),'unselectedLink':None,'body':None}
+        if 'count' in d:
+            n=min(d['count'],int((cuts[k+1]-0.01-d['s'])//d['every'])+1)
+            sp={'kind':'repeat','every':d['every'],'count':n,'elements':[sp]} if n>=2 else sp
+        out.append(sp)
+    return out
+def pieces(a,b,k):
+    """The part of the lap interval [a,b] inside Section k, as local stations; None when empty."""
+    lo,hi=max(a,cuts[k]),min(b,cuts[k+1])
+    return (lo-cuts[k],hi-cuts[k]) if hi-lo>0.5 else None
+def walls(k):
+    out=[]
+    for side in ('left','right'):
+        strips=[]
+        for z in DECOR['walls']:
+            if z['side']!=side: continue
+            p=pieces(z['from'],z['to'],k)
+            if p: strips.append({'kind':'strip','color':z['color'],'knots':[{'at':pos(k,round(p[0],3)),'bottom':z.get('bottom',0),'top':z['top']},{'at':pos(k,round(p[1],3)),'bottom':z.get('bottom',0),'top':z['top']}]})
+        if strips: out.append({'boundary':'verge-'+side,'start':pos(k,0.0),'end':pos(k,L[k]),'solid':None,'strips':strips})
+    return out
+RED,KWHITE,GREENPAINT=27781,32765,4684
+def ground_extras(k):
+    out=[]
+    def edge(side,o): return {'boundary':'road-'+side,'offset':o}
+    def band(side,a,b,o0,o1,color=None,curb=False):
+        p=pieces(a,b,k)
+        if not p: return
+        l,r=(edge(side,o0),edge(side,o1)) if side=='right' else (edge(side,-o1),edge(side,-o0))
+        if curb: out.append({'kind':'curb','start':pos(k,round(p[0],3)),'end':pos(k,round(p[1],3)),'left':l,'right':r,'stripe':2.5,'colors':[RED,KWHITE]})
+        else: out.append({'kind':'strip','start':pos(k,round(p[0],3)),'end':pos(k,round(p[1],3)),'left':l,'right':r,'color':color,'material':None})
+    for g in DECOR['green']: band(g['side'],g['from'],g['to'],g['o0'],g['o1'],GREENPAINT)
+    for e in E:
+        if e['kind']!='arc' or e['radius']>110: continue
+        a,b=start[e['id']],start[e['id']]+e['length']; inner=e['turn']; outer='left' if inner=='right' else 'right'
+        band(inner,a,b,0,1.2,curb=True)
+        if e['id'] not in ('t1-entry','final-entry','s1'): band(outer,b-5,b+35,0,1.2,curb=True)
+    return out
 def section(k):
     a,b=pos(k,0.0),pos(k,L[k])
     def bd(i,lat): return {'id':i,'knots':[{'at':a,'lateral':lat},{'at':b,'lateral':lat}]}
@@ -141,7 +191,7 @@ def section(k):
     ref=lambda i,o=0: {'boundary':i,'offset':o}
     strips=[st(ref('verge-left'),ref('road-left'),None,'GRASS'),st(ref('road-right'),ref('verge-right'),None,'GRASS'),
             st(None,None,GRASS,None),st(ref('road-left'),ref('road-right'),ASPHALT,'ASPHALT'),
-            st(ref('road-left'),ref('road-left',0.15),WHITE,None),st(ref('road-right',-0.15),ref('road-right'),WHITE,None)]
+            *ground_extras(k),st(ref('road-left'),ref('road-left',0.15),WHITE,None),st(ref('road-right',-0.15),ref('road-right'),WHITE,None)]
     # heading at the Section's start, degrees to the right from the entry frame
     rot=0.0; s=0
     for e in E:
@@ -156,7 +206,7 @@ def section(k):
     elif k==1: gates.append({'kind':'checkpoint','id':'tsukuba-SECTOR-2','at':b})
     else: gates.append({'kind':'finish','id':'tsukuba-FINISH','at':b})
     return {'id':SID[k],'plan':secs[k],'profile':profiles[k],'lanes':lanes(k),'centerLane':'b','boundaries':B,'strips':strips,
-            'walls':[],'openLimits':[],'sprites':[],'environments':env,'gates':gates}
+            'walls':walls(k),'openLimits':[],'sprites':sprites(k),'environments':env,'gates':gates}
 doc={'format':'superoutride.course','version':48,'name':'TSUKUBA','entry':SID[0],'maxLaps':30,
      'sections':[section(k) for k in range(3)],
      'links':[{'id':'sector-1-to-2','from':{'section':SID[0],'lane':'b'},'to':SID[1]},{'id':'sector-2-to-3','from':{'section':SID[1],'lane':'b'},'to':SID[2]},

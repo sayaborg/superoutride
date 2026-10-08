@@ -1,0 +1,175 @@
+{
+  "sprites": [
+    {
+      "image": "dunlop-arch",
+      "s": 860.0,
+      "l": -2.0
+    },
+    {
+      "image": "tsukuba-gantry",
+      "s": 2043.5,
+      "l": 0.0,
+      "up": 6.5
+    },
+    {
+      "image": "tsukuba-stand",
+      "s": 1990.0,
+      "l": {
+        "verge": "left",
+        "offset": -9
+      }
+    },
+    {
+      "image": "tsukuba-stand",
+      "s": 2030.0,
+      "l": {
+        "verge": "left",
+        "offset": -9
+      }
+    },
+    {
+      "image": "tsukuba-tower",
+      "s": 25.0,
+      "l": {
+        "road": "right",
+        "offset": 22
+      }
+    },
+    {
+      "image": "board-yokohama",
+      "s": 172.0,
+      "l": {
+        "verge": "left",
+        "offset": -0.5
+      },
+      "every": 8.0,
+      "count": 5
+    },
+    {
+      "image": "board-advan",
+      "s": 212.0,
+      "l": {
+        "verge": "left",
+        "offset": -0.5
+      },
+      "every": 6.0,
+      "count": 16
+    },
+    {
+      "image": "tsukuba-hairpin-stand",
+      "s": 628.0,
+      "l": {
+        "verge": "right",
+        "offset": 8
+      }
+    },
+    {
+      "image": "board-bridgestone",
+      "s": 660.0,
+      "l": {
+        "verge": "right",
+        "offset": 6
+      },
+      "up": 3.0
+    },
+    {
+      "image": "board-matsunaga",
+      "s": 676.0,
+      "l": {
+        "verge": "right",
+        "offset": 6
+      },
+      "up": 1.0
+    },
+    {
+      "image": "board-supergt",
+      "s": 705.0,
+      "l": {
+        "verge": "right",
+        "offset": 6
+      },
+      "up": 1.0
+    }
+  ],
+  "walls": [
+    {
+      "side": "left",
+      "from": 0,
+      "to": 2044.96,
+      "color": 30652,
+      "top": 1.0
+    },
+    {
+      "side": "right",
+      "from": 0,
+      "to": 2044.96,
+      "color": 30652,
+      "top": 1.0
+    },
+    {
+      "side": "left",
+      "from": 330,
+      "to": 420,
+      "color": 31268,
+      "top": 1.1
+    },
+    {
+      "side": "left",
+      "from": 795,
+      "to": 900,
+      "color": 31268,
+      "top": 1.1
+    },
+    {
+      "side": "left",
+      "from": 1170,
+      "to": 1700,
+      "color": 31268,
+      "top": 1.1
+    },
+    {
+      "side": "right",
+      "from": 690,
+      "to": 800,
+      "color": 31268,
+      "top": 1.1
+    }
+  ],
+  "green": [
+    {
+      "side": "left",
+      "from": 0,
+      "to": 70,
+      "o0": 0,
+      "o1": 4
+    },
+    {
+      "side": "left",
+      "from": 1955,
+      "to": 2044.96,
+      "o0": 0,
+      "o1": 4
+    },
+    {
+      "side": "left",
+      "from": 586.6,
+      "to": 680.1,
+      "o0": 1.2,
+      "o1": 4
+    },
+    {
+      "side": "right",
+      "from": 1176.5,
+      "to": 1251.3,
+      "o0": 1.2,
+      "o1": 4
+    },
+    {
+      "side": "right",
+      "from": 1854,
+      "to": 1953,
+      "o0": 1.2,
+      "o1": 4
+    }
+  ]
+}
