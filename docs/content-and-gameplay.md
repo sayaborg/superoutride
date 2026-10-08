@@ -947,8 +947,8 @@ every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
 of the class has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits`
 maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
-manifest alike, against the delivered course IDs and the vehicle catalog. Until ARCADE requests name a series and a
-class, a course is run by at most one class; a second one is rejected. A class is admitted against its compiled
+manifest alike, against the delivered course IDs and the vehicle catalog. A course may be run by several classes of
+one or several series. A class is admitted against its compiled
 course: `laps` within `maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the
 course's Sections, and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a

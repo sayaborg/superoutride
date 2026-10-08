@@ -8,10 +8,11 @@ import {
 } from './player-record.js';
 import { raceMilliseconds } from './race-time.js';
 
-/** What a run records against before it is driven: its mode's records (ARCADE's in its series) and its identities. */
+/** What a run records against before it is driven: its mode's records (ARCADE's in its class) and its identities. */
 export interface RecordSelection {
   readonly rules:
-    { readonly mode: 'ARCADE'; readonly seriesId: string } | { readonly mode: Exclude<RunRequest['mode'], 'ARCADE'> };
+    | { readonly mode: 'ARCADE'; readonly seriesId: string; readonly classId: string }
+    | { readonly mode: Exclude<RunRequest['mode'], 'ARCADE'> };
   readonly courseId: string;
   readonly vehicleId: string;
   readonly lapCount: number;
@@ -65,8 +66,12 @@ const timeTrialRecord = (records: PlayerRecords, selection: RecordSelection, rou
     records.timeTrial[timeTrialRecordKey(selection.courseId, routeLinks, selection.lapCount, selection.vehicleId)],
     selection,
   );
-const arcadeRecord = (records: PlayerRecords, selection: RecordSelection, seriesId: string, goal: string) =>
-  identical(records.arcade[arcadeRecordKey(seriesId, selection.courseId, goal, selection.vehicleId)], selection);
+const arcadeRecord = (
+  records: PlayerRecords,
+  selection: RecordSelection,
+  rules: { readonly seriesId: string; readonly classId: string },
+  goal: string,
+) => identical(records.arcade[arcadeRecordKey(rules.seriesId, rules.classId, goal, selection.vehicleId)], selection);
 
 /**
  * The record a run compares with while it is driven, from the records before it: on its route (TIME TRIAL; undefined
@@ -85,14 +90,14 @@ export function comparedRecord(
     return stored && { timeMs: stored.timeMs, splitsMs: stored.splitsMs };
   }
   if (rules.mode !== 'ARCADE' || goals.length !== 1) return null;
-  const stored = arcadeRecord(records, selection, rules.seriesId, goals[0]!);
+  const stored = arcadeRecord(records, selection, rules, goals[0]!);
   return stored && { timeMs: stored.timeMs, splitsMs: null };
 }
 
 /**
  * Judge a run that reached GOAL against the records. TIME TRIAL records per course, route, laps and vehicle the fastest
  * time with that run's gate and lap crossings, and separately the fastest lap of any GOAL run; ARCADE records per
- * series, course, goal and vehicle the fastest time. Only a faster time replaces a record; a record whose identities
+ * series, class, goal and vehicle the fastest time. Only a faster time replaces a record; a record whose identities
  * differ from the run's counts as none. FREE PLAY, and a TIME TRIAL whose route is undecided, record nothing (null).
  */
 export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgement | null {
@@ -100,8 +105,8 @@ export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgem
   const timeMs = raceMilliseconds(run.finishSeconds);
   const identity = { courseSha256: run.courseSha256, vehicleSha256: run.vehicleSha256 };
   if (rules.mode === 'ARCADE') {
-    const key = arcadeRecordKey(rules.seriesId, run.courseId, run.goal, run.vehicleId);
-    const previous = arcadeRecord(records, run, rules.seriesId, run.goal);
+    const key = arcadeRecordKey(rules.seriesId, rules.classId, run.goal, run.vehicleId);
+    const previous = arcadeRecord(records, run, rules, run.goal);
     const newRecord = previous === null || timeMs < previous.timeMs;
     const record: ArcadeRecord = { timeMs, ...identity };
     return {

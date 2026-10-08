@@ -1,7 +1,9 @@
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 2;
-/** The previous version, whose settings a version 2 record keeps. */
+const PLAYER_RECORD_VERSION = 3;
+/** The version before, whose settings and TIME TRIAL records a version 3 record keeps; its ARCADE records are dropped. */
+const COURSE_ARCADE_VERSION = 2;
+/** The first version, whose settings a version 3 record keeps. */
 const SETTINGS_ONLY_VERSION = 1;
 
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
@@ -48,9 +50,9 @@ export function timeTrialRecordKey(
 ): string {
   return JSON.stringify([courseId, route, laps, vehicleId]);
 }
-/** An ARCADE record's key: the series, the course, the goal reached (its FINISH gate ID) and the vehicle. */
-export function arcadeRecordKey(seriesId: string, courseId: string, goal: string, vehicleId: string): string {
-  return JSON.stringify([seriesId, courseId, goal, vehicleId]);
+/** An ARCADE record's key: the series, the class, the goal reached (its FINISH gate ID) and the vehicle. */
+export function arcadeRecordKey(seriesId: string, classId: string, goal: string, vehicleId: string): string {
+  return JSON.stringify([seriesId, classId, goal, vehicleId]);
 }
 
 export interface PlayerRecord {
@@ -70,7 +72,8 @@ const DEFAULT_SETTINGS = freezeSettings({
 const NO_RECORDS = freezeRecords({ timeTrial: {}, arcade: {} });
 
 /**
- * Opens the player record in `storage`. A version 1 record keeps its settings and starts with no records. An absent,
+ * Opens the player record in `storage`. A version 2 record keeps its settings and TIME TRIAL records and drops its
+ * ARCADE records; a version 1 record keeps its settings and starts with no records. An absent,
  * unreadable, corrupt or other-version record starts from the defaults; a malformed record entry alone is dropped.
  * Storage failures leave the record in memory; none of these stops the game.
  */
@@ -130,8 +133,8 @@ function readRecord(storage: Storage | null): { settings: PlayerSettings; record
 }
 
 /**
- * The settings and records of a record with exactly the declared shape, or null: version 2, or version 1, whose
- * settings carry over with no records.
+ * The settings and records of a record with exactly the declared shape, or null: version 3; version 2, whose settings
+ * and TIME TRIAL records carry over without its ARCADE records; or version 1, whose settings carry over with no records.
  */
 function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records: PlayerRecords } | null {
   if (!isObject(value)) return null;
@@ -139,14 +142,20 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
     const settings = admitSettings(value.settings);
     return settings && { settings, records: NO_RECORDS };
   }
-  if (value.version !== PLAYER_RECORD_VERSION || !hasExactKeys(value, ['version', 'settings', 'records'])) return null;
+  const version = value.version;
+  if (
+    (version !== PLAYER_RECORD_VERSION && version !== COURSE_ARCADE_VERSION) ||
+    !hasExactKeys(value, ['version', 'settings', 'records'])
+  )
+    return null;
   const settings = admitSettings(value.settings);
   if (!settings || !hasExactKeys(value.records, ['timeTrial', 'arcade'])) return null;
   return {
     settings,
     records: freezeRecords({
       timeTrial: admitEntries(value.records.timeTrial, isTimeTrialKey, admitTimeTrialRecord),
-      arcade: admitEntries(value.records.arcade, isArcadeKey, admitArcadeRecord),
+      arcade:
+        version === PLAYER_RECORD_VERSION ? admitEntries(value.records.arcade, isArcadeKey, admitArcadeRecord) : {},
     }),
   };
 }

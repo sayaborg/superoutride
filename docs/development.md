@@ -245,7 +245,8 @@ history step and not in the archive, and they are used only while their vehicle,
 the current documents, then discarded. The header and the Measure module always show whether the build uses the saved
 measurements, preview measurements (not saved) or stale ones.
 
-The Run module opens the game in a new tab on the current compile, with a chosen course, vehicle and mode, `dev=1` and
+The Run module opens the game in a new tab on the current compile, with a chosen mode and, in ARCADE, a class
+(`<series>/<class>`, driving its first vehicle), otherwise a course and vehicle, `dev=1` and
 `workbench=<commit>` ([Browser](browser.md#selection-and-url-parameters)): the game imports this build and takes the
 compile's products, laid out by the build's delivery layout when the tab opened. Later edits do not reach an open game.
 With saved or preview measurements every mode runs, ARCADE with its time limit. While measurements are stale the game

@@ -54,10 +54,7 @@
   origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
   centres derived), and images named by file.
 
-Next PR: **16-1d** — ARCADE requests, URL, records and SELECT CLASS naming a series and class.
-
-Until 16-1d, the shell finds a course's ARCADE class by its course ID (`SeriesCatalog.courseSettings`), so a course is
-run by at most one class; 16-1d removes that lookup and the rule.
+Next PR: **16-1e** — the RIBBON classes sharing RIBBON RING, the product specification and this checkpoint.
 
 Stage 16 opens with series classes (16-1), in five PRs: names (`SeriesClass`); the series document's classes and
 the Session resolved from a class; measured products owned by course and vehicle; ARCADE requests, URL, records and

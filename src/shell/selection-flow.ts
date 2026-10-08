@@ -1,5 +1,5 @@
 import type { CourseIndex } from '../content/course-index.js';
-import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
+import type { CompiledSeries, SeriesCatalog, SeriesClass } from '../content/series-catalog.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
@@ -18,11 +18,11 @@ import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
 
 type Mode = RunRequest['mode'];
-type Step = 'SERIES' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS' | 'MUSIC';
+type Step = 'SERIES' | 'CLASS' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS' | 'MUSIC';
 
 /** The selection screens after SELECT MODE, by mode; SELECT MUSIC is last, and its confirm requests the run. */
 const FLOW: Readonly<Record<Mode, readonly Step[]>> = Object.freeze({
-  ARCADE: ['SERIES', 'COURSE', 'VEHICLE', 'MUSIC'],
+  ARCADE: ['SERIES', 'CLASS', 'VEHICLE', 'MUSIC'],
   FREE_PLAY: ['COURSE', 'VEHICLE', 'OPTIONS', 'MUSIC'],
   TIME_TRIAL: ['COURSE', 'VEHICLE', 'LAPS', 'MUSIC'],
 });
@@ -62,8 +62,7 @@ export interface SelectionDevices {
 
 /**
  * The selection flow from TITLE to a run request. TITLE leads to SELECT MODE, and each mode's screens follow the flow
- * table; SELECT COURSE in ARCADE appears only for a series with several courses, LAPS only on a course with several
- * laps. BACK returns to the previous screen. A mode, series or course that offers nothing to select is DARK.
+ * table; SELECT CLASS appears only for a series with several classes, LAPS only on a course with several laps. BACK returns to the previous screen. A mode, series or course that offers nothing to select is DARK.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, player, dev, freePlay, music } = catalog;
@@ -72,9 +71,14 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
   const series = catalog.series.series.filter((s) => (dev || !s.dev) && s.classes.length > 0);
   const inSeries = new Set(catalog.series.series.flatMap((s) => s.classes.map((c) => c.course)));
-  // FREE PLAY and TIME TRIAL courses grouped by series; courses in no series last, only with DEV.
+  // FREE PLAY and TIME TRIAL courses grouped by series, each course once: under the first offered series running it,
+  // in its classes' order. Courses in no series follow last, only with DEV.
+  const listed = new Set<string>();
   const groups = [
-    ...series.map((s) => ({ title: s.title, ids: s.classes.map((c) => c.course) })),
+    ...series.map((s) => ({
+      title: s.title,
+      ids: s.classes.map((c) => c.course).filter((id) => !listed.has(id) && listed.add(id)),
+    })),
     ...(dev ? [{ title: '', ids: courses.filter((c) => !inSeries.has(c.id)).map((c) => c.id) }] : []),
   ].filter((group) => group.ids.length > 0);
   const offered = (mode: Mode) => (mode === 'ARCADE' ? series.length > 0 : groups.length > 0);
@@ -94,6 +98,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   let mode: Mode = MODES.find((m) => m.mode === latest('mode'))?.mode ?? 'ARCADE',
     step = -1,
     seriesChoice: CompiledSeries | null = null,
+    classChoice: SeriesClass | null = null,
     courseId: string | null = null,
     vehicleId: string | null = null,
     color: string | null = null,
@@ -105,11 +110,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
   const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
   const needed = (at: Step) =>
-    at === 'COURSE'
-      ? mode !== 'ARCADE' || seriesChoice!.classes.length > 1
-      : at === 'LAPS'
-        ? courseOf(courseId!).maxLaps > 1
-        : true;
+    at === 'CLASS' ? seriesChoice!.classes.length > 1 : at === 'LAPS' ? courseOf(courseId!).maxLaps > 1 : true;
   const menu = (definition: MenuDefinition, initial = 0) =>
     devices.show(createMenuScreen(devices.frame, devices.text, devices.present, definition, initial));
   const back = () => {
@@ -125,10 +126,12 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     else devices.run(request(), back);
   };
   const request = (): RunRequest => {
-    const choice = { courseId: courseId!, vehicleId: vehicleId!, color, track: track! };
-    if (mode === 'ARCADE') return Object.freeze({ ...choice, mode });
-    if (mode === 'TIME_TRIAL') return Object.freeze({ ...choice, mode, lapCount });
-    return Object.freeze({ ...choice, mode, lapCount, rivalCount, rivalPool, traffic });
+    const choice = { vehicleId: vehicleId!, color, track: track! };
+    if (mode === 'ARCADE')
+      return Object.freeze({ ...choice, mode, seriesId: seriesChoice!.id, classId: classChoice!.id });
+    const course = { ...choice, courseId: courseId! };
+    if (mode === 'TIME_TRIAL') return Object.freeze({ ...course, mode, lapCount });
+    return Object.freeze({ ...course, mode, lapCount, rivalCount, rivalPool, traffic });
   };
   // A number item LEFT/RIGHT changes within [min, max].
   const number = (label: string, value: () => number, set: (n: number) => void, min: number, max: number) => ({
@@ -173,7 +176,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       label: m.label,
       disabled: !offered(m.mode),
       confirm: () => {
-        if (m.mode !== mode) [seriesChoice, courseId, vehicleId] = [null, null, null];
+        if (m.mode !== mode) [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
         mode = m.mode;
         remember('mode', mode);
         forward();
@@ -193,9 +196,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         const items = series.map((s): MenuItem => ({
           label: s.title,
           confirm: () => {
-            // A series with one class needs no SELECT COURSE.
-            if (s !== seriesChoice)
-              [courseId, vehicleId] = [s.classes.length === 1 ? s.classes[0]!.course : null, null];
+            // A series with one class needs no SELECT CLASS.
+            if (s !== seriesChoice) [classChoice, vehicleId] = [s.classes.length === 1 ? s.classes[0]! : null, null];
             seriesChoice = s;
             remember('series', s.id);
             forward();
@@ -204,11 +206,24 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         const current = series.findIndex((s) => s.id === (seriesChoice?.id ?? latest('series')));
         return menu({ title: 'SELECT SERIES', items: () => items, back }, Math.max(0, current));
       }
+      case 'CLASS': {
+        const items = seriesChoice!.classes.map((c): MenuItem => ({
+          label: c.title,
+          confirm: () => {
+            // Another class offers its own vehicles.
+            if (c !== classChoice) vehicleId = null;
+            classChoice = c;
+            remember('class', c.id);
+            forward();
+          },
+        }));
+        const current = seriesChoice!.classes.findIndex((c) => c.id === (classChoice?.id ?? latest('class')));
+        return menu({ title: 'SELECT CLASS', items: () => items, back }, Math.max(0, current));
+      }
       case 'COURSE': {
-        const lists = mode === 'ARCADE' ? [{ title: '', ids: seriesChoice!.classes.map((c) => c.course) }] : groups;
         // Series titles head their groups; they cannot be chosen.
-        const rows = lists.flatMap((group) => [
-          ...(lists.length > 1 || group.title ? [{ id: null, label: group.title || ' ' }] : []),
+        const rows = groups.flatMap((group) => [
+          ...(groups.length > 1 || group.title ? [{ id: null, label: group.title || ' ' }] : []),
           ...group.ids.map((id) => ({ id, label: courseOf(id).name })),
         ]);
         const items = rows.map(({ id, label }): MenuItem =>
@@ -231,9 +246,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       case 'VEHICLE': {
         const candidates =
           mode === 'ARCADE'
-            ? catalog.series
-                .courseSettings(courseId!)!
-                .vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!)
+            ? classChoice!.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!)
             : vehicles;
         return devices.show(
           createVehicleScreen(
@@ -244,13 +257,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,
-              // The color the Session gives the player: with fixed colors its series entry's.
-              colorOf: (v) =>
-                sessionPlayerColor(
-                  mode === 'ARCADE' ? catalog.series.courseSettings(courseId!) : null,
-                  v,
-                  recordedColor(player, v),
-                ),
+              // The color the Session gives the player: with fixed colors its class entry's.
+              colorOf: (v) => sessionPlayerColor(mode === 'ARCADE' ? classChoice : null, v, recordedColor(player, v)),
             },
             {
               confirm: (vehicle, chosen) => {
@@ -347,9 +355,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // A run's request becomes the current selection.
   const adopt = (run: RunRequest) => {
     mode = run.mode;
-    seriesChoice = catalog.series.courseSettings(run.courseId)?.series ?? null;
-    [courseId, vehicleId, color, track] = [run.courseId, run.vehicleId, run.color, run.track];
-    if (run.mode !== 'ARCADE') lapCount = run.lapCount;
+    [vehicleId, color, track] = [run.vehicleId, run.color, run.track];
+    if (run.mode === 'ARCADE') {
+      classChoice = catalog.series.seriesClass(run.seriesId, run.classId);
+      [seriesChoice, courseId] = [classChoice?.series ?? null, null];
+    } else [seriesChoice, classChoice, courseId, lapCount] = [null, null, run.courseId, run.lapCount];
     if (run.mode === 'FREE_PLAY') [rivalCount, rivalPool, traffic] = [run.rivalCount, run.rivalPool, run.traffic];
   };
   return Object.freeze({

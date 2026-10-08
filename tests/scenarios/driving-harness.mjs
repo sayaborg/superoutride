@@ -67,15 +67,18 @@ const scenarioSeries = requireLoaded(
 const productSeries = await loadSeriesCatalog(content, definitions.vehicles);
 
 export async function loadScenarioCourse(stem) {
-  const course = await loadDeliveredCourse(content, stem, materials);
-  const settings = scenarioSeries.courseSettings(stem);
-  const arcade = settings && requireLoaded(admitSeriesClass(settings, course, SCENARIO_SERIES_PATH.pathname));
-  const productSettings = productSeries.courseSettings(stem);
-  return {
-    course,
-    arcade,
-    productArcade: productSettings && requireLoaded(admitSeriesClass(productSettings, course, 'ribbon.series.json')),
-  };
+  return { course: await loadDeliveredCourse(content, stem, materials) };
+}
+
+/** The ARCADE class a scenario names: `class` of the test series, or of the delivered series `series`. */
+function scenarioClass(course, { series, class: classId }) {
+  const settings = series
+    ? productSeries.seriesClass(series, classId)
+    : scenarioSeries.seriesClass('scenario-rules', classId);
+  assert.ok(settings && settings.course === course.id, `No class ${classId} on ${course.id}`);
+  return requireLoaded(
+    admitSeriesClass(settings, course, series ? `${series}.series.json` : SCENARIO_SERIES_PATH.pathname),
+  );
 }
 
 // Every numeric leaf in live state, including nested wheel/control telemetry and derived getters.
@@ -105,9 +108,9 @@ function pavementBounds(scene, vehicle) {
  * Fresh product assembly per replay, through the browser's path from a request to a Session (`prepareSession`); only
  * the series, initial conditions and input policy differ from the browser.
  */
-export async function runScenario({ course, arcade: scenarioArcade, productArcade }, scenario) {
-  // ARCADE takes the test series' settings, or the delivered series' with `series: 'product'`.
-  const arcade = scenario.series === 'product' ? productArcade : scenarioArcade;
+export async function runScenario({ course }, scenario) {
+  // ARCADE takes its class of the test series, or of the delivered series `scenario.series`.
+  const arcade = scenario.mode === 'ARCADE' ? scenarioClass(course, scenario) : null;
   const settings = createDisplaySettings();
   const scene = createCourseScene(
     course.entry,
@@ -116,11 +119,11 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
     { camera: CAMERA_DEFINITION, footprint: entry.compiledVehicle.footprint },
     settings,
   );
-  // ARCADE takes the test series' settings for the course; TIME TRIAL and FREE PLAY take the scenario's.
+  // ARCADE takes its class's settings; TIME TRIAL and FREE PLAY take the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
     mode === 'ARCADE'
-      ? { mode, vehicleId: 'TESTAROSSA', color: null }
+      ? { mode, vehicleId: arcade.vehicles[0], color: null }
       : mode === 'TIME_TRIAL'
         ? { mode, vehicleId: 'TESTAROSSA', color: null, lapCount: scenario.laps ?? 1 }
         : {
@@ -134,14 +137,7 @@ export async function runScenario({ course, arcade: scenarioArcade, productArcad
           };
   const initialSpeed =
     scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
-  const prepared = await prepareSession(
-    content,
-    catalog,
-    course,
-    mode === 'ARCADE' ? arcade : null,
-    request,
-    initialSpeed,
-  );
+  const prepared = await prepareSession(content, catalog, course, arcade, request, initialSpeed);
   const session = prepared.resolve(scenario.seed ?? 0);
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.

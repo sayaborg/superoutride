@@ -8,14 +8,16 @@ type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
 /**
  * Run the game on this compile: a new tab of the game page with `dev=1` and `workbench=<commit>`, which imports this
  * build's modules and takes the delivery laid out from the compile's products when it opened, through the game's own
- * manifest and digest checks. Later edits do not reach an open game. While measurements are stale, the game opens in
- * FREE PLAY without rivals, traffic or a time limit, which need none.
+ * manifest and digest checks. Later edits do not reach an open game. ARCADE runs a class (`<series>/<class>`), the
+ * other modes a course. While measurements are stale, the game opens in FREE PLAY without rivals, traffic or a time
+ * limit, which need none.
  */
 export const runModule: WorkbenchModule = {
   id: 'run',
   title: 'Run',
   mount(element: HTMLElement, context: WorkbenchContext) {
     const course = make('select');
+    const seriesClass = make('select');
     const vehicle = make('select');
     const mode = make('select');
     for (const name of ['ARCADE', 'FREE_PLAY', 'TIME_TRIAL']) mode.append(make('option', name, { value: name }));
@@ -29,6 +31,8 @@ export const runModule: WorkbenchModule = {
     element.append(
       make('h2', 'Run the game on this build'),
       label('Course', course),
+      ' ',
+      label('Class', seriesClass),
       ' ',
       label('Vehicle', vehicle),
       ' ',
@@ -58,10 +62,19 @@ export const runModule: WorkbenchModule = {
       if (state.status === 'failed' && state.unmeasured) return { compiled: state.unmeasured, measured: false };
       return null;
     };
+    // The compile's classes as `<series>/<class>`, from its delivered series documents.
+    const classes = (compiled: CompiledState) =>
+      compiled.files
+        .filter((file) => file.kind === 'series')
+        .flatMap((file) => {
+          const series = JSON.parse(new TextDecoder().decode(file.bytes)) as { classes: { id: string }[] };
+          return series.classes.map((c) => `${file.id}/${c.id}`);
+        });
     const update = () => {
       fill(course, ids('courses', '.course.json'));
       fill(vehicle, ids('vehicles', '.json'));
       const current = products();
+      fill(seriesClass, current ? classes(current.compiled) : []);
       run.disabled = !current;
       mode.disabled = !current?.measured;
       if (current && !current.measured) mode.value = 'FREE_PLAY';
@@ -89,13 +102,14 @@ export const runModule: WorkbenchModule = {
     run.addEventListener('click', () => {
       const current = products();
       if (!current) return;
-      const parameters = new URLSearchParams({
-        dev: '1',
-        workbench: context.commit,
-        course: course.value,
-        vehicle: vehicle.value,
-        mode: current.measured ? mode.value : 'FREE_PLAY',
-      });
+      const chosenMode = current.measured ? mode.value : 'FREE_PLAY';
+      const [seriesId = '', classId = ''] = seriesClass.value.split('/');
+      // ARCADE names a class, whose first vehicle it drives; the other modes name a course and a vehicle.
+      const place: Record<string, string> =
+        chosenMode === 'ARCADE'
+          ? { series: seriesId, class: classId }
+          : { course: course.value, vehicle: vehicle.value, mode: chosenMode };
+      const parameters = new URLSearchParams({ dev: '1', workbench: context.commit, ...place });
       // The window opens within the click, so the browser allows it; the delivery is laid out meanwhile.
       const game = open(new URL(`index.html?${parameters}`, siteRoot()));
       if (!game) {

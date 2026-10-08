@@ -90,16 +90,14 @@ export interface SeriesClass {
 
 export interface SeriesCatalog {
   readonly series: readonly CompiledSeries[];
-  /**
-   * The one class running `courseId`, or null when no class runs it. Until ARCADE requests name a series and class
-   * (16-1d), a course is run by at most one class.
-   */
-  courseSettings(courseId: string): SeriesClass | null;
+  /** The class `classId` of the series `seriesId`, or null when there is none. */
+  seriesClass(seriesId: string, classId: string): SeriesClass | null;
 }
 
 /**
  * Admit every series document against the delivered course IDs and the vehicle catalog: each document is named by
- * its `id`, its classes are unique by ID and run delivered courses, and each class's candidates are unique catalog
+ * its `id`, its classes are unique by ID within it and run delivered courses (a course may be run by several classes
+ * of several series), and each class's candidates are unique catalog
  * vehicles and its entries name catalog vehicles in colors of their sprite sets, with an entry for every candidate.
  */
 export function compileSeriesCatalog(
@@ -108,9 +106,8 @@ export function compileSeriesCatalog(
   vehicles: readonly CompiledVehicleDefinition[],
 ): AdmissionResult<SeriesCatalog> {
   const series: CompiledSeries[] = [];
-  const owners = new Map<string, SeriesClass>();
   for (const source of sources) {
-    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, owners));
+    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles));
     if (!admitted.ok) return admitted;
     series.push(admitted.value);
   }
@@ -118,7 +115,8 @@ export function compileSeriesCatalog(
     ok: true,
     value: Object.freeze({
       series: Object.freeze(series),
-      courseSettings: (courseId: string) => owners.get(courseId) ?? null,
+      seriesClass: (seriesId: string, classId: string) =>
+        series.find((s) => s.id === seriesId)?.classes.find((c) => c.id === classId) ?? null,
     }),
   };
 }
@@ -127,7 +125,6 @@ function readSeries(
   source: DocumentSource,
   courseIds: readonly string[],
   catalog: readonly CompiledVehicleDefinition[],
-  owners: Map<string, SeriesClass>,
 ): CompiledSeries {
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
@@ -167,12 +164,6 @@ function readSeries(
       ]);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
-      requireAdmission(
-        !owners.has(course),
-        'duplicate_id',
-        `${at}/course`,
-        `Course ${course} already belongs to class ${owners.get(course)?.id} of series ${owners.get(course)?.series.id}`,
-      );
       const vehicles = readArray(
         entry.vehicles,
         `${at}/vehicles`,
@@ -189,7 +180,7 @@ function readSeries(
         { min: 1 },
       );
       requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
-      const result: SeriesClass = Object.freeze({
+      return Object.freeze({
         series: series as CompiledSeries,
         id: readString(entry.id, `${at}/id`),
         title: readString(entry.title, `${at}/title`),
@@ -203,8 +194,6 @@ function readSeries(
         ),
         traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
       });
-      owners.set(course, result);
-      return result;
     },
     { min: 1 },
   );
@@ -470,14 +459,8 @@ export async function loadSeriesCatalog(
   return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles));
 }
 
-/** The class running the delivered course, admitted against it, or null when no class runs the course. */
-export function loadSeriesClass(
-  content: ContentDelivery,
-  catalog: SeriesCatalog,
-  course: CompiledCourse,
-): SeriesClass | null {
-  const settings = catalog.courseSettings(course.id);
-  if (!settings) return null;
+/** A delivered class admitted against its delivered course. */
+export function loadSeriesClass(content: ContentDelivery, settings: SeriesClass, course: CompiledCourse): SeriesClass {
   const document = content.manifest.files.find((file) => file.kind === 'series' && file.id === settings.series.id)!;
   return requireLoaded(admitSeriesClass(settings, course, document.path));
 }

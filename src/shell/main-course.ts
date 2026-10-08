@@ -237,24 +237,18 @@ async function startPage(): Promise<void> {
         run: (next, back) => void request(next, back),
       },
     );
-    // A URL that names a delivered course starts that run at once; an invalid URL request fails like an assembly.
-    // Otherwise the page starts at TITLE.
-    const named = courseIndex.find((course) => course.id === parameters.get('course')) ?? null;
-    const urlRequest = (courseId: string) => {
+    // A URL that names a run (a series and class, or a course) starts it at once; an invalid URL request fails like an
+    // assembly. Otherwise the page starts at TITLE.
+    const urlRequest = () => {
       try {
-        void request(
-          readUrlRunRequest(parameters, courseId, series.courseSettings(courseId), vehicles, freePlay, player, music),
-        );
+        const named = readUrlRunRequest(parameters, series, vehicles, freePlay, player, music);
+        if (named) void request(named);
+        else flow.title();
       } catch (error) {
-        fail(
-          error,
-          () => urlRequest(courseId),
-          () => flow.title(),
-        );
+        fail(error, urlRequest, () => flow.title());
       }
     };
-    if (named) urlRequest(named.id);
-    else flow.title();
+    urlRequest();
   } catch (error) {
     // The page itself could not start: the frame cannot draw text, so its reason and a reload show outside it.
     console.error('Course could not start', error);

@@ -18,7 +18,7 @@ import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareSession } from '../race/session-preparation.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
-import { loadSeriesClass, type loadSeriesCatalog } from '../content/series-catalog.js';
+import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import type { RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
@@ -73,10 +73,16 @@ export interface RunPage {
  */
 export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
-  const { courseId } = request;
+  // ARCADE drives its class on the class's course; the other modes drive the course they name.
+  let named: SeriesClass | null = null,
+    courseId: string;
+  if (request.mode === 'ARCADE') {
+    named = series.seriesClass(request.seriesId, request.classId);
+    if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
+    courseId = named.course;
+  } else courseId = request.courseId;
   const course = await loadDeliveredCourse(content, courseId, materials);
-  // The course's ARCADE settings come from the one class running it; a course no class runs is untimed.
-  const arcade = loadSeriesClass(content, series, course);
+  const arcade = named && loadSeriesClass(content, named, course);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
   const prepared = await prepareSession(
     content,
@@ -170,7 +176,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
   // What the run records against, and the records before it, which the HUD compares with.
   const selection: RecordSelection = {
-    rules: settings.mode === 'ARCADE' ? { mode: settings.mode, seriesId: arcade!.series.id } : { mode: settings.mode },
+    rules:
+      settings.mode === 'ARCADE'
+        ? { mode: settings.mode, seriesId: arcade!.series.id, classId: arcade!.id }
+        : { mode: settings.mode },
     courseId,
     vehicleId,
     lapCount: settings.lapCount,

@@ -80,12 +80,12 @@ The selection screens follow one flow table ([product](product.md#6-flow-and-scr
 SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
 sound and requests fullscreen of the page where the browser allows them; a refusal is ignored, and a gamepad press is
 not a gesture the browser accepts. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
-COURSE (only for a series with several courses), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
+CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC.
 BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on SELECT MUSIC requests the run, which shows
 LOADING and then starts at once. Each screen starts from the current selection, else the player record's latest
-selection for that screen (SELECT MODE, SELECT SERIES, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC under the keys
-`mode`, `series`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
+selection for that screen (SELECT MODE, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
+under the keys `mode`, `series`, `class`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
 its choice as the latest. RETRY keeps the run's request; CHANGE VEHICLE goes to SELECT VEHICLE and SELECT to the mode's
 first screen, and both pass the rest of the mode's screens and SELECT MUSIC again.
 
@@ -104,15 +104,17 @@ once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is it
 the first track) plays as an audition, so its volume is set by ear.
 
 - SELECT MODE: a mode with no selectable course is DARK.
-- SELECT SERIES lists the series with their titles; SELECT COURSE lists course display names from the course index.
-  In FREE PLAY and TIME TRIAL its courses are grouped by series, each group headed by its series title (DARK); courses
-  in no series follow last, after a blank line.
+- SELECT SERIES lists the series with their titles; SELECT CLASS lists the chosen series' classes with their titles,
+  and choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
+  names from the course index, grouped by series, each group headed by its series title (DARK). Each course is listed
+  once, under the first offered series in series order whose classes run it, in its classes' order; courses in no
+  series follow last, after a blank line.
 - SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
   its yaw images on the plain background, one image every six fixed steps, drawn like a race vehicle at the
   player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
-  its series entry's color, with no color choice. CONFIRM saves a chosen color in the player record.
+  its entry's color in the chosen class, with no color choice. CONFIRM saves a chosen color in the player record.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
   change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
   current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
@@ -145,38 +147,44 @@ the run, clearing `paused` and `finished`, so it drives at once. A run's start r
 The composition root reads the delivered [course index](content-and-gameplay.md#course-index) once and passes it to
 the selection screens, in its order and with its display names.
 
-A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
-rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps, field and
-traffic from its class. The run's assembly admits the request against the course, its class and the vehicle
-catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
+A run is requested as a typed run request: the mode, where it is driven, the vehicle and the player's color, plus the
+rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE names a series and one of
+its classes, and the class names the course and gives the laps, field and traffic; FREE PLAY and TIME TRIAL name the
+course. No ARCADE setting is looked up from a course. The run's assembly admits the request against the course, its
+class and the vehicle catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
-whose `course` names a delivered course builds that run's request and starts the run at once; otherwise the page starts
-at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
+with `series` and `class`, or with `course`, builds that run's request and starts the run at once; a URL with
+neither starts at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
 like an assembly.
 
 Session parameters are case-sensitive:
 
-| Parameter | Meaning                                                                                                                    |
-| --------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `course`  | Lowercase registered course ID                                                                                             |
-| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a course a class runs, `FREE_PLAY` otherwise; other values fail |
-| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                            |
-| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                                |
-| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                                  |
-| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail                   |
-| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                              |
+| Parameter | Meaning                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------- |
+| `series`  | Series ID; with `class`, names an ARCADE run of that class                                                            |
+| `class`   | Class ID within `series`                                                                                              |
+| `course`  | Lowercase delivered course ID; names a FREE PLAY or TIME TRIAL run on it                                              |
+| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` with a class and `FREE_PLAY` with a course; other values fail |
+| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                       |
+| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                           |
+| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                             |
+| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail              |
+| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                         |
 
-ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
-vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes
-those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session combinations
-produce an error. TIME TRIAL exposes the vehicle and laps, runs alone and has no clock; a `rivals`, `pool` or
-`traffic` parameter is an error there. A course in no series is untimed: it offers FREE PLAY and TIME TRIAL;
-`mode=ARCADE` is an error there, and its defaults are the first vehicle in selection order, no
-rivals and one lap. A timed course whose time budgets are missing from delivery fails to load.
+ARCADE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle, its entries and
+laps and its course, with the checkpoint clock, ignoring individual query overrides. A URL naming a course alone is
+never ARCADE: `mode=ARCADE` with `course` is an error, as are `course` together with `series` or `class`, `series`
+without `class` or the reverse, an unknown class or course, and a mode other than ARCADE with a class. FREE PLAY exposes
+those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored.
+Invalid vehicle, numeric or course/Session combinations produce an error. TIME TRIAL exposes the vehicle and laps, runs
+alone and has no clock; a `rivals`, `pool` or `traffic` parameter is an error there. Their defaults are the first
+vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
+fails to load.
 
 ```text
+?series=ribbon&class=ring
 ?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
 ```
 
@@ -360,7 +368,7 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 2, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 3, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
@@ -372,7 +380,7 @@ through the record.
 
 `records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
 a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
-order (empty on a circuit), as reference runs name routes; an ARCADE key is `[series ID, course ID, goal, vehicle ID]`,
+order (empty on a circuit), as reference runs name routes; an ARCADE key is `[series ID, class ID, goal, vehicle ID]`,
 the goal being the FINISH gate the run reached. JSON array keys cannot collide however IDs are spelled.
 
 | Record     | Value                                                                                                                                                        |
@@ -386,11 +394,11 @@ the identities time budgets carry. The player record publishes its records read-
 splits, loaded or set at GOAL alike.
 
 [`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records, from
-its mode's records (ARCADE's in its series): it judges a run once, when its product Session first reaches GOAL; RESULT
+its mode's records (ARCADE's in its class): it judges a run once, when its product Session first reaches GOAL; RESULT
 and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
 record nothing; a run requested by URL records as one requested from the menus. The HUD compares with the records as
 they stood before the run: RECORD at READY needs the record's key decided before driving (a TIME TRIAL on a course
-with one route, an ARCADE course with one FINISH), and TIME TRIAL crossing differences start once the route is
+with one route, an ARCADE class whose course has one FINISH), and TIME TRIAL crossing differences start once the route is
 decided, each against the record run's crossing of the same index. The judgement and the HUD's record belong to the
 Session they were made for: a DEV-tuned Session shows no record, on the HUD or on RESULT. A stored record whose identities differ
 from the run's counts as none and is replaced. TIME TRIAL records against the route the race reports
@@ -398,8 +406,9 @@ from the run's counts as none and is replaced. TIME TRIAL records against the ro
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
 time replaces nothing.
 
-Loading admits version 2 with exactly these keys and value types, and version 1 (settings only), whose settings carry
-over with no records; there are no other migration readers. An absent, unreadable, unparsable or other-version
+Loading admits version 3 with exactly these keys and value types; version 2 (ARCADE records keyed by course), whose
+settings and TIME TRIAL records carry over and whose ARCADE records are dropped; and version 1 (settings only), whose
+settings carry over with no records. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the

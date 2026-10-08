@@ -5,12 +5,13 @@ import { loadScenarioCourse, runScenario } from './driving-harness.mjs';
 for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
   test(`${stem}: deterministic driving scenarios`, async (t) => {
     const loaded = await loadScenarioCourse(stem);
-    // Session-rule scenarios: ARCADE uses the test series' settings for the course (session-rules.series.json).
+    // Session-rule scenarios: ARCADE drives a class of the test series (session-rules.series.json) or a delivered one.
     const sessionRules = {
       'ribbon-coast': [
         {
           name: 'ARCADE finish ahead of a paced rival, then the takeover stops',
           mode: 'ARCADE',
+          class: 'coast',
           policy: 'finish',
           afterEndingSeconds: 12,
           seconds: 240,
@@ -19,7 +20,8 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         {
           name: 'ARCADE with the RIBBON series traffic',
           mode: 'ARCADE',
-          series: 'product',
+          series: 'ribbon',
+          class: 'coast',
           policy: 'finish',
           seed: 7,
           seconds: 240,
@@ -38,6 +40,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         {
           name: 'ARCADE ahead entry appears and leaves',
           mode: 'ARCADE',
+          class: 'fork',
           policy: 'appearance',
           exit: 0,
           seconds: 120,
@@ -48,6 +51,7 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         {
           name: 'ARCADE rank limit GAME OVER',
           mode: 'ARCADE',
+          class: 'ring',
           policy: 'rank',
           afterEndingSeconds: 2,
           seconds: 120,
