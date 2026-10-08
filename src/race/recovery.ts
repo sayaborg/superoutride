@@ -280,10 +280,6 @@ function reconstructVehicle(
     (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase,
     (p.mass * VEHICLE_GRAVITY * p.frontAxle) / wheelbase,
   );
-  vehicle.frontGap = -p.frontStation.suspension.qStatic;
-  vehicle.rearGap = -p.rearStation.suspension.qStatic;
-  vehicle.frontSupportAvailable = true;
-  vehicle.rearSupportAvailable = true;
   // Recovery sets the gear without a shift; the shift record and its sequence carry over.
   const { shift: _shift, ...powertrain } = createAutomaticPowertrainState(
     p.powertrain,

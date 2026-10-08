@@ -1,7 +1,7 @@
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { clamp, wrapAngle } from '../core/math.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import type { VehicleMotionRead } from '../vehicle/physics/vehicle-contract.js';
+import type { VehicleDrivingRead } from '../vehicle/physics/vehicle-contract.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { SurfaceMapReader } from '../course/vehicle-world.js';
 
@@ -323,7 +323,7 @@ export function envelopeCanFollow(s: number, speed: number, braking: number, lea
  * adjacent lanes differ little in them.
  */
 export function envelopeSpeedBehind(
-  car: VehicleMotionRead,
+  car: VehicleDrivingRead,
   driver: Driver,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
   free: number,
@@ -363,7 +363,7 @@ export function plannedEnvelopeSpeed(
  */
 export function planEnvelopeDriving(
   road: DriverRoad,
-  car: VehicleMotionRead,
+  car: VehicleDrivingRead,
   driver: Driver,
   targetL: Lane,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
@@ -378,7 +378,7 @@ export function planEnvelopeDriving(
 /** The driver's input, planning alone: no vehicle ahead constrains it (reference runs and scenario policies). */
 export function sampleEnvelopeDrivingInput(
   road: DriverRoad,
-  car: VehicleMotionRead,
+  car: VehicleDrivingRead,
   driver: Driver,
   targetL: Lane = 0,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,
@@ -392,12 +392,12 @@ export function sampleEnvelopeDrivingInput(
  * A vehicle's route speed (m/s): its velocity along the road's tangent at its route position, whose heading is
  * `roadHeading`; negative while it moves backward along the Route. Drivers see other vehicles' speeds as this.
  */
-export function routeSpeed(car: VehicleMotionRead, roadHeading: number): number {
+export function routeSpeed(car: VehicleDrivingRead, roadHeading: number): number {
   return car.velocityX * Math.sin(roadHeading) + car.velocityZ * Math.cos(roadHeading);
 }
 
 /** The direction a vehicle travels in (rad, as yaw): its yaw turned by its slip, read at a least forward speed. */
-export function travelYaw(car: VehicleMotionRead): number {
+export function travelYaw(car: VehicleDrivingRead): number {
   return car.yaw + Math.atan2(car.lateralSpeed, Math.max(ENVELOPE_DRIVER.travelYawMinimumSpeed, car.longitudinalSpeed));
 }
 
@@ -471,7 +471,7 @@ export function steeringLookahead(speed: number): number {
  */
 export function envelopeDrivingInput(
   road: DriverRoad,
-  car: VehicleMotionRead,
+  car: VehicleDrivingRead,
   driver: Driver,
   targetL: Lane,
   workspace: ReturnType<typeof createEnvelopeDriverWorkspace>,

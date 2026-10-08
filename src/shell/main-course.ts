@@ -106,8 +106,15 @@ async function startPage(): Promise<void> {
         const refocused = definition.focalLength !== cameraDefinition.focalLength;
         cameraDefinition = definition;
         // A run's race takes its view (the player depth) from the camera at assembly: a new field of view runs the
-        // current run again, as RETRY does.
-        if (refocused) rerun?.();
+        // current run again, as RETRY does. While a run is being assembled it cannot, and the status line says so.
+        if (!refocused) return;
+        if (!assembling) rerun?.();
+        else if (status) {
+          status.replaceChildren(
+            'The field of view could not run the run again: a run is being assembled with the earlier one. Choose it again once the run has started.',
+          );
+          status.hidden = false;
+        }
       });
       // The frame loop redraws the current screen with the new method at the next frame, paused or not.
       mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));

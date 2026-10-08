@@ -18,7 +18,7 @@ import {
 } from './automatic-powertrain.js';
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
-import { TIRE_LOW_SPEED_REGULARIZATION, regularizedTireSlipAngle, type WheelSolveInput } from './tire-wheel.js';
+import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
@@ -30,12 +30,7 @@ import {
   type BodyKinematics,
   type VehicleDynamicsState,
 } from './vehicle-state.js';
-import {
-  createContactWorkspace,
-  deriveContactObservation,
-  reorientContactObservation,
-  type ContactObservation,
-} from './vehicle-contact.js';
+import { createContactWorkspace, deriveContactObservation, reorientContactObservation } from './vehicle-contact.js';
 import { applySuspensionBumpStops, createBumpStopWorkspace } from './suspension-bump-stop.js';
 
 /** m/s: smooth the travel-direction steering angle at standstill. */
@@ -62,14 +57,7 @@ export interface VehicleState extends VehicleDynamicsState {
   /** Tire observations of the last substep of every update; recovery reinitializes them. */
   readonly tires: VehicleTireObservation;
 
-  /** Derived-output caches only; the next mechanics solve never consumes them as authority. */
-  frontGap: number;
-  rearGap: number;
-  frontSupportAvailable: boolean;
-  rearSupportAvailable: boolean;
-
   readonly speed: number;
-  readonly verticalSpeed: number;
   readonly longitudinalSpeed: number;
   readonly lateralSpeed: number;
   readonly steerAngle: number;
@@ -143,10 +131,6 @@ export function createVehicle(
       drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
     ),
     tires: createVehicleTireObservation(),
-    frontGap: 0,
-    rearGap: 0,
-    frontSupportAvailable: true,
-    rearSupportAvailable: true,
   } as VehicleState;
   installVehicleDerivedAccessors(state);
   publishVehicleRenderY(state, model);
@@ -194,8 +178,6 @@ export function updateVehicle(
       );
       completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
     }
-    vehicle.control.steeringRequest = clamp(input.steering, -1, 1);
-    vehicle.control.steeringActuator = vehicle.actuator.steering;
     vehicle.control.throttleActuator = vehicle.actuator.throttle;
     vehicle.control.brakeActuator = vehicle.actuator.brake;
     return;
@@ -205,9 +187,6 @@ export function updateVehicle(
     velocityBeforeZ = vehicle.velocityZ;
   const calibration = model.steering;
   const automaticMax = calibration.automaticSteerMax;
-  const steeringRequest = clamp(input.steering, -1, 1);
-  let finalFront: ContactObservation | null = null;
-  let finalRear: ContactObservation | null = null;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
@@ -346,40 +325,11 @@ export function updateVehicle(
 
     // Output-only cache: observers consume one completed outer update, never an inner trial.
     if (step === VEHICLE_SUBSTEPS - 1) {
-      vehicle.control.steeringRequest = steeringRequest;
-      vehicle.control.steeringActuator = vehicle.actuator.steering;
-      vehicle.control.automaticSteerAngle = automaticSteer;
-      vehicle.control.requestedSteerOffset = steeringOffset;
       vehicle.control.deliveredSteerOffset = deliveredOffset;
-      vehicle.control.targetSteerAngle = automaticSteer + deliveredOffset;
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
-      vehicle.control.actualSteerAngle = vehicle.frontSteerAngle;
-      vehicle.control.frontSlipAngle =
-        front.forceTransmitting && front.tireFrameValid
-          ? regularizedTireSlipAngle(front.longitudinalVelocity, front.lateralVelocity, TIRE_LOW_SPEED_REGULARIZATION)
-          : 0;
-      vehicle.control.frontDriveTorque = resolved.frontInput.driveTorque;
-      vehicle.control.rearDriveTorque = resolved.rearInput.driveTorque;
-      vehicle.control.requestedFrontBrakeTorque = frontRequest.brakeTorque;
-      vehicle.control.requestedRearBrakeTorque = rearRequest.brakeTorque;
-      vehicle.control.frontBrakeTorque = resolved.frontInput.brakeTorque;
-      vehicle.control.rearBrakeTorque = resolved.rearInput.brakeTorque;
-      vehicle.control.pitchBrakeScale = resolved.pitchBrakeScale;
-      vehicle.control.pitchFeasible = resolved.pitchFeasible;
       recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
-      vehicle.control.frontWheelLocked = frontWheel.locked;
-      vehicle.control.rearWheelLocked = rearWheel.locked;
-      vehicle.control.frontUtilization = Number.isFinite(frontWheel.tire.rho) ? frontWheel.tire.rho : 0;
-      vehicle.control.rearUtilization = Number.isFinite(rearWheel.tire.rho) ? rearWheel.tire.rho : 0;
     }
-
-    finalFront = front;
-    finalRear = rear;
-  }
-
-  if (finalFront && finalRear) {
-    updateContactTelemetry(vehicle, finalFront, finalRear);
   }
   const velocityDelta = workspace.velocityDelta;
   velocityDelta.x = vehicle.velocityX - velocityBeforeX;
@@ -477,13 +427,6 @@ function createStepWorkspace(model: VehicleModel) {
   };
 }
 
-function updateContactTelemetry(vehicle: VehicleState, front: ContactObservation, rear: ContactObservation): void {
-  vehicle.frontGap = front.gap;
-  vehicle.rearGap = rear.gap;
-  vehicle.frontSupportAvailable = front.supportAvailable;
-  vehicle.rearSupportAvailable = rear.supportAvailable;
-}
-
 const derivedWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createBodyKinematicsWorkspace>>();
 // Shared accessor functions retain identical public descriptors and a common object layout across actors.
 const derivedProperties: PropertyDescriptorMap = {
@@ -491,12 +434,6 @@ const derivedProperties: PropertyDescriptorMap = {
     enumerable: true,
     get(this: VehicleState) {
       return vehicleSpeed(this);
-    },
-  },
-  verticalSpeed: {
-    enumerable: true,
-    get(this: VehicleState) {
-      return this.velocityY;
     },
   },
   longitudinalSpeed: {

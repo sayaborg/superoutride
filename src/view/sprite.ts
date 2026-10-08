@@ -29,7 +29,8 @@ export function drawScaledSprite(
   const leftBoundary = xAnchor - scale * (asset.anchorX + 0.5);
   const topBoundary = yAnchor - scale * (asset.anchorY + 0.5);
   const rightBoundary = leftBoundary + scale * asset.width;
-  const bottomBoundary = topBoundary + scale * asset.height;
+  // A picture stands on its anchor's master row: no row below it is drawn.
+  const bottomBoundary = topBoundary + scale * Math.min(asset.height, Math.floor(asset.anchorY + 0.5) + 1);
 
   const unclippedX0 = Math.ceil(leftBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
   const unclippedX1 = Math.floor(rightBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);

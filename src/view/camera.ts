@@ -100,14 +100,16 @@ const planWorkspaces = new WeakMap<
 
 /**
  * The player's direction of travel as a yaw: the body yaw turned by the direction of its velocity in the body frame,
- * by the fraction `speed / TRAVEL_YAW_FULL_SPEED` (at most 1) of that turn.
+ * by the fraction `speed / TRAVEL_YAW_FULL_SPEED` (at most 1) of that turn. Moving backward, the direction is taken
+ * forward (its sideways part kept), so the turn stays within a quarter turn and never flips across the reverse
+ * direction.
  */
 function travelYaw(vehicle: VehicleMotionRead): number {
   const { longitudinalSpeed, lateralSpeed } = vehicle;
   const speed = Math.hypot(longitudinalSpeed, lateralSpeed);
   if (speed === 0) return vehicle.yaw;
   return wrapAngle(
-    vehicle.yaw + Math.min(1, speed / TRAVEL_YAW_FULL_SPEED) * Math.atan2(lateralSpeed, longitudinalSpeed),
+    vehicle.yaw + Math.min(1, speed / TRAVEL_YAW_FULL_SPEED) * Math.atan2(lateralSpeed, Math.abs(longitudinalSpeed)),
   );
 }
 

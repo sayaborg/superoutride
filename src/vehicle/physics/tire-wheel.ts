@@ -91,14 +91,6 @@ function writeDemand(
   out.dx = load * characteristics.kX * out.sx;
   out.dy = load * characteristics.kY * out.sy;
 }
-function tireReferenceSpeed(vx: number, v0: number): number {
-  if (!Number.isFinite(vx)) throw new RangeError('tire velocity must be finite');
-  return Math.hypot(vx, v0);
-}
-export function regularizedTireSlipAngle(vx: number, vy: number, v0: number): number {
-  if (!Number.isFinite(vy)) throw new RangeError('tire lateral velocity must be finite');
-  return Math.atan2(-vy, tireReferenceSpeed(vx, v0));
-}
 function evaluateTireForceValidated(input: WheelSolveInput, out: TireForceScratch): void {
   const omega = out.omega,
     referenceSpeed = out.referenceSpeed;

@@ -94,15 +94,11 @@ export interface AutomaticPowertrainState {
   fuelCut: boolean;
   clutchLocked: boolean;
   engineRpm: number;
-  /** Derived observation caches; none is consumed as state by the next drive solve. */
-  /** The engine's only command: the requested opening clamped between its lower and upper bounds. */
+  /**
+   * Observation, not consumed as state by the next drive solve: the engine's only command, the requested opening clamped
+   * between its lower and upper bounds.
+   */
   effectiveOpening: number;
-  /** Signed engine torque; negative while friction exceeds the opening's torque. */
-  engineTorqueNewtonMeters: number;
-  /** Engine-side torque the clutch transmits: signed engine torque while locked, else within capacity. */
-  clutchTorqueNewtonMeters: number;
-  /** Signed requested wheel-side torque before protection/distribution, never a direct body force. */
-  outputDriveTorque: number;
   shift: PowertrainShiftObservation;
 }
 
@@ -125,9 +121,6 @@ export function createAutomaticPowertrainState(
     engineRpm: locked ? wheelRpm : definition.idleRpm,
     clutchLocked: locked,
     effectiveOpening: 0,
-    engineTorqueNewtonMeters: 0,
-    clutchTorqueNewtonMeters: 0,
-    outputDriveTorque: 0,
     shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
   };
 }
@@ -321,10 +314,8 @@ export function completeAutomaticPowertrain(
   const clutchTorque = clutchTorqueAt(step, engineTorque);
   if (!step.locked) state.engineRpm = step.rpm + (engineTorque - clutchTorque) * step.rpmPerTorque;
   state.effectiveOpening = opening;
-  state.engineTorqueNewtonMeters = engineTorque;
-  state.clutchTorqueNewtonMeters = clutchTorque;
-  state.outputDriveTorque = clutchTorque * step.wheelPerEngineTorque;
-  return state.outputDriveTorque;
+  // The signed requested wheel-side torque before protection and distribution, never a direct body force.
+  return clutchTorque * step.wheelPerEngineTorque;
 }
 
 const RPM_PER_RADIAN_PER_SECOND = 60 / (2 * Math.PI);

@@ -9,33 +9,12 @@ import { dot3, type Vec3 } from '../../core/vector3.js';
 
 export const VEHICLE_GRAVITY = 9.80665;
 
-/** Output cache for presentation/DEV only. Physics never consumes this object as an authority. */
+/** The controls the competitor observation reports; physics never consumes this object as an authority. */
 interface VehicleControlObservation {
-  /** Canonical input observation. */
-  steeringRequest: number;
-  steeringActuator: number;
-  automaticSteerAngle: number;
-  requestedSteerOffset: number;
+  /** The delivered driver steering offset. */
   deliveredSteerOffset: number;
-  targetSteerAngle: number;
   throttleActuator: number;
   brakeActuator: number;
-  actualSteerAngle: number;
-  /** Signed regularized front contact slip angle. Derived telemetry only. */
-  frontSlipAngle: number;
-  /** Station drive torques as the powertrain delivers them; protection bounds the opening, never these. */
-  frontDriveTorque: number;
-  rearDriveTorque: number;
-  requestedFrontBrakeTorque: number;
-  requestedRearBrakeTorque: number;
-  pitchBrakeScale: number;
-  pitchFeasible: boolean;
-  frontBrakeTorque: number;
-  rearBrakeTorque: number;
-  frontWheelLocked: boolean;
-  rearWheelLocked: boolean;
-  frontUtilization: number;
-  rearUtilization: number;
 }
 
 /** Shared public world-state fields. `course` is a derived plan coordinate cache, never world authority. */
@@ -69,30 +48,7 @@ export interface BodyKinematics {
 }
 
 export function createVehicleControlObservation(): VehicleControlObservation {
-  return {
-    steeringRequest: 0,
-    steeringActuator: 0,
-    automaticSteerAngle: 0,
-    requestedSteerOffset: 0,
-    deliveredSteerOffset: 0,
-    targetSteerAngle: 0,
-    throttleActuator: 0,
-    brakeActuator: 0,
-    actualSteerAngle: 0,
-    frontSlipAngle: 0,
-    frontDriveTorque: 0,
-    rearDriveTorque: 0,
-    requestedFrontBrakeTorque: 0,
-    requestedRearBrakeTorque: 0,
-    pitchBrakeScale: 1,
-    pitchFeasible: true,
-    frontBrakeTorque: 0,
-    rearBrakeTorque: 0,
-    frontWheelLocked: false,
-    rearWheelLocked: false,
-    frontUtilization: 0,
-    rearUtilization: 0,
-  };
+  return { deliveredSteerOffset: 0, throttleActuator: 0, brakeActuator: 0 };
 }
 
 export function resetVehicleControlObservation(vehicle: VehicleDynamicsState): void {

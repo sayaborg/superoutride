@@ -392,6 +392,8 @@ Camera chainage is `s_standing-D_cam`; its drawn XZ is the player's standing poi
 the camera yaw. There is one camera. Its yaw follows the camera definition's yaw source: the body yaw (the product's), or
 with DEV the player's direction of travel, the body yaw turned by its velocity's direction in the body frame (below
 2 m/s by that fraction of the turn, so at rest the body yaw, and stopping or starting turns the camera continuously).
+Moving backward, that direction is taken forward with its sideways part kept, so the turn stays within a quarter turn
+and the camera does not swing across the reverse direction.
 That yaw is limited to the definition's limit angle (45 degrees) about the plan heading at the car's chainage; with a
 response time above zero (the definition's is 0 s) the camera follows the limited yaw as a first-order lag at the fixed
 step. Beyond the limit the camera stays at it, and the player sprite's
@@ -603,7 +605,9 @@ Master `W` by `H` has untrimmed, top-left-aligned level `k` storage
 frame. A contiguous prefix through `ceil(log2(max(W,H)))` is valid; the longer axis keeps shrinking.
 
 The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`.
-Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid.
+Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid. A sprite stands on its anchor's
+master row, the picture's standing point: rows below that row are not drawn, so a picture is made to lie at and above
+its standing point.
 Every level represents `worldWidth` by `worldWidth*H/W` metres, independent of opaque/storage bounds.
 
 For master footprint `rho=1/g`, sprites use the shared nearest-octave selector below. Display extent

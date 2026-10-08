@@ -80,9 +80,6 @@ export function createCompetitorObservation(
     yaw: 0,
     renderY: 0,
     course: { s: 0, l: 0 },
-    velocityX: 0,
-    velocityY: 0,
-    velocityZ: 0,
     longitudinalSpeed: 0,
     lateralSpeed: 0,
     sprungPitch: 0,
@@ -122,9 +119,6 @@ export function writeCompetitorObservation(
   out.renderY = vehicle.renderY;
   out.course.s = vehicle.course.s;
   out.course.l = vehicle.course.l;
-  out.velocityX = vehicle.velocityX;
-  out.velocityY = vehicle.velocityY;
-  out.velocityZ = vehicle.velocityZ;
   out.longitudinalSpeed = vehicle.longitudinalSpeed;
   out.lateralSpeed = vehicle.lateralSpeed;
   out.sprungPitch = vehicle.sprungPitch;
