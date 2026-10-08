@@ -22,6 +22,8 @@ concurrency:
 
 jobs:
   build:
+    # A skipped edit is named apart, so it never stands in for the head's build check.
+    name: ${{ github.event.action == 'edited' && !github.event.changes.base && 'edit (no build)' || 'build' }}
     if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
     steps:
