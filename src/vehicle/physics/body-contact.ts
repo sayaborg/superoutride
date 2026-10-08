@@ -10,7 +10,7 @@ export interface CompiledBodyContact {
   readonly barrierFriction: number;
 }
 
-/** Convert the saved body contact values; the stability bound needs the fixed step and is admitted with the model. */
+/** Convert the saved body contact values; the stability bound needs the fixed step and is admitted with the Session. */
 export function compileBodyContact(value: {
   frequencyHertz: number;
   dampingRatio: number;

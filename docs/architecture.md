@@ -445,8 +445,9 @@ The absent-piece value is no material (`null`), which is not a material definiti
 Point reads use binary search in s, then binary search in l over ordered spans. Intervals are
 `[left,right)` and `[start,end)`; the Section terminal belongs to the last slab. Uncovered cells
 read no material. `sampleInChart` subtracts the origin from edges before comparing l, preserving exact
-shifted-boundary ties. A point read returns the admitted material or `null` without allocating. Nonfinite queries or
-stations outside a finite Section fail; Route readers provide their ordinary outside no-material result.
+shifted-boundary ties. A point read returns the admitted material or `null` without allocating. The Section reader assumes a finite query
+within its Section and does not check it; the Route reader first reads no material outside its coordinate domain, so
+only points within a Section reach the Section table.
 Gate/grid validation and fork compilation consume the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.
 
@@ -568,10 +569,9 @@ Columns clip to the frame; a wall beside
 the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
 measured render counts the painted wall pixels.
 
-Course sprites enter through either a sprite array or a camera/depth observation reader. The reader
-contains immutable camera/projection metadata and read-only image workspaces. An upright basis/ruler
-change transforms world metadata while preserving its recorded screen projections and depths.
-A different physical camera or depth interval rejects that observation. The array path computes its own projections.
+Course sprites enter the render as one array of world sprites (`RenderScene.worldSprites`). Each frame the renderer
+keeps those whose pseudo depth lies in the visible depth interval, projects each through the frame's camera and draws
+them far to near.
 
 ### Text layer
 
@@ -586,11 +586,15 @@ so index 0 and empty tiles leave the scene visible.
 ### Vehicle color and brake lamps
 
 Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates a vehicle's
-off/on sprite sets, using each image's own named palette and the sprite set's shared off/on colors for reserved slot 15.
-Player rendering binds the player's vehicle at startup; `createRaceSprites` draws each rival from the sprite set of
-its observed vehicle ID, binding each vehicle once on first use. No per-frame palette evaluation occurs. Every competitor observation, the player's included, publishes boolean
-`brakeLampOn`: that competitor's brake request in its latest step input is greater than 0. All vehicles use their definition's default color;
-player color selection and rival color assignment are pending product decisions.
+off/on sprite sets in one of its colors, using each image's own named palette and the sprite set's shared off/on colors
+for reserved slot 15. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
+the player's is the series entry's, the chosen color or the vehicle's default color, and each rival's is its series
+entry's or its drawn FREE PLAY pair's; each traffic vehicle's color is drawn from its sprite set's colors by the Session
+seed. Player rendering binds the player's vehicle in its entry's color at assembly; `createRaceSprites` draws every
+other vehicle from the sprite set of its observed vehicle ID in its observed color, binding each vehicle and color once
+on first use. No per-frame palette evaluation occurs. Every competitor observation, the
+player's included, publishes boolean `brakeLampOn`: that competitor's brake request in its latest step input is
+greater than 0.
 
 ### Sprite LOD metric and read contract
 

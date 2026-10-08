@@ -126,7 +126,7 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 10: since version 8, one implementation of the vehicle ahead,
+driver's record, part of the reference run's procedure record, contains it. It is 13: since version 8, one implementation of the vehicle ahead,
 lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
 surface grip drivers plan with (10), standing objects that end a lane (11), other
 vehicles' route speeds (12), and lanes carried across every seam as the lanes continue (13).
@@ -138,7 +138,9 @@ them for the session without saving, and a reload restores them. The down pitch 
 height together: the camera is solved to keep the player at its target row, so a smaller pitch moves the horizon
 down the screen and lowers the camera ([Architecture](architecture.md#camera-and-fixed-metric)). The field of view moves the player depth
 with the focal length, so the player keeps its row and size; a run's race takes that depth when the run is assembled,
-so choosing a field of view during a run runs it again, as RETRY does. The background's angular scale stays fixed.
+so choosing a field of view during a run runs it again, as RETRY does. The background scrolls `f` pixels per radian
+of yaw, so its horizontal angular scale follows the field of view as distant road and sprites do; vertically it keeps
+one image row per screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 
 | Setting              | Value | DEV choices                             | Meaning                                                                                                                                                                  |
 | -------------------- | ----- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

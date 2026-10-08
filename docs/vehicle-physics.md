@@ -189,8 +189,8 @@ when:
 4 − 4ζp + (1 − 2c)·p² > 0
 ```
 
-so ζ must be positive. Each vehicle model admits these at its step (`assertBodyContactStability`); a violation is a
-`RangeError`. At the 1/60 s step the defaults (3 Hz, ζ = 1) give p = 0.314; with ζ = 1 the third condition bounds
+so ζ must be positive. Session resolution admits these once at the race's fixed step (`assertBodyContactStability`);
+a violation is a `RangeError`. At the 1/60 s step the defaults (3 Hz, ζ = 1) give p = 0.314; with ζ = 1 the third condition bounds
 p below 0.98 (about 9.4 Hz).
 
 ## Airborne state and recovery

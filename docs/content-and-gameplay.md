@@ -1027,7 +1027,8 @@ through its loading failure state.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
 A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER
-stops the field and preserves final rank and precise event time.
+stops judging and the race clock, preserving final rank and precise event time; the vehicles and traffic keep moving
+([race time and events](#race-time-and-events)).
 Recovery consumes simulation time and grants no crossing credit. Results are session-local.
 
 ### Reference times and clock
@@ -1058,7 +1059,7 @@ compiler's record is part of a course build identity. A code change that changes
 procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
 records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
 reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 1) records the race's fixed step, the Session seed, the reference driver (the
+`superoutride.reference-driving` version 2) records the race's fixed step, the Session seed, the reference driver (the
 driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
 spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
