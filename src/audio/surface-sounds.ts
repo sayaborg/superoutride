@@ -1,3 +1,5 @@
+import { ROLLING_SETTING_RANGES } from './tire-rolling-acoustics.js';
+
 /**
  * The friction system's input from what is rubbed: `roughness` scales its forcing and `susceptibility` its feedback.
  * Listening values, NOT measured properties.
@@ -25,12 +27,24 @@ export function compileFrictionInput({ roughness, susceptibility }: FrictionInpu
   return Object.freeze({ roughness, susceptibility });
 }
 
+/**
+ * The rolling palette's domain, derived from the rolling generator: a band's excitation is level (below 1) × gain ×
+ * `low` or `high` × modulation, and the texture modulation is 1 + depth × u with u in [-1, 1]. `textureDepth` at most 1
+ * keeps the modulation in [0, 2], so `low` and `high` at most 1 / (2 × the largest rolling gain) keep every excitation
+ * within the noise band's [0, 1] for every admitted rolling setting.
+ */
+export const ROLLING_PALETTE_LIMITS = Object.freeze({
+  level: 1 / (2 * ROLLING_SETTING_RANGES.gain.max),
+  textureDepth: 1,
+});
+
 /** The transport bound on surface numbers: the worklet's `surfaceIndex` parameter range. */
 export const SURFACE_SOUND_LIMIT = 256;
 
 /**
- * The one value check of a surface sound: every number finite and at
- * least 0, `textureLengthMeters` above 0 and `susceptibility` at most 1. Returns a detached frozen record.
+ * The one value check of a surface sound: every number finite and at least 0, `textureLengthMeters` above 0,
+ * `low`, `high` and `textureDepth` within `ROLLING_PALETTE_LIMITS` and `susceptibility` at most 1. Returns a detached
+ * frozen record.
  */
 export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
   const { rolling } = record;
@@ -38,6 +52,10 @@ export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
   if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0))
     throw new RangeError('invalid surface sound: values must be finite and nonnegative');
   if (rolling.textureLengthMeters <= 0) throw new RangeError('invalid surface sound: textureLengthMeters');
+  if (rolling.low > ROLLING_PALETTE_LIMITS.level || rolling.high > ROLLING_PALETTE_LIMITS.level)
+    throw new RangeError(`invalid surface sound: low and high must be at most ${ROLLING_PALETTE_LIMITS.level}`);
+  if (rolling.textureDepth > ROLLING_PALETTE_LIMITS.textureDepth)
+    throw new RangeError(`invalid surface sound: textureDepth must be at most ${ROLLING_PALETTE_LIMITS.textureDepth}`);
   const friction = compileFrictionInput(record.friction);
   return Object.freeze({
     rolling: Object.freeze({

@@ -590,7 +590,7 @@ to pace their driving. `bodyContact` is the [body contact](#body-contact) spring
 once, from the Session's driving definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
 are dimensionless. Require
-0 < offset < maximum < 90 degrees, positive finite actuator rates after conversion, positive finite
+0 < offset < maximum < 90 degrees, positive finite actuator rates and finite pressures in pascals after conversion, positive finite
 tire capacities/stiffness and 0 < knee < 1.
 Later game-wide launch and pitch rules extend this same document rather than creating separate
 assist configuration files.

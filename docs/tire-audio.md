@@ -29,7 +29,9 @@ version 1 document (manifest kind `surface-sound`, ID `default`). Its `surfaces`
 material ID: `rolling` (`low`, `high`, `textureLengthMeters`, `textureDepth`) is the rolling palette and
 `friction` (`roughness`, `susceptibility`) the friction input. [`compileSurfaceSound`](../src/audio/surface-sounds.ts)
 is the one value check (every number finite and at least 0, `textureLengthMeters` above 0, `susceptibility` at most
-1); [`compileSurfaceSoundDocument`](../src/audio/surface-sound-document.ts) checks format, version and shapes and
+1, and the rolling palette within `ROLLING_PALETTE_LIMITS`: `textureDepth` at most 1, so the texture modulation
+`1 + depth·u` stays in [0, 2], and `low` and `high` at most 1 / (2 × the largest rolling `gain`), 3.125, so every band
+excitation stays within the noise band's [0, 1] for every admitted rolling setting); [`compileSurfaceSoundDocument`](../src/audio/surface-sound-document.ts) checks format, version and shapes and
 calls it. `resolveSurfaceSoundRecords` numbers the records in material catalog order and rejects, with
 `RangeError` and no fallback, a catalog material without a surface sound, a surface sound for an unknown
 material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport range) materials; the content
@@ -45,7 +47,8 @@ Wall sounds are content: `content/wall-sounds/default.json` is the one `superout
 record per wall-sound ID, `{friction: {roughness, susceptibility}}`: the friction input of a wall rubbed along, with
 the same meaning and the same one value check as a surface's ([`compileFrictionInput`](../src/audio/surface-sounds.ts):
 both finite and at least 0, `susceptibility` at most 1). `courseLimit` names the record every course limit uses; it must
-name a record (`unresolved_reference`). [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
+name a record (`unresolved_reference`). At most `WALL_SOUND_LIMIT` (256, the scraping worklet's `wall` transport
+range) records are admitted (`resource_limit`), so every record keeps its number in transport. [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
 content build admits each course's solid walls against it ([Content and gameplay](content-and-gameplay.md#walls)).
 
 ## Rolling synthesis

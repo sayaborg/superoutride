@@ -23,11 +23,13 @@ export interface CompiledWallSounds {
 
 export const WALL_SOUND_DOCUMENT_FORMAT = 'superoutride.wall-sounds';
 export const WALL_SOUND_DOCUMENT_VERSION = 1;
+/** The transport bound on wall sound numbers: the scraping worklet's `wall` parameter range, as for surface sounds. */
+export const WALL_SOUND_LIMIT = 256;
 
 /**
- * Admit the `superoutride.wall-sounds` version 1 document: one record per wall-sound ID, each holding its friction input
- * with the surface sounds' one value check (`compileFrictionInput`), and `courseLimit`, the ID of the record course
- * limits use, which must name a record.
+ * Admit the `superoutride.wall-sounds` version 1 document: at most `WALL_SOUND_LIMIT` records, one per wall-sound ID,
+ * each holding its friction input with the surface sounds' one value check (`compileFrictionInput`), and `courseLimit`,
+ * the ID of the record course limits use, which must name a record.
  */
 export function compileWallSoundDocument(
   value: unknown,
@@ -58,6 +60,8 @@ export function compileWallSoundDocument(
         throw new AdmissionError('invalid_value', `${at}/friction`, error.message);
       }
     });
+    if (Object.keys(walls).length > WALL_SOUND_LIMIT)
+      throw new AdmissionError('resource_limit', '/walls', `At most ${WALL_SOUND_LIMIT} wall sounds are admitted`);
     const courseLimit = readString(v.courseLimit, '/courseLimit');
     if (!Object.hasOwn(walls, courseLimit))
       throw new AdmissionError('unresolved_reference', '/courseLimit', `No wall sound ${courseLimit}`);

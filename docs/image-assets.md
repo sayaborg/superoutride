@@ -135,7 +135,9 @@ have only index 0: it is the empty tile.
 | 125–128  | `LAMP_OFF_TL`…`_BR`     | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
 
 Palettes 0 through 5 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal) and BAR
-(unlit lamps and empty HUD parts); later palettes are free. A tile's palette chooses its color, so one lamp or bar
+(unlit lamps and empty HUD parts); later palettes are free. A document holds at most 65536 patterns and 256
+palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
+text grid cell keeps any admitted pair. A tile's palette chooses its color, so one lamp or bar
 tile serves every color. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
 ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body. The
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.

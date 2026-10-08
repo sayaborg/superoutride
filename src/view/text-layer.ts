@@ -11,6 +11,7 @@ export const TEXT_ROWS = LOGICAL_HEIGHT / TEXT_TILE_SIZE;
  * non-empty tile's opaque pixels; index 0 leaves the frame below visible.
  */
 export function createTextLayer(tiles: TextTiles) {
+  // Cells hold IDs in the widths of `TEXT_TILE_LIMITS`, so every admitted pattern and palette keeps its identity.
   const patterns = new Uint16Array(TEXT_COLUMNS * TEXT_ROWS),
     palettes = new Uint8Array(TEXT_COLUMNS * TEXT_ROWS);
   // One overlay tile per cell, painted over the cell's tile: a mark drawn over a bar.

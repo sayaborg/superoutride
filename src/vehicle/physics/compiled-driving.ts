@@ -43,6 +43,14 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     if (!(definition[field] > 0) || !Number.isFinite(definition[field]))
       throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
   }
+  // Pressures are published in pascals; a bar value whose pascals are not finite is outside the domain.
+  const pascals = (field: 'idleFrictionMeanEffectivePressureBar' | 'redlineFrictionMeanEffectivePressureBar') => {
+    const value = definition[field] * PASCALS_PER_BAR;
+    if (!Number.isFinite(value)) throw new DefinitionDomainError(field, `${field} must be finite in pascals`);
+    return value;
+  };
+  const idleFrictionMeanEffectivePressure = pascals('idleFrictionMeanEffectivePressureBar'),
+    redlineFrictionMeanEffectivePressure = pascals('redlineFrictionMeanEffectivePressureBar');
   if (!(definition.clutchCapacityFactor > 1) || !Number.isFinite(definition.clutchCapacityFactor))
     throw new DefinitionDomainError('clutchCapacityFactor', 'clutchCapacityFactor must be finite and > 1');
   if (!(definition.suspensionProgression >= 1) || !Number.isFinite(definition.suspensionProgression))
@@ -98,8 +106,8 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
   return Object.freeze({
     powertrain: Object.freeze({
       fuelCutRedlineMargin: definition.fuelCutRedlineMargin,
-      idleFrictionMeanEffectivePressure: definition.idleFrictionMeanEffectivePressureBar * PASCALS_PER_BAR,
-      redlineFrictionMeanEffectivePressure: definition.redlineFrictionMeanEffectivePressureBar * PASCALS_PER_BAR,
+      idleFrictionMeanEffectivePressure,
+      redlineFrictionMeanEffectivePressure,
       drivelineEfficiency: definition.drivelineEfficiency,
       engineInertiaPerLitre: definition.engineInertiaKilogramSquareMetersPerLitre,
       clutchLockIdleMargin: definition.clutchLockIdleMargin,

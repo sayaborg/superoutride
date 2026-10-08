@@ -36,6 +36,8 @@ export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(
   Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, CHARACTER_COUNT + i])),
 );
 const PATTERN_COUNT = CHARACTER_COUNT + HUD_TILE_NAMES.length;
+/** A pattern ID is a 16-bit and a palette ID an 8-bit unsigned integer, so a text grid cell holds any admitted pair. */
+export const TEXT_TILE_LIMITS = Object.freeze({ patterns: 2 ** 16, palettes: 2 ** 8 });
 
 /** The indexed pattern/palette format with 8x8 transparent-capable tiles and no saved arrangement. */
 export interface TextTilesDocument {
@@ -66,7 +68,7 @@ export function compileTextTiles(value: unknown): TextTiles {
           length: TEXT_TILE_SIZE * TEXT_TILE_SIZE,
         }),
       ),
-    { min: PATTERN_COUNT },
+    { min: PATTERN_COUNT, max: TEXT_TILE_LIMITS.patterns },
   );
   requireAdmission(
     isEmpty(patterns[EMPTY_TEXT_TILE]!),
@@ -74,7 +76,10 @@ export function compileTextTiles(value: unknown): TextTiles {
     `/patterns/${EMPTY_TEXT_TILE}`,
     'The space pattern is the empty tile and has only index 0',
   );
-  const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, { min: NAMED_PALETTE_COUNT });
+  const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, {
+    min: NAMED_PALETTE_COUNT,
+    max: TEXT_TILE_LIMITS.palettes,
+  });
   return new TextTiles(name, patterns, palettes);
 }
 

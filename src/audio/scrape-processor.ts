@@ -3,7 +3,7 @@ import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { FrictionSynthesis } from './friction-synthesis.js';
 import { ProcessingMeter } from './processing-meter.js';
 import { SCRAPE_SEED, type ScrapeSettings } from './wall-scrape-acoustics.js';
-import type { WallSound } from './wall-sounds.js';
+import { WALL_SOUND_LIMIT, type WallSound } from './wall-sounds.js';
 import { WorkletRest } from './worklet-rest.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
@@ -13,7 +13,7 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 export const SCRAPE_PARAMETERS = Object.freeze({
   power: Object.freeze({ minValue: 0, maxValue: 1e8, defaultValue: 0 }),
   speed: Object.freeze({ minValue: 0, maxValue: 200, defaultValue: 0 }),
-  wall: Object.freeze({ minValue: -1, maxValue: 255, defaultValue: -1 }),
+  wall: Object.freeze({ minValue: -1, maxValue: WALL_SOUND_LIMIT - 1, defaultValue: -1 }),
 });
 
 /**
