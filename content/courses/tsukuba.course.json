@@ -414,15 +414,11 @@
           "knots": [
             {
               "at": { "joint": "home-a", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
-            },
-            {
-              "at": { "joint": "s-mid", "offset": -12.78 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             },
             {
               "at": { "joint": "s-mid", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -17.2 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             },
             {
               "at": { "joint": "s-mid", "offset": 7.22 },
@@ -557,19 +553,11 @@
           "knots": [
             {
               "at": { "joint": "home-a", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 19.5 }
-            },
-            {
-              "at": { "joint": "home-a", "offset": 10 },
-              "lateral": { "boundary": "road-right", "offset": 17.8 }
-            },
-            {
-              "at": { "joint": "home-a", "offset": 20 },
-              "lateral": { "boundary": "road-right", "offset": 16.2 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "home-a", "offset": 30 },
-              "lateral": { "boundary": "road-right", "offset": 14.7 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "home-a", "offset": 40 },
@@ -600,116 +588,8 @@
               "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
-              "at": { "joint": "t1-entry", "offset": -56.47 },
-              "lateral": { "boundary": "road-right", "offset": 15.8 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": -46.47 },
-              "lateral": { "boundary": "road-right", "offset": 16.6 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": -26.47 },
-              "lateral": { "boundary": "road-right", "offset": 18.4 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": -16.47 },
-              "lateral": { "boundary": "road-right", "offset": 19.2 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": -6.47 },
-              "lateral": { "boundary": "road-right", "offset": 20.1 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 20.6 }
-            },
-            {
-              "at": { "joint": "t1-entry", "offset": 13.53 },
-              "lateral": { "boundary": "road-right", "offset": 21.2 }
-            },
-            {
-              "at": { "joint": "t1", "offset": -10.78 },
-              "lateral": { "boundary": "road-right", "offset": 16.1 }
-            },
-            {
-              "at": { "joint": "t1", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 16.4 }
-            },
-            {
-              "at": { "joint": "t1", "offset": 29.22 },
-              "lateral": { "boundary": "road-right", "offset": 17 }
-            },
-            {
-              "at": { "joint": "t1", "offset": 39.22 },
-              "lateral": { "boundary": "road-right", "offset": 17.1 }
-            },
-            {
-              "at": { "joint": "s-in", "offset": -16.31 },
-              "lateral": { "boundary": "road-right", "offset": 17.7 }
-            },
-            {
-              "at": { "joint": "s-in", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 17.9 }
-            },
-            {
-              "at": { "joint": "s-in", "offset": 13.69 },
-              "lateral": { "boundary": "road-right", "offset": 22.9 }
-            },
-            {
-              "at": { "joint": "s1", "offset": -48.46 },
-              "lateral": { "boundary": "road-right", "offset": 19.9 }
-            },
-            {
-              "at": { "joint": "s1", "offset": -38.46 },
-              "lateral": { "boundary": "road-right", "offset": 19.2 }
-            },
-            {
-              "at": { "joint": "s1", "offset": -8.46 },
-              "lateral": { "boundary": "road-right", "offset": 17.4 }
-            },
-            {
-              "at": { "joint": "s1", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 17 }
-            },
-            {
-              "at": { "joint": "s1", "offset": 11.54 },
-              "lateral": { "boundary": "road-right", "offset": 17 }
-            },
-            {
-              "at": { "joint": "s1", "offset": 21.54 },
-              "lateral": { "boundary": "road-right", "offset": 16.9 }
-            },
-            {
-              "at": { "joint": "s-mid", "offset": -12.78 },
-              "lateral": { "boundary": "road-right", "offset": 17.1 }
-            },
-            {
-              "at": { "joint": "s-mid", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 18.2 }
-            },
-            {
-              "at": { "joint": "s-mid", "offset": 7.22 },
-              "lateral": { "boundary": "road-right", "offset": 19.5 }
-            },
-            {
-              "at": { "joint": "s-mid", "offset": 17.22 },
-              "lateral": { "boundary": "road-right", "offset": 21.1 }
-            },
-            {
-              "at": { "joint": "s2", "offset": -21.05 },
-              "lateral": { "boundary": "road-right", "offset": 22.6 }
-            },
-            {
-              "at": { "joint": "s2", "offset": -11.05 },
-              "lateral": { "boundary": "road-right", "offset": 24.2 }
-            },
-            {
-              "at": { "joint": "s2", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
-            },
-            {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             }
           ]
         }
@@ -754,6 +634,96 @@
         {
           "kind": "strip",
           "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "home-a", "offset": 70 },
+          "left": { "boundary": "road-left", "offset": -4 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": 4684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "hairpin1", "offset": -0.04 },
+          "end": { "joint": "infield", "offset": -0.05 },
+          "left": { "boundary": "road-left", "offset": -4 },
+          "right": { "boundary": "road-left", "offset": -1.2 },
+          "color": 4684,
+          "material": null
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "t1-entry", "offset": 0 },
+          "end": { "joint": "t1", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "t1", "offset": 0 },
+          "end": { "joint": "s-in", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "s-in", "offset": -5 },
+          "end": { "joint": "s-in", "offset": 35 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "s1", "offset": 0 },
+          "end": { "joint": "s-mid", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "s2", "offset": 0 },
+          "end": { "joint": "s-out", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "s-out", "offset": -5 },
+          "end": { "joint": "hairpin1", "offset": -3.86 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "hairpin1", "offset": 0 },
+          "end": { "joint": "infield", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "infield", "offset": -5 },
+          "end": { "joint": "infield", "offset": 35 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-left", "offset": 0 },
           "right": { "boundary": "road-left", "offset": 0.15 },
@@ -770,9 +740,175 @@
           "material": null
         }
       ],
-      "walls": [],
+      "walls": [
+        {
+          "boundary": "verge-left",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "home-a", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "s-in", "offset": 23.69 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "s1", "offset": 1.54 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "boundary": "verge-right",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "home-a", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 9.85 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "tsukuba-tower",
+          "palette": "original",
+          "at": { "joint": "home-a", "offset": 25 },
+          "lateral": { "boundary": "road-right", "offset": 22 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "board-yokohama",
+              "palette": "original",
+              "at": { "joint": "t1-entry", "offset": -14.47 },
+              "lateral": { "boundary": "verge-left", "offset": -0.5 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6,
+          "count": 16,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "board-advan",
+              "palette": "original",
+              "at": { "joint": "t1", "offset": -8.78 },
+              "lateral": { "boundary": "verge-left", "offset": -0.5 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "tsukuba-hairpin-stand",
+          "palette": "original",
+          "at": { "joint": "hairpin1", "offset": 41.36 },
+          "lateral": { "boundary": "verge-right", "offset": 8 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "board-bridgestone",
+          "palette": "original",
+          "at": { "joint": "infield", "offset": -20.15 },
+          "lateral": { "boundary": "verge-right", "offset": 6 },
+          "groundOffset": 3,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "board-matsunaga",
+          "palette": "original",
+          "at": { "joint": "infield", "offset": -4.15 },
+          "lateral": { "boundary": "verge-right", "offset": 6 },
+          "groundOffset": 1,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "board-supergt",
+          "palette": "original",
+          "at": { "joint": "infield", "offset": 24.85 },
+          "lateral": { "boundary": "verge-right", "offset": 6 },
+          "groundOffset": 1,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "home-a", "offset": 0 },
@@ -1279,11 +1415,11 @@
             },
             {
               "at": { "joint": "dunlop", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             }
           ]
         },
@@ -1318,51 +1454,11 @@
           "knots": [
             {
               "at": { "joint": "infield", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
-            },
-            {
-              "at": { "joint": "infield", "offset": 4.37 },
-              "lateral": { "boundary": "road-right", "offset": 19.9 }
-            },
-            {
-              "at": { "joint": "dunlop", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 19.9 }
-            },
-            {
-              "at": { "joint": "dunlop", "offset": 19.37 },
-              "lateral": { "boundary": "road-right", "offset": 19.3 }
-            },
-            {
-              "at": { "joint": "dunlop-out", "offset": -20.61 },
-              "lateral": { "boundary": "road-right", "offset": 18.9 }
-            },
-            {
-              "at": { "joint": "dunlop-out", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 18.3 }
-            },
-            {
-              "at": { "joint": "dunlop-out", "offset": 9.39 },
-              "lateral": { "boundary": "road-right", "offset": 24 }
-            },
-            {
-              "at": { "joint": "dunlop-out", "offset": 19.39 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
-            },
-            {
-              "at": { "joint": "r80", "offset": -24.68 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
-            },
-            {
-              "at": { "joint": "r80", "offset": -14.68 },
-              "lateral": { "boundary": "road-right", "offset": 23.2 }
-            },
-            {
-              "at": { "joint": "r80", "offset": -4.68 },
-              "lateral": { "boundary": "road-right", "offset": 17.2 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "r80", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 14.8 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "r80", "offset": 5.32 },
@@ -1522,19 +1618,11 @@
             },
             {
               "at": { "joint": "end", "offset": -78.214543 },
-              "lateral": { "boundary": "road-right", "offset": 17.1 }
-            },
-            {
-              "at": { "joint": "end", "offset": -68.214543 },
-              "lateral": { "boundary": "road-right", "offset": 21.6 }
-            },
-            {
-              "at": { "joint": "end", "offset": -58.214543 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             }
           ]
         }
@@ -1578,6 +1666,87 @@
         },
         {
           "kind": "strip",
+          "start": { "joint": "hairpin2", "offset": 0.01 },
+          "end": { "joint": "hairpin2-exit", "offset": 0.04 },
+          "left": { "boundary": "road-right", "offset": 1.2 },
+          "right": { "boundary": "road-right", "offset": 4 },
+          "color": 4684,
+          "material": null
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "dunlop", "offset": 0 },
+          "end": { "joint": "dunlop-out", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "dunlop-out", "offset": -5 },
+          "end": { "joint": "dunlop-out", "offset": 35 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "r80", "offset": 0 },
+          "end": { "joint": "r80-out", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "r80-out", "offset": -5 },
+          "end": { "joint": "left-fast", "offset": -32.73 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "hairpin2", "offset": 0 },
+          "end": { "joint": "hairpin2-exit", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "hairpin2-exit", "offset": -5 },
+          "end": { "joint": "back", "offset": -2.7 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "hairpin2-exit", "offset": 0 },
+          "end": { "joint": "back", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "back", "offset": -5 },
+          "end": { "joint": "back", "offset": 35 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "strip",
           "start": { "joint": "infield", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-left", "offset": 0 },
@@ -1595,9 +1764,117 @@
           "material": null
         }
       ],
-      "walls": [],
+      "walls": [
+        {
+          "boundary": "verge-left",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "dunlop", "offset": -5.63 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "r80", "offset": -24.68 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "hairpin2", "offset": -6.49 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "boundary": "verge-right",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "dunlop", "offset": -0.63 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "dunlop-arch",
+          "palette": "original",
+          "at": { "joint": "dunlop-out", "offset": 9.39 },
+          "lateral": -2,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "infield", "offset": 0 },
@@ -1830,11 +2107,11 @@
           "knots": [
             {
               "at": { "joint": "back", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": { "boundary": "road-left", "offset": -25 }
+              "lateral": { "boundary": "road-left", "offset": -14 }
             }
           ]
         },
@@ -1869,15 +2146,11 @@
           "knots": [
             {
               "at": { "joint": "back", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
-            },
-            {
-              "at": { "joint": "end", "offset": -4.961 },
-              "lateral": { "boundary": "road-right", "offset": 25 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": { "boundary": "road-right", "offset": 19.5 }
+              "lateral": { "boundary": "road-right", "offset": 14 }
             }
           ]
         }
@@ -1921,6 +2194,51 @@
         },
         {
           "kind": "strip",
+          "start": { "joint": "home-b", "offset": 2.277472 },
+          "end": { "joint": "end", "offset": -0.001458 },
+          "left": { "boundary": "road-left", "offset": -4 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": 4684,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "final-exit", "offset": -0.175 },
+          "end": { "joint": "home-b", "offset": 0.277472 },
+          "left": { "boundary": "road-right", "offset": 1.2 },
+          "right": { "boundary": "road-right", "offset": 4 },
+          "color": 4684,
+          "material": null
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "final-entry", "offset": 0 },
+          "end": { "joint": "final-exit", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "final-exit", "offset": 0 },
+          "end": { "joint": "home-b", "offset": 0.000472 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 1.2 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "curb",
+          "start": { "joint": "home-b", "offset": -4.999528 },
+          "end": { "joint": "home-b", "offset": 35.000472 },
+          "left": { "boundary": "road-left", "offset": -1.2 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "stripe": 2.5,
+          "colors": [27781, 32765]
+        },
+        {
+          "kind": "strip",
           "start": { "joint": "back", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-left", "offset": 0 },
@@ -1938,9 +2256,105 @@
           "material": null
         }
       ],
-      "walls": [],
+      "walls": [
+        {
+          "boundary": "verge-left",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "back", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": -0.001458 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31268,
+              "knots": [
+                {
+                  "at": { "joint": "back", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "final-entry", "offset": -8.215 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "boundary": "verge-right",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "solid": null,
+          "strips": [
+            {
+              "kind": "strip",
+              "color": 30652,
+              "knots": [
+                {
+                  "at": { "joint": "back", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1
+                },
+                {
+                  "at": { "joint": "end", "offset": -0.001458 },
+                  "bottom": 0,
+                  "top": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "tsukuba-gantry",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -1.461458 },
+          "lateral": 0,
+          "groundOffset": 6.5,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "tsukuba-stand",
+          "palette": "original",
+          "at": { "joint": "home-b", "offset": 37.277472 },
+          "lateral": { "boundary": "verge-left", "offset": -9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "tsukuba-stand",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -14.961458 },
+          "lateral": { "boundary": "verge-left", "offset": -9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "back", "offset": 0 },

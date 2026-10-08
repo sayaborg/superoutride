@@ -1,0 +1,22 @@
+{
+  "format": "superoutride.sprite-recipe",
+  "version": 1,
+  "target": "course",
+  "crop": {
+    "x": 0,
+    "y": 0,
+    "width": 327,
+    "height": 162
+  },
+  "widthMeters": 9.0,
+  "anchor": {
+    "x": 163.0,
+    "y": 161
+  },
+  "mask": [],
+  "palette": null,
+  "lamp": {
+    "rectangles": [],
+    "colors": []
+  }
+}
