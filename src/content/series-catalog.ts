@@ -5,6 +5,7 @@ import {
   readDictionary,
   readDocument,
   readEnum,
+  readIdentified,
   readNumber,
   readRecord,
   readString,
@@ -23,20 +24,19 @@ import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 9;
+export const SERIES_DOCUMENT_VERSION = 10;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
-/** One series: the one owner of its courses' ARCADE settings. `dev` series appear only with DEV. */
+/** One series: the one owner of its classes, its ARCADE races. `dev` series appear only with DEV. */
 export interface CompiledSeries {
   readonly id: string;
   readonly title: string;
   readonly dev: boolean;
-  /** ARCADE vehicle candidates in selection order. */
-  readonly vehicles: readonly VehicleId[];
   readonly timeMargin: number;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
   readonly fixedColors: boolean;
-  readonly courses: readonly SeriesClass[];
+  /** The classes in selection order. */
+  readonly classes: readonly SeriesClass[];
 }
 
 /**
@@ -67,11 +67,17 @@ export interface StageInterval {
   readonly last: number;
 }
 
-/** A course's ARCADE settings within its series. */
+/** One ARCADE race of a series: its course, laps, vehicle candidates, field and traffic. */
 export interface SeriesClass {
   readonly series: CompiledSeries;
+  /** Unique within its series. */
+  readonly id: string;
+  /** The display name. */
+  readonly title: string;
   readonly course: string;
   readonly laps: number;
+  /** ARCADE vehicle candidates in selection order. */
+  readonly vehicles: readonly VehicleId[];
   /** The whole field, grid entries in grid order; the player takes the rearmost grid entry of its vehicle. */
   readonly entries: readonly SeriesEntry[];
   /** `own`: the player stands in its entry's slot; `last`: in the rearmost of the entries' slots. */
@@ -84,14 +90,17 @@ export interface SeriesClass {
 
 export interface SeriesCatalog {
   readonly series: readonly CompiledSeries[];
-  /** The one series course naming `courseId`, or null when no series holds it. */
+  /**
+   * The one class running `courseId`, or null when no class runs it. Until ARCADE requests name a series and class
+   * (16-1d), a course is run by at most one class.
+   */
   courseSettings(courseId: string): SeriesClass | null;
 }
 
 /**
  * Admit every series document against the delivered course IDs and the vehicle catalog: each document is named by
- * its `id`, its candidates and courses exist and are unique, a course belongs to at most one series, and each
- * course's entries name catalog vehicles in colors of their sprite sets, with an entry for every candidate.
+ * its `id`, its classes are unique by ID and run delivered courses, and each class's candidates are unique catalog
+ * vehicles and its entries name catalog vehicles in colors of their sprite sets, with an entry for every candidate.
  */
 export function compileSeriesCatalog(
   sources: readonly DocumentSource[],
@@ -123,53 +132,70 @@ function readSeries(
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'dev', 'vehicles', 'timeMargin', 'fixedColors', 'courses'],
+    ['format', 'version', 'id', 'title', 'dev', 'timeMargin', 'fixedColors', 'classes'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
   const id = readString(root.id, '/id');
   requireAdmission(id === source.id, 'invalid_value', '/id', `Series ID must match its file name ${source.id}`);
-  const vehicles = readArray(
-    root.vehicles,
-    '/vehicles',
-    (value, at) => {
-      const vehicle = readString(value, at);
-      requireAdmission(vehicleOf(vehicle) !== undefined, 'unresolved_reference', at, `Unknown vehicle ${vehicle}`);
-      return vehicle;
-    },
-    { min: 1 },
-  );
-  requireUnique(vehicles, '/vehicles', 'vehicle');
   const series = {
     id,
     title: readString(root.title, '/title'),
     dev: readBoolean(root.dev, '/dev'),
-    vehicles,
     timeMargin: readNumber(root.timeMargin, '/timeMargin', {
       min: 0,
       max: SESSION_RULE_LIMITS.timeMargin,
       exclusiveMin: true,
     }),
     fixedColors: readBoolean(root.fixedColors, '/fixedColors'),
-    courses: [] as SeriesClass[],
+    classes: [] as SeriesClass[],
   };
-  const courses = readArray(
-    root.courses,
-    '/courses',
+  const classes = readIdentified(
+    root.classes,
+    '/classes',
     (value, at) => {
-      const entry = readRecord(value, at, ['course', 'laps', 'entries', 'playerSlot', 'rankLimits', 'traffic']);
+      const entry = readRecord(value, at, [
+        'id',
+        'title',
+        'course',
+        'laps',
+        'vehicles',
+        'entries',
+        'playerSlot',
+        'rankLimits',
+        'traffic',
+      ]);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
       requireAdmission(
         !owners.has(course),
         'duplicate_id',
         `${at}/course`,
-        `Course ${course} already belongs to series ${owners.get(course)?.series.id}`,
+        `Course ${course} already belongs to class ${owners.get(course)?.id} of series ${owners.get(course)?.series.id}`,
       );
+      const vehicles = readArray(
+        entry.vehicles,
+        `${at}/vehicles`,
+        (item, itemAt) => {
+          const vehicle = readString(item, itemAt);
+          requireAdmission(
+            vehicleOf(vehicle) !== undefined,
+            'unresolved_reference',
+            itemAt,
+            `Unknown vehicle ${vehicle}`,
+          );
+          return vehicle;
+        },
+        { min: 1 },
+      );
+      requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
       const result: SeriesClass = Object.freeze({
         series: series as CompiledSeries,
+        id: readString(entry.id, `${at}/id`),
+        title: readString(entry.title, `${at}/title`),
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
+        vehicles,
         entries: readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf),
         playerSlot: readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`),
         rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
@@ -182,7 +208,7 @@ function readSeries(
     },
     { min: 1 },
   );
-  series.courses = courses as SeriesClass[];
+  series.classes = classes as SeriesClass[];
   return Object.freeze(series);
 }
 
@@ -359,28 +385,28 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 }
 
 /**
- * Admit a series course against its compiled course: the laps fit the course's lap maximum, every entry's slot is in
- * the grid, every ahead entry's lane exists in every Section of the course, and each rank limit names a race gate of the course with N below the field size. The build admits every
- * series course; a Session admits the course it drives.
+ * Admit a class against its compiled course: the laps fit the course's lap maximum, every entry's slot is in the grid,
+ * every ahead entry's lane exists in every Section of the course, and each rank limit names a race gate of the course
+ * with N below the field size. The build admits every class; a Session admits the class it drives.
  */
 export function admitSeriesClass(
   settings: SeriesClass,
   course: CompiledCourse,
   document: string,
 ): AdmissionResult<SeriesClass> {
-  const index = settings.series.courses.indexOf(settings);
+  const index = settings.series.classes.indexOf(settings);
   return admit(document, () => {
     requireAdmission(
       settings.laps <= course.rules.maxLaps,
       'invalid_value',
-      `/courses/${index}/laps`,
+      `/classes/${index}/laps`,
       `Series laps exceed the lap maximum of ${course.id}`,
     );
     settings.entries.forEach((entry, i) =>
       requireAdmission(
         entry.slot === null || entry.slot < course.gates.grid.length,
         'invalid_value',
-        `/courses/${index}/entries/${i}/slot`,
+        `/classes/${index}/entries/${i}/slot`,
         `The grid of ${course.id} has no slot ${entry.slot}`,
       ),
     );
@@ -394,7 +420,7 @@ export function admitSeriesClass(
       requireAdmission(
         entry.stages === null || entry.stages.last <= stageCount,
         'invalid_value',
-        `/courses/${index}/entries/${i}/stages/last`,
+        `/classes/${index}/entries/${i}/stages/last`,
         `Every run of ${course.id} has ${stageCount} stages`,
       ),
     );
@@ -407,19 +433,19 @@ export function admitSeriesClass(
       requireAdmission(
         entry.ahead.lane < lanes,
         'invalid_value',
-        `/courses/${index}/entries/${i}/ahead/lane`,
+        `/classes/${index}/entries/${i}/ahead/lane`,
         `Some Section of ${course.id} has only ${lanes} lanes`,
       );
       const room = aheadRoom(course, settings.laps, entry.stages!.first);
       requireAdmission(
         entry.ahead.distance < room,
         'invalid_value',
-        `/courses/${index}/entries/${i}/ahead/distance`,
+        `/classes/${index}/entries/${i}/ahead/distance`,
         `STAGE ${entry.stages!.first} of ${course.id} leaves ${room.toFixed(2)} m before its next gate or fork lock`,
       );
     });
     for (const [gate, limit] of Object.entries(settings.rankLimits)) {
-      const at = `/courses/${index}/rankLimits/${gate.replaceAll('~', '~0').replaceAll('/', '~1')}`;
+      const at = `/classes/${index}/rankLimits/${gate.replaceAll('~', '~0').replaceAll('/', '~1')}`;
       requireAdmission(gates.has(gate), 'unresolved_reference', at, `${course.id} has no race gate ${gate}`);
       requireAdmission(
         limit < settings.entries.length,
@@ -444,7 +470,7 @@ export async function loadSeriesCatalog(
   return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles));
 }
 
-/** The delivered course's ARCADE settings, admitted against it, or null when no series holds the course. */
+/** The class running the delivered course, admitted against it, or null when no class runs the course. */
 export function loadSeriesClass(
   content: ContentDelivery,
   catalog: SeriesCatalog,

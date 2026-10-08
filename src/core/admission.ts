@@ -216,7 +216,7 @@ export function readIdentified<T extends { readonly id: string }>(
   value: unknown,
   path: string,
   read: (value: unknown, path: string) => T,
-  options: { max?: number } = {},
+  options: { min?: number; max?: number } = {},
 ): readonly T[] {
   const seen = new Set<string>();
   return readArray(

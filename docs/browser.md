@@ -107,7 +107,7 @@ the first track) plays as an audition, so its volume is set by ear.
 - SELECT SERIES lists the series with their titles; SELECT COURSE lists course display names from the course index.
   In FREE PLAY and TIME TRIAL its courses are grouped by series, each group headed by its series title (DARK); courses
   in no series follow last, after a blank line.
-- SELECT VEHICLE offers the series' vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
+- SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
   its yaw images on the plain background, one image every six fixed steps, drawn like a race vehicle at the
   player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
@@ -117,7 +117,7 @@ the first track) plays as an audition, so its volume is set by ear.
   change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
   current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
   course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. TIME
-  TRIAL has no TRAFFIC choice, and ARCADE takes its series course's traffic. Every option starts from the player
+  TRIAL has no TRAFFIC choice, and ARCADE takes its class's traffic. Every option starts from the player
   record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
   change is saved there.
 - LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and NEXT.
@@ -147,7 +147,7 @@ the selection screens, in its order and with its display names.
 
 A run is requested as a typed run request: the course, the mode, the vehicle and the player's color, plus the
 rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE takes its laps, field and
-traffic from the series. The run's assembly admits the request against the course, its series course and the vehicle
+traffic from its class. The run's assembly admits the request against the course, its class and the vehicle
 catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
@@ -158,15 +158,15 @@ like an assembly.
 
 Session parameters are case-sensitive:
 
-| Parameter | Meaning                                                                                                              |
-| --------- | -------------------------------------------------------------------------------------------------------------------- |
-| `course`  | Lowercase registered course ID                                                                                       |
-| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a series course, `FREE_PLAY` otherwise; other values fail |
-| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                      |
-| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                          |
-| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                            |
-| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail             |
-| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                        |
+| Parameter | Meaning                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `course`  | Lowercase registered course ID                                                                                             |
+| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` on a course a class runs, `FREE_PLAY` otherwise; other values fail |
+| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                            |
+| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                                |
+| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                                  |
+| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail                   |
+| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                              |
 
 ARCADE uses the course's [series](content-and-gameplay.md#series-documents) settings: the series' first
 vehicle, its entries and laps, with the checkpoint clock, ignoring their individual query overrides. FREE PLAY exposes

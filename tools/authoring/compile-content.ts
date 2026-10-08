@@ -336,7 +336,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     deliveredFile('course-index', COURSE_INDEX_ID, encodeContentJson(courseIndexDocument(compiledCourses))),
   ]);
 
-  // Every series course is admitted against its compiled course.
+  // Every class is admitted against its compiled course.
   const seriesFiles = await read('series', '.series.json');
   const series = await stage('series', [definitions.key, ...courseKeys, ...inputs(seriesFiles)], async () => {
     const documents = await sources('series', seriesFiles);
@@ -347,11 +347,12 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         definitions.value.definitions.vehicles,
       ),
     );
-    const seriesClasses = compiledCourses.flatMap((course) => {
-      const settings = catalog.courseSettings(course.id);
-      if (!settings) return [];
-      const source = documents.find((s) => s.id === settings.series.id)!;
-      return [Object.freeze({ course, settings: requireLoaded(admitSeriesClass(settings, course, source.path)) })];
+    const seriesClasses = catalog.series.flatMap((series) => {
+      const source = documents.find((s) => s.id === series.id)!;
+      return series.classes.map((settings) => {
+        const course = compiledCourses.find((c) => c.id === settings.course)!;
+        return Object.freeze({ course, settings: requireLoaded(admitSeriesClass(settings, course, source.path)) });
+      });
     });
     return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
   });
@@ -451,7 +452,7 @@ async function measuredFiles(
   const times = new Map<string, SavedReferenceTimes>();
   for (const { course, settings } of seriesClasses) {
     const path = referenceTimesPath(course.id);
-    const candidates = settings.series.vehicles.map((vehicleId) => ({
+    const candidates = settings.vehicles.map((vehicleId) => ({
       vehicleId,
       vehicleSha256: vehicleSha256.get(vehicleId)!,
     }));

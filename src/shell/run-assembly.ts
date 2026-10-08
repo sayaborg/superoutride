@@ -75,7 +75,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   const { courseId } = request;
   const course = await loadDeliveredCourse(content, courseId, materials);
-  // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
+  // The course's ARCADE settings come from the one class running it; a course no class runs is untimed.
   const arcade = loadSeriesClass(content, series, course);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
   const prepared = await prepareSession(

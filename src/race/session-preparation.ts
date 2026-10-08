@@ -26,7 +26,7 @@ export interface SessionCatalog {
 }
 
 /**
- * Prepare a requested Session on `course`, whose series course is `arcade` (null on an untimed course): the one path
+ * Prepare a requested Session on `course`, whose class is `arcade` (null on an untimed course): the one path
  * from a request to a Session, which the browser and the driving scenarios share. It admits the request
  * (`compileSessionConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity and

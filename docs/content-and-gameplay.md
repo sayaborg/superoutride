@@ -341,8 +341,8 @@ lock or closure gates.
 `entry` names the Section a run enters. `maxLaps` is a position-free setting: an integer from 1 through 99;
 non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 
-A course is timed exactly when a series holds it. The build generates reference runs and time budgets for
-timed courses only, and only a timed course offers ARCADE and the checkpoint clock. An untimed course runs
+A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
+and time budgets for those courses only, and only a class offers ARCADE and the checkpoint clock. An untimed course runs
 FREE PLAY and TIME TRIAL Sessions. Compilation requires the start, grid and finish coverage described
 above for every course; the grid holds at least the player. Compiled `rules` retain `maxLaps`;
 compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
@@ -896,24 +896,25 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 9) is the one owner of its courses' ARCADE settings. It is
-saved as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For
-example:
+A series document (`superoutride.series` version 10) is the one owner of its classes, its ARCADE races. It is saved
+as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 9,
+  "version": 10,
   "id": "ribbon",
   "title": "RIBBON",
   "dev": true,
-  "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
   "fixedColors": false,
-  "courses": [
+  "classes": [
     {
+      "id": "coast",
+      "title": "COAST",
       "course": "ribbon-coast",
       "laps": 1,
+      "vehicles": ["TESTAROSSA"],
       "entries": [
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
@@ -930,11 +931,12 @@ example:
 ```
 
 `title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
-`vehicles` lists the ARCADE vehicle candidates, at least one, unique and in the catalog, in selection order.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
-player drives in its entry's color rather than its own chosen color. `courses` lists at least one delivered
-course, each with its ARCADE `laps` (1 through 99), `entries`, `playerSlot`, `rankLimits` and `traffic` (null, or
-traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)). `entries` lists the
+player drives in its entry's color rather than its own chosen color. `classes` lists at least one class in selection
+order. A class is one ARCADE race: its `id`, unique within the series, its display name `title`, a delivered `course`,
+its `laps` (1 through 99), its ARCADE vehicle candidates `vehicles` (at least one, unique and in the catalog, in
+selection order), `entries`, `playerSlot`, `rankLimits` and `traffic` (null, or traffic settings whose vehicles are
+catalog vehicles; see [Traffic](#traffic)). `entries` lists the
 whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a positive pace ratio `pace`, `stages` (null for the
 whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
@@ -943,18 +945,18 @@ slots. An entry whose first stage is later has `slot: null` and `ahead: {distanc
 in metres ahead of the player and its lane number, which every Section of the course has, so it is a lane on
 every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
-has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank
-limit N. Admission checks each document once, from the build's files or the delivery manifest alike, against the
-delivered course IDs and the vehicle catalog. Until selection screens choose a series, a course belongs to at most
-one series; a second one is rejected. A series course is admitted against its compiled course: `laps` within
-`maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the course's Sections,
-and rank limits naming checkpoint or FINISH gates of that course
-with N an integer from 1 to below the field size (the number of entries). The build admits every series course; a
-Session admits the course it drives.
+of the class has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits`
+maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
+manifest alike, against the delivered course IDs and the vehicle catalog. Until ARCADE requests name a series and a
+class, a course is run by at most one class; a second one is rejected. A class is admitted against its compiled
+course: `laps` within `maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the
+course's Sections, and rank limits naming checkpoint or FINISH gates of that course
+with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
+Session admits the class it drives.
 
-The delivered series are RIBBON and TRIAL, development series; each document holds its courses, fields and traffic.
-RIBBON COAST is the [verification course](#verification-course); TRIAL holds the [trial courses](#trial-courses);
-RIBBON ROUGH belongs to no series.
+The delivered series are RIBBON and TRIAL, development series; each document holds its classes, with their fields
+and traffic. RIBBON COAST is the [verification course](#verification-course); TRIAL holds the
+[trial courses](#trial-courses); no class runs RIBBON ROUGH.
 
 ## FREE PLAY document
 
@@ -979,7 +981,7 @@ document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 v
 
 ### Resolved Session
 
-ARCADE resolves its series course: a series vehicle candidate, the course's series entries and laps and the
+ARCADE resolves its class: one of the class's vehicle candidates, its entries and laps and the
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
@@ -988,9 +990,9 @@ player record's color for the vehicle when its sprite set declares it), otherwis
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
 TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
 rivals or clock, and selects fork routes by driving like any first competitor at a lock line. One admission,
-`compileSessionConfiguration`, derives these rules from a request and checks it against the course, its series course and
+`compileSessionConfiguration`, derives these rules from a request and checks it against the course, its class and
 the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
-ARCADE takes its series course's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
+ARCADE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
 FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
 vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
@@ -1010,7 +1012,7 @@ reused in the same order only after every pair has been drawn, so the player's p
 holds nothing else. Each rival drives its own vehicle with that vehicle's envelope. Each entry also carries its color.
 Resolving a Session with rivals requires every rival's Session vehicle and, in FREE PLAY, the pool; a missing one is a
 `RangeError`, never the player's vehicle. What a Session needs is decided with its entries (`sessionDemand`): the
-FREE PLAY rival pairs, every other vehicle that may drive in it (series entries, the pool when it has rivals, traffic
+FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, the pool when it has rivals, traffic
 candidates), the clock's time budgets and ARCADE's pace schedule; the browser loads exactly these.
 The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
@@ -1092,7 +1094,7 @@ run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and event
 
 The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
 under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each catalog vehicle
-has `content/envelopes/<vehicle>.json` and each series course has `content/reference-times/<course>.json`.
+has `content/envelopes/<vehicle>.json` and each course a class runs has `content/reference-times/<course>.json`.
 
 A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha256` (the Session vehicle's identity),
 `procedureSha256` (the envelope measurement's identity) and `envelope`, the delivered envelope's `maximumSpeed` and
@@ -1110,7 +1112,7 @@ identities and the station spacing.
 A saved product is current while its identities equal the current course build, Session vehicle and procedure
 identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
 delivered envelopes, budgets and schedules from them. A saved product that is stale, absent or owned by no catalog
-vehicle or series course, or reference times whose entries are not the series' candidate vehicles in its order, fail
+vehicle or series course, or reference times whose entries are not the class's candidate vehicles in its order, fail
 with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
 malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the delivered
 budgets and needs no measurement. Tools that produce the measured products, or need none, compile the content without
@@ -1122,7 +1124,7 @@ implementation for its own build only, and never saves the result.
 
 ### Pace schedules
 
-A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a series course for
+A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a course a class runs, for
 ARCADE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
 a Section's schedule stations are every 5 m from its start, then its end. `start` gives the race times from GO, in
 integer milliseconds, at the entry Section's stations from the first one the reference reaches. `sections` gives,
@@ -1423,7 +1425,7 @@ locate what they exercise from it ([Development](development.md)).
 
 `ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its extreme vertical
 profile and corners are authored for hands-on evaluation; its shape is not rounded off for completion. The reference
-driver cannot complete it, so no series holds it: it is untimed and delivered without reference runs or time budgets.
+driver cannot complete it, so no class runs it: it is untimed and delivered without reference runs or time budgets.
 Its surfaces carry color-only brightness Strips every metre, so speed and ground motion read on every surface; its
 course document holds them.
 

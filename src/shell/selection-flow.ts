@@ -70,11 +70,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // FREE PLAY's POOL and TRAFFIC choices, in their rules' order; TRAFFIC starts with OFF.
   const pools = freePlay.rivalPools.map((pool) => pool.id);
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
-  const series = catalog.series.series.filter((s) => (dev || !s.dev) && s.courses.length > 0);
-  const inSeries = new Set(catalog.series.series.flatMap((s) => s.courses.map((c) => c.course)));
+  const series = catalog.series.series.filter((s) => (dev || !s.dev) && s.classes.length > 0);
+  const inSeries = new Set(catalog.series.series.flatMap((s) => s.classes.map((c) => c.course)));
   // FREE PLAY and TIME TRIAL courses grouped by series; courses in no series last, only with DEV.
   const groups = [
-    ...series.map((s) => ({ title: s.title, ids: s.courses.map((c) => c.course) })),
+    ...series.map((s) => ({ title: s.title, ids: s.classes.map((c) => c.course) })),
     ...(dev ? [{ title: '', ids: courses.filter((c) => !inSeries.has(c.id)).map((c) => c.id) }] : []),
   ].filter((group) => group.ids.length > 0);
   const offered = (mode: Mode) => (mode === 'ARCADE' ? series.length > 0 : groups.length > 0);
@@ -106,7 +106,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
   const needed = (at: Step) =>
     at === 'COURSE'
-      ? mode !== 'ARCADE' || seriesChoice!.courses.length > 1
+      ? mode !== 'ARCADE' || seriesChoice!.classes.length > 1
       : at === 'LAPS'
         ? courseOf(courseId!).maxLaps > 1
         : true;
@@ -193,9 +193,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         const items = series.map((s): MenuItem => ({
           label: s.title,
           confirm: () => {
-            // A series with one course needs no SELECT COURSE.
+            // A series with one class needs no SELECT COURSE.
             if (s !== seriesChoice)
-              [courseId, vehicleId] = [s.courses.length === 1 ? s.courses[0]!.course : null, null];
+              [courseId, vehicleId] = [s.classes.length === 1 ? s.classes[0]!.course : null, null];
             seriesChoice = s;
             remember('series', s.id);
             forward();
@@ -205,7 +205,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         return menu({ title: 'SELECT SERIES', items: () => items, back }, Math.max(0, current));
       }
       case 'COURSE': {
-        const lists = mode === 'ARCADE' ? [{ title: '', ids: seriesChoice!.courses.map((c) => c.course) }] : groups;
+        const lists = mode === 'ARCADE' ? [{ title: '', ids: seriesChoice!.classes.map((c) => c.course) }] : groups;
         // Series titles head their groups; they cannot be chosen.
         const rows = lists.flatMap((group) => [
           ...(lists.length > 1 || group.title ? [{ id: null, label: group.title || ' ' }] : []),
@@ -231,7 +231,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       case 'VEHICLE': {
         const candidates =
           mode === 'ARCADE'
-            ? seriesChoice!.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!)
+            ? catalog.series
+                .courseSettings(courseId!)!
+                .vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!)
             : vehicles;
         return devices.show(
           createVehicleScreen(

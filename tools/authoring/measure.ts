@@ -127,7 +127,7 @@ export async function planMeasurement(
   for (const { course, settings } of content.seriesClasses)
     courses.push({
       course,
-      candidates: settings.series.vehicles,
+      candidates: settings.vehicles,
       saved: await savedJson(referenceTimesPath(course.id)),
     });
   const fresh = new Map<string, Map<string, SavedReferenceVehicle>>();

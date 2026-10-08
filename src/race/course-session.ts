@@ -59,7 +59,7 @@ export interface ResolvedTraffic {
 
 /**
  * What a Session of `configuration` needs besides the player's own vehicle and envelope, decided with its entries: the
- * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — ARCADE's series
+ * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — ARCADE's class
  * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its Session vehicle and
  * envelope (`vehicleIds`, unique, in first-use order), the time budgets of its clock and ARCADE's pace schedule.
  */
@@ -87,7 +87,7 @@ export function sessionDemand(
 
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
-// The ARCADE series entry the player takes: the rearmost grid entry of its vehicle.
+// The ARCADE class entry the player takes: the rearmost grid entry of its vehicle.
 const ownEntry = (arcade: SeriesClass, vehicleId: string) =>
   arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
 
@@ -106,9 +106,9 @@ export function sessionPlayerColor(
 
 /**
  * Resolve one admitted Session configuration (`compileSessionConfiguration`) with its `seed` before actors/ticks
- * exist. Graph and catalog objects remain shared references. `arcade` is the course's admitted series settings, which
+ * exist. Graph and catalog objects remain shared references. `arcade` is the Session's admitted class, which
  * ARCADE reads. A Session without an envelope (a DEV-tuned vehicle, or no measured products) has no rivals and no time limit. The resolved
- * entries list the player first, then each rival. ARCADE takes the series entries: the player the rearmost entry of
+ * entries list the player first, then each rival. ARCADE takes the class's entries: the player the rearmost entry of
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
  * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
@@ -240,7 +240,7 @@ export function resolveCourseSession(
 
 export type ResolvedCourseSession = ReturnType<typeof resolveCourseSession>;
 
-/** ARCADE: the series entries, the player taking the rearmost entry of its vehicle. */
+/** ARCADE: the class's entries, the player taking the rearmost entry of its vehicle. */
 function arcadeEntries(
   course: CompiledCourse,
   arcade: SeriesClass,

@@ -17,8 +17,8 @@ interface SessionChoice {
 }
 
 /**
- * A requested Session: what the player chose, and nothing else. ARCADE takes its laps, field and traffic from the
- * series; FREE PLAY chooses rivals, their pool, traffic and laps; TIME TRIAL runs alone and chooses laps.
+ * A requested Session: what the player chose, and nothing else. ARCADE takes its laps, field and traffic from its
+ * class; FREE PLAY chooses rivals, their pool, traffic and laps; TIME TRIAL runs alone and chooses laps.
  */
 export type SessionRequest =
   | (SessionChoice & { readonly mode: 'ARCADE' })
@@ -46,15 +46,15 @@ export interface SessionConfiguration extends SessionChoice {
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
-  /** Traffic, or null for none; TIME TRIAL has none. ARCADE takes its series course's. */
+  /** Traffic, or null for none; TIME TRIAL has none. ARCADE takes its class's. */
   readonly traffic: TrafficSettings | null;
 }
 
 /**
- * Admit a requested Session against its course, its series course (`arcade`, null on an untimed course), the vehicle
+ * Admit a requested Session against its course, its class (`arcade`, null on an untimed course), the vehicle
  * catalog and FREE PLAY's rules, and derive its rules: the one admission and derivation of every request. The vehicle must be a
- * catalog vehicle and the color one of its sprite set. ARCADE needs a series course and one of the series' vehicles
- * and takes the series' field, laps and traffic with the checkpoint clock. FREE PLAY and TIME TRIAL take up to the
+ * catalog vehicle and the color one of its sprite set. ARCADE needs a class and one of the class's vehicles
+ * and takes the class's field, laps and traffic with the checkpoint clock. FREE PLAY and TIME TRIAL take up to the
  * course's `maxLaps`; FREE PLAY's rivals fit the grid, its pool and traffic level are its rules', and its traffic
  * draws from every catalog vehicle at their traffic speed. `initialSpeed` is the start speed (the product's is 0).
  */
@@ -75,7 +75,7 @@ export function compileSessionConfiguration(
   let rules: Pick<SessionConfiguration, 'mode' | 'rivalCount' | 'rivalPool' | 'lapCount' | 'timeLimit' | 'traffic'>;
   if (request.mode === 'ARCADE') {
     if (!arcade) throw new RangeError('An untimed course has no ARCADE Session');
-    if (!arcade.series.vehicles.includes(request.vehicleId)) throw new RangeError('ARCADE requires a series vehicle');
+    if (!arcade.vehicles.includes(request.vehicleId)) throw new RangeError('ARCADE requires a vehicle of its class');
     rules = {
       mode: 'ARCADE',
       rivalCount: arcade.entries.length - 1,

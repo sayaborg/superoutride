@@ -1,32 +1,45 @@
 {
   "format": "superoutride.series",
-  "version": 9,
+  "version": 10,
   "id": "trial",
   "title": "TRIAL",
   "dev": true,
-  "vehicles": ["TESTAROSSA"],
   "timeMargin": 1.35,
   "fixedColors": false,
-  "courses": [
+  "classes": [
     {
+      "id": "a",
+      "title": "A",
       "course": "outrun-trial-a",
       "laps": 1,
+      "vehicles": ["TESTAROSSA"],
       "entries": [
         { "vehicle": "TESTAROSSA", "color": "alternate", "pace": 1, "stages": null, "slot": 14, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
-      "traffic": { "density": 6, "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"], "speedKilometersPerHour": 120 }
+      "traffic": {
+        "density": 6,
+        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
+        "speedKilometersPerHour": 120
+      }
     },
     {
+      "id": "a-steep",
+      "title": "A STEEP",
       "course": "outrun-trial-a-steep",
       "laps": 1,
+      "vehicles": ["TESTAROSSA"],
       "entries": [
         { "vehicle": "TESTAROSSA", "color": "alternate", "pace": 1, "stages": null, "slot": 14, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
-      "traffic": { "density": 6, "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"], "speedKilometersPerHour": 120 }
+      "traffic": {
+        "density": 6,
+        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
+        "speedKilometersPerHour": 120
+      }
     }
   ]
 }
