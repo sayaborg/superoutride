@@ -93,7 +93,12 @@ function expandCourseStrips(
   const rectangle = (start: number, end: number, left: number, right: number, color: number) =>
     add({ start, end, left: line(start, end, left), right: line(start, end, right), value: color });
   const strip = (
-    knots: readonly { s: number; left: Lateral | null; right: Lateral | null }[],
+    knots: readonly {
+      s: number;
+      left: Lateral | null;
+      right: Lateral | null;
+      path: (side: 'left' | 'right') => string;
+    }[],
     color: number | 'transparent' | null,
     material: string | null,
     at: string,
@@ -132,7 +137,7 @@ function expandCourseStrips(
       const edge = (side: 'left' | 'right') =>
         a[side] === null
           ? null
-          : resolveLateralInterval(a[side]!, b[side]!, a.s, b.s, courseLineLookup(lines), `${at}/knots/${i}/${side}`);
+          : resolveLateralInterval(a[side]!, b[side]!, a.s, b.s, courseLineLookup(lines), a.path(side), b.path(side));
       const left = edge('left'),
         right = edge('right');
       const stops = [
@@ -160,6 +165,7 @@ function expandCourseStrips(
   ) => {
     sourcePath = at;
     const position = shiftedCoursePosition(resolve, offset, length);
+    const edgePath = (side: 'left' | 'right') => `${at}/${side}`;
     switch (element.kind) {
       case 'strip':
         if ('knots' in element) {
@@ -168,6 +174,7 @@ function expandCourseStrips(
               s: position(k.at, `${at}/knots/${i}/at`).s,
               left: k.bottom,
               right: k.top,
+              path: (side) => `${at}/knots/${i}/${side === 'left' ? 'bottom' : 'top'}`,
             })),
             element.color,
             null,
@@ -183,8 +190,8 @@ function expandCourseStrips(
         );
         strip(
           [
-            { s: position(element.start, `${at}/start`).s, left: element.left, right: element.right },
-            { s: position(element.end, `${at}/end`).s, left: element.left, right: element.right },
+            { s: position(element.start, `${at}/start`).s, left: element.left, right: element.right, path: edgePath },
+            { s: position(element.end, `${at}/end`).s, left: element.left, right: element.right, path: edgePath },
           ],
           element.color,
           element.material,
@@ -205,8 +212,13 @@ function expandCourseStrips(
         for (let i = 0; i < count; i++)
           strip(
             [
-              { s: start + i * element.stripe, left: element.left, right: element.right },
-              { s: Math.min(end, start + (i + 1) * element.stripe), left: element.left, right: element.right },
+              { s: start + i * element.stripe, left: element.left, right: element.right, path: edgePath },
+              {
+                s: Math.min(end, start + (i + 1) * element.stripe),
+                left: element.left,
+                right: element.right,
+                path: edgePath,
+              },
             ],
             element.colors[i % element.colors.length]!,
             null,

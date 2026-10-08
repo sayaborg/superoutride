@@ -444,8 +444,9 @@ compiles. Last, the core admits the saved measured products against this content
 envelope, which FREE PLAY rivals and runout admission read, and for each series course its candidate vehicles' time
 budgets (the saved times with the series' time margin) and pace schedules; only series courses are timed, since only
 ARCADE has the clock and rival pace. A stale, absent or unowned saved product fails the build
-([Measured products](content-and-gameplay.md#measured-products)). The build lays the returned files out with the
-delivery layout and writes them, the manifest last.
+([Measured products](content-and-gameplay.md#measured-products)). A document whose bytes are not UTF-8 JSON is an
+input error of that document (`parse_failure` at its root), as for course documents. The build lays the returned files
+out with the delivery layout and writes them, the manifest last.
 
 | Output                        | Use                                                                           |
 | ----------------------------- | ----------------------------------------------------------------------------- |

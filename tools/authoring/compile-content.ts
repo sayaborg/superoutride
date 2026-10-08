@@ -132,9 +132,16 @@ function createStageRunner(
 }
 type Stage = ReturnType<typeof createStageRunner>;
 
-/** The JSON value of saved bytes. */
-function parseJson(bytes: Uint8Array): unknown {
-  return JSON.parse(new TextDecoder().decode(bytes));
+/** The JSON value of a saved document's bytes; bytes that are not UTF-8 JSON are an input error of that document. */
+function parseJson(bytes: Uint8Array, document: string): unknown {
+  try {
+    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  } catch (error) {
+    if (!(error instanceof SyntaxError || error instanceof TypeError)) throw error;
+    throw new ContentLoadError([
+      Object.freeze({ kind: 'input' as const, code: 'parse_failure', document, path: '', message: error.message }),
+    ]);
+  }
 }
 
 const deliveredFile = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>): DeliveredFile =>
@@ -158,8 +165,10 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   // Each document's file name is its manifest identity; catalogs admit these sources as delivery does.
   const sources = async (directory: string, files: Read) => {
     const result: DocumentSource[] = [];
-    for (const file of files)
-      result.push(await authoredDocumentSource(file.id, `content/${directory}/${file.name}`, parseJson(file.bytes)));
+    for (const file of files) {
+      const document = `content/${directory}/${file.name}`;
+      result.push(await authoredDocumentSource(file.id, document, parseJson(file.bytes, document)));
+    }
     return result;
   };
   // Admitted documents are delivered as authored.
@@ -174,7 +183,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         spriteFiles.map((file) => ({
           name: file.id,
           document: `content/sprites/${file.name}`,
-          value: parseJson(file.bytes),
+          value: parseJson(file.bytes, `content/sprites/${file.name}`),
         })),
       ),
       'content/sprites',
@@ -185,7 +194,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   // The text tiles are delivered as authored once admitted.
   const textTileBytes = await store.read('text-tiles/default.json');
   const textTiles = await stage('text-tiles', [textTileBytes], () => {
-    const value = parseJson(textTileBytes);
+    const value = parseJson(textTileBytes, 'content/text-tiles/default.json');
     requireLoaded(admit('content/text-tiles/default.json', () => compileTextTiles(value)));
     return [deliveredFile('image', TEXT_TILES_ID, encodeContentJson(value))];
   });
@@ -392,7 +401,7 @@ function namedImages(bytes: Uint8Array): string[] {
     else if (value && typeof value === 'object') for (const [k, item] of Object.entries(value)) visit(item, k);
   };
   try {
-    visit(parseJson(bytes), '');
+    visit(parseJson(bytes, ''), '');
   } catch {
     return [];
   }
@@ -413,7 +422,7 @@ async function measuredFiles(
   const files: DeliveredFile[] = [];
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
     files.push(Object.freeze({ kind, id, bytes }));
-  const json = async (path: string) => parseJson(await store.read(path));
+  const json = async (path: string) => parseJson(await store.read(path), `content/${path}`);
   const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
     referenceSha256 = await procedureSha256(REFERENCE_RUN);
   const vehicleSha256 = new Map<string, string>();

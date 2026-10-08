@@ -146,12 +146,12 @@ export function compileCourseAppearance(
       movable !== null
         ? Object.freeze({
             airborne: resource(
-              image(movable.knocked.airborne, `${at}/body/knocked/airborne`),
+              image(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
               placement.palette,
               `${at}/palette`,
             ),
             landed: resource(
-              image(movable.knocked.landed, `${at}/body/knocked/landed`),
+              image(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
               placement.palette,
               `${at}/palette`,
             ),

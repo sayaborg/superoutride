@@ -57,8 +57,13 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     );
   const { minimumUtilization, maximumUtilization, minimumSpeedFraction, bandSeconds, responseSeconds } =
     definition.rivalPace;
-  if (!(minimumUtilization > 0 && minimumUtilization <= maximumUtilization && maximumUtilization <= 1))
-    throw new DefinitionDomainError('rivalPace', 'rivalPace utilization must satisfy 0 < minimum ≤ maximum ≤ 1');
+  if (!(maximumUtilization > 0 && maximumUtilization <= 1))
+    throw new DefinitionDomainError('rivalPace/maximumUtilization', 'rivalPace maximumUtilization must lie in (0,1]');
+  if (!(minimumUtilization > 0 && minimumUtilization <= maximumUtilization))
+    throw new DefinitionDomainError(
+      'rivalPace/minimumUtilization',
+      'rivalPace minimumUtilization must lie in (0, maximumUtilization]',
+    );
   if (!(minimumSpeedFraction > 0 && minimumSpeedFraction <= 1))
     throw new DefinitionDomainError(
       'rivalPace/minimumSpeedFraction',

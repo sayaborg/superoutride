@@ -76,7 +76,7 @@ export function compileCourseGates(
   const finishes = landmarks.filter((g) => g.kind === 'finish').map((g) => g.value);
   requireCourse(
     type === 'CIRCUIT' || source.maxLaps === 1,
-    '/rules/maxLaps',
+    '/maxLaps',
     'Only CIRCUIT has repeated laps',
     'invalid_rules',
   );

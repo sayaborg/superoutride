@@ -540,7 +540,15 @@ function readSection(
         if (a === null || b === null || start === null || start === undefined || end === null || end === undefined)
           continue;
         try {
-          const resolved = resolveLateralInterval(a, b, start, end, courseLineLookup(courseLines), `${at}/${side}`);
+          const resolved = resolveLateralInterval(
+            a,
+            b,
+            start,
+            end,
+            courseLineLookup(courseLines),
+            `${at}/${side}`,
+            `${at}/${side}`,
+          );
           for (const vertex of resolved.vertices.slice(line.length && k > 1 ? 1 : 0))
             line.push({ s: vertex.at.s, l: vertex.l, authored: vertex.at.s === start || vertex.at.s === end });
         } catch {

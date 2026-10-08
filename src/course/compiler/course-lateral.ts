@@ -68,10 +68,11 @@ export function resolveLateralInterval(
   start: number,
   end: number,
   lookup: LineLookup,
-  path: string,
+  aPath: string,
+  bPath: string,
 ) {
-  const left = lateralBoundary(a, start, end, lookup, path);
-  const right = lateralBoundary(b, start, end, lookup, path);
+  const left = lateralBoundary(a, start, end, lookup, aPath);
+  const right = lateralBoundary(b, start, end, lookup, bPath);
   const stops = new Set([start, end]);
   for (const boundary of [left, right])
     for (const vertex of boundary?.vertices ?? []) if (vertex.at.s > start && vertex.at.s < end) stops.add(vertex.at.s);
@@ -82,7 +83,10 @@ export function resolveLateralInterval(
         bv = lateralAt(b, right, s);
       return Object.freeze({
         at: Object.freeze({ s }),
-        l: checkedLateral(s === start ? av : s === end ? bv : av + (bv - av) * ((s - start) / (end - start)), path),
+        l:
+          s === end
+            ? checkedLateral(bv, bPath)
+            : checkedLateral(s === start ? av : av + (bv - av) * ((s - start) / (end - start)), aPath),
       });
     });
   const lines = vertices.slice(0, -1).map((vertex, i): StripEdgeLine => {
@@ -141,7 +145,15 @@ export function compileCourseBoundaries(
     for (let i = 1; i < authored.length; i++) {
       const a = authored[i - 1]!,
         b = authored[i]!;
-      const resolved = resolveLateralInterval(a.lateral, b.lateral, a.at.s, b.at.s, lookup, `${at}/${i}/lateral`);
+      const resolved = resolveLateralInterval(
+        a.lateral,
+        b.lateral,
+        a.at.s,
+        b.at.s,
+        lookup,
+        `${at}/${i - 1}/lateral`,
+        `${at}/${i}/lateral`,
+      );
       const added = resolved.vertices.length - (i === 1 ? 0 : 1);
       requireCourse(
         vertexCount + added <= COURSE_DOCUMENT_LIMITS.boundaryVertices,
