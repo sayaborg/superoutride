@@ -8,6 +8,7 @@ import { REFERENCE_RUN, runCourseReference } from '../course/reference-run.js';
 import {
   MEASURED_ENVELOPE_FORMAT,
   REFERENCE_TIMES_FORMAT,
+  measuredCourses,
   measuredEnvelopePath,
   referenceTimesPath,
   savedEnvelope,
@@ -49,7 +50,7 @@ export interface MeasuredWrite {
 export interface MeasurementPlan {
   /** The jobs to run: one per vehicle with anything stale (everything when asked). */
   readonly jobs: readonly MeasureJob[];
-  /** Saved measured products no catalog vehicle or series course owns. */
+  /** Saved measured products no catalog vehicle or course a class runs owns. */
   readonly extra: readonly string[];
   /** The files the results save, with what changed by gate and lap. */
   assemble(results: ReadonlyMap<string, MeasureResult>): { writes: MeasuredWrite[]; report: unknown[] };
@@ -122,14 +123,10 @@ export async function planMeasurement(
       current.procedureSha256 === measurementSha256;
     vehicles.set(id, { sha256, envelope: fresh ? (saved as SavedEnvelope) : null, saved });
   }
-  // Each series course's saved file and its current candidate entries.
+  // Each course a class runs, with its saved file and the vehicles the classes run there.
   const courses: { course: CompiledContent['courses'][number]; candidates: readonly string[]; saved: unknown }[] = [];
-  for (const { course, settings } of content.seriesClasses)
-    courses.push({
-      course,
-      candidates: settings.vehicles,
-      saved: await savedJson(referenceTimesPath(course.id)),
-    });
+  for (const { course, vehicles: candidates } of measuredCourses(content.seriesClasses, [...vehicles.keys()]))
+    courses.push({ course, candidates, saved: await savedJson(referenceTimesPath(course.id)) });
   const fresh = new Map<string, Map<string, SavedReferenceVehicle>>();
   for (const { course, saved } of courses) {
     const file = saved as Partial<SavedReferenceTimes> | null;
@@ -178,7 +175,7 @@ export async function planMeasurement(
       });
       writes.push({ path: measuredEnvelopePath(vehicleId), text: formatSavedJson(next), previous: vehicle.saved });
     }
-    // Reference times, each course's candidates in its series' order.
+    // Reference times, each course's vehicles in catalog order.
     for (const { course, candidates, saved } of courses) {
       const entries = fresh.get(course.id)!;
       let changed = everything || !entries.size;

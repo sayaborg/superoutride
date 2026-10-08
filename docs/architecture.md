@@ -17,7 +17,7 @@ failure propagation belongs to the vehicle layer, not course/race input validati
 ### Content admission toolkit
 
 [`core/admission.ts`](../src/core/admission.ts) is the one admission toolkit for authored formats and for the
-generated products (the content manifest, rival envelopes, time budgets and pace schedules the game reads, and the
+generated products (the content manifest, rival envelopes, reference times and pace schedules the game reads, and the
 reference reports the tools read), which carry format/version headers and are admitted with the same rules, unknown
 fields included.
 Its shape readers check a JSON value and throw one `AdmissionError` addressed by a JSON Pointer:

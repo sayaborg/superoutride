@@ -129,7 +129,7 @@ async function trace(args: readonly string[]) {
     };
   } else {
     const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
-    requireInput(series, '/course', 'Reference runs need a series course');
+    requireInput(series, '/course', 'Reference runs need a course a class runs');
     const { course } = series;
     const routes = enumerateCourseRoutes(course.entry, course.type);
     const lapCount = Number(opts.get('--laps') ?? series.settings.laps),

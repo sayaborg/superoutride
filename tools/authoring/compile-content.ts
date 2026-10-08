@@ -36,10 +36,11 @@ import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js'
 import { procedureSha256 } from '../course/procedure.js';
 import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
 import { REFERENCE_RUN } from '../course/reference-run.js';
-import { courseTimeBudgetsProduct } from '../course/course-reference.js';
+import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
   deliveredEnvelope,
   deliveredSchedule,
+  measuredCourses,
   measuredEnvelopePath,
   readSavedEnvelope,
   readSavedReferenceTimes,
@@ -410,9 +411,9 @@ function namedImages(bytes: Uint8Array): string[] {
 }
 
 /**
- * The measured products: each catalog vehicle's delivered envelope and, for each series course it is a candidate of,
- * its time budgets and pace schedule, from the saved measurements. Every saved file must be current and owned; the
- * series' margin applies to the saved times here.
+ * The measured products: each catalog vehicle's delivered envelope and, for each course a class runs, the reference
+ * times and pace schedule of each vehicle a class runs there, from the saved measurements, each delivered once. Every
+ * saved file must be current and owned. A Session applies its series' margin to the delivered times.
  */
 async function measuredFiles(
   store: ContentStore,
@@ -432,10 +433,14 @@ async function measuredFiles(
       entry.compiledVehicle.id,
       await sessionVehicleSha256(createSessionVehicle(entry, definitions.driving), materials),
     );
-  // Every saved measurement belongs to a catalog vehicle or a series course, and each of those has its own.
+  const courses = measuredCourses(
+    seriesClasses,
+    definitions.vehicles.map((entry) => entry.compiledVehicle.id),
+  );
+  // Every saved measurement belongs to a catalog vehicle or a course a class runs, and each of those has its own.
   const owned = new Set([
     ...definitions.vehicles.map((entry) => measuredEnvelopePath(entry.compiledVehicle.id)),
-    ...seriesClasses.map(({ course }) => referenceTimesPath(course.id)),
+    ...courses.map(({ course }) => referenceTimesPath(course.id)),
   ]);
   const saved = new Set<string>();
   for (const directory of ['envelopes', 'reference-times'])
@@ -443,16 +448,16 @@ async function measuredFiles(
   for (const path of saved)
     if (!owned.has(path))
       requireLoaded(
-        admit(`content/${path}`, () => staleMeasurement('', 'No catalog vehicle or series course owns it')),
+        admit(`content/${path}`, () => staleMeasurement('', 'No catalog vehicle or course a class runs owns it')),
       );
   const savedJson = async (path: string) => {
     if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
     return json(path);
   };
   const times = new Map<string, SavedReferenceTimes>();
-  for (const { course, settings } of seriesClasses) {
+  for (const { course, vehicles } of courses) {
     const path = referenceTimesPath(course.id);
-    const candidates = settings.vehicles.map((vehicleId) => ({
+    const candidates = vehicles.map((vehicleId) => ({
       vehicleId,
       vehicleSha256: vehicleSha256.get(vehicleId)!,
     }));
@@ -469,12 +474,13 @@ async function measuredFiles(
       path = measuredEnvelopePath(id);
     const saved = requireLoaded(readSavedEnvelope(sha256, measurementSha256, await savedJson(path), `content/${path}`));
     add('envelope', id, encodeContentJson(deliveredEnvelope(saved)));
-    for (const { course, settings } of seriesClasses) {
+    for (const { course } of courses) {
       const vehicle = times.get(course.id)!.vehicles.find((candidate) => candidate.vehicleId === id);
       if (!vehicle) continue;
-      const budget = courseTimeBudgetsProduct(course, sha256, referenceTimes(vehicle), settings.series.timeMargin);
-      requireLoaded(readCourseTimeBudgets(course, sha256, budget, `budgets/${course.id}/${id}.json`));
-      add('budget', `${course.id}/${id}`, encodeContentJson(budget));
+      const product = courseReferenceTimesProduct(course, sha256, referenceTimes(vehicle));
+      // The delivered times admit as a Session admits them, here with no margin.
+      requireLoaded(readCourseTimeBudgets(course, sha256, 1, product, `reference-times/${course.id}/${id}.json`));
+      add('reference-times', `${course.id}/${id}`, encodeContentJson(product));
       add(
         'schedule',
         `${course.id}/${id}`,

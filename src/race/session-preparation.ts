@@ -30,7 +30,8 @@ export interface SessionCatalog {
  * from a request to a Session, which the browser and the driving scenarios share. It admits the request
  * (`compileSessionConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity and
- * envelope, the clock's time budgets and ARCADE's pace schedule. `resolve(seed)` resolves the Session with a seed; a
+ * envelope, the clock's time budgets (the course's reference times for the player's vehicle with its series' margin)
+ * and ARCADE's pace schedule. `resolve(seed)` resolves the Session with a seed; a
  * DEV rebuild passes its tuned vehicle and configuration, which have no envelope or budgets. A delivery without
  * measured products (no envelope in its manifest: the workbench's build while measurements are stale) admits only a
  * Session that demands none, and its player drives without an envelope, as a DEV-tuned vehicle does.
@@ -65,10 +66,11 @@ export async function prepareSession(
   const fieldVehicles = new Map<string, EntryVehicle>([[vehicleId, player]]);
   for (const id of demand.vehicleIds) if (!fieldVehicles.has(id)) fieldVehicles.set(id, await loadEntryVehicle(id));
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
-  // A timed Session's budgets must be delivered; a missing file stops loading rather than dropping the clock.
+  // A timed Session's reference times must be delivered; a missing file stops loading rather than dropping the clock.
+  // Its budgets are those times with its series' margin.
   const budgets = demand.budgets
-    ? await admitProduct(content, 'budget', `${course.id}/${vehicleId}`, (value, document) =>
-        readCourseTimeBudgets(course, player.sha256, value, document),
+    ? await admitProduct(content, 'reference-times', `${course.id}/${vehicleId}`, (value, document) =>
+        readCourseTimeBudgets(course, player.sha256, arcade!.series.timeMargin, value, document),
       )
     : null;
   const paceSchedule = demand.paceSchedule

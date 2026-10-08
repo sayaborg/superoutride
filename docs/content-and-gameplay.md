@@ -1079,10 +1079,13 @@ continuous histories sharing that state and its legal next checkpoint/finish alt
 budgetMs(state) = ceil(1000*timeMargin(series)*referenceSeconds(state))
 ```
 
-Time budgets are keyed by course, vehicle and route state. Each delivered budget file belongs to one course and
-vehicle (`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the
-longest legal upcoming interval from that state over every route the course admits, so it never depends on the
-route already driven.
+Reference times are keyed by course, vehicle and route state, and time budgets by series as well, through its margin.
+Each delivered reference-times file (`superoutride.course-reference-times` version 1: `courseBuildSha256`,
+`vehicleSha256`, `initialSeconds` and `after`, in seconds before any margin) belongs to one course and vehicle
+(`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the longest legal
+upcoming interval from that state over every route the course admits, so it never depends on the route already
+driven. A timed Session admits its course's file for its vehicle (`readCourseTimeBudgets`) and derives each budget
+with its series' margin as above, so every series and class running that course and vehicle reads the same file.
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
 earned non-finish checkpoint adds the next budget once, carrying unused time without a cap. FINISH
@@ -1100,22 +1103,26 @@ A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha
 `procedureSha256` (the envelope measurement's identity) and `envelope`, the delivered envelope's `maximumSpeed` and
 `rows`. The delivered envelope is `superoutride.rival-envelope` with the same `vehicleSha256` and `envelope`.
 
-Reference times (`superoutride.reference-times` version 1) have `courseBuildSha256`, `procedureSha256` (the reference
-run's identity) and `vehicles`: one entry per candidate vehicle of the course's series, in the series' order. An entry
+A reference run depends on the course, the vehicle and the procedure alone: it drives the course's `maxLaps` and a
+Session reads the laps it runs, so no series or class value enters it, and classes running the same course and
+vehicle share one measurement. Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
+`procedureSha256` (the reference run's identity) and `vehicles`: one entry per vehicle some class runs on the course,
+each once, in catalog order. An entry
 has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
 each budget landmark in the course's order, `[gate, seconds]` with one longest next interval per lap, as a time
-budget's `after`) and `schedule` (the pace schedule's `start` and `sections`). The
-times are seconds before the series margin, as the reference runs measured them; only the delivered budget rounds,
-once, after the margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
+reference times' `after`) and `schedule` (the pace schedule's `start` and `sections`). The
+times are seconds before any series margin, as the reference runs measured them, and are delivered so; only a
+Session's budget rounds, once, after its margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
 identities and the station spacing.
 
 A saved product is current while its identities equal the current course build, Session vehicle and procedure
 identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
-delivered envelopes, budgets and schedules from them. A saved product that is stale, absent or owned by no catalog
-vehicle or series course, or reference times whose entries are not the class's candidate vehicles in its order, fail
+delivered envelopes, reference times and schedules from them, each once. A saved product that is stale, absent or
+owned by no catalog vehicle or course a class runs, or reference times whose entries are not the vehicles the
+classes run on that course in catalog order (a measurement no class uses is stale), fail
 with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
-malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the delivered
-budgets and needs no measurement. Tools that produce the measured products, or need none, compile the content without
+malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the series document
+and needs no measurement. Tools that produce the measured products, or need none, compile the content without
 them (`measured: false`).
 
 Measurement is reproducible within one JavaScript engine. `Math.sin` and `Math.cos` differ between engines in their

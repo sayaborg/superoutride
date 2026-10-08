@@ -11,9 +11,9 @@
   The content build compiles every delivered file from authored documents in one pass.
 - Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with a linear vertical row mapping.
-- The measurement tool (`npm run measure`) saves vehicle envelopes and each series course's reference times and pace
-  schedules under `content/`, with the vehicle, course and procedure identities they were measured for; the build
-  admits them, applies the series margin and runs no driving. Vehicle and course identities derive from delivered
+- The measurement tool (`npm run measure`) saves vehicle envelopes and, for each course a class runs, its vehicles'
+  reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
+  measured for; the build admits and delivers them and runs no driving, and a Session applies its series' margin. Vehicle and course identities derive from delivered
   document SHA-256, procedure identities from each procedure's record. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
 - Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
@@ -54,7 +54,7 @@
   origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
   centres derived), and images named by file.
 
-Next PR: **16-1c** — measured products owned by course and vehicle.
+Next PR: **16-1d** — ARCADE requests, URL, records and SELECT CLASS naming a series and class.
 
 Until 16-1d, the shell finds a course's ARCADE class by its course ID (`SeriesCatalog.courseSettings`), so a course is
 run by at most one class; 16-1d removes that lookup and the rule.

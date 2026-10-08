@@ -1,6 +1,6 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledCourseLandmark } from '../../src/course/compiler/course-rules.js';
-import { COURSE_TIME_BUDGETS_FORMAT, courseBudgetLandmarks } from '../../src/content/course-time-budgets.js';
+import { COURSE_REFERENCE_TIMES_FORMAT, courseBudgetLandmarks } from '../../src/content/course-time-budgets.js';
 import {
   admit,
   readArray,
@@ -179,24 +179,22 @@ export function readCourseReference(
 }
 
 /**
- * The delivered time budgets of a course and vehicle: each budget is its reference time multiplied by the series'
- * `timeMargin`, rounded up to integer milliseconds once.
+ * The delivered reference times of a course and vehicle, in seconds before any margin: a Session derives its time
+ * budgets from them with its series' `timeMargin` (`readCourseTimeBudgets`).
  */
-export function courseTimeBudgetsProduct(
+export function courseReferenceTimesProduct(
   course: CompiledCourse,
   vehicleSha256: string,
   times: CourseReferenceTimes,
-  timeMargin: number,
 ) {
-  const milliseconds = (seconds: number) => Math.ceil(1000 * timeMargin * seconds);
   return {
-    ...COURSE_TIME_BUDGETS_FORMAT,
+    ...COURSE_REFERENCE_TIMES_FORMAT,
     courseBuildSha256: course.identity.buildSha256,
     vehicleSha256,
-    initialMs: milliseconds(times.initialSeconds),
+    initialSeconds: times.initialSeconds,
     after: courseBudgetLandmarks(course).map(({ gate, laps }) => [
       gate.id,
-      Array.from({ length: laps }, (_, index) => milliseconds(times.after(gate, index + 1))),
+      Array.from({ length: laps }, (_, index) => times.after(gate, index + 1)),
     ]),
   };
 }

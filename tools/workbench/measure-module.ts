@@ -68,7 +68,7 @@ export const measureModule: WorkbenchModule = {
           `${job.vehicle}: ${[job.envelope ? 'envelope' : null, ...job.courses.map((course) => `reference times on ${course}`)].filter(Boolean).join(', ')}`,
         ),
       );
-      for (const path of message.extra) items.push(make('li', `${path}: owned by no vehicle or series course`));
+      for (const path of message.extra) items.push(make('li', `${path}: owned by no vehicle or course a class runs`));
       stale.replaceChildren(...items);
       summary.textContent = items.length ? `${items.length} stale:` : 'Measurements are current.';
     };

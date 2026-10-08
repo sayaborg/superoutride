@@ -19,21 +19,43 @@ import { readCourseReference, type CourseReferenceTimes } from './course-referen
 import type { runCourseReference } from './reference-run.js';
 
 /**
- * The measured products saved under `content/`: each catalog vehicle's envelope and each series course's reference
- * times and pace schedules, which the measurement tool writes and builds admit.
+ * The measured products saved under `content/`: each catalog vehicle's envelope and, for each course a class runs, the
+ * reference times and pace schedules of every vehicle a class runs there, which the measurement tool writes and builds
+ * admit. A reference run depends on the course, the vehicle and the procedure alone (it drives the course's `maxLaps`,
+ * and a Session reads the laps it runs), so classes sharing a course and vehicle share one measurement.
  */
 export const MEASURED_ENVELOPE_FORMAT = Object.freeze({
   format: 'superoutride.measured-envelope',
   version: 1,
 } as const);
-export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 1 } as const);
+export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 2 } as const);
 
 /** The saved envelope of a catalog vehicle, under `content/`. */
 export const measuredEnvelopePath = (vehicleId: string) => `envelopes/${vehicleId}.json`;
-/** The saved reference times of a series course, under `content/`. */
+/** The saved reference times of a course a class runs, under `content/`. */
 export const referenceTimesPath = (courseId: string) => `reference-times/${courseId}.json`;
 
 type ReferenceRun = ReturnType<typeof runCourseReference>;
+
+/**
+ * The reference runs the classes need: each course some class runs, in the classes' order of first use, with every
+ * vehicle a class runs there, in catalog order.
+ */
+export function measuredCourses<Course extends { readonly id: string }>(
+  classes: readonly { readonly course: Course; readonly settings: { readonly vehicles: readonly string[] } }[],
+  catalog: readonly string[],
+): readonly { readonly course: Course; readonly vehicles: readonly string[] }[] {
+  const courses = new Map<string, { course: Course; vehicles: Set<string> }>();
+  for (const { course, settings } of classes) {
+    const entry = courses.get(course.id) ?? { course, vehicles: new Set<string>() };
+    for (const vehicle of settings.vehicles) entry.vehicles.add(vehicle);
+    courses.set(course.id, entry);
+  }
+  return [...courses.values()].map(({ course, vehicles }) => ({
+    course,
+    vehicles: catalog.filter((vehicle) => vehicles.has(vehicle)),
+  }));
+}
 
 /** A pace schedule's times: from GO along the entry Section, and from each Section's start, in milliseconds. */
 export interface SavedPaceSchedule {
@@ -41,7 +63,7 @@ export interface SavedPaceSchedule {
   readonly sections: readonly (readonly [string, readonly number[]])[];
 }
 
-/** One candidate vehicle's reference times on a course, before the series margin, and its pace schedule. */
+/** One vehicle's reference times on a course, before any series margin, and its pace schedule. */
 export interface SavedReferenceVehicle {
   readonly vehicleId: string;
   readonly vehicleSha256: string;
@@ -206,8 +228,8 @@ export function readSavedEnvelope(
 }
 
 /**
- * Admit a course's saved reference times against the compiled course, the reference run's identity and the series'
- * candidate vehicles with their Session vehicle identities, in the series' order: every entry current, every budget
+ * Admit a course's saved reference times against the compiled course, the reference run's identity and the vehicles
+ * the classes run there with their Session vehicle identities, in catalog order: every entry current, every budget
  * landmark's times positive with one per lap, and each pace schedule what the delivered schedule admits.
  */
 export function readSavedReferenceTimes(
@@ -240,7 +262,7 @@ export function readSavedReferenceTimes(
     )
       staleMeasurement(
         '/vehicles',
-        `Expected the series' candidate vehicles ${candidates.map((c) => c.vehicleId).join(', ')}`,
+        `Expected the vehicles its classes run, ${candidates.map((c) => c.vehicleId).join(', ')}`,
       );
     entries.forEach(({ at, entry }, index) => {
       const { vehicleSha256 } = candidates[index]!;
