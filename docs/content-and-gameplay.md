@@ -1448,6 +1448,21 @@ matched to how the hills look on screen instead. On A STEEP the reference driver
 time limit is generous; it stays so until the AI anticipates the load lost over a crest. Their scenery and pictures are
 provisional; the videos and their pixels are not in the repository. The development series TRIAL holds both.
 
+## Product courses
+
+`tsukuba` (TSUKUBA) is the first product course: Tsukuba Circuit's four-wheel course, without the motorcycle chicane.
+Its plan follows the centreline of the circuit's own survey drawing, as straights and arcs of whole-metre radii within
+1.6 m of the drawn line, closed by solving the last arc and the two straights around the control line; the lap is
+2,044.96 m. Its profile follows the drawing's longitudinal section, scaled against 5 m elevation samples of the
+Geospatial Information Authority of Japan (5.1 m from lowest to highest). Lane widths follow the drawing's stations. The
+road has no cant. Its three Sections are the circuit's timing sectors, whose ends are the checkpoints and the finish;
+the grid stands after the control line, since a circuit's finish is the seam returning to its entry.
+
+Its scenery follows K's own onboard recordings, in the state of the front-camera recording: landmark sprites are cut
+from their frames (sources and recipes under `content/sprite-sources/`), lamp posts and masts and the sky are drawn for
+the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
+the verges' outer edges keep vehicles in. The course is untimed until a series holds it.
+
 ## Observation formats
 
 ### Course observations

@@ -4,6 +4,8 @@
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING, RIBBON ROUGH and the trial courses OUTRUN
   TRIAL A and A STEEP with ARCADE/FREE PLAY Sessions; RIBBON ROUGH is an untimed evaluation course.
+- TSUKUBA, the first product course, is delivered untimed for FREE PLAY and TIME TRIAL
+  ([Product courses](content-and-gameplay.md#product-courses)).
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
   and gates.
   Circuits are closed cycles of two or more Sections.
@@ -81,6 +83,10 @@ driving experience and time margins on real devices. The first product series is
 and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which
 together use every Session rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
+
+- TSUKUBA's remaining work: the TSUKUBA CLUBMAN series document with its measured times (GSX-R750 is not in the
+  catalog); solid barriers in place of the course limits at the verges; review of the scenery on real devices; signboard
+  walls, which today are sprites standing in a row.
 
 - Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
   SELECT SERIES switches between them; the attract demo replaces the text title.
