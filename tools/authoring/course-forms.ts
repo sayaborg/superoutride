@@ -22,7 +22,10 @@ export type CourseFormResult =
       readonly changes: readonly CourseChange[];
       readonly shift: number;
     }
-  | { readonly ok: false; readonly reason: string };
+  | { readonly ok: false; readonly reason: string; readonly pointer?: string };
+
+/** A Strip list, a Section's or a wall's, or a repeat's elements within one: later Strips overwrite earlier ones. */
+const ORDERED_LIST = /\/strips(?:\/(?:0|[1-9][0-9]*)\/elements)*$/;
 
 type JsonRecord = { [key: string]: Json };
 const isRecord = (value: Json | undefined): value is JsonRecord =>
@@ -166,8 +169,9 @@ export function explodeCourseRepeat(document: Json, pointer: string): CourseForm
 /**
  * Combine elements of one list into a repeat. They must be a block repeated at one spacing: one element (taken in station
  * order) or several (taken in list order), each copy the same but for its Positions, which step by `every`. The repeat
- * holds the first block and takes the place of the first element in the list. With a tolerance, steps within it are
- * evened out and the largest move is the shift; with 0, only exact steps combine.
+ * holds the first block and takes the place of the first element in the list. In a Strip list, whose order decides
+ * which Strip overwrites which, the elements must stand together: one between them is refused at its Pointer. With a
+ * tolerance, steps within it are evened out; with 0, only exact steps combine. The shift is every form operation's.
  */
 export function combineCourseElements(document: Json, pointers: readonly string[], tolerance = 0): CourseFormResult {
   if (pointers.length < 2) return { ok: false, reason: 'Combine needs at least two elements' };
@@ -182,10 +186,21 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     .map((item) => ({ index: item!.index, value: list[item!.index]!, ...positionsOf(list[item!.index]!) }))
     .sort((a, b) => a.index - b.index);
   if (listed.some((r) => !r.offsets.length)) return { ok: false, reason: 'Every element needs a Position' };
+  if (ORDERED_LIST.test(parent!)) {
+    const between = listed.findIndex((r, i) => i > 0 && r.index !== listed[i - 1]!.index + 1);
+    if (between > 0) {
+      const pointer = `${parent}/${listed[between - 1]!.index + 1}`;
+      return {
+        ok: false,
+        reason: `${pointer} stands between the chosen Strips, whose order decides which overwrites which`,
+        pointer,
+      };
+    }
+  }
   const byStation = [...listed].sort((a, b) => a.offsets[0]! - b.offsets[0]!);
   // The shortest block that repeats: copy k of block element j is element j moved k × every.
   const count = listed.length;
-  let best: { block: typeof listed; copies: number; every: number; shift: number } | null = null;
+  let best: { block: typeof listed; copies: number; every: number } | null = null;
   for (let size = 1; size < count && !best; size++) {
     if (count % size) continue;
     const records = size === 1 ? byStation : listed;
@@ -209,8 +224,7 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     const every = [Number(step.toPrecision(12)), step, computedValue(mean), mean].reduce((a, b) =>
       deviation(b) < deviation(a) ? b : a,
     );
-    const shift = deviation(every);
-    if (every > 0 && shift <= tolerance) best = { block, copies, every, shift };
+    if (every > 0 && deviation(every) <= tolerance) best = { block, copies, every };
   }
   if (!best)
     return {
@@ -228,16 +242,10 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     parent!,
     list.flatMap((value, i) => (i === at ? [repeat] : chosen.has(i) ? [] : [value])),
   );
-  // The shift is the evening out: the elements may have been listed in another order than their stations.
-  return {
-    ok: true,
-    document: next,
-    changes: [
-      ...listed.map((r) => ({ pointer: `${parent}/${r.index}`, before: r.value, after: undefined })),
-      { pointer: `${parent}/${at}`, before: undefined, after: repeat },
-    ],
-    shift: best.shift,
-  };
+  return measured(document, next, sectionOf(pointers[0]!)!.index, [
+    ...listed.map((r) => ({ pointer: `${parent}/${r.index}`, before: r.value, after: undefined })),
+    { pointer: `${parent}/${at}`, before: undefined, after: repeat },
+  ]);
 }
 
 /** The element at a Pointer in a Section's reading, its first copy when repeated. */

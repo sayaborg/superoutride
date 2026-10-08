@@ -53,7 +53,8 @@ export function createDocumentsModule(): WorkbenchModule {
   let list: HTMLElement, pane: HTMLElement;
   let current: string | null = null,
     root: Json | undefined,
-    rootText: string | null = null;
+    rootText: string | null = null,
+    shownBytes = 0;
   const opened = new Set<string>();
   let highlight: string | null = null;
 
@@ -90,8 +91,24 @@ export function createDocumentsModule(): WorkbenchModule {
     list.replaceChildren(...items);
   };
 
-  /** Open a document: read it from the store and show its tree. */
-  const open = async (path: string) => {
+  /**
+   * Whether an edit in the open tree awaits confirmation: a value field focused or holding text other than its shown
+   * value, or an open JSON editor. A refresh of the same document waits for it.
+   */
+  const pending = () =>
+    pane.querySelector('.json-editor') !== null ||
+    [...pane.querySelectorAll<HTMLInputElement>('input.value')].some(
+      (input) => input === document.activeElement || input.value !== input.defaultValue,
+    );
+  // A refresh that waited for a pending edit, shown once nothing is pending.
+  let deferred = false;
+  const flush = () =>
+    setTimeout(() => {
+      if (deferred && !pending()) showDocument(shownBytes);
+    });
+
+  /** Open a document: read it from the store and show its tree; a `refresh` of the open one waits for a pending edit. */
+  const open = async (path: string, refresh = false) => {
     if (path !== current) opened.clear();
     current = path;
     const bytes = await context.store.read(path).catch(() => null);
@@ -104,11 +121,14 @@ export function createDocumentsModule(): WorkbenchModule {
     }
     opened.add('');
     showList();
-    showDocument(bytes?.byteLength ?? 0);
+    shownBytes = bytes?.byteLength ?? 0;
+    showDocument(shownBytes, refresh);
   };
 
-  /** Show the open document's tree, keeping which containers are open. */
-  const showDocument = (byteLength: number) => {
+  /** Show the open document's tree, keeping which containers are open; a `refresh` waits for a pending edit. */
+  const showDocument = (byteLength: number, refresh = false) => {
+    deferred = refresh && pending();
+    if (deferred) return;
     const header = make('h2', current ?? '');
     if (root === undefined) {
       pane.replaceChildren(
@@ -207,7 +227,8 @@ export function createDocumentsModule(): WorkbenchModule {
       return check;
     }
     const input = make('input', '', { type: 'text', class: `value ${value === null ? 'null' : typeof value}` });
-    input.value = typeof value === 'string' ? value : JSON.stringify(value);
+    // The shown value is the field's default: text other than it is a pending edit.
+    input.defaultValue = typeof value === 'string' ? value : JSON.stringify(value);
     input.size = Math.min(60, Math.max(6, input.value.length + 1));
     confirmField(
       input,
@@ -220,7 +241,10 @@ export function createDocumentsModule(): WorkbenchModule {
           return null;
         }
       },
-      ({ next }) => replaceAt(pointer, next),
+      ({ next }) => {
+        input.defaultValue = input.value;
+        replaceAt(pointer, next);
+      },
     );
     input.title = 'Text that is not a value stays in the field; the document keeps its saved value';
     return input;
@@ -240,11 +264,15 @@ export function createDocumentsModule(): WorkbenchModule {
       try {
         replaceAt(pointer, JSON.parse(area.value) as Json);
         form.remove();
+        flush();
       } catch (cause) {
         error.textContent = `Not JSON: ${(cause as Error).message}`;
       }
     });
-    cancel.addEventListener('click', () => form.remove());
+    cancel.addEventListener('click', () => {
+      form.remove();
+      flush();
+    });
     form.append(area, make('br'), apply, ' ', cancel, ' ', error);
     box.querySelector(':scope > summary')!.after(form);
     (box as HTMLDetailsElement).open = true;
@@ -261,6 +289,9 @@ export function createDocumentsModule(): WorkbenchModule {
       pane = make('div', '', { class: 'document' });
       pane.append(make('p', 'Choose a document.'));
       element.append(list, pane);
+      // Leaving or confirming a field may end the pending edit a refresh waits for.
+      pane.addEventListener('focusout', flush);
+      pane.addEventListener('change', flush);
       // A place chosen in the tree is the workbench's selection.
       pane.addEventListener('click', (event) => {
         const at = (event.target as HTMLElement).closest<HTMLElement>('[data-pointer]');
@@ -275,10 +306,10 @@ export function createDocumentsModule(): WorkbenchModule {
         const changed = changes !== shownChanges;
         shownChanges = changes;
         shownCompile = compile;
-        if (changed && current) void open(current);
+        if (changed && current) void open(current, true);
         else {
           showList();
-          if (current && root !== undefined) showDocument(0);
+          if (current && root !== undefined) showDocument(shownBytes, true);
         }
       });
       showList();

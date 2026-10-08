@@ -200,15 +200,21 @@ worker also answers the page's course queries, a Section's report or a frame at 
 functions), from the latest compile that succeeded; each answer carries that compile's step. A course document's
 findings are answered from the document sent, compiled or not. The header
 always shows the build's commit, the number of changes and the compile's state; a failed compile lists its
-diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. The
+diagnostics (document, JSON Pointer, code and message) and keeps the last products that compiled, marked stale. A read
+of the build that fails (a 503, say) is not kept: a compile that failed internally, and a build that did not open,
+offer **Try again**, which reads again without reloading the page. The
 products of the last compile are listed with their digests; both lists are in one panel under the module tabs, seen
 from every module, which a newly failed compile opens. Modules are screens of the same page, each using the full width
 below that panel; each receives only the store, the compile and the one edit. An edit in progress, a field being typed
 or a drag, is the screen's alone until it is confirmed (Enter, leaving the field or releasing the pointer), which
-replaces the document once: one step. Escape drops a drag.
+replaces the document once: one step. Escape drops a drag. A change of the compile's state or of the changes never
+replaces an edit in progress: a screen leaves a field being typed as it is (the Documents module, which redraws its
+tree, waits while a value field is focused or holds text other than its value, or a JSON editor is open).
 
 Every edit is one step of the session's history: a document replaced (saved with `formatSavedJson`), a file's bytes set
-or a file deleted. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
+or a file deleted. Every path, in an edit or an archive, is a path under `content/` by one rule (`CONTENT_PATH`: relative
+segments of letters, digits, `_`, `-` and `.`, none starting with a dot), the rule the authored index admits; an edit
+at any other path is refused. A file equal to the build's own is no change. Undo and redo (the header's buttons, Ctrl+Z,
 Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the history, which the workbench keeps: at most 200 steps and
 128 MiB of distinct file versions, the oldest steps going first. The Changes module lists every changed, added and
 deleted path with its difference from the build, each with a revert; it also sets a file's bytes from a file on disk
@@ -217,7 +223,8 @@ and deletes a file by path.
 The workbench keeps nothing in the browser. **Save archive** downloads one stored (uncompressed) zip: each changed or
 added file at its `content/` path, and `workbench-changes.json` (`superoutride.workbench-changes` version 1: the
 build's `commit` and, for each changed path, the digest it had in that build, `null` for an added file, and whether it
-is deleted). **Open archive** restores the changes as one step. When the archive was made on another build and a file
+is deleted). **Open archive** admits an archive whose every entry is the list or a changed file it names at its
+`content/` path, and restores the changes as one step. When the archive was made on another build and a file
 it changes was changed by this build too, the workbench names the file and asks which version to keep; it never merges.
 Leaving the page with unsaved changes asks first.
 
@@ -245,7 +252,9 @@ With saved or preview measurements every mode runs, ARCADE with its time limit. 
 opens in FREE PLAY without rivals, traffic or a time limit. A failed compile cannot run.
 
 The Music module plays a track's recording with the product's recording playback (`createRecordingPlayback`) and the
-authored sound settings' timing: from the start, or from 3 s before `loop.end` to hear the seam. `loop.start` and
+authored sound settings' timing: from the start, or from 3 s before `loop.end` to hear the seam. Stop, another play
+or another track ends the listening intent: a play still preparing (reading the sound settings, resuming the audio)
+then starts nothing. `loop.start` and
 `loop.end` are set by number or on the waveform, where a press moves the nearer point and its release saves it;
 `title` and `selectionOrder` are fields too. Each confirmed change replaces the music document: one step. A chosen
 file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or impacts group, adding or replacing it;
@@ -259,7 +268,7 @@ or anchor tool edits the recipe, as do its fields. The master is imported as the
 product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written
 as its named file, replacing one of that name. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
 images, the imported image is added or replaces an image, an image no cell shows is removed, and a new set starts from
-the imported image. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
+the imported image, with two colors as `new-set` gives it. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
 depth. **Palettes** lists the open set's named palettes, copied, renamed or removed for every image at once. An
 adjustment chooses a source palette, slots 1 to 14 and the hue, saturation, lightness and tint sliders; every image of
 the set is previewed with the adjusted colors as the sliders move, and saving makes a new named palette, one step. One
@@ -353,7 +362,8 @@ npm run sprite -- adjust --set testarossa --from original --to blue --slots 1,3 
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe: a course image is written as
 `content/images/<name>.json` (replacing one of that name); a vehicle image replaces the set's image of that name or is added, and fills the given
-`yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image. `adjust` derives a named palette
+`yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image, ready to compile: an image with one color gains
+`alternate`, a copy of its default, since a set has at least two colors. `adjust` derives a named palette
 for every image of a set (`--saturation`, `--lightness`, `--tint-hue` and `--tint-amount` too).
 
 ### Listening on devices

@@ -27,7 +27,13 @@ function require(condition: boolean, message: string): asserts condition {
 const requireSprite = (set: Set, index: number) =>
   require(Number.isInteger(index) && index >= 0 && index < set.sprites.length, `No image ${index} in the set`);
 
-/** A new set of `yawVariants` × `bankVariants` cells, every cell showing its one image. */
+/** The second color a new set starts with, as every delivered set names it. */
+const SECOND_COLOR = 'alternate';
+
+/**
+ * A new set of `yawVariants` × `bankVariants` cells, every cell showing its one image. A set has at least two colors,
+ * so a new one starts ready to compile: an image with one palette gains `alternate`, a copy of its default.
+ */
 export function createSpriteSet(
   grid: { readonly yawVariants: number; readonly bankVariants: number; readonly bankDegrees?: number },
   brakeLamp: Set['brakeLamp'],
@@ -38,7 +44,7 @@ export function createSpriteSet(
     (n) => Number.isInteger(n) && n >= 1,
   ), 'A set has at least one yaw and one bank cell');
   require(bankVariants > 1 === (bankDegrees !== undefined), 'A set with several bank images declares bankDegrees');
-  return {
+  const set: Set = {
     format: VEHICLE_SPRITE_SET_FORMAT,
     version: VEHICLE_SPRITE_SET_VERSION,
     yawVariants,
@@ -48,6 +54,7 @@ export function createSpriteSet(
     assets: Array.from({ length: yawVariants }, () => Array<number>(bankVariants).fill(0)),
     sprites: [sprite],
   };
+  return paletteNames(set).length >= 2 ? set : addSetPalette(set, SECOND_COLOR, sprite.defaultPalette);
 }
 
 /**

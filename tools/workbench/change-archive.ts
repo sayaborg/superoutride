@@ -10,6 +10,7 @@ import {
 } from '../../src/core/admission.js';
 import { SHA256_TEXT } from '../../src/core/content-digest.js';
 import { readZip, writeZip, type ZipEntry } from './zip.js';
+import { CONTENT_PATH } from '../authoring/authored-index.js';
 
 /**
  * The workbench's archive of changes: each changed or added file at its `content/` path, and `workbench-changes.json`
@@ -47,7 +48,7 @@ export function writeChangeArchive(archive: ChangeArchive): Uint8Array<ArrayBuff
   return writeZip(entries);
 }
 
-/** Admit a change archive: its list, and exactly the files its list names as changed. */
+/** Admit a change archive: its list, whose paths are paths under `content/`, and exactly the files it names as changed. */
 export function readChangeArchive(bytes: Uint8Array): AdmissionResult<ChangeArchive> {
   return admit(CHANGE_LIST_NAME, () => {
     let entries: ZipEntry[];
@@ -71,7 +72,7 @@ export function readChangeArchive(bytes: Uint8Array): AdmissionResult<ChangeArch
     const seen = new Set<string>();
     const changes = readArray(root.changes, '/changes', (item, at) => {
       const change = readRecord(item, at, ['path', 'base', 'deleted']);
-      const path = readString(change.path, `${at}/path`);
+      const path = readString(change.path, `${at}/path`, CONTENT_PATH);
       requireAdmission(!seen.has(path), 'duplicate_id', `${at}/path`, `Duplicate path ${path}`);
       seen.add(path);
       const base = change.base === null ? null : readString(change.base, `${at}/base`, SHA256_TEXT);
@@ -85,13 +86,10 @@ export function readChangeArchive(bytes: Uint8Array): AdmissionResult<ChangeArch
       );
       return Object.freeze({ path, base, bytes: data ?? null });
     });
+    // Every entry is the list or a changed file the list names, at its content/ path.
+    const named = new Set([CHANGE_LIST_NAME, ...changes.filter((c) => c.bytes).map((c) => `content/${c.path}`)]);
     for (const name of files.keys())
-      requireAdmission(
-        name === CHANGE_LIST_NAME || seen.has(name.slice('content/'.length)),
-        'unsupported_feature',
-        '/changes',
-        `The list does not name ${name}`,
-      );
+      requireAdmission(named.has(name), 'unsupported_feature', '/changes', `The list does not name ${name}`);
     return Object.freeze({ commit, changes });
   });
 }

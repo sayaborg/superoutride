@@ -92,7 +92,11 @@ export const musicModule: WorkbenchModule = {
     // A loop point being dragged, shown before it is saved.
     let dragging: LoopDrag | null = null;
 
+    // Each play or halt is a new listening intent, numbered as compiles are by their generation: a play whose
+    // preparation finishes under a later intent starts nothing.
+    let intent = 0;
     const halt = () => {
+      intent++;
       playback?.stop();
       playback = null;
     };
@@ -239,6 +243,7 @@ export const musicModule: WorkbenchModule = {
     // Listening uses the product's playback with the authored sound settings' timing.
     const play = async (from: number) => {
       halt();
+      const ticket = intent;
       if (!buffer || !value || !audio) return;
       const bytes = await context.store.read('audio/default.json');
       const settings = compileAudioDocument(
@@ -246,11 +251,13 @@ export const musicModule: WorkbenchModule = {
         'content/audio/default.json',
         await contentDigest(bytes),
       );
+      if (ticket !== intent) return;
       if (!settings.ok) {
         note.textContent = 'The audio document does not admit; fix it to listen.';
         return;
       }
       await audio.resume();
+      if (ticket !== intent || !buffer || !value) return;
       playback = createRecordingPlayback(audio, audio.destination, buffer, () => settings.value.control, {
         loop: loop(),
         from,

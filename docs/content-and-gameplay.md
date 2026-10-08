@@ -595,8 +595,10 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   repeat's elements with every Position's `offset` moved by k × `every`, as the course expands it. Its shift is 0.
 - `combineCourseElements` replaces elements of one list by a repeat when they are one block (one element in station
   order, or several in list order) repeated at one spacing, each copy the same but for its Positions. The repeat holds
-  the first block, in the first element's place. With tolerance 0 only exact steps combine; with a tolerance the steps
-  are evened out and the largest move is the shift. Exploding and combining again gives the same values.
+  the first block, in the first element's place. In a Strip list (a Section's or a wall's, or a repeat's elements in
+  one), whose declaration order decides which Strip overwrites which, the elements must stand together: an element
+  between them is refused at its Pointer. With tolerance 0 only exact steps combine; with a tolerance the steps are
+  evened out within it. Its shift is the one above. Exploding and combining again gives the same values.
 - `bindCourseLateral` makes an absolute lateral a reference to a chosen Boundary, or to a lane's left edge, centre or
   right edge, its offset giving the same lateral at the element's station; between knots the line then follows that
   line. `unbindCourseLateral` makes a reference the

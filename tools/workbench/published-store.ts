@@ -5,7 +5,8 @@ import { readAuthoredIndex, type AuthoredIndex } from '../authoring/authored-ind
 
 /**
  * The authored files a build published, read over HTTP from `root` (the build's `authored/` directory): the index lists
- * them, and each file's bytes are verified against its digest before use. It reads only.
+ * them, and each file's bytes are verified against its digest before use. It reads only. A request that fails is
+ * not kept, so a later read can succeed.
  */
 export async function openPublishedStore(root: URL): Promise<{ index: AuthoredIndex; store: ContentStore }> {
   const fetchBytes = async (url: URL) => {
@@ -29,6 +30,11 @@ export async function openPublishedStore(root: URL): Promise<{ index: AuthoredIn
         return data;
       });
       cache.set(path, bytes);
+      // A failed read is not kept: the next read requests the file again.
+      const failed = bytes;
+      failed.catch(() => {
+        if (cache.get(path) === failed) cache.delete(path);
+      });
     }
     // Each reader receives its own copy; the cached bytes stay unchanged.
     return bytes.then((data) => data.slice());

@@ -75,14 +75,17 @@ export function createUnderlayControls(host: UnderlayHost) {
   let image: { bitmap: ImageBitmap; name: string; sha256: string } | null = null;
   let placement: Placement | null = null;
   let picking: { u: number; v: number }[] | null = null;
-  const path = () => `${COURSE_UNDERLAYS_DIRECTORY}/${host.course()}.json`;
-  const saved = async (): Promise<CourseUnderlays | null> => {
+  const pathOf = (course: string) => `${COURSE_UNDERLAYS_DIRECTORY}/${course}.json`;
+  /** The saved alignments of `course`, the course the request was made for. */
+  const saved = async (course: string | null): Promise<CourseUnderlays | null> => {
+    if (course === null) return null;
+    const path = pathOf(course);
     const bytes = await host
       .store()
-      .read(path())
+      .read(path)
       .catch(() => null);
     if (!bytes) return null;
-    const read = readCourseUnderlays(JSON.parse(new TextDecoder().decode(bytes)), path());
+    const read = readCourseUnderlays(JSON.parse(new TextDecoder().decode(bytes)), path);
     return read.ok ? read.value : null;
   };
   const show = () => {
@@ -96,13 +99,19 @@ export function createUnderlayControls(host: UnderlayHost) {
    * Lay the open image for the open Section: where it was saved, else at the view's centre at 1 m per pixel. Its
    * numbers stay as adjusted until the image, the course or the Section changes.
    */
-  let placed = '';
+  let placed = '',
+    placing = 0;
   const place = async (again = false) => {
-    const key = `${host.course()} ${host.section()}`;
+    const course = host.course(),
+      section = host.section();
+    const key = `${course} ${section}`;
     if (!again && key === placed) return;
     placed = key;
+    // Only the latest request lays the image: an earlier answer, for another course, Section or image, is dropped.
+    const request = ++placing;
     if (!image) return show();
-    const entry = (await saved())?.sections[host.section() ?? ''];
+    const entry = (await saved(course))?.sections[section ?? ''];
+    if (request !== placing || !image) return;
     if (entry) {
       placement = { scale: entry.scale, x: entry.x, z: entry.z, rotation: entry.rotation };
       status.textContent =
@@ -140,22 +149,30 @@ export function createUnderlayControls(host: UnderlayHost) {
     picking = [];
     status.textContent = 'Click the first point on the image, then the second.';
   });
+  // A save belongs to the course, Section, image and numbers shown when it was asked for, whatever is chosen meanwhile.
   save.addEventListener('click', async () => {
-    const section = host.section();
-    if (!image || !placement || !section) return;
-    const before = await saved();
+    const course = host.course(),
+      section = host.section(),
+      laid = image,
+      numbers = placement;
+    if (!laid || !numbers || !course || !section) return;
+    const before = await saved(course);
     const sections = {
       ...(before?.sections ?? {}),
       [section]: {
-        image: image.name,
-        sha256: image.sha256,
-        scale: placement.scale,
-        x: placement.x,
-        z: placement.z,
-        rotation: placement.rotation,
+        image: laid.name,
+        sha256: laid.sha256,
+        scale: numbers.scale,
+        x: numbers.x,
+        z: numbers.z,
+        rotation: numbers.rotation,
       },
     };
-    host.save(path(), { ...COURSE_UNDERLAYS_FORMAT, sections }, `Save underlay alignment of ${section}`);
+    host.save(
+      pathOf(course),
+      { ...COURSE_UNDERLAYS_FORMAT, sections },
+      `Save underlay alignment of ${course} ${section}`,
+    );
     status.textContent = `Saved for ${section}.`;
   });
 

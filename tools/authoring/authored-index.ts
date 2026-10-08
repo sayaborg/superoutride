@@ -31,10 +31,14 @@ export interface AuthoredIndex {
   readonly files: readonly AuthoredFile[];
 }
 
-const PATH = {
+/**
+ * The one rule for a path under `content/`: relative, of safe segments, none starting with a dot, so no path leaves
+ * `content/`. The authored index, the workbench's edits and its archives all admit paths by it.
+ */
+export const CONTENT_PATH = Object.freeze({
   pattern: /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:\/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$/,
-  patternMessage: 'Expected a relative path of safe segments',
-};
+  patternMessage: 'Expected a path under content/ of safe segments',
+});
 
 /** Admit an authored index: each path once, in sorted order, with a lowercase SHA-256. */
 export function readAuthoredIndex(value: unknown, document = ''): AdmissionResult<AuthoredIndex> {
@@ -44,7 +48,7 @@ export function readAuthoredIndex(value: unknown, document = ''): AdmissionResul
     let previous = '';
     const files = readArray(root.files, '/files', (item, at) => {
       const entry = readRecord(item, at, ['path', 'sha256']);
-      const path = readString(entry.path, `${at}/path`, PATH);
+      const path = readString(entry.path, `${at}/path`, CONTENT_PATH);
       requireAdmission(path > previous, 'invalid_value', `${at}/path`, 'Expected unique paths in sorted order');
       previous = path;
       return Object.freeze({ path, sha256: readString(entry.sha256, `${at}/sha256`, SHA256_TEXT) });

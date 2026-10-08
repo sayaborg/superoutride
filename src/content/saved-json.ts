@@ -4,7 +4,8 @@
  * fits, unless it is an object holding more than primitives or an array Prettier always breaks (two or
  * more objects of two or more fields, or two or more arrays of two or more entries); otherwise its
  * container breaks onto one entry per line, and an array of numbers fills each line with as many as
- * fit. Strings and numbers use JSON's own spelling.
+ * fit. An empty array or object is always `[]` or `{}`. Strings and numbers use JSON's own spelling, so the text
+ * parses back to the same JSON value.
  */
 const PRINT_WIDTH = 120;
 
@@ -65,6 +66,9 @@ function flat(value: Json): string | null {
 // prefixLength counts the indentation and key before the value, suffixLength the comma after it, if any.
 function format(value: Json, indent: string, prefixLength: number, suffixLength: number): string {
   if (primitive(value)) return JSON.stringify(value);
+  // An empty array or object prints as itself wherever it stands, as Prettier prints it.
+  if (Array.isArray(value) ? value.length === 0 : Object.keys(value as object).length === 0)
+    return Array.isArray(value) ? '[]' : '{}';
   const inner = `${indent}  `;
   const comma = (index: number, length: number) => (index < length - 1 ? 1 : 0);
   // The root object always breaks; any other value stays on one line when it can and fits.

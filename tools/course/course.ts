@@ -229,7 +229,7 @@ async function formVerb(file: string) {
                 : { boundary: opts.get('--boundary') ?? '' },
             )
           : unbindCourseLateral(document, element, field);
-  requireInput(result.ok, '/operation', result.ok ? '' : result.reason);
+  requireInput(result.ok, result.ok ? '/operation' : (result.pointer ?? '/operation'), result.ok ? '' : result.reason);
   if (opts.has('--out'))
     await atomicWrite(path.resolve(opts.get('--out')!), formatSavedJson(savedCourseDocument(result.document)));
   console.log(JSON.stringify({ ok: true, shift: result.shift, changes: result.changes }));

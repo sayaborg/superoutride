@@ -1,6 +1,6 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { contentDigest } from '../../src/core/content-digest.js';
-import { AUTHORED_DIRECTORY, type AuthoredIndex } from '../authoring/authored-index.js';
+import { AUTHORED_DIRECTORY, CONTENT_PATH, type AuthoredIndex } from '../authoring/authored-index.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { openPublishedStore } from './published-store.js';
@@ -27,13 +27,23 @@ const buildRoot = new URL('../../', location.href);
 const authoredRoot = new URL(`${AUTHORED_DIRECTORY}/`, buildRoot);
 const status = element('status');
 
-try {
-  const { index, store: published } = await openPublishedStore(authoredRoot);
-  start(index, published);
-} catch (error) {
-  status.textContent = `The workbench could not open this build: ${error instanceof Error ? error.message : error}`;
-  status.dataset.state = 'failed';
-}
+// A request the network failed (an internal compile failure, or the build not opening) can be tried again in place.
+const again = element<HTMLButtonElement>('again');
+const openBuild = async () => {
+  again.hidden = true;
+  status.textContent = 'Opening the build…';
+  status.dataset.state = 'running';
+  try {
+    const { index, store: published } = await openPublishedStore(authoredRoot);
+    start(index, published);
+  } catch (error) {
+    status.textContent = `The workbench could not open this build: ${error instanceof Error ? error.message : error}`;
+    status.dataset.state = 'failed';
+    again.onclick = () => void openBuild();
+    again.hidden = false;
+  }
+};
+await openBuild();
 
 function start(index: AuthoredIndex, published: ContentStore) {
   const { commit } = index;
@@ -104,9 +114,15 @@ function start(index: AuthoredIndex, published: ContentStore) {
   };
 
   // One edit: a new state of the changes. A file equal to the build's own is no change. Edits apply in order.
+  // A path that is not under content/ (CONTENT_PATH) is refused before it reaches the history.
   let edits = Promise.resolve();
-  const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) =>
-    (edits = edits.then(async () => {
+  const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) => {
+    const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
+    if (outside) {
+      alert(`Not a path under content/: ${outside[0]}`);
+      return;
+    }
+    edits = edits.then(async () => {
       const next = new Map(history.changes);
       for (const [path, bytes] of files) {
         const original = index.files.find((file) => file.path === path);
@@ -116,7 +132,8 @@ function start(index: AuthoredIndex, published: ContentStore) {
       }
       history.push(next, label);
       moved();
-    }));
+    });
+  };
   const modules: WorkbenchModule[] = [];
   let selection: { readonly document: string; readonly pointer: string } | null = null;
   const context: WorkbenchContext = Object.freeze({
@@ -254,6 +271,11 @@ function start(index: AuthoredIndex, published: ContentStore) {
         : state.status === 'ok' && state.measurements === 'preview'
           ? 'preview'
           : state.status;
+    // A compile that failed internally (a read of the build, for one) compiles again on request.
+    again.hidden = !(
+      state.status === 'failed' && state.diagnostics.some((diagnostic) => diagnostic.kind === 'internal')
+    );
+    again.onclick = compile;
     const { undo: undoLabel, redo: redoLabel } = history.labels;
     labelled(element<HTMLButtonElement>('undo'), !history.canUndo, undoLabel ? `Undo: ${undoLabel}` : 'Undo');
     labelled(element<HTMLButtonElement>('redo'), !history.canRedo, redoLabel ? `Redo: ${redoLabel}` : 'Redo');
