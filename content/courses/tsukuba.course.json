@@ -1,0 +1,1977 @@
+{
+  "format": "superoutride.course",
+  "version": 48,
+  "name": "TSUKUBA",
+  "entry": "sector-1",
+  "maxLaps": 30,
+  "sections": [
+    {
+      "id": "sector-1",
+      "plan": [
+        { "kind": "straight", "id": "home-a", "length": 186.47 },
+        { "kind": "arc", "id": "t1-entry", "length": 34.31, "radius": 51, "turn": "right" },
+        { "kind": "arc", "id": "t1", "length": 85.53, "radius": 33, "turn": "right" },
+        { "kind": "straight", "id": "s-in", "length": 112.15 },
+        { "kind": "arc", "id": "s1", "length": 44.32, "radius": 105, "turn": "left" },
+        { "kind": "straight", "id": "s-mid", "length": 48.27 },
+        { "kind": "arc", "id": "s2", "length": 36.73, "radius": 69, "turn": "right" },
+        { "kind": "straight", "id": "s-out", "length": 38.86 },
+        { "kind": "arc", "id": "hairpin1", "length": 93.51, "radius": 27, "turn": "left" },
+        { "kind": "straight", "id": "infield", "length": 105.48 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "home-a", "offset": 0 },
+          "y": 0.005,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "home-a", "offset": 10 },
+          "y": 0.04,
+          "curveLength": 9.8
+        },
+        {
+          "at": { "joint": "home-a", "offset": 20 },
+          "y": 0.06,
+          "curveLength": 9.8
+        },
+        {
+          "at": { "joint": "home-a", "offset": 40 },
+          "y": 0.13,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-a", "offset": 60 },
+          "y": 0.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-a", "offset": 80 },
+          "y": 0.42,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": -86.47 },
+          "y": 0.88,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": -66.47 },
+          "y": 1.64,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": -46.47 },
+          "y": 2.38,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": -26.47 },
+          "y": 3.07,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": -6.47 },
+          "y": 3.75,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1-entry", "offset": 13.53 },
+          "y": 4.12,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1", "offset": -0.78 },
+          "y": 4.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1", "offset": 19.22 },
+          "y": 4.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "t1", "offset": 39.22 },
+          "y": 4.04,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-in", "offset": -26.31 },
+          "y": 3.71,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-in", "offset": -6.31 },
+          "y": 3.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-in", "offset": 13.69 },
+          "y": 2.81,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-in", "offset": 33.69 },
+          "y": 2.34,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-in", "offset": 53.69 },
+          "y": 1.86,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s1", "offset": -38.46 },
+          "y": 1.37,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s1", "offset": -18.46 },
+          "y": 0.89,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s1", "offset": 1.54 },
+          "y": 0.41,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s1", "offset": 21.54 },
+          "y": 0,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-mid", "offset": -2.78 },
+          "y": -0.29,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-mid", "offset": 17.22 },
+          "y": -0.51,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s2", "offset": -11.05 },
+          "y": -0.69,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s2", "offset": 8.95 },
+          "y": -0.78,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-out", "offset": -7.78 },
+          "y": -0.66,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "s-out", "offset": 12.22 },
+          "y": -0.36,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin1", "offset": -6.64 },
+          "y": 0,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin1", "offset": 13.36 },
+          "y": 0.34,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin1", "offset": 33.36 },
+          "y": 0.59,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "infield", "offset": -40.15 },
+          "y": 0.69,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "infield", "offset": -20.15 },
+          "y": 0.63,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "infield", "offset": -0.15 },
+          "y": 0.37,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "infield", "offset": 19.85 },
+          "y": -0.03,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "infield", "offset": 39.85 },
+          "y": -0.4,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -45.63 },
+          "y": -0.6,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -25.63 },
+          "y": -0.79,
+          "curveLength": 15.3
+        },
+        {
+          "at": { "joint": "end", "offset": -10 },
+          "y": -0.76,
+          "curveLength": 15.3
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": -0.625,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "a",
+          "width": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "width": 5.677
+            },
+            {
+              "at": { "joint": "home-a", "offset": 92 },
+              "width": 6.583
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": 0 },
+              "width": 5.017
+            },
+            {
+              "at": { "joint": "t1", "offset": 0 },
+              "width": 4.367
+            },
+            {
+              "at": { "joint": "s-in", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s1", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 0 },
+              "width": 3.483
+            },
+            {
+              "at": { "joint": "s2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "s-out", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 46.755 },
+              "width": 4.417
+            },
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.419
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "width": 5.677
+            },
+            {
+              "at": { "joint": "home-a", "offset": 92 },
+              "width": 6.583
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": 0 },
+              "width": 5.017
+            },
+            {
+              "at": { "joint": "t1", "offset": 0 },
+              "width": 4.367
+            },
+            {
+              "at": { "joint": "s-in", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s1", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 0 },
+              "width": 3.483
+            },
+            {
+              "at": { "joint": "s2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "s-out", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 46.755 },
+              "width": 4.417
+            },
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.419
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "width": 5.677
+            },
+            {
+              "at": { "joint": "home-a", "offset": 92 },
+              "width": 6.583
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": 0 },
+              "width": 5.017
+            },
+            {
+              "at": { "joint": "t1", "offset": 0 },
+              "width": 4.367
+            },
+            {
+              "at": { "joint": "s-in", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s1", "offset": 0 },
+              "width": 3.367
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 0 },
+              "width": 3.483
+            },
+            {
+              "at": { "joint": "s2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "s-out", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 0 },
+              "width": 3.45
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 46.755 },
+              "width": 4.417
+            },
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.419
+            }
+          ]
+        }
+      ],
+      "centerLane": "b",
+      "boundaries": [
+        {
+          "id": "verge-left",
+          "knots": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": -12.78 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -17.2 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 7.22 },
+              "lateral": { "boundary": "road-left", "offset": -13.4 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 17.22 },
+              "lateral": { "boundary": "road-left", "offset": -10.8 }
+            },
+            {
+              "at": { "joint": "s2", "offset": -21.05 },
+              "lateral": { "boundary": "road-left", "offset": -9.8 }
+            },
+            {
+              "at": { "joint": "s2", "offset": -11.05 },
+              "lateral": { "boundary": "road-left", "offset": -8.7 }
+            },
+            {
+              "at": { "joint": "s2", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -7.9 }
+            },
+            {
+              "at": { "joint": "s-out", "offset": -17.78 },
+              "lateral": { "boundary": "road-left", "offset": -7.7 }
+            },
+            {
+              "at": { "joint": "s-out", "offset": -7.78 },
+              "lateral": { "boundary": "road-left", "offset": -7.8 }
+            },
+            {
+              "at": { "joint": "s-out", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -8.4 }
+            },
+            {
+              "at": { "joint": "s-out", "offset": 12.22 },
+              "lateral": { "boundary": "road-left", "offset": -10.4 }
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": -16.64 },
+              "lateral": { "boundary": "road-left", "offset": -12 }
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": -6.64 },
+              "lateral": { "boundary": "road-left", "offset": -11.8 }
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -11.8 }
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 13.36 },
+              "lateral": { "boundary": "road-left", "offset": -11.4 }
+            },
+            {
+              "at": { "joint": "hairpin1", "offset": 43.36 },
+              "lateral": { "boundary": "road-left", "offset": -10.5 }
+            },
+            {
+              "at": { "joint": "infield", "offset": -40.15 },
+              "lateral": { "boundary": "road-left", "offset": -10.6 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -11.8 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 9.85 },
+              "lateral": { "boundary": "road-left", "offset": -13.1 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 29.85 },
+              "lateral": { "boundary": "road-left", "offset": -9.9 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 39.85 },
+              "lateral": { "boundary": "road-left", "offset": -8.6 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 49.85 },
+              "lateral": { "boundary": "road-left", "offset": -7.9 }
+            },
+            {
+              "at": { "joint": "end", "offset": -45.63 },
+              "lateral": { "boundary": "road-left", "offset": -7.8 }
+            },
+            {
+              "at": { "joint": "end", "offset": -25.63 },
+              "lateral": { "boundary": "road-left", "offset": -7.8 }
+            },
+            {
+              "at": { "joint": "end", "offset": -15.63 },
+              "lateral": { "boundary": "road-left", "offset": -8.3 }
+            },
+            {
+              "at": { "joint": "end", "offset": -5.63 },
+              "lateral": { "boundary": "road-left", "offset": -9.2 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -9.9 }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "verge-right",
+          "knots": [
+            {
+              "at": { "joint": "home-a", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 19.5 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 10 },
+              "lateral": { "boundary": "road-right", "offset": 17.8 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 20 },
+              "lateral": { "boundary": "road-right", "offset": 16.2 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 30 },
+              "lateral": { "boundary": "road-right", "offset": 14.7 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 40 },
+              "lateral": { "boundary": "road-right", "offset": 13.7 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 50 },
+              "lateral": { "boundary": "road-right", "offset": 13 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 60 },
+              "lateral": { "boundary": "road-right", "offset": 12.7 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 70 },
+              "lateral": { "boundary": "road-right", "offset": 12.5 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 80 },
+              "lateral": { "boundary": "road-right", "offset": 12.4 }
+            },
+            {
+              "at": { "joint": "home-a", "offset": 90 },
+              "lateral": { "boundary": "road-right", "offset": 12.4 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -76.47 },
+              "lateral": { "boundary": "road-right", "offset": 14 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -56.47 },
+              "lateral": { "boundary": "road-right", "offset": 15.8 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -46.47 },
+              "lateral": { "boundary": "road-right", "offset": 16.6 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -26.47 },
+              "lateral": { "boundary": "road-right", "offset": 18.4 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -16.47 },
+              "lateral": { "boundary": "road-right", "offset": 19.2 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -6.47 },
+              "lateral": { "boundary": "road-right", "offset": 20.1 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 20.6 }
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": 13.53 },
+              "lateral": { "boundary": "road-right", "offset": 21.2 }
+            },
+            {
+              "at": { "joint": "t1", "offset": -10.78 },
+              "lateral": { "boundary": "road-right", "offset": 16.1 }
+            },
+            {
+              "at": { "joint": "t1", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 16.4 }
+            },
+            {
+              "at": { "joint": "t1", "offset": 29.22 },
+              "lateral": { "boundary": "road-right", "offset": 17 }
+            },
+            {
+              "at": { "joint": "t1", "offset": 39.22 },
+              "lateral": { "boundary": "road-right", "offset": 17.1 }
+            },
+            {
+              "at": { "joint": "s-in", "offset": -16.31 },
+              "lateral": { "boundary": "road-right", "offset": 17.7 }
+            },
+            {
+              "at": { "joint": "s-in", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 17.9 }
+            },
+            {
+              "at": { "joint": "s-in", "offset": 13.69 },
+              "lateral": { "boundary": "road-right", "offset": 22.9 }
+            },
+            {
+              "at": { "joint": "s1", "offset": -48.46 },
+              "lateral": { "boundary": "road-right", "offset": 19.9 }
+            },
+            {
+              "at": { "joint": "s1", "offset": -38.46 },
+              "lateral": { "boundary": "road-right", "offset": 19.2 }
+            },
+            {
+              "at": { "joint": "s1", "offset": -8.46 },
+              "lateral": { "boundary": "road-right", "offset": 17.4 }
+            },
+            {
+              "at": { "joint": "s1", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 17 }
+            },
+            {
+              "at": { "joint": "s1", "offset": 11.54 },
+              "lateral": { "boundary": "road-right", "offset": 17 }
+            },
+            {
+              "at": { "joint": "s1", "offset": 21.54 },
+              "lateral": { "boundary": "road-right", "offset": 16.9 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": -12.78 },
+              "lateral": { "boundary": "road-right", "offset": 17.1 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 18.2 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 7.22 },
+              "lateral": { "boundary": "road-right", "offset": 19.5 }
+            },
+            {
+              "at": { "joint": "s-mid", "offset": 17.22 },
+              "lateral": { "boundary": "road-right", "offset": 21.1 }
+            },
+            {
+              "at": { "joint": "s2", "offset": -21.05 },
+              "lateral": { "boundary": "road-right", "offset": 22.6 }
+            },
+            {
+              "at": { "joint": "s2", "offset": -11.05 },
+              "lateral": { "boundary": "road-right", "offset": 24.2 }
+            },
+            {
+              "at": { "joint": "s2", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "verge-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "verge-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": null,
+          "color": 5575,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 9548,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0.15 },
+          "color": 32765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "home-a", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": -0.15 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 32765,
+          "material": null
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "home-a", "offset": 0 },
+          "name": "TSUKUBA",
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 0 }
+        }
+      ],
+      "gates": [
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": { "joint": "t1-entry", "offset": -58.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -66.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -74.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -82.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -90.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 88 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 80 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 72 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 64 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 56 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 48 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 40 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 32 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 24 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 16 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 8 },
+              "lane": "c"
+            }
+          ]
+        },
+        {
+          "kind": "checkpoint",
+          "id": "tsukuba-SECTOR-1",
+          "at": { "joint": "end", "offset": 0 }
+        }
+      ]
+    },
+    {
+      "id": "sector-2",
+      "plan": [
+        { "kind": "straight", "id": "infield", "length": 15 },
+        { "kind": "arc", "id": "dunlop", "length": 49.98, "radius": 35, "turn": "right" },
+        { "kind": "straight", "id": "dunlop-out", "length": 74.07 },
+        { "kind": "arc", "id": "r80", "length": 80.94, "radius": 84, "turn": "left" },
+        { "kind": "straight", "id": "r80-out", "length": 67.73 },
+        { "kind": "arc", "id": "left-fast", "length": 47.69, "radius": 159, "turn": "left" },
+        { "kind": "straight", "id": "hairpin2-in", "length": 55.45 },
+        { "kind": "arc", "id": "hairpin2", "length": 74.77, "radius": 24, "turn": "right" },
+        { "kind": "arc", "id": "hairpin2-exit", "length": 37.7, "radius": 102, "turn": "right" },
+        { "kind": "straight", "id": "back", "length": 319.254542501 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "infield", "offset": 0 },
+          "y": -0.625,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "dunlop", "offset": -5 },
+          "y": -0.49,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "dunlop", "offset": 19.37 },
+          "y": -0.29,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "dunlop-out", "offset": -10.61 },
+          "y": -0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "dunlop-out", "offset": 9.39 },
+          "y": -0.06,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "dunlop-out", "offset": 29.39 },
+          "y": 0.17,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80", "offset": -24.68 },
+          "y": 0.41,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80", "offset": -4.68 },
+          "y": 0.62,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80", "offset": 15.32 },
+          "y": 0.78,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80", "offset": 35.32 },
+          "y": 0.84,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80-out", "offset": -25.62 },
+          "y": 0.75,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80-out", "offset": -5.62 },
+          "y": 0.45,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "r80-out", "offset": 14.38 },
+          "y": 0.32,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "left-fast", "offset": -33.35 },
+          "y": 0.29,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "left-fast", "offset": -13.35 },
+          "y": 0.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "left-fast", "offset": 6.65 },
+          "y": 0.28,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-in", "offset": -21.04 },
+          "y": 0.33,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-in", "offset": -1.04 },
+          "y": 0.56,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-in", "offset": 18.96 },
+          "y": 0.85,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2", "offset": -16.49 },
+          "y": 1.14,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2", "offset": 3.51 },
+          "y": 1.38,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2", "offset": 23.51 },
+          "y": 1.53,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-exit", "offset": -31.26 },
+          "y": 1.47,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-exit", "offset": -11.26 },
+          "y": 1.28,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "hairpin2-exit", "offset": 8.74 },
+          "y": 0.89,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": -8.96 },
+          "y": 0.54,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 11.04 },
+          "y": 0.33,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 31.04 },
+          "y": 0.3,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 51.04 },
+          "y": 0.28,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 71.04 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 91.04 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 111.04 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 131.04 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 151.04 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -148.214543 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -128.214543 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -108.214543 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -88.214543 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -68.214543 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -48.214543 },
+          "y": 0.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -28.214543 },
+          "y": 0.27,
+          "curveLength": 17.8
+        },
+        {
+          "at": { "joint": "end", "offset": -10 },
+          "y": 0.27,
+          "curveLength": 17.8
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0.27,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "a",
+          "width": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.419
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 0 },
+              "width": 4.467
+            },
+            {
+              "at": { "joint": "r80", "offset": 0 },
+              "width": 4.75
+            },
+            {
+              "at": { "joint": "r80-out", "offset": 0 },
+              "width": 3.5
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 37.385 },
+              "width": 4.333
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 0 },
+              "width": 3.967
+            },
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.467
+            },
+            {
+              "at": { "joint": "end", "offset": -119.254543 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.426
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.419
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 0 },
+              "width": 4.467
+            },
+            {
+              "at": { "joint": "r80", "offset": 0 },
+              "width": 4.75
+            },
+            {
+              "at": { "joint": "r80-out", "offset": 0 },
+              "width": 3.5
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 37.385 },
+              "width": 4.333
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 0 },
+              "width": 3.967
+            },
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.467
+            },
+            {
+              "at": { "joint": "end", "offset": -119.254543 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.426
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "width": 3.419
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 0 },
+              "width": 4.467
+            },
+            {
+              "at": { "joint": "r80", "offset": 0 },
+              "width": 4.75
+            },
+            {
+              "at": { "joint": "r80-out", "offset": 0 },
+              "width": 3.5
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 0 },
+              "width": 3.417
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 37.385 },
+              "width": 4.333
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 0 },
+              "width": 3.967
+            },
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.467
+            },
+            {
+              "at": { "joint": "end", "offset": -119.254543 },
+              "width": 3.433
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 3.426
+            }
+          ]
+        }
+      ],
+      "centerLane": "b",
+      "boundaries": [
+        {
+          "id": "verge-left",
+          "knots": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -9.9 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 4.37 },
+              "lateral": { "boundary": "road-left", "offset": -10.3 }
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "verge-right",
+          "knots": [
+            {
+              "at": { "joint": "infield", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "infield", "offset": 4.37 },
+              "lateral": { "boundary": "road-right", "offset": 19.9 }
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 19.9 }
+            },
+            {
+              "at": { "joint": "dunlop", "offset": 19.37 },
+              "lateral": { "boundary": "road-right", "offset": 19.3 }
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": -20.61 },
+              "lateral": { "boundary": "road-right", "offset": 18.9 }
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 18.3 }
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 9.39 },
+              "lateral": { "boundary": "road-right", "offset": 24 }
+            },
+            {
+              "at": { "joint": "dunlop-out", "offset": 19.39 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "r80", "offset": -24.68 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "r80", "offset": -14.68 },
+              "lateral": { "boundary": "road-right", "offset": 23.2 }
+            },
+            {
+              "at": { "joint": "r80", "offset": -4.68 },
+              "lateral": { "boundary": "road-right", "offset": 17.2 }
+            },
+            {
+              "at": { "joint": "r80", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 14.8 }
+            },
+            {
+              "at": { "joint": "r80", "offset": 5.32 },
+              "lateral": { "boundary": "road-right", "offset": 11.7 }
+            },
+            {
+              "at": { "joint": "r80", "offset": 15.32 },
+              "lateral": { "boundary": "road-right", "offset": 7.5 }
+            },
+            {
+              "at": { "joint": "r80", "offset": 25.32 },
+              "lateral": { "boundary": "road-right", "offset": 4.3 }
+            },
+            {
+              "at": { "joint": "r80", "offset": 35.32 },
+              "lateral": { "boundary": "road-right", "offset": 2.4 }
+            },
+            {
+              "at": { "joint": "r80-out", "offset": -35.62 },
+              "lateral": { "boundary": "road-right", "offset": 1 }
+            },
+            {
+              "at": { "joint": "left-fast", "offset": -13.35 },
+              "lateral": { "boundary": "road-right", "offset": 1 }
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 1.2 }
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 6.65 },
+              "lateral": { "boundary": "road-right", "offset": 1.3 }
+            },
+            {
+              "at": { "joint": "left-fast", "offset": 16.65 },
+              "lateral": { "boundary": "road-right", "offset": 1.6 }
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": -21.04 },
+              "lateral": { "boundary": "road-right", "offset": 2.3 }
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": -11.04 },
+              "lateral": { "boundary": "road-right", "offset": 3.3 }
+            },
+            {
+              "at": { "joint": "hairpin2-in", "offset": 8.96 },
+              "lateral": { "boundary": "road-right", "offset": 6.1 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": -26.49 },
+              "lateral": { "boundary": "road-right", "offset": 9.7 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": -16.49 },
+              "lateral": { "boundary": "road-right", "offset": 11.4 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": -6.49 },
+              "lateral": { "boundary": "road-right", "offset": 8.9 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 8.9 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 13.51 },
+              "lateral": { "boundary": "road-right", "offset": 8.4 }
+            },
+            {
+              "at": { "joint": "hairpin2", "offset": 33.51 },
+              "lateral": { "boundary": "road-right", "offset": 7.6 }
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": -31.26 },
+              "lateral": { "boundary": "road-right", "offset": 7.6 }
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": -21.26 },
+              "lateral": { "boundary": "road-right", "offset": 7.7 }
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 8.1 }
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 8.74 },
+              "lateral": { "boundary": "road-right", "offset": 8.2 }
+            },
+            {
+              "at": { "joint": "hairpin2-exit", "offset": 18.74 },
+              "lateral": { "boundary": "road-right", "offset": 11.6 }
+            },
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 9.2 }
+            },
+            {
+              "at": { "joint": "back", "offset": 11.04 },
+              "lateral": { "boundary": "road-right", "offset": 7.1 }
+            },
+            {
+              "at": { "joint": "back", "offset": 21.04 },
+              "lateral": { "boundary": "road-right", "offset": 5.8 }
+            },
+            {
+              "at": { "joint": "back", "offset": 31.04 },
+              "lateral": { "boundary": "road-right", "offset": 4.3 }
+            },
+            {
+              "at": { "joint": "back", "offset": 41.04 },
+              "lateral": { "boundary": "road-right", "offset": 3.1 }
+            },
+            {
+              "at": { "joint": "back", "offset": 51.04 },
+              "lateral": { "boundary": "road-right", "offset": 2.2 }
+            },
+            {
+              "at": { "joint": "back", "offset": 61.04 },
+              "lateral": { "boundary": "road-right", "offset": 1.6 }
+            },
+            {
+              "at": { "joint": "back", "offset": 71.04 },
+              "lateral": { "boundary": "road-right", "offset": 1.3 }
+            },
+            {
+              "at": { "joint": "back", "offset": 81.04 },
+              "lateral": { "boundary": "road-right", "offset": 1.1 }
+            },
+            {
+              "at": { "joint": "back", "offset": 91.04 },
+              "lateral": { "boundary": "road-right", "offset": 1 }
+            },
+            {
+              "at": { "joint": "end", "offset": -138.214543 },
+              "lateral": { "boundary": "road-right", "offset": 1 }
+            },
+            {
+              "at": { "joint": "end", "offset": -128.214543 },
+              "lateral": { "boundary": "road-right", "offset": 2.3 }
+            },
+            {
+              "at": { "joint": "end", "offset": -118.214543 },
+              "lateral": { "boundary": "road-right", "offset": 4.2 }
+            },
+            {
+              "at": { "joint": "end", "offset": -108.214543 },
+              "lateral": { "boundary": "road-right", "offset": 6.6 }
+            },
+            {
+              "at": { "joint": "end", "offset": -98.214543 },
+              "lateral": { "boundary": "road-right", "offset": 9.6 }
+            },
+            {
+              "at": { "joint": "end", "offset": -88.214543 },
+              "lateral": { "boundary": "road-right", "offset": 13.1 }
+            },
+            {
+              "at": { "joint": "end", "offset": -78.214543 },
+              "lateral": { "boundary": "road-right", "offset": 17.1 }
+            },
+            {
+              "at": { "joint": "end", "offset": -68.214543 },
+              "lateral": { "boundary": "road-right", "offset": 21.6 }
+            },
+            {
+              "at": { "joint": "end", "offset": -58.214543 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "verge-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "verge-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": null,
+          "color": 5575,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 9548,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0.15 },
+          "color": 32765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "infield", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": -0.15 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 32765,
+          "material": null
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "infield", "offset": 0 },
+          "name": "TSUKUBA",
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 5.073338 }
+        }
+      ],
+      "gates": [
+        {
+          "kind": "checkpoint",
+          "id": "tsukuba-SECTOR-2",
+          "at": { "joint": "end", "offset": 0 }
+        }
+      ]
+    },
+    {
+      "id": "sector-3",
+      "plan": [
+        { "kind": "straight", "id": "back", "length": 100 },
+        { "kind": "arc", "id": "final-entry", "length": 145.96, "radius": 96, "turn": "right" },
+        { "kind": "arc", "id": "final-exit", "length": 98.54752760959057, "radius": 82, "turn": "right" },
+        { "kind": "straight", "id": "home-b", "length": 92.23892991893703 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "back", "offset": 0 },
+          "y": 0.27,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "back", "offset": 10 },
+          "y": 0.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "back", "offset": 31.785457 },
+          "y": 0.26,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": -48.214543 },
+          "y": 0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": -28.214543 },
+          "y": 0.24,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": -8.214543 },
+          "y": 0.24,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": 11.785457 },
+          "y": 0.27,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": 31.785457 },
+          "y": 0.35,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": 51.785457 },
+          "y": 0.44,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-entry", "offset": 71.785457 },
+          "y": 0.48,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": -54.174543 },
+          "y": 0.48,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": -34.174543 },
+          "y": 0.49,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": -14.174543 },
+          "y": 0.49,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": 5.825457 },
+          "y": 0.47,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": 25.825457 },
+          "y": 0.39,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "final-exit", "offset": 45.825457 },
+          "y": 0.14,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-b", "offset": -32.72207 },
+          "y": -0.19,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-b", "offset": -12.72207 },
+          "y": -0.38,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-b", "offset": 7.27793 },
+          "y": -0.36,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "home-b", "offset": 27.27793 },
+          "y": -0.25,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -44.961 },
+          "y": -0.16,
+          "curveLength": 19
+        },
+        {
+          "at": { "joint": "end", "offset": -24.961 },
+          "y": -0.08,
+          "curveLength": 14.6
+        },
+        {
+          "at": { "joint": "end", "offset": -10 },
+          "y": -0.03,
+          "curveLength": 14.6
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0.005,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        {
+          "kind": "lane",
+          "id": "a",
+          "width": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.426
+            },
+            {
+              "at": { "joint": "final-entry", "offset": 0 },
+              "width": 3.42
+            },
+            {
+              "at": { "joint": "final-exit", "offset": 0 },
+              "width": 3.65
+            },
+            {
+              "at": { "joint": "home-b", "offset": 0 },
+              "width": 5.733
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 5.677
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.426
+            },
+            {
+              "at": { "joint": "final-entry", "offset": 0 },
+              "width": 3.42
+            },
+            {
+              "at": { "joint": "final-exit", "offset": 0 },
+              "width": 3.65
+            },
+            {
+              "at": { "joint": "home-b", "offset": 0 },
+              "width": 5.733
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 5.677
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "width": 3.426
+            },
+            {
+              "at": { "joint": "final-entry", "offset": 0 },
+              "width": 3.42
+            },
+            {
+              "at": { "joint": "final-exit", "offset": 0 },
+              "width": 3.65
+            },
+            {
+              "at": { "joint": "home-b", "offset": 0 },
+              "width": 5.733
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 5.677
+            }
+          ]
+        }
+      ],
+      "centerLane": "b",
+      "boundaries": [
+        {
+          "id": "verge-left",
+          "knots": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-left", "offset": -25 }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "c", "side": "right", "offset": 0 }
+            }
+          ]
+        },
+        {
+          "id": "verge-right",
+          "knots": [
+            {
+              "at": { "joint": "back", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "end", "offset": -4.961 },
+              "lateral": { "boundary": "road-right", "offset": 25 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "boundary": "road-right", "offset": 19.5 }
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "verge-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "verge-right", "offset": 0 },
+          "color": null,
+          "material": "GRASS"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": null,
+          "color": 5575,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 9548,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0.15 },
+          "color": 32765,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "back", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": -0.15 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 32765,
+          "material": null
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "back", "offset": 0 },
+          "name": "TSUKUBA",
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 155.971475 }
+        }
+      ],
+      "gates": [
+        {
+          "kind": "finish",
+          "id": "tsukuba-FINISH",
+          "at": { "joint": "end", "offset": 0 }
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "sector-1-to-2",
+      "from": { "section": "sector-1", "lane": "b" },
+      "to": "sector-2"
+    },
+    {
+      "id": "sector-2-to-3",
+      "from": { "section": "sector-2", "lane": "b" },
+      "to": "sector-3"
+    },
+    {
+      "id": "sector-3-to-1",
+      "from": { "section": "sector-3", "lane": "b" },
+      "to": "sector-1"
+    }
+  ]
+}
