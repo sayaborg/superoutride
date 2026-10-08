@@ -18,7 +18,7 @@ import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareSession } from '../race/session-preparation.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
-import { loadSeriesCourse, type loadSeriesCatalog } from '../content/series-catalog.js';
+import { loadSeriesClass, type loadSeriesCatalog } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import type { RunRequest } from './run-request.js';
 import { createCourseScene } from '../view/course-scene.js';
@@ -76,7 +76,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
   const { courseId } = request;
   const course = await loadDeliveredCourse(content, courseId, materials);
   // The course's ARCADE settings come from the one series holding it; a course in no series is untimed.
-  const arcade = loadSeriesCourse(content, series, course);
+  const arcade = loadSeriesClass(content, series, course);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
   const prepared = await prepareSession(
     content,

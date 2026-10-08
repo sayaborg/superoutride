@@ -7,7 +7,7 @@ import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { AheadAppearance, SeriesCourse, StageInterval } from '../content/series-catalog.js';
+import type { AheadAppearance, SeriesClass, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, rivalPoolPairs, type VehicleColor } from './free-play-field.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -65,7 +65,7 @@ export interface ResolvedTraffic {
  */
 export function sessionDemand(
   configuration: SessionConfiguration,
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const rivalPool = configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
@@ -88,7 +88,7 @@ export function sessionDemand(
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
 // The ARCADE series entry the player takes: the rearmost grid entry of its vehicle.
-const ownEntry = (arcade: SeriesCourse, vehicleId: string) =>
+const ownEntry = (arcade: SeriesClass, vehicleId: string) =>
   arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
 
 /**
@@ -96,7 +96,7 @@ const ownEntry = (arcade: SeriesCourse, vehicleId: string) =>
  * color, else the vehicle's default color. Selection screens show the same color.
  */
 export function sessionPlayerColor(
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   vehicle: CompiledVehicleDefinition,
   chosen: string | null,
 ): string {
@@ -117,7 +117,7 @@ export function sessionPlayerColor(
  */
 export function resolveCourseSession(
   course: CompiledCourse,
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   configuration: SessionConfiguration,
   seed: number,
   vehicle: SessionVehicle,
@@ -243,7 +243,7 @@ export type ResolvedCourseSession = ReturnType<typeof resolveCourseSession>;
 /** ARCADE: the series entries, the player taking the rearmost entry of its vehicle. */
 function arcadeEntries(
   course: CompiledCourse,
-  arcade: SeriesCourse,
+  arcade: SeriesClass,
   player: EntryVehicle,
   playerColor: string,
   vehicleOf: (vehicleId: string) => EntryVehicle,

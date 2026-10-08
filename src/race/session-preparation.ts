@@ -4,7 +4,7 @@ import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { readRivalEnvelope } from '../content/rival-envelope.js';
-import type { SeriesCourse } from '../content/series-catalog.js';
+import type { SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, sessionVehicleSha256, type SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
@@ -39,7 +39,7 @@ export async function prepareSession(
   content: ContentDelivery,
   catalog: SessionCatalog,
   course: CompiledCourse,
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   request: SessionRequest,
   initialSpeed = 0,
 ) {

@@ -54,7 +54,12 @@
   origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
   centres derived), and images named by file.
 
-Next PR: **16** — the first PR of Stage 16, awaiting its proposal.
+Next PR: **16-1b** — series document version 10 with classes, and the Session resolved from a class.
+
+Stage 16 opens with series classes (16-1), in five PRs: names (`SeriesClass`); the series document's classes and
+the Session resolved from a class; measured products owned by course and vehicle; ARCADE requests, URL, records and
+SELECT CLASS naming a series and class; the RIBBON classes sharing RIBBON RING, the product specification and this
+checkpoint.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.

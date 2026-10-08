@@ -1,4 +1,4 @@
-import type { SeriesCourse } from '../content/series-catalog.js';
+import type { SeriesClass } from '../content/series-catalog.js';
 import type { SessionRequest } from '../race/session-configuration.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
@@ -42,7 +42,7 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
 export function readUrlRunRequest(
   params: URLSearchParams,
   courseId: string,
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   vehicles: readonly CompiledVehicleDefinition[],
   freePlay: FreePlayRules,
   player: PlayerRecord,

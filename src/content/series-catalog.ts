@@ -36,7 +36,7 @@ export interface CompiledSeries {
   readonly timeMargin: number;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
   readonly fixedColors: boolean;
-  readonly courses: readonly SeriesCourse[];
+  readonly courses: readonly SeriesClass[];
 }
 
 /**
@@ -68,7 +68,7 @@ export interface StageInterval {
 }
 
 /** A course's ARCADE settings within its series. */
-export interface SeriesCourse {
+export interface SeriesClass {
   readonly series: CompiledSeries;
   readonly course: string;
   readonly laps: number;
@@ -85,7 +85,7 @@ export interface SeriesCourse {
 export interface SeriesCatalog {
   readonly series: readonly CompiledSeries[];
   /** The one series course naming `courseId`, or null when no series holds it. */
-  courseSettings(courseId: string): SeriesCourse | null;
+  courseSettings(courseId: string): SeriesClass | null;
 }
 
 /**
@@ -99,7 +99,7 @@ export function compileSeriesCatalog(
   vehicles: readonly CompiledVehicleDefinition[],
 ): AdmissionResult<SeriesCatalog> {
   const series: CompiledSeries[] = [];
-  const owners = new Map<string, SeriesCourse>();
+  const owners = new Map<string, SeriesClass>();
   for (const source of sources) {
     const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, owners));
     if (!admitted.ok) return admitted;
@@ -118,7 +118,7 @@ function readSeries(
   source: DocumentSource,
   courseIds: readonly string[],
   catalog: readonly CompiledVehicleDefinition[],
-  owners: Map<string, SeriesCourse>,
+  owners: Map<string, SeriesClass>,
 ): CompiledSeries {
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
@@ -151,7 +151,7 @@ function readSeries(
       exclusiveMin: true,
     }),
     fixedColors: readBoolean(root.fixedColors, '/fixedColors'),
-    courses: [] as SeriesCourse[],
+    courses: [] as SeriesClass[],
   };
   const courses = readArray(
     root.courses,
@@ -166,7 +166,7 @@ function readSeries(
         `${at}/course`,
         `Course ${course} already belongs to series ${owners.get(course)?.series.id}`,
       );
-      const result: SeriesCourse = Object.freeze({
+      const result: SeriesClass = Object.freeze({
         series: series as CompiledSeries,
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
@@ -182,7 +182,7 @@ function readSeries(
     },
     { min: 1 },
   );
-  series.courses = courses as SeriesCourse[];
+  series.courses = courses as SeriesClass[];
   return Object.freeze(series);
 }
 
@@ -363,11 +363,11 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
  * the grid, every ahead entry's lane exists in every Section of the course, and each rank limit names a race gate of the course with N below the field size. The build admits every
  * series course; a Session admits the course it drives.
  */
-export function admitSeriesCourse(
-  settings: SeriesCourse,
+export function admitSeriesClass(
+  settings: SeriesClass,
   course: CompiledCourse,
   document: string,
-): AdmissionResult<SeriesCourse> {
+): AdmissionResult<SeriesClass> {
   const index = settings.series.courses.indexOf(settings);
   return admit(document, () => {
     requireAdmission(
@@ -445,13 +445,13 @@ export async function loadSeriesCatalog(
 }
 
 /** The delivered course's ARCADE settings, admitted against it, or null when no series holds the course. */
-export function loadSeriesCourse(
+export function loadSeriesClass(
   content: ContentDelivery,
   catalog: SeriesCatalog,
   course: CompiledCourse,
-): SeriesCourse | null {
+): SeriesClass | null {
   const settings = catalog.courseSettings(course.id);
   if (!settings) return null;
   const document = content.manifest.files.find((file) => file.kind === 'series' && file.id === settings.series.id)!;
-  return requireLoaded(admitSeriesCourse(settings, course, document.path));
+  return requireLoaded(admitSeriesClass(settings, course, document.path));
 }

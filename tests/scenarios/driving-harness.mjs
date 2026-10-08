@@ -26,7 +26,7 @@ import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { routeS, routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
-import { admitSeriesCourse, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
+import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 
@@ -69,12 +69,12 @@ const productSeries = await loadSeriesCatalog(content, definitions.vehicles);
 export async function loadScenarioCourse(stem) {
   const course = await loadDeliveredCourse(content, stem, materials);
   const settings = scenarioSeries.courseSettings(stem);
-  const arcade = settings && requireLoaded(admitSeriesCourse(settings, course, SCENARIO_SERIES_PATH.pathname));
+  const arcade = settings && requireLoaded(admitSeriesClass(settings, course, SCENARIO_SERIES_PATH.pathname));
   const productSettings = productSeries.courseSettings(stem);
   return {
     course,
     arcade,
-    productArcade: productSettings && requireLoaded(admitSeriesCourse(productSettings, course, 'ribbon.series.json')),
+    productArcade: productSettings && requireLoaded(admitSeriesClass(productSettings, course, 'ribbon.series.json')),
   };
 }
 

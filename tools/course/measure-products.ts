@@ -128,7 +128,7 @@ async function trace(args: readonly string[]) {
       ...measured,
     };
   } else {
-    const series = content.seriesCourses.find(({ course }) => course.id === opts.get('--course'));
+    const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
     requireInput(series, '/course', 'Reference runs need a series course');
     const { course } = series;
     const routes = enumerateCourseRoutes(course.entry, course.type);

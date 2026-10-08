@@ -124,7 +124,7 @@ export async function planMeasurement(
   }
   // Each series course's saved file and its current candidate entries.
   const courses: { course: CompiledContent['courses'][number]; candidates: readonly string[]; saved: unknown }[] = [];
-  for (const { course, settings } of content.seriesCourses)
+  for (const { course, settings } of content.seriesClasses)
     courses.push({
       course,
       candidates: settings.series.vehicles,

@@ -9,7 +9,7 @@ import {
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
 import { encodeContentJson } from '../../src/content/content-manifest.js';
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import { admitSeriesCourse, compileSeriesCatalog, type SeriesCourse } from '../../src/content/series-catalog.js';
+import { admitSeriesClass, compileSeriesCatalog, type SeriesClass } from '../../src/content/series-catalog.js';
 import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
 import type { SurfaceMaterialCatalog } from '../../src/course/surface-material.js';
@@ -67,7 +67,7 @@ export interface CompiledContent {
   readonly definitions: VehicleDefinitions;
   readonly courses: readonly CompiledCourse[];
   /** Each series course with its admitted series settings. */
-  readonly seriesCourses: readonly { readonly course: CompiledCourse; readonly settings: SeriesCourse }[];
+  readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: SeriesClass }[];
 }
 
 /** Each stage's result with the key of its inputs, which a later compile may reuse. */
@@ -347,13 +347,13 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         definitions.value.definitions.vehicles,
       ),
     );
-    const seriesCourses = compiledCourses.flatMap((course) => {
+    const seriesClasses = compiledCourses.flatMap((course) => {
       const settings = catalog.courseSettings(course.id);
       if (!settings) return [];
       const source = documents.find((s) => s.id === settings.series.id)!;
-      return [Object.freeze({ course, settings: requireLoaded(admitSeriesCourse(settings, course, source.path)) })];
+      return [Object.freeze({ course, settings: requireLoaded(admitSeriesClass(settings, course, source.path)) })];
     });
-    return { seriesCourses: Object.freeze(seriesCourses), files: delivered('series', documents) };
+    return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
   });
 
   const files: DeliveredFile[] = [
@@ -377,7 +377,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     const products = await stage(
       'measured',
       [definitions.key, materials.key, series.key, ...inputs(envelopeFiles), ...inputs(timeFiles)],
-      () => measuredFiles(store, definitions.value.definitions, materials.value.catalog, series.value.seriesCourses),
+      () => measuredFiles(store, definitions.value.definitions, materials.value.catalog, series.value.seriesClasses),
     );
     files.push(...products.value);
   }
@@ -388,7 +388,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     freePlay: freePlay.value.rules,
     definitions: definitions.value.definitions,
     courses: Object.freeze(compiledCourses),
-    seriesCourses: series.value.seriesCourses,
+    seriesClasses: series.value.seriesClasses,
   });
 }
 
@@ -417,7 +417,7 @@ async function measuredFiles(
   store: ContentStore,
   definitions: VehicleDefinitions,
   materials: SurfaceMaterialCatalog,
-  seriesCourses: CompiledContent['seriesCourses'],
+  seriesClasses: CompiledContent['seriesClasses'],
 ): Promise<DeliveredFile[]> {
   const files: DeliveredFile[] = [];
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
@@ -434,7 +434,7 @@ async function measuredFiles(
   // Every saved measurement belongs to a catalog vehicle or a series course, and each of those has its own.
   const owned = new Set([
     ...definitions.vehicles.map((entry) => measuredEnvelopePath(entry.compiledVehicle.id)),
-    ...seriesCourses.map(({ course }) => referenceTimesPath(course.id)),
+    ...seriesClasses.map(({ course }) => referenceTimesPath(course.id)),
   ]);
   const saved = new Set<string>();
   for (const directory of ['envelopes', 'reference-times'])
@@ -449,7 +449,7 @@ async function measuredFiles(
     return json(path);
   };
   const times = new Map<string, SavedReferenceTimes>();
-  for (const { course, settings } of seriesCourses) {
+  for (const { course, settings } of seriesClasses) {
     const path = referenceTimesPath(course.id);
     const candidates = settings.series.vehicles.map((vehicleId) => ({
       vehicleId,
@@ -468,7 +468,7 @@ async function measuredFiles(
       path = measuredEnvelopePath(id);
     const saved = requireLoaded(readSavedEnvelope(sha256, measurementSha256, await savedJson(path), `content/${path}`));
     add('envelope', id, encodeContentJson(deliveredEnvelope(saved)));
-    for (const { course, settings } of seriesCourses) {
+    for (const { course, settings } of seriesClasses) {
       const vehicle = times.get(course.id)!.vehicles.find((candidate) => candidate.vehicleId === id);
       if (!vehicle) continue;
       const budget = courseTimeBudgetsProduct(course, sha256, referenceTimes(vehicle), settings.series.timeMargin);

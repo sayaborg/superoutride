@@ -1,6 +1,6 @@
 import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import type { SeriesCourse } from '../content/series-catalog.js';
+import type { SeriesClass } from '../content/series-catalog.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import { NO_TRAFFIC, type FreePlayRules, type RivalPoolRule } from '../content/free-play-rules.js';
@@ -61,7 +61,7 @@ export interface SessionConfiguration extends SessionChoice {
 export function compileSessionConfiguration(
   request: SessionRequest,
   course: Pick<CompiledCourse, 'rules' | 'gates'>,
-  arcade: SeriesCourse | null,
+  arcade: SeriesClass | null,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   initialSpeed = 0,
 ): SessionConfiguration {
