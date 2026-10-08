@@ -15,7 +15,7 @@ const MIN_DRIVER_CURVATURE_PER_METER = 1e-7;
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const ENVELOPE_DRIVER = Object.freeze({
-  version: 13,
+  version: 14,
   lookahead: 480,
   spacing: 5,
   responseSeconds: 0.45,
@@ -134,13 +134,16 @@ const CACHE_SIZE = Math.ceil(ENVELOPE_DRIVER.lookahead / ENVELOPE_DRIVER.spacing
 
 export function createEnvelopeDriverWorkspace() {
   return {
-    // Curvature and grip depend on the road and lane only; curve speeds also on the envelope, utilization and speed cap.
+    // A cell's curvature and grip depend on the road, the lane and its interval (its 5 m cell within the planning
+    // domain); its curve speed also on the envelope, utilization and speed cap.
     road: null as DriverRoad | null,
     lane: null as Lane | null,
     envelope: null as RivalEnvelope | null,
     utilization: NaN,
     speedCap: NaN,
-    cells: new Float64Array(CACHE_SIZE).fill(NaN),
+    /** Each cached cell's interval: a cell clipped by the domain is cached apart from the whole cell. */
+    cellStarts: new Float64Array(CACHE_SIZE).fill(NaN),
+    cellEnds: new Float64Array(CACHE_SIZE).fill(NaN),
     curvatures: new Float64Array(CACHE_SIZE),
     grips: new Float64Array(CACHE_SIZE),
     /** The latest plan's least grip from its first cell through each cell, in plan order, and that first cell. */
@@ -198,7 +201,7 @@ function plannedTargetSpeed(
   const { envelope, speedCap, braking, utilization } = driver;
   const { coordinates } = road;
   if (workspace.road !== road || workspace.lane !== targetL) {
-    workspace.cells.fill(NaN);
+    workspace.cellStarts.fill(NaN);
     workspace.speedCells.fill(NaN);
     workspace.road = road;
     workspace.lane = targetL;
@@ -223,7 +226,7 @@ function plannedTargetSpeed(
     const bS = Math.min(domain.end, (cell + 1) * ENVELOPE_DRIVER.spacing);
     if (bS <= aS) break;
     const index = ((cell % CACHE_SIZE) + CACHE_SIZE) % CACHE_SIZE;
-    if (workspace.cells[index] !== cell) {
+    if (workspace.cellStarts[index] !== aS || workspace.cellEnds[index] !== bS) {
       if (aS !== previousS) {
         const a = coordinates.toWorld(aS, typeof targetL === 'number' ? targetL : targetL(aS), workspace.a);
         previousX = a.x;
@@ -240,7 +243,8 @@ function plannedTargetSpeed(
       previousHeading = b.heading;
       workspace.curvatures[index] = curvature;
       workspace.grips[index] = gripAt(road, aS, typeof targetL === 'number' ? targetL : targetL(aS));
-      workspace.cells[index] = cell;
+      workspace.cellStarts[index] = aS;
+      workspace.cellEnds[index] = bS;
       workspace.speedCells[index] = NaN;
     }
     if (workspace.speedCells[index] !== cell) {

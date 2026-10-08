@@ -5,8 +5,13 @@ import type { LaneIntent } from './lane-following.js';
 import type { createLaneDriving } from './lane-driving.js';
 import type { createVehiclePlacement } from './vehicle-placement.js';
 import { createEnvelopeDriverWorkspace } from './envelope-driver.js';
-import { advanceVehicleWithRecovery, createRecoveryState } from './recovery.js';
-import { createPresentVehicle, type PresentVehicle, type VehicleDriving } from './present-vehicle.js';
+import { createRecoveryState } from './recovery.js';
+import {
+  advancePresentVehicle,
+  createPresentVehicle,
+  type PresentVehicle,
+  type VehicleDriving,
+} from './present-vehicle.js';
 import {
   createCompetitorObservation,
   writeCompetitorObservation,
@@ -97,10 +102,7 @@ export function createTrafficField(options: {
     /** One step of every traffic vehicle: its driver's input, ordinary mechanics with recovery, then the legal road. */
     advance() {
       for (const motion of vehicles) {
-        motion.step.input = laneDriving.drive(motion);
-        motion.previous.s = motion.vehicle.course.s;
-        motion.previous.l = motion.vehicle.course.l;
-        advanceVehicleWithRecovery(runtime.readers, motion.vehicle, motion.model, motion.step);
+        advancePresentVehicle(runtime.readers, motion, laneDriving.drive(motion));
         placement.legalRecovery(motion);
       }
     },

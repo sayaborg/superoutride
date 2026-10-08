@@ -126,10 +126,11 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 13: since version 8, one implementation of the vehicle ahead,
+driver's record, part of the reference run's procedure record, contains it. It is 14: since version 8, one implementation of the vehicle ahead,
 lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
 surface grip drivers plan with (10), standing objects that end a lane (11), other
-vehicles' route speeds (12), and lanes carried across every seam as the lanes continue (13).
+vehicles' route speeds (12), lanes carried across every seam as the lanes continue (13), and cells the planning
+domain cut short read again once it grows (14).
 
 ## Camera settings
 

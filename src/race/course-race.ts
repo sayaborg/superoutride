@@ -7,7 +7,7 @@ import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
-import { createRecoveryState, advanceVehicleWithRecovery, recoverVehicle, type RecoveryState } from './recovery.js';
+import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
 import { createBodyContacts, createContactFaces } from './body-contacts.js';
 import { createContactLog, type PlayerContacts } from './contact-log.js';
 import type { LaneIntent } from './lane-following.js';
@@ -15,6 +15,7 @@ import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
 import { createLaneDriving } from './lane-driving.js';
 import {
+  advancePresentVehicle,
   createPresentVehicle,
   type PresentVehicle,
   type VehicleActor,
@@ -328,13 +329,7 @@ export function createCourseRace(options: {
     }
     startPhase.advance();
   };
-  const move = (body: PresentVehicle, input: DrivingInput) => {
-    const { previous, vehicle } = body;
-    previous.l = vehicle.course.l;
-    previous.s = vehicle.course.s;
-    body.step.input = input;
-    body.recovered = advanceVehicleWithRecovery(runtime.readers, vehicle, body.model, body.step) !== null;
-  };
+  const move = (body: PresentVehicle, input: DrivingInput) => advancePresentVehicle(runtime.readers, body, input);
   const { legalRecovery } = placement;
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
@@ -515,7 +510,7 @@ export function createCourseRace(options: {
       minS = Math.min(minS, body.vehicle.course.s);
       maxS = Math.max(maxS, body.vehicle.course.s);
       // After the run ends, progress, events, presence and the clock hold; recovery still keeps the field legal.
-      if (stepStart === null) body.recovered = legalRecovery(body) || body.recovered;
+      if (stepStart === null) legalRecovery(body);
     }
     runtime.refresh(minS, maxS);
     if (trafficField.update()) refreshBodies();
@@ -539,7 +534,7 @@ export function createCourseRace(options: {
     let playerFinishSeconds: number | null = null;
     for (const c of active) {
       const { body } = c;
-      body.recovered = legalRecovery(body) || body.recovered;
+      legalRecovery(body);
       const update = c.observer.update(
         body.previous,
         body.vehicle.course,
@@ -729,6 +724,7 @@ export function createCourseRace(options: {
         reason: 'manual',
         place: player.body.step.place,
       });
+      player.body.recovered = true;
       legalRecovery(player.body);
       resync(player);
       publish();

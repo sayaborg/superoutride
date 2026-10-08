@@ -1146,8 +1146,9 @@ maximum speed) once; the runout check, the race's unpaced rivals and the player'
 
 Generated envelopes contain maximum speed and speed-indexed acceleration, braking and lateral-response
 observations for each vehicle configuration. The driver consumes an envelope, utilization, speed cap
-and lane; the utilization may change from one step to the next. Its workspace caches each 5 m cell's curvature by
-road and lane, and its curve speed also by envelope, utilization and speed cap, so a steady utilization reuses both; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
+and lane; the utilization may change from one step to the next. Its workspace caches each 5 m cell's curvature and grip by
+road, lane and the cell's interval within the planning domain, and its curve speed also by envelope, utilization and
+speed cap, so a steady utilization reuses both and a cell the domain cut short is read again once the domain grows; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
 throttle and brake. [Calibration](calibration.md) lists utilization values.
 
 Drivers read the surface ahead. Each cell reads the grip factor of the material under its lane at the cell's start (no
@@ -1291,8 +1292,9 @@ with footprints F and overall heights H. A contact begins when all three are pos
 over one below it. It also begins when the height overlap is positive and the relative position, moving linearly from
 (Δs⁻, Δl⁻) to (Δs, Δl), entered the overlap box during the step although the footprints are apart at both its ends:
 thin footprints closing fast pass through each other within one step (two motorcycles' overlap lasts about 1.4 m of
-relative travel, one step at 84 m/s), and they meet as if they had touched. A vehicle that recovery or an appearance placed in the previous
-step moved from where it was placed, so it sweeps nothing on its way there. Its face, an axis and a side, is decided once, as it begins, from the pair's route
+relative travel, one step at 84 m/s), and they meet as if they had touched. A vehicle, competitor or traffic, that a recovery (its step's,
+a return to the legal road or a manual recovery) or an appearance placed since the previous step moved from where it was
+placed, so it sweeps nothing on its way there. Its face, an axis and a side, is decided once, as it begins, from the pair's route
 positions at the start of the previous step (Δs⁻, Δl⁻): the axis is ahead-behind when the vehicles were apart
 ahead-behind (`(F₁ + F₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
 they were apart on both axes, the axis is the one that began to overlap later within the step, moving each relative

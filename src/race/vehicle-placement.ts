@@ -72,17 +72,17 @@ export function createVehiclePlacement(options: {
     vacantPlace,
     /**
      * Return `body` to the selected road when it has left the route its locked fork allows: behind a vehicle in the
-     * way, the selected road's centre. Returns whether it recovered.
+     * way, the selected road's centre. A return marks the body recovered.
      */
-    legalRecovery(body: PresentVehicle): boolean {
+    legalRecovery(body: PresentVehicle): void {
       const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
-      if (!target) return false;
+      if (!target) return;
       recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
         state: body.step.state,
         reason: 'wrong-course',
         target: vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l),
       });
-      return true;
+      body.recovered = true;
     },
   });
 }

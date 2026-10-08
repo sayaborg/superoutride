@@ -5,7 +5,8 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createEnvelopeDriverWorkspace, EnvelopeDriver } from './envelope-driver.js';
 import type { LaneIntent, VehicleSighting } from './lane-following.js';
-import type { RecoveryState, RecoveryTarget } from './recovery.js';
+import type { VehicleWorld } from '../course/vehicle-world.js';
+import { advanceVehicleWithRecovery, type RecoveryState, type RecoveryTarget } from './recovery.js';
 
 /** A vehicle's mechanics: its live state, its model and its recovery state. */
 export interface VehicleActor {
@@ -96,4 +97,17 @@ export function createPresentVehicle(
 export function presentTarget(present: PresentVehicle): number {
   const { s, l } = present.vehicle.course;
   return present.driving ? present.driving.target(s) : l;
+}
+
+/**
+ * One fixed step of a present vehicle under `input`: its ordinary mechanics with recovery, from its position at the
+ * step's start (`previous`). It records whether the step recovered it, so contacts sweep nothing to a recovered place;
+ * every other recovery placement (a return to the legal road, a manual recovery) records it the same way.
+ */
+export function advancePresentVehicle(world: VehicleWorld, body: PresentVehicle, input: DrivingInput): void {
+  const { previous, vehicle } = body;
+  previous.s = vehicle.course.s;
+  previous.l = vehicle.course.l;
+  body.step.input = input;
+  body.recovered = advanceVehicleWithRecovery(world, vehicle, body.model, body.step) !== null;
 }
