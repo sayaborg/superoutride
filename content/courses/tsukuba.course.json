@@ -1469,7 +1469,7 @@
                   "top": 1
                 },
                 {
-                  "at": { "joint": "hairpin1", "offset": 3.36 },
+                  "at": { "joint": "s1", "offset": 1.54 },
                   "bottom": 0,
                   "top": 1
                 }
@@ -1478,7 +1478,7 @@
             {
               "kind": "repeat",
               "every": 2.5,
-              "count": 104,
+              "count": 36,
               "elements": [
                 {
                   "kind": "strip",
@@ -1493,6 +1493,61 @@
                       "at": { "joint": "s-in", "offset": 23.75 },
                       "bottom": 0,
                       "top": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 28540,
+              "knots": [
+                {
+                  "at": { "joint": "s1", "offset": 1.54 },
+                  "bottom": 0.25,
+                  "top": 0.5
+                },
+                {
+                  "at": { "joint": "hairpin1", "offset": 3.36 },
+                  "bottom": 0.25,
+                  "top": 0.5
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 28540,
+              "knots": [
+                {
+                  "at": { "joint": "s1", "offset": 1.54 },
+                  "bottom": 0.65,
+                  "top": 0.9
+                },
+                {
+                  "at": { "joint": "hairpin1", "offset": 3.36 },
+                  "bottom": 0.65,
+                  "top": 0.9
+                }
+              ]
+            },
+            {
+              "kind": "repeat",
+              "every": 4,
+              "count": 43,
+              "elements": [
+                {
+                  "kind": "strip",
+                  "color": 19027,
+                  "knots": [
+                    {
+                      "at": { "joint": "s1", "offset": 1.54 },
+                      "bottom": 0,
+                      "top": 0.95
+                    },
+                    {
+                      "at": { "joint": "s1", "offset": 1.66 },
+                      "bottom": 0,
+                      "top": 0.95
                     }
                   ]
                 }
@@ -1555,7 +1610,7 @@
             },
             {
               "kind": "strip",
-              "color": 31269,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 9.85 },
@@ -1576,7 +1631,7 @@
               "elements": [
                 {
                   "kind": "strip",
-                  "color": 24963,
+                  "color": 11525,
                   "knots": [
                     {
                       "at": { "joint": "infield", "offset": 9.85 },
@@ -1594,7 +1649,7 @@
             },
             {
               "kind": "strip",
-              "color": 24963,
+              "color": 11525,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 9.85 },
@@ -1963,40 +2018,56 @@
             },
             {
               "kind": "strip",
-              "color": 31709,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 19.85 },
                   "bottom": 0,
-                  "top": 1
+                  "top": 1.1
                 },
                 {
                   "at": { "joint": "end", "offset": 0 },
                   "bottom": 0,
-                  "top": 1
+                  "top": 1.1
                 }
               ]
             },
             {
               "kind": "repeat",
-              "every": 2.5,
-              "count": 35,
+              "every": 1.5,
+              "count": 58,
               "elements": [
                 {
                   "kind": "strip",
-                  "color": 25369,
+                  "color": 11525,
                   "knots": [
                     {
                       "at": { "joint": "infield", "offset": 19.85 },
                       "bottom": 0,
-                      "top": 1
+                      "top": 1.1
                     },
                     {
-                      "at": { "joint": "infield", "offset": 19.91 },
+                      "at": { "joint": "infield", "offset": 19.93 },
                       "bottom": 0,
-                      "top": 1
+                      "top": 1.1
                     }
                   ]
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 11525,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 19.85 },
+                  "bottom": 1.02,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "end", "offset": 0 },
+                  "bottom": 1.02,
+                  "top": 1.1
                 }
               ]
             }
@@ -2189,9 +2260,29 @@
       "sprites": [
         {
           "kind": "sprite",
+          "image": "infield-buildings",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -15.63 },
+          "lateral": { "boundary": "verge-left", "offset": -34 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "tsukuba-stand",
+          "palette": "original",
+          "at": { "joint": "home-a", "offset": 14 },
+          "lateral": { "boundary": "verge-left", "offset": -9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
           "image": "tsukuba-stand-b",
           "palette": "original",
-          "at": { "joint": "home-a", "offset": 48 },
+          "at": { "joint": "home-a", "offset": 78 },
           "lateral": { "boundary": "verge-left", "offset": -9 },
           "groundOffset": 0,
           "unselectedLink": null,
@@ -2369,7 +2460,7 @@
           "kind": "sprite",
           "image": "light-mast",
           "palette": "original",
-          "at": { "joint": "home-a", "offset": 28 },
+          "at": { "joint": "t1-entry", "offset": -74.47 },
           "lateral": { "boundary": "verge-left", "offset": -4 },
           "groundOffset": 0,
           "unselectedLink": null,
@@ -3784,7 +3875,7 @@
           "strips": [
             {
               "kind": "strip",
-              "color": 31269,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 0 },
@@ -3805,7 +3896,7 @@
               "elements": [
                 {
                   "kind": "strip",
-                  "color": 24963,
+                  "color": 11525,
                   "knots": [
                     {
                       "at": { "joint": "infield", "offset": 0 },
@@ -3823,7 +3914,7 @@
             },
             {
               "kind": "strip",
-              "color": 24963,
+              "color": 11525,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 0 },
@@ -3878,7 +3969,7 @@
             },
             {
               "kind": "strip",
-              "color": 31269,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "r80", "offset": -24.68 },
@@ -3899,7 +3990,7 @@
               "elements": [
                 {
                   "kind": "strip",
-                  "color": 24963,
+                  "color": 11525,
                   "knots": [
                     {
                       "at": { "joint": "r80", "offset": -24.68 },
@@ -3917,7 +4008,7 @@
             },
             {
               "kind": "strip",
-              "color": 24963,
+              "color": 11525,
               "knots": [
                 {
                   "at": { "joint": "r80", "offset": -24.68 },
@@ -4288,10 +4379,65 @@
           "strips": [
             {
               "kind": "strip",
-              "color": 31709,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "infield", "offset": 0 },
+                  "bottom": 0,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "dunlop-out", "offset": 9.39 },
+                  "bottom": 0,
+                  "top": 1.1
+                }
+              ]
+            },
+            {
+              "kind": "repeat",
+              "every": 1.5,
+              "count": 50,
+              "elements": [
+                {
+                  "kind": "strip",
+                  "color": 11525,
+                  "knots": [
+                    {
+                      "at": { "joint": "infield", "offset": 0 },
+                      "bottom": 0,
+                      "top": 1.1
+                    },
+                    {
+                      "at": { "joint": "infield", "offset": 0.08 },
+                      "bottom": 0,
+                      "top": 1.1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 11525,
+              "knots": [
+                {
+                  "at": { "joint": "infield", "offset": 0 },
+                  "bottom": 1.02,
+                  "top": 1.1
+                },
+                {
+                  "at": { "joint": "dunlop-out", "offset": 9.39 },
+                  "bottom": 1.02,
+                  "top": 1.1
+                }
+              ]
+            },
+            {
+              "kind": "strip",
+              "color": 31709,
+              "knots": [
+                {
+                  "at": { "joint": "dunlop-out", "offset": 9.39 },
                   "bottom": 0,
                   "top": 1
                 },
@@ -4305,19 +4451,19 @@
             {
               "kind": "repeat",
               "every": 2.5,
-              "count": 90,
+              "count": 60,
               "elements": [
                 {
                   "kind": "strip",
                   "color": 25369,
                   "knots": [
                     {
-                      "at": { "joint": "infield", "offset": 0 },
+                      "at": { "joint": "dunlop-out", "offset": 9.39 },
                       "bottom": 0,
                       "top": 1
                     },
                     {
-                      "at": { "joint": "infield", "offset": 0.06 },
+                      "at": { "joint": "dunlop-out", "offset": 9.45 },
                       "bottom": 0,
                       "top": 1
                     }
@@ -4327,7 +4473,7 @@
             },
             {
               "kind": "strip",
-              "color": 31269,
+              "color": 16743,
               "knots": [
                 {
                   "at": { "joint": "r80-out", "offset": 4.38 },
@@ -4348,7 +4494,7 @@
               "elements": [
                 {
                   "kind": "strip",
-                  "color": 24963,
+                  "color": 11525,
                   "knots": [
                     {
                       "at": { "joint": "r80-out", "offset": 4.38 },
@@ -4366,7 +4512,7 @@
             },
             {
               "kind": "strip",
-              "color": 24963,
+              "color": 11525,
               "knots": [
                 {
                   "at": { "joint": "r80-out", "offset": 4.38 },
@@ -4541,6 +4687,16 @@
           "palette": "original",
           "at": { "joint": "dunlop-out", "offset": 9.39 },
           "lateral": -2,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "dunlop-stand",
+          "palette": "original",
+          "at": { "joint": "dunlop-out", "offset": -0.61 },
+          "lateral": { "boundary": "verge-left", "offset": -14 },
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -6085,19 +6241,9 @@
           "kind": "sprite",
           "image": "tsukuba-screen",
           "palette": "original",
-          "at": { "joint": "home-b", "offset": -12.722528 },
+          "at": { "joint": "home-b", "offset": 42.277472 },
           "lateral": { "boundary": "verge-left", "offset": -6 },
           "groundOffset": 2.5,
-          "unselectedLink": null,
-          "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "tsukuba-stand",
-          "palette": "original",
-          "at": { "joint": "end", "offset": -39.961458 },
-          "lateral": { "boundary": "verge-left", "offset": -9 },
-          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
