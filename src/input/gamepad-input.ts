@@ -2,7 +2,7 @@ import type { DrivingInputApplyMethod } from '../vehicle/driving-input.js';
 import type { DrivingInputPublisher } from './driving-input-publisher.js';
 import { createInputOwner, type InputOwner } from './input-owner.js';
 import type { PedalChannel } from './pedal-input-arbiter.js';
-import { standardGamepads } from './gamepads.js';
+import type { GamepadReading } from './gamepads.js';
 
 /** Stick and trigger magnitudes at or below this are rest; above it they rescale to (0,1]. */
 const GAMEPAD_DEADZONE = 0.15;
@@ -51,16 +51,17 @@ export class GamepadInput {
   private readonly gamepads = new Map<number, ConnectedGamepad>();
 
   constructor(
-    private readonly target: Window,
+    target: Window,
+    private readonly reading: GamepadReading,
     private readonly publisher: DrivingInputPublisher,
   ) {
     target.addEventListener('gamepaddisconnected', (event) => this.disconnect(event.gamepad.index));
   }
 
-  /** Read the gamepads once and publish their changes. Without the Gamepad API it does nothing. */
+  /** Publish the changes of the step's gamepad reading. Without the Gamepad API it does nothing. */
   poll(): void {
     const seen = new Set<number>();
-    for (const gamepad of standardGamepads(this.target)) {
+    for (const gamepad of this.reading.gamepads) {
       let connected = this.gamepads.get(gamepad.index);
       if (connected !== undefined && connected.id !== gamepad.id) {
         this.disconnect(gamepad.index);

@@ -3,6 +3,7 @@ import { sameControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import type { ProcessingReport } from './processing-meter.js';
+import { watchProcessor } from './processor-failure.js';
 import { sameUnifiedSettings } from './tire-unified-acoustics.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
 import type { WallSoundRecords } from './wall-sounds.js';
@@ -29,6 +30,7 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
   const output = context.createGain();
   output.gain.value = 1;
   node.connect(output).connect(destination);
+  const requireProcessor = watchProcessor(node, 'scrape sound');
   let settings: ScrapeSettings = DEFAULT_AUDIO_SETTINGS.scrape,
     control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control;
   let active = { settings, control },
@@ -44,6 +46,7 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
     },
     update(rubs: readonly WallRubObservation[]): void {
       if (disposed) return;
+      requireProcessor();
       let rub: WallRubObservation | null = null;
       for (const candidate of rubs) if (!rub || candidate.frictionPower > rub.frictionPower) rub = candidate;
       parameter('power').value = rub?.frictionPower ?? 0;

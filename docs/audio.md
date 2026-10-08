@@ -321,7 +321,9 @@ then it times each render block with `Date.now()` (whole milliseconds, the one c
 posts the blocks, the overruns (blocks that took longer than the audio they produced) and the longest block about once
 a second. The audio lifetime applies a measuring listener to every scene it builds.
 
-An audio failure closes the affected graph and exposes retry while driving continues. A late result
+An audio failure closes the affected graph and exposes retry while driving continues. A worklet processor's failure is
+one: every voice (tire, engine and scraping) watches its worklets' `processorerror`
+([`processor-failure.ts`](../src/audio/processor-failure.ts)) and its next update throws, which fails the graph. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements
 produce silence. Browsers without AudioWorklet support remain playable with unavailable sound.
 The browser's normal audio session and device output controls determine audible output.

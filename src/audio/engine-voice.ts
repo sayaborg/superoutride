@@ -7,6 +7,7 @@ import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { ProcessingReport } from './processing-meter.js';
+import { watchProcessor } from './processor-failure.js';
 
 function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSettings): boolean {
   if (!left) return false;
@@ -46,6 +47,7 @@ export function createEngineVoice(
     processorOptions: initialSound ? { sound: initialSound, settings, control } : undefined,
   });
   exhaust.connect(output);
+  const requireProcessor = watchProcessor(exhaust, 'engine sound');
   let active = initialSound ? { sound: initialSound, settings, control } : null;
   let pending: {
     sound: CompiledEngineSound;
@@ -64,6 +66,7 @@ export function createEngineVoice(
   let heardShift: number | null = null;
   return {
     update(state: VehicleAudioObservation, sound: CompiledEngineSound, gain = 1): void {
+      requireProcessor();
       const now = context.currentTime;
       const changed = !same(active, sound);
       if (active && changed) {

@@ -212,14 +212,16 @@ the next order, and releasing the winner reveals the next-most-recent held owner
 owner to set; releasing it returns to neutral and never revives a superseded owner. Boolean pedal requests
 and numeric requests in `[0,1]` have the same canonical meaning.
 
-Each fixed step, `sample()` polls the window's gamepads once and then builds one `DrivingInput` from the
+Each fixed step, `sample()` takes the step's gamepad reading and then builds one `DrivingInput` from the
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
 sample is a published read-only observation (`lastSample`); the HUD reads it. The screen host
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
 sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. A run's start resets input once.
 
 The page reads each device once and shares the reading: one touch-pointer reader listens to the window's pointer
-events and passes touch pointers to its consumers, and one function reads the connected standard-mapping gamepads.
+events and passes touch pointers to its consumers, and one gamepad reader (`GamepadReading`) reads the connected
+standard-mapping gamepads once per fixed step, as the screen host takes the step's menu commands; menu commands and
+driving input both use that step's reading.
 A press on a UI element marked `data-driving-input="ignore"` starts no touch pointer.
 Because the whole viewport is the touch area, the page keeps no browser touch gesture of its own outside those
 elements (the DEV panel, the corner buttons and the DEV status line with its Retry). The style sheet turns off text
@@ -235,8 +237,8 @@ Invariant: while no finger touches the screen, no touch pointer is active and no
 touch-pointer reader alone ends pointers, and every consumer (driving and menu touch) receives the same end, once per
 pointer. A pointer begins on its press with pointer capture (UI marked `ignore` takes none), so its `pointerup`
 (lifted) or `pointercancel` reaches the page; `lostpointercapture` also cancels it. Facts that do not depend on a lost
-event end every active pointer: a `touchend` or `touchcancel` whose `touches` is empty (lifted), window blur and a
-hidden page (cancelled). A lifted menu touch commands by its path; a cancelled one commands nothing. Moves of
+event end every active pointer: a `touchend` whose `touches` is empty (lifted), and a `touchcancel` whose `touches` is
+empty, window blur and a hidden page (cancelled). A lifted menu touch commands by its path; a cancelled one commands nothing. Moves of
 untracked pointers and a second finger on a role already held are ignored, as before.
 
 Horizontal displacement maps steering to `[-1,1]`. Upward displacement supplies throttle and downward
@@ -275,7 +277,8 @@ goes back. The CONFIRM on TITLE that starts the audio is not heard, since the au
   Keys follow the operating system's repeat, except that a repeated Escape does not pause.
 - **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A CONFIRM
   and B BACK; Start is PAUSE while driving and CONFIRM in a menu. A control commands once, on its press, and never
-  repeats; one held while the route changes commands nothing until pressed again.
+  repeats; one held while the route changes, or when its gamepad connects or reconnects, commands nothing until
+  released and pressed again.
 - **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX`
   (24 CSS px) is a flick in its larger axis's direction, and a touch in the right half that moves less is a tap,
   CONFIRM, decided when the finger lifts; a cancelled touch commands nothing. Touches never repeat. Two small buttons sit in the screen's corners, inside the safe area: BACK top left in

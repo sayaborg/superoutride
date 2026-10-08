@@ -36,8 +36,8 @@ function startsOnIgnored(event: Event): boolean {
  *
  * Invariant: while no finger touches the screen, no pointer is active, so no listener holds one. A pointer begins on
  * its press, with pointer capture so its up or cancel reaches the page, and ends exactly once, on the first of: its
- * `pointerup` (lifted), its `pointercancel` or `lostpointercapture` (cancelled), a `touchend` or `touchcancel` leaving
- * no touches (every pointer, lifted), window blur or a hidden page (every pointer, cancelled). The last three do not
+ * `pointerup` (lifted), its `pointercancel` or `lostpointercapture` (cancelled), a `touchend` leaving no touches (every
+ * pointer, lifted), a `touchcancel` leaving no touches, window blur or a hidden page (every pointer, cancelled). The last three do not
  * depend on the lost event arriving.
  */
 export class TouchPointers {
@@ -55,11 +55,12 @@ export class TouchPointers {
     target.addEventListener('pointerup', (event) => this.end(event.pointerId, true), true);
     target.addEventListener('pointercancel', (event) => this.end(event.pointerId, false), true);
     target.addEventListener('lostpointercapture', (event) => this.end(event.pointerId, false), true);
-    const untouched = (event: TouchEvent) => {
-      if (event.touches.length === 0) this.endAll(true);
+    // No touch left: after a touchend every pointer was lifted, after a touchcancel every pointer was cancelled.
+    const untouched = (lifted: boolean) => (event: TouchEvent) => {
+      if (event.touches.length === 0) this.endAll(lifted);
     };
-    target.addEventListener('touchend', untouched, true);
-    target.addEventListener('touchcancel', untouched, true);
+    target.addEventListener('touchend', untouched(true), true);
+    target.addEventListener('touchcancel', untouched(false), true);
     target.addEventListener('blur', () => this.endAll(false));
     target.document.addEventListener('visibilitychange', () => {
       if (target.document.visibilityState === 'hidden') this.endAll(false);

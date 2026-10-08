@@ -1,4 +1,4 @@
-import { standardGamepads } from './gamepads.js';
+import type { GamepadReading } from './gamepads.js';
 import { TOUCH_FLICK_DISTANCE_PX, type TouchArea } from './touch-input.js';
 import type { TouchPointer, TouchPointers } from './touch-pointers.js';
 
@@ -34,22 +34,24 @@ const STICK_DIRECTION_THRESHOLD = 0.5;
 /**
  * The one menu-command authority, apart from driving input. Keys follow the operating system's repeat; gamepad
  * controls and touch never repeat. A gamepad control commands on its press only, so a control already held when the
- * route changes commands nothing until pressed again. A menu touch is a flick in the touch area's left half (its larger
+ * route changes or its gamepad connects commands nothing until pressed again. A menu touch is a flick in the touch area's left half (its larger
  * axis gives the direction) or a tap in its right half, decided when the finger lifts; a cancelled touch commands
  * nothing. The shell's corner buttons `press` BACK and PAUSE.
  */
 export class MenuInput {
   private route: InputRoute = 'off';
   private readonly queue: MenuCommand[] = [];
-  private readonly held = new Map<number, Set<string>>();
+  // Each connected gamepad's ID and the controls held at its last reading, by gamepad index.
+  private readonly held = new Map<number, { readonly id: string; readonly names: Set<string> }>();
   private readonly touches = new Map<
     number,
     { readonly left: boolean; readonly x: number; readonly y: number; at: TouchPointer }
   >();
 
   constructor(
-    private readonly target: Window,
+    target: Window,
     pointers: TouchPointers,
+    private readonly gamepads: GamepadReading,
     private readonly touchArea: () => TouchArea,
   ) {
     target.addEventListener('keydown', (event) => this.key(event));
@@ -75,21 +77,29 @@ export class MenuInput {
     this.accept(command);
   }
 
-  /** Read the gamepads once and return the commands since the last poll, in order. */
+  /**
+   * Take the step's gamepad reading and return the commands since the last poll, in order. A gamepad's first reading,
+   * on its connection or reconnection, commands nothing: what it holds then commands once released and pressed again.
+   */
   poll(): MenuCommand[] {
-    for (const gamepad of standardGamepads(this.target)) {
+    const seen = new Set<number>();
+    for (const gamepad of this.gamepads.gamepads) {
+      const previous = this.held.get(gamepad.index);
+      const connected = previous?.id === gamepad.id;
       const pressed = new Set<string>();
       const fire = (name: string, command: MenuCommand) => {
         pressed.add(name);
-        if (!this.held.get(gamepad.index)?.has(name)) this.accept(command);
+        if (connected && !previous.names.has(name)) this.accept(command);
       };
       for (const [index, command] of BUTTONS) if (gamepad.buttons[index]?.pressed) fire(`b${index}`, command);
       if (gamepad.buttons[START_BUTTON]?.pressed) fire('start', this.route === 'driving' ? 'PAUSE' : 'CONFIRM');
       const [x = 0, y = 0] = gamepad.axes;
       if (Math.max(Math.abs(x), Math.abs(y)) > STICK_DIRECTION_THRESHOLD)
         fire('stick', Math.abs(x) > Math.abs(y) ? (x < 0 ? 'LEFT' : 'RIGHT') : y < 0 ? 'UP' : 'DOWN');
-      this.held.set(gamepad.index, pressed);
+      this.held.set(gamepad.index, { id: gamepad.id, names: pressed });
+      seen.add(gamepad.index);
     }
+    for (const index of this.held.keys()) if (!seen.has(index)) this.held.delete(index);
     return this.queue.splice(0);
   }
 

@@ -1,6 +1,7 @@
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { DrivingInputPublisher } from './driving-input-publisher.js';
 import { GamepadInput } from './gamepad-input.js';
+import type { GamepadReading } from './gamepads.js';
 import { KeyboardInput } from './keyboard-input.js';
 import { PedalInputArbiter } from './pedal-input-arbiter.js';
 import { SteeringInputArbiter } from './steering-input-arbiter.js';
@@ -27,7 +28,7 @@ export class InputManager {
   private suspended = false;
   private last: Readonly<DrivingInput> = NEUTRAL_DRIVING_INPUT;
 
-  constructor(target: Window, pointers: TouchPointers, touchArea: () => TouchArea) {
+  constructor(target: Window, pointers: TouchPointers, gamepads: GamepadReading, touchArea: () => TouchArea) {
     const publisher: DrivingInputPublisher = {
       setSteering: (owner, value) => this.accept(() => this.steering.set(owner, value)),
       releaseSteering: (owner) => this.accept(() => this.steering.release(owner)),
@@ -36,7 +37,7 @@ export class InputManager {
     };
     new KeyboardInput(target, publisher);
     this.touchInput = new TouchInput(pointers, publisher, touchArea);
-    this.gamepadInput = new GamepadInput(target, publisher);
+    this.gamepadInput = new GamepadInput(target, gamepads, publisher);
     // Blur is not a run-state fact; the run state suspends input for pause, hiding and finish.
     target.addEventListener('blur', () => this.reset());
   }
@@ -58,7 +59,7 @@ export class InputManager {
   }
 
   /**
-   * Poll the gamepads, then build one final sample from the arbiters; each apply method is the winning
+   * Take the step's gamepad reading, then build one final sample from the arbiters; each apply method is the winning
    * owner's, else RATE_LIMITED.
    */
   sample(): Readonly<DrivingInput> {

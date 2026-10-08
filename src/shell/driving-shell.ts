@@ -9,6 +9,7 @@ import { SoftwareSurface } from '../view/software-surface.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
+import { GamepadReading } from '../input/gamepads.js';
 import { MenuInput, type MenuCommand, type InputRoute } from '../input/menu-input.js';
 import type { MenuResponse } from './screen-host.js';
 import { createCornerButtons } from './corner-buttons.js';
@@ -37,7 +38,7 @@ export interface BrowserDrivingShell {
    * live only while driving; menu commands follow the route.
    */
   setRoute(route: InputRoute): void;
-  /** The menu commands since the last call. */
+  /** Read the devices for a fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
   /** Play what a menu command did: `menu-move`, `menu-confirm` or `menu-back`. */
   menuSound(response: MenuResponse): void;
@@ -84,8 +85,10 @@ export function createBrowserDrivingShell(
   // The page's one touch pointer reader; the whole viewport is the touch area.
   const pointers = new TouchPointers(window);
   const touchArea = () => ({ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight });
-  const inputManager = new InputManager(window, pointers, touchArea);
-  const menuInput = new MenuInput(window, pointers, touchArea);
+  // The page's one gamepad reader, read once per fixed step as the step's menu commands are taken.
+  const gamepads = new GamepadReading(window);
+  const inputManager = new InputManager(window, pointers, gamepads, touchArea);
+  const menuInput = new MenuInput(window, pointers, gamepads, touchArea);
   const corners = createCornerButtons(document, (command) => menuInput.press(command));
   pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
@@ -98,7 +101,10 @@ export function createBrowserDrivingShell(
       menuInput.setRoute(route);
       corners.setRoute(route);
     },
-    menuCommands: () => menuInput.poll(),
+    menuCommands() {
+      gamepads.read();
+      return menuInput.poll();
+    },
     menuSound: (response) => void audio.playRecording(`effects/menu-${response}`, 'effects'),
     setVolume: (name, percent) => audio.setVolume(name, percent),
     playRecording: (id, bus, options) => audio.playRecording(id, bus, options),

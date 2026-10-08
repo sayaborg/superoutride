@@ -19,6 +19,7 @@ export interface Screen {
 /** The devices the host routes: driving input, sound and menu commands, and the sound of what a command did. */
 export interface ScreenDevices {
   setRoute(route: InputRoute): void;
+  /** Read the devices for this fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
   menuSound(response: MenuResponse): void;
 }

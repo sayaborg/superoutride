@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { InputManager } from '../../src/input/input-manager.js';
 import { TouchPointers } from '../../src/input/touch-pointers.js';
+import { GamepadReading } from '../../src/input/gamepads.js';
+import { MenuInput } from '../../src/input/menu-input.js';
 
 // A page whose events are dispatched by hand: no Gamepad API, a visible document.
 function fakePage() {
@@ -14,7 +16,12 @@ const fire = (target, type, fields) => target.dispatchEvent(Object.assign(new Ev
 test('a touch whose up and cancel never arrive holds no input once no finger touches the screen', () => {
   const page = fakePage();
   const pointers = new TouchPointers(page);
-  const input = new InputManager(page, pointers, () => ({ left: 0, top: 0, width: 400, height: 300 }));
+  const input = new InputManager(page, pointers, new GamepadReading(page), () => ({
+    left: 0,
+    top: 0,
+    width: 400,
+    height: 300,
+  }));
   // A pedal finger in the right half pushed up to full throttle.
   fire(page, 'pointerdown', { pointerType: 'touch', pointerId: 7, clientX: 300, clientY: 200 });
   fire(page, 'pointermove', { pointerType: 'touch', pointerId: 7, clientX: 300, clientY: 100 });
@@ -25,5 +32,32 @@ test('a touch whose up and cancel never arrive holds no input once no finger tou
   assert.equal(Number(sample.throttle), 0);
   assert.equal(Number(sample.brake), 0);
   assert.equal(sample.steering, 0);
+  assert.deepEqual(input.touch, { steering: null, pedal: null });
+});
+
+test('a menu tap ended by touchcancel commands nothing; one ended by touchend confirms', () => {
+  const page = fakePage();
+  const pointers = new TouchPointers(page);
+  const gamepads = new GamepadReading(page);
+  const area = () => ({ left: 0, top: 0, width: 400, height: 300 });
+  const input = new InputManager(page, pointers, gamepads, area);
+  const menu = new MenuInput(page, pointers, gamepads, area);
+  menu.setRoute('menu');
+  input.setSuspended(true);
+  // A still finger in the right half whose pointerup and pointercancel never arrive.
+  fire(page, 'pointerdown', { pointerType: 'touch', pointerId: 3, clientX: 300, clientY: 150 });
+  fire(page, 'touchcancel', { touches: [] });
+  assert.deepEqual(menu.poll(), []);
+  fire(page, 'pointerdown', { pointerType: 'touch', pointerId: 4, clientX: 300, clientY: 150 });
+  fire(page, 'touchend', { touches: [] });
+  assert.deepEqual(menu.poll(), ['CONFIRM']);
+  // Driving: a cancelled touch leaves neutral input, as a lifted one does.
+  menu.setRoute('driving');
+  input.setSuspended(false);
+  fire(page, 'pointerdown', { pointerType: 'touch', pointerId: 5, clientX: 300, clientY: 200 });
+  fire(page, 'pointermove', { pointerType: 'touch', pointerId: 5, clientX: 300, clientY: 100 });
+  assert.equal(input.sample().throttle, 1);
+  fire(page, 'touchcancel', { touches: [] });
+  assert.equal(Number(input.sample().throttle), 0);
   assert.deepEqual(input.touch, { steering: null, pedal: null });
 });

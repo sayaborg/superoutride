@@ -8,6 +8,7 @@ import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
 import type { ProcessingReport } from './processing-meter.js';
+import { watchProcessor } from './processor-failure.js';
 
 /**
  * One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue.
@@ -39,11 +40,8 @@ export function createTireVoice(
     sameUnifiedSettings(desiredSettings, entry.settings) &&
     sameRollingSettings(rolling, entry.rolling) &&
     sameControlSettings(entry.control, control);
-  let failed = false,
-    disposed = false;
-  node.onprocessorerror = () => {
-    failed = true;
-  };
+  let disposed = false;
+  const requireProcessor = watchProcessor(node, 'tire sound');
   return {
     setSettings(value: UnifiedSettings): void {
       desiredSettings = value;
@@ -62,7 +60,7 @@ export function createTireVoice(
     },
     update(state: VehicleAudioObservation): void {
       if (disposed) return;
-      if (failed) throw new Error('tire sound processor failed');
+      requireProcessor();
       const now = context.currentTime;
       for (const axle of ['front', 'rear'] as const) {
         const controls = tireSoundParameters(state[axle], materialIds);
@@ -98,7 +96,6 @@ export function createTireVoice(
     dispose(): void {
       if (disposed) return;
       disposed = true;
-      node.onprocessorerror = null;
       try {
         node.port.postMessage('stop');
       } finally {
