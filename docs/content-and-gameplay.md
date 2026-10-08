@@ -955,7 +955,9 @@ with N an integer from 1 to below the field size (the number of entries). The bu
 Session admits the class it drives.
 
 The delivered series are RIBBON and TRIAL, development series; each document holds its classes, with their fields
-and traffic. RIBBON COAST is the [verification course](#verification-course); TRIAL holds the
+and traffic. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),
+which share the course and its TESTAROSSA and VFR750R reference times. RIBBON COAST is the
+[verification course](#verification-course); TRIAL holds the
 [trial courses](#trial-courses); no class runs RIBBON ROUGH.
 
 ## FREE PLAY document

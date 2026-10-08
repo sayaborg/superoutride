@@ -40,15 +40,16 @@ mechanics; it is expressed by Session rules and rival driving (§3).
 | Level   | Meaning                                                                        |
 | ------- | ------------------------------------------------------------------------------ |
 | MODE    | How to play: ARCADE, FREE PLAY or TIME TRIAL                                   |
-| SERIES  | In ARCADE, a reference game or original game: its courses, vehicles and rules  |
-| COURSE  | One road to drive; a course may belong to several series or to none            |
+| SERIES  | In ARCADE, a reference game or original game: its classes and rules            |
+| CLASS   | One race of an ARCADE series: course, laps, vehicles, rivals and traffic       |
+| COURSE  | One road to drive; several classes and series may run a course, or none        |
 | VEHICLE | The vehicle the player drives                                                  |
 | STAGE   | The route interval between consecutive race gates (checkpoints and the finish) |
 
 LINEAR means one route without forks or laps (not a straight road), BRANCH a course with forks and
 several goals, and CIRCUIT a lapped course. Stages are rule intervals; they need not coincide with
 course Sections. Every delivered product course is available in FREE PLAY and TIME TRIAL, including
-courses that belong to no series. Series, courses and vehicles are all available from the start;
+courses that no class runs. Series, courses and vehicles are all available from the start;
 there is no unlocking, currency or progression.
 
 ## 3. Session rules
@@ -65,8 +66,8 @@ Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions
 | Laps               | Circuits only                                                                           |
 | Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed             |
 
-**Field.** A Session has at most sixteen competitors, the player included. The entries of a series
-course list its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
+**Field.** A Session has at most sixteen competitors, the player included. The entries of a class list
+its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
 order, in that entry's color when the series fixes colors and otherwise in the player's chosen color; the
 remaining entries are the rivals. With the player slot "own entry position" the player starts where
 that entry stands (Turbo OutRun); with "last" the player starts in the last slot and the rivals keep
@@ -85,7 +86,8 @@ competitors present in the Session at that moment.
 
 **Clock.** The clock starts at GO; each newly earned checkpoint extends it once, and expiry ends the
 run in GAME OVER. The time allowance on a course derives from the player's selected vehicle: the
-reference driver's time for that vehicle on that course and route, multiplied by the series margin.
+reference driver's time for that vehicle on that course and route, multiplied by the series margin. A course has a
+time limit only when a class runs it.
 
 **Rival pace.** In ARCADE, rival driving is relative to the player's selected vehicle. Each entry has a pace ratio
 p. The rival follows a pace schedule: the times at which the player's vehicle passes each station in its reference
@@ -109,8 +111,8 @@ its lane ends, it merges into the lane beside it once that lane is free. At most
 
 ## 4. Modes
 
-**ARCADE** runs a series course with that series' vehicles and rules (§5). Its settings are fixed;
-the player chooses the course, vehicle and color. A series may fix colors.
+**ARCADE** runs a class of a series (§5): its course, laps, vehicles, rivals and traffic, with the series' rules.
+Its settings are fixed; the player chooses the class, vehicle and color. A series may fix colors.
 
 **FREE PLAY** runs any product course with any vehicle. There is no clock. OPTIONS choose the rival
 count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic (OFF, LOW or HIGH; default OFF) and laps on circuits. Rival vehicles and colors are drawn from
@@ -125,23 +127,28 @@ route driven. The player starts from the last grid slot, where the reference run
 
 ## 5. Series
 
-Series display names are the reference titles. Course and vehicle choices follow; rule values marked
-in §3 are set during course production.
+Series display names are the reference titles. Class, course and vehicle choices follow; rule values marked
+in §3 are set during course production. A series with one class names its course; the vehicles of a series with
+several classes are every class's unless listed by class.
 
-| Series         | Courses                                                   | Vehicles                                                                                                | Clock | Rank limits          | Field                                   | Player slot | Traffic |
-| -------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----- | -------------------- | --------------------------------------- | ----------- | ------- |
-| SUPER HANG-ON  | AFRICA, ASIA, AMERICA, EUROPE (LINEAR)                    | VFR750R (RC30), GSX-R750, 851                                                                           | on    | none                 | 16, whole race                          | last        | off     |
-| OUTRUN         | 1 BRANCH: 15 stages, 5 goals                              | TESTAROSSA, COUNTACH                                                                                    | on    | none                 | player only                             | —           | on      |
-| TURBO OUTRUN   | 1 LINEAR: 16 stages, New York → Los Angeles               | F40 (red, right), 959 (silver, left)                                                                    | on    | none                 | 2, whole race                           | own entry   | on      |
-| CHASE H.Q.     | 1 LINEAR: 5 stages                                        | 928, ESPRIT TURBO, COUNTACH, 911 TURBO (930), 288 GTO                                                   | off   | 1 at every stage end | one rival per stage, appearing ahead    | —           | on      |
-| CISCO HEAT     | 1 course: 5 stages                                        | BROUGHAM TUNED, 300ZX (Z32)                                                                             | on    | none                 | 8 (4 of each), whole race               | last        | on      |
-| OUTRUNNERS     | WEST ROUND, EAST ROUND (BRANCH)                           | 911 SPEEDSTER, RX-7 (FC3S), COBRA 427, ELDORADO, MINI, QUATTRO, COUNTACH, TESTAROSSA                    | off   | N per gate           | 8 (one of each vehicle), whole race     | last        | on      |
-| COOL RIDERS    | 1 BRANCH: prestage, four three-way stages, final NEW YORK | VFR750R (RC30), VMAX 1200, RG500 Γ, FXRT SPORT GLIDE, R80 G/S PARIS-DAKAR, PX200E, GL1500, SUPER CUB 90 | on    | none                 | one rival per stage; seven in the final | —           | pending |
-| FINAL LAP      | SUZUKA (CIRCUIT)                                          | 1987 Formula One cars (pending)                                                                         | on    | none                 | grid, whole race                        | last        | off     |
-| WEC LE MANS 24 | LE MANS (CIRCUIT)                                         | 962C, C9                                                                                                | on    | none                 | grid, whole race                        | last        | off     |
-| BIG RUN        | 1 LINEAR: 6 stages, rally raid                            | pending (959 rally-raid, 205 T16, PAJERO candidates)                                                    | off   | N at every stage end | whole race                              | last        | on      |
-| RALLY STAGE    | 4 LINEAR mixed-surface stages (working set)               | DELTA HF INTEGRALE GROUP A, CELICA GT-FOUR (ST165) GROUP A, GALANT VR-4 GROUP A                         | on    | —                    | player only                             | —           | off     |
+| Series          | Classes and courses                                       | Vehicles                                                                                                | Clock   | Rank limits          | Field                                   | Player slot | Traffic |
+| --------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- | -------------------- | --------------------------------------- | ----------- | ------- |
+| TSUKUBA CLUBMAN | PRODUCTION 750, GTI CUP, 911 CUP: each TSUKUBA (CIRCUIT)  | PRODUCTION 750: VFR750R (RC30), GSX-R750; GTI CUP: GOLF GTI 16V; 911 CUP: 911 TURBO (930)               | pending | pending              | pending                                 | pending     | off     |
+| SUPER HANG-ON   | AFRICA, ASIA, AMERICA, EUROPE: one LINEAR course each     | VFR750R (RC30), GSX-R750, 851                                                                           | on      | none                 | 16, whole race                          | last        | off     |
+| OUTRUN          | 1 BRANCH: 15 stages, 5 goals                              | TESTAROSSA, COUNTACH                                                                                    | on      | none                 | player only                             | —           | on      |
+| TURBO OUTRUN    | 1 LINEAR: 16 stages, New York → Los Angeles               | F40 (red, right), 959 (silver, left)                                                                    | on      | none                 | 2, whole race                           | own entry   | on      |
+| CHASE H.Q.      | 1 LINEAR: 5 stages                                        | 928, ESPRIT TURBO, COUNTACH, 911 TURBO (930), 288 GTO                                                   | off     | 1 at every stage end | one rival per stage, appearing ahead    | —           | on      |
+| CISCO HEAT      | 1 course: 5 stages                                        | BROUGHAM TUNED, 300ZX (Z32)                                                                             | on      | none                 | 8 (4 of each), whole race               | last        | on      |
+| OUTRUNNERS      | WEST ROUND, EAST ROUND (BRANCH)                           | 911 SPEEDSTER, RX-7 (FC3S), COBRA 427, ELDORADO, MINI, QUATTRO, COUNTACH, TESTAROSSA                    | off     | N per gate           | 8 (one of each vehicle), whole race     | last        | on      |
+| COOL RIDERS     | 1 BRANCH: prestage, four three-way stages, final NEW YORK | VFR750R (RC30), VMAX 1200, RG500 Γ, FXRT SPORT GLIDE, R80 G/S PARIS-DAKAR, PX200E, GL1500, SUPER CUB 90 | on      | none                 | one rival per stage; seven in the final | —           | pending |
+| FINAL LAP       | SUZUKA (CIRCUIT)                                          | 1987 Formula One cars (pending)                                                                         | on      | none                 | grid, whole race                        | last        | off     |
+| WEC LE MANS 24  | LE MANS (CIRCUIT)                                         | 962C, C9                                                                                                | on      | none                 | grid, whole race                        | last        | off     |
+| BIG RUN         | 1 LINEAR: 6 stages, rally raid                            | pending (959 rally-raid, 205 T16, PAJERO candidates)                                                    | off     | N at every stage end | whole race                              | last        | on      |
+| RALLY STAGE     | 4 LINEAR mixed-surface stages (working set)               | DELTA HF INTEGRALE GROUP A, CELICA GT-FOUR (ST165) GROUP A, GALANT VR-4 GROUP A                         | on      | —                    | player only                             | —           | off     |
 
+- **TSUKUBA CLUBMAN** is an original series in the manner of a late-1980s club race meeting at Tsukuba. Each class
+  is one race on TSUKUBA (CIRCUIT): PRODUCTION 750 for 750 cc production superbikes, GTI CUP for the Golf GTI 16V and
+  911 CUP for the 911 Turbo. Laps are set during course production.
 - **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
   vehicles in several colors.
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic, chooses forks and aims
@@ -167,8 +174,8 @@ in §3 are set during course production.
 
 ```text
 TITLE (PRESS START) → SELECT MODE
-  ARCADE:     SELECT SERIES → SELECT COURSE (only when several) → SELECT VEHICLE + COLOR
-  FREE PLAY:  SELECT COURSE (grouped by series) → SELECT VEHICLE + COLOR → OPTIONS
+  ARCADE:     SELECT SERIES → SELECT CLASS (only when several) → SELECT VEHICLE + COLOR
+  FREE PLAY:  SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS
   TIME TRIAL: SELECT COURSE → SELECT VEHICLE + COLOR → LAPS (circuits only)
 → SELECT MUSIC → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
@@ -185,7 +192,7 @@ title is idle, an attract demo drives a product ARCADE course with the driver at
 returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
 time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
 
-Menu screens are text on a plain background. A mode, series or course that offers nothing to select is shown dimmed and cannot be chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a course starts that run directly, for development and tests.
+Menu screens are text on a plain background. A mode, series, class or course that offers nothing to select is shown dimmed and cannot be chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
 
 ## 7. Start and finish
 
@@ -243,7 +250,7 @@ The browser keeps one versioned record of settings and records:
 
 - **Settings:** each vehicle's selected color, the three volumes and the latest selections, FREE PLAY's options included.
 - **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
-- **ARCADE records:** best completion time for each series, course, reached goal and vehicle.
+- **ARCADE records:** best completion time for each series, class, reached goal and vehicle.
 
 A record keeps the identities of its course and vehicle definitions and is discarded when either
 changes. Only a run that reaches GOAL records. READY shows the record for the selection and RESULT

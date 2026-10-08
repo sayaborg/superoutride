@@ -40,8 +40,8 @@
       "traffic": null
     },
     {
-      "id": "ring",
-      "title": "RING",
+      "id": "ring-cars",
+      "title": "RING CARS",
       "course": "ribbon-ring",
       "laps": 2,
       "vehicles": ["TESTAROSSA"],
@@ -49,6 +49,21 @@
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 13, "ahead": null },
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
         { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null
+    },
+    {
+      "id": "ring-bikes",
+      "title": "RING BIKES",
+      "course": "ribbon-ring",
+      "laps": 3,
+      "vehicles": ["VFR750R"],
+      "entries": [
+        { "vehicle": "VFR750R", "color": "alternate", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "VFR750R", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "VFR750R", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},

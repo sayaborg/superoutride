@@ -22,8 +22,9 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings and
-  fields; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; the attract demo waits for its stage.
+- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings: each
+  class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by several
+  classes and series; measured products belong to course and vehicle, and a Session applies its series' margin; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; the attract demo waits for its stage.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -54,12 +55,7 @@
   origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
   centres derived), and images named by file.
 
-Next PR: **16-1e** — the RIBBON classes sharing RIBBON RING, the product specification and this checkpoint.
-
-Stage 16 opens with series classes (16-1), in five PRs: names (`SeriesClass`); the series document's classes and
-the Session resolved from a class; measured products owned by course and vehicle; ARCADE requests, URL, records and
-SELECT CLASS naming a series and class; the RIBBON classes sharing RIBBON RING, the product specification and this
-checkpoint.
+Next PR: **16-2** — the next PR of Stage 16, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -81,8 +77,9 @@ Requirements left from the second design audit, by when they are taken up:
 ## Stage 16 — Produce product courses
 
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
-driving experience and time margins on real devices. The first product target is the OUTRUN, SUPER HANG-ON and
-CHASE H.Q. series, which together use every Session rule component. The following production and authoring goals
+driving experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit
+and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which
+together use every Session rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
 - Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
@@ -131,7 +128,7 @@ Suzuka's lower crossing is represented as a tunnel with one road surface drawn a
 
 ### Series values
 
-Each series course sets its rule values from playtests on the produced course: rank limits, ahead distances,
+Each class sets its rule values from playtests on the produced course: rank limits, ahead distances,
 pace ratios, time margin, grid spacing and entry colors. Add the attract demo once product ARCADE courses exist.
 
 ### Series production starting points
@@ -141,19 +138,20 @@ production, not decisions: the [product specification](product.md#5-series) owns
 series documents and authoring project data replace these rows as each series is produced. Exact vehicle
 specifications follow [Era](product.md#era): one consistent model year, market and grade per vehicle.
 
-| Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE); which cabinet's roads to use is open. VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                       |
-| OUTRUN         | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
-| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. F40 and 959 are period road specifications.                                                                                                                                       |
-| CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
-| CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. |
-| OUTRUNNERS     | The reference has 30 stages and 10 goals over both courses; connections are to be confirmed. Candidates: 911 SPEEDSTER 1989, RX-7 (FC3S) 1989, COBRA 427 (year open), ELDORADO (Biarritz; generation open), MINI (1967 Cooper S 1275), QUATTRO (1989 20V).                                                                                                                           |
-| COOL RIDERS    | Stage nodes: prestage 1, stages 1–4 with 3, 9, 15 and 21, final NEW YORK 1 (fifty); each of three main routes runs 1, 3, 5, 7 with shared and merging nodes. The full exit table is open. VMAX 1200: 1989 export; RG500 Γ: 1985 road model; GL1500: 1988–1989; SUPER CUB 90: a late-1980s model.                                                                                     |
-| FINAL LAP      | 1987 car candidates: Williams-Honda FW11B, Lotus-Honda 99T, McLaren-TAG Porsche MP4/3, March-Cosworth 871. Whether SUZUKA follows the reference game's layout or the real 1987 or 1989 circuit is open.                                                                                                                                                                              |
-| WEC LE MANS 24 | 962C and C9 in their 1989 Le Mans specifications; reference cars Joest #9 and #63 are candidates. Qualifying and race outputs are not mixed.                                                                                                                                                                                                                                         |
-| BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                               |
-| RALLY STAGE    | Provisional courses: FOREST (tarmac, gravel, tarmac, gravel), MOUNTAIN (narrow tarmac, gravel climb, mountain tarmac), COAST (fast tarmac, dirt, wet tarmac), WINTER (tarmac, snow, packed snow, tarmac). Vehicle years, valve variants and Group A references are open.                                                                                                             |
+| Series          | Starting points                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TSUKUBA CLUBMAN | TSUKUBA is C16 below. VFR750R and GSX-R750 as in SUPER HANG-ON; GSX-R750 is not in the catalog yet. GOLF GTI 16V and 911 TURBO (930, the existing 3.3 L definition) are catalog vehicles. Clock, rank limits, field and laps are set during production.                                                                                                                              |
+| SUPER HANG-ON   | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE); which cabinet's roads to use is open. VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                       |
+| OUTRUN          | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
+| TURBO OUTRUN    | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. F40 and 959 are period road specifications.                                                                                                                                       |
+| CHASE H.Q.      | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
+| CISCO HEAT      | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. |
+| OUTRUNNERS      | The reference has 30 stages and 10 goals over both courses; connections are to be confirmed. Candidates: 911 SPEEDSTER 1989, RX-7 (FC3S) 1989, COBRA 427 (year open), ELDORADO (Biarritz; generation open), MINI (1967 Cooper S 1275), QUATTRO (1989 20V).                                                                                                                           |
+| COOL RIDERS     | Stage nodes: prestage 1, stages 1–4 with 3, 9, 15 and 21, final NEW YORK 1 (fifty); each of three main routes runs 1, 3, 5, 7 with shared and merging nodes. The full exit table is open. VMAX 1200: 1989 export; RG500 Γ: 1985 road model; GL1500: 1988–1989; SUPER CUB 90: a late-1980s model.                                                                                     |
+| FINAL LAP       | 1987 car candidates: Williams-Honda FW11B, Lotus-Honda 99T, McLaren-TAG Porsche MP4/3, March-Cosworth 871. Whether SUZUKA follows the reference game's layout or the real 1987 or 1989 circuit is open.                                                                                                                                                                              |
+| WEC LE MANS 24  | 962C and C9 in their 1989 Le Mans specifications; reference cars Joest #9 and #63 are candidates. Qualifying and race outputs are not mixed.                                                                                                                                                                                                                                         |
+| BIG RUN         | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                               |
+| RALLY STAGE     | Provisional courses: FOREST (tarmac, gravel, tarmac, gravel), MOUNTAIN (narrow tarmac, gravel climb, mountain tarmac), COAST (fast tarmac, dirt, wet tarmac), WINTER (tarmac, snow, packed snow, tarmac). Vehicle years, valve variants and Group A references are open.                                                                                                             |
 
 ### Time-based authoring
 
@@ -231,7 +229,7 @@ lighting at its own chainage, and switching is a cut.
 | Area             | Decision or future capability                                                                                                                  |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | References       | Exact editions/layout evidence, tolerances and remaster departures                                                                             |
-| Series values    | Rank limits, ahead distances, pace ratios, margins, grid spacing and colors per series course (Stage 16 playtests)                             |
+| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                |
 | Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                |
 | Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                  |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                          |
@@ -268,20 +266,21 @@ lighting at its own chainage, and switching is a cut.
 These real circuits remain production selections, using their 1989 layout with the identifying notes below.
 Series courses are listed in the [product specification](product.md#5-series).
 
-| ID  | Course                                  | Reference / identifying note                |
-| --- | --------------------------------------- | ------------------------------------------- |
-| C01 | Nürburgring Nordschleife                | Germany, 1989                               |
-| C02 | Spa-Francorchamps                       | Belgium, 1989; 1983–93 layout               |
-| C03 | Circuit de la Sarthe / Le Mans          | France, 1989; before Mulsanne chicanes      |
-| C04 | Autodromo Nazionale Monza               | Italy, 1989 GP road course                  |
-| C05 | Silverstone Grand Prix Circuit          | UK, 1989; 1987–90 layout                    |
-| C06 | Laguna Seca                             | USA, 1989; 1988–89 layout                   |
-| C07 | Mount Panorama / Bathurst               | Australia, 1989                             |
-| C08 | Interlagos / Autódromo José Carlos Pace | Brazil, 1989 long layout                    |
-| C09 | Monte Carlo / Monaco                    | Monaco, 1989                                |
-| C10 | Phillip Island Grand Prix Circuit       | Australia, 1989                             |
-| C11 | Mugello Circuit                         | Italy, 1989; 1974–90 family                 |
-| C12 | TT Circuit Assen                        | Netherlands, 1989 long GP layout            |
-| C13 | Road America                            | USA, 1989                                   |
-| C14 | Brands Hatch Grand Prix Circuit         | UK, 1989; 1988–98 family                    |
-| C15 | Suzuka Circuit                          | Japan, 1989; figure eight with lower tunnel |
+| ID  | Course                                  | Reference / identifying note                                                          |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------- |
+| C01 | Nürburgring Nordschleife                | Germany, 1989                                                                         |
+| C02 | Spa-Francorchamps                       | Belgium, 1989; 1983–93 layout                                                         |
+| C03 | Circuit de la Sarthe / Le Mans          | France, 1989; before Mulsanne chicanes                                                |
+| C04 | Autodromo Nazionale Monza               | Italy, 1989 GP road course                                                            |
+| C05 | Silverstone Grand Prix Circuit          | UK, 1989; 1987–90 layout                                                              |
+| C06 | Laguna Seca                             | USA, 1989; 1988–89 layout                                                             |
+| C07 | Mount Panorama / Bathurst               | Australia, 1989                                                                       |
+| C08 | Interlagos / Autódromo José Carlos Pace | Brazil, 1989 long layout                                                              |
+| C09 | Monte Carlo / Monaco                    | Monaco, 1989                                                                          |
+| C10 | Phillip Island Grand Prix Circuit       | Australia, 1989                                                                       |
+| C11 | Mugello Circuit                         | Italy, 1989; 1974–90 family                                                           |
+| C12 | TT Circuit Assen                        | Netherlands, 1989 long GP layout                                                      |
+| C13 | Road America                            | USA, 1989                                                                             |
+| C14 | Brands Hatch Grand Prix Circuit         | UK, 1989; 1988–98 family                                                              |
+| C15 | Suzuka Circuit                          | Japan, 1989; figure eight with lower tunnel                                           |
+| C16 | Tsukuba Circuit                         | Japan, 1989; four-wheel layout, 2,045 m, without the motorcycle chicane added in 1990 |

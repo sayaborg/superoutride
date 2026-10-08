@@ -48,6 +48,16 @@ for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
         },
       ],
       'ribbon-ring': [
+        // RIBBON's two classes on RIBBON RING: each runs its own vehicle and laps with its own time limit.
+        ...['ring-cars', 'ring-bikes'].map((name) => ({
+          name: `ARCADE class ${name} finishes`,
+          mode: 'ARCADE',
+          series: 'ribbon',
+          class: name,
+          policy: 'finish',
+          seconds: 300,
+          expect: { outcome: 'GOAL', ownClass: true },
+        })),
         {
           name: 'ARCADE rank limit GAME OVER',
           mode: 'ARCADE',

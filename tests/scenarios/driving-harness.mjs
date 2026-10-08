@@ -38,9 +38,16 @@ const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 
 const idle = { steering: 0, throttle: false, brake: false };
-const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-const { envelope } = await content.json('envelope', 'TESTAROSSA');
-const driver = compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true);
+// The player's vehicle, its delivered envelope and the Session driver that drives it: an ARCADE class's first vehicle,
+// TESTAROSSA otherwise.
+const playerVehicle = async (id) => {
+  const { envelope } = await content.json('envelope', id);
+  return {
+    entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id),
+    envelope,
+    driver: compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true),
+  };
+};
 // Sessions are prepared from the delivered catalogs as in the browser.
 const freePlay = await loadFreePlayRules(content);
 const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
@@ -111,6 +118,7 @@ function pavementBounds(scene, vehicle) {
 export async function runScenario({ course }, scenario) {
   // ARCADE takes its class of the test series, or of the delivered series `scenario.series`.
   const arcade = scenario.mode === 'ARCADE' ? scenarioClass(course, scenario) : null;
+  const { entry, envelope, driver } = await playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
   const settings = createDisplaySettings();
   const scene = createCourseScene(
     course.entry,
@@ -123,12 +131,12 @@ export async function runScenario({ course }, scenario) {
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
     mode === 'ARCADE'
-      ? { mode, vehicleId: arcade.vehicles[0], color: null }
+      ? { mode, vehicleId: entry.compiledVehicle.id, color: null }
       : mode === 'TIME_TRIAL'
-        ? { mode, vehicleId: 'TESTAROSSA', color: null, lapCount: scenario.laps ?? 1 }
+        ? { mode, vehicleId: entry.compiledVehicle.id, color: null, lapCount: scenario.laps ?? 1 }
         : {
             mode,
-            vehicleId: 'TESTAROSSA',
+            vehicleId: entry.compiledVehicle.id,
             color: null,
             lapCount: scenario.laps ?? 1,
             rivalCount: scenario.rivals ?? 0,
@@ -233,6 +241,8 @@ export async function runScenario({ course }, scenario) {
     evidence.frames++;
   };
   race.start();
+  // The clock's first deadline: the initial time budget, in seconds from GO.
+  const initialDeadline = race.clock.deadlineSeconds;
   let tick = 0;
   // Scenario seconds count from GO; READY runs through the same product start first.
   const maxTicks = Math.ceil((READY_SECONDS + scenario.seconds) / SIM_DT);
@@ -528,7 +538,7 @@ export async function runScenario({ course }, scenario) {
   // A finish policy reaches GOAL unless its Session rules expect another outcome or leave it open.
   if (scenario.policy === 'finish' && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
     assert.equal(race.outcome.status, 'GOAL');
-    assert.equal(race.player.progress.acceptedFinishCount, scenario.laps ?? 1);
+    assert.equal(race.player.progress.acceptedFinishCount, session.configuration.lapCount);
     if (course.entry.fork)
       assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
   }
@@ -545,6 +555,17 @@ export async function runScenario({ course }, scenario) {
       assert.equal(race.clock.deadlineSeconds, null, 'TIME TRIAL has a clock');
     }
     if (expect.position) assert.equal(ending.position, expect.position);
+    // An ARCADE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times
+    // on the course and its series' margin.
+    if (expect.ownClass) {
+      const { vehicles, laps, series } = arcade;
+      const reference = await content.json('reference-times', `${course.id}/${vehicles[0]}`);
+      assert.equal(session.entries[0].vehicle.vehicleDefinition.compiledVehicle.id, vehicles[0]);
+      assert.equal(session.configuration.lapCount, laps);
+      assert.equal(race.player.progress.acceptedFinishCount, laps);
+      assert.equal(initialDeadline, Math.ceil(1000 * series.timeMargin * reference.initialSeconds) / 1000);
+      evidence.ownClass = { vehicle: vehicles[0], laps, initialDeadline };
+    }
     // The takeover stops the finished player on its runout: the admitted maximumSpeed² / (2a) at the Session driver's a.
     const runout = envelope.maximumSpeed ** 2 / (2 * Math.min(...envelope.rows.map((row) => row.braking)) * 0.75);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
