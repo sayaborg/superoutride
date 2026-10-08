@@ -54,7 +54,8 @@ A course names its images: each name is the file `content/images/<name>.json` (t
 `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
 name delivers them, checked against its digest. A course's images are exactly those it names, at most `images` of
 them; `vehicles` and `text-tiles` are the delivered vehicle sprite library and text tiles and name no course image.
-Course identity does not include its images: they do not change the driving.
+An image's pixels and colors do not change the driving and are not part of course identity; the dimensions of a
+solid sprite's image size its roadside object, so course identity includes them ([identity](#compiled-identity-and-project-publication)).
 [Development](development.md#build-outputs) owns the index and output layout.
 
 `name` is the course's display name: nonblank printable ASCII (the
@@ -655,10 +656,12 @@ clock state belong to Sessions. Object identity is local to a compilation; cross
 
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
-`buildSha256` hashes `{sourceSha256,materialsSha256,compiler}`.
+`solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
+dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
+`buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
 The compiler is `superoutride.course-compiler` version 47, incorporating Link recipe v4, physical
-recipe v8, image-source recipe v3 and appearance recipe v14. Source, material or compiler/recipe
-changes invalidate dependent products.
+recipe v8, image-source recipe v3 and appearance recipe v14. Source, material, solid image dimension or
+compiler/recipe changes invalidate dependent products.
 
 Image inputs are explicit saved bytes, one per image the course names. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
 Draft saving is independent of image-byte availability.
@@ -666,8 +669,8 @@ Draft saving is independent of image-byte availability.
 `readCourseDocument` is the only course-document admission. Each caller that admits (delivery, the
 content build, authoring tools) supplies its document path once, and receives a detached, deeply frozen
 `CourseDocument`. `compileCourseDocument` receives that admitted value and does not admit it again.
-Build image compilation delivers, under each name, a placement's sprite master compiled to its LOD and every other
-image as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
+Build image compilation delivers, under each name, every sprite master the course names (a placement's image or a
+movable body's knocked image) compiled to its LOD and each background as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.

@@ -12,7 +12,13 @@ import {
   requireCourse,
   type CourseResult,
 } from '../course-diagnostics.js';
-import { courseImageNames, type CourseDocument, type CourseRules, type SectionDocument } from '../course-document.js';
+import {
+  courseImageNames,
+  courseSolidImageNames,
+  type CourseDocument,
+  type CourseRules,
+  type SectionDocument,
+} from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
 import { validateMaterialContinuity } from '../strip-material.js';
@@ -60,6 +66,8 @@ export interface CompiledCourse {
   readonly identity: {
     readonly sourceSha256: string;
     readonly materialsSha256: string;
+    /** The master width and height, in texels, of each solid sprite's image by name. */
+    readonly solidImages: Readonly<Record<string, Readonly<{ width: number; height: number }>>>;
     readonly buildSha256: string;
     readonly compiler: typeof COURSE_COMPILER;
   };
@@ -281,8 +289,20 @@ export async function compileCourseDocument(
     }
     const sourceSha256 = sha256,
       materialsSha256 = materials.sha256;
+    // The master dimensions of the solid sprites' images, in texels, by name: they size the roadside objects. Their
+    // pixels and colors change no driving and stay out of the identity.
+    const solidImages = Object.freeze(
+      Object.fromEntries(
+        courseSolidImageNames(document).map((name) => {
+          const { image } = assets.get(name)!;
+          return [name, Object.freeze({ width: image.width, height: image.height })];
+        }),
+      ),
+    );
     const buildSha256 = await contentDigest(
-      new TextEncoder().encode(JSON.stringify({ sourceSha256, materialsSha256, compiler: COURSE_COMPILER })),
+      new TextEncoder().encode(
+        JSON.stringify({ sourceSha256, materialsSha256, solidImages, compiler: COURSE_COMPILER }),
+      ),
     );
     return courseSuccess(
       Object.freeze({
@@ -294,6 +314,7 @@ export async function compileCourseDocument(
         identity: Object.freeze({
           sourceSha256,
           materialsSha256,
+          solidImages,
           buildSha256,
           compiler: COURSE_COMPILER,
         }),

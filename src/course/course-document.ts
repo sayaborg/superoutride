@@ -781,20 +781,31 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
  */
 export function courseImageNames(document: CourseDocument): readonly string[] {
   const names = new Set<string>();
-  const visit = <T>(elements: readonly RepeatElement<T>[], leaf: (element: T) => void) => {
-    for (const element of elements)
-      if ((element as { kind?: unknown }).kind === 'repeat')
-        visit((element as { elements: RepeatElement<T>[] }).elements, leaf);
-      else leaf(element as T);
-  };
   for (const section of document.sections) {
-    visit(section.environments, (environment) => names.add(environment.background.image));
-    visit(section.sprites, (sprite) => {
+    visitElements(section.environments, (environment) => names.add(environment.background.image));
+    visitElements(section.sprites, (sprite) => {
       names.add(sprite.image);
       if (sprite.body?.movable) names.add(sprite.body.movable.knocked.airborne).add(sprite.body.movable.knocked.landed);
     });
   }
   return [...names];
+}
+
+/** The images of a course's solid sprites, by name, sorted: their dimensions give its roadside objects' shapes. */
+export function courseSolidImageNames(document: CourseDocument): readonly string[] {
+  const names = new Set<string>();
+  for (const section of document.sections)
+    visitElements(section.sprites, (sprite) => {
+      if (sprite.body !== null) names.add(sprite.image);
+    });
+  return [...names].sort();
+}
+
+function visitElements<T>(elements: readonly RepeatElement<T>[], leaf: (element: T) => void): void {
+  for (const element of elements)
+    if ((element as { kind?: unknown }).kind === 'repeat')
+      visitElements((element as { elements: RepeatElement<T>[] }).elements, leaf);
+    else leaf(element as T);
 }
 
 /**

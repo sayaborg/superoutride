@@ -1,7 +1,5 @@
 import type { CourseDocument } from '../../src/course/course-document.js';
 import { courseImageNames } from '../../src/course/course-document.js';
-import { expandCourseElements } from '../../src/course/course-repeat.js';
-import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { CourseImageBytes } from '../../src/course/compiler/course-image-source.js';
 import { readCourseImageSources } from '../../src/course/compiler/course-image-source.js';
 import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
@@ -13,8 +11,9 @@ import { requireLoaded } from '../../src/content/content-load-error.js';
 export const RESERVED_IMAGE_NAMES: readonly string[] = ['vehicles', 'text-tiles'];
 
 /**
- * Build-only image compilation: the delivered bytes of each image a course names, by that name. A placement's sprite
- * master becomes its compiled LOD; every other image (backgrounds, knocked images) is delivered as its compact JSON.
+ * Build-only image compilation: the delivered bytes of each image a course names, by that name. Every sprite master,
+ * a placement's or a movable body's knocked image alike, becomes its compiled LOD; a background, which has no LOD, is
+ * delivered as its compact JSON.
  * The course document itself is unchanged.
  */
 export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseImageBytes[]) {
@@ -26,21 +25,11 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
         reserved.map((name) => new CourseAssetError('asset_invalid_image', name, 'This image name is reserved')),
       ),
     );
-  const placed = new Set<string>();
-  for (const section of document.sections)
-    expandCourseElements(
-      section.sprites,
-      '/sprites',
-      COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
-      (sprite) => {
-        placed.add(sprite.image);
-      },
-    );
   const admitted = requireLoaded(await readCourseImageSources(names, inputs));
   const images: CourseImageBytes[] = admitted.map((image) => ({
     name: image.id,
     bytes:
-      image.kind === 'sprite' && placed.has(image.id)
+      image.kind === 'sprite'
         ? new TextEncoder().encode(JSON.stringify(compileSpriteLod(image.document, [[]], image.image)) + '\n')
         : encodeContentJson(image.document),
   }));
