@@ -1,0 +1,13 @@
+from cutlib import *
+cut('5.0',(620,217,920,393),'tsukuba-stand-b',16.0,cloud=True)
+cut('5.0',(1707,187,1847,387),'tsukuba-signal',6.0)
+cut('7.3',(273,233,593,387),'tsukuba-house',16.0,cloud=True)
+cut('7.3',(1440,260,1920,400),'tsukuba-gas',24.0)
+cut('20.7',(1207,133,1920,387),'tsukuba-paddock',40.0)
+cut('20.7',(107,280,660,380),'tsukuba-shed',40.0)
+cut('38.6',(1700,273,1880,460),'marshal-tower',7.0)
+cut('42.7',(400,173,480,380),'pylon',9.0,cloud=True)
+cut('42.7',(647,320,1040,393),'trees-a',40.0,cloud=True)
+cut('47.0',(200,100,653,220),'trees-b',30.0,cloud=True,drop=[[(0,105),(453,105),(453,120),(0,120)]])
+cut('65.6',(0,233,787,407),'tsukuba-final-stand',60.0,cloud=True)
+cut('65.6',(1107,300,1920,387),'treeline',80.0,cloud=True)

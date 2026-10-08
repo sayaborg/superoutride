@@ -75,9 +75,17 @@ def lanes(k):
     st=[0.0]+[a-cuts[k] for a,_ in W if cuts[k]+1e-6<a<cuts[k+1]-1e-6]+[L[k]]
     wl=[{'at':pos(k,t),'width':round(width(cuts[k]+t)/3,3)} for t in st]
     return [{'kind':'lane','id':i,'width':wl} for i in 'abc']
-# ---- ground ----------------------------------------------------------------
-GRASS,ASPHALT,WHITE=5575,9548,32765
-VERGE=14.0
+# ---- appearance ---------------------------------------------------------------
+import os
+sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+import decor as D
+def c5(r,g,b): return (r<<10)|(g<<5)|b
+def zone_value(zones,side,t,default):
+    for z in zones:
+        if z[0]!=side: continue
+        a,b=z[1],z[2]
+        if (a<=t<b) if a<b else (t>=a or t<b): return z[3]
+    return default
 def centre(ds=2.0):
     out=[]; x=z=h=0.; s0=0.
     for e in E:
@@ -93,12 +101,10 @@ def centre(ds=2.0):
 CL=centre()
 REACH,MARGIN=4.0,1.5
 def room(side):
-    """Along the lap, how far the ground may reach from the centreline on one side: half way to any other part of the
-    same Section, and well inside the centre of a tight arc."""
     sign=1 if side=='right' else -1; out=[]
     sec=np.searchsorted(cuts,CL[:,0],side='right')-1
     for i,(si,xi,zi,hi,ci) in enumerate(CL):
-        n=np.array([math.cos(hi),-math.sin(hi)])*sign      # unit normal to that side (x right of +Z heading)
+        n=np.array([math.cos(hi),-math.sin(hi)])*sign
         lim=60.0
         m=(sec==sec[i])&(np.abs(CL[:,0]-si)>60.0)
         d=CL[m,1:3]-[xi,zi]; proj=d@n; dist2=(d**2).sum(1)
@@ -106,27 +112,40 @@ def room(side):
         if ok.any(): lim=min(lim,float((dist2[ok]/(2*proj[ok])).min())-REACH-MARGIN)
         if ci*sign>0: lim=min(lim,1/abs(ci)-10.0)
         out.append(lim)
-    out=np.array(out)
-    # the least over 10 m either side, so the edge never cuts a corner of the limit
-    w=5; out=np.array([out[max(0,i-w):i+w+1].min() for i in range(len(out))])
-    return out
+    out=np.array(out); w=5
+    return np.array([out[max(0,i-w):i+w+1].min() for i in range(len(out))])
 ROOM={side:room(side) for side in ('left','right')}
+JT=sorted(set([0.0]+[start[e['id']] for e in E]+cuts[1:3]))
+ST=sorted(JT+[float(t) for t in np.arange(10.0,TOT,10.0) if min(abs(t-j) for j in JT+[TOT])>4.0])
 def verge_profile(side):
     ev=[]
-    JT=sorted(set([0.0]+[start[e['id']] for e in E]+cuts[1:3]))
-    ST=sorted(JT+[float(t) for t in np.arange(10.0,TOT,10.0) if min(abs(t-j) for j in JT+[TOT])>4.0])
     for t in ST:
         i=int(np.argmin(np.abs(CL[:,0]-t)))
-        v=min(VERGE,ROOM[side][i]-width(t)/2)
+        v=min(zone_value(D.VERGE,side,t,D.VERGE_DEFAULT),ROOM[side][i]-width(t)/2)
         ev.append((float(t),round(max(1.0,float(v)),1)))
     ev.append((TOT,ev[0][1]))
-    # keep only the knots where the width changes slope
     keep=[ev[0]]
     for p,q,r in zip(ev,ev[1:],ev[2:]):
-        if abs((q[1]-p[1])-(r[1]-q[1]))>1e-9: keep.append(q)
+        if abs((q[1]-p[1])/(q[0]-p[0])-(r[1]-q[1])/(r[0]-q[0]))>1e-9: keep.append(q)
     keep.append(ev[-1]); return keep
-import os
-DECOR=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'decor.json')))
+VP={side:verge_profile(side) for side in ('left','right')}
+def racing_line():
+    """A plausible driven line as a lateral along the lap: toward the inside through each corner, eased over 50 m."""
+    raw=[]
+    for t in ST+[TOT]:
+        i=int(np.argmin(np.abs(CL[:,0]-(t%TOT)))); c=CL[i,4]
+        raw.append((1 if c>0 else -1)*(width(t)/2-2.0) if abs(c)>1/200 else 0.0)
+    xs=np.array(ST+[TOT]); raw=np.array(raw); out=[]
+    for t in xs:
+        d=np.minimum(np.abs(xs-t),TOT-np.abs(xs-t)); w=np.clip(1-d/50.0,0,None); out.append(float((raw*w).sum()/w.sum()))
+    out[-1]=out[0]
+    return list(zip(xs.tolist(),[round(v,2) for v in out]))
+RL=racing_line()
+def pieces(a,b,k):
+    lo,hi=max(a,cuts[k]),min(b,cuts[k+1])
+    return (round(lo-cuts[k],3),min(round(hi-cuts[k],3),L[k])) if hi-lo>0.5 else None
+def spans(a,b):
+    return [(a,b)] if a<b else [(a,TOT),(0.0,b)]
 def lat(v):
     if isinstance(v,dict):
         if 'verge' in v: return {'boundary':'verge-'+v['verge'],'offset':v.get('offset',0)}
@@ -134,7 +153,7 @@ def lat(v):
     return v
 def sprites(k):
     out=[]
-    for d in DECOR['sprites']:
+    for d in D.SPRITES:
         if not (cuts[k]<=d['s']<cuts[k+1]): continue
         sp={'kind':'sprite','image':d['image'],'palette':'original','at':pos(k,round(d['s']-cuts[k],3)),'lateral':lat(d['l']),
             'groundOffset':d.get('up',0),'unselectedLink':None,'body':None}
@@ -143,62 +162,93 @@ def sprites(k):
             sp={'kind':'repeat','every':d['every'],'count':n,'elements':[sp]} if n>=2 else sp
         out.append(sp)
     return out
-def pieces(a,b,k):
-    """The part of the lap interval [a,b] inside Section k, as local stations; None when empty."""
-    lo,hi=max(a,cuts[k]),min(b,cuts[k+1])
-    return (lo-cuts[k],hi-cuts[k]) if hi-lo>0.5 else None
+def wall_strips(kind,p0,p1,k):
+    out=[]
+    def band(col,bot,top): out.append({'kind':'strip','color':col,'knots':[{'at':pos(k,p0),'bottom':bot,'top':top},{'at':pos(k,p1),'bottom':bot,'top':top}]})
+    def posts(col,every,w,bot,top,phase=0.0):
+        n=int((p1-p0-w-phase)//every)+1
+        if n<1: return
+        st={'kind':'strip','color':col,'knots':[{'at':pos(k,round(p0+phase,3)),'bottom':bot,'top':top},{'at':pos(k,round(p0+phase+w,3)),'bottom':bot,'top':top}]}
+        out.append({'kind':'repeat','every':every,'count':n,'elements':[st]} if n>=2 else st)
+    for op in D.WALL_KINDS[kind]:
+        if op[0]=='band': band(*op[1:])
+        else: posts(*op[1:])
+    return out
 def walls(k):
     out=[]
     for side in ('left','right'):
-        strips=[]
-        for z in DECOR['walls']:
-            if z['side']!=side: continue
-            p=pieces(z['from'],z['to'],k)
-            if p: strips.append({'kind':'strip','color':z['color'],'knots':[{'at':pos(k,round(p[0],3)),'bottom':z.get('bottom',0),'top':z['top']},{'at':pos(k,round(p[1],3)),'bottom':z.get('bottom',0),'top':z['top']}]})
-        if strips: out.append({'boundary':'verge-'+side,'start':pos(k,0.0),'end':pos(k,L[k]),'solid':None,'strips':strips})
+        for line in ('verge','back','far'):
+            strips=[]
+            for z in D.WALLS:
+                if z[0]!=side or z[1]!=line: continue
+                for a,b in spans(z[2],z[3]):
+                    p=pieces(a,b,k)
+                    if p: strips+=wall_strips(z[4],p[0],p[1],k)
+            if strips: out.append({'boundary':line+'-'+side,'start':pos(k,0.0),'end':pos(k,L[k]),'solid':None,'strips':strips})
     return out
-RED,KWHITE,GREENPAINT=27781,32765,4684
 def ground_extras(k):
     out=[]
     def edge(side,o): return {'boundary':'road-'+side,'offset':o}
     def band(side,a,b,o0,o1,color=None,curb=False):
-        p=pieces(a,b,k)
-        if not p: return
-        l,r=(edge(side,o0),edge(side,o1)) if side=='right' else (edge(side,-o1),edge(side,-o0))
-        if curb: out.append({'kind':'curb','start':pos(k,round(p[0],3)),'end':pos(k,round(p[1],3)),'left':l,'right':r,'stripe':2.5,'colors':[RED,KWHITE]})
-        else: out.append({'kind':'strip','start':pos(k,round(p[0],3)),'end':pos(k,round(p[1],3)),'left':l,'right':r,'color':color,'material':None})
-    for g in DECOR['green']: band(g['side'],g['from'],g['to'],g['o0'],g['o1'],GREENPAINT)
+        for a2,b2 in spans(a,b):
+            p=pieces(a2,b2,k)
+            if not p: continue
+            l,r=(edge(side,o0),edge(side,o1)) if side=='right' else (edge(side,-o1),edge(side,-o0))
+            if curb: out.append({'kind':'curb','start':pos(k,p[0]),'end':pos(k,p[1]),'left':l,'right':r,'stripe':D.KERB_STRIPE,'colors':list(D.KERB)})
+            else: out.append({'kind':'strip','start':pos(k,p[0]),'end':pos(k,p[1]),'left':l,'right':r,'color':color,'material':None})
+    for side,a,b,o0,o1,col in D.PAINT: band(side,a,b,o0,o1,col)
     for e in E:
         if e['kind']!='arc' or e['radius']>110: continue
         a,b=start[e['id']],start[e['id']]+e['length']; inner=e['turn']; outer='left' if inner=='right' else 'right'
-        band(inner,a,b,0,1.2,curb=True)
-        if e['id'] not in ('t1-entry','final-entry','s1'): band(outer,b-5,b+35,0,1.2,curb=True)
+        band(inner,a,b,0,D.KERB_WIDTH,curb=True)
+        if e['id'] not in ('t1-entry','final-entry','s1'): band(outer,b-5,b+35,0,D.KERB_WIDTH,curb=True)
+    for side,a,b in D.EXTRA_KERBS: band(side,a,b,0,D.KERB_WIDTH,curb=True)
     return out
+def rep(k,every,length,phase,l,r,color):
+    """Color-only Strips of one length repeated along the whole Section."""
+    n=int((L[k]-phase-length)//every)+1
+    st={'kind':'strip','start':pos(k,phase),'end':pos(k,phase+length),'left':l,'right':r,'color':color,'material':None}
+    return {'kind':'repeat','every':every,'count':n,'elements':[st]} if n>=2 else st
 def section(k):
     a,b=pos(k,0.0),pos(k,L[k])
-    def bd(i,lat): return {'id':i,'knots':[{'at':a,'lateral':lat},{'at':b,'lateral':lat}]}
+    def bd(i,lt): return {'id':i,'knots':[{'at':a,'lateral':lt},{'at':b,'lateral':lt}]}
     def verge(i,road,side):
-        kn=[]
-        for t,v in verge_profile(side):
-            if cuts[k]-1e-9<=t<=cuts[k+1]+1e-9: kn.append((t-cuts[k],v))
-        vp=verge_profile(side); xs=[t for t,_ in vp]; vs=[v for _,v in vp]
-        kn=[(0.0,float(np.interp(cuts[k],xs,vs)))]+[q for q in kn if 1e-6<q[0]<L[k]-1e-6]+[(L[k],float(np.interp(cuts[k+1],xs,vs)))]
+        vp=VP[side]; xs=[t for t,_ in vp]; vs=[v for _,v in vp]
+        kn=[(0.0,float(np.interp(cuts[k],xs,vs)))]+[(t-cuts[k],v) for t,v in vp if cuts[k]+1e-6<t<cuts[k+1]-1e-6]+[(L[k],float(np.interp(cuts[k+1],xs,vs)))]
         sign=-1 if side=='left' else 1
         return {'id':i,'knots':[{'at':pos(k,t),'lateral':{'boundary':road,'offset':round(sign*v,3)}} for t,v in kn]}
+    xs=[t for t,_ in RL]; vs=[v for _,v in RL]
+    rl=[(0.0,float(np.interp(cuts[k],xs,vs)))]+[(t-cuts[k],v) for t,v in RL if cuts[k]+1e-6<t<cuts[k+1]-1e-6]+[(L[k],float(np.interp(cuts[k+1] if k<2 else 0.0,xs,vs)))]
     B=[verge('verge-left','road-left','left'),bd('road-left',{'lane':'a','side':'left','offset':0}),
-       bd('road-right',{'lane':'c','side':'right','offset':0}),verge('verge-right','road-right','right')]
-    def st(l,r,color,material): return {'kind':'strip','start':a,'end':b,'left':l,'right':r,'color':color,'material':material}
+       bd('road-right',{'lane':'c','side':'right','offset':0}),verge('verge-right','road-right','right'),
+       bd('back-left',{'boundary':'verge-left','offset':-D.BACK}),bd('back-right',{'boundary':'verge-right','offset':D.BACK}),
+       bd('far-left',{'boundary':'verge-left','offset':-D.FAR}),bd('far-right',{'boundary':'verge-right','offset':D.FAR}),
+       {'id':'line','knots':[{'at':pos(k,t),'lateral':round(v,2)} for t,v in rl]}]
+    def st(l,r,color,material,s0=None,s1=None): return {'kind':'strip','start':s0 or a,'end':s1 or b,'left':l,'right':r,'color':color,'material':material}
     ref=lambda i,o=0: {'boundary':i,'offset':o}
-    strips=[st(ref('verge-left'),ref('road-left'),None,'GRASS'),st(ref('road-right'),ref('verge-right'),None,'GRASS'),
-            st(None,None,GRASS,None),st(ref('road-left'),ref('road-right'),ASPHALT,'ASPHALT'),
-            *ground_extras(k),st(ref('road-left'),ref('road-left',0.15),WHITE,None),st(ref('road-right',-0.15),ref('road-right'),WHITE,None)]
-    # heading at the Section's start, degrees to the right from the entry frame
+    rl_,rr_=ref('road-left'),ref('road-right')
+    strips=[st(ref('verge-left'),rl_,None,'GRASS'),st(rr_,ref('verge-right'),None,'GRASS'),
+            st(None,None,D.GRASS[0],None),rep(k,D.GRASS_EVERY,D.GRASS_EVERY/2,0.0,None,None,D.GRASS[1]),
+            st(rl_,rr_,D.ASPHALT[0],'ASPHALT')]
+    for every,length,phase,col in D.ASPHALT_BANDS: strips.append(rep(k,every,length,phase,rl_,rr_,col))
+    for (a0,b0,l0,l1,col) in D.PATCHES:
+        p=pieces(a0,b0,k)
+        if p: strips.append(st(l0 if not isinstance(l0,dict) else lat(l0),l1 if not isinstance(l1,dict) else lat(l1),col,None,pos(k,p[0]),pos(k,p[1])))
+    strips.append(st(ref('line',-D.RUBBER/2),ref('line',D.RUBBER/2),D.ASPHALT[1],None))
+    strips.append(rep(k,D.RUBBER_BAND[0],D.RUBBER_BAND[1],3.0,ref('line',-D.RUBBER/2),ref('line',D.RUBBER/2),D.ASPHALT[2]))
+    strips+=ground_extras(k)
+    strips+=[st(rl_,ref('road-left',0.15),D.LINE,None),st(ref('road-right',-0.15),rr_,D.LINE,None)]
+    if k==0:
+        strips.append(st(rl_,rr_,D.LINE,None,pos(0,0.0),pos(0,0.4)))
+        for i in range(16):
+            sg=8.0+8.0*(15-i)+2.4; lane='a' if i%2==0 else 'c'
+            strips.append(st({'lane':lane,'side':'center','offset':-1.1},{'lane':lane,'side':'center','offset':1.1},D.LINE,None,pos(0,sg),pos(0,sg+0.15)))
     rot=0.0; s=0
     for e in E:
         if s+e['length']<=cuts[k]+1e-9:
             if e['kind']=='arc': rot+=(1 if e['turn']=='right' else -1)*math.degrees(e['length']/e['radius'])
         s+=e['length']
-    env=[{'at':a,'name':'TSUKUBA','background':{'image':'hill-sky','horizonY':320,'yawOrigin':round((-rot)%360,6)}}]
+    env=[{'at':a,'name':'TSUKUBA','background':{'image':D.SKY,'horizonY':320,'yawOrigin':round((D.SKY_YAW-rot)%360,6)}}]
     gates=[]
     if k==0:
         gates.append({'kind':'start','grid':[{'at':pos(0,8.0+8.0*(15-i)),'lane':'a' if i%2==0 else 'c'} for i in range(16)]})
@@ -212,4 +262,4 @@ doc={'format':'superoutride.course','version':48,'name':'TSUKUBA','entry':SID[0]
      'links':[{'id':'sector-1-to-2','from':{'section':SID[0],'lane':'b'},'to':SID[1]},{'id':'sector-2-to-3','from':{'section':SID[1],'lane':'b'},'to':SID[2]},
               {'id':'sector-3-to-1','from':{'section':SID[2],'lane':'b'},'to':SID[0]}]}
 json.dump(doc,open(OUT,'w'))
-print('sections',[round(x,3) for x in L],'cuts',[round(c,2) for c in cuts],'pvi',len(pvi),'y range',min(y for _,y in pvi),max(y for _,y in pvi))
+print('ok')
