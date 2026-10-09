@@ -6,20 +6,19 @@ use a local heightfield approximation. The model separates these inputs:
 | Boundary           | Parameters                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------------ |
 | Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain |
-| Driving definition | M/D/ACT steering, pedal actuators, TCS/ABS, pitch limit and the game-wide per-load tire    |
+| Driving definition | M/ACT steering, pedal actuators, TCS/ABS, pitch limit and the game-wide per-load tire      |
 | Composition policy | Fixed update step                                                                          |
 
 The [driving definition](../content/driving/default.json) holds the game-wide driving values
 ([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
-M=65 degrees, D=20 degrees, ACT=0.3 seconds, throttle/brake traversal times,
-`wheelSlip=true` and one game-wide tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74).
+M=65 degrees, ACT=0.3 seconds, throttle/brake traversal times,
+`wheelSlip=true` and one game-wide tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
 Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
 traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
 converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
-single traversal time makes steering response symmetric by construction), steering geometry (M, D and the derived
-automatic steering maximum `A = M-D`), the tire characteristics, `suspensionProgression` and the
+single traversal time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics, `suspensionProgression` and the
 torque-protection policy `{wheelSlip, pitchLimit}`.
 [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
 from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
@@ -34,7 +33,7 @@ solvers keep guards on the values they generate.
 Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates take no step argument; they integrate the
-model's step and substep. Both stations' wheel solves and the steering limiter read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
+model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement.
 
 `SessionVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
@@ -237,7 +236,7 @@ further back behind any vehicle or standing object in the way ([Recovery](conten
 
 ## Tire law
 
-Positive GX/PX/GY/PY and `0 < KN < 1` define:
+Positive GX/PX/GY/PY, `0 < KN < 1` and load sensitivity `0 <= r < 1` (LS) define:
 
 ```text
 muX = GX                  kX = (2-KN)*GX/PX
@@ -262,9 +261,25 @@ H(rho) = rho                              rho <= a
        = 1                                rho >= 2-a
 ```
 
-For nonzero demand, `(Fx,Fy)=N*gripFactor*H*(muX*x,muY*y)/hypot(x,y)`.
+The force law reads the tire's effective load rather than the contact's normal load `N`. With `N0` the station's
+static load (its share of the vehicle's weight at rest, derived from mass and axle distances):
+
+```text
+Ne = N/(1+r*(N/N0-1))
+```
+
+`Ne` equals `N0` at rest, rises with slope `1-r` there, keeps rising with load and approaches `N0/r`, so the force a
+load several times static (a landing) can raise stays bounded. Real tires lose friction coefficient with load: in
+Milliken's _Race Car Vehicle Dynamics_ (Fig. 2.9) the peak lateral force per load falls from 1.10 to 0.97 as the load
+doubles from 900 to 1800 lbf, and published Magic Formula coefficients for car and truck tires give a slope of 0.07 to
+0.20 per reference load. The Magic Formula's linear friction falls to zero at 6 to 11 times the reference load, so it
+does not serve landing loads; this rational form has the same slope near static load and stays monotonic. The plateau
+slips do not depend on load. Demand, capacity, rolling resistance and the torque protections all read `Ne`; the
+suspension and the body's vertical force, and the tire observation's `load`, keep `N`.
+
+For nonzero demand, `(Fx,Fy)=Ne*gripFactor*H*(muX*x,muY*y)/hypot(x,y)`, with demand `(Ne*kX*sx, Ne*kY*sy)`.
 The linear region returns linear demand; zero load/grip returns zero force. For positive load/grip,
-`(Fx/(N*grip*muX))^2+(Fy/(N*grip*muY))^2 <= 1`. Slip work is dissipative.
+`(Fx/(Ne*grip*muX))^2+(Fy/(Ne*grip*muY))^2 <= 1`. Slip work is dissipative.
 Pure-axis plateaus begin at `gripFactor*PX/PY`; simultaneous slip shares the ellipse and changes force direction.
 
 ## Wheel and powertrain
@@ -455,44 +470,32 @@ buttons) and AI requests use finite-rate actuators (`RATE_LIMITED`); positional 
 triggers) is `DIRECT` while held, then uses normal release.
 Input arbitration is specified in [Browser](browser.md#driving-input).
 
-Automatic steering has one method: it follows the body's travel direction. For driver offset D and
-rack bound M, require `0 < D < M < pi/2`:
+Automatic steering has one method: it follows the body's travel direction. The driver's input is a fraction of the
+steering limit `L`, an angle from that direction whose size is the front tire's pure-lateral plateau slip
+`S = grip*(2-KN)*muY/kY` (which is `grip*PY`, [tire law](#tire-law)). `grip` is the gripFactor of the material
+sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate
+domain or on no material), so the angle changes only where the material changes and not at landing. With rack bound
+`M` in `(0, pi/2)`:
 
 ```text
 beta = atan2(bodyLateralSpeed,hypot(bodyForwardSpeed,steeringV0))
-automatic = clamp(beta,-(M-D),M-D)
-requestedOffset = D*steeringActuator
+L = min(M, atan(S))
+automatic = clamp(beta,-(M-L),M-L)
+frontSteer = automatic+L*steeringActuator
 ```
 
-The front-slip limiter reduces the requested offset around this automatic baseline. With pure-lateral
-plateau onset `S=grip*(2-KN)*muY/kY`, projected front contact gives:
-
-```text
-q(delta) = c0+cc*cos(2*delta)+cs*sin(2*delta) <= 0
-R = hypot(cc,cs)
-Q(e) = q(automatic)+q'(automatic)*e+2*R*e^2
-```
-
-Since `abs(q'') <= 4R`, `q(automatic+e) <= Q(e)`. The offset interval is:
-
-```text
-center = -q'(automatic)/(4*R)
-width = sqrt(max(0,center^2-q(automatic)/(2*R)))
-allowedOffset = [min(0,center-width),max(0,center+width)]
-deliveredOffset = clamp(requestedOffset,allowedOffset)
-```
-
-Including zero preserves neutral and permits partial corrective input. Degenerate, unsupported or
-zero-grip contacts return the request. Finally clamp `automatic+deliveredOffset` to +/-M; the front
-road-wheel angle equals this target each substep. The previous angle remains in state for the next
-pre-steer contact observation and input limit, and for observations and the recovery reset to zero.
-The target is computed from the pre-steer state before reorienting the front contact; the integration
-order is unchanged. This is a conservative current-contact slip constraint.
+The slip `S` is the tangent of the slip angle where the plateau begins (the tire law's `sy = -vy/U`), so `L` is that
+angle. The input scales the limit rather than being cut at it: the whole actuator range spans zero to the limit, and
+`|frontSteer| <= M` by construction. The limit is measured from the body's travel direction, not from the front
+contact's velocity, so the yaw rate changes the front tire's actual slip (`frontSteer - beta - a*yawRate/V` at speed)
+and keeps the front axle's own yaw damping. The front road-wheel angle equals `frontSteer` each substep, computed from
+the pre-steer state before reorienting the front contact; the integration order is unchanged. The previous angle
+remains in state for the next pre-steer contact observation, for observations and for the recovery reset to zero.
 
 ## Observations
 
-Vehicle state records observations of input, actuators, automatic steering, requested/delivered offsets, target/actual
-rack, requested/delivered torques, the clutch lock and transmitted clutch torque, the selected gear and the last shift.
+Vehicle state records observations of input, actuators (the steering actuator the front road wheel was set from),
+automatic steering, target/actual rack, requested/delivered torques, the clutch lock and transmitted clutch torque, the selected gear and the last shift.
 The race copies the product HUD's subset into each competitor observation ([Architecture](architecture.md)). The bike
 lean display is
 `atan2(lateralAcceleration,g)`, the equilibrium lean of the rider-and-machine centre-of-mass line, shown with
@@ -575,14 +578,14 @@ A body that does not contain both contact stations points to `overallLength`. Th
 dimensions and its derived `reach` and `footprint`.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
-fields: `maxRoadWheelSteerDegrees`, `steeringOffsetDegrees`,
+fields: `maxRoadWheelSteerDegrees`,
 `steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1, finite `suspensionProgression` of at least 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
-`wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee), `rivalPace`
+`wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity), `rivalPace`
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
 maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
 (frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it

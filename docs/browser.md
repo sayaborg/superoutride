@@ -321,7 +321,8 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 26–29 | Bars of 10 cells (1-pixel steps) between end caps: STEER, GAS, BRAKE and RPM                                       |
 
 Steering, throttle and brake are bars whose fill is the vehicle's actual value from the player's observation (the
-delivered steering offset as a fraction of its maximum, from the centre; the throttle and brake actuators) and whose
+steering actuator, the road wheel's offset from automatic steering as a fraction of the steering limit, from the
+centre; the throttle and brake actuators) and whose
 yellow 1-pixel mark is the player's input from the final input sample; a dark mark shows the steering centre. The
 tachometer bar runs from 0 to the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
 definition's margin): cells from the redline on are red, with a red mark at the redline, and the whole bar is red while

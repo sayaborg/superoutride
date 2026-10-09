@@ -364,22 +364,10 @@ export function createCourseRace(options: {
   const publish = () => {
     for (let i = 0; i < competitors.length; i += 1) {
       const { body } = competitors[i]!;
-      writeCompetitorObservation(
-        competitorObservations[i]!,
-        body.vehicle,
-        body.model,
-        body.step.input,
-        simulationSeconds,
-      );
+      writeCompetitorObservation(competitorObservations[i]!, body.vehicle, body.step.input, simulationSeconds);
     }
     for (const vehicle of traffic)
-      writeCompetitorObservation(
-        vehicle.observation,
-        vehicle.vehicle,
-        vehicle.model,
-        vehicle.step.input,
-        simulationSeconds,
-      );
+      writeCompetitorObservation(vehicle.observation, vehicle.vehicle, vehicle.step.input, simulationSeconds);
   };
   // Only rivals and traffic in the resident window are observable; this is the single residency decision.
   const visible: CompetitorObservation[] = [];

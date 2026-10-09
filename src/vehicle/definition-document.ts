@@ -244,7 +244,6 @@ export function compileDrivingDocument(
   return admit(document, () => {
     const numbers = [
       'maxRoadWheelSteerDegrees',
-      'steeringOffsetDegrees',
       'steeringTraversalSeconds',
       'fuelCutRedlineMargin',
       'idleFrictionMeanEffectivePressureBar',
@@ -260,7 +259,7 @@ export function compileDrivingDocument(
       value,
       ['format', 'version', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire', 'rivalPace', 'bodyContact'],
       'superoutride.driving-definition',
-      14,
+      15,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -270,7 +269,7 @@ export function compileDrivingDocument(
         releaseSeconds: readNumber(p.releaseSeconds, `/${key}/releaseSeconds`),
       };
     };
-    const keys = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee'] as const;
+    const keys = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity'] as const;
     const t = readRecord(v.tire, '/tire', keys);
     const paceKeys = [
       'minimumUtilization',
@@ -284,7 +283,7 @@ export function compileDrivingDocument(
     const contact = readRecord(v.bodyContact, '/bodyContact', contactKeys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 14,
+      version: 15,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       throttle: pedal('throttle'),
       brake: pedal('brake'),

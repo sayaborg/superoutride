@@ -3,7 +3,6 @@ import type { TireCharacteristics } from './physics/tire-friction-calibration.js
 /** Saved-form game-wide design data; no converted angles, rates or force-law coefficients. */
 export interface DrivingDefinition {
   readonly maxRoadWheelSteerDegrees: number;
-  readonly steeringOffsetDegrees: number;
   readonly steeringTraversalSeconds: number;
   readonly fuelCutRedlineMargin: number;
   readonly idleFrictionMeanEffectivePressureBar: number;
@@ -41,5 +40,5 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 14;
+  readonly version: 15;
 }

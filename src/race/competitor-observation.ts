@@ -2,7 +2,6 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { PowertrainShiftObservation } from '../vehicle/physics/automatic-powertrain.js';
 import type { VehicleMotionRead, VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
-import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 
@@ -107,7 +106,6 @@ export function createCompetitorObservation(
 export function writeCompetitorObservation(
   observation: CompetitorObservation,
   vehicle: VehicleState,
-  model: VehicleModel,
   input: DrivingInput,
   simulationSeconds: number,
 ): void {
@@ -126,7 +124,7 @@ export function writeCompetitorObservation(
   out.brakeLampOn = Number(input.brake) > 0;
   out.speed = vehicle.speed;
   const { control } = vehicle;
-  out.control.steering = control.deliveredSteerOffset / model.steering.steeringOffsetMax;
+  out.control.steering = control.steeringActuator;
   out.control.throttle = control.throttleActuator;
   out.control.brake = control.brakeActuator;
   const { powertrain } = vehicle;

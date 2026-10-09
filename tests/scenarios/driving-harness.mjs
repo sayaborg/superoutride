@@ -212,7 +212,7 @@ export async function runScenario({ course }, scenario) {
     };
   };
   // From its approach distance before the row until the player has passed every object it knocked, landed.
-  const CONE_APPROACH = 120;
+  const CONE_APPROACH = 160;
   const inConeStretch = (s) =>
     s >= coneRow.start - CONE_APPROACH &&
     (s <= coneRow.end || race.observe().knocked.some((k) => k.state !== 'landed' || k.s >= s));

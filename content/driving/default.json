@@ -1,8 +1,7 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 14,
+  "version": 15,
   "maxRoadWheelSteerDegrees": 65,
-  "steeringOffsetDegrees": 20,
   "steeringTraversalSeconds": 0.3,
   "fuelCutRedlineMargin": 0.02,
   "idleFrictionMeanEffectivePressureBar": 1,
@@ -16,7 +15,7 @@
   "throttle": { "applySeconds": 0.25, "releaseSeconds": 0.125 },
   "brake": { "applySeconds": 0.15, "releaseSeconds": 0.1 },
   "wheelSlip": true,
-  "tire": { "gripX": 5, "peakSlipX": 0.2, "gripY": 2.5, "peakSlipY": 0.1, "knee": 0.74 },
+  "tire": { "gripX": 5, "peakSlipX": 0.2, "gripY": 2.5, "peakSlipY": 0.1, "knee": 0.74, "loadSensitivity": 0.15 },
   "rivalPace": {
     "minimumUtilization": 0.55,
     "maximumUtilization": 0.95,

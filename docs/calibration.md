@@ -18,7 +18,6 @@ steps and never rejects a driving definition.
 | Group      | Key   | Definition field                            | Meaning                                      | Default | DEV range / step           |
 | ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | -------------------------- |
 | Steering   | M     | `maxRoadWheelSteerDegrees`                  | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°                |
-| Steering   | D     | `steeringOffsetDegrees`                     | Maximum driver road-wheel offset             | 20°     | 10–30° / 1°                |
 | Steering   | ACT   | `steeringTraversalSeconds`                  | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s      |
 | Pedals     | THR+  | `throttle.applySeconds`                     | Throttle apply time                          | 0.25 s  | 0.05–0.50 s / 0.025 s      |
 | Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
@@ -29,6 +28,7 @@ steps and never rejects a driving definition.
 | Tires      | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
 | Tires      | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
 | Tires      | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
+| Tires      | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
 | Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar      |
 | Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar      |
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
@@ -51,7 +51,7 @@ game-wide suspension stiffness at full travel as a multiple of each ride spring 
 least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
-[tire law](vehicle-physics.md#tire-law). Automatic steering has the budget `A = M-D`, derived once by driving compilation. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
+[tire law](vehicle-physics.md#tire-law). The steering limit is the front tire's lateral plateau slip on the material under the front wheel, as an angle from the travel direction, and automatic steering has the rest of the rack, `M` minus that limit ([Vehicle physics](vehicle-physics.md#actuators-and-steering)); neither is an authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
 step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the

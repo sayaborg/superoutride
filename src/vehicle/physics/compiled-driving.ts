@@ -115,15 +115,8 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     }),
     actuator,
     steering: withDefinitionPath(
-      () =>
-        createVehicleSteeringCalibration(
-          (definition.maxRoadWheelSteerDegrees * Math.PI) / 180,
-          (definition.steeringOffsetDegrees * Math.PI) / 180,
-        ),
-      {
-        maxRoadWheelSteer: 'maxRoadWheelSteerDegrees',
-        steeringOffsetMax: 'steeringOffsetDegrees',
-      },
+      () => createVehicleSteeringCalibration((definition.maxRoadWheelSteerDegrees * Math.PI) / 180),
+      { maxRoadWheelSteer: 'maxRoadWheelSteerDegrees' },
     ),
     tire: withDefinitionPath(
       () => compileTireCharacteristics(definition.tire),

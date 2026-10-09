@@ -11,8 +11,8 @@ export const VEHICLE_GRAVITY = 9.80665;
 
 /** The controls the competitor observation reports; physics never consumes this object as an authority. */
 interface VehicleControlObservation {
-  /** The delivered driver steering offset. */
-  deliveredSteerOffset: number;
+  /** The steering actuator the front road wheel was set from: its offset from automatic steering over the limit. */
+  steeringActuator: number;
   throttleActuator: number;
   brakeActuator: number;
 }
@@ -48,7 +48,7 @@ export interface BodyKinematics {
 }
 
 export function createVehicleControlObservation(): VehicleControlObservation {
-  return { deliveredSteerOffset: 0, throttleActuator: 0, brakeActuator: 0 };
+  return { steeringActuator: 0, throttleActuator: 0, brakeActuator: 0 };
 }
 
 export function resetVehicleControlObservation(vehicle: VehicleDynamicsState): void {

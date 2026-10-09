@@ -4,6 +4,8 @@ import { VEHICLE_GRAVITY } from './vehicle-state.js';
 export type VehicleContactId = 'FRONT' | 'REAR';
 
 export interface CompiledSuspensionStation {
+  /** The station's share of the vehicle's weight at rest (N). */
+  readonly staticLoad: number;
   readonly springRate: number;
   readonly damping: number;
   readonly qStatic: number;
@@ -46,7 +48,7 @@ export function compileSuspensionStation(
       Number.isFinite(qStatic) ? 'qTravel' : 'rideFrequency',
       'qTravel must exceed qStatic derived from rideFrequency and staticLoad',
     );
-  return Object.freeze({ springRate, damping, qStatic, qTravel });
+  return Object.freeze({ staticLoad, springRate, damping, qStatic, qTravel });
 }
 
 /**
@@ -59,8 +61,8 @@ export function suspensionStabilityMeasure(
   progression: number,
   substep: number,
 ): number {
-  const { springRate, damping, qStatic } = suspension;
-  const mass = (springRate * qStatic) / VEHICLE_GRAVITY;
+  const { springRate, damping, staticLoad } = suspension;
+  const mass = staticLoad / VEHICLE_GRAVITY;
   return (
     (substep * substep * progression * springRate) / mass + (2 * substep * Math.sqrt(progression) * damping) / mass
   );

@@ -98,6 +98,10 @@ are collected from the topic specifications; their order within this stage is no
   not write the residual.
 - Conditional solid objects: a sprite shown by a fork's choice (`unselectedLink`) may also have a body in the format;
   the race does not place such objects yet (cones lining the closed exit once a fork is decided).
+- Course edge behind a course limit: a vehicle stopped against a course limit at a steep yaw can reach past the limit
+  with its front contact; where the ground beyond has no material, the front loses support, the body pitches down and
+  recovery reads it as surface penetration (RIBBON FORK's departure-left scenario stays about 3 cm clear of it). Decide
+  whether the limit keeps the contact stations, not only the footprint, or the ground extends past every limit.
 - Wall Strips keep knots of their own because heights have no named lines; revisit with the first product walls.
 - Oncoming lanes: a lane direction, when oncoming traffic is decided.
 
@@ -232,40 +236,41 @@ lighting at its own chainage, and switching is a cut.
 
 - Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
-| Area             | Decision or future capability                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                             |
-| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                  |
-| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                          |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                   |
-| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames |
-| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                 |
-| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                         |
-| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget          |
-| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                      |
-| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                             |
-| Drivers          | Whether steering lookahead and response change: a lane change at about 47 m/s overshoots by about 1.7 m (with the rival racing line)           |
-| Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                  |
-| Courses          | Whether RIBBON ROUGH stays an evaluation course or changes shape: drivers leave it at a kinked crest and on short narrow waves                 |
-| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                             |
-| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                              |
-| Records          | Whether traffic settings belong to the ARCADE record key                                                                                       |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                               |
-| Front end        | Attract demo idle time                                                                                                                         |
-| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                       |
-| HUD              | Whether HUD text has a backing (none today)                                                                                                    |
-| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                       |
-| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                           |
-| Art              | Production assets, new physical materials and tunnel/background content                                                                        |
-| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                            |
-| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                          |
-| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                             |
-| Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                  |
-| Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                              |
-| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                       |
-| Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)              |
+| Area             | Decision or future capability                                                                                                                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                                                                   |
+| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                                                                                      |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                      |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                        |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                                |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                         |
+| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                                       |
+| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                                                                       |
+| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                                                                               |
+| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                                                                                |
+| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                                                                            |
+| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                                                                                   |
+| Drivers          | Whether steering lookahead and response change: a lane change at about 47 m/s overshoots by about 1.7 m (with the rival racing line)                                                                                 |
+| Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                        |
+| Courses          | Whether RIBBON ROUGH stays an evaluation course or changes shape: drivers leave it at a kinked crest and on short narrow waves                                                                                       |
+| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                                   |
+| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                                    |
+| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                             |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                     |
+| Front end        | Attract demo idle time                                                                                                                                                                                               |
+| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                                                             |
+| HUD              | Whether HUD text has a backing (none today)                                                                                                                                                                          |
+| Steering         | Whether the steering limit, measured from the travel direction, leaves enough authority while yawing: steady cornering peaks near 2.3 G instead of 2.4 G and a 7 m lane change at 240 km/h overshoots (real devices) |
+| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                                                                             |
+| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                 |
+| Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                              |
+| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                                  |
+| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                                |
+| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                                   |
+| Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                        |
+| Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                                    |
+| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                             |
+| Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)                                                                                    |
 
 ### Selected circuits
 

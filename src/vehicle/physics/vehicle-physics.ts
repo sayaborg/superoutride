@@ -17,9 +17,9 @@ import {
   prepareAutomaticPowertrain,
 } from './automatic-powertrain.js';
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
-import { createSteeringLimitWorkspace, limitSteeringInput } from './steering-input-limiter.js';
 import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
+import { effectiveTireLoad, lateralPlateauSlip } from './tire-friction-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   bodyFrameVelocity,
@@ -185,15 +185,13 @@ export function updateVehicle(
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
-  const calibration = model.steering;
-  const automaticMax = calibration.automaticSteerMax;
+  const maxRoadWheelSteer = model.steering.maxRoadWheelSteer;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
     updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
     const body = vehicleBodyKinematics(vehicle, workspace.body);
     const bodyTravelDirection = vehicleBodyTravelDirection(body, STEERING_LOW_SPEED_REGULARIZATION);
-    const steeringOffset = vehicle.actuator.steering * model.steering.steeringOffsetMax;
     const frontBeforeSteer = deriveContactObservation(
       coordinates,
       height,
@@ -205,21 +203,15 @@ export function updateVehicle(
       vehicle.course.s,
       workspace.front,
     );
-    const automaticSteer = clamp(bodyTravelDirection, -automaticMax, automaticMax);
-    const deliveredOffset = limitSteeringInput(
-      automaticSteer,
-      steeringOffset,
-      body,
-      frontBeforeSteer,
-      model.tire,
-      workspace.steering,
+    // The driver's input is a fraction of the steering limit: the front tire's lateral plateau slip on the material
+    // under the front wheel (unit grip where there is none), as an angle from the body's travel direction.
+    const limit = Math.min(
+      maxRoadWheelSteer,
+      Math.atan(lateralPlateauSlip(model.tire, frontBeforeSteer.surface.material?.gripFactor ?? 1)),
     );
-    const target = clamp(
-      automaticSteer + deliveredOffset,
-      -calibration.maxRoadWheelSteer,
-      calibration.maxRoadWheelSteer,
-    );
-    vehicle.frontSteerAngle = target;
+    const automaticMax = maxRoadWheelSteer - limit;
+    vehicle.frontSteerAngle =
+      clamp(bodyTravelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
       coordinates,
@@ -250,7 +242,10 @@ export function updateVehicle(
     frontRequest.rollingRadius = front.effectiveRollingRadius;
     frontRequest.longitudinalVelocity = front.longitudinalVelocity;
     frontRequest.lateralVelocity = front.lateralVelocity;
-    frontRequest.normalLoad = front.tireFrameValid ? front.normalLoad : 0;
+    // The wheel solve reads the tire's effective load; suspension and body keep the contact's normal load.
+    frontRequest.normalLoad = front.tireFrameValid
+      ? effectiveTireLoad(model.tire, front.normalLoad, compiledVehicle.frontStation.suspension.staticLoad)
+      : 0;
     frontRequest.gripFactor = front.surface.material?.gripFactor ?? 0;
     frontRequest.characteristics = model.tire;
     frontRequest.rollingResistance = front.tireFrameValid ? (front.surface.material?.rollingResistance ?? 0) : 0;
@@ -263,7 +258,9 @@ export function updateVehicle(
     rearRequest.rollingRadius = rear.effectiveRollingRadius;
     rearRequest.longitudinalVelocity = rear.longitudinalVelocity;
     rearRequest.lateralVelocity = rear.lateralVelocity;
-    rearRequest.normalLoad = rear.tireFrameValid ? rear.normalLoad : 0;
+    rearRequest.normalLoad = rear.tireFrameValid
+      ? effectiveTireLoad(model.tire, rear.normalLoad, compiledVehicle.rearStation.suspension.staticLoad)
+      : 0;
     rearRequest.gripFactor = rear.surface.material?.gripFactor ?? 0;
     rearRequest.characteristics = model.tire;
     rearRequest.rollingResistance = rear.tireFrameValid ? (rear.surface.material?.rollingResistance ?? 0) : 0;
@@ -325,7 +322,7 @@ export function updateVehicle(
 
     // Output-only cache: observers consume one completed outer update, never an inner trial.
     if (step === VEHICLE_SUBSTEPS - 1) {
-      vehicle.control.deliveredSteerOffset = deliveredOffset;
+      vehicle.control.steeringActuator = vehicle.actuator.steering;
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
@@ -415,7 +412,6 @@ function createStepWorkspace(model: VehicleModel) {
     projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },
     body: createBodyKinematicsWorkspace(),
-    steering: createSteeringLimitWorkspace(),
     front,
     rear,
     frontRequest,

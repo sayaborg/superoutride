@@ -162,7 +162,7 @@ export function createTrafficField(options: {
           },
         );
         vehicles.push(motion);
-        writeCompetitorObservation(motion.observation, vehicle, model, motion.step.input, options.simulationSeconds());
+        writeCompetitorObservation(motion.observation, vehicle, motion.step.input, options.simulationSeconds());
         changed = true;
       });
       return changed;
