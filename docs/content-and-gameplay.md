@@ -1459,8 +1459,8 @@ road has no cant. Its three Sections are the circuit's timing sectors, whose end
 the grid stands after the control line, since a circuit's finish is the seam returning to its entry.
 
 Its scenery follows K's own onboard recordings, in the state of the front-camera recording: landmark sprites are cut
-from their frames (sources and recipes under `content/sprite-sources/`), lamp posts and masts and the sky are drawn for
-the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
+from their frames (sources and recipes under `content/sprite-sources/`), the sky is made from two of the front-camera
+recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
 the verges' outer edges keep vehicles in. The course is untimed until a series holds it.
 
 ## Observation formats
