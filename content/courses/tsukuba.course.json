@@ -2432,8 +2432,8 @@
           "kind": "sprite",
           "image": "tsukuba-hairpin-stand",
           "palette": "original",
-          "at": { "joint": "infield", "offset": -46.15 },
-          "lateral": { "boundary": "verge-right", "offset": 13 },
+          "at": { "joint": "infield", "offset": -40.15 },
+          "lateral": { "boundary": "verge-right", "offset": 20 },
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -4840,6 +4840,23 @@
           "body": null
         },
         {
+          "kind": "repeat",
+          "every": 14,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "cone",
+              "palette": "original",
+              "at": { "joint": "dunlop-out", "offset": 34.39 },
+              "lateral": { "boundary": "road-right", "offset": 2 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
           "kind": "sprite",
           "image": "marshal-tower",
           "palette": "original",
@@ -4913,9 +4930,9 @@
           "kind": "sprite",
           "image": "trees-b",
           "palette": "original",
-          "at": { "joint": "hairpin2-exit", "offset": -26.26 },
-          "lateral": { "boundary": "verge-left", "offset": -38 },
-          "groundOffset": 3,
+          "at": { "joint": "hairpin2", "offset": 28.51 },
+          "lateral": -50,
+          "groundOffset": 0,
           "unselectedLink": null,
           "body": null
         },
@@ -6456,15 +6473,15 @@
         },
         {
           "kind": "repeat",
-          "every": 25,
-          "count": 4,
+          "every": 24,
+          "count": 6,
           "elements": [
             {
               "kind": "sprite",
-              "image": "trees-b",
+              "image": "woods",
               "palette": "original",
-              "at": { "joint": "final-entry", "offset": -36.215 },
-              "lateral": { "boundary": "verge-left", "offset": -19 },
+              "at": { "joint": "final-entry", "offset": -40.215 },
+              "lateral": { "boundary": "verge-left", "offset": -16 },
               "groundOffset": 0,
               "unselectedLink": null,
               "body": null
