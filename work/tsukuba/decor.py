@@ -25,7 +25,7 @@ VERGE=[  # side, from, to, width from the road edge to the barrier
  ('right',1950,150,3.0),('right',150,190,6.0),('left',1940,170,9.0),('left',170,330,15.0),('right',190,306,6.0),
  ('left',306,590,8.0),('right',306,590,8.0),('right',590,700,12.0),('left',690,800,6.0),('right',700,800,8.0),
  ('left',800,900,10.0),('right',800,900,5.0),('left',900,1150,8.0),('right',900,1180,9.0),('left',1150,1300,12.0),
- ('left',1300,1700,6.0),('right',1290,1700,10.0),('left',1700,1940,12.0),('right',1700,1950,6.0)]
+ ('left',1300,1700,4.0),('right',1290,1700,10.0),('left',1700,1940,12.0),('right',1700,1950,6.0)]
 BACK=1.2; FAR=14.0
 W_=c5(30,30,29); WS=c5(24,24,25); BLUE=c5(5,11,24); ORANGE=c5(16,11,7); ORANGE_D=c5(11,8,5); GREY=c5(18,18,19); DGREY=c5(9,9,10)
 FGREY=c5(15,16,18); YELLOW=c5(30,25,3); BLACK=c5(3,3,4); NOISE=c5(19,19,18); NOISE_D=c5(15,15,15); RAIL=c5(27,27,28); GREENF=c5(8,15,10)
@@ -40,6 +40,7 @@ WALL_KINDS={
  'board':[('band',BLACK,1.3,3.3)],
  'guardrail':[('band',RAIL,0.25,0.5),('band',RAIL,0.65,0.9),('posts',GREY,4.0,0.12,0,0.95,0.0)],
  'fence':[('band',FGREY,3.3,3.45),('band',FGREY,2.5,2.6),('band',FGREY,1.7,1.8),('band',FGREY,0.9,1.0),('posts',DGREY,5.0,0.3,0,3.9,0.0)],
+ 'fence-tall':[('band',FGREY,4.6,4.75),('band',FGREY,3.7,3.8),('band',FGREY,2.8,2.9),('band',FGREY,1.9,2.0),('band',FGREY,1.0,1.1),('posts',DGREY,6.0,0.35,0,5.4,0.0)],
  'fence-green':[('band',GREENF,0,1.6),('posts',DGREY,3.0,0.1,0,1.7,0.0)],
  'noise':[('band',NOISE,0,7.0),('posts',NOISE_D,4.0,0.2,0,7.0,0.0),('band',NOISE_D,6.8,7.0),('band',NOISE_D,3.4,3.5)],
  'tyres':[('band',DGREY,0,0.9),('posts',BLACK,0.6,0.1,0,0.9,0.0)],
@@ -47,11 +48,11 @@ WALL_KINDS={
 WALLS=[  # side, line, from, to, kind
  ('right','verge',1950,25,'pit'),('right','verge',25,150,'pitboards'),('right','verge',150,590,'guardrail'),('right','verge',590,700,'banner'),
  ('right','verge',700,860,'orange'),('right','verge',860,1010,'white'),('right','verge',1010,1180,'orange'),('right','verge',1180,1950,'guardrail'),
- ('left','verge',1940,170,'banner'),('left','verge',170,330,'cover'),('left','verge',170,330,'board'),('left','verge',330,420,'white'),('left','verge',420,590,'guardrail'),
+ ('left','verge',1940,170,'banner'),('left','verge',170,290,'cover'),('left','verge',170,290,'board'),('left','verge',290,420,'banner'),('left','verge',420,590,'guardrail'),
  ('left','verge',590,690,'guardrail'),('left','verge',690,800,'orange'),('left','verge',800,900,'yellow'),
  ('left','verge',900,1150,'orange'),('left','verge',1150,1300,'white'),('left','verge',1300,1700,'guardrail'),('left','verge',1700,1940,'white'),
  ('left','back',1940,330,'fence'),('right','back',590,700,'fence'),('left','back',800,1150,'fence'),
- ('left','back',1150,1310,'noise'),('left','back',1310,1700,'fence'),('right','back',1290,1700,'fence'),('left','back',1700,1940,'fence'),
+ ('left','back',1150,1310,'noise'),('left','back',1310,1700,'fence-tall'),('right','back',1290,1700,'fence'),('left','back',1700,1940,'fence'),
  ('right','back',150,190,'fence'),
 ]
 # ---- sprites -----------------------------------------------------------------
@@ -76,7 +77,7 @@ SPRITES=[
  {'image':'board-advan','s':212.0,'l':V('left',0.4),'up':1.5,'every':7.0,'count':15},
  {'image':'tsukuba-shed','s':500.0,'l':V('left',-16)},
  {'image':'tsukuba-paddock','s':545.0,'l':V('right',13)},
- {'image':'tsukuba-hairpin-stand','s':628.0,'l':V('right',9)},
+ {'image':'tsukuba-hairpin-stand','s':628.0,'l':V('right',26)},
  {'image':'board-bridgestone','s':660.0,'l':V('right',7),'up':0.8},
  {'image':'board-matsunaga','s':676.0,'l':V('right',7),'up':0.8},
  {'image':'board-blank','s':690.0,'l':V('right',7),'up':0.8},
@@ -90,8 +91,8 @@ SPRITES=[
  {'image':'trees-a','s':1140.0,'l':V('left',-25)},
  {'image':'trees-b','s':1225.0,'l':V('left',-38),'up':3.0},
  {'image':'treeline','s':1330.0,'l':V('left',-30),'every':55.0,'count':7},
- {'image':'trees-b','s':1630.0,'l':V('left',-9),'every':40.0,'count':3},
- {'image':'tsukuba-final-stand','s':1850.0,'l':V('left',-12)},
- {'image':'board-wakos','s':1895.0,'l':V('left',-5)},
+ {'image':'trees-b','s':1675.0,'l':V('left',-14),'every':32.0,'count':3},
+ {'image':'tsukuba-final-stand','s':1885.0,'l':V('left',-26)},
+ {'image':'board-wakos','s':1935.0,'l':V('left',-5)},
  {'image':'treeline','s':1760.0,'l':V('left',-40)},
 ]
