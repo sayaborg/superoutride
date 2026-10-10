@@ -13,6 +13,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run format:check`        | Check formatting                                                    |
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
 | `npm test`                    | All checks, build, startup smoke and driving scenarios              |
+| `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
 
 ### Driving scenarios
@@ -354,6 +355,22 @@ npm run sprite -- import tree
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it as
 `content/images/<name>.json` (replacing one of that name).
+
+### Pictures command
+
+The pictures command generates one vehicle sprite set by the
+[vehicle picture generator](image-assets.md#vehicle-picture-generator), printing one JSON result (or the diagnostics,
+exiting 1):
+
+```sh
+npm run pictures -- testarossa
+```
+
+It reads `content/vehicle-picture-sources/<set>.json` and the four views beside it, the mechanics document the recipe
+names and the product camera definition, and writes `content/sprites/<set>.json` (replacing it). It also writes a check
+sheet, `dist/pictures/<set>.png`: every full-size picture over its shadow, eight directions a row, which nothing reads.
+A set is generated again when its sources, its vehicle's dimensions or the camera definition change; the build admits
+the saved set and generates nothing.
 
 ### Listening on devices
 

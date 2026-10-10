@@ -323,11 +323,94 @@ with diagnostics at the set document's own pointers, and assembles the delivered
 The vehicle domain admits the library and owns its sets at run time: for a vehicle's color and lamp state it makes the
 set's one 16-slot palette once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic sprite reader.
 
-The provisional pictures are one set per vehicle, named by its id in lower case with `_` as `-` (`testarossa`,
-`911-turbo-3-3`): drawn by code, original, for an earlier camera, and converted mechanically until production art
-replaces them. Their size `k` is the reduction at octave `k` of a full-size picture whose anchor sits at the vehicle's
-base point (where a camera 1.75 m up and 6 m behind its ground line sees half the vehicle's width behind it), each
-reduced texel taking the set slot nearest its mixture's color in every color and lamp state; their shadows are the vehicle's overall length
-by width rectangle seen by each size's contract camera. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5
-bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color, the brake lamp's off and on colors
-13379 and 31974.
+`testarossa` is generated ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
+one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
+earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
+octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
+behind its ground line sees half the vehicle's width behind it), each reduced texel taking the set slot nearest its
+mixture's color in every color and lamp state; their shadows are the vehicle's overall length by width rectangle seen
+by each size's contract camera. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5 bank images
+(`bankDegrees` 60). Each has an `original` and an `alternate` color, the brake lamp's off and on colors 13379 and 31974.
+
+## Vehicle picture generator
+
+A generated set is made from four views of the vehicle and a recipe, saved under `content/vehicle-picture-sources/`:
+`<set>.json` and the views `<set>-front.png`, `<set>-side.png`, `<set>-rear.png` and `<set>-top.png`. They are
+production-only data, which the build does not deliver. `npm run pictures -- <set>`
+([Development](development.md#pictures-command)) writes the set, `content/sprites/<set>.json`; the same sources, vehicle
+mechanics document and camera definition always give the same file.
+
+**Views.** Each view shows the whole vehicle squarely, without perspective or from far enough to have little: the side
+view with the nose to the left and the tyres on the road, the top view with the nose to the left, the front and rear
+views upright. The background is either near-white (`background: "white"`: pixels within 45 of white, summed over the
+channels, joined to the picture's border) or transparent (`"alpha"`: alpha below 128); the vehicle is the largest part
+that is not background. The views need not share a scale or agree exactly: the mechanics document is the one
+authority for the vehicle's dimensions, and each view is fitted to it.
+
+**Recipe.** `superoutride.vehicle-picture-recipe` version 1; rows and columns are pixel-centre coordinates of the named
+view, stations and heights are metres in vehicle coordinates (origin at the base point, z forward, y up):
+
+```text
+{format, version, vehicle: "TESTAROSSA", yawVariants: 64, background: "white" | "alpha",
+ side:  {road, roof, frontEnd, rearEnd, frontWheel, rearWheel, frontOverhangShare},
+ top:   {centre, width, frontEnd, rearEnd, ties: [[sideColumn, topColumn], ...]},
+ front: {centre, width, road, roof},
+ rear:  {centre, width, road, roof, undersideFromFront},
+ outlines: {rearUntil, frontFrom},
+ mirrors: {from, to, low, high, outside},
+ glass: {above, from, to},
+ paint: {color: [r, g, b], tolerance, brightness},
+ brakeLamps: [[left, top, right, bottom], ...],
+ slots: {body, neutral, glass: 2, accent}, bodyKeys: [brightness, ...],
+ palettes: {original: [[r, g, b] × 14], alternate: [...]}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
+```
+
+`vehicle` names the mechanics document (`content/vehicles/<vehicle>.json`) whose overall length, width and height,
+axle distances from the centre of mass and wheel radii the solid takes. Colors are written as 8-bit channels and saved
+in the set as RGB555.
+
+**Fit.** Heights follow each view's `road` and `roof` rows and the overall height; widths follow `width`, the overall
+width in that view's pixels, about `centre`. Stations follow the side view: its wheel centres stand at the axles and
+its ends at the overall length, the two overhangs sharing what the axles leave by `frontOverhangShare`. The view is
+stretched between those marks only; within 1.12 wheel radii of a hub it keeps the height's scale, so a wheel stays
+round. The top view's ends stand at the same stations, and each tie names a column of the side view and the top-view
+column showing the same station (the base of the windscreen, the roof's ends).
+
+**Solid.** The solid is the space every outline allows, on a 1 cm grid: inside the side outline, inside the top
+outline, and inside a facing outline that passes from the rear view's to the front view's between the stations
+`rearUntil` and `frontFrom` (their signed distances blended by a smooth step). Outlines are made symmetric about the
+centre line. Below `undersideFromFront` the rear outline is no wider than the front's, which removes a floor shadow in
+a rear view. Parts of a facing outline thinner than a 9 cm disk whose mean height lies between `low` and `high` and
+whose mean distance from the centre line exceeds `outside` are mirrors: both facing outlines lose them, and the front
+view's are added back at the stations between `from` and `to` where the top view stands 4 cm proud of the body's
+median half width there (taken from 0.7 m behind `from`). The solid's edges are rounded by a Gaussian of 2.5 cm, which keeps the tyres on the road.
+
+**Colors.** A surface point takes each view's color in proportion to the fourth power of how squarely it faces that
+view (the side view for both sides, the front view for surfaces facing forward, the rear view for those facing back,
+the top view for those facing up), where the view shows the vehicle at least 3 pixels inside its outline; surfaces
+facing down are dark. Inside 0.70 of each tyre's radius the side view is smeared about the hub, so wheels are drawn
+turning. A surface is paint when it is at least `paint.brightness` bright (its largest channel) and its chromaticity
+(each channel over their sum) lies within `paint.tolerance` of `paint.color`'s, wheels excepted; glass when it is
+darker than 75, above `glass.above` and between the stations `glass.from` and `glass.to`; brake lamp when the rear
+view colors it within a `brakeLamps` rectangle and 0.4 m of the tail.
+
+**Light.** Every picture is lit alike, as under an open sky: paint and glass mirror a sky several times brighter than
+the paint and a darker road, more strongly at grazing angles; a sun high and ahead to the right adds a glint; paint's
+outward creases facing the sky catch the light; surfaces near the road are darker. Each direction and size is lit as
+its own camera sees it.
+
+**Drawing.** Each size of each direction is drawn by its contract camera ([Picture contract](#picture-contract)) at 6
+camera pixels per texel side at full size and twice as many at each smaller size. A texel is opaque when at least
+half of it is covered, and paint, glass or lamp when at least half of its covered part is. The shadow is the solid's
+outline seen from above, on the road, drawn the same way.
+
+**Palette.** The 14 slots are, in order, `slots.body` body colors from the highlight to the darkest, `slots.neutral`
+neutrals from dark to light, the dark and the light glass color, and `slots.accent` accents. A paint texel takes the
+body slot whose `bodyKeys` brightness (`0.45 r + 0.35 g + 0.20 b` of its lit color) is nearest; a glass texel takes
+the lightest neutral above a mean of 150, the light glass color above 105 and the dark one below; a lamp texel takes
+slot 15; any other texel takes the nearest color among the neutrals and accents of the first palette. Every palette of
+the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
+rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
+
+TESTAROSSA's body colors follow the reds of the reference game's car as seen in a screenshot; its `alternate` is a
+yellow of the same steps. The reference photographs and screenshots used to judge a set are not saved here.

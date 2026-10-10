@@ -60,8 +60,9 @@
 - The camera and pictures follow K's CAM decisions: the camera stands 6 m behind and 2 m above the player's base point
   and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
   arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
-  six sizes ([Picture contract](image-assets.md#picture-contract)). The production vehicle pictures and shadows are
-  generated from four views of each vehicle in separate work; until they arrive the provisional pictures are converted.
+  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's pictures and shadows are generated
+  from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
+  vehicles keep their converted provisional pictures until their views are made.
 
 Next PR: the next PR of Stage 16, awaiting its proposal.
 
@@ -287,6 +288,7 @@ and switching is a cut.
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                     |
 | Front end        | Attract demo idle time                                                                                                                                                                                               |
 | HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                                                             |
+| HUD              | Where the vehicle-state elements go now that the player's picture reaches below its base point's row (the steering picture lies over a generated car's tail)                                                         |
 | HUD              | Whether HUD text has a backing (none today)                                                                                                                                                                          |
 | Steering         | Whether the steering limit, measured from the travel direction, leaves enough authority while yawing: steady cornering peaks near 2.3 G instead of 2.4 G and a 7 m lane change at 240 km/h overshoots (real devices) |
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                         |

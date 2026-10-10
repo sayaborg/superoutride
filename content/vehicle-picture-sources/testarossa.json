@@ -1,0 +1,74 @@
+{
+  "format": "superoutride.vehicle-picture-recipe",
+  "version": 1,
+  "vehicle": "TESTAROSSA",
+  "yawVariants": 64,
+  "background": "white",
+  "side": {
+    "road": 732.5,
+    "roof": 333.5,
+    "frontEnd": 11,
+    "rearEnd": 1437.5,
+    "frontWheel": 324.5,
+    "rearWheel": 1167.5,
+    "frontOverhangShare": 0.56
+  },
+  "top": {
+    "centre": 523.5,
+    "width": 576,
+    "frontEnd": 27,
+    "rearEnd": 1422.5,
+    "ties": [
+      [455, 440],
+      [690, 665],
+      [985, 970]
+    ]
+  },
+  "front": { "centre": 721.5, "width": 1330, "road": 923.5, "roof": 164.5 },
+  "rear": { "centre": 762, "width": 1453, "road": 934, "roof": 117, "undersideFromFront": 0.2 },
+  "outlines": { "rearUntil": -0.5, "frontFrom": 0.5 },
+  "mirrors": { "from": 0.3, "to": 1.4, "low": 0.68, "high": 1, "outside": 0.7 },
+  "glass": { "above": 0.6, "from": -0.6, "to": 1.3 },
+  "paint": { "color": [225, 28, 28], "tolerance": 0.45, "brightness": 70 },
+  "brakeLamps": [
+    [70, 497, 352, 566],
+    [1168, 497, 1452, 566]
+  ],
+  "slots": { "body": 7, "neutral": 4, "glass": 2, "accent": 1 },
+  "bodyKeys": [240, 205, 178, 145, 105, 75, 48],
+  "palettes": {
+    "original": [
+      [248, 224, 224],
+      [240, 160, 160],
+      [212, 104, 88],
+      [192, 80, 72],
+      [160, 40, 40],
+      [128, 0, 0],
+      [96, 0, 0],
+      [16, 16, 16],
+      [64, 64, 72],
+      [128, 128, 136],
+      [200, 200, 208],
+      [32, 56, 128],
+      [88, 136, 216],
+      [248, 168, 0]
+    ],
+    "alternate": [
+      [255, 250, 216],
+      [252, 236, 140],
+      [244, 212, 64],
+      [232, 188, 24],
+      [196, 148, 8],
+      [148, 104, 0],
+      [104, 70, 0],
+      [16, 16, 16],
+      [64, 64, 72],
+      [128, 128, 136],
+      [200, 200, 208],
+      [32, 56, 128],
+      [88, 136, 216],
+      [248, 168, 0]
+    ]
+  },
+  "brakeLamp": { "off": [125, 12, 18], "on": [255, 70, 40] }
+}
