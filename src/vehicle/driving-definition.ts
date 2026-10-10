@@ -44,5 +44,5 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 16;
+  readonly version: 17;
 }

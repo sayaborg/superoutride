@@ -29,6 +29,7 @@ import {
   vehicleSpeed,
   type BodyKinematics,
   type VehicleDynamicsState,
+  VEHICLE_GRAVITY,
 } from './vehicle-state.js';
 import { createContactWorkspace, deriveContactObservation, reorientContactObservation } from './vehicle-contact.js';
 import { applySuspensionBumpStops, createBumpStopWorkspace } from './suspension-bump-stop.js';
@@ -185,7 +186,7 @@ export function updateVehicle(
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
-  const { maxRoadWheelSteer, reference, limitDemand } = model.steering;
+  const { maxRoadWheelSteer, reference, utilization, limitDemand } = model.steering;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
@@ -204,15 +205,26 @@ export function updateVehicle(
     );
     // The driver's input is a fraction of the steering limit: the front tire's pure-lateral slip at the steering
     // utilization on the material under the front wheel (unit grip where there is none), as an angle from the travel
-    // direction of the reference point.
+    // direction of the reference point. `turn` adds the front axle's angle on the tightest steady flat turn at the
+    // utilization and the current speed.
+    const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
     const travelDirection = vehicleTravelDirection(
       body,
-      reference === 'center' ? body.velocity : frontBeforeSteer.reachVelocity,
+      reference === 'front' ? frontBeforeSteer.reachVelocity : body.velocity,
       STEERING_LOW_SPEED_REGULARIZATION,
     );
+    const slipAngle = Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand));
     const limit = Math.min(
       maxRoadWheelSteer,
-      Math.atan(lateralSlipAtDemand(model.tire, frontBeforeSteer.surface.material?.gripFactor ?? 1, limitDemand)),
+      reference === 'turn'
+        ? slipAngle +
+            steadyTurnFrontAngle(
+              body,
+              compiledVehicle.frontAxle,
+              utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
+              STEERING_LOW_SPEED_REGULARIZATION,
+            )
+        : slipAngle,
     );
     const automaticMax = maxRoadWheelSteer - limit;
     vehicle.frontSteerAngle = clamp(travelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
@@ -343,6 +355,24 @@ export function updateVehicle(
 }
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
+
+/**
+ * The front axle's angle `atan(frontAxle/Rmin)` on the tightest steady turn at the body's planar speed, where
+ * `Rmin = V^2/lateralAcceleration` with `V^2` regularized at standstill.
+ */
+function steadyTurnFrontAngle(
+  body: BodyKinematics,
+  frontAxle: number,
+  lateralAcceleration: number,
+  lowSpeedRegularization: number,
+): number {
+  const longitudinal = dot3(body.velocity, body.forward);
+  const lateral = dot3(body.velocity, body.right);
+  return Math.atan(
+    (frontAxle * lateralAcceleration) /
+      (longitudinal * longitudinal + lateral * lateral + lowSpeedRegularization * lowSpeedRegularization),
+  );
+}
 
 /** The travel direction of a point moving at `velocity`, in the body-pitch plane; finite and zero at rest. */
 function vehicleTravelDirection(body: BodyKinematics, velocity: Vec3, lowSpeedRegularization: number): number {

@@ -6,7 +6,7 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "922d13f0ba8b44e1d5986a337218a3cf1da116ae73b2225fa7a42d98bd05dd1c",
+      "vehicleSha256": "3520904bc9aa47268e272ca37333bf8f5dd442f1b13eec83f95ad6634ca8d3e5",
       "initialSeconds": 65.65278854874265,
       "after": [["trialA-CP1", [6.724386650646807]]],
       "schedule": {

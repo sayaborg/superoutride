@@ -410,9 +410,12 @@ export function toggleDrivingWheelSlip(definition: DrivingDocument): DrivingDocu
   return { ...definition, wheelSlip: !definition.wheelSlip };
 }
 
-/** The steering reference is the other switch: the body's centre of mass or the front contact. */
-export function toggleDrivingSteeringReference(definition: DrivingDocument): DrivingDocument {
-  return { ...definition, steeringReference: definition.steeringReference === 'center' ? 'front' : 'center' };
+const STEERING_REFERENCES = ['center', 'front', 'turn'] as const;
+
+/** The steering reference cycles: the centre of mass, the front contact, the centre of mass with the turn's geometry. */
+export function cycleDrivingSteeringReference(definition: DrivingDocument): DrivingDocument {
+  const index = STEERING_REFERENCES.indexOf(definition.steeringReference);
+  return { ...definition, steeringReference: STEERING_REFERENCES[(index + 1) % STEERING_REFERENCES.length]! };
 }
 
 export function formatDrivingTuningValue(id: string, definition: DrivingDefinition): string {

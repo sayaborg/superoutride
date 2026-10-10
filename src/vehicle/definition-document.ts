@@ -271,7 +271,7 @@ export function compileDrivingDocument(
         'bodyContact',
       ],
       'superoutride.driving-definition',
-      16,
+      17,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -295,7 +295,7 @@ export function compileDrivingDocument(
     const contact = readRecord(v.bodyContact, '/bodyContact', contactKeys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 16,
+      version: 17,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
       steeringReference: readString(v.steeringReference, '/steeringReference'),
       throttle: pedal('throttle'),
