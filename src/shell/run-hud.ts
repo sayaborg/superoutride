@@ -1,4 +1,4 @@
-import { HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
+import { HUD_PICTURE_FRAMES, HUD_PICTURE_TILES, HUD_PICTURES, HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
 import { MODE_NAMES, type RunRequest } from './run-request.js';
@@ -49,8 +49,8 @@ const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', 
 
 /**
  * Where every HUD element sits in the 40×30 text grid, as [column, row]; a value written right-aligned ends at its
- * column, `'center'` centres a line on its row, and a signal lamp's place is its top-left tile. Moving an element is a
- * change of these numbers only.
+ * column, `'center'` centres a line on its row, and a signal lamp's, picture's or input bar's place is its top-left
+ * tile. Moving an element is a change of these numbers only.
  */
 export const HUD_LAYOUT = Object.freeze({
   timeLabel: [1, 1],
@@ -79,14 +79,14 @@ export const HUD_LAYOUT = Object.freeze({
   lamp3: [23, 13],
   outcome: ['center', 16],
   cause: ['center', 17],
-  steerLabel: [1, 26],
-  steerBar: [7, 26],
-  gasLabel: [1, 27],
-  gasBar: [7, 27],
-  brakeLabel: [1, 28],
-  brakeBar: [7, 28],
-  rpmLabel: [1, 29],
-  rpmBar: [7, 29],
+  steeringPicture: [18, 25],
+  steeringInput: [18, 29],
+  gasLabel: [0, 27],
+  gasBar: [6, 27],
+  brakeLabel: [0, 28],
+  brakeBar: [6, 28],
+  rpmLabel: [0, 29],
+  rpmBar: [6, 29],
 } as const satisfies Record<string, readonly [number | 'center', number]>);
 
 type Place = keyof typeof HUD_LAYOUT;
@@ -140,6 +140,28 @@ const writeBar = (
   }
 };
 const inputMark = (fraction: number) => ({ pixel: barPixel(fraction), palette: TEXT_PALETTES.YELLOW });
+
+/**
+ * The steering picture's ratio of the drawn wheel's angle to the front road wheel's, by form: a car's steering wheel,
+ * a bike's top bridge.
+ */
+const STEERING_PICTURES = Object.freeze({
+  car: { picture: HUD_PICTURES.STEERING_CAR, ratio: 18 },
+  bike: { picture: HUD_PICTURES.STEERING_BIKE, ratio: 1 },
+});
+/** A picture's frame `round(angle/step)` modulo the frames, clockwise; the picture is never rotated at run time. */
+const writePicture = (text: TextLayer, place: Place, first: number, angle: number) => {
+  const step = (2 * Math.PI) / HUD_PICTURE_FRAMES,
+    frame = ((Math.round(angle / step) % HUD_PICTURE_FRAMES) + HUD_PICTURE_FRAMES) % HUD_PICTURE_FRAMES;
+  const column = columnOf(place, HUD_PICTURE_TILES),
+    row = HUD_LAYOUT[place][1],
+    base = first + frame * HUD_PICTURE_TILES * HUD_PICTURE_TILES;
+  for (let y = 0; y < HUD_PICTURE_TILES; y++)
+    for (let x = 0; x < HUD_PICTURE_TILES; x++)
+      text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, TEXT_PALETTES.PICTURE);
+};
+/** The input bar's cells on each side of its centre; 8 pixels each. */
+const INPUT_HALF_CELLS = 2;
 
 const extended = ({ clock }: RaceFacts) => {
   const extension = clock.lastExtension;
@@ -250,16 +272,33 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // Steering: the delivered offset fills from the centre (DARK mark); the input is the yellow mark.
+    // The front road wheel's actual angle, as the form's steering picture turns with it.
     when: () => true,
-    write({ player, input }, text) {
-      const half = BAR_PIXELS / 2,
-        actual = half + Math.round(player.control.steering * half);
-      write(text, 'steerLabel', 'STEER');
-      writeBar(text, 'steerBar', Math.min(half, actual), Math.max(half, actual), null, [
-        { pixel: half, palette: TEXT_PALETTES.DARK },
-        inputMark((1 + input.steering) / 2),
-      ]);
+    write({ player }, text) {
+      const { picture, ratio } = STEERING_PICTURES[player.form];
+      writePicture(text, 'steeringPicture', picture, player.frontSteerAngle * ratio);
+    },
+  },
+  {
+    // The player's steering input from the centre, one pixel per sixteenth, yellow over the bar ground.
+    when: () => true,
+    write({ input }, text) {
+      const half = INPUT_HALF_CELLS * 8,
+        pixels = Math.round(Math.abs(input.steering) * half),
+        column = columnOf('steeringInput', 1),
+        row = HUD_LAYOUT.steeringInput[1];
+      for (let cell = 0; cell < INPUT_HALF_CELLS; cell++) {
+        const filled = Math.max(0, Math.min(8, pixels - cell * 8));
+        const right = input.steering > 0 ? filled : 0,
+          left = input.steering < 0 ? filled : 0;
+        text.put(column + INPUT_HALF_CELLS + cell, row, HUD_TILES[`INPUT_FILL_${right}`]!, TEXT_PALETTES.YELLOW);
+        text.put(
+          column + INPUT_HALF_CELLS - 1 - cell,
+          row,
+          HUD_TILES[left > 0 && left < 8 ? `INPUT_FILL_RIGHT_${left}` : `INPUT_FILL_${left}`]!,
+          TEXT_PALETTES.YELLOW,
+        );
+      }
     },
   },
   {

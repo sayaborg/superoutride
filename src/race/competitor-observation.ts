@@ -20,9 +20,10 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly brakeLampOn: boolean;
   /** Speed over ground, m/s. */
   readonly speed: number;
-  /** The vehicle's actual controls: the delivered driver steering offset as a fraction of its maximum, in [-1, 1], and
-   * the throttle and brake actuators, in [0, 1]. */
-  readonly control: { readonly steering: number; readonly throttle: number; readonly brake: number };
+  /** The front road wheel's angle to the body, radians, positive to the right. */
+  readonly frontSteerAngle: number;
+  /** The vehicle's actual controls: the throttle and brake actuators, in [0, 1]. */
+  readonly control: { readonly throttle: number; readonly brake: number };
   readonly powertrain: {
     /** The selected forward gear, from 1. */
     readonly gear: number;
@@ -85,7 +86,8 @@ export function createCompetitorObservation(
     lateralAcceleration: 0,
     brakeLampOn: false,
     speed: 0,
-    control: { steering: 0, throttle: 0, brake: 0 },
+    frontSteerAngle: 0,
+    control: { throttle: 0, brake: 0 },
     powertrain: {
       gear: 1,
       engineRpm: 0,
@@ -123,8 +125,8 @@ export function writeCompetitorObservation(
   out.lateralAcceleration = vehicle.lateralAcceleration;
   out.brakeLampOn = Number(input.brake) > 0;
   out.speed = vehicle.speed;
+  out.frontSteerAngle = vehicle.frontSteerAngle;
   const { control } = vehicle;
-  out.control.steering = control.steeringActuator;
   out.control.throttle = control.throttleActuator;
   out.control.brake = control.brakeActuator;
   const { powertrain } = vehicle;

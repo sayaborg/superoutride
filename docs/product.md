@@ -236,8 +236,9 @@ elements, each reading one observation; the active Session rules determine which
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road and the player's vehicle stay clear. Times read `1'23"456`. TIME turns red under ten
 seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
-lap's time holds in yellow for two seconds. Steering, throttle and brake are bars whose fill is the
-vehicle's actual value and whose mark is the player's input; the tachometer bar is red from the
+lap's time holds in yellow for two seconds. Steering is a picture of the steering wheel (a bike's top
+bridge) turned as the front wheel actually is, over a bar of the player's input; throttle and brake are
+bars whose fill is the vehicle's actual value and whose mark is the player's input; the tachometer bar is red from the
 redline and wholly red while the limiter cuts fuel; the gear turns yellow briefly at a shift. Three
 signal lamps light red one per second and turn green at GO. Text and HUD parts use one original font
 of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the same indexed format as
