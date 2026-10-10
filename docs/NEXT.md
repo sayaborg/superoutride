@@ -57,7 +57,13 @@
   origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
   centres derived), and images named by file.
 
-Next PR: **16-2** — the next PR of Stage 16, awaiting its proposal.
+- The camera and pictures follow K's CAM decisions: the camera stands 6 m behind and 2 m above the player's base point
+  and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
+  arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
+  six sizes ([Picture contract](image-assets.md#picture-contract)). The production vehicle pictures and shadows are
+  generated from four views of each vehicle in separate work; until they arrive the provisional pictures are converted.
+
+Next PR: the next PR of Stage 16, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -208,8 +214,6 @@ vehicle-infeasible intervals as remaster departures. Footage and vehicle choices
 
 ### Inspection and art
 
-Draw vehicle bodies as polyhedra rather than pictures (K's decision; their form is not yet decided).
-
 The course editor is the human inspection and adjustment view over the file/CLI workflow. Decide the default rounding
 steps and joining tolerances of its cleaning operations while producing the first product courses, and which findings
 become build rules once those defaults hold. Show anchor displacement after geometry changes if producing courses
@@ -250,14 +254,13 @@ space. Record margins and remaster departures with the content.
 Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), wet asphalt for rain sections, packed snow, mud and shallow water (off-road), and cobblestones. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
-palettes (for example a night section), adding a lighting axis beside color and the brake-lamp animation. Each
-lighting is a hand-authored palette per color that recolors the whole image, lit headlamps included; only the brake
-lamp keeps its reserved slot, with off and on colors declared per sprite set and lighting. Each vehicle uses the
-lighting at its own chainage, and switching is a cut.
+palettes (for example a night section), adding a lighting axis beside color and lamp state in each picture size's
+palettes, which recolor the whole picture, lit headlamps included. Each vehicle uses the lighting at its own chainage,
+and switching is a cut.
 
 ### Pending product decisions
 
-- Vehicle sprite resolution: decide the yaw division count (currently 24) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
+- Vehicle sprite resolution: decide the yaw division count (currently 48) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
 
 | Area             | Decision or future capability                                                                                                                                                                                        |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -284,9 +287,12 @@ lighting at its own chainage, and switching is a cut.
 | HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                                                             |
 | HUD              | Whether HUD text has a backing (none today)                                                                                                                                                                          |
 | Steering         | Whether the steering limit, measured from the travel direction, leaves enough authority while yawing: steady cornering peaks near 2.3 G instead of 2.4 G and a 7 m lane change at 240 km/h overshoots (real devices) |
-| Camera           | Height spring (frequency and damping ratio) and yaw response (real-device evaluation of the DEV choices)                                                                                                             |
+| Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                         |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                 |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                              |
+| Vehicle art      | Whether distant vehicles' brake lamps are made to stand out (today they fade into the body color at a distance)                                                                                                      |
+| Vehicle art      | Two-wheeler pictures: whether the rider is part of the generated solid, and the bank axis and base point                                                                                                             |
+| Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                          |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                                  |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                                |
 | Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                                   |
