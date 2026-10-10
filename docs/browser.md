@@ -317,16 +317,24 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                             |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
+| 25–29 | Columns 18–21: the steering picture (4×4 tiles) and under it, in row 29's upper 4 pixels, the steering input bar   |
 | 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
-| 26–29 | Bars of 10 cells (1-pixel steps) between end caps: STEER, GAS, BRAKE and RPM                                       |
+| 27–29 | Bars of 10 cells (1-pixel steps) between end caps: GAS, BRAKE and RPM                                              |
 
-Steering, throttle and brake are bars whose fill is the vehicle's actual value from the player's observation (the
-steering actuator, the road wheel's offset from automatic steering as a fraction of the steering limit, from the
-centre; the throttle and brake actuators) and whose
-yellow 1-pixel mark is the player's input from the final input sample; a dark mark shows the steering centre. The
+The steering picture, in the middle of the frame's width, shows where the front wheel actually points: the player
+observation's front road-wheel angle to the body times the HUD's steering ratio for the vehicle's form, 18 for a car
+(its steering wheel) and 1 for a bike (its top bridge), one value per form. The picture has 32 frames 11.25° apart,
+frame 0 straight ahead and each next frame clockwise; the HUD draws frame `round(angle/11.25°)` modulo 32, so turning
+right turns it clockwise and a turn past a full revolution repeats the frames. The picture is never rotated at run
+time. Under it the input bar shows only the player's steering input from the final input sample, from the bar's
+centre (between columns 19 and 20) toward the input's side, `round(|input|*16)` of its 16 pixels a side, yellow over
+the bar ground, with no end caps.
+
+Throttle and brake are bars whose fill is the vehicle's actual value from the player's observation (the throttle and
+brake actuators) and whose yellow 1-pixel mark is the player's input from the final input sample. The
 tachometer bar runs from 0 to the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
 definition's margin): cells from the redline on are red, with a red mark at the redline, and the whole bar is red while
-the limiter cuts fuel. One bar part draws all four, its marks on the text layer's overlay tiles.
+the limiter cuts fuel. One bar part draws all three, its marks on the text layer's overlay tiles.
 
 Rows 8 to 24, the road and the player's vehicle, hold only these passing notices. While the PAUSE menu or RESULT is
 over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.
@@ -341,7 +349,7 @@ Other text is white. These lengths sit in one constant.
 
 ## Performance HUD
 
-The DEV performance HUD (with `dev=1`) displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
+The DEV performance HUD (with `dev=1`), a line at the top of the page, displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
 The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
@@ -356,7 +364,7 @@ CPU time adds fixed-step work since the preceding render to rendering/display wo
 interval is elapsed time between completed frames. FPS and frame/step/interval maxima reset each
 reporting window.
 
-With `dev=1` a second line at the bottom of the page, the audio timing HUD
+With `dev=1` a second line under the performance line at the top of the page, the audio timing HUD
 ([`audio-timing-hud.ts`](../src/shell/audio-timing-hud.ts)), shows the AudioContext's timing every half second, to
 find when engine sound starts to lag: its state and sample rate, `baseLatency`, `outputLatency`, the stamp lag
 (`currentTime` less `getOutputTimestamp().contextTime`), the stamp's age, the clock deficit (wall time less context

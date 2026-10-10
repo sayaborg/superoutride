@@ -54,7 +54,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | `segment`             | A compiled planar straight or circular arc, one per authored plan element.                                                                                               |
 | `joint`               | A station a Position is measured from: the start of a plan element, or a Section's end (`"end"`).                                                                        |
 | `Definition`          | An author-written parameter record; vehicle and game-wide driving definitions have versioned JSON documents. Validated immutable products use `Compiled*`.               |
-| `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, sound ID and HUD steering ratio.                          |
+| `listing`             | A vehicle's non-mechanical document: form, labels and metadata, selection order, sprite set and default color, and sound ID; the HUD steering ratio is per form.         |
 | `Compiled*`           | A validated immutable product derived from authored inputs.                                                                                                              |
 | `Reader`              | A query interface over admitted data; it does not own the consumer's live simulation state.                                                                              |
 | `Route`               | The one selected, append-only sequence of Section occurrences measured from the entry (start 0); all vehicles share its chainage and consumers read it only.             |

@@ -122,23 +122,33 @@ palette fields without a tile arrangement:
 Patterns are 8 by 8 and, unlike the background, admit index 0 as transparent. Patterns 0 through 94 are the
 printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table.
 The HUD part tiles follow them in one fixed order that code names, the same way, so their mapping needs no saved
-table either; the document must hold at least all of them, and later patterns are free. Pattern 0, the space, must
+table either, and the HUD pictures follow them; the document must hold at least all of these, and later patterns are
+free. Pattern 0, the space, must
 have only index 0: it is the empty tile.
 
-| Patterns | Names                   | Content                                                                   |
-| -------- | ----------------------- | ------------------------------------------------------------------------- |
-| 95–103   | `BAR_FILL_0`…`_8`       | A bar cell (rows 1–6) filled k pixels from the left in slot 1 over slot 3 |
-| 104–110  | `BAR_FILL_RIGHT_1`…`_7` | The same, filled k pixels from the right                                  |
-| 111–118  | `BAR_MARK_0`…`_7`       | A full-height line in column k (slot 1), drawn over a bar                 |
-| 119, 120 | `BAR_LEFT`, `BAR_RIGHT` | The bar's end caps                                                        |
-| 121–124  | `LAMP_ON_TL`…`_BR`      | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7        |
-| 125–128  | `LAMP_OFF_TL`…`_BR`     | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
+| Patterns | Names                     | Content                                                                   |
+| -------- | ------------------------- | ------------------------------------------------------------------------- |
+| 95–103   | `BAR_FILL_0`…`_8`         | A bar cell (rows 1–6) filled k pixels from the left in slot 1 over slot 3 |
+| 104–110  | `BAR_FILL_RIGHT_1`…`_7`   | The same, filled k pixels from the right                                  |
+| 111–118  | `BAR_MARK_0`…`_7`         | A full-height line in column k (slot 1), drawn over a bar                 |
+| 119, 120 | `BAR_LEFT`, `BAR_RIGHT`   | The bar's end caps                                                        |
+| 121–124  | `LAMP_ON_TL`…`_BR`        | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7        |
+| 125–128  | `LAMP_OFF_TL`…`_BR`       | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
+| 129–137  | `INPUT_FILL_0`…`_8`       | An input bar cell (rows 0–3) filled k pixels from the left, slot 1 over 3 |
+| 138–144  | `INPUT_FILL_RIGHT_1`…`_7` | The same, filled k pixels from the right                                  |
 
-Palettes 0 through 5 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal) and BAR
-(unlit lamps and empty HUD parts); later palettes are free. A document holds at most 65536 patterns and 256
+The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`): `STEERING_CAR`
+(patterns 145–656, a steering wheel) and then `STEERING_BIKE` (657–1168, a top bridge). Each picture is 32 frames of
+32×32 pixels, frame 0 upright and each next frame turned 11.25° clockwise; a frame is 4×4 tiles, its 16 patterns row
+by row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
+`16*f+4*r+c`. Pictures are drawn in the PICTURE palette, whose slots 1–6 are their own colors. Replacing a picture is
+replacing those patterns and colors in place; no table changes.
+
+Palettes 0 through 6 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal), BAR
+(unlit lamps and empty HUD parts) and PICTURE (the HUD pictures); later palettes are free. A document holds at most 65536 patterns and 256
 palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
 text grid cell keeps any admitted pair. A tile's palette chooses its color, so one lamp or bar
-tile serves every color. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
+tile serves every color. Every named palette but PICTURE uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
 ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body. The
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
 `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns

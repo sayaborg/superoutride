@@ -11,17 +11,18 @@ export const TEXT_CHARACTERS = /^[\x20-\x7e]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /**
- * Palettes 0 through 5 are named: the text colors, GREEN (signal lamps and normal) and BAR (unlit and empty HUD parts);
- * later palettes are free. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
- * ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body.
+ * Palettes 0 through 6 are named: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts) and
+ * PICTURE (the HUD pictures' own colors in slots 1 to 6); later palettes are free. Every other named palette uses the
+ * same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body.
  */
-export const TEXT_PALETTES = Object.freeze({ WHITE: 0, YELLOW: 1, RED: 2, DARK: 3, GREEN: 4, BAR: 5 });
+export const TEXT_PALETTES = Object.freeze({ WHITE: 0, YELLOW: 1, RED: 2, DARK: 3, GREEN: 4, BAR: 5, PICTURE: 6 });
 const NAMED_PALETTE_COUNT = Object.keys(TEXT_PALETTES).length;
 /**
  * The HUD part tiles follow the characters in this order, as the characters follow code order, so the mapping needs no
  * saved table. A bar cell is a 6-pixel-high bar in rows 1 to 6: `BAR_FILL_k` fills k pixels from the left in slot 1
  * over the slot 3 ground, `BAR_FILL_RIGHT_k` k pixels from the right; `BAR_MARK_k` is a full-height line in column k
- * drawn over a bar; `BAR_LEFT` and `BAR_RIGHT` close the bar. A signal lamp is 2 by 2 tiles, lit or unlit.
+ * drawn over a bar; `BAR_LEFT` and `BAR_RIGHT` close the bar. A signal lamp is 2 by 2 tiles, lit or unlit. An input
+ * cell, `INPUT_FILL_k` and `INPUT_FILL_RIGHT_k`, is the same as a bar cell 4 pixels high in rows 0 to 3.
  */
 const HUD_TILE_NAMES = [
   ...Array.from({ length: 9 }, (_, k) => `BAR_FILL_${k}`),
@@ -30,12 +31,28 @@ const HUD_TILE_NAMES = [
   'BAR_LEFT',
   'BAR_RIGHT',
   ...['ON', 'OFF'].flatMap((state) => ['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${state}_${part}`)),
+  ...Array.from({ length: 9 }, (_, k) => `INPUT_FILL_${k}`),
+  ...Array.from({ length: 7 }, (_, k) => `INPUT_FILL_RIGHT_${k + 1}`),
 ] as const;
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(
   Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, CHARACTER_COUNT + i])),
 );
-const PATTERN_COUNT = CHARACTER_COUNT + HUD_TILE_NAMES.length;
+/** A HUD picture's frame is 4 by 4 tiles (32 by 32 pixels); a picture has 32 frames. */
+export const HUD_PICTURE_TILES = 4;
+export const HUD_PICTURE_FRAMES = 32;
+const HUD_PICTURE_NAMES = ['STEERING_CAR', 'STEERING_BIKE'] as const;
+const PICTURE_PATTERNS = HUD_PICTURE_FRAMES * HUD_PICTURE_TILES * HUD_PICTURE_TILES;
+/**
+ * The HUD pictures follow the HUD part tiles in this order, each frame by frame and each frame's tiles row by row, so
+ * the mapping needs no saved table either: the first pattern of each picture by name.
+ */
+export const HUD_PICTURES: Readonly<Record<(typeof HUD_PICTURE_NAMES)[number], number>> = Object.freeze(
+  Object.fromEntries(
+    HUD_PICTURE_NAMES.map((name, i) => [name, CHARACTER_COUNT + HUD_TILE_NAMES.length + i * PICTURE_PATTERNS]),
+  ) as Record<(typeof HUD_PICTURE_NAMES)[number], number>,
+);
+const PATTERN_COUNT = CHARACTER_COUNT + HUD_TILE_NAMES.length + HUD_PICTURE_NAMES.length * PICTURE_PATTERNS;
 /** A pattern ID is a 16-bit and a palette ID an 8-bit unsigned integer, so a text grid cell holds any admitted pair. */
 export const TEXT_TILE_LIMITS = Object.freeze({ patterns: 2 ** 16, palettes: 2 ** 8 });
 
@@ -96,8 +113,8 @@ export class TextTiles {
   readonly #palettes: Uint16Array;
 
   /**
-   * Admitted 8x8 patterns, at least the character and HUD part patterns with an empty space, and the named 16-color
-   * palettes.
+   * Admitted 8x8 patterns, at least the character, HUD part and HUD picture patterns with an empty space, and the named
+   * 16-color palettes.
    */
   constructor(
     readonly name: string,
@@ -111,7 +128,7 @@ export class TextTiles {
       !isEmpty(patterns[EMPTY_TEXT_TILE]!)
     )
       throw new RangeError(
-        'Text tiles need every character and HUD part as an 8x8 pattern, an empty space and the named palettes',
+        'Text tiles need every character, HUD part and HUD picture as 8x8 patterns, an empty space and the named palettes',
       );
     this.#patterns = patterns;
     this.#palettes = new Uint16Array(palettes.length * 16);

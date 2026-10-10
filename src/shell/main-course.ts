@@ -95,8 +95,14 @@ async function startPage(): Promise<void> {
     const host = createScreenHost(window, document, shell, loading);
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
-    const performanceHud = dev ? createCoursePerformanceHud(canvas) : null;
-    if (dev) createAudioTimingHud(canvas, shell.audioTiming);
+    // DEV's measurement lines stack at the top of the page, clear of the HUD's lower rows.
+    const devLines = dev ? document.createElement('div') : null;
+    if (devLines) {
+      devLines.className = 'dev-lines';
+      canvas.insertAdjacentElement('afterend', devLines);
+    }
+    const performanceHud = devLines ? createCoursePerformanceHud(devLines) : null;
+    if (devLines) createAudioTimingHud(devLines, shell.audioTiming);
     // RESULT follows GOAL or GAME OVER after the DEV delay, counted in fixed steps while the loop, the field,
     // rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;

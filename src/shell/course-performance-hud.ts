@@ -1,14 +1,14 @@
 import { STRIP_ACTIVE_LIMIT, type RenderMeasurements } from '../view/renderer.js';
 type StripObservation = RenderMeasurements['stripGround'];
 /** Host measurements; the HUD reports observations and makes no device qualification claim. */
-export function createCoursePerformanceHud(canvas: HTMLCanvasElement) {
+export function createCoursePerformanceHud(lines: HTMLElement) {
   // The run's course ground; each run sets its own.
   let ground = { maxActiveStrips: 0 };
   const output = document.createElement('output');
   output.className = 'course-performance';
   output.setAttribute('aria-label', 'Course performance');
   output.setAttribute('aria-live', 'off');
-  canvas.insertAdjacentElement('afterend', output);
+  lines.append(output);
   let reported = false;
   let frames = 0,
     first = performance.now(),

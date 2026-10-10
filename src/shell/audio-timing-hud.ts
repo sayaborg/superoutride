@@ -31,12 +31,12 @@ export interface AudioTimingReading {
  * observations and makes no device qualification claim. Its latest reading is also on the element's `data-reading`
  * as JSON.
  */
-export function createAudioTimingHud(anchor: HTMLElement, source: AudioTimingSource) {
+export function createAudioTimingHud(lines: HTMLElement, source: AudioTimingSource) {
   const output = document.createElement('output');
   output.className = 'audio-timing';
   output.setAttribute('aria-label', 'Audio timing');
   output.setAttribute('aria-live', 'off');
-  anchor.insertAdjacentElement('afterend', output);
+  lines.append(output);
   let watched: AudioContext | null = null,
     suspends = 0,
     resumes = 0,
