@@ -156,6 +156,7 @@ export function readViewPicture(
     for (let x = 0; x < width; x++) border.push(x, (height - 1) * width + x);
     for (let y = 0; y < height; y++) border.push(y * width, y * width + width - 1);
     outside = flood(candidate, width, height, border);
+    if (!outside.includes(1)) throw new RangeError('A view shows no white background at its border');
   }
   const vehicle = outside.map((cell) => +!cell);
   const { labels, sizes } = label(vehicle, width, height);

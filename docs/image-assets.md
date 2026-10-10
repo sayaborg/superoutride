@@ -348,7 +348,8 @@ saved it is the authority for that vehicle's pictures, and the command replaces 
 view with the nose to the left and the tyres on the road, the top view with the nose to the left, the front and rear
 views upright. The background is either near-white (`background: "white"`: pixels within 45 of white, summed over the
 channels, joined to the picture's border) or transparent (`"alpha"`: alpha below 128); the vehicle is the largest part
-that is not background. The views need not share a scale or agree exactly: the mechanics document is the one
+that is not background. A view taken against anything else is cut out before it is saved; the command refuses a
+`white` view whose border shows no white. The views need not share a scale or agree exactly: the mechanics document is the one
 authority for the vehicle's dimensions, and each view is fitted to it.
 
 **Recipe.** `superoutride.vehicle-picture-recipe` version 1; rows and columns are pixel-centre coordinates of the named
@@ -416,6 +417,7 @@ slot 15; any other texel takes the nearest color among the neutrals and accents 
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
-TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye; the command's draft of
-it differs in detail. Its body colors follow the reds of the reference game's car as seen in a screenshot; its
+TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye. The command's draft of
+it has the same shape, shading and shadows and differs in about one texel in a hundred: the prototype gave dark red
+texels that are not paint (the side strakes' gaps) a body color, where the command gives them a neutral. Its body colors follow the reds of the reference game's car as seen in a screenshot; its
 `alternate` is a yellow of the same steps. The reference photographs and screenshots used to judge a set are not saved here.
