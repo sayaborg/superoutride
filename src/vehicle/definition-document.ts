@@ -245,6 +245,7 @@ export function compileDrivingDocument(
     const numbers = [
       'maxRoadWheelSteerDegrees',
       'steeringTraversalSeconds',
+      'steeringUtilization',
       'fuelCutRedlineMargin',
       'idleFrictionMeanEffectivePressureBar',
       'redlineFrictionMeanEffectivePressureBar',
@@ -257,9 +258,20 @@ export function compileDrivingDocument(
     ] as const;
     const v = readDocument(
       value,
-      ['format', 'version', ...numbers, 'throttle', 'brake', 'wheelSlip', 'tire', 'rivalPace', 'bodyContact'],
+      [
+        'format',
+        'version',
+        ...numbers,
+        'steeringReference',
+        'throttle',
+        'brake',
+        'wheelSlip',
+        'tire',
+        'rivalPace',
+        'bodyContact',
+      ],
       'superoutride.driving-definition',
-      15,
+      16,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -283,8 +295,9 @@ export function compileDrivingDocument(
     const contact = readRecord(v.bodyContact, '/bodyContact', contactKeys);
     const source = deepFreeze({
       format: 'superoutride.driving-definition',
-      version: 15,
+      version: 16,
       ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
+      steeringReference: readString(v.steeringReference, '/steeringReference'),
       throttle: pedal('throttle'),
       brake: pedal('brake'),
       wheelSlip,

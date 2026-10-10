@@ -441,7 +441,8 @@ permits it: in a course session, only while the run is running and the race cloc
 the player's input only; it reads the Session vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE, BODY CONTACT and ASSISTS. Each value uses a
-minus/value/plus control in the driving definition's units, wrapping at range endpoints; ASSISTS
+minus/value/plus control in the driving definition's units, wrapping at range endpoints; STEERING's REF button switches the
+steering reference between its centre of mass (CENTER) and front contact (FRONT) values, and ASSISTS
 toggles wheel slip protection. RIVAL PACE drives no vehicle in a tuned Session, which has no rivals: it takes effect once the exported definition
 is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, course limits and objects push with the
 tuned values at once. An admitted adjustment rebuilds the

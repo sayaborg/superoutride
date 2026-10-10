@@ -63,6 +63,23 @@ Implement the stages in order. Each PR's restart instructions supply its detaile
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
+## Steering reference comparison
+
+DR-2 delivers two steering references side by side for comparison on real devices: the driving definition's
+`steeringReference` (`center`, delivered, or `front`) and the front tire's utilization at full input
+`steeringUtilization` (X, delivered at 100%), switched with DEV's STEERING group
+([Vehicle physics](vehicle-physics.md#actuators-and-steering)). To check on devices, by car and by bike:
+
+- With `front`, the X at which lifting off at full steering stays settled (on the desktop copy: 95% oscillates, 90%
+  nearly settles, 85% settles; the GOLF GTI 16V still sways slightly at 90%).
+- With `front`, the rotation when steering while braking: it stays large as X falls (about 61 degrees at 70%).
+- With `front`, the low-speed response: a 0.5 s key press at 30 km/h turns the path by about 73–89 degrees (about 13
+  degrees with `center`).
+- The same checks on the bikes.
+
+Once one reference is chosen: **DR-3** removes the reference not chosen, with its switch and the
+`steeringReference` field.
+
 ## Audit 2 leftovers
 
 Requirements left from the second design audit, by when they are taken up:

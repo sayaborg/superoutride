@@ -470,27 +470,45 @@ buttons) and AI requests use finite-rate actuators (`RATE_LIMITED`); positional 
 triggers) is `DIRECT` while held, then uses normal release.
 Input arbitration is specified in [Browser](browser.md#driving-input).
 
-Automatic steering has one method: it follows the body's travel direction. The driver's input is a fraction of the
-steering limit `L`, an angle from that direction whose size is the front tire's pure-lateral plateau slip
-`S = grip*(2-KN)*muY/kY` (which is `grip*PY`, [tire law](#tire-law)). `grip` is the gripFactor of the material
-sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate
-domain or on no material), so the angle changes only where the material changes and not at landing. With rack bound
-`M` in `(0, pi/2)`:
+Automatic steering follows a travel direction, the steering reference. The driver's input is a fraction of the
+steering limit `L`, an angle from that direction whose size is the front tire's pure-lateral slip at which its lateral
+force reaches the fraction `X` of its bound (`steeringUtilization`, `0 < X <= 1`). With the tire law's knee `H` and
+`a = KN`, the demand `rho(X)` is the inverse of `H` ([tire law](#tire-law)), compiled once with the driving definition:
 
 ```text
-beta = atan2(bodyLateralSpeed,hypot(bodyForwardSpeed,steeringV0))
-L = min(M, atan(S))
-automatic = clamp(beta,-(M-L),M-L)
-frontSteer = automatic+L*steeringActuator
+rho(X) = X                               X <= a
+       = 2-a-2*sqrt((1-a)*(1-X))         a < X <= 1
+S(X)   = grip*rho(X)*muY/kY
 ```
 
-The slip `S` is the tangent of the slip angle where the plateau begins (the tire law's `sy = -vy/U`), so `L` is that
-angle. The input scales the limit rather than being cut at it: the whole actuator range spans zero to the limit, and
-`|frontSteer| <= M` by construction. The limit is measured from the body's travel direction, not from the front
-contact's velocity, so the yaw rate changes the front tire's actual slip (`frontSteer - beta - a*yawRate/V` at speed)
-and keeps the front axle's own yaw damping. The front road-wheel angle equals `frontSteer` each substep, computed from
-the pre-steer state before reorienting the front contact; the integration order is unchanged. The previous angle
-remains in state for the next pre-steer contact observation, for observations and for the recovery reset to zero.
+`rho(1) = 2-a`, so at `X = 1` the slip `S` is the plateau's start, `grip*PY`. `grip` is the gripFactor of the material
+sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate domain
+or on no material), so the angle changes only where the material changes and not at landing. The driving definition's
+`steeringReference` chooses the travel direction, the same for cars and bikes: `center`, the body's centre of mass, or
+`front`, the front reach point of the pre-steer front contact observation (its `reachVelocity`). With rack bound `M`
+in `(0, pi/2)` and the steering low-speed regularization `steeringV0`:
+
+```text
+center: reference = atan2(bodyLateralSpeed,hypot(bodyForwardSpeed,steeringV0))
+front:  reference = atan2(frontLateralSpeed,hypot(frontForwardSpeed,steeringV0))
+L = min(M, atan(S(X)))
+frontSteer = clamp(reference,-(M-L),M-L)+L*steeringActuator
+```
+
+Each speed is the velocity's component along the body's forward or right axis. `S` is the tangent of a slip angle (the
+tire law's `sy = -vy/U`), so `L` is that angle. The input scales the limit rather than being cut at it: the whole
+actuator range spans zero to the limit, and `|frontSteer| <= M` by construction.
+
+With `center`, the limit is measured from the body's travel direction, not from the front contact's velocity, so the
+yaw rate changes the front tire's actual slip (`frontSteer - beta - a*yawRate/V` at speed) and keeps the front axle's
+own yaw damping. With `front`, while the reference is within the rack and the speed is well above `steeringV0`, the
+tangent of the front tire's slip is `steeringActuator*S(X)`: zero input leaves the front tire without slip, and full
+input sets it at the fraction `X` of its lateral bound whatever the yaw rate. The two references coexist for comparison
+on real devices; the one not chosen is then removed ([NEXT](NEXT.md#steering-reference-comparison)).
+
+The front road-wheel angle equals `frontSteer` each substep, computed from the pre-steer state before reorienting the
+front contact; the integration order is unchanged. The previous angle remains in state for the next pre-steer contact
+observation, for observations and for the recovery reset to zero.
 
 ## Observations
 
@@ -531,7 +549,7 @@ vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 2 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 14.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 16.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,

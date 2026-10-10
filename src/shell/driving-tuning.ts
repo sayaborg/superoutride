@@ -82,6 +82,19 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     ...field('steeringTraversalSeconds'),
   }),
   item({
+    id: 'X',
+    group: 'STEERING',
+    label: 'X',
+    description: 'front lateral force fraction reached by full steering input',
+    unit: '%',
+    scale: 100,
+    min: 70,
+    max: 100,
+    step: 5,
+    percent: true,
+    ...field('steeringUtilization'),
+  }),
+  item({
     id: 'THR+',
     group: 'PEDALS',
     label: 'THR+',
@@ -395,6 +408,11 @@ export function stepDrivingTuning(definition: DrivingDocument, id: string, direc
 /** Wheel slip protection (TCS, MSR and ABS) is the one switch. */
 export function toggleDrivingWheelSlip(definition: DrivingDocument): DrivingDocument {
   return { ...definition, wheelSlip: !definition.wheelSlip };
+}
+
+/** The steering reference is the other switch: the body's centre of mass or the front contact. */
+export function toggleDrivingSteeringReference(definition: DrivingDocument): DrivingDocument {
+  return { ...definition, steeringReference: definition.steeringReference === 'center' ? 'front' : 'center' };
 }
 
 export function formatDrivingTuningValue(id: string, definition: DrivingDefinition): string {

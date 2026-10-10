@@ -1,8 +1,10 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 15,
+  "version": 16,
   "maxRoadWheelSteerDegrees": 65,
   "steeringTraversalSeconds": 0.3,
+  "steeringReference": "center",
+  "steeringUtilization": 1,
   "fuelCutRedlineMargin": 0.02,
   "idleFrictionMeanEffectivePressureBar": 1,
   "redlineFrictionMeanEffectivePressureBar": 2.5,

@@ -48,11 +48,16 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
 }
 
 /**
- * The pure-lateral slip at which the lateral force reaches its plateau on a surface of `gripFactor`:
- * `gripFactor*(2-KN)*muY/kY`, which is `gripFactor*PY`.
+ * The normalized radial demand `rho` at which the smooth knee `H` of knee start `a` reaches the force fraction `h` in
+ * (0,1]: `h` up to the knee, then `2-a-2*sqrt((1-a)*(1-h))`, which is `2-a` (the plateau's start) at `h = 1`.
  */
-export function lateralPlateauSlip(tire: CompiledTireCharacteristics, gripFactor: number): number {
-  return (gripFactor * (2 - tire.rhoKnee) * tire.muY) / tire.kY;
+export function radialKneeInverse(a: number, h: number): number {
+  return h <= a ? h : 2 - a - 2 * Math.sqrt((1 - a) * (1 - h));
+}
+
+/** The pure-lateral slip at normalized radial demand `rho` on a surface of `gripFactor`: `gripFactor*rho*muY/kY`. */
+export function lateralSlipAtDemand(tire: CompiledTireCharacteristics, gripFactor: number, rho: number): number {
+  return (gripFactor * rho * tire.muY) / tire.kY;
 }
 
 function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {

@@ -19,6 +19,8 @@ steps and never rejects a driving definition.
 | ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | -------------------------- |
 | Steering   | M     | `maxRoadWheelSteerDegrees`                  | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°                |
 | Steering   | ACT   | `steeringTraversalSeconds`                  | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s      |
+| Steering   | X     | `steeringUtilization`                       | Front lateral force fraction at full input   | 100%    | 70–100% / 5 points         |
+| Steering   | REF   | `steeringReference`                         | Travel direction steering is measured from   | center  | center / front             |
 | Pedals     | THR+  | `throttle.applySeconds`                     | Throttle apply time                          | 0.25 s  | 0.05–0.50 s / 0.025 s      |
 | Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
 | Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
@@ -51,7 +53,11 @@ game-wide suspension stiffness at full travel as a multiple of each ride spring 
 least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
-[tire law](vehicle-physics.md#tire-law). The steering limit is the front tire's lateral plateau slip on the material under the front wheel, as an angle from the travel direction, and automatic steering has the rest of the rack, `M` minus that limit ([Vehicle physics](vehicle-physics.md#actuators-and-steering)); neither is an authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
+[tire law](vehicle-physics.md#tire-law). The steering limit is the front tire's pure-lateral slip at which its lateral force reaches the fraction X of its bound
+on the material under the front wheel (at X = 100%, the plateau's start), as an angle from the travel direction of the
+steering reference: the body's centre of mass (`center`) or the front contact (`front`). Automatic steering has the rest
+of the rack, `M` minus that limit ([Vehicle physics](vehicle-physics.md#actuators-and-steering)); neither angle is an
+authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
 step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the

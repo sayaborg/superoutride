@@ -4,6 +4,7 @@ import {
   drivingTuningItems,
   formatDrivingTuningValue,
   stepDrivingTuning,
+  toggleDrivingSteeringReference,
   toggleDrivingWheelSlip,
   type DrivingTuningGroup,
 } from './driving-tuning.js';
@@ -55,6 +56,8 @@ export function mountDrivingTuningControls(
     }
     assist.textContent = `WHEEL SLIP ${definition.wheelSlip ? 'ON' : 'OFF'}`;
     assist.setAttribute('aria-pressed', String(definition.wheelSlip));
+    reference.textContent = `REF ${definition.steeringReference === 'center' ? 'CENTER' : 'FRONT'}`;
+    reference.setAttribute('aria-pressed', String(definition.steeringReference === 'front'));
   };
   for (const group of DRIVING_TUNING_GROUPS) {
     const steppers = drivingTuningItems(group).map((entry) => {
@@ -71,6 +74,15 @@ export function mountDrivingTuningControls(
     });
     containers[group].replaceChildren(...steppers);
   }
+  const reference = documentRef.createElement('button');
+  reference.type = 'button';
+  reference.className = 'selector-button';
+  reference.title = 'Steering reference: the travel direction of the centre of mass or of the front contact';
+  reference.addEventListener('click', () => {
+    target.set(toggleDrivingSteeringReference(target.get()));
+    refresh();
+  });
+  containers.STEERING.append(reference);
   const assist = documentRef.createElement('button');
   assist.type = 'button';
   assist.className = 'selector-button';

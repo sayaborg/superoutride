@@ -103,6 +103,10 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     'brake/applyRate': 'brake/applySeconds',
     'brake/releaseRate': 'brake/releaseSeconds',
   });
+  const tire = withDefinitionPath(
+    () => compileTireCharacteristics(definition.tire),
+    (path) => `tire/${path}`,
+  );
   return Object.freeze({
     powertrain: Object.freeze({
       fuelCutRedlineMargin: definition.fuelCutRedlineMargin,
@@ -115,13 +119,20 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     }),
     actuator,
     steering: withDefinitionPath(
-      () => createVehicleSteeringCalibration((definition.maxRoadWheelSteerDegrees * Math.PI) / 180),
-      { maxRoadWheelSteer: 'maxRoadWheelSteerDegrees' },
+      () =>
+        createVehicleSteeringCalibration(
+          (definition.maxRoadWheelSteerDegrees * Math.PI) / 180,
+          definition.steeringReference,
+          definition.steeringUtilization,
+          tire,
+        ),
+      {
+        maxRoadWheelSteer: 'maxRoadWheelSteerDegrees',
+        reference: 'steeringReference',
+        utilization: 'steeringUtilization',
+      },
     ),
-    tire: withDefinitionPath(
-      () => compileTireCharacteristics(definition.tire),
-      (path) => `tire/${path}`,
-    ),
+    tire,
     suspensionProgression: definition.suspensionProgression,
     torqueProtection: Object.freeze({
       wheelSlip: definition.wheelSlip,

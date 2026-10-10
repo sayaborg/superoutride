@@ -19,7 +19,7 @@ import {
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
-import { effectiveTireLoad, lateralPlateauSlip } from './tire-friction-calibration.js';
+import { effectiveTireLoad, lateralSlipAtDemand } from './tire-friction-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   bodyFrameVelocity,
@@ -185,13 +185,12 @@ export function updateVehicle(
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
-  const maxRoadWheelSteer = model.steering.maxRoadWheelSteer;
+  const { maxRoadWheelSteer, reference, limitDemand } = model.steering;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
     updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
     const body = vehicleBodyKinematics(vehicle, workspace.body);
-    const bodyTravelDirection = vehicleBodyTravelDirection(body, STEERING_LOW_SPEED_REGULARIZATION);
     const frontBeforeSteer = deriveContactObservation(
       coordinates,
       height,
@@ -203,15 +202,20 @@ export function updateVehicle(
       vehicle.course.s,
       workspace.front,
     );
-    // The driver's input is a fraction of the steering limit: the front tire's lateral plateau slip on the material
-    // under the front wheel (unit grip where there is none), as an angle from the body's travel direction.
+    // The driver's input is a fraction of the steering limit: the front tire's pure-lateral slip at the steering
+    // utilization on the material under the front wheel (unit grip where there is none), as an angle from the travel
+    // direction of the reference point.
+    const travelDirection = vehicleTravelDirection(
+      body,
+      reference === 'center' ? body.velocity : frontBeforeSteer.reachVelocity,
+      STEERING_LOW_SPEED_REGULARIZATION,
+    );
     const limit = Math.min(
       maxRoadWheelSteer,
-      Math.atan(lateralPlateauSlip(model.tire, frontBeforeSteer.surface.material?.gripFactor ?? 1)),
+      Math.atan(lateralSlipAtDemand(model.tire, frontBeforeSteer.surface.material?.gripFactor ?? 1, limitDemand)),
     );
     const automaticMax = maxRoadWheelSteer - limit;
-    vehicle.frontSteerAngle =
-      clamp(bodyTravelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
+    vehicle.frontSteerAngle = clamp(travelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
       coordinates,
@@ -340,10 +344,10 @@ export function updateVehicle(
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
-/** Body-CG travel direction in the body-pitch plane; finite and zero at rest. */
-function vehicleBodyTravelDirection(body: BodyKinematics, lowSpeedRegularization: number): number {
-  const longitudinal = dot3(body.velocity, body.forward);
-  const lateral = dot3(body.velocity, body.right);
+/** The travel direction of a point moving at `velocity`, in the body-pitch plane; finite and zero at rest. */
+function vehicleTravelDirection(body: BodyKinematics, velocity: Vec3, lowSpeedRegularization: number): number {
+  const longitudinal = dot3(velocity, body.forward);
+  const lateral = dot3(velocity, body.right);
   return Math.atan2(lateral, Math.hypot(longitudinal, lowSpeedRegularization));
 }
 
