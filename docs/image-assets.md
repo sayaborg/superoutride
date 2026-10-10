@@ -323,7 +323,7 @@ with diagnostics at the set document's own pointers, and assembles the delivered
 The vehicle domain admits the library and owns its sets at run time: for a vehicle's color and lamp state it makes the
 set's one 16-slot palette once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic sprite reader.
 
-`testarossa` is generated ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
+`testarossa` is a finished generated set ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
 one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
 earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -339,6 +339,10 @@ A generated set is made from four views of the vehicle and a recipe, saved under
 production-only data, which the build does not deliver. `npm run pictures -- <set>`
 ([Development](development.md#pictures-command)) writes the set, `content/sprites/<set>.json`; the same sources, vehicle
 mechanics document and camera definition always give the same file.
+
+What the command writes is a draft: a solid made from outlines cannot hold what no outline shows (a recessed deck, a
+wheel arch, a fender's crest). A finished set is a draft corrected by hand against photographs of the vehicle; once
+saved it is the authority for that vehicle's pictures, and the command replaces a saved set only when told to.
 
 **Views.** Each view shows the whole vehicle squarely, without perspective or from far enough to have little: the side
 view with the nose to the left and the tyres on the road, the top view with the nose to the left, the front and rear
@@ -412,5 +416,6 @@ slot 15; any other texel takes the nearest color among the neutrals and accents 
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
-TESTAROSSA's body colors follow the reds of the reference game's car as seen in a screenshot; its `alternate` is a
-yellow of the same steps. The reference photographs and screenshots used to judge a set are not saved here.
+TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye; the command's draft of
+it differs in detail. Its body colors follow the reds of the reference game's car as seen in a screenshot; its
+`alternate` is a yellow of the same steps. The reference photographs and screenshots used to judge a set are not saved here.

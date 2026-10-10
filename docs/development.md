@@ -367,10 +367,11 @@ npm run pictures -- testarossa
 ```
 
 It reads `content/vehicle-picture-sources/<set>.json` and the four views beside it, the mechanics document the recipe
-names and the product camera definition, and writes `content/sprites/<set>.json` (replacing it). It also writes a check
+names and the product camera definition, and writes `content/sprites/<set>.json`. A set already saved may be a finished
+one ([Image assets](image-assets.md#vehicle-picture-generator)), so the command refuses to replace it unless `replace`
+follows the set's name. It also writes a check
 sheet, `dist/pictures/<set>.png`: every full-size picture over its shadow, eight directions a row, which nothing reads.
-A set is generated again when its sources, its vehicle's dimensions or the camera definition change; the build admits
-the saved set and generates nothing.
+The build admits the saved set and generates nothing.
 
 ### Listening on devices
 
