@@ -66,8 +66,16 @@ export interface VehiclePictureRecipe {
     readonly high: number;
     readonly outside: number;
   };
-  /** The glasshouse: dark surfaces above this height between these stations are glass. */
-  readonly glass: { readonly above: number; readonly from: number; readonly to: number };
+  /**
+   * The glasshouse: dark surfaces above this height between these stations are glass, and so is whatever the side view
+   * shows inside `sidePanes`, polygons of its pixels, for panes that a view shows as bright as the paint.
+   */
+  readonly glass: {
+    readonly above: number;
+    readonly from: number;
+    readonly to: number;
+    readonly sidePanes: readonly (readonly (readonly [number, number])[])[];
+  };
   /** Paint is a surface at least this bright whose chromaticity lies within `tolerance` of this color's. */
   readonly paint: { readonly color: Rgb; readonly tolerance: number; readonly brightness: number };
   /** The brake lamps as rectangles `[left, top, right, bottom]` of the rear view. */
@@ -172,7 +180,7 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
     exclusiveMin: true,
   });
   const mirrors = readRecord(document.mirrors, '/mirrors', ['from', 'to', 'low', 'high', 'outside']);
-  const glass = readRecord(document.glass, '/glass', ['above', 'from', 'to']);
+  const glass = readRecord(document.glass, '/glass', ['above', 'from', 'to', 'sidePanes']);
   const paint = readRecord(document.paint, '/paint', ['color', 'tolerance', 'brightness']);
   const slotRecord = readRecord(document.slots, '/slots', ['body', 'neutral', 'glass', 'accent']);
   const count = (field: string, min: number) =>
@@ -245,6 +253,17 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
       above: between(glass, '/glass', 'above'),
       from: between(glass, '/glass', 'from'),
       to: between(glass, '/glass', 'to'),
+      sidePanes: readArray(glass.sidePanes, '/glass/sidePanes', (pane, at) =>
+        readArray(
+          pane,
+          at,
+          (corner, path) => {
+            const [x, y] = readArray(corner, path, (v, p) => readNumber(v, p, PIXEL), { length: 2 });
+            return [x!, y!] as const;
+          },
+          { min: 3 },
+        ),
+      ),
     },
     paint: {
       color: readRgb(paint.color, '/paint/color'),

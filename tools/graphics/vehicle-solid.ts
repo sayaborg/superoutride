@@ -314,6 +314,17 @@ function interpolate(x: number, xs: readonly number[], ys: readonly number[]): n
   return ys[ys.length - 1]!;
 }
 
+/** Whether a point lies inside a polygon (the even-odd rule). */
+function insidePolygon(polygon: readonly (readonly [number, number])[], x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i]!,
+      [xj, yj] = polygon[j]!;
+    if (yi > y !== yj > y && x < xi + ((xj - xi) * (y - yi)) / (yj - yi)) inside = !inside;
+  }
+  return inside;
+}
+
 // ---- the views' fit to the vehicle ------------------------------------------------------------------------------
 
 /** Where each view shows a point of the vehicle, in that view's pixel-centre coordinates. */
@@ -531,6 +542,22 @@ export function buildVehicleSolid(
       ? bodyHalves[(bodyHalves.length - 1) / 2]!
       : (bodyHalves[bodyHalves.length / 2 - 1]! + bodyHalves[bodyHalves.length / 2]!) / 2;
 
+  // Where a mirror stands, the top view's outline is the mirror's, not the body's: there the body's runs straight
+  // between the stations either side of the mirror.
+  const mirrorAt = Array.from(
+    halfWidth,
+    (width, k) => width > bodyHalf + MIRROR_PROUD && zAt(k) > recipe.mirrors.from && zAt(k) < recipe.mirrors.to,
+  );
+  for (let k = 0; k < nz; k++) {
+    if (!mirrorAt[k]) continue;
+    let before = k,
+      after = k;
+    while (before > 0 && mirrorAt[before]) before--;
+    while (after < nz - 1 && mirrorAt[after]) after++;
+    const body = halfWidth[before]! + ((halfWidth[after]! - halfWidth[before]!) * (k - before)) / (after - before);
+    for (let i = 0; i < nx; i++) if (Math.abs(xAt(i)) > body) topOutline[k * nx + i] = 0;
+  }
+
   // The solid: inside the side and top outlines, and inside the facing outline, which passes from the rear view's to
   // the front view's between the recipe's stations.
   const frontDistance = signedDistance(
@@ -553,13 +580,12 @@ export function buildVehicleSolid(
       1,
     );
     const w = t * t * (3 - 2 * t);
-    const mirrorHere = halfWidth[k]! > bodyHalf + MIRROR_PROUD && z > recipe.mirrors.from && z < recipe.mirrors.to;
     for (let i = 0; i < nx; i++)
       for (let j = 0; j < ny; j++) {
         const facing = w * frontDistance[j * nx + i]! + (1 - w) * rearDistance[j * nx + i]! < 0;
         raw[at(i, j, k)] = +(
           (facing && sideOutline[k * ny + j]! && topOutline[k * nx + i]!) ||
-          (mirrorHere && mirrors[i * ny + j]!)
+          (mirrorAt[k] === true && mirrors[i * ny + j]!)
         );
       }
   }
@@ -696,7 +722,12 @@ export function buildVehicleSolid(
       value >= recipe.paint.brightness &&
       Math.hypot(r / sum - pr / paintSum, g / sum - pg / paintSum, b / sum - pb / paintSum) <= recipe.paint.tolerance
     );
-    glass[n] = +(dark && !wheel && y > recipe.glass.above && z > recipe.glass.from && z < recipe.glass.to);
+    const pane =
+      total >= 1e-6 &&
+      weights.side / total > 0.5 &&
+      recipe.glass.sidePanes.some((polygon) => insidePolygon(polygon, places.side[0], places.side[1]));
+    glass[n] = +(pane || (dark && !wheel && y > recipe.glass.above && z > recipe.glass.from && z < recipe.glass.to));
+    if (pane) paint[n] = 0;
     if (total >= 1e-6 && weights.rear / total > 0.5 && z < fit.rear + LAMP_DEPTH) {
       const [u, v] = places.rear;
       lamp[n] = +recipe.brakeLamps.some(([left, top, right, bottom]) => u > left && u < right && v > top && v < bottom);

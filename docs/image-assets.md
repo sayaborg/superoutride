@@ -363,7 +363,7 @@ view, stations and heights are metres in vehicle coordinates (origin at the base
  rear:  {centre, width, road, roof, undersideFromFront},
  outlines: {rearUntil, frontFrom},
  mirrors: {from, to, low, high, outside},
- glass: {above, from, to},
+ glass: {above, from, to, sidePanes: [[[x, y], ...], ...]},
  paint: {color: [r, g, b], tolerance, brightness},
  brakeLamps: [[left, top, right, bottom], ...],
  slots: {body, neutral, glass: 2, accent}, bodyKeys: [brightness, ...],
@@ -388,7 +388,8 @@ centre line. Below `undersideFromFront` the rear outline is no wider than the fr
 a rear view. Parts of a facing outline thinner than a 9 cm disk whose mean height lies between `low` and `high` and
 whose mean distance from the centre line exceeds `outside` are mirrors: both facing outlines lose them, and the front
 view's are added back at the stations between `from` and `to` where the top view stands 4 cm proud of the body's
-median half width there (taken from 0.7 m behind `from`). The solid's edges are rounded by a Gaussian of 2.5 cm, which keeps the tyres on the road.
+median half width there (taken from 0.7 m behind `from`); at those stations the body's top outline runs straight
+between the stations either side. The solid's edges are rounded by a Gaussian of 2.5 cm, which keeps the tyres on the road.
 
 **Colors.** A surface point takes each view's color in proportion to the fourth power of how squarely it faces that
 view (the side view for both sides, the front view for surfaces facing forward, the rear view for those facing back,
@@ -396,7 +397,8 @@ the top view for those facing up), where the view shows the vehicle at least 3 p
 facing down are dark. Inside 0.70 of each tyre's radius the side view is smeared about the hub, so wheels are drawn
 turning. A surface is paint when it is at least `paint.brightness` bright (its largest channel) and its chromaticity
 (each channel over their sum) lies within `paint.tolerance` of `paint.color`'s, wheels excepted; glass when it is
-darker than 75, above `glass.above` and between the stations `glass.from` and `glass.to`; brake lamp when the rear
+darker than 75, above `glass.above` and between the stations `glass.from` and `glass.to`, or when the side view
+colors it inside one of `glass.sidePanes`, polygons of that view's pixels for panes as bright as the paint; brake lamp when the rear
 view colors it within a `brakeLamps` rectangle and 0.4 m of the tail.
 
 **Light.** Every picture is lit alike, as under an open sky: paint and glass mirror a sky several times brighter than
