@@ -389,16 +389,14 @@ that distance, so the race's view and the renderer place the camera at the same 
 depth interval.
 
 Camera chainage is `s_player-D_cam`; its drawn XZ is the player's base point's route-world XZ minus `D_cam` along
-the camera yaw. There is one camera. Its yaw follows the camera definition's yaw source: the body yaw (the product's), or
-with DEV the player's direction of travel, the body yaw turned by its velocity's direction in the body frame (below
-2 m/s by that fraction of the turn, so at rest the body yaw, and stopping or starting turns the camera continuously).
-Moving backward, that direction is taken forward with its sideways part kept, so the turn stays within a quarter turn
-and the camera does not swing across the reverse direction.
-That yaw is limited to the definition's limit angle (45 degrees) about the plan heading at the car's chainage; with a
-response time above zero (the definition's is 0 s) the camera follows the limited yaw as a first-order lag at the fixed
-step. Beyond the limit the camera stays at it, and the player sprite's
-yaw variant shows the body turned by the relative yaw, as for every vehicle sprite. A reset places it at the limited
-yaw. The observer's shell owns the camera rig;
+the camera yaw. There is one camera. Its yaw follows a yaw source, the player's setting for the vehicle's form
+([Browser](browser.md#player-record)): `FACING`, the body yaw, or `MOVING`, the player's direction of travel, the body
+yaw turned by its velocity's direction in the body frame (below 2 m/s by that fraction of the turn, so at rest the body
+yaw, and stopping or starting turns the camera continuously). Moving backward, that direction is taken forward with its
+sideways part kept, so the turn stays within a quarter turn and the camera does not swing across the reverse
+direction. That yaw is limited to the definition's limit angle (45 degrees) about the plan heading at the car's
+chainage and taken at once, with no lag. Beyond the limit the camera stays at it, and the player sprite's yaw variant
+shows the body turned by the relative yaw, as for every vehicle sprite. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
 projection of its base point, its one authority, and the camera on that point's yaw ray puts it at the centre
 column by construction. Camera roll is zero.

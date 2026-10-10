@@ -1,13 +1,26 @@
+import type { CameraYawSource } from '../view/camera.js';
+import type { VehicleForm } from '../vehicle/definition-document.js';
+
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 3;
-/** The version before, whose settings and TIME TRIAL records a version 3 record keeps; its ARCADE records are dropped. */
+const PLAYER_RECORD_VERSION = 4;
+/** The version before, whose settings and records a version 4 record keeps; it had no camera settings. */
+const CAMERALESS_VERSION = 3;
+/** The version before that, whose settings and TIME TRIAL records are kept; its ARCADE records are dropped. */
 const COURSE_ARCADE_VERSION = 2;
-/** The first version, whose settings a version 3 record keeps. */
+/** The first version, whose settings are kept. */
 const SETTINGS_ONLY_VERSION = 1;
 
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
 export type VolumeName = (typeof VOLUME_NAMES)[number];
+const CAMERA_YAW_SOURCES: readonly CameraYawSource[] = ['FACING', 'MOVING'];
+const VEHICLE_FORMS: readonly VehicleForm[] = ['car', 'bike'];
+
+/** What the camera follows by vehicle form until the player chooses: a car's heading, a bike's direction of travel. */
+export const DEFAULT_CAMERAS: Readonly<Record<VehicleForm, CameraYawSource>> = Object.freeze({
+  car: 'FACING',
+  bike: 'MOVING',
+});
 
 export interface PlayerSettings {
   /** Selected color ID by vehicle ID. */
@@ -16,6 +29,8 @@ export interface PlayerSettings {
   readonly volumes: Readonly<Record<VolumeName, number>>;
   /** Latest selection by selection-screen key. */
   readonly latestSelections: Readonly<Record<string, string>>;
+  /** What the camera yaw follows, by the player vehicle's form. */
+  readonly cameras: Readonly<Record<VehicleForm, CameraYawSource>>;
 }
 
 /** The identities a record was set against: the course build and the Session vehicle's delivered definitions. */
@@ -68,12 +83,14 @@ const DEFAULT_SETTINGS = freezeSettings({
   vehicleColors: {},
   volumes: { master: 35, music: 100, effects: 100 },
   latestSelections: {},
+  cameras: DEFAULT_CAMERAS,
 });
 const NO_RECORDS = freezeRecords({ timeTrial: {}, arcade: {} });
 
 /**
- * Opens the player record in `storage`. A version 2 record keeps its settings and TIME TRIAL records and drops its
- * ARCADE records; a version 1 record keeps its settings and starts with no records. An absent,
+ * Opens the player record in `storage`. A version 3 record keeps its settings and records and takes the default
+ * cameras; a version 2 record keeps its settings and TIME TRIAL records and drops its ARCADE records; a version 1
+ * record keeps its settings and starts with no records. Records before version 4 take the default cameras. An absent,
  * unreadable, corrupt or other-version record starts from the defaults; a malformed record entry alone is dropped.
  * Storage failures leave the record in memory; none of these stops the game.
  */
@@ -133,43 +150,50 @@ function readRecord(storage: Storage | null): { settings: PlayerSettings; record
 }
 
 /**
- * The settings and records of a record with exactly the declared shape, or null: version 3; version 2, whose settings
- * and TIME TRIAL records carry over without its ARCADE records; or version 1, whose settings carry over with no records.
+ * The settings and records of a record with exactly the declared shape, or null: version 4; version 3, whose settings
+ * and records carry over; version 2, whose settings and TIME TRIAL records carry over without its ARCADE records; or
+ * version 1, whose settings carry over with no records. Settings before version 4 take the default cameras.
  */
 function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records: PlayerRecords } | null {
   if (!isObject(value)) return null;
-  if (value.version === SETTINGS_ONLY_VERSION && hasExactKeys(value, ['version', 'settings'])) {
-    const settings = admitSettings(value.settings);
+  const version = value.version;
+  if (version === SETTINGS_ONLY_VERSION && hasExactKeys(value, ['version', 'settings'])) {
+    const settings = admitSettings(value.settings, false);
     return settings && { settings, records: NO_RECORDS };
   }
-  const version = value.version;
   if (
-    (version !== PLAYER_RECORD_VERSION && version !== COURSE_ARCADE_VERSION) ||
+    (version !== PLAYER_RECORD_VERSION && version !== CAMERALESS_VERSION && version !== COURSE_ARCADE_VERSION) ||
     !hasExactKeys(value, ['version', 'settings', 'records'])
   )
     return null;
-  const settings = admitSettings(value.settings);
+  const settings = admitSettings(value.settings, version === PLAYER_RECORD_VERSION);
   if (!settings || !hasExactKeys(value.records, ['timeTrial', 'arcade'])) return null;
   return {
     settings,
     records: freezeRecords({
       timeTrial: admitEntries(value.records.timeTrial, isTimeTrialKey, admitTimeTrialRecord),
       arcade:
-        version === PLAYER_RECORD_VERSION ? admitEntries(value.records.arcade, isArcadeKey, admitArcadeRecord) : {},
+        version === COURSE_ARCADE_VERSION ? {} : admitEntries(value.records.arcade, isArcadeKey, admitArcadeRecord),
     }),
   };
 }
 
-function admitSettings(settings: unknown): PlayerSettings | null {
-  if (!hasExactKeys(settings, ['vehicleColors', 'volumes', 'latestSelections'])) return null;
+/** Settings of exactly the declared shape, with their cameras when `withCameras`, else the default cameras. */
+function admitSettings(settings: unknown, withCameras: boolean): PlayerSettings | null {
+  const keys = ['vehicleColors', 'volumes', 'latestSelections', ...(withCameras ? ['cameras'] : [])];
+  if (!hasExactKeys(settings, keys)) return null;
   const { vehicleColors, volumes, latestSelections } = settings;
   if (!isStringMap(vehicleColors) || !isStringMap(latestSelections) || !hasExactKeys(volumes, VOLUME_NAMES))
     return null;
   if (!VOLUME_NAMES.every((name) => isPercent(volumes[name]))) return null;
+  const cameras = withCameras ? settings.cameras : DEFAULT_CAMERAS;
+  if (!hasExactKeys(cameras, VEHICLE_FORMS)) return null;
+  if (!VEHICLE_FORMS.every((form) => CAMERA_YAW_SOURCES.includes(cameras[form] as CameraYawSource))) return null;
   return freezeSettings({
     vehicleColors,
     volumes: volumes as Record<VolumeName, number>,
     latestSelections,
+    cameras: cameras as Record<VehicleForm, CameraYawSource>,
   });
 }
 
@@ -243,6 +267,7 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
     vehicleColors: Object.freeze({ ...settings.vehicleColors }),
     volumes: Object.freeze({ ...settings.volumes }),
     latestSelections: Object.freeze({ ...settings.latestSelections }),
+    cameras: Object.freeze({ ...settings.cameras }),
   });
 }
 // The records the player record publishes, read-only down to every record and its splits, wherever they came from.

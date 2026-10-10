@@ -120,6 +120,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     world: () => active.scene.world,
     cameraDefinition: page.cameraDefinition,
     observation: () => active.race.observe().player,
+    yawSource: page.player.settings.cameras[entry.listing.form],
   });
   // The run's DEV controls, only with DEV.
   const devControls = page.dev

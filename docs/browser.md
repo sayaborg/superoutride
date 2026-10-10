@@ -95,7 +95,8 @@ MUSIC and SETTINGS use it for auditions, the one form of [playing a track](audio
 audition stops when the cursor or the screen leaves, and a track still decoding when the cursor leaves never sounds.
 
 SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
-(to the adjacent multiple of 5), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
+(to the adjacent multiple of 5), CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING
+([camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
 which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
@@ -377,15 +378,16 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 3, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 4, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
-| Setting            | Shape and default                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------- |
-| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                |
-| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100 |
-| `latestSelections` | Latest selection by selection-screen key; default `{}`                                |
+| Setting            | Shape and default                                                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                                                                    |
+| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                     |
+| `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                    |
+| `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`) |
 
 `records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
 a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
@@ -415,13 +417,15 @@ from the run's counts as none and is replaced. TIME TRIAL records against the ro
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
 time replaces nothing.
 
-Loading admits version 3 with exactly these keys and value types; version 2 (ARCADE records keyed by course), whose
-settings and TIME TRIAL records carry over and whose ARCADE records are dropped; and version 1 (settings only), whose
-settings carry over with no records. There are no other migration readers. An absent, unreadable, unparsable or other-version
+Loading admits version 4 with exactly these keys and value types; version 3 (no `cameras`), whose settings and records
+carry over; version 2 (ARCADE records keyed by course), whose settings and TIME TRIAL records carry over and whose ARCADE
+records are dropped; and version 1 (settings only), whose settings carry over with no records. Settings before
+version 4 take the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
-game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SELECT VEHICLE
+game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SETTINGS saves
+the cameras, and a run reads its vehicle form's camera when it is assembled; SELECT VEHICLE
 saves colors, the selection screens save their latest selections, a run reaching GOAL saves records and CLEAR RECORDS
 empties them. A Session reads the player's vehicle color from `vehicleColors`, falling back to the vehicle's default
 color when the record has none or names a color its sprite set lacks. DEV tuning and DEV sound settings are not
@@ -441,7 +445,7 @@ resizing the game. UI pointer starts stay outside driving input. Keydown is isol
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
 The vehicle is chosen on SELECT VEHICLE; there is no vehicle selection during a Session. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
-camera definition's horizon row, height frequency, yaw source, yaw limit and yaw response for the session, unsaved
+camera definition's horizon row and height frequency for the session, unsaved
 ([Calibration](calibration.md#camera-settings)). RECOVER requests the race's manual recovery of the player vehicle when the active composition
 permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies
 the player's input only; it reads the Session vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
@@ -459,8 +463,8 @@ tuned definition for further adjustments and export. Reloading the page restores
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`);
-[Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera, with no
-DEV selection.
+[Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera; what its yaw
+follows is the player's setting, not a DEV selection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
 
 ### Ground display setting

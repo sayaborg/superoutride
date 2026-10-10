@@ -17,6 +17,7 @@ import {
 } from '../../src/race/envelope-driver.js';
 import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
@@ -301,7 +302,13 @@ export async function runScenario({ course }, scenario) {
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);
     }
-    camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION);
+    camera = updateCamera(
+      rig,
+      scene.world,
+      race.observe().player,
+      CAMERA_DEFINITION,
+      DEFAULT_CAMERAS[entry.listing.form],
+    );
     finiteState(camera, 'camera');
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;

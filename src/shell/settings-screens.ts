@@ -1,9 +1,12 @@
 import type { MenuDefinition, MenuItem } from './menu.js';
 import { VOLUME_NAMES, type PlayerRecord, type VolumeName } from './player-record.js';
+import type { VehicleForm } from '../vehicle/definition-document.js';
 
 /** SETTINGS changes each volume by this many percent. */
 const VOLUME_STEP = 5;
 const VOLUME_LABELS: Readonly<Record<VolumeName, string>> = { master: 'MASTER', music: 'MUSIC', effects: 'EFFECTS' };
+/** The camera setting of each vehicle form, by its label. */
+const CAMERA_LABELS: Readonly<Record<VehicleForm, string>> = { car: 'CAR CAMERA', bike: 'BIKE CAMERA' };
 /** The CONTROLS screen's text. */
 const CONTROLS = Object.freeze([
   'KEYBOARD',
@@ -29,7 +32,8 @@ function stepVolume(value: number, by: -1 | 1): number {
 
 /**
  * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
- * keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
+ * keeps; CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING and the player record keeps;
+ * CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
  * records and keeps the settings. Each volume applies at once through `setVolume`. While the cursor is on MUSIC, the
  * latest track plays as an audition. BACK leaves.
  */
@@ -53,6 +57,14 @@ export function showSettings(
           devices.setVolume(name, stepVolume(player.settings.volumes[name], by));
         },
         ...(name === 'music' ? { focus: devices.audition } : {}),
+      })),
+      ...(['car', 'bike'] as const).map((form): MenuItem => ({
+        label: CAMERA_LABELS[form],
+        value: player.settings.cameras[form],
+        adjust: () => {
+          const cameras = player.settings.cameras;
+          player.updateSettings({ cameras: { ...cameras, [form]: cameras[form] === 'FACING' ? 'MOVING' : 'FACING' } });
+        },
       })),
       { label: 'CONTROLS', confirm: controls },
       { label: 'CLEAR RECORDS', confirm: clearRecords },

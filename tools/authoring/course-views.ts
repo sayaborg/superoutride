@@ -143,7 +143,8 @@ export function createCourseFrameRenderer(
         scene.world,
         { s, l, initialSpeed: 0 },
       );
-      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
+      // At rest both camera yaw sources take the body's heading.
+      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION, 'FACING'),
         target = createLogicalFrame();
       const stats = createRenderMeasurements();
       const shadowed = [{ vehicleId: entry.compiledVehicle.id, course: vehicle.course }];

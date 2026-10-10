@@ -180,7 +180,7 @@ TITLE (PRESS START) → SELECT MODE
 → SELECT MUSIC → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; controls)
+TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; controls)
 ```
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
@@ -208,12 +208,13 @@ brake; RESULT follows after the same delay.
 ## 8. Camera
 
 The product has one camera, shared by cars and motorcycles: the pseudo projection behind the player at constant
-depth. Its pitch is the body's pitch, so vehicle images need no pitch variants. Its yaw is the body's yaw while the
-body points within a limit angle of the road direction; beyond the limit the camera stays at the limit and the
-vehicle is shown turned. It stands 6 m behind the player's base point and 2 m above it with a level body, and holds
+depth. Its pitch is the body's pitch, whatever the body's yaw, so vehicle images need no pitch variants. Its yaw
+follows what the player chooses in SETTINGS for each form, CAR CAMERA and BIKE CAMERA: FACING, the way the body points
+(a car's default), or MOVING, the way the vehicle travels (a bike's default). Within 45° of the road direction the
+camera takes that yaw at once; beyond it the camera stays at the limit and the vehicle is shown turned. It stands 6 m behind the player's base point and 2 m above it with a level body, and holds
 that point on one screen row whatever the pitch: only the base point's height is sprung, so on a steady grade the
 player keeps its row, while jumps and suspension motion move the vehicle on screen and leave the view calm. The camera
-may pass below the road. The player does not select cameras.
+may pass below the road.
 
 ## 9. HUD
 
@@ -250,7 +251,8 @@ is course appearance (signs), not HUD. DEV UI stays separate from the HUD.
 
 The browser keeps one versioned record of settings and records:
 
-- **Settings:** each vehicle's selected color, the three volumes and the latest selections, FREE PLAY's options included.
+- **Settings:** each vehicle's selected color, the three volumes, the car and bike cameras and the latest selections,
+  FREE PLAY's options included.
 - **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
 - **ARCADE records:** best completion time for each series, class, reached goal and vehicle.
 
@@ -259,7 +261,7 @@ changes. Only a run that reaches GOAL records. READY shows the record for the se
 shows it with NEW RECORD when it is beaten. In TIME TRIAL each gate and lap shows the difference from
 the record run for two seconds, green when faster and red when slower. SETTINGS can clear all records.
 
-An equal time keeps the earlier record. Color and music are not record conditions. Sessions rebuilt by
+An equal time keeps the earlier record. Color, music and camera are not record conditions. Sessions rebuilt by
 DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 ## 11. Input and display

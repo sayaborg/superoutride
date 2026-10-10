@@ -12,7 +12,5 @@ export const CAMERA_DEFINITION: Readonly<CameraDefinition> = Object.freeze({
   horizonRow: 120,
   height: 2,
   heightFrequency: 2,
-  yawSource: 'BODY',
   yawLimit: (45 * Math.PI) / 180,
-  yawResponseSeconds: 0,
 });
