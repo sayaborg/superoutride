@@ -28,12 +28,11 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const course = await loadDeliveredCourse(content, stem, materials);
     const settings = createDisplaySettings();
     const entry = definitions.vehicles[0];
-    const footprint = entry.compiledVehicle.footprint;
     const scene = createCourseScene(
       course.entry,
       course.gates,
       definitions.vehicles,
-      { camera: CAMERA_DEFINITION, footprint },
+      { camera: CAMERA_DEFINITION },
       settings,
     );
     const sprites = createVehicleSprites(entry);
@@ -54,7 +53,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     ];
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
-      const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, footprint);
+      const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION);
       target.pixels.fill(0);
       const result = createRenderMeasurements();
       scene.render(target, vehicle, camera, sprites.off, [], shadowed, [], result);

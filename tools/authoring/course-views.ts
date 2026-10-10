@@ -127,7 +127,7 @@ export function createCourseFrameRenderer(
     : definitions.vehicles[0];
   if (!entry) throw new RangeError('Unknown vehicle');
   const sprites = createVehicleSprites(entry);
-  const viewer = { camera: CAMERA_DEFINITION, footprint: entry.compiledVehicle.footprint };
+  const viewer = { camera: CAMERA_DEFINITION };
   const scene = createCourseScene(section, course.gates, definitions.vehicles, viewer);
   if (exit !== undefined) {
     const link = section.outgoing.find((candidate) => candidate.id === exit);
@@ -144,7 +144,7 @@ export function createCourseFrameRenderer(
         scene.world,
         { s, l, initialSpeed: 0 },
       );
-      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION, viewer.footprint),
+      const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION),
         target = createLogicalFrame();
       const stats = createRenderMeasurements();
       const shadowed = [{ vehicleId: entry.compiledVehicle.id, course: vehicle.course }];

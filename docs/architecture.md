@@ -144,8 +144,8 @@ enforces ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-docu
 Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)` across the catalog's
 front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
 The step allowance retains the rear footprint until the next refresh. With the current camera, driver and
-fleet (`cameraDistance` at most 7 m: `D_cam` 6 m plus half a 2 m footprint) the record is 4 m per step, 484 m forward
-(`max(7 + 200, 480, 50) + 4`) and 64 m rear (`max(7 + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
+fleet (`cameraDistance` is `D_cam`, 6 m) the record is 4 m per step, 484 m forward
+(`max(6 + 200, 480, 50) + 4`) and 64 m rear (`max(6 + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
 Until its lock decides, a fork's parent Section alone carries the forward coverage: creating the course world
 checks every fork Section reachable from the entry for `lock.s + forwardMeters <= Section end` and rejects a
 violation with a `RangeError` naming the Section.
@@ -380,15 +380,15 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m
 player reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for
 the field of view and the player depth, which derives from it (`cameraDistance`): `f=240 px` and `D_cam=f/40=6 m`
-from the camera to the player's standing point; near/far depths are 2.5/200 m. FOV changes preserve this metric. A
-picture with a shadow stands at its standing point (`standingPoint`): the middle of its square footprint's near edge,
-half its footprint `F` behind its route position along the road at its lateral, whichever way it faces, at the body's
-rear-end height `renderY − (F/2)·sin(theta)` for body pitch `theta` (an object's own height). The camera thus stands
-`cameraBehindPlayer = D_cam + F/2` behind the player's route position: 7 m for a 2 m wide car, 6.35 m for a 0.7 m
-motorcycle. The scene builds its loading window from its viewer, the camera and the player's footprint, with that
-distance, so the race's view and the renderer place the camera at the same station. Ground and sprites share this depth interval.
+from the camera to the player's base point; near/far depths are 2.5/200 m. FOV changes preserve this metric. Every
+picture is a plane without depth standing upright at its base point (`basePoint`): a vehicle's route position seen
+from above, the physical authority's position, at its body's underside `renderY` (its centre-of-mass height less its
+desired centre-of-mass height); an object's placement at its own height. The camera thus stands `D_cam` behind the
+player's route position, for every vehicle alike. The scene builds its loading window from its viewer's camera with
+that distance, so the race's view and the renderer place the camera at the same station. Ground and sprites share this
+depth interval.
 
-Camera chainage is `s_standing-D_cam`; its drawn XZ is the player's standing point's route-world XZ minus `D_cam` along
+Camera chainage is `s_player-D_cam`; its drawn XZ is the player's base point's route-world XZ minus `D_cam` along
 the camera yaw. There is one camera. Its yaw follows the camera definition's yaw source: the body yaw (the product's), or
 with DEV the player's direction of travel, the body yaw turned by its velocity's direction in the body frame (below
 2 m/s by that fraction of the turn, so at rest the body yaw, and stopping or starting turns the camera continuously).
@@ -400,14 +400,14 @@ step. Beyond the limit the camera stays at it, and the player sprite's
 yaw variant shows the body turned by the relative yaw, as for every vehicle sprite. A reset places it at the limited
 yaw. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
-projection of its standing point, its one authority, and the camera on that point's yaw ray puts it at the centre
+projection of its base point, its one authority, and the camera on that point's yaw ray puts it at the centre
 column by construction. Camera roll is zero.
 
 The player's depth `D_cam` and the camera pitch relative to the body stay constant, so the player never scales or
 changes pitch on screen. Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 0 degrees, body pitch `theta`
 nose-up positive). With a level body the horizon is row 120 (`cy`) and the camera stands 1.75 m above the player's
-standing point. The height target is solved from the projection with the standing point's height `Y_p` at target row
-`y_t` = 190, so the bottom of the player's picture is row 190 and its width is its footprint at 40 px/m:
+base point. The height target is solved from the projection with the base point's height `Y_p` at target row
+`y_t` = 190, so the player's base point is row 190 and its picture is drawn at 40 px/m there:
 
 ```text
 Ycam = Y_p - (D_cam/(f*cos(phi)))*(cy - f*sin(phi) - y_t)
@@ -510,11 +510,11 @@ BG do not enter the average. [Browser](browser.md#ground-display-setting) owns l
 
 Sprites have a logical master frame, physical width, a master texel-center anchor and completed levels.
 Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chainage and render height; vehicles and
-movable objects stand at their standing points, from their observed chainage and lateral, so the rows of their own
-shadows lie at or beyond their anchors' depth. Yaw/bank variants are authored images.
+movable objects stand at their base points, from their observed chainage and lateral. A picture may extend below its
+anchor: what lies below its base point is ordered by the base point's depth too. Yaw/bank variants are authored images.
 Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
 A vehicle's yaw image is the one for its body yaw relative to the camera yaw less its direction of view: the direction
-from which the pictures' camera sees its position (its square's centre), `atan(x / (k*d))` for that position's
+from which the pictures' camera sees its base point, `atan(x / (k*d))` for that point's
 camera-right distance `x` and depth `d` and the pictures' camera factor `k`
 ([Image assets](image-assets.md#vehicle-sprite-library)). A vehicle beside the player, facing the same way, thus shows
 the side nearer the centre of the screen. The player, on the camera's axis, takes the relative yaw alone. Each other
@@ -605,9 +605,8 @@ Master `W` by `H` has untrimmed, top-left-aligned level `k` storage
 frame. A contiguous prefix through `ceil(log2(max(W,H)))` is valid; the longer axis keeps shrinking.
 
 The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`.
-Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid. A sprite stands on its anchor's
-master row, the picture's standing point: rows below that row are not drawn, so a picture is made to lie at and above
-its standing point.
+Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid. The anchor is the picture's base
+point; every row of the picture is drawn, those below the anchor included.
 Every level represents `worldWidth` by `worldWidth*H/W` metres, independent of opaque/storage bounds.
 
 For master footprint `rho=1/g`, sprites use the shared nearest-octave selector below. Display extent

@@ -124,7 +124,7 @@ export async function runScenario({ course }, scenario) {
     course.entry,
     course.gates,
     definitions.vehicles,
-    { camera: CAMERA_DEFINITION, footprint: entry.compiledVehicle.footprint },
+    { camera: CAMERA_DEFINITION },
     settings,
   );
   // ARCADE takes its class's settings; TIME TRIAL and FREE PLAY take the scenario's.
@@ -307,7 +307,7 @@ export async function runScenario({ course }, scenario) {
       assert.ok(!accepted.has(key), `crossing accepted twice: ${key}`);
       accepted.add(key);
     }
-    camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION, entry.compiledVehicle.footprint);
+    camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION);
     finiteState(camera, 'camera');
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;

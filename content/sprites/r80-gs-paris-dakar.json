@@ -63,7 +63,7 @@
       "width": 59,
       "height": 44,
       "anchorX": 57.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -188,7 +188,7 @@
       "width": 42,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -313,7 +313,7 @@
       "width": 30,
       "height": 68,
       "anchorX": 14.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -422,7 +422,7 @@
       "width": 42,
       "height": 62,
       "anchorX": 1.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -547,7 +547,7 @@
       "width": 59,
       "height": 44,
       "anchorX": 0.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -672,7 +672,7 @@
       "width": 61,
       "height": 44,
       "anchorX": 56.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -799,7 +799,7 @@
       "width": 45,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -929,7 +929,7 @@
       "width": 33,
       "height": 68,
       "anchorX": 15.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1044,7 +1044,7 @@
       "width": 45,
       "height": 62,
       "anchorX": 5.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1174,7 +1174,7 @@
       "width": 62,
       "height": 43,
       "anchorX": 4.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1301,7 +1301,7 @@
       "width": 64,
       "height": 44,
       "anchorX": 55.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1432,7 +1432,7 @@
       "width": 48,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1568,7 +1568,7 @@
       "width": 35,
       "height": 68,
       "anchorX": 15.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1688,7 +1688,7 @@
       "width": 48,
       "height": 61,
       "anchorX": 9.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1822,7 +1822,7 @@
       "width": 66,
       "height": 43,
       "anchorX": 8.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -1953,7 +1953,7 @@
       "width": 66,
       "height": 44,
       "anchorX": 53.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2086,7 +2086,7 @@
       "width": 51,
       "height": 62,
       "anchorX": 36.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2227,7 +2227,7 @@
       "width": 42,
       "height": 68,
       "anchorX": 20.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2361,7 +2361,7 @@
       "width": 52,
       "height": 61,
       "anchorX": 13.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2503,7 +2503,7 @@
       "width": 68,
       "height": 43,
       "anchorX": 12.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2637,7 +2637,7 @@
       "width": 67,
       "height": 45,
       "anchorX": 50.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2773,7 +2773,7 @@
       "width": 56,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -2923,7 +2923,7 @@
       "width": 47,
       "height": 68,
       "anchorX": 24.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3067,7 +3067,7 @@
       "width": 58,
       "height": 61,
       "anchorX": 18.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3220,7 +3220,7 @@
       "width": 69,
       "height": 42,
       "anchorX": 16.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3353,7 +3353,7 @@
       "width": 68,
       "height": 45,
       "anchorX": 47.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3490,7 +3490,7 @@
       "width": 63,
       "height": 62,
       "anchorX": 40.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3653,7 +3653,7 @@
       "width": 54,
       "height": 68,
       "anchorX": 28.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3810,7 +3810,7 @@
       "width": 61,
       "height": 61,
       "anchorX": 22.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -3968,7 +3968,7 @@
       "width": 68,
       "height": 42,
       "anchorX": 19.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4101,7 +4101,7 @@
       "width": 72,
       "height": 45,
       "anchorX": 48.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4243,7 +4243,7 @@
       "width": 68,
       "height": 62,
       "anchorX": 41.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4415,7 +4415,7 @@
       "width": 61,
       "height": 68,
       "anchorX": 31.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4586,7 +4586,7 @@
       "width": 65,
       "height": 61,
       "anchorX": 26.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4751,7 +4751,7 @@
       "width": 70,
       "height": 42,
       "anchorX": 23.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -4887,7 +4887,7 @@
       "width": 75,
       "height": 45,
       "anchorX": 47.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5033,7 +5033,7 @@
       "width": 72,
       "height": 62,
       "anchorX": 42.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5212,7 +5212,7 @@
       "width": 66,
       "height": 68,
       "anchorX": 33.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5392,7 +5392,7 @@
       "width": 70,
       "height": 61,
       "anchorX": 29.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5566,7 +5566,7 @@
       "width": 74,
       "height": 42,
       "anchorX": 27.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5707,7 +5707,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 46.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -5858,7 +5858,7 @@
       "width": 76,
       "height": 62,
       "anchorX": 42.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6044,7 +6044,7 @@
       "width": 71,
       "height": 68,
       "anchorX": 35.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6234,7 +6234,7 @@
       "width": 74,
       "height": 61,
       "anchorX": 32.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6415,7 +6415,7 @@
       "width": 77,
       "height": 42,
       "anchorX": 30.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6560,7 +6560,7 @@
       "width": 79,
       "height": 46,
       "anchorX": 44.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6712,7 +6712,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 41.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -6899,7 +6899,7 @@
       "width": 74,
       "height": 68,
       "anchorX": 36.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7094,7 +7094,7 @@
       "width": 77,
       "height": 61,
       "anchorX": 34.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7281,7 +7281,7 @@
       "width": 80,
       "height": 42,
       "anchorX": 33.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7430,7 +7430,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 41.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7581,7 +7581,7 @@
       "width": 78,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7770,7 +7770,7 @@
       "width": 77,
       "height": 68,
       "anchorX": 37.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -7970,7 +7970,7 @@
       "width": 78,
       "height": 61,
       "anchorX": 35.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -8159,7 +8159,7 @@
       "width": 81,
       "height": 42,
       "anchorX": 35.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -8309,7 +8309,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 38.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -8460,7 +8460,7 @@
       "width": 78,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -8648,7 +8648,7 @@
       "width": 78,
       "height": 68,
       "anchorX": 37.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -8849,7 +8849,7 @@
       "width": 79,
       "height": 61,
       "anchorX": 36.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9039,7 +9039,7 @@
       "width": 80,
       "height": 42,
       "anchorX": 36.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9187,7 +9187,7 @@
       "width": 77,
       "height": 46,
       "anchorX": 36.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9336,7 +9336,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 36.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9523,7 +9523,7 @@
       "width": 79,
       "height": 68,
       "anchorX": 37.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9726,7 +9726,7 @@
       "width": 80,
       "height": 61,
       "anchorX": 38.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -9917,7 +9917,7 @@
       "width": 82,
       "height": 42,
       "anchorX": 39.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10067,7 +10067,7 @@
       "width": 76,
       "height": 46,
       "anchorX": 34.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10215,7 +10215,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 35.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10402,7 +10402,7 @@
       "width": 79,
       "height": 68,
       "anchorX": 37.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10606,7 +10606,7 @@
       "width": 82,
       "height": 61,
       "anchorX": 40.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10801,7 +10801,7 @@
       "width": 83,
       "height": 42,
       "anchorX": 42.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -10952,7 +10952,7 @@
       "width": 77,
       "height": 46,
       "anchorX": 33.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11101,7 +11101,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 34.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11288,7 +11288,7 @@
       "width": 78,
       "height": 68,
       "anchorX": 36.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11490,7 +11490,7 @@
       "width": 82,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11685,7 +11685,7 @@
       "width": 85,
       "height": 42,
       "anchorX": 45.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11839,7 +11839,7 @@
       "width": 75,
       "height": 46,
       "anchorX": 30.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -11986,7 +11986,7 @@
       "width": 75,
       "height": 62,
       "anchorX": 32.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -12169,7 +12169,7 @@
       "width": 76,
       "height": 68,
       "anchorX": 35.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -12368,7 +12368,7 @@
       "width": 81,
       "height": 61,
       "anchorX": 42.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -12562,7 +12562,7 @@
       "width": 85,
       "height": 42,
       "anchorX": 47.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -12716,7 +12716,7 @@
       "width": 73,
       "height": 46,
       "anchorX": 27.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -12860,7 +12860,7 @@
       "width": 72,
       "height": 62,
       "anchorX": 29.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13038,7 +13038,7 @@
       "width": 72,
       "height": 68,
       "anchorX": 33.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13229,7 +13229,7 @@
       "width": 78,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13417,7 +13417,7 @@
       "width": 82,
       "height": 42,
       "anchorX": 47.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13567,7 +13567,7 @@
       "width": 71,
       "height": 45,
       "anchorX": 24.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13707,7 +13707,7 @@
       "width": 68,
       "height": 62,
       "anchorX": 26.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -13878,7 +13878,7 @@
       "width": 67,
       "height": 68,
       "anchorX": 31.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14060,7 +14060,7 @@
       "width": 75,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14243,7 +14243,7 @@
       "width": 78,
       "height": 42,
       "anchorX": 47.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14388,7 +14388,7 @@
       "width": 67,
       "height": 45,
       "anchorX": 20.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14522,7 +14522,7 @@
       "width": 64,
       "height": 62,
       "anchorX": 23.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14685,7 +14685,7 @@
       "width": 61,
       "height": 68,
       "anchorX": 28.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -14855,7 +14855,7 @@
       "width": 69,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15029,7 +15029,7 @@
       "width": 75,
       "height": 42,
       "anchorX": 48.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15171,7 +15171,7 @@
       "width": 64,
       "height": 45,
       "anchorX": 17.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15302,7 +15302,7 @@
       "width": 59,
       "height": 62,
       "anchorX": 19.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15456,7 +15456,7 @@
       "width": 55,
       "height": 68,
       "anchorX": 25.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15615,7 +15615,7 @@
       "width": 63,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15778,7 +15778,7 @@
       "width": 75,
       "height": 43,
       "anchorX": 52.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -15922,7 +15922,7 @@
       "width": 62,
       "height": 45,
       "anchorX": 14.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16050,7 +16050,7 @@
       "width": 54,
       "height": 62,
       "anchorX": 15.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16196,7 +16196,7 @@
       "width": 46,
       "height": 68,
       "anchorX": 21.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16337,7 +16337,7 @@
       "width": 58,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16491,7 +16491,7 @@
       "width": 73,
       "height": 43,
       "anchorX": 54.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16632,7 +16632,7 @@
       "width": 61,
       "height": 45,
       "anchorX": 10.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16759,7 +16759,7 @@
       "width": 52,
       "height": 62,
       "anchorX": 12.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -16901,7 +16901,7 @@
       "width": 40,
       "height": 68,
       "anchorX": 17.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17030,7 +17030,7 @@
       "width": 54,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17176,7 +17176,7 @@
       "width": 71,
       "height": 43,
       "anchorX": 56.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17314,7 +17314,7 @@
       "width": 61,
       "height": 45,
       "anchorX": 7.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17441,7 +17441,7 @@
       "width": 47,
       "height": 62,
       "anchorX": 8.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17574,7 +17574,7 @@
       "width": 36,
       "height": 68,
       "anchorX": 15.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17694,7 +17694,7 @@
       "width": 50,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17833,7 +17833,7 @@
       "width": 68,
       "height": 43,
       "anchorX": 57.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -17967,7 +17967,7 @@
       "width": 59,
       "height": 44,
       "anchorX": 3.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18090,7 +18090,7 @@
       "width": 43,
       "height": 62,
       "anchorX": 4.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18216,7 +18216,7 @@
       "width": 33,
       "height": 68,
       "anchorX": 14.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18330,7 +18330,7 @@
       "width": 46,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18461,7 +18461,7 @@
       "width": 63,
       "height": 44,
       "anchorX": 57.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18590,7 +18590,7 @@
       "width": 58,
       "height": 44,
       "anchorX": 0.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18713,7 +18713,7 @@
       "width": 41,
       "height": 62,
       "anchorX": 1.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18836,7 +18836,7 @@
       "width": 32,
       "height": 68,
       "anchorX": 15.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -18948,7 +18948,7 @@
       "width": 41,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19070,7 +19070,7 @@
       "width": 58,
       "height": 44,
       "anchorX": 56.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19193,7 +19193,7 @@
       "width": 63,
       "height": 44,
       "anchorX": 4.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19322,7 +19322,7 @@
       "width": 46,
       "height": 62,
       "anchorX": 5.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19454,7 +19454,7 @@
       "width": 33,
       "height": 68,
       "anchorX": 17.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19568,7 +19568,7 @@
       "width": 43,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19694,7 +19694,7 @@
       "width": 59,
       "height": 44,
       "anchorX": 54.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19817,7 +19817,7 @@
       "width": 68,
       "height": 43,
       "anchorX": 9.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -19951,7 +19951,7 @@
       "width": 50,
       "height": 62,
       "anchorX": 10.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20090,7 +20090,7 @@
       "width": 36,
       "height": 68,
       "anchorX": 19.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20210,7 +20210,7 @@
       "width": 47,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20343,7 +20343,7 @@
       "width": 61,
       "height": 45,
       "anchorX": 52.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20470,7 +20470,7 @@
       "width": 71,
       "height": 43,
       "anchorX": 13.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20608,7 +20608,7 @@
       "width": 54,
       "height": 62,
       "anchorX": 14.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20754,7 +20754,7 @@
       "width": 40,
       "height": 68,
       "anchorX": 21.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -20883,7 +20883,7 @@
       "width": 52,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21025,7 +21025,7 @@
       "width": 61,
       "height": 45,
       "anchorX": 49.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21152,7 +21152,7 @@
       "width": 73,
       "height": 43,
       "anchorX": 17.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21293,7 +21293,7 @@
       "width": 58,
       "height": 62,
       "anchorX": 19.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21447,7 +21447,7 @@
       "width": 46,
       "height": 68,
       "anchorX": 23.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21588,7 +21588,7 @@
       "width": 54,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21734,7 +21734,7 @@
       "width": 62,
       "height": 45,
       "anchorX": 46.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -21862,7 +21862,7 @@
       "width": 75,
       "height": 43,
       "anchorX": 21.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22005,7 +22005,7 @@
       "width": 63,
       "height": 62,
       "anchorX": 24.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22168,7 +22168,7 @@
       "width": 55,
       "height": 68,
       "anchorX": 28.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22327,7 +22327,7 @@
       "width": 59,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22482,7 +22482,7 @@
       "width": 64,
       "height": 45,
       "anchorX": 45.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22613,7 +22613,7 @@
       "width": 75,
       "height": 42,
       "anchorX": 25.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22755,7 +22755,7 @@
       "width": 69,
       "height": 62,
       "anchorX": 28.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -22929,7 +22929,7 @@
       "width": 61,
       "height": 68,
       "anchorX": 31.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23099,7 +23099,7 @@
       "width": 64,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23262,7 +23262,7 @@
       "width": 67,
       "height": 45,
       "anchorX": 45.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23396,7 +23396,7 @@
       "width": 78,
       "height": 42,
       "anchorX": 29.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23541,7 +23541,7 @@
       "width": 75,
       "height": 61,
       "anchorX": 32.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23724,7 +23724,7 @@
       "width": 67,
       "height": 68,
       "anchorX": 34.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -23906,7 +23906,7 @@
       "width": 68,
       "height": 62,
       "anchorX": 40.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24077,7 +24077,7 @@
       "width": 71,
       "height": 45,
       "anchorX": 45.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24216,7 +24216,7 @@
       "width": 82,
       "height": 42,
       "anchorX": 33.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24366,7 +24366,7 @@
       "width": 78,
       "height": 61,
       "anchorX": 35.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24554,7 +24554,7 @@
       "width": 72,
       "height": 68,
       "anchorX": 37.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24746,7 +24746,7 @@
       "width": 72,
       "height": 62,
       "anchorX": 41.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -24924,7 +24924,7 @@
       "width": 73,
       "height": 46,
       "anchorX": 44.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25068,7 +25068,7 @@
       "width": 85,
       "height": 42,
       "anchorX": 36.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25221,7 +25221,7 @@
       "width": 81,
       "height": 61,
       "anchorX": 37.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25414,7 +25414,7 @@
       "width": 76,
       "height": 68,
       "anchorX": 39.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25613,7 +25613,7 @@
       "width": 75,
       "height": 62,
       "anchorX": 41.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25796,7 +25796,7 @@
       "width": 75,
       "height": 46,
       "anchorX": 43.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -25943,7 +25943,7 @@
       "width": 85,
       "height": 42,
       "anchorX": 38.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26096,7 +26096,7 @@
       "width": 82,
       "height": 61,
       "anchorX": 39.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26291,7 +26291,7 @@
       "width": 78,
       "height": 68,
       "anchorX": 40.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26493,7 +26493,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 41.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26680,7 +26680,7 @@
       "width": 77,
       "height": 46,
       "anchorX": 42.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26829,7 +26829,7 @@
       "width": 83,
       "height": 42,
       "anchorX": 39.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -26980,7 +26980,7 @@
       "width": 82,
       "height": 61,
       "anchorX": 40.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -27175,7 +27175,7 @@
       "width": 79,
       "height": 68,
       "anchorX": 40.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -27378,7 +27378,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 40.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -27565,7 +27565,7 @@
       "width": 76,
       "height": 46,
       "anchorX": 40.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -27713,7 +27713,7 @@
       "width": 82,
       "height": 42,
       "anchorX": 41.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -27863,7 +27863,7 @@
       "width": 80,
       "height": 61,
       "anchorX": 40.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28054,7 +28054,7 @@
       "width": 79,
       "height": 68,
       "anchorX": 40.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28257,7 +28257,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 39.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28444,7 +28444,7 @@
       "width": 77,
       "height": 46,
       "anchorX": 39.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28593,7 +28593,7 @@
       "width": 80,
       "height": 42,
       "anchorX": 42.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28741,7 +28741,7 @@
       "width": 79,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -28931,7 +28931,7 @@
       "width": 78,
       "height": 68,
       "anchorX": 39.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -29132,7 +29132,7 @@
       "width": 78,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -29320,7 +29320,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 38.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -29471,7 +29471,7 @@
       "width": 81,
       "height": 42,
       "anchorX": 44.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -29621,7 +29621,7 @@
       "width": 78,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -29810,7 +29810,7 @@
       "width": 77,
       "height": 68,
       "anchorX": 38.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30010,7 +30010,7 @@
       "width": 78,
       "height": 62,
       "anchorX": 37.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30199,7 +30199,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 35.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30350,7 +30350,7 @@
       "width": 80,
       "height": 42,
       "anchorX": 45.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30499,7 +30499,7 @@
       "width": 77,
       "height": 61,
       "anchorX": 41.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30686,7 +30686,7 @@
       "width": 74,
       "height": 68,
       "anchorX": 36.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -30881,7 +30881,7 @@
       "width": 77,
       "height": 62,
       "anchorX": 34.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31068,7 +31068,7 @@
       "width": 79,
       "height": 46,
       "anchorX": 33.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31220,7 +31220,7 @@
       "width": 77,
       "height": 42,
       "anchorX": 45.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31365,7 +31365,7 @@
       "width": 74,
       "height": 61,
       "anchorX": 40.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31547,7 +31547,7 @@
       "width": 71,
       "height": 68,
       "anchorX": 34.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31737,7 +31737,7 @@
       "width": 76,
       "height": 62,
       "anchorX": 32.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -31923,7 +31923,7 @@
       "width": 78,
       "height": 46,
       "anchorX": 30.5,
-      "anchorY": 45,
+      "anchorY": 40.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32074,7 +32074,7 @@
       "width": 74,
       "height": 42,
       "anchorX": 45.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32215,7 +32215,7 @@
       "width": 70,
       "height": 61,
       "anchorX": 39.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32389,7 +32389,7 @@
       "width": 66,
       "height": 68,
       "anchorX": 31.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32569,7 +32569,7 @@
       "width": 72,
       "height": 62,
       "anchorX": 28.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32748,7 +32748,7 @@
       "width": 75,
       "height": 45,
       "anchorX": 26.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -32894,7 +32894,7 @@
       "width": 70,
       "height": 42,
       "anchorX": 45.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33030,7 +33030,7 @@
       "width": 65,
       "height": 61,
       "anchorX": 37.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33195,7 +33195,7 @@
       "width": 61,
       "height": 68,
       "anchorX": 28.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33366,7 +33366,7 @@
       "width": 68,
       "height": 62,
       "anchorX": 25.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33538,7 +33538,7 @@
       "width": 72,
       "height": 45,
       "anchorX": 22.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33680,7 +33680,7 @@
       "width": 68,
       "height": 42,
       "anchorX": 47.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33813,7 +33813,7 @@
       "width": 61,
       "height": 61,
       "anchorX": 37.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -33971,7 +33971,7 @@
       "width": 54,
       "height": 68,
       "anchorX": 24.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34128,7 +34128,7 @@
       "width": 63,
       "height": 62,
       "anchorX": 21.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34291,7 +34291,7 @@
       "width": 68,
       "height": 45,
       "anchorX": 19.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34428,7 +34428,7 @@
       "width": 69,
       "height": 42,
       "anchorX": 51.5,
-      "anchorY": 41,
+      "anchorY": 36.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34561,7 +34561,7 @@
       "width": 58,
       "height": 61,
       "anchorX": 38.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34714,7 +34714,7 @@
       "width": 47,
       "height": 68,
       "anchorX": 21.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -34858,7 +34858,7 @@
       "width": 56,
       "height": 62,
       "anchorX": 17.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35008,7 +35008,7 @@
       "width": 67,
       "height": 45,
       "anchorX": 15.5,
-      "anchorY": 44,
+      "anchorY": 39.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35144,7 +35144,7 @@
       "width": 68,
       "height": 43,
       "anchorX": 54.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35278,7 +35278,7 @@
       "width": 52,
       "height": 61,
       "anchorX": 37.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35420,7 +35420,7 @@
       "width": 42,
       "height": 68,
       "anchorX": 20.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35554,7 +35554,7 @@
       "width": 51,
       "height": 62,
       "anchorX": 13.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35696,7 +35696,7 @@
       "width": 66,
       "height": 44,
       "anchorX": 11.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35829,7 +35829,7 @@
       "width": 66,
       "height": 43,
       "anchorX": 56.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -35960,7 +35960,7 @@
       "width": 48,
       "height": 61,
       "anchorX": 37.5,
-      "anchorY": 60,
+      "anchorY": 55.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36094,7 +36094,7 @@
       "width": 35,
       "height": 68,
       "anchorX": 18.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36213,7 +36213,7 @@
       "width": 48,
       "height": 62,
       "anchorX": 8.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36349,7 +36349,7 @@
       "width": 64,
       "height": 44,
       "anchorX": 7.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36480,7 +36480,7 @@
       "width": 62,
       "height": 43,
       "anchorX": 56.5,
-      "anchorY": 42,
+      "anchorY": 37.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36607,7 +36607,7 @@
       "width": 45,
       "height": 62,
       "anchorX": 38.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36737,7 +36737,7 @@
       "width": 33,
       "height": 68,
       "anchorX": 16.5,
-      "anchorY": 67,
+      "anchorY": 62.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36852,7 +36852,7 @@
       "width": 45,
       "height": 62,
       "anchorX": 5.5,
-      "anchorY": 61,
+      "anchorY": 56.523,
       "levels": [
         {
           "paletteRgb555": [
@@ -36982,7 +36982,7 @@
       "width": 61,
       "height": 44,
       "anchorX": 3.5,
-      "anchorY": 43,
+      "anchorY": 38.523,
       "levels": [
         {
           "paletteRgb555": [

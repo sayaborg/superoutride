@@ -5,13 +5,12 @@ import type { CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
-import { standingPoint, type StandingPoint } from './standing-point.js';
+import { basePoint, type BasePoint } from './base-point.js';
 
 /**
  * Observer-owned sprite assembly over borrowed, camera-independent competitor observations. Each competitor is
  * drawn from its own vehicle's sprite set in its observed color, bound once per vehicle and color on first use, standing
- * on its footprint's near edge on the scene's route coordinates and seen from the camera's direction of view to its
- * square's centre. Each keeps its previous frame's yaw image near that image's sector.
+ * at its base point on the scene's route coordinates and seen from the camera's direction of view to it. Each keeps its previous frame's yaw image near that image's sector.
  */
 export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]) {
   const sprites: CourseSprite[] = [];
@@ -26,11 +25,7 @@ export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]
     }
     return states;
   };
-  const footprints = new Map(
-    vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.compiledVehicle.footprint]),
-  );
-  const standing: StandingPoint = { x: 0, y: 0, z: 0, s: 0 },
-    position = { x: 0, z: 0, s: 0 },
+  const base: BasePoint = { x: 0, y: 0, z: 0, s: 0 },
     sample = createPlanCoordinateSample();
   // Each competitor's yaw image in the previous frame, held near its sector; only the previous frame's are kept.
   let held = new Map<string, number>(),
@@ -41,16 +36,11 @@ export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]
     shown.clear();
     for (const actor of actors) {
       const states = statesOf(actor.vehicleId, actor.color);
-      standingPoint(coordinates, actor, footprints.get(actor.vehicleId)!, standing, sample);
-      const centre = coordinates.toWorld(actor.course.s, actor.course.l, sample);
-      position.x = centre.x;
-      position.z = centre.z;
-      position.s = actor.course.s;
+      basePoint(coordinates, actor, base, sample);
       const { sprite, yawIndex } = createDynamicVehicleCourseSprite(
         actor.id,
         actor,
-        standing,
-        position,
+        base,
         camera,
         actor.brakeLampOn ? states.on : states.off,
         held.get(actor.id),

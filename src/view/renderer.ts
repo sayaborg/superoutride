@@ -16,7 +16,7 @@ import { drawWallColumn, type RouteWall, type WallWorkspace } from './course-wal
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 import { shadowRowSpans, type VehicleShadow } from './vehicle-shadow.js';
-import type { StandingPoint } from './standing-point.js';
+import type { BasePoint } from './base-point.js';
 
 /** DEV and tool measurements of one rendered frame; the product render takes none. */
 export interface RenderMeasurements {
@@ -67,8 +67,8 @@ interface RenderScene {
   readonly guide: { readonly coordinates: PlanCoordinateReader };
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderRead;
-  /** The player picture's ground anchor: its footprint's near edge (`standingPoint`). */
-  readonly playerStanding: StandingPoint;
+  /** The player picture's anchor: its base point (`basePoint`). */
+  readonly playerBase: BasePoint;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: readonly CourseSprite[];
   /** The visible walls on the resident Route. */
@@ -105,7 +105,7 @@ export function renderDriving(
     guide,
     camera,
     vehicle,
-    playerStanding,
+    playerBase,
     terrainParameters,
     worldSprites,
     walls,
@@ -175,7 +175,7 @@ export function renderDriving(
     },
   );
 
-  const playerProjection = pseudoProject(playerStanding, camera);
+  const playerProjection = pseudoProject(playerBase, camera);
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
   const selected = selectVehicleSprite(playerSet, relativeYaw, deriveVehicleLeanRadians(vehicle));
   const playerStats = drawScaledSprite(

@@ -6,7 +6,7 @@ import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import { cameraBehindPlayer, type CameraDefinition, type CameraState } from './camera.js';
+import { cameraDistance, type CameraDefinition, type CameraState } from './camera.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
@@ -16,21 +16,17 @@ import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { createVehicleShadows, type ShadowSquare, type ShadowedVehicle } from './vehicle-shadow.js';
-import { standingPoint, type StandingBody, type StandingPoint } from './standing-point.js';
+import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
 
-/**
- * Who views a scene: the camera and the square footprint of the player it follows, whose picture stands on that
- * footprint's near edge.
- */
+/** Who views a scene: the camera following the player. */
 export interface CourseViewer {
   readonly camera: Pick<CameraDefinition, 'focalLength'>;
-  readonly footprint: number;
 }
 
-/** A viewer's loading window: the camera stands `cameraBehindPlayer` behind the player's route position. */
-function courseLoadingWindow({ camera, footprint }: CourseViewer): CourseLoadingWindow {
+/** A viewer's loading window: the camera stands `cameraDistance` behind the player's route position. */
+function courseLoadingWindow({ camera }: CourseViewer): CourseLoadingWindow {
   return Object.freeze({
-    cameraDistance: cameraBehindPlayer(camera, footprint),
+    cameraDistance: cameraDistance(camera),
     near: RENDER_NEAR_DEPTH_METERS,
     far: RENDER_FAR_DEPTH_METERS,
   });
@@ -54,14 +50,14 @@ export function createCourseScene(
   const shadows = createVehicleShadows(vehicles);
   // The movable objects' square footprints for this frame's shadows: standing, flying and landed alike.
   const objectSquares: ShadowSquare[] = [];
-  // The standing movable placements' pictures on their footprints' near edges, rebuilt with the sprite lists.
+  // The standing movable placements' pictures at their base points, rebuilt with the sprite lists.
   let standingMovables: readonly {
     readonly key: string;
     readonly sprite: CourseSprite;
     readonly footprint: ShadowSquare;
   }[] = [];
-  const playerStanding: StandingPoint = { x: 0, y: 0, z: 0, s: 0 },
-    standingSample = createPlanCoordinateSample();
+  const playerBase: BasePoint = { x: 0, y: 0, z: 0, s: 0 },
+    baseSample = createPlanCoordinateSample();
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
@@ -73,8 +69,8 @@ export function createCourseScene(
     },
     render(
       target: Parameters<typeof renderDriving>[0],
-      /** The player the viewer follows; its picture stands on its footprint's near edge. */
-      vehicle: VehicleRenderRead & StandingBody,
+      /** The player the viewer follows; its picture stands at its base point. */
+      vehicle: VehicleRenderRead & BaseBody,
       camera: CameraState,
       playerSet: VehicleSpriteSet,
       others: readonly CourseSprite[],
@@ -98,17 +94,12 @@ export function createCourseScene(
           if (selected && selected.id !== placement.unselectedLink) worldSprites.push(placement.sprite);
         }
         staticSpriteCount = worldSprites.length;
-        // A movable object's picture stands on its square's near edge, at the road height there plus its ground offset.
-        standingMovables = renderData.movableSprites.map(({ section, index, sprite, footprint }) => {
-          const s = footprint.s - footprint.side / 2;
-          const position = readers.coordinates.toWorld(s, footprint.l, sample);
-          const y = sprite.y - readers.height.sample(footprint.s) + readers.height.sample(s);
-          return {
-            key: `${section.id} ${index}`,
-            sprite: Object.freeze({ ...sprite, x: position.x, y, z: position.z, sRender: s }),
-            footprint,
-          };
-        });
+        // A movable object's picture stands at its placement, its square's centre.
+        standingMovables = renderData.movableSprites.map(({ section, index, sprite, footprint }) => ({
+          key: `${section.id} ${index}`,
+          sprite,
+          footprint,
+        }));
         terrainParameters = {
           screenHeight: LOGICAL_HEIGHT,
           dMin: RENDER_NEAR_DEPTH_METERS,
@@ -130,10 +121,10 @@ export function createCourseScene(
       for (const k of knocked) {
         const pictures = renderData.knockedPictures(k.section, k.sprite);
         const side = renderData.movableBody(k.section, k.sprite).width;
-        // A knocked object's picture stands on its square's near edge at its own height.
+        // A knocked object's picture stands at its square's centre at its own height.
         const show = (s: number, l: number, asset: CourseSprite['asset']) => {
-          const position = readers.coordinates.toWorld(s - side / 2, l, sample);
-          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s - side / 2, asset });
+          const position = readers.coordinates.toWorld(s, l, sample);
+          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset });
           objectSquares.push({ s, l, side });
         };
         if (k.state === 'airborne') {
@@ -153,7 +144,7 @@ export function createCourseScene(
           guide: readers,
           camera,
           vehicle,
-          playerStanding: standingPoint(readers.coordinates, vehicle, viewer.footprint, playerStanding, standingSample),
+          playerBase: basePoint(readers.coordinates, vehicle, playerBase, baseSample),
           terrainParameters,
           worldSprites,
           walls: renderData.walls,

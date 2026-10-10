@@ -27,10 +27,7 @@ async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course, materials } = await loadCourse(file);
   const testarossa = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, {
-    camera: CAMERA_DEFINITION,
-    footprint: testarossa.compiledVehicle.footprint,
-  });
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, { camera: CAMERA_DEFINITION });
   const assets = createVehicleSprites(testarossa);
   const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
@@ -95,8 +92,7 @@ test('the view assembles fifteen rival sprites from race observations', async ()
   assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false, barriers: [] });
   const observed = race.observe();
   assert.equal(observed.rivals.length, 15);
-  const footprint = compiledVehicle.vehicleDefinition.compiledVehicle.footprint;
-  const camera = updateCamera(createCameraRig(), scene.world, observed.player, CAMERA_DEFINITION, footprint);
+  const camera = updateCamera(createCameraRig(), scene.world, observed.player, CAMERA_DEFINITION);
   const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera, scene.world.coordinates);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(

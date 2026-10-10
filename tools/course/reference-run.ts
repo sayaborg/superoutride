@@ -50,10 +50,7 @@ export function runCourseReference(
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
-    scene = createCourseScene(course.entry, course.gates, catalog.vehicles, {
-      camera: CAMERA_DEFINITION,
-      footprint: entry.compiledVehicle.footprint,
-    });
+    scene = createCourseScene(course.entry, course.gates, catalog.vehicles, { camera: CAMERA_DEFINITION });
   // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
   const configuration = compileSessionConfiguration(
     { mode: 'TIME_TRIAL', vehicleId: entry.compiledVehicle.id, color: null, lapCount },
