@@ -267,14 +267,21 @@ Vehicle pictures and their generator follow this contract; this section is its o
 - **Anchor.** A picture's anchor is the projection of its base point. The picture may extend below it.
 - **Direction.** A picture is chosen by the body's yaw less the direction from the camera to the base point, in true
   perspective (`atan(x / d)` for the base point's camera-right distance `x` and depth `d`); the set's yaw images
-  divide the turn evenly, image 0 seen from behind and each next one turned right by one step.
+  divide the turn evenly, image 0 seen from behind and each next one turned right by one step. Their number is the
+  set's own (`yawVariants`), the same at every size; generated sets have 64 (5.625° apart).
 - **Shadow.** Each size has a shadow: the vehicle cast straight down onto a level road through its base point, seen by
   the same camera. It is drawn at the same scale with its anchor at the road beneath the base point, so its anchor is
   the same base point; its frame lies on the picture's texel grid, so the two anchors differ by whole texels. Its
   opaque texels are the shadow; their indices mean nothing else. A shadow keeps at least one opaque texel at every
   size.
-- **Colors.** Each size of each picture has 15 colors and transparency per palette, with its own palette for every
-  color name of the set and lamp state (brake lamp off and on); the indices are one for all its palettes.
+- **Colors.** One palette serves the whole set, every direction and size: 14 colors (slots 1–14), the brake lamp
+  (slot 15) and transparency (0). Every texel names one of those 15 colors; no size mixes colors, and a smaller size is
+  drawn with its own texels, not a blend of a larger one's. A color variant is a named palette of slots 1–14 (the body
+  color's slots replaced); the brake lamp is slot 15 alone, whose off and on colors the set declares once, so lighting
+  it changes that one color.
+- **Brake lamps at a distance.** Down to 1/16 size (size 4) a picture that shows the brake lamps keeps at least one
+  slot-15 texel for each of the left and right lamps; size 5 need not. This is the generator's rule; drawing does
+  nothing special for lamps.
 
 Course images are masters with build-generated pyramids ([Completed sprite images](#completed-sprite-images)): a
 level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
@@ -282,47 +289,45 @@ level is a reduction of the master, not a picture of its own; the movable object
 ## Vehicle sprite library
 
 Each vehicle sprite set is authored as one document, `content/sprites/<set>.json`, using
-`superoutride.vehicle-sprite-set` version 2. The set's name is its file name without `.json`; the document carries
+`superoutride.vehicle-sprite-set` version 3. The set's name is its file name without `.json`; the document carries
 none:
 
 ```text
-{format, version, yawVariants, bankVariants, bankDegrees?, assets: [[pictureIndex, ...], ...],
- pictures: [{sizes: [Size, ...]}, ...]}
-Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...],
-         palettes: {original: {off: [15 RGB555], on: [15 RGB555]}, alternate: {off, on}, ...},
-         shadow: {width, height, anchorX, anchorY, rows}}
+{format, version, yawVariants, bankVariants, bankDegrees?,
+ palettes: {original: [14 RGB555], alternate: [14 RGB555], ...}, brakeLamp: {off: RGB555, on: RGB555},
+ assets: [[pictureIndex, ...], ...], pictures: [{sizes: [Size, ...]}, ...]}
+Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...], shadow: {width, height, anchorX, anchorY, rows}}
 ```
 
 `assets` binds the yaw × bank grid, `yawVariants` rows of `bankVariants` cells, to the set's `pictures`; every picture
 fills at least one cell, and one picture may fill several. A picture has exactly six sizes, 0 to 5
 (`VEHICLE_PICTURE_SIZES`): size 5 is the one the farthest rendered depth (200 m) selects. A frame's `rows` run top to
-bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` transparent, `1`–`f` the palette's slots
-1–15. A palette lists the colors of slots 1–15. A set declares `bankDegrees` exactly when it has more than one bank
+bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` transparent, `1`–`e` the palette's slots
+1–14 and `f` the brake lamp. A named palette lists the colors of slots 1–14. A set declares `bankDegrees` exactly when it has more than one bank
 image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass line that its outermost
 bank images depict. Bank selection divides the vehicle's displayed lean by it.
 
-Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once: every
-picture has every size; every size has its shadow, whose anchor differs from the picture's by whole texels; every size
-of every picture in the set declares the same color names, at least two, each with both lamp states; and every grid
-cell names a picture. Vehicle admission checks form-specific bank dimensions and default-color references
+Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once: it names at
+least two palettes of 14 colors and both lamp colors; every picture has every size; every size has its shadow, whose
+anchor differs from the picture's by whole texels; and every grid cell names a picture, every picture filling one. Vehicle admission checks form-specific bank dimensions and default-color references
 ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)). The authoring core
 ([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the same rules,
 with diagnostics at the set document's own pointers, and assembles the delivered library (manifest `image` /
-`vehicles`), one document of the sets by name, `superoutride.vehicle-sprites` version 5:
+`vehicles`), one document of the sets by name, `superoutride.vehicle-sprites` version 6:
 
 ```text
-{format, version, sets: {testarossa: {yawVariants, bankVariants, assets, pictures},
-                         vfr750r: {yawVariants, bankVariants, bankDegrees: 60, assets, pictures}, ...}}
+{format, version, sets: {testarossa: {yawVariants, bankVariants, palettes, brakeLamp, assets, pictures},
+                         vfr750r: {yawVariants, bankVariants, bankDegrees: 60, palettes, brakeLamp, assets, pictures}}}
 ```
 
-The vehicle domain admits the library and owns its sets at run time: per-vehicle color and lamp palettes and yaw/bank
-picture selection. The image domain supplies only the generic sprite reader.
+The vehicle domain admits the library and owns its sets at run time: for a vehicle's color and lamp state it makes the
+set's one 16-slot palette once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic sprite reader.
 
 The provisional pictures are one set per vehicle, named by its id in lower case with `_` as `-` (`testarossa`,
 `911-turbo-3-3`): drawn by code, original, for an earlier camera, and converted mechanically until production art
 replaces them. Their size `k` is the reduction at octave `k` of a full-size picture whose anchor sits at the vehicle's
 base point (where a camera 1.75 m up and 6 m behind its ground line sees half the vehicle's width behind it), each
-color and lamp state's palette evaluated from the reduction's mixtures; their shadows are the vehicle's overall length
+reduced texel taking the set slot nearest its mixture's color in every color and lamp state; their shadows are the vehicle's overall length
 by width rectangle seen by each size's contract camera. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5
 bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color, the brake lamp's off and on colors
 13379 and 31974.

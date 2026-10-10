@@ -254,13 +254,15 @@ space. Record margins and remaster departures with the content.
 Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), wet asphalt for rain sections, packed snow, mud and shallow water (off-road), and cobblestones. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
-palettes (for example a night section), adding a lighting axis beside color and lamp state in each picture size's
-palettes, which recolor the whole picture, lit headlamps included. Each vehicle uses the lighting at its own chainage,
+palettes (for example a night section), adding a lighting axis beside color in the set's palettes, each recoloring
+slots 1–14 of every picture, lit headlamps included, with the brake lamp's off and on colors per lighting. Each vehicle uses the lighting at its own chainage,
 and switching is a cut.
 
 ### Pending product decisions
 
-- Vehicle sprite resolution: decide the yaw division count (currently 48) and the two-wheeler bank count (currently 5) before producing final vehicle art; the sprite set format already declares both as data.
+- Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
+  two-wheeler bank count (currently 5) is still to decide before producing final bike art. The sprite set format
+  declares both as data.
 
 | Area             | Decision or future capability                                                                                                                                                                                        |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -290,9 +292,10 @@ and switching is a cut.
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                         |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                 |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                              |
-| Vehicle art      | Whether distant vehicles' brake lamps are made to stand out (today they fade into the body color at a distance)                                                                                                      |
 | Vehicle art      | Two-wheeler pictures: whether the rider is part of the generated solid, and the bank axis and base point                                                                                                             |
 | Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                          |
+| Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                                 |
+| Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                         |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                                  |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                                |
 | Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                                   |

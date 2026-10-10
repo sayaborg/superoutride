@@ -1,18 +1,11 @@
 import { clamp, wrapAngle } from '../core/math.js';
 import type { SpriteAsset, SpriteFrame } from '../image/sprite.js';
 
-/** A color's resolved palettes, slot 0 unused: with the brake lamp off and on. */
-export interface VehiclePictureColor {
-  readonly off: readonly number[];
-  readonly on: readonly number[];
-}
-
 /**
- * One size of a vehicle picture, size `k` at `40 / 2^k` texels per metre at its base point: its indices, its palettes
- * by color and its shadow's frame, on the same texel grid.
+ * One size of a vehicle picture, size `k` at `40 / 2^k` texels per metre at its base point: its indices into the set's
+ * palette and its shadow's frame, on the same texel grid.
  */
 export interface VehiclePictureSize extends SpriteFrame {
-  readonly palettes: Readonly<Record<string, VehiclePictureColor>>;
   readonly shadow: SpriteFrame;
 }
 
@@ -22,7 +15,10 @@ export interface VehiclePicture {
   readonly sizes: readonly VehiclePictureSize[];
 }
 
-/** An admitted vehicle sprite set: its yaw × bank grid of pictures and the colors every picture declares. */
+/**
+ * An admitted vehicle sprite set: its yaw × bank grid of pictures and one palette for all of them, slots 1–14 by color
+ * name and slot 15 the brake lamp, off or on.
+ */
 export interface VehicleSpriteSet {
   readonly yawVariants: number;
   readonly bankVariants: number;
@@ -33,6 +29,9 @@ export interface VehicleSpriteSet {
   readonly bankDegrees: number | null;
   /** The color names, in declaration order. */
   readonly colors: readonly string[];
+  /** Slots 1–14 by color name. */
+  readonly palettes: Readonly<Record<string, readonly number[]>>;
+  readonly brakeLamp: Readonly<{ off: number; on: number }>;
   readonly pictures: readonly (readonly VehiclePicture[])[];
 }
 
@@ -54,21 +53,20 @@ export function spriteSetColors(set: VehicleSpriteSet): readonly string[] {
   return set.colors;
 }
 
-/** A set's pictures in a color and lamp state: each picture's palettes are taken once. */
+/** A set's pictures in a color and lamp state: the set's one palette, made once, for every picture and size. */
 export function createVehiclePaletteVariant(
   set: VehicleSpriteSet,
   color: string,
   brakeLampOn = false,
 ): VehicleSpriteImages {
+  const paletteRgb555 = Object.freeze([0, ...set.palettes[color]!, brakeLampOn ? set.brakeLamp.on : set.brakeLamp.off]);
   const images = new Map<VehiclePicture, SpriteAsset>();
   const assets = set.pictures.map((row) =>
     Object.freeze(
       row.map((picture) => {
         let asset = images.get(picture);
         if (!asset) {
-          const levels = picture.sizes.map(({ palettes, ...frame }) =>
-            Object.freeze({ ...frame, paletteRgb555: palettes[color]![brakeLampOn ? 'on' : 'off'] }),
-          );
+          const levels = picture.sizes.map((size) => Object.freeze({ ...size, paletteRgb555 }));
           asset = Object.freeze({ name: picture.name, levels: Object.freeze(levels) });
           images.set(picture, asset);
         }

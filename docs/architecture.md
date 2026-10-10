@@ -588,7 +588,8 @@ so index 0 and empty tiles leave the scene visible.
 ### Vehicle color and brake lamps
 
 Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates a vehicle's
-off/on pictures in one of its colors, taking each picture size's own palette for that color and lamp state. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
+off/on pictures in one of its colors: the set's palette for that color with the brake lamp's off or on color in slot
+15, one palette for every picture and size. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
 the player's is the series entry's, the chosen color or the vehicle's default color, and each rival's is its series
 entry's or its drawn FREE PLAY pair's; each traffic vehicle's color is drawn from its sprite set's colors by the Session
 seed. Player rendering binds the player's vehicle in its entry's color at assembly; `createRaceSprites` draws every

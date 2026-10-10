@@ -9,7 +9,7 @@ import {
 
 /** One authored vehicle sprite set: `content/sprites/<set>.json`, the set named by its file. */
 export const VEHICLE_SPRITE_SET_FORMAT = 'superoutride.vehicle-sprite-set';
-export const VEHICLE_SPRITE_SET_VERSION = 2;
+export const VEHICLE_SPRITE_SET_VERSION = 3;
 
 type LibrarySet = VehicleSpriteLibraryDocument['sets'][string];
 
@@ -45,6 +45,6 @@ export function assembleVehicleSpriteLibrary(
     else diagnostics.push(...admitted.diagnostics);
   }
   if (diagnostics.length) throw new ContentLoadError(diagnostics);
-  const library: VehicleSpriteLibraryDocument = { format: 'superoutride.vehicle-sprites', version: 5, sets };
+  const library: VehicleSpriteLibraryDocument = { format: 'superoutride.vehicle-sprites', version: 6, sets };
   return { library, sprites: requireLoaded(admit(directory, () => readSpriteAssets(library))) };
 }
