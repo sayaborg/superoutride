@@ -6,7 +6,7 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "922d13f0ba8b44e1d5986a337218a3cf1da116ae73b2225fa7a42d98bd05dd1c",
+      "vehicleSha256": "3520904bc9aa47268e272ca37333bf8f5dd442f1b13eec83f95ad6634ca8d3e5",
       "initialSeconds": 14.211050503360191,
       "after": [
         ["ring-CP1", [8.555927105069205, 7.526303502246677, 7.480522337389459]],
@@ -76,7 +76,7 @@
     },
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "97ea773cab6114bf011543990a20fad88b67bc56c142f857e0d029ff7127fd67",
+      "vehicleSha256": "5be7bba9af316e05fe25f7e3178aeb2e28423ff915a5cf74d97f3917ad649598",
       "initialSeconds": 13.518604450136486,
       "after": [
         ["ring-CP1", [8.38548340593714, 8.020966404613851, 8.020590487357595]],

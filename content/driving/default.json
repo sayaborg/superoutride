@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 16,
+  "version": 17,
   "maxRoadWheelSteerDegrees": 65,
   "steeringTraversalSeconds": 0.3,
   "steeringReference": "center",

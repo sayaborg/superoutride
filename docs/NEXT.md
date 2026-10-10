@@ -65,8 +65,8 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Steering reference comparison
 
-DR-2 delivers two steering references side by side for comparison on real devices: the driving definition's
-`steeringReference` (`center`, delivered, or `front`) and the front tire's utilization at full input
+DR-2 and DR-2b deliver three steering references side by side for comparison on real devices: the driving definition's
+`steeringReference` (`center`, delivered, `front` or `turn`) and the front tire's utilization at full input
 `steeringUtilization` (X, delivered at 100%), switched with DEV's STEERING group
 ([Vehicle physics](vehicle-physics.md#actuators-and-steering)). To check on devices, by car and by bike:
 
@@ -75,9 +75,15 @@ DR-2 delivers two steering references side by side for comparison on real device
 - With `front`, the rotation when steering while braking: it stays large as X falls (about 61 degrees at 70%).
 - With `front`, the low-speed response: a 0.5 s key press at 30 km/h turns the path by about 73–89 degrees (about 13
   degrees with `center`).
-- The same checks on the bikes.
+- With `turn`, the X at which lifting off at full steering stays settled, and the rotation when braking (on the desktop
+  copy, TESTAROSSA at 126 km/h: lifting off swings back and forth by about 19 degrees at 100%, about 9 at 95% and 4 at
+  90%; braking fully for 0.5 s reaches about 59, 46 and 40 degrees), the lateral use of the limit at full steering
+  (about 98/93% at 50/134 km/h at 100%), the turning radius from a stop (about 1.6 m) and the yaw rate's overshoot
+  when steering at once (about 82% at 189 km/h).
+- The same checks on the bikes (VFR750R at 107 km/h with `turn`: 100% swings by about 25 degrees, 95% sways by about
+  16, 90% settles near 11 and 85% near 8).
 
-Once one reference is chosen: **DR-3** removes the reference not chosen, with its switch and the
+Once one reference is chosen: **DR-3** removes the references not chosen, with their switch and the
 `steeringReference` field.
 
 ## Audit 2 leftovers
