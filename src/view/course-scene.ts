@@ -6,7 +6,8 @@ import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import { cameraDistance, type CameraDefinition, type CameraState } from './camera.js';
+import { cameraDistance, type CameraState } from './camera.js';
+import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
@@ -18,30 +19,21 @@ import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.j
 import { createVehicleShadows, type ShadowSquare, type ShadowedVehicle } from './vehicle-shadow.js';
 import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
 
-/** Who views a scene: the camera following the player. */
-export interface CourseViewer {
-  readonly camera: Pick<CameraDefinition, 'focalLength'>;
-}
-
-/** A viewer's loading window: the camera stands `cameraDistance` behind the player's route position. */
-function courseLoadingWindow({ camera }: CourseViewer): CourseLoadingWindow {
-  return Object.freeze({
-    cameraDistance: cameraDistance(camera),
-    near: RENDER_NEAR_DEPTH_METERS,
-    far: RENDER_FAR_DEPTH_METERS,
-  });
-}
+/** The scene's loading window: the product camera stands `cameraDistance` behind the player's route position. */
+const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
+  cameraDistance: cameraDistance(CAMERA_DEFINITION),
+  near: RENDER_NEAR_DEPTH_METERS,
+  far: RENDER_FAR_DEPTH_METERS,
+});
 
 /** The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks. */
 export function createCourseScene(
   section: CompiledSection,
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
-  /** Who views the scene; the race's loading window and view follow its camera's distance behind the player. */
-  viewer: CourseViewer,
   displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
-  const runtime = createCourseWorld(section, gates, vehicles, courseLoadingWindow(viewer));
+  const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
   const rendering = createCourseRouteVisualReaders(runtime.window);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

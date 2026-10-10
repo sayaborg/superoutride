@@ -2,7 +2,6 @@ import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.j
 import { wrapAngle } from '../core/math.js';
 import type { PseudoCamera } from './projection.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
-import type { ProfilePolylineReader } from '../course/geometry/profile.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { PLAYER_DEPTH_PIXELS_PER_METER } from './display-scale.js';
 import { basePoint, type BasePoint } from './base-point.js';
@@ -22,19 +21,15 @@ export type CameraYawSource = 'BODY' | 'TRAVEL';
 const TRAVEL_YAW_FULL_SPEED = 2;
 
 export interface CameraDefinition {
-  /** Authored downward view angle relative to the vehicle-pitch reference. */
-  readonly baseDownPitch: number;
   /** The focal length, px: the one authority for the field of view and, through it, the player depth. */
   readonly focalLength: number;
   readonly centerX: number;
-  readonly centerY: number;
-  readonly playerTargetY: number;
-  /** The sprung height's natural frequency, Hz. */
+  /** The horizon's row with a level body. */
+  readonly horizonRow: number;
+  /** The camera's height above the player's base point with a level body, metres. */
+  readonly height: number;
+  /** The natural frequency, Hz, of the critically damped spring the camera follows the base point's height through. */
   readonly heightFrequency: number;
-  /** The sprung height's damping ratio. */
-  readonly heightDampingRatio: number;
-  /** Minimum camera height above the rendered road at the camera's station, metres. */
-  readonly minimumClearance: number;
   /** What the camera yaw follows: the body's heading, or the player's direction of travel (DEV). */
   readonly yawSource: CameraYawSource;
   /** The camera yaw's limit about the road heading at the car, radians. */
@@ -52,39 +47,29 @@ export function cameraDistance(definition: Pick<CameraDefinition, 'focalLength'>
   return definition.focalLength / PLAYER_DEPTH_PIXELS_PER_METER;
 }
 
-/** The camera's readers: the plan for the road heading and the rendered road height for its clearance. */
+/** The camera's reader: the plan, for the player's base point and the road heading. */
 export interface CameraWorld {
   readonly coordinates: PlanCoordinateReader;
-  readonly renderHeight: ProfilePolylineReader;
 }
 
 /**
- * The camera's state between fixed steps: its yaw, and its sprung height with its vertical velocity and the last
- * height target and road floor, from which their vertical velocities follow.
+ * The camera's state between fixed steps: its yaw, and the sprung height of the player's base point with its vertical
+ * velocity and the base point's height in the last step, from which its vertical velocity follows.
  */
 export interface CameraRig {
   yaw: number;
   height: number;
   heightVelocity: number;
   previousTarget: number;
-  previousFloor: number;
   initialized: boolean;
 }
 
-export interface CameraState extends PseudoCamera {
-  readonly planHeadingAtCar: number;
-  readonly vehiclePlanYawDelta: number;
-  readonly cameraVehicleYawDelta: number;
-  readonly bodyPitch: number;
-  /** The height that projects the player's reference point to the target row. */
-  readonly targetY: number;
-}
+export type CameraState = PseudoCamera;
 
 const planWorkspaces = new WeakMap<
   CameraRig,
   {
     point: ReturnType<typeof createPlanCoordinateSample>;
-    floor: { y: number; grade: number };
     base: BasePoint;
     baseSample: ReturnType<typeof createPlanCoordinateSample>;
   }
@@ -106,7 +91,7 @@ function travelYaw(vehicle: VehicleMotionRead): number {
 }
 
 export function createCameraRig(): CameraRig {
-  return { yaw: 0, height: 0, heightVelocity: 0, previousTarget: 0, previousFloor: 0, initialized: false };
+  return { yaw: 0, height: 0, heightVelocity: 0, previousTarget: 0, initialized: false };
 }
 
 /** The next update places the camera at its target again, at rest relative to it. */
@@ -116,12 +101,12 @@ export function resetCameraRig(rig: CameraRig): void {
 }
 
 /**
- * One fixed step of the camera (SIM_DT) behind the player. A reset or new rig starts at its target; afterwards the
- * height follows it through the sprung mount.
+ * One fixed step of the camera (SIM_DT) behind the player. A reset or new rig starts at the base point's height;
+ * afterwards that height reaches the camera through the sprung mount.
  */
 export function updateCamera(
   rig: CameraRig,
-  { coordinates, renderHeight }: CameraWorld,
+  { coordinates }: CameraWorld,
   vehicle: VehicleMotionRead,
   definition: CameraDefinition,
 ): CameraState {
@@ -129,15 +114,12 @@ export function updateCamera(
   if (!workspace) {
     workspace = {
       point: createPlanCoordinateSample(),
-      floor: { y: 0, grade: 0 },
       base: { x: 0, y: 0, z: 0, s: 0 },
       baseSample: createPlanCoordinateSample(),
     };
     planWorkspaces.set(rig, workspace);
   }
   const planAtCar = coordinates.toWorld(vehicle.course.s, 0, workspace.point);
-  const vehiclePlanYawDelta = wrapAngle(vehicle.yaw - planAtCar.heading);
-  const bodyPitch = vehicle.sprungPitch;
 
   // The camera yaw is its source's yaw limited to the definition's angle about the road heading at the car; beyond it
   // the camera stays at the limit and the vehicle is shown turned. A response time follows the limited yaw with lag.
@@ -162,53 +144,39 @@ export function updateCamera(
   const cameraX = base.x - dCam * Math.sin(rig.yaw);
   const cameraZ = base.z - dCam * Math.cos(rig.yaw);
 
-  // Constant depth D_cam and pitch following the body. The height target projects the player's base point exactly
-  // to the target row. Body pitch is nose-up-positive; pseudo-camera pitch is downward-positive.
-  const cameraPitch = definition.baseDownPitch - bodyPitch;
-  const targetY =
-    base.y -
-    (dCam / (definition.focalLength * Math.cos(cameraPitch))) *
-      (definition.centerY - definition.focalLength * Math.sin(cameraPitch) - definition.playerTargetY);
-  const floor = renderHeight.sample(sCamera, workspace.floor).y + definition.minimumClearance;
+  // Constant depth D_cam and pitch following the body: body pitch is nose-up-positive, pseudo-camera pitch
+  // downward-positive.
+  const pitch = -vehicle.sprungPitch;
+  const target = base.y;
   if (!rig.initialized) {
-    rig.height = Math.max(targetY, floor);
+    rig.height = target;
     rig.heightVelocity = 0;
     rig.initialized = true;
   } else {
-    // The sprung mount: a spring on the height error and a damper on the vertical velocity relative to the target's,
-    // stepped implicitly. A target moving at constant vertical speed (a steady grade) is followed without lag.
+    // The sprung mount: a critically damped spring on the height error and a damper on the vertical velocity relative
+    // to the base point's, stepped implicitly. A base point moving at constant vertical speed (a steady grade) is
+    // followed without lag.
     const omega = 2 * Math.PI * definition.heightFrequency;
-    const targetVelocity = (targetY - rig.previousTarget) / SIM_DT;
+    const targetVelocity = (target - rig.previousTarget) / SIM_DT;
     rig.heightVelocity =
-      (rig.heightVelocity +
-        SIM_DT *
-          (omega * omega * (targetY - rig.height) + 2 * definition.heightDampingRatio * omega * targetVelocity)) /
-      (1 + 2 * definition.heightDampingRatio * omega * SIM_DT + omega * omega * SIM_DT * SIM_DT);
+      (rig.heightVelocity + SIM_DT * (omega * omega * (target - rig.height) + 2 * omega * targetVelocity)) /
+      (1 + 2 * omega * SIM_DT + omega * omega * SIM_DT * SIM_DT);
     rig.height += SIM_DT * rig.heightVelocity;
-    // Never below the clearance over the rendered road; at the floor the camera moves with it.
-    if (rig.height < floor) {
-      rig.height = floor;
-      rig.heightVelocity = Math.max(rig.heightVelocity, (floor - rig.previousFloor) / SIM_DT);
-    }
   }
-  rig.previousTarget = targetY;
-  rig.previousFloor = floor;
-  const cameraY = rig.height;
+  rig.previousTarget = target;
+  // Over the sprung height, the camera height that projects the base point to the row `horizonRow + f * height / D_cam`
+  // at this pitch: the pitch's part passes through no spring, so pitch alone never moves the base point on screen.
+  const cameraY = rig.height + (definition.height + dCam * Math.sin(pitch)) / Math.cos(pitch);
 
   return {
     x: cameraX,
     y: cameraY,
     z: cameraZ,
     yaw: rig.yaw,
-    pitch: cameraPitch,
+    pitch,
     s: sCamera,
     focalLength: definition.focalLength,
     centerX: definition.centerX,
-    centerY: definition.centerY,
-    planHeadingAtCar: planAtCar.heading,
-    vehiclePlanYawDelta,
-    cameraVehicleYawDelta: wrapAngle(vehicle.yaw - rig.yaw),
-    bodyPitch,
-    targetY,
+    centerY: definition.horizonRow,
   };
 }

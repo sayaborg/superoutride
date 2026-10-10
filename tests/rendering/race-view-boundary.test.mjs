@@ -27,7 +27,7 @@ async function setup() {
   const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
   const { course, materials } = await loadCourse(file);
   const testarossa = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, { camera: CAMERA_DEFINITION });
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const assets = createVehicleSprites(testarossa);
   const compiledVehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),

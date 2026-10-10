@@ -120,13 +120,7 @@ export async function runScenario({ course }, scenario) {
   const arcade = scenario.mode === 'ARCADE' ? scenarioClass(course, scenario) : null;
   const { entry, envelope, driver } = await playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
   const settings = createDisplaySettings();
-  const scene = createCourseScene(
-    course.entry,
-    course.gates,
-    definitions.vehicles,
-    { camera: CAMERA_DEFINITION },
-    settings,
-  );
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   // ARCADE takes its class's settings; TIME TRIAL and FREE PLAY take the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =

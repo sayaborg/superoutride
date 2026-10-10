@@ -1,16 +1,7 @@
 import type { CameraDefinition } from '../view/camera.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
-import { LOGICAL_WIDTH } from '../view/display-scale.js';
 
-type CameraTuningKey =
-  | 'focalLength'
-  | 'baseDownPitch'
-  | 'heightFrequency'
-  | 'heightDampingRatio'
-  | 'minimumClearance'
-  | 'yawSource'
-  | 'yawLimit'
-  | 'yawResponseSeconds';
+type CameraTuningKey = 'horizonRow' | 'heightFrequency' | 'yawSource' | 'yawLimit' | 'yawResponseSeconds';
 
 /** DEV camera settings: each a choice of values for one camera definition field. */
 const CAMERA_TUNING: readonly {
@@ -21,25 +12,8 @@ const CAMERA_TUNING: readonly {
   /** The displayed value per definition unit of a numeric choice; 1 when they agree. */
   readonly scale?: number;
 }[] = [
-  // The field of view in focal length px, shown as a 35 mm equivalent (the frame's width being 36 mm). Each choice's
-  // player depth (f / 40 px/m) is exact in binary, so the camera station and the player's depth subtract exactly.
-  {
-    key: 'focalLength',
-    label: 'Camera field of view (35 mm equivalent)',
-    unit: 'mm',
-    choices: [200, 220, 240, 260, 280, 320, 400],
-    scale: 36 / LOGICAL_WIDTH,
-  },
-  {
-    key: 'baseDownPitch',
-    label: 'Camera down pitch',
-    unit: '°',
-    choices: [12, 10, 8, 6, 4, 2, 0].map((degrees) => (degrees * Math.PI) / 180),
-    scale: 180 / Math.PI,
-  },
+  { key: 'horizonRow', label: 'Horizon row', unit: '', choices: [60, 70, 80, 90, 100, 110, 120] },
   { key: 'heightFrequency', label: 'Camera height frequency', unit: 'Hz', choices: [0.5, 1, 2, 3, 5, 10] },
-  { key: 'heightDampingRatio', label: 'Camera height damping ratio', unit: '', choices: [0.5, 0.7, 1, 1.5, 2] },
-  { key: 'minimumClearance', label: 'Camera minimum clearance', unit: 'm', choices: [0, 0.3, 0.6, 1] },
   { key: 'yawSource', label: 'Camera yaw source', unit: '', choices: ['BODY', 'TRAVEL'] },
   {
     key: 'yawLimit',

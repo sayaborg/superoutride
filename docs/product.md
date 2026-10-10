@@ -210,9 +210,10 @@ brake; RESULT follows after the same delay.
 The product has one camera, shared by cars and motorcycles: the pseudo projection behind the player at constant
 depth. Its pitch is the body's pitch, so vehicle images need no pitch variants. Its yaw is the body's yaw while the
 body points within a limit angle of the road direction; beyond the limit the camera stays at the limit and the
-vehicle is shown turned. Its height is sprung to the body: on a steady grade the player sits at its target row,
-while bumps, jumps and suspension motion move the vehicle on screen and leave the view calm. The camera never drops
-below a minimum clearance above the road. The player does not select cameras.
+vehicle is shown turned. It stands 6 m behind the player's base point and 2 m above it with a level body, and holds
+that point on one screen row whatever the pitch: only the base point's height is sprung, so on a steady grade the
+player keeps its row, while jumps and suspension motion move the vehicle on screen and leave the view calm. The camera
+may pass below the road. The player does not select cameras.
 
 ## 9. HUD
 

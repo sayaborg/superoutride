@@ -108,20 +108,7 @@ async function startPage(): Promise<void> {
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
     if (dev) {
       mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
-      mountCameraControls((definition) => {
-        const refocused = definition.focalLength !== cameraDefinition.focalLength;
-        cameraDefinition = definition;
-        // A run's race takes its view (the player depth) from the camera at assembly: a new field of view runs the
-        // current run again, as RETRY does. While a run is being assembled it cannot, and the status line says so.
-        if (!refocused) return;
-        if (!assembling) rerun?.();
-        else if (status) {
-          status.replaceChildren(
-            'The field of view could not run the run again: a run is being assembled with the earlier one. Choose it again once the run has started.',
-          );
-          status.hidden = false;
-        }
-      });
+      mountCameraControls((definition) => (cameraDefinition = definition));
       // The frame loop redraws the current screen with the new method at the next frame, paused or not.
       mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
     }
@@ -149,8 +136,6 @@ async function startPage(): Promise<void> {
     // One assembly runs at a time; a request made while one runs is ignored. A failure leaves no run and shows LOAD
     // FAILED.
     let assembling = false;
-    // The shown run's RETRY; null while no run is shown.
-    let rerun: (() => void) | null = null;
     // A run that could not be requested or assembled shows LOAD FAILED with RETRY and BACK; its reason goes to the
     // console and, with DEV, outside the frame with Retry.
     const fail = (error: unknown, retryRun: () => void, back: () => void) => {
@@ -174,7 +159,6 @@ async function startPage(): Promise<void> {
     const leave = (show: () => void) => {
       run?.dispose();
       run = null;
-      rerun = null;
       show();
     };
     // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
@@ -183,7 +167,6 @@ async function startPage(): Promise<void> {
       assembling = true;
       run?.dispose();
       run = null;
-      rerun = null;
       host.show(loading);
       if (status) {
         status.replaceChildren('Loading course…');
@@ -193,7 +176,6 @@ async function startPage(): Promise<void> {
         const state = createRunScreenState(() => host.refresh());
         const assembled = await assembleRun(page, next, state);
         run = assembled;
-        rerun = () => void request(next, back);
         if (status) status.hidden = true;
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {

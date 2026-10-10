@@ -380,11 +380,11 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m
 player reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for
 the field of view and the player depth, which derives from it (`cameraDistance`): `f=240 px` and `D_cam=f/40=6 m`
-from the camera to the player's base point; near/far depths are 2.5/200 m. FOV changes preserve this metric. Every
+from the camera to the player's base point; near/far depths are 2.5/200 m. Every
 picture is a plane without depth standing upright at its base point (`basePoint`): a vehicle's route position seen
 from above, the physical authority's position, at its body's underside `renderY` (its centre-of-mass height less its
 desired centre-of-mass height); an object's placement at its own height. The camera thus stands `D_cam` behind the
-player's route position, for every vehicle alike. The scene builds its loading window from its viewer's camera with
+player's route position, for every vehicle alike. The scene builds its loading window from the product camera with
 that distance, so the race's view and the renderer place the camera at the same station. Ground and sprites share this
 depth interval.
 
@@ -404,27 +404,27 @@ projection of its base point, its one authority, and the camera on that point's 
 column by construction. Camera roll is zero.
 
 The player's depth `D_cam` and the camera pitch relative to the body stay constant, so the player never scales or
-changes pitch on screen. Pitch is `phi=phi_0-theta` (base downward pitch `phi_0` = 0 degrees, body pitch `theta`
-nose-up positive). With a level body the horizon is row 120 (`cy`) and the camera stands 1.75 m above the player's
-base point. The height target is solved from the projection with the base point's height `Y_p` at target row
-`y_t` = 190, so the player's base point is row 190 and its picture is drawn at 40 px/m there:
+changes pitch on screen. The camera's pitch is the body's: `phi = -theta` for body pitch `theta` (nose-up positive),
+whatever the body's yaw relative to the road. With a level body the horizon is the horizon row `cy` (120) and the
+camera stands `h` = 2 m above the player's base point, which therefore lies on row `y_t = cy + f*h/D_cam` (200): the
+row follows from the horizon row and the height, and the player's picture is drawn at 40 px/m there.
+
+Only the base point's height `Y_p` is sprung. Each fixed step (`SIM_DT`, the step of every camera update) the sprung
+height `Y_s` follows it, `Y_s'' = w^2*(Y_p - Y_s) + 2*w*(Y_p' - Y_s')` with `w = 2*pi*f` and damping ratio 1,
+stepped implicitly with the base point's velocity taken from its previous step, so it is stable at any frequency and
+follows a base point moving at constant vertical speed (a steady grade) without lag. The pitch's part passes through no
+spring: every step the camera height is the one that projects the sprung height to row `y_t` at the current pitch,
 
 ```text
-Ycam = Y_p - (D_cam/(f*cos(phi)))*(cy - f*sin(phi) - y_t)
+Ycam = Y_s + (h + D_cam*sin(phi))/cos(phi)
+screenY(base point) = y_t - (f/D_cam)*cos(phi)*(Y_p - Y_s)
 ```
 
-This is the projection's `screenY` solved for the camera height with the player at row `y_t`. Near `|phi|=90` degrees
-(an overturning body) the target grows without bound, since `cos(phi)` approaches zero.
-
-The camera height is sprung to that target. Each fixed step (`SIM_DT`, the step of every camera update) it follows
-`Y'' = w^2*(Ycam_target - Ycam) + 2*zeta*w*(Ycam_target' - Ycam')`, `w = 2*pi*f`, stepped implicitly with the
-target's velocity taken from its previous step, so it is stable at any setting and follows a target moving at
-constant vertical speed (a steady grade) without lag: there the player sits at row `y_t`. Faster vertical motion
-(bumps, jumps, suspension) moves the player on screen instead of the view. The camera never drops below the rendered
-road height at its station `s_vehicle-D_cam` plus the minimum clearance; at that floor its vertical velocity is at
-least the floor's. The frequency `f` (2 Hz), damping ratio `zeta` (1.0) and minimum clearance (0.3 m) are camera
-definition values ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a Session rebuild and START
-place the camera at its target, at rest relative to it; route seams need no reset.
+so pitch alone never moves the base point on screen, and only jumps and suspension motion, through the spring, move
+it. The camera may pass below the road; nothing holds it above. Near `|phi|=90` degrees (an overturning body) the
+camera height grows without bound, since `cos(phi)` approaches zero. The frequency `f` (2 Hz) is a camera definition
+value ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a Session rebuild and START place the
+sprung height at the base point, at rest relative to it; route seams need no reset.
 
 ## Ground and background
 

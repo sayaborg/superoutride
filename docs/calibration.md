@@ -142,24 +142,20 @@ domain cut short read again once it grows (14).
 ## Camera settings
 
 The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace
-them for the session without saving, and a reload restores them. The down pitch sets the horizon row and the camera
-height together: the camera is solved to keep the player at its target row, so a smaller pitch moves the horizon
-down the screen and lowers the camera ([Architecture](architecture.md#camera-and-fixed-metric)). The field of view moves the player depth
-with the focal length, so the player keeps its row and size; a run's race takes that depth when the run is assembled,
-so choosing a field of view during a run runs it again, as RETRY does. The background scrolls `f` pixels per radian
-of yaw, so its horizontal angular scale follows the field of view as distant road and sprites do; vertically it keeps
-one image row per screen row ([Image assets](image-assets.md#infinite-tiled-background)).
+the horizon row and the height frequency for the session without saving, and a reload restores them. The focal length
+(240 px), the camera height (2 m above the player's base point with a level body) and the critically damped height
+spring are fixed ([Architecture](architecture.md#camera-and-fixed-metric)). The horizon row moves the whole view up
+or down the screen, the background with it, and the player's base point stays `f*h/D_cam` = 80 rows below it. The
+background scrolls `f` pixels per radian of yaw, as distant road and sprites do; vertically it keeps one image row per
+screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 
-| Setting              | Value | DEV choices                             | Meaning                                                                                                                                                                  |
-| -------------------- | ----- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Field of view        | 27 mm | 22.5, 24.75, 27, 29.25, 31.5, 36, 45 mm | Focal length 240 px (200, 220, 240, 260, 280, 320, 400 px), shown as its 35 mm equivalent `mm = f * 36 / 320`; `D_cam = f / 40` follows it and is exact for every choice |
-| Down pitch           | 0°    | 12, 10, 8, 6, 4, 2, 0°                  | Base downward pitch `phi_0` (stored in radians)                                                                                                                          |
-| Height frequency     | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz                  | Natural frequency of the sprung camera height                                                                                                                            |
-| Height damping ratio | 1.0   | 0.5, 0.7, 1, 1.5, 2                     | Damping ratio of the sprung camera height                                                                                                                                |
-| Minimum clearance    | 0.3 m | 0, 0.3, 0.6, 1 m                        | Lowest camera height above the rendered road at its station                                                                                                              |
-| Yaw source           | BODY  | BODY, TRAVEL                            | What the camera yaw follows: the body's heading, or the player's direction of travel                                                                                     |
-| Yaw limit            | 45°   | 15, 30, 45, 60, 90, 180°                | Camera yaw limit about the road heading at the car (stored in radians)                                                                                                   |
-| Yaw response         | 0 s   | 0, 0.1, 0.25, 0.5, 1 s                  | Time constant following the limited source yaw; 0 follows it at once                                                                                                     |
+| Setting          | Value | DEV choices                   | Meaning                                                                              |
+| ---------------- | ----- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| Horizon row      | 120   | 60, 70, 80, 90, 100, 110, 120 | The horizon's screen row with a level body                                           |
+| Height frequency | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz        | Natural frequency of the sprung base point height                                    |
+| Yaw source       | BODY  | BODY, TRAVEL                  | What the camera yaw follows: the body's heading, or the player's direction of travel |
+| Yaw limit        | 45°   | 15, 30, 45, 60, 90, 180°      | Camera yaw limit about the road heading at the car (stored in radians)               |
+| Yaw response     | 0 s   | 0, 0.1, 0.25, 0.5, 1 s        | Time constant following the limited source yaw; 0 follows it at once                 |
 
 ## Vehicle values
 
