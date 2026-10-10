@@ -264,19 +264,11 @@ file sets a recording's bytes at `<group>/<name>.m4a` in the music, effects or i
 the next compile admits its name and format as the build does. The browser decodes recordings (`decodeAudioData`); a
 recording it cannot decode is not played and the module says so.
 
-The Sprites module edits through the [sprite operations](image-assets.md#sprite-operations), each edit one
-step, on three screens chosen by tab. **Import** opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the whole
-image); the source shows its crop, mask, lamp rectangles and anchor, and dragging on it with the crop, hide, show, lamp
-or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the
-product's sprite drawing and LOD at a chosen depth, a vehicle image with its lamp off and on; a course image is written
-as its named file, replacing one of that name. **Sets** shows the open set's yaw × bank grid: a chosen cell shows any of the set's
-images, the imported image is added or replaces an image, an image no cell shows is removed, and a new set starts from
-the imported image, with two colors as `new-set` gives it. The set preview draws the compiled library's set, turned and leaned by cell and moved away by
-depth. **Palettes** lists the open set's named palettes, copied, renamed or removed for every image at once. An
-adjustment chooses a source palette, slots 1 to 14 and the hue, saturation, lightness and tint sliders; every image of
-the set is previewed with the adjusted colors as the sliders move, and saving makes a new named palette, one step. One
-slot of one image's palette is set by number; the lamp slot's off and on colors are the set's. A preview shows the
-chosen cell's image in every color with the lamp off and on. Lighting palettes are not authored yet.
+The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit
+one step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the
+whole image); the source shows its crop, mask and anchor, and dragging on it with the crop, hide, show or anchor tool
+edits the recipe, as do its fields. The master is imported as the build would and previewed with the product's sprite
+drawing and LOD at a chosen depth; it is written as its named file, replacing one of that name.
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
 one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
@@ -358,16 +350,10 @@ result (or the diagnostics, exiting 1):
 
 ```sh
 npm run sprite -- import tree
-npm run sprite -- import car-front --set testarossa --cells 0:0,12:0
-npm run sprite -- new-set van --image van-0 --yaw 24 --bank 1 --lamp 12321,32038
-npm run sprite -- adjust --set testarossa --from original --to blue --slots 1,3 --hue 120
 ```
 
-`import` makes the master of `content/sprite-sources/<name>.png` and its recipe: a course image is written as
-`content/images/<name>.json` (replacing one of that name); a vehicle image replaces the set's image of that name or is added, and fills the given
-`yaw:bank` cells. `new-set` starts a set whose every cell shows one imported image, ready to compile: an image with one color gains
-`alternate`, a copy of its default, since a set has at least two colors. `adjust` derives a named palette
-for every image of a set (`--saturation`, `--lightness`, `--tint-hue` and `--tint-amount` too).
+`import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it as
+`content/images/<name>.json` (replacing one of that name).
 
 ### Listening on devices
 

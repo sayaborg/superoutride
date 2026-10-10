@@ -21,34 +21,20 @@ import { createSpritePreview, PREVIEW_DEPTH } from './sprite-preview.js';
 import { make } from './dom.js';
 import { confirmField, finiteNumber, pointerDrag } from './pending-edit.js';
 
-/** What the set view needs of the source view: the imported master and the lamp colors to preview it with. */
-export interface ImportedMaster {
-  readonly name: string;
-  readonly recipe: SpriteRecipe;
-  readonly master: SpriteLodDocument;
-}
-
-type Tool = 'crop' | 'hide' | 'show' | 'lamp' | 'anchor';
-const TOOLS: readonly Tool[] = ['crop', 'hide', 'show', 'lamp', 'anchor'];
+type Tool = 'crop' | 'hide' | 'show' | 'anchor';
+const TOOLS: readonly Tool[] = ['crop', 'hide', 'show', 'anchor'];
 /** Screen pixels per source pixel in the source view. */
 const ZOOM = 4;
 
 /**
- * Import: a source PNG and its recipe under `sprite-sources/`. The source shows its crop, mask, lamp rectangles and
- * anchor; dragging on it with a tool edits the recipe (one step each); the master is imported by the sprite operations
- * and previewed with the product's drawing. A course image is written as its content-addressed file.
+ * Import: a source PNG and its recipe under `sprite-sources/`. The source shows its crop, mask and anchor; dragging on
+ * it with a tool edits the recipe (one step each); the master is imported by the sprite operations and previewed with
+ * the product's drawing. A course image is written as its named file.
  */
-export function mountSourceView(
-  element: HTMLElement,
-  context: WorkbenchContext,
-  imported: (master: ImportedMaster | null) => void,
-  lampColors: () => { readonly off: number; readonly on: number },
-) {
+export function mountSourceView(element: HTMLElement, context: WorkbenchContext) {
   const source = make('select');
   const newName = make('input', '', { placeholder: 'new source name' });
   const newFile = make('input', '', { type: 'file', accept: 'image/png' });
-  const target = make('select');
-  for (const name of ['vehicle', 'course']) target.append(make('option', name, { value: name }));
   const fields = {
     widthMeters: make('input', '', { type: 'number', step: 'any', size: '6' }),
     cropX: make('input', '', { type: 'number', step: '1' }),
@@ -57,7 +43,6 @@ export function mountSourceView(
     cropHeight: make('input', '', { type: 'number', step: '1' }),
     anchorX: make('input', '', { type: 'number', step: 'any' }),
     anchorY: make('input', '', { type: 'number', step: 'any' }),
-    lampColors: make('input', '', { placeholder: 'lamp source colors (RGB555, commas)', size: '30' }),
   };
   const tools = make('span');
   let tool: Tool = 'crop';
@@ -73,7 +58,6 @@ export function mountSourceView(
   const generate = make('button', 'Generate palette', { type: 'button' });
   const automatic = make('button', 'Palette from each import', { type: 'button' });
   const clearMask = make('button', 'Clear mask', { type: 'button' });
-  const clearLamp = make('button', 'Clear lamp', { type: 'button' });
   const swatches = make('span', '', { class: 'swatches' });
   const canvas = make('canvas', '', { class: 'sprite-source' });
   const depth = make('input', '', {
@@ -99,8 +83,6 @@ export function mountSourceView(
     ' ',
     newFile,
     make('p'),
-    field('Target', target),
-    ' ',
     field('Width (m)', fields.widthMeters),
     ' ',
     field('Crop x', fields.cropX),
@@ -114,10 +96,6 @@ export function mountSourceView(
     'Drag on the source: ',
     tools,
     clearMask,
-    ' ',
-    clearLamp,
-    ' ',
-    fields.lampColors,
     make('p'),
     generate,
     ' ',
@@ -168,7 +146,6 @@ export function mountSourceView(
       graphics.strokeRect(rect.x * ZOOM + 0.5, rect.y * ZOOM + 0.5, rect.width * ZOOM - 1, rect.height * ZOOM - 1);
     };
     outline(recipe.crop, '#77ffe0');
-    for (const rect of recipe.lamp.rectangles) outline(rect, '#ff7b72');
     if (drag) outline(rectangle(drag), '#ffffff');
     const ax = (recipe.anchor.x + 0.5) * ZOOM,
       ay = (recipe.anchor.y + 0.5) * ZOOM;
@@ -182,19 +159,9 @@ export function mountSourceView(
   };
   const drawPreview = () => {
     if (!master || !recipe) return;
-    const lamp = lampColors();
-    const vehicle = recipe.target === 'vehicle';
-    const lod = compileSpriteLod(master, vehicle ? [[lamp.off], [lamp.on]] : [[]]);
-    const asset = readSpriteLodAsset(lod, vehicle ? [lamp.off] : []);
-    const levels = preview.draw(
-      vehicle
-        ? [
-            { asset, palette: master.defaultPalette, lamp: lamp.off },
-            { asset, palette: master.defaultPalette, lamp: lamp.on },
-          ]
-        : [{ asset, palette: master.defaultPalette }],
-      Number(depth.value),
-    );
+    const lod = compileSpriteLod(master, [[]]);
+    const asset = readSpriteLodAsset(lod);
+    const levels = preview.draw([{ asset, palette: master.defaultPalette }], Number(depth.value));
     note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${lod.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;
   };
 
@@ -213,7 +180,6 @@ export function mountSourceView(
     if (!name) {
       panes.hidden = true;
       empty.hidden = false;
-      imported(null);
       return;
     }
     try {
@@ -230,7 +196,6 @@ export function mountSourceView(
       note.textContent = `${name}: ${error instanceof Error ? error.message : error}`;
     }
     if (recipe) {
-      target.value = recipe.target;
       const values: Record<keyof typeof fields, string> = {
         widthMeters: String(recipe.widthMeters),
         cropX: String(recipe.crop.x),
@@ -239,20 +204,17 @@ export function mountSourceView(
         cropHeight: String(recipe.crop.height),
         anchorX: String(recipe.anchor.x),
         anchorY: String(recipe.anchor.y),
-        lampColors: recipe.lamp.colors.join(', '),
       };
       for (const [key, input] of Object.entries(fields))
         if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
       swatches.replaceChildren(...(image ? recipePalette(image, recipe) : []).map(swatch));
       automatic.disabled = recipe.palette === null;
     }
-    writeCourse.hidden = recipe?.target !== 'course';
     // Without an open source there is nothing to show but how to add one.
     panes.hidden = !recipe;
     empty.hidden = !!recipe;
     draw();
     drawPreview();
-    imported(master && recipe && name ? { name, recipe, master } : null);
   };
   let showing = Promise.resolve();
   const refresh = () => (showing = showing.then(show));
@@ -283,13 +245,11 @@ export function mountSourceView(
       {
         format: SPRITE_RECIPE_FORMAT,
         version: SPRITE_RECIPE_VERSION,
-        target: 'vehicle',
         crop: { x: 0, y: 0, width: decodedNew.width, height: decodedNew.height },
         widthMeters: decodedNew.width / 40,
         anchor: { x: decodedNew.width / 2 - 0.5, y: decodedNew.height - 1 },
         mask: [],
         palette: null,
-        lamp: { rectangles: [], colors: [] },
       } satisfies SpriteRecipe,
       `Add recipe ${chosen}`,
     );
@@ -304,12 +264,6 @@ export function mountSourceView(
     apply: (current: SpriteRecipe, value: T) => SpriteRecipe,
     label: string,
   ) => confirmField(input, parse, (value) => recipe && save(apply(recipe, value), label));
-  recipeField(
-    target,
-    (text) => text as SpriteRecipe['target'],
-    (r, value) => ({ ...r, target: value, palette: null }),
-    'Set target',
-  );
   recipeField(fields.widthMeters, finiteNumber, (r, widthMeters) => ({ ...r, widthMeters }), 'Set width');
   for (const [key, input] of [
     ['x', fields.cropX],
@@ -320,28 +274,12 @@ export function mountSourceView(
     recipeField(input, finiteNumber, (r, value) => ({ ...r, crop: { ...r.crop, [key]: value } }), 'Set crop');
   recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
   recipeField(fields.anchorY, finiteNumber, (r, y) => ({ ...r, anchor: { ...r.anchor, y } }), 'Set anchor');
-  recipeField(
-    fields.lampColors,
-    (text) => {
-      const colors = text
-        .split(/[\s,]+/)
-        .filter(Boolean)
-        .map(Number);
-      return colors.every((c) => Number.isInteger(c) && c >= 0 && c <= 0x7fff) ? colors : null;
-    },
-    (r, colors) => ({ ...r, lamp: { ...r.lamp, colors } }),
-    'Set lamp colors',
-  );
   generate.addEventListener('click', () => {
     if (recipe && image)
       save({ ...recipe, palette: recipePalette(image, { ...recipe, palette: null }) }, 'Generate palette');
   });
   automatic.addEventListener('click', () => recipe && save({ ...recipe, palette: null }, 'Palette from each import'));
   clearMask.addEventListener('click', () => recipe && save({ ...recipe, mask: [] }, 'Clear mask'));
-  clearLamp.addEventListener(
-    'click',
-    () => recipe && save({ ...recipe, lamp: { ...recipe.lamp, rectangles: [] } }, 'Clear lamp'),
-  );
   writeCourse.addEventListener('click', async () => {
     if (!master) return;
     const file = courseImageFile(master);
@@ -377,8 +315,6 @@ export function mountSourceView(
       if (tool === 'anchor') save({ ...recipe, anchor: { x: pending.x1, y: pending.y1 } }, 'Set anchor');
       else if (!rect) return;
       else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
-      else if (tool === 'lamp')
-        save({ ...recipe, lamp: { ...recipe.lamp, rectangles: [...recipe.lamp.rectangles, rect] } }, 'Mark lamp');
       else
         save(
           { ...recipe, mask: [...recipe.mask, { ...rect, hidden: tool === 'hide' }] },
