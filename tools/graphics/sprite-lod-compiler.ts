@@ -1,5 +1,4 @@
 import { requireAdmission } from '../../src/core/admission.js';
-import { readIndexedPalette } from '../../src/image/indexed-image.js';
 import {
   IMAGE_OPAQUE_COVERAGE,
   evaluatePaletteMixture,
@@ -9,9 +8,9 @@ import {
 import {
   readSpriteLodAsset,
   spriteLodLayout,
-  spritePaletteStates,
-  type SpriteAsset,
+  type SpriteLodAsset,
   type SpriteLodDocument,
+  type SpriteShadowDocument,
 } from '../../src/image/sprite.js';
 
 interface MixtureBin {
@@ -21,13 +20,12 @@ interface MixtureBin {
 }
 
 /**
- * Direct-master box filtering, with one shared pattern for every declared color and lamp state.
- * A caller that already admitted the master with the first palette suffix supplies it instead of decoding again.
+ * Direct-master box filtering, with one shared pattern for every declared color, and the shadow's levels, as many as
+ * the image's. A caller that already admitted the master supplies it instead of decoding again.
  */
 export function compileSpriteLod(
   source: SpriteLodDocument,
-  paletteSuffixes: readonly (readonly number[])[] = [[]],
-  master: SpriteAsset = readSpriteLodAsset(source, paletteSuffixes[0]),
+  master: SpriteLodAsset = readSpriteLodAsset(source),
 ): SpriteLodDocument {
   requireAdmission(
     master.levels.length === 1,
@@ -37,10 +35,9 @@ export function compileSpriteLod(
   );
   const original = source.levels[0]!;
   const base = master.levels[0]!.paletteRgb555;
-  const palettes = spritePaletteStates(master.palettes).flatMap((palette) =>
-    paletteSuffixes.map((suffix) => readIndexedPalette([...palette.slice(0, 16 - suffix.length), ...suffix])),
-  );
-  const levels = spriteLodLayout(master.width, master.height).map(({ width, height }, k) => {
+  const palettes = Object.values(master.palettes).map((palette) => palette.colors);
+  const layout = spriteLodLayout(master.width, master.height);
+  const levels = layout.map(({ width, height }, k) => {
     if (k === 0)
       return {
         paletteRgb555: [...original.paletteRgb555],
@@ -97,10 +94,29 @@ export function compileSpriteLod(
     });
     return { paletteRgb555, mixtures, indices: Array.from(membership, (bin) => (bin < 0 ? 0 : indicesByBin[bin]!)) };
   });
-  return { ...source, levels };
+  return { ...source, levels, ...(source.shadow ? { shadow: reduceShadow(source.shadow, layout.length) } : {}) };
 }
 
-/** Deterministic divisive clustering; distance is the worst color error over all palette/lamp states. */
+/**
+ * A shadow's levels from its master: a level's texel is opaque where any master texel in its box is, so a shadow never
+ * vanishes at a distance and stays binary.
+ */
+function reduceShadow(shadow: SpriteShadowDocument, count: number): SpriteShadowDocument {
+  const master = shadow.levels[0]!.indices;
+  const levels = Array.from({ length: count }, (_, k) => {
+    const step = 2 ** k,
+      width = Math.ceil(shadow.width / step),
+      height = Math.ceil(shadow.height / step);
+    const indices = Array<number>(width * height).fill(0);
+    for (let y = 0; y < shadow.height; y++)
+      for (let x = 0; x < shadow.width; x++)
+        if (master[y * shadow.width + x]) indices[Math.floor(y / step) * width + Math.floor(x / step)] = 1;
+    return { indices };
+  });
+  return { ...shadow, levels };
+}
+
+/** Deterministic divisive clustering; distance is the worst color error over all named palettes. */
 function reduceMixtures(bins: readonly MixtureBin[], palettes: readonly (readonly number[])[]): number[][] {
   if (bins.length <= 15) return bins.map((_, i) => [i]);
   const groups = [bins.map((_, i) => i)];

@@ -145,7 +145,9 @@ for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (
 `airborne` and `landed` the sprite images it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
 wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
-(`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own.
+(`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own and requires a
+movable body's image and its airborne and landed images each to carry a shadow (`invalid_placement` at the image's
+pointer), which the object casts ([Shadows](architecture.md#shadows)).
 
 `unselectedLink` is null for ordinary sprites or names, by id, a Link leaving the Section's fork. A state-selected
 sign appears at a fork occurrence once that occurrence has a selected successor on the Route whose Link is not the
@@ -289,7 +291,7 @@ open limit has no support beyond the material and falls; ordinary recovery retur
 Compilation publishes each Section's solid objects, a physical product apart from appearance, in station order: each
 `{s, l, width, bottom, top, sprite, movable}`, a solid width across the road at station `s` and lateral `l`, from height
 `bottom` to `top`. A fixed object has no depth along the road; a movable one's footprint is the square of its width,
-centred on (s, l), in contacts, drivers' sightings, placement and shadows alike, standing, flying or landed. A solid sprite, every expanded placement with a body, is one: its body's width,
+centred on (s, l), in contacts, drivers' sightings and placement alike, standing, flying or landed. A solid sprite, every expanded placement with a body, is one: its body's width,
 from the road height plus `groundOffset` up its image's world height (read from the image once, at compilation);
 `sprite` is its placement's index among the Section's expanded sprites, the identity race and appearance share, and
 `movable` holds a movable body's mass and launch elevation (null for a fixed one). A solid sprite's height, and the

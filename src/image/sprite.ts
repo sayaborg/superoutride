@@ -7,22 +7,53 @@ import {
   readString,
   requireAdmission,
 } from '../core/admission.js';
-import { readRgb555 } from './rgb555.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 // Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.
 // Positive unit-total sums accumulate O(n*eps) error; this allows about 4.5e5 eps.
 const MIXTURE_WEIGHT_SUM_TOLERANCE = 1e-10;
 
+/**
+ * Texels per metre at an image's base point in its level 0: level `k` has `40 / 2^k`, the scale the picture contract's
+ * size `k` is drawn at ([Image assets](../../docs/image-assets.md#picture-contract)).
+ */
 export const SPRITE_SOURCE_TEXELS_PER_METER = 40;
 
 export interface SpritePalette {
   readonly colors: readonly number[];
 }
 
-/** Named colors participating in LOD compilation. */
-export function spritePaletteStates(palettes: Readonly<Record<string, SpritePalette>>): readonly (readonly number[])[] {
-  return Object.values(palettes).map((palette) => palette.colors);
+/** One frame of indexed texels with its anchor, the image's base point, in texel-centre coordinates. */
+export interface SpriteFrame {
+  readonly width: number;
+  readonly height: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+  readonly pattern: IndexedPattern;
+}
+
+/**
+ * One level of a drawn image, level `k` at `40 / 2^k` texels per metre at its base point: its picture in resolved
+ * colors and its shadow, a frame drawn at the same scale with its anchor at the base point's ground (null for none).
+ */
+export interface SpriteLevel extends SpriteFrame {
+  readonly paletteRgb555: readonly number[];
+  readonly shadow: SpriteFrame | null;
+}
+
+/** An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre. */
+export interface SpriteAsset {
+  readonly name: string;
+  readonly levels: readonly SpriteLevel[];
+}
+
+/** A shadow master and its build-generated levels: binary frames, nonzero opaque. */
+export interface SpriteShadowDocument {
+  readonly width: number;
+  readonly height: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+  readonly levels: readonly { readonly indices: readonly number[] }[];
 }
 
 export interface SpriteLodDocument {
@@ -40,6 +71,7 @@ export interface SpriteLodDocument {
     readonly indices: readonly number[];
     readonly mixtures: readonly PaletteMixture[];
   }[];
+  readonly shadow?: SpriteShadowDocument;
 }
 
 export function spriteLodLayout(width: number, height: number) {
@@ -52,15 +84,20 @@ export function spriteLodLayout(width: number, height: number) {
   }));
 }
 
-interface SpriteLevel {
-  readonly width: number;
-  readonly height: number;
-  readonly pattern: IndexedPattern;
-  readonly paletteRgb555: readonly number[];
+/** A master anchor coordinate's place in level `k`: `(a + 0.5) / 2^k - 0.5`. */
+export function levelAnchor(anchor: number, k: number): number {
+  return (anchor + 0.5) / 2 ** k - 0.5;
+}
+
+interface SpriteLodLevel extends SpriteLevel {
   readonly mixtures: readonly PaletteMixture[];
 }
-export interface SpriteAsset {
-  readonly name: string;
+
+/**
+ * A course image: a master and its direct-master pyramid, with its named palettes and each level's mixtures of them.
+ * Its master extent at 40 texels/m is its logical size; its level `k` frames are `ceil(W / 2^k)` by `ceil(H / 2^k)`.
+ */
+export interface SpriteLodAsset extends SpriteAsset {
   readonly width: number;
   readonly height: number;
   readonly worldWidthMeters: number;
@@ -68,14 +105,32 @@ export interface SpriteAsset {
   readonly anchorY: number;
   readonly defaultPalette: string;
   readonly palettes: Readonly<Record<string, SpritePalette>>;
-  readonly levels: readonly SpriteLevel[];
+  readonly levels: readonly SpriteLodLevel[];
+}
+
+/** One frame's row-major indices of a declared extent, as a pattern. */
+function readFrameIndices(value: unknown, path: string, width: number, height: number): IndexedPattern {
+  const indices = readArray(value, path, (item, at) => readPatternSymbol(item, at), { length: width * height });
+  return new IndexedPattern(width, height, indices);
 }
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
-export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly number[] = []): SpriteAsset {
+export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
   const document = readDocument(
     value,
-    ['format', 'version', 'name', 'width', 'height', 'anchorX', 'anchorY', 'defaultPalette', 'palettes', 'levels'],
+    [
+      'format',
+      'version',
+      'name',
+      'width',
+      'height',
+      'anchorX',
+      'anchorY',
+      'defaultPalette',
+      'palettes',
+      'levels',
+      ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'shadow') ? ['shadow'] : []),
+    ],
     'superoutride.sprite-lod',
     4,
   );
@@ -89,7 +144,7 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
   const layout = spriteLodLayout(width, height);
   const levelDocuments = readArray(document.levels, '/levels', (level) => level, { min: 1, max: layout.length });
   const palettes = readDictionary(document.palettes, '/palettes', (value, path) =>
-    Object.freeze({ colors: readPalette(readRecord(value, path, ['colors']).colors, `${path}/colors`, paletteSuffix) }),
+    Object.freeze({ colors: readIndexedPalette(readRecord(value, path, ['colors']).colors, `${path}/colors`) }),
   );
   const defaultPalette = readString(document.defaultPalette, '/defaultPalette');
   requireAdmission(
@@ -99,10 +154,9 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
     'Default palette must name an image palette',
   );
   const levelFields = ['paletteRgb555', 'indices', 'mixtures'];
-  const base = readPalette(
+  const base = readIndexedPalette(
     readRecord(levelDocuments[0], '/levels/0', levelFields).paletteRgb555,
     '/levels/0/paletteRgb555',
-    paletteSuffix,
   );
   requireAdmission(
     base.every((color, i) => color === palettes[defaultPalette]!.colors[i]),
@@ -110,6 +164,7 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
     '/levels/0/paletteRgb555',
     'Master colors must equal the named default palette',
   );
+  const shadows = document.shadow === undefined ? null : readShadow(document.shadow, levelDocuments.length);
   const levels = levelDocuments.map((value, k) => {
     const path = `/levels/${k}`;
     const level = readRecord(value, path, levelFields);
@@ -138,9 +193,12 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
     return Object.freeze({
       width: w,
       height: h,
+      anchorX: levelAnchor(anchorX, k),
+      anchorY: levelAnchor(anchorY, k),
       pattern: new IndexedPattern(w, h, indices),
       paletteRgb555,
       mixtures,
+      shadow: shadows?.[k] ?? null,
     });
   });
   return Object.freeze({
@@ -154,6 +212,35 @@ export function readSpriteLodAsset(value: unknown, paletteSuffix: readonly numbe
     palettes,
     levels: Object.freeze(levels),
   });
+}
+
+/**
+ * A course image's shadow: a master frame whose anchor is the image's base point on the ground, and its levels, exactly
+ * as many as the image's, level `k` of `ceil(w / 2^k)` by `ceil(h / 2^k)` texels anchored as the image's levels are.
+ */
+function readShadow(value: unknown, count: number): readonly SpriteFrame[] {
+  const shadow = readRecord(value, '/shadow', ['width', 'height', 'anchorX', 'anchorY', 'levels']);
+  const extent = { min: 1, max: 1 << 20, integer: true };
+  const width = readNumber(shadow.width, '/shadow/width', extent);
+  const height = readNumber(shadow.height, '/shadow/height', extent);
+  const anchorX = readNumber(shadow.anchorX, '/shadow/anchorX');
+  const anchorY = readNumber(shadow.anchorY, '/shadow/anchorY');
+  const levels = readArray(shadow.levels, '/shadow/levels', (level, path) => readRecord(level, path, ['indices']), {
+    length: count,
+  });
+  return Object.freeze(
+    levels.map((level, k) => {
+      const w = Math.ceil(width / 2 ** k),
+        h = Math.ceil(height / 2 ** k);
+      return Object.freeze({
+        width: w,
+        height: h,
+        anchorX: levelAnchor(anchorX, k),
+        anchorY: levelAnchor(anchorY, k),
+        pattern: readFrameIndices(level.indices, `/shadow/levels/${k}/indices`, w, h),
+      });
+    }),
+  );
 }
 
 /** One palette slot's mixture of unique opaque master slots with positive weights summing to one. */
@@ -198,17 +285,9 @@ function readMixture(
   return mixture;
 }
 
-/** A named color, completed by caller-supplied trailing slots, is resolved once before rendering. */
-export function createSpritePalette(
-  asset: SpriteAsset,
-  name: string,
-  paletteSuffix: readonly number[] = [],
-): SpriteAsset {
-  const palette = asset.palettes[name]!;
-  return applySpritePalette(asset, [...palette.colors.slice(0, 16 - paletteSuffix.length), ...paletteSuffix]);
-}
-
-function applySpritePalette(asset: SpriteAsset, base: readonly number[]): SpriteAsset {
+/** A named color is resolved once before rendering: every level's palette evaluated in it. */
+export function createSpritePalette(asset: SpriteLodAsset, name: string): SpriteLodAsset {
+  const base = asset.palettes[name]!.colors;
   const levels = asset.levels.map((level) => {
     const paletteRgb555 = Object.freeze(
       level.mixtures.map((mixture, i) =>
@@ -220,14 +299,7 @@ function applySpritePalette(asset: SpriteAsset, base: readonly number[]): Sprite
   return Object.freeze({ ...asset, levels: Object.freeze(levels) });
 }
 
-/** A containing format owns any trailing reserved colors; authored arrays must omit them. */
-function readPalette(value: unknown, path: string, suffix: readonly number[]): readonly number[] {
-  const colors = readArray(value, path, readRgb555, { length: 16 - suffix.length });
-  return Object.freeze([...colors, ...suffix]);
-}
-
 /** Geometric-mean transitions; the exact boundary selects the coarser level. */
 export function selectSpriteLevel(asset: SpriteAsset, pixelsPerMeter: number): number {
-  const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
-  return selectImageLodLevel(scale, asset.levels.length - 1);
+  return selectImageLodLevel(pixelsPerMeter / SPRITE_SOURCE_TEXELS_PER_METER, asset.levels.length - 1);
 }

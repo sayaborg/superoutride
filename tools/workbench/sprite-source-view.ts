@@ -159,7 +159,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
   };
   const drawPreview = () => {
     if (!master || !recipe) return;
-    const lod = compileSpriteLod(master, [[]]);
+    const lod = compileSpriteLod(master);
     const asset = readSpriteLodAsset(lod);
     const levels = preview.draw([{ asset, palette: master.defaultPalette }], Number(depth.value));
     note.textContent = `${master.name}: ${master.width} × ${master.height} master, ${lod.levels.length} levels; at ${depth.value} m level ${levels[0]}.`;

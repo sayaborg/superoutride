@@ -5,7 +5,7 @@ import { createStripBudget } from '../../src/course/strip-budget.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
-import { selectSpriteLevel } from '../../src/image/sprite.js';
+import { selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 
 // Bit 15 is never set in an RGB555 pixel, so it marks pixels the ground leaves unchanged.
 const BG = 0x8000,
@@ -72,13 +72,14 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
     '',
     createStripBudget(),
   );
-  const sprite = { width: 1, worldWidthMeters: 1, levels: new Array(5) };
+  // A sprite's level k is 40/2^k texels per metre: at 40/deltaS px/m it takes the octave of a footprint of deltaS.
+  const sprite = { levels: new Array(5) };
   for (const deltaS of [0.5, 1, Math.SQRT2 * (1 - 1e-10), Math.SQRT2, 2, 2 * Math.SQRT2, 4 * Math.SQRT2, 64])
     for (const s of [0.2, 4.6, 12.25]) {
       const direct = row(whole(ground), { s, deltaS, method: 'POINT-POINT' });
       assert.ok(direct.every((p) => p === [RED, BLUE, WHITE][Math.floor(s) % 3]));
       const level = row(whole(ground), { s, deltaS, method: 'LEVEL-POINT' });
-      const step = 2 ** selectSpriteLevel(sprite, 1 / deltaS),
+      const step = 2 ** selectSpriteLevel(sprite, SPRITE_SOURCE_TEXELS_PER_METER / deltaS),
         first = Math.floor(s / step) * step;
       const cell = Array.from(
         { length: Math.min(16, first + step) - first },

@@ -1,8 +1,29 @@
 import { clamp, wrapAngle } from '../core/math.js';
-import { createSpritePalette, type SpriteAsset } from '../image/sprite.js';
+import type { SpriteAsset, SpriteFrame } from '../image/sprite.js';
 
+/** A color's resolved palettes, slot 0 unused: with the brake lamp off and on. */
+export interface VehiclePictureColor {
+  readonly off: readonly number[];
+  readonly on: readonly number[];
+}
+
+/**
+ * One size of a vehicle picture, size `k` at `40 / 2^k` texels per metre at its base point: its indices, its palettes
+ * by color and its shadow's frame, on the same texel grid.
+ */
+export interface VehiclePictureSize extends SpriteFrame {
+  readonly palettes: Readonly<Record<string, VehiclePictureColor>>;
+  readonly shadow: SpriteFrame;
+}
+
+/** One cell's picture: every size, each its own picture of the vehicle seen from that size's camera. */
+export interface VehiclePicture {
+  readonly name: string;
+  readonly sizes: readonly VehiclePictureSize[];
+}
+
+/** An admitted vehicle sprite set: its yaw × bank grid of pictures and the colors every picture declares. */
 export interface VehicleSpriteSet {
-  readonly brakeLamp: Readonly<{ off: number; on: number }>;
   readonly yawVariants: number;
   readonly bankVariants: number;
   /**
@@ -10,55 +31,62 @@ export interface VehicleSpriteSet {
    * depict; null for a set with one bank image.
    */
   readonly bankDegrees: number | null;
+  /** The color names, in declaration order. */
+  readonly colors: readonly string[];
+  readonly pictures: readonly (readonly VehiclePicture[])[];
+}
+
+/** A set's pictures in one color and lamp state, ready to draw. */
+export interface VehicleSpriteImages {
+  readonly yawVariants: number;
+  readonly bankVariants: number;
+  readonly bankDegrees: number | null;
   readonly assets: readonly (readonly SpriteAsset[])[];
 }
 
-/** Whether every image of the set declares `color`: the colors a vehicle with this set can be drawn in. */
+/** Whether the set declares `color`: the colors a vehicle with this set can be drawn in. */
 export function spriteSetHasColor(set: VehicleSpriteSet, color: string): boolean {
-  return set.assets.every((row) => row.every((image) => Object.hasOwn(image.palettes, color)));
+  return set.colors.includes(color);
 }
 
-/** Every color the set can be drawn in, in its first image's declaration order. */
+/** Every color the set can be drawn in, in declaration order. */
 export function spriteSetColors(set: VehicleSpriteSet): readonly string[] {
-  return Object.keys(set.assets[0]![0]!.palettes).filter((color) => spriteSetHasColor(set, color));
+  return set.colors;
 }
 
-/** An instance resolves each image's own named color and lamp state once. */
+/** A set's pictures in a color and lamp state: each picture's palettes are taken once. */
 export function createVehiclePaletteVariant(
   set: VehicleSpriteSet,
-  palette: string,
+  color: string,
   brakeLampOn = false,
-): VehicleSpriteSet {
-  const images = new Map<SpriteAsset, SpriteAsset>();
-  const assets = set.assets.map((row) =>
+): VehicleSpriteImages {
+  const images = new Map<VehiclePicture, SpriteAsset>();
+  const assets = set.pictures.map((row) =>
     Object.freeze(
-      row.map((asset) => {
-        let variant = images.get(asset);
-        if (!variant) {
-          variant = createSpritePalette(asset, palette, [brakeLampOn ? set.brakeLamp.on : set.brakeLamp.off]);
-          images.set(asset, variant);
+      row.map((picture) => {
+        let asset = images.get(picture);
+        if (!asset) {
+          const levels = picture.sizes.map(({ palettes, ...frame }) =>
+            Object.freeze({ ...frame, paletteRgb555: palettes[color]![brakeLampOn ? 'on' : 'off'] }),
+          );
+          asset = Object.freeze({ name: picture.name, levels: Object.freeze(levels) });
+          images.set(picture, asset);
         }
-        return variant;
+        return asset;
       }),
     ),
   );
-  return Object.freeze({ ...set, assets: Object.freeze(assets) });
+  const { yawVariants, bankVariants, bankDegrees } = set;
+  return Object.freeze({ yawVariants, bankVariants, bankDegrees, assets: Object.freeze(assets) });
 }
 
 /**
- * The vehicle pictures' camera factor: they are baked with a camera this many times as far from the vehicle as the
- * scene's and this many times its focal length, so a picture has the scene's size and a flatter perspective. The
- * one authority for this value; pictures are rebaked with it.
- */
-export const VEHICLE_SPRITE_CAMERA_FACTOR = 2;
-
-/**
- * The direction from which the pictures show a vehicle whose position lies `cameraRight` metres right of the camera's
- * axis at depth `depth`: their camera's view ray, `atan(cameraRight / (factor * depth))`, positive to the right. A
- * picture is selected by the body's yaw relative to the camera less this direction.
+ * The direction from which the camera sees a vehicle whose base point lies `cameraRight` metres right of the camera's
+ * axis at depth `depth`: its view ray, `atan(cameraRight / depth)`, positive to the right. A picture is selected by the
+ * body's yaw relative to the camera less this direction.
  */
 export function vehicleSpriteViewYaw(cameraRight: number, depth: number): number {
-  return Math.atan2(cameraRight, VEHICLE_SPRITE_CAMERA_FACTOR * depth);
+  return Math.atan2(cameraRight, depth);
 }
 
 /**
@@ -93,7 +121,7 @@ function selectBankVariant(bank: number, count: number): number {
  * the yaw image this vehicle showed in its previous frame, stays selected within a quarter step beyond its sector.
  */
 export function selectVehicleSprite(
-  set: VehicleSpriteSet,
+  set: VehicleSpriteImages,
   relativeYaw: number,
   leanRadians = 0,
   heldYawIndex?: number,

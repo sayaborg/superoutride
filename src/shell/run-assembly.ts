@@ -241,27 +241,26 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     };
   };
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every
-  // vehicle, the player included, casts a shadow by one rule.
+  // vehicle, the player included, casts its picture's shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
-  const shadowed: CompetitorObservation[] = [];
   const draw = () => {
     const { scene, race } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
-    shadowed.length = 0;
-    shadowed.push(observations.player, ...otherVehicles);
-    const others = raceSprites(otherVehicles, lifecycle.camera, scene.world.coordinates);
+    const others = raceSprites(otherVehicles, lifecycle.camera, scene.world);
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
       shell.framebuffer,
-      observations.player,
+      {
+        vehicle: observations.player,
+        set: observations.player.brakeLampOn ? sprites.on : sprites.off,
+        reach: entry.compiledVehicle.reach,
+      },
       lifecycle.camera,
-      observations.player.brakeLampOn ? sprites.on : sprites.off,
       others,
-      shadowed,
       observations.knocked,
       measurements,
     );

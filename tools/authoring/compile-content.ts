@@ -27,7 +27,6 @@ import { compileMusicCatalog, compileRecordings, type RecordingSource } from '..
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { admitCourseWallSounds, compileWallSounds } from '../../src/content/wall-sound-catalog.js';
 import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js';
-import { compileVehicleSpriteLibrary } from '../graphics/vehicle-sprite-library.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
@@ -62,7 +61,7 @@ export interface DeliveredFile {
 /** The delivered files in delivery order, with the compiled products later stages and tools consume. */
 export interface CompiledContent {
   readonly files: readonly DeliveredFile[];
-  readonly library: ReturnType<typeof compileVehicleSpriteLibrary>;
+  readonly library: ReturnType<typeof assembleVehicleSpriteLibrary>;
   readonly materials: SurfaceMaterialCatalog;
   readonly freePlay: FreePlayRules;
   readonly definitions: VehicleDefinitions;
@@ -179,17 +178,15 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   // The vehicle sprite library, assembled from one document per set.
   const spriteFiles = await read('sprites');
   const sprites = await stage('sprites', inputs(spriteFiles), () => {
-    const library = compileVehicleSpriteLibrary(
-      assembleVehicleSpriteLibrary(
-        spriteFiles.map((file) => ({
-          name: file.id,
-          document: `content/sprites/${file.name}`,
-          value: parseJson(file.bytes, `content/sprites/${file.name}`),
-        })),
-      ),
+    const library = assembleVehicleSpriteLibrary(
+      spriteFiles.map((file) => ({
+        name: file.id,
+        document: `content/sprites/${file.name}`,
+        value: parseJson(file.bytes, `content/sprites/${file.name}`),
+      })),
       'content/sprites',
     );
-    return { library, files: [deliveredFile('image', 'vehicles', encodeContentJson(library.product))] };
+    return { library, files: [deliveredFile('image', 'vehicles', encodeContentJson(library.library))] };
   });
 
   // The text tiles are delivered as authored once admitted.

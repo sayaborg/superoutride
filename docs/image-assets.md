@@ -7,8 +7,10 @@ logical sprite extent and anchors; [Content and gameplay](content-and-gameplay.m
 
 Indexed sprites and BG tiles pack two 4-bit indices per byte, high nibble first. Index zero is
 transparent (BG patterns cannot use it; see below); indices 1 through 15 are opaque. Resolved palettes have exactly 16 RGB555 entries, with slot zero
-unused. RGB555 zero in an opaque slot is black. Source JSON stores row-major index arrays.
-Tile palettes begin at `paletteId << 4`; the format has no separate palette-count limit.
+unused. RGB555 zero in an opaque slot is black. Source JSON stores row-major index arrays, except the vehicle
+pictures' hexadecimal rows ([Vehicle sprite library](#vehicle-sprite-library)).
+Tile palettes begin at `paletteId << 4`; the format has no separate palette-count limit. Course images use this
+format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-library)'s.
 
 ```text
 {
@@ -18,7 +20,8 @@ Tile palettes begin at `paletteId << 4`; the format has no separate palette-coun
   palettes: {original: {colors: [RGB555 integers]},
              alternate: {colors: [RGB555 integers]}},
   levels: [{paletteRgb555: [16 integers], indices: [row-major indices],
-            mixtures: [[], [[baseIndex,weight], ...], ...]}, ...]
+            mixtures: [[], [[baseIndex,weight], ...], ...]}, ...],
+  shadow?: {width, height, anchorX, anchorY, levels: [{indices: [row-major indices]}, ...]}
 }
 ```
 
@@ -29,14 +32,17 @@ have empty mixtures. Its normal color is the mixture evaluated in the original p
 Equal colors can occupy distinct semantic master slots.
 
 `palettes` is a dictionary of unique nonempty trimmed names. `defaultPalette` names its default
-color. Course images declare all 16 slots. Vehicle-set images declare only slots 0 through 14:
-slot 15 is reserved for the set's brake lamp, and explicitly supplying it is rejected. The same
-omission applies to their level-zero `paletteRgb555`; the set supplies its off color before mixture
-validation. Coarse generated palettes still contain 16 entries: their slots are filtered mixtures,
-not semantic master slots. The resolved level-zero palette equals the resolved default color.
-Images carry no lamp declarations. All color × set lamp-state combinations participate in LOD
-compilation. Evaluating the shared mixtures in a selected combination generates its level palettes
-once before drawing; patterns remain shared. Course images can freely use slot 15.
+color. Images declare all 16 slots. Coarse generated palettes still contain 16 entries: their slots are filtered
+mixtures, not semantic master slots. The resolved level-zero palette equals the resolved default color. All named
+colors participate in LOD compilation. Evaluating the shared mixtures in a selected color generates its level palettes
+once before drawing; patterns remain shared.
+
+`shadow` is optional: a binary frame whose anchor is the image's base point on the road, nonzero indices opaque, drawn
+at the image's scale with exactly as many levels as the image; level `k` is `ceil(w/2^k)` by `ceil(h/2^k)` with the
+anchor mapped as the image's. A master carries its shadow's master level; the build reduces it, a level texel opaque
+where any master texel in its box is, so a shadow never vanishes at a distance. A movable object's standing, flying and
+landed images each carry one ([Content and gameplay](content-and-gameplay.md#sprites-and-environment)); the
+provisional ones are the object's square seen by the size-0 contract camera ([Picture contract](#picture-contract)).
 Course sprites select one declared palette by its required name, including an explicit default name.
 The course compiler validates that reference and shares image/name resources. Rendering applies each
 selected palette once; no raw course replacement palettes or value-by-value LOD membership checks remain.
@@ -69,13 +75,13 @@ The workbench, the sprite command and the build consume those same TypeScript im
 
 The compiler integrates exact master index counts in each clipped octave box. Fifteen or fewer
 mixtures pass through directly. Larger sets use deterministic divisive clustering: squared linear-color
-distance is the maximum across all declared color/lamp combinations; the greatest area-weighted-error group
+distance is the maximum across all declared colors; the greatest area-weighted-error group
 splits around its farthest representatives. Representatives are area-weighted mixture centroids;
-stable input order resolves ties. Color or lamp edits invalidate the generated pyramid.
+stable input order resolves ties. Color edits invalidate the generated pyramid.
 
-The vehicle sprite set documents under `content/sprites/` hold normalized masters with yaw/bank bindings.
-Their generated library uses the same `dist/delivery/images/<sha256>.json` location as course images; its manifest ID,
-`vehicles`, names no course image.
+The vehicle sprite set documents under `content/sprites/` hold every size of every picture; the build admits and
+assembles them and generates nothing. Their library uses the same `dist/delivery/images/<sha256>.json` location as
+course images; its manifest ID, `vehicles`, names no course image.
 The content manifest maps the logical image name `vehicles` to its path and exact-byte SHA-256;
 courses find their images by that digest ([Content and gameplay](content-and-gameplay.md#geometry-and-reference-records)).
 All consumers resolve these entries through the manifest
@@ -246,56 +252,77 @@ the constructs and builds private numeric fields; these are not image assets or 
 [Content and gameplay](content-and-gameplay.md#sprites-and-environment) owns the saved fields;
 [Architecture](architecture.md#strip-rendering) owns ground sampling and its common color law.
 
+## Picture contract
+
+Every picture is a flat picture standing upright at its base point ([Architecture](architecture.md#sprites-and-painter)):
+a vehicle's position seen from above at its body's underside, an object's placement at its height. Its anchor is that
+point. Pictures come in sizes; size `k` (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point,
+and the renderer draws the size nearest its scale ([Shared image level selection](architecture.md#shared-image-level-selection)).
+Vehicle pictures and their generator follow this contract; this section is its only statement:
+
+- **Camera.** Size `k` is the vehicle seen in true perspective from a camera `D_cam × 2^k` behind its base point
+  (`D_cam` = 6 m) and 2.0 m above it, with a focal length of 240 px and no pitch or roll: its scale at the base point
+  is `40 / 2^k` px/m, and one texel is one pixel of that camera. Every size is its own picture, drawn from its own
+  camera, so the farther sizes show the vehicle closer to level; no size is made by reducing another.
+- **Anchor.** A picture's anchor is the projection of its base point. The picture may extend below it.
+- **Direction.** A picture is chosen by the body's yaw less the direction from the camera to the base point, in true
+  perspective (`atan(x / d)` for the base point's camera-right distance `x` and depth `d`); the set's yaw images
+  divide the turn evenly, image 0 seen from behind and each next one turned right by one step.
+- **Shadow.** Each size has a shadow: the vehicle cast straight down onto a level road through its base point, seen by
+  the same camera. It is drawn at the same scale with its anchor at the road beneath the base point, so its anchor is
+  the same base point; its frame lies on the picture's texel grid, so the two anchors differ by whole texels. Its
+  opaque texels are the shadow; their indices mean nothing else. A shadow keeps at least one opaque texel at every
+  size.
+- **Colors.** Each size of each picture has 15 colors and transparency per palette, with its own palette for every
+  color name of the set and lamp state (brake lamp off and on); the indices are one for all its palettes.
+
+Course images are masters with build-generated pyramids ([Completed sprite images](#completed-sprite-images)): a
+level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
+
 ## Vehicle sprite library
 
 Each vehicle sprite set is authored as one document, `content/sprites/<set>.json`, using
-`superoutride.vehicle-sprite-set` version 1. The set's name is its file name without `.json`; the document carries
+`superoutride.vehicle-sprite-set` version 2. The set's name is its file name without `.json`; the document carries
 none:
 
 ```text
-{format, version, yawVariants, bankVariants, bankDegrees?, brakeLamp: {off: 12321, on: 32038},
- assets: [[spriteIndex, ...], ...], sprites: [SpriteLodDocument, ...]}
+{format, version, yawVariants, bankVariants, bankDegrees?, assets: [[pictureIndex, ...], ...],
+ pictures: [{sizes: [Size, ...]}, ...]}
+Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...],
+         palettes: {original: {off: [15 RGB555], on: [15 RGB555]}, alternate: {off, on}, ...},
+         shadow: {width, height, anchorX, anchorY, rows}}
 ```
 
-`assets` indexes the document's own `sprites`. The authoring core
-([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the library's rules,
-with diagnostics at the set document's own pointers, then assembles the library's masters: sets in name order, each
-set's images after the earlier sets' and its indices offset to match. The delivered library (manifest `image` /
-`vehicles`) is one document, `superoutride.vehicle-sprites` version 4:
+`assets` binds the yaw × bank grid, `yawVariants` rows of `bankVariants` cells, to the set's `pictures`; every picture
+fills at least one cell, and one picture may fill several. A picture has exactly six sizes, 0 to 5
+(`VEHICLE_PICTURE_SIZES`): size 5 is the one the farthest rendered depth (200 m) selects. A frame's `rows` run top to
+bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` transparent, `1`–`f` the palette's slots
+1–15. A palette lists the colors of slots 1–15. A set declares `bankDegrees` exactly when it has more than one bank
+image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass line that its outermost
+bank images depict. Bank selection divides the vehicle's displayed lean by it.
+
+Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once: every
+picture has every size; every size has its shadow, whose anchor differs from the picture's by whole texels; every size
+of every picture in the set declares the same color names, at least two, each with both lamp states; and every grid
+cell names a picture. Vehicle admission checks form-specific bank dimensions and default-color references
+([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)). The authoring core
+([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the same rules,
+with diagnostics at the set document's own pointers, and assembles the delivered library (manifest `image` /
+`vehicles`), one document of the sets by name, `superoutride.vehicle-sprites` version 5:
 
 ```text
-{format, version, sprites: [SpriteLodDocument, ...],
- sets: {testarossa: {yawVariants, bankVariants, assets: [[spriteIndex, ...], ...], brakeLamp: {off, on}},
-       vfr750r: {yawVariants, bankVariants, bankDegrees: 60, assets, brakeLamp}, ...}}
+{format, version, sets: {testarossa: {yawVariants, bankVariants, assets, pictures},
+                         vfr750r: {yawVariants, bankVariants, bankDegrees: 60, assets, pictures}, ...}}
 ```
 
-Set names are unique nonempty trimmed keys, independent of vehicle form. Each set binds a complete
-positive yaw × bank grid to library images. A set declares `bankDegrees` exactly when it has more than
-one bank image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass
-line that its outermost bank images depict. Bank selection divides the vehicle's displayed lean by it.
-Every image belongs to exactly one set; a set may bind one image to several cells. The build admits
-the masters with the same library reader, then compiles each image with its set's lamp colors; delivered
-images have complete LOD pyramids. Every image in a set declares exactly the same set of at least two
-color names. Each set requires one `brakeLamp:{off,on}` declaration of RGB555 integers, shared by all
-its colors and angles. Slot 15 always means the brake lamp within these images; slots 1 through 14
-remain ordinary image colors. Vehicle admission checks form-specific bank dimensions and default-color
-references, as specified in
-[Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents). This section is the library
-format's only specification. The vehicle domain admits the library and owns its sets at run time:
-per-vehicle color and lamp variants and yaw/bank image selection. The image domain supplies only the
-generic sprite LOD reader and palette resolution.
+The vehicle domain admits the library and owns its sets at run time: per-vehicle color and lamp palettes and yaw/bank
+picture selection. The image domain supplies only the generic sprite reader.
 
 The provisional pictures are one set per vehicle, named by its id in lower case with `_` as `-` (`testarossa`,
-`911-turbo-3-3`): drawn by code, original, at 40 px/m on the ground line, which is the bottom row, with the anchor at
-the vehicle's base point: `anchorX` at its position and `anchorY` above the bottom row by where a camera 1.75 m up and
-6 m behind the ground line sees half the vehicle's width behind it. Every image of a set has the same anchor, so
-turning a vehicle does not move it up or down. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5 bank
-images (`bankDegrees` 60). Each has an `original` and an `alternate` color. Their palette slots are 1–3 body
-(light, mid, dark), 4–5 glass, 6 tyres, 7 shadowed parts, 8 headlamps, 9 bumpers, 10 metal, 11–12 the rider's clothing,
-13 the helmet, 14 spare and 15 the brake lamp, with set off/on colors 13379/31974. They are baked for the product
-camera (240 px, 0°) and are rebaked when it changes; production art replaces them.
-
-Vehicle pictures are baked with a camera `k` times as far from the vehicle as the scene's camera and with `k` times its
-focal length, `k = 2` (`VEHICLE_SPRITE_CAMERA_FACTOR`): the scene's size with a flatter perspective. The renderer
-selects a vehicle's yaw image by that camera's direction of view
-([Architecture](architecture.md#sprites-and-painter)), and every set is baked with this factor.
+`911-turbo-3-3`): drawn by code, original, for an earlier camera, and converted mechanically until production art
+replaces them. Their size `k` is the reduction at octave `k` of a full-size picture whose anchor sits at the vehicle's
+base point (where a camera 1.75 m up and 6 m behind its ground line sees half the vehicle's width behind it), each
+color and lamp state's palette evaluated from the reduction's mixtures; their shadows are the vehicle's overall length
+by width rectangle seen by each size's contract camera. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5
+bank images (`bankDegrees` 60). Each has an `original` and an `alternate` color, the brake lamp's off and on colors
+13379 and 31974.

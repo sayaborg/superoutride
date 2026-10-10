@@ -30,7 +30,7 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
     name: image.id,
     bytes:
       image.kind === 'sprite'
-        ? new TextEncoder().encode(JSON.stringify(compileSpriteLod(image.document, [[]], image.image)) + '\n')
+        ? new TextEncoder().encode(JSON.stringify(compileSpriteLod(image.document, image.image)) + '\n')
         : encodeContentJson(image.document),
   }));
   return { document, images };

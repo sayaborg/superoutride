@@ -507,15 +507,16 @@ BG do not enter the average. [Browser](browser.md#ground-display-setting) owns l
 
 ## Sprites and Painter
 
-Sprites have a logical master frame, physical width, a master texel-center anchor and completed levels.
-Magnification is `g=(f/d)*worldWidth/masterWidth`. Course anchors use known chainage and render height; vehicles and
-movable objects stand at their base points, from their observed chainage and lateral. A picture may extend below its
-anchor: what lies below its base point is ordered by the base point's depth too. Yaw/bank variants are authored images.
-Rendering uses nearest sampling, binary alpha and one SINGLE sprite per vehicle; bank is visual.
+Every picture is a flat picture without depth standing upright at its base point, its anchor, and is drawn at the
+projected scale `f/d` px/m there ([picture contract](image-assets.md#picture-contract)). Course anchors use known
+chainage and render height; vehicles and movable objects stand at their base points, from their observed chainage and
+lateral. A picture may extend below its anchor: what lies below its base point is ordered by the base point's depth
+too. Yaw/bank variants are authored images. Rendering uses nearest sampling, binary alpha and one SINGLE sprite per
+vehicle; bank is visual. One drawing serves every image, course images and vehicle pictures alike: a level `k` is a
+frame of `40/2^k` texels per metre with its own anchor, and the renderer draws the nearest-octave level.
 A vehicle's yaw image is the one for its body yaw relative to the camera yaw less its direction of view: the direction
-from which the pictures' camera sees its base point, `atan(x / (k*d))` for that point's
-camera-right distance `x` and depth `d` and the pictures' camera factor `k`
-([Image assets](image-assets.md#vehicle-sprite-library)). A vehicle beside the player, facing the same way, thus shows
+from which the camera sees its base point in true perspective, `atan(x / d)` for that point's camera-right distance
+`x` and depth `d`. A vehicle beside the player, facing the same way, thus shows
 the side nearer the centre of the screen. The player, on the camera's axis, takes the relative yaw alone. Each other
 vehicle keeps its previous frame's yaw image until that angle passes a quarter step beyond the image's sector, so a
 turning vehicle changes image one step at a time and an angle wavering at a boundary keeps one image.
@@ -532,21 +533,21 @@ Transparent ground, including ground rows outside the Route, writes nothing and 
 beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites. The player
 is last among world visuals.
 
-### Vehicle shadows
+### Shadows
 
-Every vehicle, the player included, and every movable object has a shadow on the ground directly below it, drawn by one
-rule. Its shape is its footprint's square in route coordinates: from its chainage and from its lateral, half the
-footprint back and forth and left and right (a vehicle's `footprint`, its overall width; a movable object's width,
-standing, flying or landed). Fixed objects cast none. Yaw, pitch, roll, lean and height do not change it; there is
-no light direction. The ground rows project it: each row tests its own chainage footprint (`[sNear, sNear + deltaS]`)
-and maps the rectangle's laterals to pixels with its projected metre ruler, so shadows follow slopes and crests with no
-projection or height of their own, and a row hidden behind a crest hides its part of a shadow.
+A shadow is a picture of its own, drawn with the picture it belongs to: the same level, at the same scale, with its
+anchor at the road beneath that picture's base point (the profile height at the base point's station), so it is the
+picture's shadow at every size and turns with the vehicle. Every vehicle, the player included, and every movable
+object, standing, flying or landed, casts the shadow of the picture drawn for it; fixed objects cast none. A shadow does
+not follow the slope it lies on.
 
-A row takes a shadow where they cover at least half of the shorter of the two, with the shared 0.5 coverage
-threshold: the row's footprint against the shadow's length and, along the row, a pixel against the shadow's projected
-width. A shadow shorter than a row thus darkens the row holding at least half of it, and one narrower than a pixel the
-pixel holding its centre, so a distant shadow keeps at least one pixel while its rows are visible. Rows and pixels
-outside the frame and the near and far depths clip it.
+A shadow darkens only the road. The ground rows draw it as they write the ground: a row takes a shadow only where its
+chainage footprint (`[sNear, sNear + deltaS]`) meets the stretch of road within the owner's reach of its station (a
+vehicle's half diagonal, a movable object's square's), so a row hidden behind a crest, or nearer ground covering it,
+does not show it. On a row it takes, each texel row of the shadow's level and each run of its opaque texels take the
+pixels whose centres they hold when they span at least a pixel, and the pixel holding their centre when they are
+narrower, so no shadow texel vanishes at a distance. Rows and pixels outside the frame and the near and far depths
+clip it.
 
 The ground sampler writes the covered pixels of its row at half brightness (`halveRgb555`, the one half-brightness
 operation) as it writes them, for every display method; transparent ground writes nothing and so stays undarkened.
@@ -587,8 +588,7 @@ so index 0 and empty tiles leave the scene visible.
 ### Vehicle color and brake lamps
 
 Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates a vehicle's
-off/on sprite sets in one of its colors, using each image's own named palette and the sprite set's shared off/on colors
-for reserved slot 15. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
+off/on pictures in one of its colors, taking each picture size's own palette for that color and lamp state. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
 the player's is the series entry's, the chosen color or the vehicle's default color, and each rival's is its series
 entry's or its drawn FREE PLAY pair's; each traffic vehicle's color is drawn from its sprite set's colors by the Session
 seed. Player rendering binds the player's vehicle in its entry's color at assembly; `createRaceSprites` draws every
@@ -599,18 +599,16 @@ greater than 0.
 
 ### Sprite LOD metric and read contract
 
-Master `W` by `H` has untrimmed, top-left-aligned level `k` storage
-`ceil(W/2^k)` by `ceil(H/2^k)` and nominal master step `2^k`. Partial edge cells clip to the logical
-frame. A contiguous prefix through `ceil(log2(max(W,H)))` is valid; the longer axis keeps shrinking.
+An image's level `k` is a frame of `40/2^k` texels per metre at its base point, with its own extent and anchor in its
+own texel-centre coordinates; drawn at `p` px/m at the base point, one texel spans `p*2^k/40` screen pixels and the
+renderer draws the level the [shared selector](#shared-image-level-selection) picks for `p/40`. A vehicle picture's
+sizes are such levels, each its own picture ([Image assets](image-assets.md#vehicle-sprite-library)).
 
-The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`.
-Default anchor is `((W-1)/2,H-1)`; fractional and outside-frame anchors are valid. The anchor is the picture's base
-point; every row of the picture is drawn, those below the anchor included.
-Every level represents `worldWidth` by `worldWidth*H/W` metres, independent of opaque/storage bounds.
-
-For master footprint `rho=1/g`, sprites use the shared nearest-octave selector below. Display extent
-and anchor remain continuous; texels and palette coverage are discrete. Builds supply full direct-master
-LOD for shipped sprites.
+A course image's master `W` by `H` has untrimmed, top-left-aligned level `k` storage `ceil(W/2^k)` by `ceil(H/2^k)`,
+the master reduced by `2^k`; a contiguous prefix through `ceil(log2(max(W,H)))` is valid, and builds supply the whole.
+The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`. Default anchor is `((W-1)/2,H-1)`; fractional and
+outside-frame anchors are valid. The anchor is the picture's base point; every row of the picture is drawn, those below
+the anchor included. The master represents `W/40` by `H/40` metres, independent of opaque bounds.
 [Image assets](image-assets.md#completed-sprite-images) owns the level/mixture encoding.
 
 ### Shared image level selection

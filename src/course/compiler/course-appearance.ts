@@ -140,18 +140,35 @@ export function compileCourseAppearance(
   );
   const sprites = placements.map(({ source: placement, path: at, at: position, l, image: asset }) => {
     const instance = resource(asset, placement.palette, `${at}/palette`);
-    // A movable placement's knocked pictures share its palette.
+    // A movable placement's knocked pictures share its palette; its standing, flying and landed pictures each cast a
+    // shadow, so each has one.
     const movable = placement.body?.movable ?? null;
+    const shadowed = (picture: typeof asset, pictureAt: string) => {
+      requireCourse(
+        picture.image.levels[0]!.shadow !== null,
+        pictureAt,
+        "A movable object's pictures have shadows",
+        'invalid_placement',
+      );
+      return picture;
+    };
+    if (movable !== null) shadowed(asset, `${at}/image`);
     const knocked =
       movable !== null
         ? Object.freeze({
             airborne: resource(
-              image(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
+              shadowed(
+                image(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
+                `${at}/body/movable/knocked/airborne`,
+              ),
               placement.palette,
               `${at}/palette`,
             ),
             landed: resource(
-              image(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
+              shadowed(
+                image(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
+                `${at}/body/movable/knocked/landed`,
+              ),
               placement.palette,
               `${at}/palette`,
             ),

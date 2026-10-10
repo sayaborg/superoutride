@@ -1,9 +1,9 @@
-import { createVehiclePaletteVariant, type VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
+import { createVehiclePaletteVariant, type VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 
 export interface VehicleSpriteStates {
-  readonly off: VehicleSpriteSet;
-  readonly on: VehicleSpriteSet;
+  readonly off: VehicleSpriteImages;
+  readonly on: VehicleSpriteImages;
 }
 
 /** One vehicle's binding in one of its colors, by default its default color; each image supplies its own palette. */

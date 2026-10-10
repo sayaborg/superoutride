@@ -1,5 +1,5 @@
 import { expandRgb555Pixels, rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
-import { createSpritePalette, selectSpriteLevel, type SpriteAsset } from '../../src/image/sprite.js';
+import { createSpritePalette, selectSpriteLevel, type SpriteLodAsset } from '../../src/image/sprite.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame, pixelsPerMeterAtDepth } from '../../src/view/display-scale.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
@@ -24,19 +24,19 @@ export function createSpritePreview() {
   return {
     canvas,
     /**
-     * Draw each asset with its palette and lamp slot color at `depth` metres, in `columns` columns of rows, each anchor
-     * near the foot of its place; returns each drawn level.
+     * Draw each asset with its palette at `depth` metres, in `columns` columns of rows, each anchor near the foot of its
+     * place; returns each drawn level.
      */
     draw(
-      sprites: readonly { readonly asset: SpriteAsset; readonly palette: string; readonly lamp?: number }[],
+      sprites: readonly { readonly asset: SpriteLodAsset; readonly palette: string }[],
       depth: number,
       columns = sprites.length,
     ) {
       surface.clear(background);
       const ppm = pixelsPerMeterAtDepth(CAMERA_DEFINITION.focalLength, depth);
       const rows = Math.max(1, Math.ceil(sprites.length / columns));
-      const levels = sprites.map(({ asset, palette, lamp }, i) => {
-        const colored = createSpritePalette(asset, palette, lamp === undefined ? [] : [lamp]);
+      const levels = sprites.map(({ asset, palette }, i) => {
+        const colored = createSpritePalette(asset, palette);
         const x = (((i % columns) + 0.5) * surface.width) / columns,
           y = ((Math.floor(i / columns) + 0.85) * surface.height) / rows;
         drawScaledSprite(surface, colored, x, y, ppm);

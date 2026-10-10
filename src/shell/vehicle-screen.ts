@@ -9,7 +9,7 @@ import {
   createVehiclePaletteVariant,
   selectVehicleSprite,
   spriteSetColors,
-  type VehicleSpriteSet,
+  type VehicleSpriteImages,
 } from '../vehicle/vehicle-sprite-set.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import type { MenuResponse, Screen } from './screen-host.js';
@@ -46,7 +46,7 @@ export function createVehicleScreen(
   let colors: readonly string[] = [],
     color = 0,
     steps = 0;
-  const sets = new Map<string, VehicleSpriteSet>();
+  const sets = new Map<string, VehicleSpriteImages>();
   const show = () => {
     const vehicle = candidates[index]!;
     colors = choice.fixedColors ? [] : spriteSetColors(vehicle.spriteSet);

@@ -226,11 +226,13 @@ export async function runScenario({ course }, scenario) {
     const observed = race.observe();
     scene.render(
       target,
-      observed.player,
+      {
+        vehicle: observed.player,
+        set: observed.player.brakeLampOn ? visual.on : visual.off,
+        reach: entry.compiledVehicle.reach,
+      },
       camera,
-      observed.player.brakeLampOn ? visual.on : visual.off,
-      sprites([...observed.rivals, ...observed.traffic], camera, scene.world.coordinates),
-      [observed.player, ...observed.rivals, ...observed.traffic],
+      sprites([...observed.rivals, ...observed.traffic], camera, scene.world),
       observed.knocked,
     );
     evidence.frames++;

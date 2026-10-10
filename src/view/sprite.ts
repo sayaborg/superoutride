@@ -1,6 +1,6 @@
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import { SoftwareSurface } from './software-surface.js';
-import { selectSpriteLevel, type SpriteAsset } from '../image/sprite.js';
+import { selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteAsset } from '../image/sprite.js';
 
 // Palette index 0 is transparent in every sprite image.
 const SPRITE_TRANSPARENT_INDEX = 0;
@@ -11,6 +11,18 @@ interface SpriteDrawStats {
   clipped: boolean;
 }
 
+/**
+ * Screen pixels per texel of an image's level `level` drawn at `pixelsPerMeter` at its base point: level `k` has
+ * `40 / 2^k` texels per metre.
+ */
+export function levelScale(pixelsPerMeter: number, level: number): number {
+  return (pixelsPerMeter * 2 ** level) / SPRITE_SOURCE_TEXELS_PER_METER;
+}
+
+/**
+ * Draw an image's picture with its anchor at (`xAnchor`, `yAnchor`) and `pixelsPerMeter` at its base point: the
+ * nearest-octave level, each pixel taking the texel under its centre; every row is drawn, those below the anchor too.
+ */
 export function drawScaledSprite(
   target: SoftwareSurface,
   asset: SpriteAsset,
@@ -18,18 +30,17 @@ export function drawScaledSprite(
   yAnchor: number,
   pixelsPerMeter: number,
 ): SpriteDrawStats {
-  const scale = pixelsPerMeter * (asset.worldWidthMeters / asset.width);
+  const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
+  const level = asset.levels[levelIndex]!;
+  const scale = levelScale(pixelsPerMeter, levelIndex);
   if (!(scale > 0) || !Number.isFinite(scale)) {
     return { outputSamples: 0, writtenPixels: 0, clipped: true };
   }
-  const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
-  const level = asset.levels[levelIndex]!;
-  const masterStep = 2 ** levelIndex;
 
-  const leftBoundary = xAnchor - scale * (asset.anchorX + 0.5);
-  const topBoundary = yAnchor - scale * (asset.anchorY + 0.5);
-  const rightBoundary = leftBoundary + scale * asset.width;
-  const bottomBoundary = topBoundary + scale * asset.height;
+  const leftBoundary = xAnchor - scale * (level.anchorX + 0.5);
+  const topBoundary = yAnchor - scale * (level.anchorY + 0.5);
+  const rightBoundary = leftBoundary + scale * level.width;
+  const bottomBoundary = topBoundary + scale * level.height;
 
   const unclippedX0 = Math.ceil(leftBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
   const unclippedX1 = Math.floor(rightBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
@@ -50,15 +61,13 @@ export function drawScaledSprite(
   let writtenPixels = 0;
 
   for (let y = y0; y <= y1; y += 1) {
-    const masterY = asset.anchorY + (y + 0.5 - yAnchor) * invScale;
-    const sy = Math.floor((masterY + 0.5) / masterStep);
+    const sy = Math.floor((y + 0.5 - topBoundary) * invScale);
     if (sy < 0 || sy >= level.height) continue;
     const targetRow = y * target.width;
     const patternRow = sy * level.width;
 
     for (let x = x0; x <= x1; x += 1) {
-      const masterX = asset.anchorX + (x + 0.5 - xAnchor) * invScale;
-      const sx = Math.floor((masterX + 0.5) / masterStep);
+      const sx = Math.floor((x + 0.5 - leftBoundary) * invScale);
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
       const index = level.pattern.indexAt(patternRow + sx);

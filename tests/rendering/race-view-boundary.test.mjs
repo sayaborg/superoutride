@@ -93,7 +93,7 @@ test('the view assembles fifteen rival sprites from race observations', async ()
   const observed = race.observe();
   assert.equal(observed.rivals.length, 15);
   const camera = updateCamera(createCameraRig(), scene.world, observed.player, CAMERA_DEFINITION, 'FACING');
-  const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera, scene.world.coordinates);
+  const sprites = createRaceSprites(definitions.vehicles)(observed.rivals, camera, scene.world);
   assert.equal(sprites.length, observed.rivals.length);
   assert.deepEqual(
     sprites.map((s) => s.name),

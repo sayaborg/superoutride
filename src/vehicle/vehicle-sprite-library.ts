@@ -9,145 +9,198 @@ import {
   requireAdmission,
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteAsset, type SpriteLodDocument } from '../image/sprite.js';
-import type { VehicleSpriteSet } from './vehicle-sprite-set.js';
+import { IndexedPattern } from '../image/indexed-image.js';
+import type { SpriteFrame } from '../image/sprite.js';
+import type {
+  VehiclePicture,
+  VehiclePictureColor,
+  VehiclePictureSize,
+  VehicleSpriteSet,
+} from './vehicle-sprite-set.js';
+
+/**
+ * The sizes every vehicle picture has: size `k` from 0 (full size) to 5, the size the farthest rendered depth selects
+ * ([Image assets](../../docs/image-assets.md#picture-contract)).
+ */
+export const VEHICLE_PICTURE_SIZES = 6;
 
 export interface SpriteAssets {
   readonly sets: Readonly<Record<string, VehicleSpriteSet>>;
 }
 
-type BrakeLamp = VehicleSpriteSet['brakeLamp'];
+/** One frame as saved: its extent, its anchor and its rows, top first, one hexadecimal digit (`0`–`f`) per index. */
+interface FrameDocument {
+  readonly width: number;
+  readonly height: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+  readonly rows: readonly string[];
+}
 
-/** The vehicle sprite library document: indexed sprite images and the sets that bind them by index. */
+/** One vehicle sprite set as saved: its grid of picture indices and its pictures. */
+export interface VehicleSpriteSetDocument {
+  readonly yawVariants: number;
+  readonly bankVariants: number;
+  /** Present exactly when the set has more than one bank image. */
+  readonly bankDegrees?: number;
+  readonly assets: readonly (readonly number[])[];
+  readonly pictures: readonly {
+    readonly sizes: readonly (FrameDocument & {
+      readonly palettes: Readonly<Record<string, { readonly off: readonly number[]; readonly on: readonly number[] }>>;
+      readonly shadow: FrameDocument;
+    })[];
+  }[];
+}
+
+/** The fields of a set, in a set document and in the library alike. */
+export const VEHICLE_SPRITE_SET_FIELDS = ['yawVariants', 'bankVariants', 'bankDegrees', 'assets', 'pictures'] as const;
+
+/** The vehicle sprite library document: every set by name. */
 export interface VehicleSpriteLibraryDocument {
   readonly format: 'superoutride.vehicle-sprites';
-  readonly version: 4;
-  readonly sprites: readonly SpriteLodDocument[];
-  readonly sets: Readonly<
-    Record<
-      string,
-      {
-        readonly yawVariants: number;
-        readonly bankVariants: number;
-        /** Present exactly when the set has more than one bank image. */
-        readonly bankDegrees?: number;
-        readonly assets: readonly (readonly number[])[];
-        readonly brakeLamp: BrakeLamp;
-      }
-    >
-  >;
+  readonly version: 5;
+  readonly sets: Readonly<Record<string, VehicleSpriteSetDocument>>;
+}
+
+const EXTENT = { min: 1, max: 1 << 16, integer: true };
+
+const ROW = /^[0-9a-f]*$/;
+
+/** A frame of `extra` fields besides its own, with its rows as a pattern. */
+function readFrame(value: unknown, path: string, extra: readonly string[] = []) {
+  const frame = readRecord(value, path, ['width', 'height', 'anchorX', 'anchorY', 'rows', ...extra]);
+  const width = readNumber(frame.width, `${path}/width`, EXTENT);
+  const height = readNumber(frame.height, `${path}/height`, EXTENT);
+  const rows = readArray(
+    frame.rows,
+    `${path}/rows`,
+    (row, at) => {
+      requireAdmission(
+        typeof row === 'string' && row.length === width && ROW.test(row),
+        'invalid_value',
+        at,
+        `Expected ${width} hexadecimal digits`,
+      );
+      return row as string;
+    },
+    { length: height },
+  );
+  const indices = Array.from(rows.join(''), (digit) => parseInt(digit, 16));
+  const read: SpriteFrame = Object.freeze({
+    width,
+    height,
+    anchorX: readNumber(frame.anchorX, `${path}/anchorX`),
+    anchorY: readNumber(frame.anchorY, `${path}/anchorY`),
+    pattern: new IndexedPattern(width, height, indices),
+  });
+  return { frame, read };
+}
+
+/** A color's 15 colors with the lamp off and on, as 16-slot palettes with slot 0 unused. */
+function readColor(value: unknown, path: string): VehiclePictureColor {
+  const color = readRecord(value, path, ['off', 'on']);
+  const palette = (lamp: 'off' | 'on') =>
+    Object.freeze([0, ...readArray(color[lamp], `${path}/${lamp}`, readRgb555, { length: 15 })]);
+  return Object.freeze({ off: palette('off'), on: palette('on') });
 }
 
 /**
- * Admission of the vehicle sprite library. The build admits its normalized masters; delivery admits
- * the completed library, whose images carry the complete build-generated pyramid. Besides the sets,
- * it publishes the admitted document and, by image index, the brake-lamp colors of the image's set.
+ * Admit one vehicle sprite set, its pointers relative to the set: its grid binds every one of its pictures, each picture
+ * has every size, each size its picture, its palettes and its shadow on the same texel grid (the anchors differ by whole
+ * texels), and every size of every picture declares the same, at least two, color names.
  */
-export function readVehicleSpriteLibrary(value: unknown, completePyramids = true) {
-  const library = readDocument(value, ['format', 'version', 'sprites', 'sets'], 'superoutride.vehicle-sprites', 4);
-  const spriteDocuments = readArray(library.sprites, '/sprites', (value) => value);
-  const sprites = new Map<number, { asset: SpriteAsset; set: string; off: number; on: number }>();
-  const setDocuments: Record<string, VehicleSpriteLibraryDocument['sets'][string]> = {};
-  const set = (value: unknown, path: string, name: string): VehicleSpriteSet => {
-    const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
-    const recordData = readRecord(value, path, [
-      'yawVariants',
-      'bankVariants',
-      ...(banked ? ['bankDegrees'] : []),
-      'assets',
-      'brakeLamp',
-    ]);
-    const lamp = readRecord(recordData.brakeLamp, `${path}/brakeLamp`, ['off', 'on']);
-    const brakeLamp = Object.freeze({
-      off: readRgb555(lamp.off, `${path}/brakeLamp/off`),
-      on: readRgb555(lamp.on, `${path}/brakeLamp/on`),
-    });
-    const count = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
-    const yawVariants = readNumber(recordData.yawVariants, `${path}/yawVariants`, count);
-    const bankVariants = readNumber(recordData.bankVariants, `${path}/bankVariants`, count);
-    requireAdmission(
-      banked === bankVariants > 1,
-      'invalid_shape',
-      `${path}/bankDegrees`,
-      'A set declares bankDegrees exactly when it has more than one bank image',
-    );
-    const bankDegrees = banked
-      ? readNumber(recordData.bankDegrees, `${path}/bankDegrees`, { min: 0, max: 90, exclusiveMin: true })
-      : null;
-    const indices: number[][] = [];
-    const assets = readArray(
-      recordData.assets,
-      `${path}/assets`,
-      (row, rowPath) => {
-        const rowIndices: number[] = [];
-        indices.push(rowIndices);
-        return readArray(
-          row,
-          rowPath,
-          (value, at) => {
-            const id = readNumber(value, at, { min: 0, max: spriteDocuments.length - 1, integer: true });
-            rowIndices.push(id);
-            let admitted = sprites.get(id);
-            if (!admitted) {
-              const image = `/sprites/${id}`;
-              const asset = readEmbedded(image, () => readSpriteLodAsset(spriteDocuments[id], [brakeLamp.off]));
-              requireAdmission(
-                !completePyramids || asset.levels.length === spriteLodLayout(asset.width, asset.height).length,
-                'invalid_value',
-                `${image}/levels`,
-                'Shipped sprites require the complete build-generated pyramid',
-              );
-              admitted = { asset, set: name, ...brakeLamp };
-              sprites.set(id, admitted);
-            }
-            requireAdmission(admitted.set === name, 'invalid_value', at, 'A vehicle image belongs to one sprite set');
-            return admitted.asset;
-          },
-          { length: bankVariants },
-        );
-      },
-      { length: yawVariants },
-    );
-    const names = Object.keys(assets[0]![0]!.palettes).sort();
-    requireAdmission(
-      names.length >= 2,
-      'invalid_value',
-      `${path}/assets`,
-      'Vehicle sprite set requires at least two named colors',
-    );
-    requireAdmission(
-      assets.flat().every((image) => JSON.stringify(Object.keys(image.palettes).sort()) === JSON.stringify(names)),
-      'invalid_value',
-      `${path}/assets`,
-      'Every image in a vehicle set must declare the same color names',
-    );
-    setDocuments[name] = deepFreeze({
-      yawVariants,
-      bankVariants,
-      ...(bankDegrees === null ? {} : { bankDegrees }),
-      assets: indices,
-      brakeLamp,
-    });
-    return Object.freeze({ brakeLamp, yawVariants, bankVariants, bankDegrees, assets });
-  };
-  const sets = readDictionary(library.sets, '/sets', set);
-  const unbound = spriteDocuments.findIndex((_, id) => !sprites.has(id));
-  requireAdmission(unbound < 0, 'invalid_value', `/sprites/${unbound}`, 'Vehicle image must belong to a sprite set');
-  const document: VehicleSpriteLibraryDocument = Object.freeze({
-    format: 'superoutride.vehicle-sprites',
-    version: 4,
-    // Each image passed sprite-LOD admission above, which establishes its document shape.
-    sprites: Object.freeze(spriteDocuments.map((image) => deepFreeze(image as SpriteLodDocument))),
-    sets: Object.freeze(setDocuments),
-  });
-  const brakeLamps: readonly BrakeLamp[] = Object.freeze(
-    spriteDocuments.map((_, id) => Object.freeze({ off: sprites.get(id)!.off, on: sprites.get(id)!.on })),
+export function readVehicleSpriteSet(value: unknown, name: string): VehicleSpriteSet {
+  const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
+  const set = readRecord(
+    value,
+    '',
+    VEHICLE_SPRITE_SET_FIELDS.filter((field) => banked || field !== 'bankDegrees'),
   );
-  const assets: SpriteAssets = Object.freeze({ sets });
-  return Object.freeze({ assets, document, brakeLamps });
+  const count = { min: 1, max: 1 << 10, integer: true };
+  const yawVariants = readNumber(set.yawVariants, '/yawVariants', count);
+  const bankVariants = readNumber(set.bankVariants, '/bankVariants', count);
+  requireAdmission(
+    banked === bankVariants > 1,
+    'invalid_shape',
+    '/bankDegrees',
+    'A set declares bankDegrees exactly when it has more than one bank image',
+  );
+  const bankDegrees = banked
+    ? readNumber(set.bankDegrees, '/bankDegrees', { min: 0, max: 90, exclusiveMin: true })
+    : null;
+  let colors: readonly string[] | null = null;
+  const pictures = readArray(
+    set.pictures,
+    '/pictures',
+    (value, path): VehiclePicture => {
+      const sizes = readArray(
+        readRecord(value, path, ['sizes']).sizes,
+        `${path}/sizes`,
+        (value, at): VehiclePictureSize => {
+          const { frame, read } = readFrame(value, at, ['palettes', 'shadow']);
+          const shadow = readFrame(frame.shadow, `${at}/shadow`).read;
+          requireAdmission(
+            Number.isInteger(read.anchorX - shadow.anchorX) && Number.isInteger(read.anchorY - shadow.anchorY),
+            'invalid_value',
+            `${at}/shadow`,
+            'A shadow lies on its picture texel grid: their anchors differ by whole texels',
+          );
+          const palettes = readDictionary(frame.palettes, `${at}/palettes`, readColor);
+          const names = Object.keys(palettes);
+          colors ??= names;
+          requireAdmission(names.length >= 2, 'invalid_value', `${at}/palettes`, 'A set declares at least two colors');
+          requireAdmission(
+            names.length === colors.length && names.every((color) => colors!.includes(color)),
+            'invalid_value',
+            `${at}/palettes`,
+            'Every size of every picture in a set declares the same colors',
+          );
+          return Object.freeze({ ...read, palettes, shadow });
+        },
+        { length: VEHICLE_PICTURE_SIZES },
+      );
+      return Object.freeze({ name: `${name} ${path.slice('/pictures/'.length)}`, sizes });
+    },
+    { min: 1 },
+  );
+  const bound = new Set<number>();
+  const grid = readArray(
+    set.assets,
+    '/assets',
+    (row, rowPath) =>
+      readArray(
+        row,
+        rowPath,
+        (value, at) => {
+          const index = readNumber(value, at, { min: 0, max: pictures.length - 1, integer: true });
+          bound.add(index);
+          return pictures[index]!;
+        },
+        { length: bankVariants },
+      ),
+    { length: yawVariants },
+  );
+  const unbound = pictures.findIndex((_, index) => !bound.has(index));
+  requireAdmission(unbound < 0, 'invalid_value', `/pictures/${unbound}`, 'Every picture fills a cell of the grid');
+  return Object.freeze({ yawVariants, bankVariants, bankDegrees, colors: colors!, pictures: grid });
 }
 
-/** Delivery admission of the completed vehicle sprite library. */
+/**
+ * Admission of the vehicle sprite library: its sets by name, each admitted by its own rules with its pointers under
+ * `/sets/<name>`. Besides the sets, it publishes the admitted document.
+ */
+export function readVehicleSpriteLibrary(value: unknown) {
+  const library = readDocument(value, ['format', 'version', 'sets'], 'superoutride.vehicle-sprites', 5);
+  const sets = readDictionary(library.sets, '/sets', (value, path, name) =>
+    readEmbedded(path, () => readVehicleSpriteSet(value, name)),
+  );
+  // Each set passed its admission above, which establishes its document shape.
+  const document = deepFreeze(value as VehicleSpriteLibraryDocument);
+  const assets: SpriteAssets = Object.freeze({ sets });
+  return Object.freeze({ assets, document });
+}
+
+/** Delivery admission of the vehicle sprite library. */
 export function readSpriteAssets(value: unknown): SpriteAssets {
   return readVehicleSpriteLibrary(value).assets;
 }

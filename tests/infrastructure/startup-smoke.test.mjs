@@ -36,28 +36,20 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
     const rig = createCameraRig(),
       target = createLogicalFrame();
-    // The player's shadow, read from its live route position each frame.
-    const shadowed = [
-      {
-        vehicleId: entry.compiledVehicle.id,
-        get course() {
-          return vehicle.course;
-        },
-      },
-    ];
+    const player = { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach };
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, 'FACING');
       target.pixels.fill(0);
       const result = createRenderMeasurements();
-      scene.render(target, vehicle, camera, sprites.off, [], shadowed, [], result);
+      scene.render(target, player, camera, [], [], result);
       assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
       for (const method of STRIP_RENDER_METHODS) {
         settings.setStripMethod(method);
-        scene.render(target, vehicle, camera, sprites.off, [], shadowed, [], result);
+        scene.render(target, player, camera, [], [], result);
         assert.equal(result.stripGround.method, method);
         assert.equal(JSON.stringify(vehicle), before);
         assert.equal(scene.runtime.window.occurrences, occurrences);

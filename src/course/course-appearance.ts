@@ -1,6 +1,6 @@
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TileBackgroundImage } from '../image/tile-background-image.js';
-import type { SpriteAsset } from '../image/sprite.js';
+import type { SpriteLodAsset } from '../image/sprite.js';
 import type { CompiledBoundary } from './course-boundaries.js';
 import type { StripGround } from './strip-ground.js';
 
@@ -11,7 +11,7 @@ interface DecodedImage<Image> {
 
 export interface CourseSpriteResource {
   readonly palette: string;
-  readonly asset: DecodedImage<SpriteAsset>;
+  readonly asset: DecodedImage<SpriteLodAsset>;
 }
 
 /**

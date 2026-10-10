@@ -14,16 +14,15 @@ if (!compiled.ok) {
   process.exit(1);
 }
 const content = compiled.value;
-const { library } = content;
-const levels = library.product.sprites.flatMap((sprite) => sprite.levels.slice(1));
+const { sets } = content.library.library;
+const sizes = Object.values(sets).flatMap((set) => set.pictures.flatMap((picture) => picture.sizes));
 console.log(
   JSON.stringify({
-    spriteMasters: library.masters.sprites.length,
-    spriteLevels: library.product.sprites.reduce((n, s) => n + s.levels.length, 0),
-    masterJsonBytes: Buffer.byteLength(JSON.stringify(library.masters) + '\n'),
-    deliveredJsonBytes: Buffer.byteLength(JSON.stringify(library.product) + '\n'),
-    addedLodPatternBytes: levels.reduce((n, level) => n + Math.ceil(level.indices.length / 2), 0),
-    addedLodRgb555PaletteBytes: levels.length * 32,
+    vehiclePictures: Object.values(sets).reduce((n, set) => n + set.pictures.length, 0),
+    vehiclePictureSizes: sizes.length,
+    deliveredJsonBytes: Buffer.byteLength(JSON.stringify(content.library.library) + '\n'),
+    patternBytes: sizes.reduce((n, size) => n + Math.ceil((size.width * size.height) / 2), 0),
+    shadowPatternBytes: sizes.reduce((n, size) => n + Math.ceil((size.shadow.width * size.shadow.height) / 2), 0),
   }),
 );
 for (const course of content.courses) console.log(`${course.id}.course.json: Strip ground compiled`);

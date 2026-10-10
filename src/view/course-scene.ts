@@ -11,12 +11,11 @@ import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
-import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
+import type { VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
 import { createCourseWorld } from '../race/course-world.js';
 import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
-import { createVehicleShadows, type ShadowSquare, type ShadowedVehicle } from './vehicle-shadow.js';
 import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
 
 /** The scene's loading window: the product camera stands `cameraDistance` behind the player's route position. */
@@ -39,16 +38,11 @@ export function createCourseScene(
   const renderWorkspace = createRenderWorkspace();
   const worldSprites: CourseSprite[] = [];
   const sample = createPlanCoordinateSample();
-  const shadows = createVehicleShadows(vehicles);
-  // The movable objects' square footprints for this frame's shadows: standing, flying and landed alike.
-  const objectSquares: ShadowSquare[] = [];
-  // The standing movable placements' pictures at their base points, rebuilt with the sprite lists.
-  let standingMovables: readonly {
-    readonly key: string;
-    readonly sprite: CourseSprite;
-    readonly footprint: ShadowSquare;
-  }[] = [];
+  // The standing movable placements' pictures at their base points, each with its shadow on the road beneath it,
+  // reaching its square's half diagonal; rebuilt with the sprite lists.
+  let standingMovables: readonly { readonly key: string; readonly sprite: CourseSprite }[] = [];
   const playerBase: BasePoint = { x: 0, y: 0, z: 0, s: 0 },
+    playerShadow = { y: 0, reach: 0 },
     baseSample = createPlanCoordinateSample();
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
@@ -61,13 +55,15 @@ export function createCourseScene(
     },
     render(
       target: Parameters<typeof renderDriving>[0],
-      /** The player the viewer follows; its picture stands at its base point. */
-      vehicle: VehicleRenderRead & BaseBody,
+      /** The player the viewer follows, its pictures in its color and lamp state and its body's half diagonal. */
+      player: {
+        readonly vehicle: VehicleRenderRead & BaseBody;
+        readonly set: VehicleSpriteImages;
+        readonly reach: number;
+      },
       camera: CameraState,
-      playerSet: VehicleSpriteSet,
+      /** Every other vehicle's picture, its shadow place included. */
       others: readonly CourseSprite[],
-      /** Every vehicle whose shadow the frame draws, the player included. */
-      shadowed: readonly ShadowedVehicle[],
       /** The race's knocked movable objects; every other movable placement stands. */
       knocked: readonly KnockedObjectObservation[],
       /** DEV and tools only: receives the frame's measurements. */
@@ -89,8 +85,10 @@ export function createCourseScene(
         // A movable object's picture stands at its placement, its square's centre.
         standingMovables = renderData.movableSprites.map(({ section, index, sprite, footprint }) => ({
           key: `${section.id} ${index}`,
-          sprite,
-          footprint,
+          sprite: Object.freeze({
+            ...sprite,
+            shadow: Object.freeze({ y: readers.height.sample(footprint.s), reach: squareReach(footprint.side) }),
+          }),
         }));
         terrainParameters = {
           screenHeight: LOGICAL_HEIGHT,
@@ -103,21 +101,16 @@ export function createCourseScene(
         lastSelection = selection;
       }
       worldSprites.length = staticSpriteCount;
-      objectSquares.length = 0;
       const down = knocked.length ? new Set(knocked.map((k) => `${k.section.id} ${k.sprite}`)) : null;
-      for (const movable of standingMovables)
-        if (!down?.has(movable.key)) {
-          worldSprites.push(movable.sprite);
-          objectSquares.push(movable.footprint);
-        }
+      for (const movable of standingMovables) if (!down?.has(movable.key)) worldSprites.push(movable.sprite);
       for (const k of knocked) {
         const pictures = renderData.knockedPictures(k.section, k.sprite);
-        const side = renderData.movableBody(k.section, k.sprite).width;
-        // A knocked object's picture stands at its square's centre at its own height.
+        const reach = squareReach(renderData.movableBody(k.section, k.sprite).width);
+        // A knocked object's picture stands at its square's centre at its own height, its shadow on the road beneath.
         const show = (s: number, l: number, asset: CourseSprite['asset']) => {
           const position = readers.coordinates.toWorld(s, l, sample);
-          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset });
-          objectSquares.push({ s, l, side });
+          const shadow = { y: readers.height.sample(s), reach };
+          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset, shadow });
         };
         if (k.state === 'airborne') {
           if (runtime.window.at(k.s)) show(k.s, k.l, pictures.airborne);
@@ -129,6 +122,9 @@ export function createCourseScene(
             show(occurrence.start + k.at!.s, k.at!.l - occurrence.lateralOrigin, pictures.landed);
       }
       for (const sprite of others) worldSprites.push(sprite);
+      const { vehicle } = player;
+      playerShadow.y = readers.height.sample(vehicle.course.s);
+      playerShadow.reach = player.reach;
       return renderDriving(
         target,
         {
@@ -137,15 +133,20 @@ export function createCourseScene(
           camera,
           vehicle,
           playerBase: basePoint(readers.coordinates, vehicle, playerBase, baseSample),
+          playerShadow,
           terrainParameters,
           worldSprites,
           walls: renderData.walls,
-          playerSet,
-          shadows: shadows(shadowed, objectSquares),
+          playerSet: player.set,
         },
         { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
         measurements,
       );
     },
   });
+}
+
+/** How far along the road a square of side `side` reaches from its centre whichever way it turns: its half diagonal. */
+function squareReach(side: number): number {
+  return (side * Math.SQRT2) / 2;
 }

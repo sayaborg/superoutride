@@ -12,6 +12,12 @@ interface CourseSpriteAuthoring {
   asset: SpriteAsset;
 }
 
+/** Where a picture's shadow lies: the road's height under its base point and how far along the road it reaches. */
+export interface SpriteShadowPlace {
+  readonly y: number;
+  readonly reach: number;
+}
+
 export interface CourseSprite {
   name: string;
   x: number;
@@ -19,6 +25,8 @@ export interface CourseSprite {
   z: number;
   sRender: number;
   asset: SpriteAsset;
+  /** Its shadow's place; null for a picture that casts none (a fixed object's). */
+  shadow: SpriteShadowPlace | null;
 }
 
 export interface VisibleCourseSprite extends CourseSprite {
@@ -40,6 +48,7 @@ export function compileCourseSprite(
     z: position.z,
     sRender: position.s,
     asset: source.asset,
+    shadow: null,
   };
 }
 

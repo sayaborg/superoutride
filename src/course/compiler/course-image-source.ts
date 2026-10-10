@@ -7,7 +7,12 @@ import {
   type TileBackgroundDocument,
   type TileBackgroundImage,
 } from '../../image/tile-background-image.js';
-import { readSpriteLodAsset, spriteLodLayout, type SpriteAsset, type SpriteLodDocument } from '../../image/sprite.js';
+import {
+  readSpriteLodAsset,
+  spriteLodLayout,
+  type SpriteLodAsset,
+  type SpriteLodDocument,
+} from '../../image/sprite.js';
 
 /** Offline source admission bounds, not resident image/device budgets or art-quality settings. */
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({
@@ -22,7 +27,7 @@ export interface CourseImageBytes {
 }
 
 type AdmittedImage =
-  | { readonly kind: 'sprite'; readonly image: SpriteAsset; readonly document: SpriteLodDocument }
+  | { readonly kind: 'sprite'; readonly image: SpriteLodAsset; readonly document: SpriteLodDocument }
   | { readonly kind: 'background'; readonly image: TileBackgroundImage; readonly document: TileBackgroundDocument };
 
 /**
@@ -30,7 +35,7 @@ type AdmittedImage =
  * immutable reader decoded once at admission; consumers borrow it.
  */
 export type CompiledCourseImageSource = { readonly id: string; readonly sha256: string } & (
-  | { readonly kind: 'sprite'; readonly image: SpriteAsset }
+  | { readonly kind: 'sprite'; readonly image: SpriteLodAsset }
   | { readonly kind: 'background'; readonly image: TileBackgroundImage }
 );
 
