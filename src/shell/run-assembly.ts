@@ -273,6 +273,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
             race,
             player: observations.player,
             input: shell.inputManager.lastSample,
+            camera: lifecycle.camera,
             session: hudSession(active.session),
             record: runRecord(),
           },

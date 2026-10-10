@@ -219,7 +219,7 @@ may pass below the road.
 ## 9. HUD
 
 The product HUD is drawn inside the 320×240 frame. It reads only published observations: race facts,
-the player's final input sample and the player vehicle's observations. It is a set of independent
+the player's final input sample, the player vehicle's observations and the camera's. It is a set of independent
 elements, each reading one observation; the active Session rules determine which appear.
 
 | Condition                      | Elements                                                             |
@@ -233,6 +233,7 @@ elements, each reading one observation; the active Session rules determine which
 | CIRCUIT                        | LAP x/y, lap time, BEST lap                                          |
 | One rival per stage            | TARGET distance while that rival is ahead                            |
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
+| Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes         |
 | A record exists                | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the

@@ -303,7 +303,8 @@ While a run screen runs, PAUSE pauses; while it is paused, PAUSE or BACK resumes
 The run screen writes the product HUD into the text layer after the scene is drawn and before the text layer is
 drawn ([product](product.md#9-hud)). The HUD and RESULT read only race facts ([race time and
 events](content-and-gameplay.md#race-time-and-events)), typed as the race's `RaceFacts`, which carry no controls or
-mechanics, and the HUD the player's competitor observation; the race gives the STAGE and the LAP. It is one table of
+mechanics, and the HUD the player's competitor observation and the camera's observation of its yaw limit; the race
+gives the STAGE and the LAP. It is one table of
 independent elements, each with its condition and what it writes; the table alone decides which show, from the
 Session's rules (the clock, the course type) and race facts (two or more competitors ranked, the next gate's rank limit, the stage
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
@@ -318,6 +319,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                             |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
+| 16    | While the camera is held at its yaw limit: a yellow arrow at the edge the road goes on, steady                     |
 | 25–29 | Columns 18–21: the steering picture (4×4 tiles) and under it, in row 29's upper 4 pixels, the steering input bar   |
 | 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
 | 27–29 | Bars of 10 cells (1-pixel steps) between end caps: GAS, BRAKE and RPM                                              |
@@ -337,7 +339,11 @@ tachometer bar runs from 0 to the fuel-cut speed (`fuelCutRpm`: the player vehic
 definition's margin): cells from the redline on are red, with a red mark at the redline, and the whole bar is red while
 the limiter cuts fuel. One bar part draws all three, its marks on the text layer's overlay tiles.
 
-Rows 8 to 24, the road and the player's vehicle, hold only these passing notices. While the PAUSE menu or RESULT is
+Rows 8 to 24, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
+reads only the camera's `heldAtLimit` (1 when its yaw source has turned right beyond the limit, -1 left, 0 within
+it), for FACING and MOVING alike: held on the right, the road goes on to the left, so `ARROW_LEFT` stands in column 0,
+and held on the left `ARROW_RIGHT` stands in column 39. Its row is fixed, clear of the road and the player's vehicle,
+and does not follow the DEV horizon row. While the PAUSE menu or RESULT is
 over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.
 
 Durations come from race facts, never from wall-clock time or HUD timers, so a pause stops them: TIME is yellow

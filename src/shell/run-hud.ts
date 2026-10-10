@@ -8,16 +8,19 @@ import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
 import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-time.js';
 import { shownStanding } from './run-result.js';
 import type { ComparedRecord } from './run-records.js';
+import type { CameraState } from '../view/camera.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
- * Session's course, mode and the player vehicle's engine speeds from its definitions, and the record the run compares
- * against.
+ * camera's observation, the Session's course, mode and the player vehicle's engine speeds from its definitions, and
+ * the record the run compares against.
  */
 export interface HudFacts {
   readonly race: RaceFacts;
   readonly player: CompetitorObservation;
   readonly input: DrivingInput;
+  /** Whether the camera is held at its yaw limit, and on which side. */
+  readonly camera: Pick<CameraState, 'heldAtLimit'>;
   readonly session: {
     readonly courseName: string;
     readonly mode: RunRequest['mode'];
@@ -71,6 +74,8 @@ export const HUD_LAYOUT = Object.freeze({
   speedUnit: [31, 28],
   extend: ['center', 7],
   split: ['center', 7],
+  roadLeft: [0, 16],
+  roadRight: [39, 16],
   courseName: ['center', 10],
   mode: ['center', 11],
   record: ['center', 12],
@@ -187,6 +192,17 @@ interface HudElement {
  * observation; this table alone decides which elements show.
  */
 const HUD_ELEMENTS: readonly HudElement[] = [
+  {
+    // While the camera is held at its yaw limit, an arrow at the screen's edge on the side the road goes on: a body
+    // turned right beyond the limit leaves the road to its left.
+    middle: true,
+    when: ({ camera }) => camera.heldAtLimit !== 0,
+    write({ camera }, text) {
+      const place = camera.heldAtLimit > 0 ? 'roadLeft' : 'roadRight';
+      const [column, row] = HUD_LAYOUT[place];
+      text.put(column, row, HUD_TILES[camera.heldAtLimit > 0 ? 'ARROW_LEFT' : 'ARROW_RIGHT']!, TEXT_PALETTES.YELLOW);
+    },
+  },
   {
     // Seconds remaining, rounded up; red under ten seconds, yellow for two seconds after an extension.
     when: ({ race }) => race.clock.deadlineSeconds !== null,

@@ -59,7 +59,13 @@ export interface CameraRig {
   initialized: boolean;
 }
 
-export type CameraState = PseudoCamera;
+export interface CameraState extends PseudoCamera {
+  /**
+   * Whether the camera is held at its yaw limit, and on which side of the road heading: 1 when its source has turned
+   * right beyond the limit, -1 left, 0 while it is within the limit.
+   */
+  readonly heldAtLimit: -1 | 0 | 1;
+}
 
 const planWorkspaces = new WeakMap<
   CameraRig,
@@ -120,10 +126,8 @@ export function updateCamera(
   // the camera stays at the limit and the vehicle is shown turned.
   const sourceYaw = yawSource === 'MOVING' ? travelYaw(vehicle) : vehicle.yaw;
   const sourcePlanYawDelta = wrapAngle(sourceYaw - planAtCar.heading);
-  const yaw =
-    Math.abs(sourcePlanYawDelta) <= definition.yawLimit
-      ? sourceYaw
-      : wrapAngle(planAtCar.heading + Math.sign(sourcePlanYawDelta) * definition.yawLimit);
+  const heldAtLimit = Math.abs(sourcePlanYawDelta) <= definition.yawLimit ? 0 : sourcePlanYawDelta > 0 ? 1 : -1;
+  const yaw = heldAtLimit ? wrapAngle(planAtCar.heading + heldAtLimit * definition.yawLimit) : sourceYaw;
 
   const dCam = cameraDistance(definition);
   // The player's picture stands at its base point: the camera keeps that point at D_cam.
@@ -169,5 +173,6 @@ export function updateCamera(
     focalLength: definition.focalLength,
     centerX: definition.centerX,
     centerY: definition.horizonRow,
+    heldAtLimit,
   };
 }

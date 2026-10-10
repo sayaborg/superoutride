@@ -23,6 +23,7 @@ const NAMED_PALETTE_COUNT = Object.keys(TEXT_PALETTES).length;
  * over the slot 3 ground, `BAR_FILL_RIGHT_k` k pixels from the right; `BAR_MARK_k` is a full-height line in column k
  * drawn over a bar; `BAR_LEFT` and `BAR_RIGHT` close the bar. A signal lamp is 2 by 2 tiles, lit or unlit. An input
  * cell, `INPUT_FILL_k` and `INPUT_FILL_RIGHT_k`, is the same as a bar cell 4 pixels high in rows 0 to 3.
+ * `ARROW_LEFT` and `ARROW_RIGHT` are arrows drawn as the font's glyphs are, slot 1 with its slot 2 shadow.
  */
 const HUD_TILE_NAMES = [
   ...Array.from({ length: 9 }, (_, k) => `BAR_FILL_${k}`),
@@ -33,6 +34,8 @@ const HUD_TILE_NAMES = [
   ...['ON', 'OFF'].flatMap((state) => ['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${state}_${part}`)),
   ...Array.from({ length: 9 }, (_, k) => `INPUT_FILL_${k}`),
   ...Array.from({ length: 7 }, (_, k) => `INPUT_FILL_RIGHT_${k + 1}`),
+  'ARROW_LEFT',
+  'ARROW_RIGHT',
 ] as const;
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(

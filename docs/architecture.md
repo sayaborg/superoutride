@@ -396,7 +396,8 @@ yaw, and stopping or starting turns the camera continuously). Moving backward, t
 sideways part kept, so the turn stays within a quarter turn and the camera does not swing across the reverse
 direction. That yaw is limited to the definition's limit angle (45 degrees) about the plan heading at the car's
 chainage and taken at once, with no lag. Beyond the limit the camera stays at it, and the player sprite's yaw variant
-shows the body turned by the relative yaw, as for every vehicle sprite. The observer's shell owns the camera rig;
+shows the body turned by the relative yaw, as for every vehicle sprite. The camera publishes whether it is held there,
+and on which side, as one observation (`heldAtLimit`), which the HUD's road arrow reads. The observer's shell owns the camera rig;
 rivals have no camera. Horizontal centering follows projection: the player's screen position is the renderer's
 projection of its base point, its one authority, and the camera on that point's yaw ray puts it at the centre
 column by construction. Camera roll is zero.

@@ -126,19 +126,20 @@ table either, and the HUD pictures follow them; the document must hold at least 
 free. Pattern 0, the space, must
 have only index 0: it is the empty tile.
 
-| Patterns | Names                     | Content                                                                   |
-| -------- | ------------------------- | ------------------------------------------------------------------------- |
-| 95–103   | `BAR_FILL_0`…`_8`         | A bar cell (rows 1–6) filled k pixels from the left in slot 1 over slot 3 |
-| 104–110  | `BAR_FILL_RIGHT_1`…`_7`   | The same, filled k pixels from the right                                  |
-| 111–118  | `BAR_MARK_0`…`_7`         | A full-height line in column k (slot 1), drawn over a bar                 |
-| 119, 120 | `BAR_LEFT`, `BAR_RIGHT`   | The bar's end caps                                                        |
-| 121–124  | `LAMP_ON_TL`…`_BR`        | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7        |
-| 125–128  | `LAMP_OFF_TL`…`_BR`       | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
-| 129–137  | `INPUT_FILL_0`…`_8`       | An input bar cell (rows 0–3) filled k pixels from the left, slot 1 over 3 |
-| 138–144  | `INPUT_FILL_RIGHT_1`…`_7` | The same, filled k pixels from the right                                  |
+| Patterns | Names                       | Content                                                                   |
+| -------- | --------------------------- | ------------------------------------------------------------------------- |
+| 95–103   | `BAR_FILL_0`…`_8`           | A bar cell (rows 1–6) filled k pixels from the left in slot 1 over slot 3 |
+| 104–110  | `BAR_FILL_RIGHT_1`…`_7`     | The same, filled k pixels from the right                                  |
+| 111–118  | `BAR_MARK_0`…`_7`           | A full-height line in column k (slot 1), drawn over a bar                 |
+| 119, 120 | `BAR_LEFT`, `BAR_RIGHT`     | The bar's end caps                                                        |
+| 121–124  | `LAMP_ON_TL`…`_BR`          | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7        |
+| 125–128  | `LAMP_OFF_TL`…`_BR`         | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5     |
+| 129–137  | `INPUT_FILL_0`…`_8`         | An input bar cell (rows 0–3) filled k pixels from the left, slot 1 over 3 |
+| 138–144  | `INPUT_FILL_RIGHT_1`…`_7`   | The same, filled k pixels from the right                                  |
+| 145, 146 | `ARROW_LEFT`, `ARROW_RIGHT` | Arrows pointing left and right, slot 1 with the glyphs' slot 2 shadow     |
 
 The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`): `STEERING_CAR`
-(patterns 145–656, a steering wheel) and then `STEERING_BIKE` (657–1168, a top bridge). Each picture is 32 frames of
+(patterns 147–658, a steering wheel) and then `STEERING_BIKE` (659–1170, a top bridge). Each picture is 32 frames of
 32×32 pixels, frame 0 upright and each next frame turned 11.25° clockwise; a frame is 4×4 tiles, its 16 patterns row
 by row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
 `16*f+4*r+c`. Pictures are drawn in the PICTURE palette, whose slots 1–6 are their own colors. Replacing a picture is
