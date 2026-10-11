@@ -76,8 +76,25 @@ export interface VehiclePictureRecipe {
     readonly to: number;
     readonly sidePanes: readonly (readonly (readonly [number, number])[])[];
   };
-  /** Paint is a surface at least this bright whose chromaticity lies within `tolerance` of this color's. */
-  readonly paint: { readonly color: Rgb; readonly tolerance: number; readonly brightness: number };
+  /**
+   * Corrections of what no outline shows: inside each polygon of the top view's pixels (and its mirror image about the
+   * centre line) the solid's top is lowered by `depth` metres, less within `feather` metres of the polygon's edge.
+   */
+  readonly lowered: readonly {
+    readonly polygon: readonly (readonly [number, number])[];
+    readonly depth: number;
+    readonly feather: number;
+  }[];
+  /**
+   * Paint is a surface at least this bright whose chromaticity lies within `tolerance` of this color's. Its lit color
+   * is multiplied by `exposure` before it saturates at white: a light paint is exposed down, as a camera would.
+   */
+  readonly paint: {
+    readonly color: Rgb;
+    readonly tolerance: number;
+    readonly brightness: number;
+    readonly exposure: number;
+  };
   /** The brake lamps as rectangles `[left, top, right, bottom]` of the rear view. */
   readonly brakeLamps: readonly (readonly [number, number, number, number])[];
   /** How the palette's 14 slots are shared, in slot order: body ramp, neutrals, glass (dark then light), accents. */
@@ -135,6 +152,7 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
       'outlines',
       'mirrors',
       'glass',
+      'lowered',
       'paint',
       'brakeLamps',
       'slots',
@@ -181,7 +199,7 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
   });
   const mirrors = readRecord(document.mirrors, '/mirrors', ['from', 'to', 'low', 'high', 'outside']);
   const glass = readRecord(document.glass, '/glass', ['above', 'from', 'to', 'sidePanes']);
-  const paint = readRecord(document.paint, '/paint', ['color', 'tolerance', 'brightness']);
+  const paint = readRecord(document.paint, '/paint', ['color', 'tolerance', 'brightness', 'exposure']);
   const slotRecord = readRecord(document.slots, '/slots', ['body', 'neutral', 'glass', 'accent']);
   const count = (field: string, min: number) =>
     readNumber(slotRecord[field], `/slots/${field}`, { min, max: 14, integer: true });
@@ -265,10 +283,27 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
         ),
       ),
     },
+    lowered: readArray(document.lowered, '/lowered', (value, at) => {
+      const record = readRecord(value, at, ['polygon', 'depth', 'feather']);
+      return {
+        polygon: readArray(
+          record.polygon,
+          `${at}/polygon`,
+          (corner, path) => {
+            const [x, y] = readArray(corner, path, (v, p) => readNumber(v, p, PIXEL), { length: 2 });
+            return [x!, y!] as const;
+          },
+          { min: 3 },
+        ),
+        depth: readNumber(record.depth, `${at}/depth`, { min: 0, max: 1, exclusiveMin: true }),
+        feather: readNumber(record.feather, `${at}/feather`, { min: 0, max: 1, exclusiveMin: true }),
+      };
+    }),
     paint: {
       color: readRgb(paint.color, '/paint/color'),
       tolerance: readNumber(paint.tolerance, '/paint/tolerance', { min: 0, max: 2, exclusiveMin: true }),
       brightness: readNumber(paint.brightness, '/paint/brightness', { min: 0, max: 255 }),
+      exposure: readNumber(paint.exposure, '/paint/exposure', { min: 0, max: 4, exclusiveMin: true }),
     },
     brakeLamps: readArray(document.brakeLamps, '/brakeLamps', (rectangle, at) => {
       const [left, top, right, bottom] = readArray(rectangle, at, (v, p) => readNumber(v, p, PIXEL), { length: 4 });

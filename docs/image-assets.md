@@ -364,7 +364,8 @@ view, stations and heights are metres in vehicle coordinates (origin at the base
  outlines: {rearUntil, frontFrom},
  mirrors: {from, to, low, high, outside},
  glass: {above, from, to, sidePanes: [[[x, y], ...], ...]},
- paint: {color: [r, g, b], tolerance, brightness},
+ lowered: [{polygon: [[x, y], ...], depth, feather}, ...],
+ paint: {color: [r, g, b], tolerance, brightness, exposure},
  brakeLamps: [[left, top, right, bottom], ...],
  slots: {body, neutral, glass: 2, accent}, bodyKeys: [brightness, ...],
  palettes: {original: [[r, g, b] × 14], alternate: [...]}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
@@ -389,7 +390,12 @@ a rear view. Parts of a facing outline thinner than a 9 cm disk whose mean heigh
 whose mean distance from the centre line exceeds `outside` are mirrors: both facing outlines lose them, and the front
 view's are added back at the stations between `from` and `to` where the top view stands 4 cm proud of the body's
 median half width there (taken from 0.7 m behind `from`); at those stations the body's top outline runs straight
-between the stations either side. The solid's edges are rounded by a Gaussian of 2.5 cm, which keeps the tyres on the road.
+between the stations either side.
+
+No outline shows a hollow between two crests or a rounded shoulder, so the recipe corrects them: inside each `lowered`
+polygon of the top view's pixels, and its mirror image about the centre line, the solid's top is lowered by `depth`
+metres, less within `feather` metres of the polygon's edge (a smooth step). A vehicle's corrections are found by
+comparing its pictures with photographs, and the recipe is their one record. The solid's edges are rounded by a Gaussian of 2.5 cm, which keeps the tyres on the road.
 
 **Colors.** A surface point takes each view's color in proportion to the fourth power of how squarely it faces that
 view (the side view for both sides, the front view for surfaces facing forward, the rear view for those facing back,
@@ -403,7 +409,8 @@ view colors it within a `brakeLamps` rectangle and 0.4 m of the tail.
 
 **Light.** Every picture is lit alike, as under an open sky: paint and glass mirror a sky several times brighter than
 the paint and a darker road, more strongly at grazing angles; a sun high and ahead to the right adds a glint; paint's
-outward creases facing the sky catch the light; surfaces near the road are darker. Each direction and size is lit as
+outward creases facing the sky catch the light; surfaces near the road are darker. Paint's lit color is multiplied by
+`paint.exposure` before it saturates at white, which exposes a light paint down as a camera would. Each direction and size is lit as
 its own camera sees it.
 
 **Drawing.** Each size of each direction is drawn by its contract camera ([Picture contract](#picture-contract)) at 6
@@ -415,11 +422,14 @@ outline seen from above, on the road, drawn the same way.
 neutrals from dark to light, the dark and the light glass color, and `slots.accent` accents. A paint texel takes the
 body slot whose `bodyKeys` brightness (`0.45 r + 0.35 g + 0.20 b` of its lit color) is nearest; a glass texel takes
 the lightest neutral above a mean of 150, the light glass color above 105 and the dark one below; a lamp texel takes
-slot 15; any other texel takes the nearest color among the neutrals and accents of the first palette. Every palette of
+slot 15; any other texel takes the nearest color among the neutrals and accents of the first palette: a squared step
+of brightness counts a quarter, and chromaticity in proportion to the texel's brightness (600 for a whole step at
+white), so a shaded amber stays amber and a dark texel stays a dark neutral. Every palette of
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
 TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye. The command's draft of
-it has the same shape, shading and shadows and differs in about one texel in a hundred: the prototype gave dark red
+it has the same shape, shading and shadows and differs in about 13 texels in a thousand: the prototype gave dark red
 texels that are not paint (the side strakes' gaps) a body color, where the command gives them a neutral. Its body colors follow the reds of the reference game's car as seen in a screenshot; its
-`alternate` is a yellow of the same steps. The reference photographs and screenshots used to judge a set are not saved here.
+`alternate` is a yellow of the same steps. 911 TURBO 3.3's saved set is the command's output for its recipe: silver,
+with a black `alternate`; its recipe lowers the hood between the front wings and rounds the wings' shoulders. The reference photographs and screenshots used to judge a set are not saved here.

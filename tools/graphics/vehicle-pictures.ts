@@ -36,6 +36,9 @@ const GLASS_TINT = [10, 16, 30] as const;
 /** Glass brighter than this mean is a glint; brighter than the lower one, the light glass color. */
 const GLASS_GLINT = 150;
 const GLASS_LIGHT = 105;
+/** A texel's nearest color: the weight of a squared step of brightness, and of a whole step of chromaticity at white. */
+const BRIGHTNESS_WEIGHT = 0.25;
+const CHROMATICITY_WEIGHT = 600;
 
 function normalize(v: readonly [number, number, number]): readonly [number, number, number] {
   const length = Math.hypot(v[0], v[1], v[2]);
@@ -180,7 +183,7 @@ function drawSize(
           ridge * RIDGE_COLOR[c]! * GLOSS;
       } else if (glass[n]) value = color * 0.5 + GLASS_TINT[c]! + surroundings * (0.09 + 0.55 * fresnel) * GLOSS;
       else value = color * (0.8 + 0.3 * lambert);
-      shaded[n * 3 + c] = Math.min(Math.max(value * near, 0), 255);
+      shaded[n * 3 + c] = Math.min(Math.max(value * near * (paint[n] ? recipe.paint.exposure : 1), 0), 255);
     }
   }
 
@@ -259,12 +262,22 @@ function drawSize(
         const mean = (r + g + b) / 3;
         slot = mean > GLASS_GLINT ? slots.lightestNeutral : mean > GLASS_LIGHT ? slots.glassLight : slots.glassDark;
       } else {
-        // Everything else takes the nearest color that is neither body nor glass.
+        // Everything else takes the nearest color that is neither body nor glass. Brightness counts for less than
+        // chromaticity, so a shaded amber stays amber rather than turning the darker red; chromaticity counts in
+        // proportion to the texel's brightness, so a dark texel stays a dark neutral.
         slot = slots.others[0]!;
         let best = Infinity;
+        const sum = r + g + b || 1;
+        const chromaticity = (CHROMATICITY_WEIGHT * sum) / 765;
         for (const candidate of slots.others) {
           const [cr, cg, cb] = slots.reference[candidate - 1]!;
-          const error = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
+          const candidateSum = cr + cg + cb || 1;
+          const error =
+            BRIGHTNESS_WEIGHT * ((sum - candidateSum) / 3) ** 2 +
+            chromaticity ** 2 *
+              ((r / sum - cr / candidateSum) ** 2 +
+                (g / sum - cg / candidateSum) ** 2 +
+                (b / sum - cb / candidateSum) ** 2);
           if (error < best) {
             best = error;
             slot = candidate;

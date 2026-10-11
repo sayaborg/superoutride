@@ -60,7 +60,7 @@
 - The camera and pictures follow K's CAM decisions: the camera stands 6 m behind and 2 m above the player's base point
   and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
   arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
-  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's pictures and shadows are a finished set generated
+  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's and 911 TURBO 3.3's pictures and shadows are finished sets generated
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
 
@@ -298,7 +298,6 @@ and switching is a cut.
 | Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                          |
 | Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                                 |
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                         |
-| Vehicle art      | How a finished vehicle's corrected solid is saved, so its pictures can be drawn again (today only the finished set is saved)                                                                                         |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                                  |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                                |
 | Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                                   |

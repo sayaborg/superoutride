@@ -589,6 +589,25 @@ export function buildVehicleSolid(
         );
       }
   }
+  // The recipe's corrections: each lowers the top of the columns inside its polygon.
+  for (const { polygon, depth, feather } of recipe.lowered) {
+    const outside = new Uint8Array(nz * nx);
+    for (let k = 0; k < nz; k++)
+      for (let i = 0; i < nx; i++) {
+        const [u, v] = fit.top(zAt(k), xAt(i));
+        const [, mirrored] = fit.top(zAt(k), -xAt(i));
+        outside[k * nx + i] = +!(insidePolygon(polygon, u, v) || insidePolygon(polygon, u, mirrored));
+      }
+    const toEdge = squaredDistanceTo(outside, nx, nz);
+    for (let k = 0; k < nz; k++)
+      for (let i = 0; i < nx; i++) {
+        const t = Math.min((Math.sqrt(toEdge[k * nx + i]!) * VOXEL) / feather, 1);
+        const drop = depth * t * t * (3 - 2 * t);
+        let top = ny - 1;
+        while (top >= 0 && !raw[at(i, top, k)]) top--;
+        for (let j = top; j >= 0 && yAt(j) > yAt(top) - drop; j--) raw[at(i, j, k)] = 0;
+      }
+  }
   // Round the edges the outlines leave square, keeping the tyres on the road.
   const field = Float32Array.from(raw);
   blur(field, nx, ny, nz, ROUNDING_SIGMA / VOXEL);
