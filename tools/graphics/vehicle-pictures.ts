@@ -33,8 +33,7 @@ const ROAD_BELOW = [55, 55, 58] as const;
 const SUN_COLOR = [255, 250, 235] as const;
 const RIDGE_COLOR = [150, 140, 135] as const;
 const GLASS_TINT = [10, 16, 30] as const;
-/** Glass brighter than this mean is a glint; brighter than the lower one, the light glass color. */
-const GLASS_GLINT = 150;
+/** Glass brighter than this mean, and no glare, takes the light glass color. */
 const GLASS_LIGHT = 105;
 /** A texel's nearest color: the weight of a squared step of brightness, and of a whole step of chromaticity at white. */
 const BRIGHTNESS_WEIGHT = 0.25;
@@ -260,7 +259,8 @@ function drawSize(
         slot = at + 1;
       } else if (glazed / covered >= SHARE) {
         const mean = (r + g + b) / 3;
-        slot = mean > GLASS_GLINT ? slots.lightestNeutral : mean > GLASS_LIGHT ? slots.glassLight : slots.glassDark;
+        slot =
+          mean > recipe.glass.glint ? slots.lightestNeutral : mean > GLASS_LIGHT ? slots.glassLight : slots.glassDark;
       } else {
         // Everything else takes the nearest color that is neither body nor glass. Brightness counts for less than
         // chromaticity, so a shaded amber stays amber rather than turning the darker red; chromaticity counts in

@@ -20,6 +20,7 @@ export const VEHICLE_PICTURE_RECIPE_VERSION = 1;
 export const VEHICLE_PICTURE_SOURCES_DIRECTORY = 'vehicle-picture-sources';
 export const VEHICLE_VIEWS = ['front', 'side', 'rear', 'top'] as const;
 export type VehicleView = (typeof VEHICLE_VIEWS)[number];
+export const MARK_KINDS = ['glass', 'brakeLamp', 'trim', 'paint'] as const;
 
 /** An 8-bit color as written in a recipe. */
 export type Rgb = readonly [number, number, number];
@@ -67,36 +68,44 @@ export interface VehiclePictureRecipe {
     readonly outside: number;
   };
   /**
-   * The glasshouse: dark surfaces above this height between these stations are glass, and so is whatever the side view
-   * shows inside `sidePanes`, polygons of its pixels, for panes that a view shows as bright as the paint.
+   * The glasshouse: dark surfaces above this height between these stations are glass. Lit glass brighter than `glint`
+   * (its mean channel) is drawn as a glare.
    */
-  readonly glass: {
-    readonly above: number;
-    readonly from: number;
-    readonly to: number;
-    readonly sidePanes: readonly (readonly (readonly [number, number])[])[];
-  };
+  readonly glass: { readonly above: number; readonly from: number; readonly to: number; readonly glint: number };
   /**
-   * Corrections of what no outline shows: inside each polygon of the top view's pixels (and its mirror image about the
-   * centre line) the solid's top is lowered by `depth` metres, less within `feather` metres of the polygon's edge.
+   * What a view shows in a place whatever its color there: inside `polygon`, of that view's pixels, a surface that view
+   * colors most is glass, a brake lamp, trim (anything that is not paint: a headlamp, a bright moulding) or paint of
+   * the recipe's color (where the view shows something that stands in front of the paint).
    */
-  readonly lowered: readonly {
+  readonly marks: readonly {
+    readonly view: VehicleView;
+    readonly kind: (typeof MARK_KINDS)[number];
     readonly polygon: readonly (readonly [number, number])[];
-    readonly depth: number;
-    readonly feather: number;
   }[];
   /**
+   * The upper surface where no outline shows it (a hollow between two crests, a crowned roof, a rounded shoulder): a
+   * net of heights in metres, `heights[station][across]`, at `stations` falling from the nose to the tail and at
+   * distances `across` rising from the centre line. The solid's top reaches no higher than the net, read linearly
+   * between its knots; beyond its stations and distances the outlines alone shape the solid.
+   */
+  readonly surface: {
+    readonly stations: readonly number[];
+    readonly across: readonly number[];
+    readonly heights: readonly (readonly number[])[];
+  };
+  /**
    * Paint is a surface at least this bright whose chromaticity lies within `tolerance` of this color's. Its lit color
-   * is multiplied by `exposure` before it saturates at white: a light paint is exposed down, as a camera would.
+   * is multiplied by `exposure` before it saturates at white: a light paint is exposed down, as a camera would. A view
+   * shows paint with the light of the place it was taken in; paint keeps the share `shade` of that and takes the rest
+   * from `color`, so a paint whose views are mostly reflections is lit by the generator alone.
    */
   readonly paint: {
     readonly color: Rgb;
     readonly tolerance: number;
     readonly brightness: number;
     readonly exposure: number;
+    readonly shade: number;
   };
-  /** The brake lamps as rectangles `[left, top, right, bottom]` of the rear view. */
-  readonly brakeLamps: readonly (readonly [number, number, number, number])[];
   /** How the palette's 14 slots are shared, in slot order: body ramp, neutrals, glass (dark then light), accents. */
   readonly slots: { readonly body: number; readonly neutral: number; readonly glass: 2; readonly accent: number };
   /** The brightness at which paint takes each body slot, from the highlight down; between two it takes the nearer. */
@@ -152,9 +161,9 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
       'outlines',
       'mirrors',
       'glass',
-      'lowered',
+      'surface',
       'paint',
-      'brakeLamps',
+      'marks',
       'slots',
       'bodyKeys',
       'palettes',
@@ -198,8 +207,8 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
     exclusiveMin: true,
   });
   const mirrors = readRecord(document.mirrors, '/mirrors', ['from', 'to', 'low', 'high', 'outside']);
-  const glass = readRecord(document.glass, '/glass', ['above', 'from', 'to', 'sidePanes']);
-  const paint = readRecord(document.paint, '/paint', ['color', 'tolerance', 'brightness', 'exposure']);
+  const glass = readRecord(document.glass, '/glass', ['above', 'from', 'to', 'glint']);
+  const paint = readRecord(document.paint, '/paint', ['color', 'tolerance', 'brightness', 'exposure', 'shade']);
   const slotRecord = readRecord(document.slots, '/slots', ['body', 'neutral', 'glass', 'accent']);
   const count = (field: string, min: number) =>
     readNumber(slotRecord[field], `/slots/${field}`, { min, max: 14, integer: true });
@@ -227,6 +236,36 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
   );
   requireAdmission(Object.keys(palettes).length >= 2, 'invalid_value', '/palettes', 'A set has at least two colors');
   const lamp = readRecord(document.brakeLamp, '/brakeLamp', ['off', 'on']);
+  const surfaceRecord = readRecord(document.surface, '/surface', ['stations', 'across', 'heights']);
+  const rising = (values: readonly number[], path: string, sign: number) =>
+    values.forEach((value, index) =>
+      requireAdmission(
+        index === 0 || sign * (value - values[index - 1]!) > 0,
+        'invalid_value',
+        `${path}/${index}`,
+        sign > 0 ? 'Distances rise from the centre line' : 'Stations fall from the nose to the tail',
+      ),
+    );
+  const stations = readArray(surfaceRecord.stations, '/surface/stations', (v, at) => readNumber(v, at, METRES));
+  const across = readArray(surfaceRecord.across, '/surface/across', (v, at) => readNumber(v, at, { min: 0, max: 100 }));
+  rising(stations, '/surface/stations', -1);
+  rising(across, '/surface/across', 1);
+  requireAdmission(
+    stations.length !== 1 && across.length !== 1 && (stations.length === 0) === (across.length === 0),
+    'invalid_value',
+    '/surface',
+    'A surface has at least two stations and two distances, or none',
+  );
+  const surface = {
+    stations,
+    across,
+    heights: readArray(
+      surfaceRecord.heights,
+      '/surface/heights',
+      (row, at) => readArray(row, at, (v, p) => readNumber(v, p, { min: 0, max: 100 }), { length: across.length }),
+      { length: stations.length },
+    ),
+  };
   const between = (record: Record<string, unknown>, path: string, field: string) =>
     readNumber(record[field], `${path}/${field}`, METRES);
   return {
@@ -271,21 +310,21 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
       above: between(glass, '/glass', 'above'),
       from: between(glass, '/glass', 'from'),
       to: between(glass, '/glass', 'to'),
-      sidePanes: readArray(glass.sidePanes, '/glass/sidePanes', (pane, at) =>
-        readArray(
-          pane,
-          at,
-          (corner, path) => {
-            const [x, y] = readArray(corner, path, (v, p) => readNumber(v, p, PIXEL), { length: 2 });
-            return [x!, y!] as const;
-          },
-          { min: 3 },
-        ),
-      ),
+      glint: readNumber(glass.glint, '/glass/glint', { min: 0, max: 255 }),
     },
-    lowered: readArray(document.lowered, '/lowered', (value, at) => {
-      const record = readRecord(value, at, ['polygon', 'depth', 'feather']);
+    surface,
+    paint: {
+      color: readRgb(paint.color, '/paint/color'),
+      tolerance: readNumber(paint.tolerance, '/paint/tolerance', { min: 0, max: 2, exclusiveMin: true }),
+      brightness: readNumber(paint.brightness, '/paint/brightness', { min: 0, max: 255 }),
+      exposure: readNumber(paint.exposure, '/paint/exposure', { min: 0, max: 4, exclusiveMin: true }),
+      shade: readNumber(paint.shade, '/paint/shade', { min: 0, max: 1 }),
+    },
+    marks: readArray(document.marks, '/marks', (value, at) => {
+      const record = readRecord(value, at, ['view', 'kind', 'polygon']);
       return {
+        view: readEnum(record.view, VEHICLE_VIEWS, `${at}/view`),
+        kind: readEnum(record.kind, MARK_KINDS, `${at}/kind`),
         polygon: readArray(
           record.polygon,
           `${at}/polygon`,
@@ -295,20 +334,7 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
           },
           { min: 3 },
         ),
-        depth: readNumber(record.depth, `${at}/depth`, { min: 0, max: 1, exclusiveMin: true }),
-        feather: readNumber(record.feather, `${at}/feather`, { min: 0, max: 1, exclusiveMin: true }),
       };
-    }),
-    paint: {
-      color: readRgb(paint.color, '/paint/color'),
-      tolerance: readNumber(paint.tolerance, '/paint/tolerance', { min: 0, max: 2, exclusiveMin: true }),
-      brightness: readNumber(paint.brightness, '/paint/brightness', { min: 0, max: 255 }),
-      exposure: readNumber(paint.exposure, '/paint/exposure', { min: 0, max: 4, exclusiveMin: true }),
-    },
-    brakeLamps: readArray(document.brakeLamps, '/brakeLamps', (rectangle, at) => {
-      const [left, top, right, bottom] = readArray(rectangle, at, (v, p) => readNumber(v, p, PIXEL), { length: 4 });
-      requireAdmission(right! > left! && bottom! > top!, 'invalid_value', at, 'Expected [left, top, right, bottom]');
-      return [left!, top!, right!, bottom!] as const;
     }),
     slots,
     bodyKeys,

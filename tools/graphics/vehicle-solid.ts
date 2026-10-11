@@ -29,6 +29,10 @@ const FACING_POWER = 4;
 const VIEW_MARGIN_PIXELS = 3;
 /** A surface darker than this value is dark: tyre in a wheel, glass in the glasshouse. */
 const DARK_VALUE = 75;
+/** Paint closes over gaps up to twice this wide, metres. */
+const PAINT_CLOSING = 0.008;
+/** A view colors a surface no deeper than this behind the solid's outermost surface in the view's direction, metres. */
+const SEEN_DEPTH = 0.03;
 /** Brake lamps lie within this distance, metres, of the tail. */
 const LAMP_DEPTH = 0.4;
 const UNSEEN_COLOR = [25, 25, 27] as const;
@@ -169,7 +173,7 @@ export function readViewPicture(
 }
 
 /** Bilinear sample of a one-channel raster at pixel-centre coordinates; outside it is `beyond`. */
-function sampleMask(mask: Uint8Array, width: number, height: number, u: number, v: number): number {
+function sampleMask(mask: ArrayLike<number>, width: number, height: number, u: number, v: number): number {
   const x0 = Math.floor(u),
     y0 = Math.floor(v);
   const fx = u - x0,
@@ -454,12 +458,37 @@ export function buildVehicleSolid(
     +(sampleMask(view.inside, view.width, view.height, u, v) > 0.5);
   const sideOutline = new Uint8Array(nz * ny); // [z][y]
   const topOutline = new Uint8Array(nz * nx); // [z][x]
+  // The side and top views shape the solid's gentle slopes, so they also give each cell the share of it they cover:
+  // the view's outline averaged over about one cell.
+  const softened = (view: ViewPicture, pixelsPerMetre: number) => {
+    const soft = Float32Array.from(view.inside);
+    blur(soft, view.height, view.width, 1, 0.5 * VOXEL * pixelsPerMetre);
+    return soft;
+  };
+  const softSide = softened(views.side, fit.sideScale),
+    softTop = softened(views.top, recipe.top.width / vehicle.width);
+  const sideCover = new Float32Array(nz * ny),
+    topCover = new Float32Array(nz * nx);
   const frontOutline = new Uint8Array(nx * ny); // [x][y]
   const rearOutline = new Uint8Array(nx * ny);
   for (let k = 0; k < nz; k++) {
-    for (let j = 0; j < ny; j++) sideOutline[k * ny + j] = inside(views.side, fit.side(zAt(k), yAt(j)));
-    for (let i = 0; i < nx; i++) topOutline[k * nx + i] = inside(views.top, fit.top(zAt(k), xAt(i)));
+    for (let j = 0; j < ny; j++) {
+      const [u, v] = fit.side(zAt(k), yAt(j));
+      sideOutline[k * ny + j] = inside(views.side, [u, v]);
+      sideCover[k * ny + j] = sampleMask(softSide, views.side.width, views.side.height, u, v);
+    }
+    for (let i = 0; i < nx; i++) {
+      const [u, v] = fit.top(zAt(k), xAt(i));
+      topOutline[k * nx + i] = inside(views.top, [u, v]);
+      topCover[k * nx + i] = sampleMask(softTop, views.top.width, views.top.height, u, v);
+    }
   }
+  for (let k = 0; k < nz; k++)
+    for (let i = 0; i < nx / 2; i++) {
+      const a = k * nx + i,
+        b = k * nx + nx - 1 - i;
+      topCover[a] = topCover[b] = Math.min(topCover[a]!, topCover[b]!);
+    }
   for (let i = 0; i < nx; i++)
     for (let j = 0; j < ny; j++) {
       frontOutline[i * ny + j] = inside(views.front, fit.frontView(xAt(i), yAt(j)));
@@ -555,7 +584,7 @@ export function buildVehicleSolid(
     while (before > 0 && mirrorAt[before]) before--;
     while (after < nz - 1 && mirrorAt[after]) after++;
     const body = halfWidth[before]! + ((halfWidth[after]! - halfWidth[before]!) * (k - before)) / (after - before);
-    for (let i = 0; i < nx; i++) if (Math.abs(xAt(i)) > body) topOutline[k * nx + i] = 0;
+    for (let i = 0; i < nx; i++) if (Math.abs(xAt(i)) > body) topOutline[k * nx + i] = topCover[k * nx + i] = 0;
   }
 
   // The solid: inside the side and top outlines, and inside the facing outline, which passes from the rear view's to
@@ -572,7 +601,30 @@ export function buildVehicleSolid(
   );
   const size = nx * ny * nz;
   const at = (i: number, j: number, k: number) => (i * ny + j) * nz + k;
-  const raw = new Uint8Array(size);
+  // The recipe's surface: the height the solid's top may reach where no outline shows it.
+  const { stations, across, heights } = recipe.surface;
+  const surfaceAt = (x: number, z: number): number => {
+    const distance = Math.abs(x);
+    if (
+      !stations.length ||
+      z > stations[0]! ||
+      z < stations[stations.length - 1]! ||
+      distance > across[across.length - 1]!
+    )
+      return Infinity;
+    let s = 0;
+    while (s < stations.length - 2 && z < stations[s + 1]!) s++;
+    let a = 0;
+    while (a < across.length - 2 && distance > across[a + 1]!) a++;
+    const fs = (stations[s]! - z) / (stations[s]! - stations[s + 1]!),
+      fa = (distance - across[a]!) / (across[a + 1]! - across[a]!);
+    return (
+      (heights[s]![a]! * (1 - fa) + heights[s]![a + 1]! * fa) * (1 - fs) +
+      (heights[s + 1]![a]! * (1 - fa) + heights[s + 1]![a + 1]! * fa) * fs
+    );
+  };
+  // A cell holds the share of it that the solid fills.
+  const raw = new Float32Array(size);
   for (let k = 0; k < nz; k++) {
     const z = zAt(k);
     const t = Math.min(
@@ -580,49 +632,33 @@ export function buildVehicleSolid(
       1,
     );
     const w = t * t * (3 - 2 * t);
-    for (let i = 0; i < nx; i++)
+    for (let i = 0; i < nx; i++) {
+      const limit = surfaceAt(xAt(i), z);
       for (let j = 0; j < ny; j++) {
         const facing = w * frontDistance[j * nx + i]! + (1 - w) * rearDistance[j * nx + i]! < 0;
-        raw[at(i, j, k)] = +(
-          (facing && sideOutline[k * ny + j]! && topOutline[k * nx + i]!) ||
-          (mirrorAt[k] === true && mirrors[i * ny + j]!)
+        const below = Math.min(Math.max((limit - yAt(j)) / VOXEL + 0.5, 0), 1);
+        raw[at(i, j, k)] = Math.max(
+          facing ? Math.min(sideCover[k * ny + j]!, topCover[k * nx + i]!, below) : 0,
+          mirrorAt[k] === true ? mirrors[i * ny + j]! : 0,
         );
       }
-  }
-  // The recipe's corrections: each lowers the top of the columns inside its polygon.
-  for (const { polygon, depth, feather } of recipe.lowered) {
-    const outside = new Uint8Array(nz * nx);
-    for (let k = 0; k < nz; k++)
-      for (let i = 0; i < nx; i++) {
-        const [u, v] = fit.top(zAt(k), xAt(i));
-        const [, mirrored] = fit.top(zAt(k), -xAt(i));
-        outside[k * nx + i] = +!(insidePolygon(polygon, u, v) || insidePolygon(polygon, u, mirrored));
-      }
-    const toEdge = squaredDistanceTo(outside, nx, nz);
-    for (let k = 0; k < nz; k++)
-      for (let i = 0; i < nx; i++) {
-        const t = Math.min((Math.sqrt(toEdge[k * nx + i]!) * VOXEL) / feather, 1);
-        const drop = depth * t * t * (3 - 2 * t);
-        let top = ny - 1;
-        while (top >= 0 && !raw[at(i, top, k)]) top--;
-        for (let j = top; j >= 0 && yAt(j) > yAt(top) - drop; j--) raw[at(i, j, k)] = 0;
-      }
+    }
   }
   // Round the edges the outlines leave square, keeping the tyres on the road.
   const field = Float32Array.from(raw);
   blur(field, nx, ny, nz, ROUNDING_SIGMA / VOXEL);
-  const solid = Uint8Array.from(field, (value) => +(value > 0.5));
   {
     const floor = new Float32Array(nx * nz);
-    for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) floor[i * nz + k] = raw[at(i, 0, k)]!;
+    for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) floor[i * nz + k] = +(raw[at(i, 0, k)]! > 0.5);
     blur(floor, nx, 1, nz, 1);
     for (let i = 0; i < nx; i++)
-      for (let k = 0; k < nz; k++) if (raw[at(i, 0, k)] && floor[i * nz + k]! > 0.5) solid[at(i, 0, k)] = 1;
+      for (let k = 0; k < nz; k++) if (raw[at(i, 0, k)]! > 0.5 && floor[i * nz + k]! > 0.5) field[at(i, 0, k)] = 1;
   }
-  for (let n = 0; n < size; n++) field[n] = solid[n]!;
-  blur(field, nx, ny, nz, NORMAL_SIGMA / VOXEL);
+  const solid = Uint8Array.from(field, (value) => +(value > 0.5));
   const wide = Float32Array.from(solid);
   blur(wide, nx, ny, nz, EDGE_SIGMA / VOXEL);
+  // Normals and the surface's exact place come from the rounded shares, smoothed once more.
+  blur(field, nx, ny, nz, NORMAL_SIGMA / VOXEL);
 
   // Surface points: solid cells with an empty neighbour, moved onto the smoothed surface.
   const occupied = (i: number, j: number, k: number) =>
@@ -695,8 +731,72 @@ export function buildVehicleSolid(
   const paint = new Uint8Array(count),
     glass = new Uint8Array(count),
     lamp = new Uint8Array(count);
+  // Paint, as each view shows it: bright enough and of the paint's chromaticity. A thin line across a panel (a shut
+  // line, a handle, a script) is drawn with the panel, so each view's paint is closed over gaps of that width.
   const [pr, pg, pb] = recipe.paint.color;
   const paintSum = pr + pg + pb || 1;
+  const painted = (name: VehicleView, pixelsPerMetre: number) => {
+    const { width, height, rgb, inside } = views[name];
+    const mask = new Uint8Array(width * height);
+    for (let i = 0; i < mask.length; i++) {
+      const r = rgb[i * 3]!,
+        g = rgb[i * 3 + 1]!,
+        b = rgb[i * 3 + 2]!;
+      const sum = r + g + b || 1;
+      mask[i] = +(
+        inside[i] === 1 &&
+        Math.max(r, g, b) >= recipe.paint.brightness &&
+        Math.hypot(r / sum - pr / paintSum, g / sum - pg / paintSum, b / sum - pb / paintSum) <= recipe.paint.tolerance
+      );
+    }
+    // A mark says what its place is before the paint closes around it.
+    for (const { view, kind, polygon } of recipe.marks) {
+      if (view !== name || kind === 'brakeLamp') continue;
+      const xs = polygon.map(([x]) => x),
+        ys = polygon.map(([, y]) => y);
+      for (let y = Math.max(0, Math.floor(Math.min(...ys))); y <= Math.min(height - 1, Math.ceil(Math.max(...ys))); y++)
+        for (
+          let x = Math.max(0, Math.floor(Math.min(...xs)));
+          x <= Math.min(width - 1, Math.ceil(Math.max(...xs)));
+          x++
+        )
+          if (insidePolygon(polygon, x, y)) mask[y * width + x] = +(kind === 'paint' && inside[y * width + x] === 1);
+    }
+    const reach = (PAINT_CLOSING * pixelsPerMetre) ** 2;
+    const grown = Uint8Array.from(squaredDistanceTo(mask, width, height), (value) => +(value <= reach));
+    const toGap = squaredDistanceTo(
+      grown.map((cell) => +!cell),
+      width,
+      height,
+    );
+    return Uint8Array.from(toGap, (value) => +(value > reach));
+  };
+  const paintOf = {
+    side: painted('side', fit.sideScale),
+    top: painted('top', recipe.top.width / vehicle.width),
+    front: painted('front', recipe.front.width / vehicle.width),
+    rear: painted('rear', recipe.rear.width / vehicle.width),
+  };
+  // What each view sees: the solid's outermost cells in its direction. A view does not color what lies behind them.
+  const highest = new Int16Array(nx * nz).fill(-1),
+    foremost = new Int16Array(nx * ny).fill(-1),
+    rearmost = new Int16Array(nx * ny).fill(nz),
+    rightmost = new Int16Array(ny * nz).fill(-1),
+    leftmost = new Int16Array(ny * nz).fill(nx);
+  for (let i = 0; i < nx; i++)
+    for (let j = 0; j < ny; j++)
+      for (let k = 0; k < nz; k++) {
+        if (!solid[at(i, j, k)]) continue;
+        highest[i * nz + k] = j;
+        foremost[i * ny + j] = k;
+        if (rearmost[i * ny + j] === nz) rearmost[i * ny + j] = k;
+        rightmost[j * nz + k] = i;
+        if (leftmost[j * nz + k] === nx) leftmost[j * nz + k] = i;
+      }
+  const cell = (value: number, origin: number, n: number) =>
+    Math.min(Math.max(Math.floor((value - origin) / VOXEL), 0), n - 1);
+  const seenDepth = SEEN_DEPTH / VOXEL;
+
   const tread = vehicle.width / 2 - 0.37;
   for (let n = 0; n < count; n++) {
     const x = positions[n * 3]!,
@@ -711,17 +811,29 @@ export function buildVehicleSolid(
       front: fit.frontView(x, y),
       rear: fit.rearView(x, y),
     };
+    const i = cell(x, -nx * VOXEL * 0.5, nx),
+      j = cell(y, 0, ny),
+      k = cell(z, fit.rear - 0.03, nz);
+    const seen = {
+      side: x >= 0 ? rightmost[j * nz + k]! - i <= seenDepth : i - leftmost[j * nz + k]! <= seenDepth,
+      top: highest[i * nz + k]! - j <= seenDepth,
+      front: foremost[i * ny + j]! - k <= seenDepth,
+      rear: k - rearmost[i * ny + j]! <= seenDepth,
+    };
     const facing = { side: Math.abs(nxn), top: Math.max(nyn, 0), front: Math.max(nzn, 0), rear: Math.max(-nzn, 0) };
     const weights = { side: 0, top: 0, front: 0, rear: 0 };
     let total = 0;
     for (const name of ['side', 'top', 'front', 'rear'] as const) {
       const view = views[name];
       weights[name] =
+        +seen[name] *
         facing[name] ** FACING_POWER *
         sampleMask(trust[name], view.width, view.height, places[name][0], places[name][1]);
       total += weights[name];
     }
-    if (nyn < -0.55) colors.set(UNDERSIDE_COLOR, n * 3);
+    // The underside is dark: what faces the road from below the tyres' tops.
+    if (nyn < -0.55 && y < 2 * Math.max(vehicle.frontWheelRadius, vehicle.rearWheelRadius))
+      colors.set(UNDERSIDE_COLOR, n * 3);
     else if (total < 1e-6) colors.set(UNSEEN_COLOR, n * 3);
     else
       for (const name of ['side', 'top', 'front', 'rear'] as const)
@@ -730,27 +842,36 @@ export function buildVehicleSolid(
       g = colors[n * 3 + 1]!,
       b = colors[n * 3 + 2]!;
     const value = Math.max(r, g, b);
-    const sum = r + g + b || 1;
     const dark = value < DARK_VALUE;
     const wheel =
       Math.abs(x) > tread &&
       (Math.hypot(z - vehicle.frontAxle, y - vehicle.frontWheelRadius) < vehicle.frontWheelRadius * 1.05 ||
         Math.hypot(z + vehicle.rearAxle, y - vehicle.rearWheelRadius) < vehicle.rearWheelRadius * 1.05);
-    paint[n] = +(
-      !wheel &&
-      value >= recipe.paint.brightness &&
-      Math.hypot(r / sum - pr / paintSum, g / sum - pg / paintSum, b / sum - pb / paintSum) <= recipe.paint.tolerance
-    );
-    const pane =
-      total >= 1e-6 &&
-      weights.side / total > 0.5 &&
-      recipe.glass.sidePanes.some((polygon) => insidePolygon(polygon, places.side[0], places.side[1]));
-    glass[n] = +(pane || (dark && !wheel && y > recipe.glass.above && z > recipe.glass.from && z < recipe.glass.to));
-    if (pane) paint[n] = 0;
-    if (total >= 1e-6 && weights.rear / total > 0.5 && z < fit.rear + LAMP_DEPTH) {
-      const [u, v] = places.rear;
-      lamp[n] = +recipe.brakeLamps.some(([left, top, right, bottom]) => u > left && u < right && v > top && v < bottom);
+    let paintShare = 0;
+    if (total >= 1e-6)
+      for (const name of ['side', 'top', 'front', 'rear'] as const)
+        paintShare +=
+          (weights[name] / total) *
+          sampleMask(paintOf[name], views[name].width, views[name].height, places[name][0], places[name][1]);
+    paint[n] = +(!wheel && paintShare >= 0.5);
+    glass[n] = +(dark && !wheel && y > recipe.glass.above && z > recipe.glass.from && z < recipe.glass.to);
+    let plain = false;
+    if (total >= 1e-6) {
+      const most = (['side', 'top', 'front', 'rear'] as const).reduce((a, b) => (weights[b] > weights[a] ? b : a));
+      for (const mark of recipe.marks) {
+        if (mark.view !== most || !insidePolygon(mark.polygon, places[most][0], places[most][1])) continue;
+        if (mark.kind === 'brakeLamp') lamp[n] = +(z < fit.rear + LAMP_DEPTH);
+        else {
+          paint[n] = +(mark.kind === 'paint');
+          glass[n] = +(mark.kind === 'glass');
+          plain = mark.kind === 'paint';
+        }
+      }
     }
+    if (plain) colors.set(recipe.paint.color, n * 3);
+    else if (paint[n])
+      for (let c = 0; c < 3; c++)
+        colors[n * 3 + c] = recipe.paint.color[c]! + (colors[n * 3 + c]! - recipe.paint.color[c]!) * recipe.paint.shade;
   }
   return {
     count,
