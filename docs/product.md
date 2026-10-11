@@ -180,7 +180,7 @@ TITLE (PRESS START) → SELECT MODE
 → SELECT MUSIC → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; controls)
+TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; controls)
 ```
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
@@ -252,8 +252,8 @@ is course appearance (signs), not HUD. DEV UI stays separate from the HUD.
 
 The browser keeps one versioned record of settings and records:
 
-- **Settings:** each vehicle's selected color, the three volumes, the car and bike cameras and the latest selections,
-  FREE PLAY's options included.
+- **Settings:** each vehicle's selected color, the three volumes, the car and bike cameras, the car and bike steering
+  and the latest selections, FREE PLAY's options included.
 - **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
 - **ARCADE records:** best completion time for each series, class, reached goal and vehicle.
 
@@ -262,7 +262,12 @@ changes. Only a run that reaches GOAL records. READY shows the record for the se
 shows it with NEW RECORD when it is beaten. In TIME TRIAL each gate and lap shows the difference from
 the record run for two seconds, green when faster and red when slower. SETTINGS can clear all records.
 
-An equal time keeps the earlier record. Color, music and camera are not record conditions. Sessions rebuilt by
+Steering is a rule of the driver, not a mechanism of the vehicle. The player chooses it for cars and for bikes: the
+reference (FRONT, the front wheel, or CENTER, the centre of mass) and the front tire's use at full steering (100%, 95% or
+90%), CENTER and 95% until chosen. It applies only while the player drives; rivals, traffic, reference driving and the
+driver who takes over after GOAL drive by the game's default, CENTER and 95%, whatever the player chose.
+
+An equal time keeps the earlier record. Color, music, camera and steering are not record conditions. Sessions rebuilt by
 DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 ## 11. Input and display

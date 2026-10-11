@@ -103,7 +103,12 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const session = prepared.resolve(page.drawSeed(), tuned);
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
-    const race = createCourseRace({ session, runtime: scene.runtime });
+    // The player drives by its own steering rule for the vehicle's form, read once as the camera's is.
+    const race = createCourseRace({
+      session,
+      runtime: scene.runtime,
+      playerSteering: page.player.settings.steering[entry.listing.form],
+    });
     // The Session's records: the HUD's record, resolved once the TIME TRIAL route is decided, and the judgement made
     // when the product Session reaches GOAL. A DEV-tuned Session compares with and records nothing.
     const records = {

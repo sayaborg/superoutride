@@ -29,7 +29,7 @@ import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/phys
 import { createStartPhase, type StartStatus } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
-import { driverSteering } from '../vehicle/steering-rule.js';
+import { driverSteering, type SteeringRule } from '../vehicle/steering-rule.js';
 import {
   createCompetitorObservation,
   writeCompetitorObservation,
@@ -77,6 +77,11 @@ export function createCourseRace(options: {
   readonly runtime: RouteRuntime;
   /** The target exit at each fork occurrence of the player's Session driver, which drives the player on request. */
   readonly playerExit?: (occurrence: RouteOccurrence) => number;
+  /**
+   * The steering rule the player drives by while the player's own input reaches its vehicle; the default rule when
+   * absent. Every driver, the player's included, drives by the default rule.
+   */
+  readonly playerSteering?: SteeringRule;
 }) {
   const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.session;
   const { initialSpeed } = configuration;
@@ -193,6 +198,10 @@ export function createCourseRace(options: {
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
+  // The player's own steering rule on its vehicle, resolved once; the default rule while a driver drives it.
+  const playerOwnSteering = options.playerSteering
+    ? driverSteering(options.playerSteering, playerActor.model)
+    : defaultSteering(playerActor.model);
   // An ahead appearance must lie within the Route the runtime keeps loaded ahead of the player.
   for (const entry of rivalEntries)
     if (entry.ahead && entry.ahead.distance > runtime.coverage.forwardMeters - runtime.coverage.maximumStepMeters)
@@ -335,6 +344,7 @@ export function createCourseRace(options: {
   const holdReady = (input: DrivingInput) => {
     for (const body of activeBodies) {
       body.step.input = body === activeBodies[0] ? input : idle;
+      body.step.steering = body === activeBodies[0] ? playerOwnSteering : defaultSteering(body.model);
       updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, body.step.steering, true);
     }
     startPhase.advance();
@@ -463,6 +473,12 @@ export function createCourseRace(options: {
   const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
   // The player's input this step: its own, or its driver's. After GOAL the takeover drives the player and its input no
   // longer reaches the vehicle; after GAME OVER the throttle is released and the steering and brake still apply.
+  // The player's steering rule this step: its own while its own input reaches the vehicle (running, or after GAME OVER),
+  // else the default rule its driver drives by.
+  const playerSteeringOf = (input: DrivingInput | null, running: boolean) =>
+    input !== null && (running || outcome.status === 'GAME_OVER')
+      ? playerOwnSteering
+      : defaultSteering(player.actor.model);
   const playerInputOf = (input: DrivingInput | null, running: boolean): DrivingInput => {
     if (running) return input ?? laneDriving.drive(player.body);
     if (outcome.status === 'GAME_OVER') return { ...(input ?? laneDriving.drive(player.body)), throttle: false };
@@ -493,7 +509,7 @@ export function createCourseRace(options: {
     roadsideObjects.contacts(bodies);
     // A vehicle a fixed object holds may recover; the step's recovery reads it.
     for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
-    move(activeBodies[0]!, playerInput);
+    move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
     for (let i = 1; i < active.length; i += 1) {
       const { body, pacing } = active[i]!;
       if (pacing && stepStart !== null) {

@@ -1,12 +1,15 @@
 import type { CameraYawSource } from '../view/camera.js';
 import type { VehicleForm } from '../vehicle/definition-document.js';
+import { createSteeringRule, STEERING_REFERENCES, type SteeringRule } from '../vehicle/steering-rule.js';
 
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 4;
-/** The version before, whose settings and records a version 4 record keeps; it had no camera settings. */
+const PLAYER_RECORD_VERSION = 5;
+/** The version before, whose settings and records a version 5 record keeps; it had no steering settings. */
+const STEERINGLESS_VERSION = 4;
+/** The version before that, whose settings and records are kept; it had no camera settings either. */
 const CAMERALESS_VERSION = 3;
-/** The version before that, whose settings and TIME TRIAL records are kept; its ARCADE records are dropped. */
+/** The version before those, whose settings and TIME TRIAL records are kept; its ARCADE records are dropped. */
 const COURSE_ARCADE_VERSION = 2;
 /** The first version, whose settings are kept. */
 const SETTINGS_ONLY_VERSION = 1;
@@ -22,6 +25,15 @@ export const DEFAULT_CAMERAS: Readonly<Record<VehicleForm, CameraYawSource>> = O
   bike: 'MOVING',
 });
 
+/** The front tire utilizations the player chooses among for full steering input. */
+export const STEERING_UTILIZATIONS: readonly number[] = Object.freeze([1, 0.95, 0.9]);
+
+/** The player's steering rule by vehicle form until the player chooses: the centre of mass at 95%. */
+export const DEFAULT_STEERING: Readonly<Record<VehicleForm, SteeringRule>> = Object.freeze({
+  car: createSteeringRule('center', 0.95),
+  bike: createSteeringRule('center', 0.95),
+});
+
 export interface PlayerSettings {
   /** Selected color ID by vehicle ID. */
   readonly vehicleColors: Readonly<Record<string, string>>;
@@ -31,6 +43,8 @@ export interface PlayerSettings {
   readonly latestSelections: Readonly<Record<string, string>>;
   /** What the camera yaw follows, by the player vehicle's form. */
   readonly cameras: Readonly<Record<VehicleForm, CameraYawSource>>;
+  /** The steering rule the player drives by, by the player vehicle's form. */
+  readonly steering: Readonly<Record<VehicleForm, SteeringRule>>;
 }
 
 /** The identities a record was set against: the course build and the Session vehicle's delivered definitions. */
@@ -84,13 +98,15 @@ const DEFAULT_SETTINGS = freezeSettings({
   volumes: { master: 35, music: 100, effects: 100 },
   latestSelections: {},
   cameras: DEFAULT_CAMERAS,
+  steering: DEFAULT_STEERING,
 });
 const NO_RECORDS = freezeRecords({ timeTrial: {}, arcade: {} });
 
 /**
- * Opens the player record in `storage`. A version 3 record keeps its settings and records and takes the default
- * cameras; a version 2 record keeps its settings and TIME TRIAL records and drops its ARCADE records; a version 1
- * record keeps its settings and starts with no records. Records before version 4 take the default cameras. An absent,
+ * Opens the player record in `storage`. A version 4 or 3 record keeps its settings and records; a version 2 record keeps
+ * its settings and TIME TRIAL records and drops its ARCADE records; a version 1 record keeps its settings and starts
+ * with no records. Records before version 5 take the default steering, and those before version 4 the default cameras.
+ * An absent,
  * unreadable, corrupt or other-version record starts from the defaults; a malformed record entry alone is dropped.
  * Storage failures leave the record in memory; none of these stops the game.
  */
@@ -150,23 +166,27 @@ function readRecord(storage: Storage | null): { settings: PlayerSettings; record
 }
 
 /**
- * The settings and records of a record with exactly the declared shape, or null: version 4; version 3, whose settings
- * and records carry over; version 2, whose settings and TIME TRIAL records carry over without its ARCADE records; or
- * version 1, whose settings carry over with no records. Settings before version 4 take the default cameras.
+ * The settings and records of a record with exactly the declared shape, or null: version 5; version 4 or 3, whose
+ * settings and records carry over; version 2, whose settings and TIME TRIAL records carry over without its ARCADE
+ * records; or version 1, whose settings carry over with no records. Settings before version 5 take the default
+ * steering, and those before version 4 the default cameras.
  */
 function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records: PlayerRecords } | null {
   if (!isObject(value)) return null;
   const version = value.version;
   if (version === SETTINGS_ONLY_VERSION && hasExactKeys(value, ['version', 'settings'])) {
-    const settings = admitSettings(value.settings, false);
+    const settings = admitSettings(value.settings, version);
     return settings && { settings, records: NO_RECORDS };
   }
   if (
-    (version !== PLAYER_RECORD_VERSION && version !== CAMERALESS_VERSION && version !== COURSE_ARCADE_VERSION) ||
+    (version !== PLAYER_RECORD_VERSION &&
+      version !== STEERINGLESS_VERSION &&
+      version !== CAMERALESS_VERSION &&
+      version !== COURSE_ARCADE_VERSION) ||
     !hasExactKeys(value, ['version', 'settings', 'records'])
   )
     return null;
-  const settings = admitSettings(value.settings, version === PLAYER_RECORD_VERSION);
+  const settings = admitSettings(value.settings, version);
   if (!settings || !hasExactKeys(value.records, ['timeTrial', 'arcade'])) return null;
   return {
     settings,
@@ -178,9 +198,20 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
   };
 }
 
-/** Settings of exactly the declared shape, with their cameras when `withCameras`, else the default cameras. */
-function admitSettings(settings: unknown, withCameras: boolean): PlayerSettings | null {
-  const keys = ['vehicleColors', 'volumes', 'latestSelections', ...(withCameras ? ['cameras'] : [])];
+/**
+ * Settings of exactly the declared shape of record `version`: with their cameras from version 4, else the default
+ * cameras, and with their steering from version 5, else the default steering.
+ */
+function admitSettings(settings: unknown, version: number): PlayerSettings | null {
+  const withCameras = version >= STEERINGLESS_VERSION,
+    withSteering = version >= PLAYER_RECORD_VERSION;
+  const keys = [
+    'vehicleColors',
+    'volumes',
+    'latestSelections',
+    ...(withCameras ? ['cameras'] : []),
+    ...(withSteering ? ['steering'] : []),
+  ];
   if (!hasExactKeys(settings, keys)) return null;
   const { vehicleColors, volumes, latestSelections } = settings;
   if (!isStringMap(vehicleColors) || !isStringMap(latestSelections) || !hasExactKeys(volumes, VOLUME_NAMES))
@@ -189,12 +220,25 @@ function admitSettings(settings: unknown, withCameras: boolean): PlayerSettings 
   const cameras = withCameras ? settings.cameras : DEFAULT_CAMERAS;
   if (!hasExactKeys(cameras, VEHICLE_FORMS)) return null;
   if (!VEHICLE_FORMS.every((form) => CAMERA_YAW_SOURCES.includes(cameras[form] as CameraYawSource))) return null;
+  const steering = withSteering ? settings.steering : DEFAULT_STEERING;
+  if (!hasExactKeys(steering, VEHICLE_FORMS) || !VEHICLE_FORMS.every((form) => isSteeringChoice(steering[form])))
+    return null;
   return freezeSettings({
     vehicleColors,
     volumes: volumes as Record<VolumeName, number>,
     latestSelections,
     cameras: cameras as Record<VehicleForm, CameraYawSource>,
+    steering: steering as Record<VehicleForm, SteeringRule>,
   });
+}
+
+/** A steering rule the player can choose: a steering reference and one of the offered utilizations. */
+function isSteeringChoice(rule: unknown): rule is SteeringRule {
+  return (
+    hasExactKeys(rule, ['reference', 'utilization']) &&
+    STEERING_REFERENCES.includes(rule.reference as SteeringRule['reference']) &&
+    STEERING_UTILIZATIONS.includes(rule.utilization as number)
+  );
 }
 
 /** The entries whose key and value have the declared shape; the others are dropped. */
@@ -268,6 +312,10 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
     volumes: Object.freeze({ ...settings.volumes }),
     latestSelections: Object.freeze({ ...settings.latestSelections }),
     cameras: Object.freeze({ ...settings.cameras }),
+    steering: Object.freeze({
+      car: createSteeringRule(settings.steering.car.reference, settings.steering.car.utilization),
+      bike: createSteeringRule(settings.steering.bike.reference, settings.steering.bike.utilization),
+    }),
   });
 }
 // The records the player record publishes, read-only down to every record and its splits, wherever they came from.

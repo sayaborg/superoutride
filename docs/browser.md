@@ -96,7 +96,9 @@ audition stops when the cursor or the screen leaves, and a track still decoding 
 
 SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
 (to the adjacent multiple of 5), CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING
-([camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
+([camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE
+STEERING, which LEFT and RIGHT switch between FRONT and CENTER, and CAR STEERING USE and BIKE STEERING USE, which LEFT and
+RIGHT step through 100%, 95% and 90%, wrapping ([steering rule](vehicle-physics.md#actuators-and-steering)), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
 which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
@@ -384,16 +386,17 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 4, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 5, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
-| Setting            | Shape and default                                                                                                                         |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                                                                    |
-| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                     |
-| `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                    |
-| `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`) |
+| Setting            | Shape and default                                                                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                                                                                                                          |
+| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
+| `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                                                                          |
+| `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
+| `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
 
 `records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
 a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
@@ -423,15 +426,19 @@ from the run's counts as none and is replaced. TIME TRIAL records against the ro
 replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
 time replaces nothing.
 
-Loading admits version 4 with exactly these keys and value types; version 3 (no `cameras`), whose settings and records
-carry over; version 2 (ARCADE records keyed by course), whose settings and TIME TRIAL records carry over and whose ARCADE
+Loading admits version 5 with exactly these keys and value types; version 4 (no `steering`) and version 3 (no `steering`
+or `cameras`), whose settings and records carry over; version 2 (ARCADE records keyed by course), whose settings and TIME TRIAL records carry over and whose ARCADE
 records are dropped; and version 1 (settings only), whose settings carry over with no records. Settings before
-version 4 take the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
+version 5 take the default steering, and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
 game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SETTINGS saves
-the cameras, and a run reads its vehicle form's camera when it is assembled; SELECT VEHICLE
+the cameras and steering, and a run reads its vehicle form's camera and steering rule when it is assembled. The race
+applies the player's steering rule only while the player's own input reaches the player's vehicle; whenever a driver
+drives it (the Session driver on request, the takeover after GOAL) it drives by the default rule, switching at once.
+Steering is no record condition: it changes no record key or identity, and a run with any steering choice is a
+product Session that records; SELECT VEHICLE
 saves colors, the selection screens save their latest selections, a run reaching GOAL saves records and CLEAR RECORDS
 empties them. A Session reads the player's vehicle color from `vehicleColors`, falling back to the vehicle's default
 color when the record has none or names a color its sprite set lacks. DEV tuning and DEV sound settings are not
