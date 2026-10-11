@@ -10,9 +10,9 @@ const DRIVING_KEYS: ReadonlyMap<string, DrivingKeyAction> = new Map<string, Driv
   ['ArrowLeft', { kind: 'steering', direction: -1 }],
   ['ArrowRight', { kind: 'steering', direction: 1 }],
   ['ArrowUp', { kind: 'pedal', pedal: 'throttle' }],
-  ['KeyX', { kind: 'pedal', pedal: 'throttle' }],
+  ['KeyZ', { kind: 'pedal', pedal: 'throttle' }],
   ['ArrowDown', { kind: 'pedal', pedal: 'brake' }],
-  ['KeyZ', { kind: 'pedal', pedal: 'brake' }],
+  ['KeyX', { kind: 'pedal', pedal: 'brake' }],
 ]);
 
 interface DrivingKey {

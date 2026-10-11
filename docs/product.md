@@ -281,7 +281,7 @@ DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 ## 11. Input and display
 
-- **Keyboard:** Left/Right steer, Up or X accelerates, Down or Z brakes; menus use the arrows, Enter and
+- **Keyboard:** Left/Right steer, Up or Z accelerates, Down or X brakes; menus use the arrows, Enter and
   Escape; Escape pauses.
 - **Touch:** the touch area is the whole screen in both orientations, the frame and the margins around
   it included. While driving, its left half is analog steering and its right half the pedals. In menus,

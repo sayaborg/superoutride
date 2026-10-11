@@ -17,8 +17,8 @@ const STEERING_USE_LABELS: Readonly<Record<VehicleForm, string>> = {
 /** The CONTROLS screen's text. */
 const CONTROLS = Object.freeze([
   'KEYBOARD',
-  'LEFT/RIGHT STEER  UP OR X ACCELERATE',
-  'DOWN OR Z BRAKE  ESC PAUSE',
+  'LEFT/RIGHT STEER  UP OR Z ACCELERATE',
+  'DOWN OR X BRAKE  ESC PAUSE',
   '',
   'TOUCH',
   'LEFT HALF: SLIDE TO STEER',

@@ -203,7 +203,7 @@ envelope, as after a DEV rebuild.
 
 ## Driving input
 
-Left/right arrows steer, Up or X accelerates, and Down or Z brakes. These are the only keyboard
+Left/right arrows steer, Up or Z accelerates, and Down or X brakes. These are the only keyboard
 controls; DEV selections and manual recovery use DEV buttons. A standard-mapping gamepad steers with the
 left stick X axis or the D-pad, accelerates with RT or A and brakes with LT or B; other gamepad mappings are
 ignored.
