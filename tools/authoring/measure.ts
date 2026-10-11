@@ -187,7 +187,9 @@ export async function planMeasurement(
         const before = ((saved as Partial<SavedReferenceTimes> | null)?.vehicles ?? []).find(
           (v) => v.vehicleId === vehicleId,
         );
-        report.push({ course: course.id, vehicle: vehicleId, ...timeChanges(before ?? null, next) });
+        // A run that recovered still measures; the report counts its recoveries.
+        const recoveries = runs.reduce((sum, run) => sum + run.metrics.recoveries, 0);
+        report.push({ course: course.id, vehicle: vehicleId, recoveries, ...timeChanges(before ?? null, next) });
         return next;
       });
       if (!changed && (saved as SavedReferenceTimes).vehicles.length === candidates.length) continue;

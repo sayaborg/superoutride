@@ -1061,7 +1061,8 @@ The measurement tool's continuous reference runs are TIME TRIAL Sessions: produc
 last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
-planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Recovery, wrong-route choice, timeout or incomplete FINISH invalidates a timing product.
+planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Wrong-route choice, timeout or incomplete FINISH invalidates a timing product. A recovery does not: the run goes on,
+its times include the recovery, and the measurement reports each course and vehicle's recoveries.
 Maximum-lap runs supply their actual prefixes; starting and later-lap arrival classes remain distinct.
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
@@ -1081,7 +1082,7 @@ compiler's record is part of a course build identity. A code change that changes
 procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
 records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
 reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 2) records the race's fixed step, the Session seed, the reference driver (the
+`superoutride.reference-driving` version 3) records the race's fixed step, the Session seed, the reference driver (the
 driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
 spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`

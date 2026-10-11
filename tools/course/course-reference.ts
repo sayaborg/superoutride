@@ -43,7 +43,7 @@ const SECONDS = { min: 0, exclusiveMin: true };
  * Admit a saved reference report (`superoutride.course-reference` version 3) for the vehicle `vehicleId`, whose
  * Session vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
  * `referenceSha256`, and resolve its runs to the course's canonical landmarks: one run per route, each through the
- * maximum laps without recovery, recording exactly the race lines its route crosses.
+ * maximum laps, recording exactly the race lines its route crosses.
  */
 export function readCourseReference(
   course: CompiledCourse,
@@ -114,12 +114,7 @@ export function readCourseReference(
           'distance',
           'recoveries',
         ]);
-        requireAdmission(
-          readNumber(metrics.recoveries, `${runAt}/metrics/recoveries`, { integer: true }) === 0,
-          'invalid_value',
-          `${runAt}/metrics/recoveries`,
-          'Expected a run without recovery',
-        );
+        readNumber(metrics.recoveries, `${runAt}/metrics/recoveries`, { min: 0, integer: true });
         // The race's own lines for the planned route: the order and laps a run must record.
         const expected = expectedRaceLines(course, route, maxLaps);
         const events = readArray(

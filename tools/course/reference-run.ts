@@ -31,7 +31,7 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 2,
+  version: 3,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
@@ -77,7 +77,8 @@ export function runCourseReference(
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
   const samples = { seconds: [0], s: [vehicle.course.s] };
   race.start();
-  // Work bound, not a replacement finish. A timed-out/recovered run publishes no reference product.
+  // Work bound, not a replacement finish. A timed-out run publishes no reference product; a recovered one goes on, its
+  // times including the recovery, and counts its recoveries.
   const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
     const occurrence = scene.runtime.route.at(vehicle.course.s)!,
@@ -92,8 +93,6 @@ export function runCourseReference(
       samples.seconds.push(race.clock.elapsedSeconds);
       samples.s.push(vehicle.course.s);
     }
-    if (actor.recovery.recoveries)
-      throw new RangeError(`${entry.compiledVehicle.id}: reference recovered at ${section.id}:${vehicle.course.s}`);
     distance += vehicle.speed * SIM_DT;
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
     const utilization =
