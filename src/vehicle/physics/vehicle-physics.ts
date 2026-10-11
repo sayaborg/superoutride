@@ -209,19 +209,26 @@ export function updateVehicle(
     );
     // The driver's input sets the front tire's pure-lateral slip at the steering utilization on the material under the
     // front wheel (unit grip where there is none), measured from the front reach point's travel direction; the lever
-    // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for.
+    // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for, a part of the
+    // tightest one the vehicle holds within its grip and its rack.
     const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
+    const limit = Math.min(maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand)));
+    const automaticMax = maxRoadWheelSteer - limit;
     const askedYawRate =
-      (vehicle.actuator.steering * utilization * grip * model.tire.muY * VEHICLE_GRAVITY) /
-      planarSpeed(body, STEERING_LOW_SPEED_REGULARIZATION);
+      vehicle.actuator.steering *
+      tightestSteadyYawRate(
+        body,
+        utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
+        automaticMax,
+        compiledVehicle.frontAxle + compiledVehicle.rearAxle,
+        STEERING_LOW_SPEED_REGULARIZATION,
+      );
     const travelDirection = vehicleTravelDirection(
       body,
       frontBeforeSteer.reachVelocity,
       lever * (vehicle.yawRate - askedYawRate),
       STEERING_LOW_SPEED_REGULARIZATION,
     );
-    const limit = Math.min(maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand)));
-    const automaticMax = maxRoadWheelSteer - limit;
     vehicle.frontSteerAngle = clamp(travelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
@@ -351,9 +358,24 @@ export function updateVehicle(
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
-/** The body's planar speed, regularized at standstill: `hypot(bodyForwardSpeed, bodyLateralSpeed, v0)`. */
-function planarSpeed(body: BodyKinematics, lowSpeedRegularization: number): number {
-  return Math.hypot(dot3(body.velocity, body.forward), dot3(body.velocity, body.right), lowSpeedRegularization);
+/**
+ * The yaw rate of the tightest steady turn on flat ground at the body's speed: the looser of the grip's turn, at the
+ * lateral acceleration `lateralAcceleration`, and the rack's, in which the front wheel's travel direction with the rear
+ * wheel rolling stands at `rackAngle` (`tan(rackAngle) = wheelbase*w/forwardSpeed`). Speeds are regularized at
+ * standstill.
+ */
+function tightestSteadyYawRate(
+  body: BodyKinematics,
+  lateralAcceleration: number,
+  rackAngle: number,
+  wheelbase: number,
+  lowSpeedRegularization: number,
+): number {
+  const forward = dot3(body.velocity, body.forward),
+    lateral = dot3(body.velocity, body.right);
+  const grip = lateralAcceleration / Math.hypot(forward, lateral, lowSpeedRegularization);
+  const rack = (Math.hypot(forward, lowSpeedRegularization) * Math.tan(rackAngle)) / wheelbase;
+  return Math.min(grip, rack);
 }
 
 /**

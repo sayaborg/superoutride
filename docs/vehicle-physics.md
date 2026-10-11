@@ -494,12 +494,14 @@ S(X)   = grip*rho(X)*muY/kY
 sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate domain
 or on no material), so the angle changes only where the material changes and not at landing. With the steering
 actuator `u` in `[-1,1]`, the body's yaw rate `r`, rack bound `M` in `(0, pi/2)`, the steering low-speed
-regularization `steeringV0`, gravity `g` and the lever `lever`:
+regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` and the lever `lever`:
 
 ```text
-w(u)       = u*X*grip*muY*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
-lat        = frontLateralSpeed - lever*(r - w(u))
 L          = min(M, atan(S(X)))
+wGrip      = X*grip*muY*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
+wRack      = hypot(bodyForwardSpeed,steeringV0)*tan(M-L)/wheelbase
+w(u)       = u*min(wGrip, wRack)
+lat        = frontLateralSpeed - lever*(r - w(u))
 frontSteer = clamp(atan2(lat,hypot(frontForwardSpeed,steeringV0)),-(M-L),M-L) + u*L
 ```
 
@@ -519,9 +521,14 @@ measured from by the lever's lateral speed at the yaw rate's excess. At `lever =
 front wheel has, now measured from the turn asked for rather than from going straight. The term acts only through the
 steering angle, never as a force or moment, and its strength is a length, not a gain.
 
-`w(u)` is the yaw rate of the steady turn the input asks for, by definition the turn on flat ground at constant speed
-with the static loads, in which the front tire is at the fraction `u*X` of its bound: its lateral acceleration is
-`u*X*grip*muY*g`. In that turn `r = w(u)`, the term is zero and full input uses the front tire at `X` whatever the lever.
+`w(u)` is the yaw rate the input asks for: the fraction `u` of the tightest steady turn the vehicle holds, by definition
+on flat ground at constant speed with the static loads, the looser of its grip's turn and its rack's. In the grip's turn
+the front tire is at the fraction `X` of its bound: its lateral acceleration is `X*grip*muY*g`, at the yaw rate `wGrip`.
+In the rack's turn, with the rear wheel rolling, the front wheel's travel direction stands at `M-L`
+(`tan(M-L) = wheelbase*w/bodyForwardSpeed`), so with the slip `L` the front wheel reaches the rack `M`. The grip's turn
+is the looser at speed, and in it `r = w(u)` at full input, the term is zero and full input uses the front tire at `X`
+whatever the lever. At low speed the rack's turn is the looser, so the input asks for no turn the rack cannot reach.
+With `lever = 0` the term vanishes and `w(u)` plays no part.
 The term moves the front tire's slip only within the utilization left above `X`: at `X = 1` the front tire is at the
 plateau's start and a yaw rate below the one asked for cannot raise its force, while a yaw rate above it still relieves
 the front tire.

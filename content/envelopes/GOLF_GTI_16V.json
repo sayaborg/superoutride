@@ -10,15 +10,15 @@
         "speed": 5,
         "acceleration": 6.1503437877967055,
         "braking": 11.629636477909484,
-        "lateral": 2.187467469914542,
-        "steeringGain": 21.85696813167259
+        "lateral": 1.6710630041854106,
+        "steeringGain": 16.76625879531802
       },
       {
         "speed": 15,
         "acceleration": 5.477460742995824,
         "braking": 11.727675432186917,
-        "lateral": 23.55085790610542,
-        "steeringGain": 24.010482840866793
+        "lateral": 23.550857906105424,
+        "steeringGain": 24.0104828408668
       },
       {
         "speed": 25,
@@ -32,14 +32,14 @@
         "acceleration": 1.941883634949619,
         "braking": 11.894961211210884,
         "lateral": 22.567973989214327,
-        "steeringGain": 24.633910786471123
+        "steeringGain": 24.633910786470807
       },
       {
         "speed": 45,
         "acceleration": 1.1382382276626402,
         "braking": 12.057705362496094,
         "lateral": 22.473226289032798,
-        "steeringGain": 24.5866579298917
+        "steeringGain": 24.586657929891896
       },
       {
         "speed": 55,

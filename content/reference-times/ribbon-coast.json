@@ -7,12 +7,12 @@
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "40164d1ce28ce1942ebe7b0b2a4508bf1917fb253d26187beeca565d3ffbcb83",
-      "initialSeconds": 36.2646186968431,
+      "initialSeconds": 36.264618696843094,
       "after": [
-        ["coast-CP1", [33.79874680737025]],
-        ["coast-CP2", [36.83102763940464]],
-        ["coast-CP3", [37.90728486318356]],
-        ["coast-CP4", [24.03020800029782]]
+        ["coast-CP1", [33.79874680737023]],
+        ["coast-CP2", [36.83102763940458]],
+        ["coast-CP3", [37.90728486318348]],
+        ["coast-CP4", [24.030208000297705]]
       ],
       "schedule": {
         "start": {
