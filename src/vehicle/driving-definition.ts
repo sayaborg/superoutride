@@ -1,12 +1,13 @@
 import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
-import type { SteeringReference } from './physics/vehicle-calibration.js';
+import type { SteeringReference } from './steering-rule.js';
 
 /** Saved-form game-wide design data; no converted angles, rates or force-law coefficients. */
 export interface DrivingDefinition {
   readonly maxRoadWheelSteerDegrees: number;
   readonly steeringTraversalSeconds: number;
+  /** The default steering rule's reference position. */
   readonly steeringReference: SteeringReference;
-  /** The fraction of the front tire's lateral force bound that full steering input reaches. */
+  /** The default steering rule's fraction of the front tire's lateral force bound that full steering input reaches. */
   readonly steeringUtilization: number;
   readonly fuelCutRedlineMargin: number;
   readonly idleFrictionMeanEffectivePressureBar: number;
@@ -44,5 +45,5 @@ export interface DrivingDefinition {
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: 'superoutride.driving-definition';
-  readonly version: 17;
+  readonly version: 18;
 }

@@ -9,6 +9,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createRenderMeasurements } from '../../src/view/renderer.js';
 import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
+import { driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
@@ -31,6 +32,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const sprites = createVehicleSprites(entry);
     const model = createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT);
+    const steering = driverSteering(definitions.driving.compiledDriving.defaultSteering, model);
     // The player's grid slot, as a product Session places it.
     const slot = course.gates.grid.at(-1);
     const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
@@ -38,7 +40,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       target = createLogicalFrame();
     const player = { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach };
     for (let frame = 0; frame < 3; frame++) {
-      updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false });
+      updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false }, steering);
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, 'FACING');
       target.pixels.fill(0);
       const result = createRenderMeasurements();

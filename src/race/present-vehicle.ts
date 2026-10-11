@@ -3,6 +3,7 @@ import type { Vec3 } from '../core/vector3.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import type { createEnvelopeDriverWorkspace, EnvelopeDriver } from './envelope-driver.js';
 import type { LaneIntent, VehicleSighting } from './lane-following.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -46,6 +47,8 @@ export interface PresentVehicle {
   readonly step: {
     readonly state: RecoveryState;
     input: DrivingInput;
+    /** The steering rule of whoever drives the vehicle this step. */
+    steering: DriverSteering;
     readonly place: (s: number) => RecoveryTarget;
     readonly externalForce: Readonly<Vec3>;
     /** Whether a fixed object holds the vehicle this step; the race writes it for recovery. */
@@ -55,11 +58,15 @@ export interface PresentVehicle {
 
 const IDLE: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
 
-/** A present vehicle over `actor`, driven by `driving` (null for none), recovering to the place `place` resolves. */
+/**
+ * A present vehicle over `actor`, driven by `driving` (null for none) by the steering rule `steering` until a step names
+ * another, recovering to the place `place` resolves.
+ */
 export function createPresentVehicle(
   id: string,
   actor: VehicleActor,
   driving: VehicleDriving | null,
+  steering: DriverSteering,
   place: (self: PresentVehicle, s: number) => RecoveryTarget,
 ): PresentVehicle {
   const contactForce = { x: 0, y: 0, z: 0 };
@@ -82,6 +89,7 @@ export function createPresentVehicle(
         return present.actor.recovery;
       },
       input: IDLE,
+      steering,
       place: (s: number) => place(present, s),
       externalForce: contactForce,
       blocked: false,
@@ -100,14 +108,20 @@ export function presentTarget(present: PresentVehicle): number {
 }
 
 /**
- * One fixed step of a present vehicle under `input`: its ordinary mechanics with recovery, from its position at the
+ * One fixed step of a present vehicle under `input` and the steering rule `steering` of whoever drives it: its ordinary mechanics with recovery, from its position at the
  * step's start (`previous`). It records whether the step recovered it, so contacts sweep nothing to a recovered place;
  * every other recovery placement (a return to the legal road, a manual recovery) records it the same way.
  */
-export function advancePresentVehicle(world: VehicleWorld, body: PresentVehicle, input: DrivingInput): void {
+export function advancePresentVehicle(
+  world: VehicleWorld,
+  body: PresentVehicle,
+  input: DrivingInput,
+  steering: DriverSteering,
+): void {
   const { previous, vehicle } = body;
   previous.s = vehicle.course.s;
   previous.l = vehicle.course.l;
   body.step.input = input;
+  body.step.steering = steering;
   body.recovered = advanceVehicleWithRecovery(world, vehicle, body.model, body.step) !== null;
 }

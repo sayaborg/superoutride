@@ -70,29 +70,6 @@ Implement the stages in order. Each PR's restart instructions supply its detaile
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
-## Steering reference comparison
-
-DR-2 and DR-2b deliver three steering references side by side for comparison on real devices: the driving definition's
-`steeringReference` (`center`, delivered, `front` or `turn`) and the front tire's utilization at full input
-`steeringUtilization` (X, delivered at 100%), switched with DEV's STEERING group
-([Vehicle physics](vehicle-physics.md#actuators-and-steering)). To check on devices, by car and by bike:
-
-- With `front`, the X at which lifting off at full steering stays settled (on the desktop copy: 95% oscillates, 90%
-  nearly settles, 85% settles; the GOLF GTI 16V still sways slightly at 90%).
-- With `front`, the rotation when steering while braking: it stays large as X falls (about 61 degrees at 70%).
-- With `front`, the low-speed response: a 0.5 s key press at 30 km/h turns the path by about 73–89 degrees (about 13
-  degrees with `center`).
-- With `turn`, the X at which lifting off at full steering stays settled, and the rotation when braking (on the desktop
-  copy, TESTAROSSA at 126 km/h: lifting off swings back and forth by about 19 degrees at 100%, about 9 at 95% and 4 at
-  90%; braking fully for 0.5 s reaches about 59, 46 and 40 degrees), the lateral use of the limit at full steering
-  (about 98/93% at 50/134 km/h at 100%), the turning radius from a stop (about 1.6 m) and the yaw rate's overshoot
-  when steering at once (about 82% at 189 km/h).
-- The same checks on the bikes (VFR750R at 107 km/h with `turn`: 100% swings by about 25 degrees, 95% sways by about
-  16, 90% settles near 11 and 85% near 8).
-
-Once one reference is chosen: **DR-3** removes the references not chosen, with their switch and the
-`steeringReference` field.
-
 ## Audit 2 leftovers
 
 Requirements left from the second design audit, by when they are taken up:
@@ -265,46 +242,46 @@ and switching is a cut.
   two-wheeler bank count (currently 5) is still to decide before producing final bike art. The sprite set format
   declares both as data.
 
-| Area             | Decision or future capability                                                                                                                                                                                        |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                                                                   |
-| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                                                                                      |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                      |
-| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                        |
-| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                                |
-| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                         |
-| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                                       |
-| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                                                                       |
-| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                                                                               |
-| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                                                                                |
-| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                                                                            |
-| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                                                                                   |
-| Drivers          | Whether steering lookahead and response change: a lane change at about 47 m/s overshoots by about 1.7 m (with the rival racing line)                                                                                 |
-| Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                        |
-| Courses          | Whether RIBBON ROUGH stays an evaluation course or changes shape: drivers leave it at a kinked crest and on short narrow waves                                                                                       |
-| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                                   |
-| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                                    |
-| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                             |
-| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                     |
-| Front end        | Attract demo idle time                                                                                                                                                                                               |
-| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                                                             |
-| HUD              | Where the vehicle-state elements go now that the player's picture reaches below its base point's row (the steering picture lies over a generated car's tail)                                                         |
-| HUD              | Whether HUD text has a backing (none today)                                                                                                                                                                          |
-| Steering         | Whether the steering limit, measured from the travel direction, leaves enough authority while yawing: steady cornering peaks near 2.3 G instead of 2.4 G and a 7 m lane change at 240 km/h overshoots (real devices) |
-| Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                         |
-| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                 |
-| Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                              |
-| Vehicle art      | Two-wheeler pictures: whether the rider is part of the generated solid, and the bank axis and base point                                                                                                             |
-| Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                          |
-| Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                                 |
-| Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                         |
-| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                                  |
-| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                                |
-| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                                   |
-| Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                        |
-| Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                                    |
-| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                             |
-| Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)                                                                                    |
+| Area             | Decision or future capability                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                                                           |
+| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                                                                              |
+| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                              |
+| Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                |
+| Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                        |
+| Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                 |
+| Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                               |
+| Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                                                               |
+| Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                                                                       |
+| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                                                                        |
+| Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                                                                    |
+| Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                                                                           |
+| Drivers          | Whether steering lookahead and response change: a lane change at about 47 m/s overshoots by about 1.7 m (with the rival racing line)                                                                         |
+| Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                |
+| Courses          | Whether RIBBON ROUGH stays an evaluation course or changes shape: drivers leave it at a kinked crest and on short narrow waves                                                                               |
+| Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                           |
+| Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                            |
+| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |
+| Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                             |
+| Front end        | Attract demo idle time                                                                                                                                                                                       |
+| HUD              | Layout of the HUD elements, the vehicle-state elements included (real-device evaluation)                                                                                                                     |
+| HUD              | Where the vehicle-state elements go now that the player's picture reaches below its base point's row (the steering picture lies over a generated car's tail)                                                 |
+| HUD              | Whether HUD text has a backing (none today)                                                                                                                                                                  |
+| Steering         | Whether the default steering rule keeps a 7 m lane change at 240 km/h from overshooting: the cone-row scenario approaching from 120 m knocks 7 of its 10 objects, so it approaches from 160 m (real devices) |
+| Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                 |
+| Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                         |
+| Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                      |
+| Vehicle art      | Two-wheeler pictures: whether the rider is part of the generated solid, and the bank axis and base point                                                                                                     |
+| Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                  |
+| Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                         |
+| Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                 |
+| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                          |
+| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                        |
+| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                           |
+| Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
+| Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
+| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                     |
+| Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)                                                                            |
 
 ### Selected circuits
 

@@ -19,6 +19,7 @@ import {
 import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuatorState } from './driving-actuator.js';
 import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
+import type { DriverSteering } from './vehicle-calibration.js';
 import { effectiveTireLoad, lateralSlipAtDemand } from './tire-friction-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
@@ -152,12 +153,14 @@ const NO_EXTERNAL_FORCE: Readonly<Vec3> = Object.freeze({ x: 0, y: 0, z: 0 });
  * and idle holding still bounding the opening. The next free step uses the fixed capacity again.
  * `externalForce` is a world force (N) from outside the vehicle, held through the step: it acts at the centre of mass,
  * so it adds no moment, and every substep integrates it with the vehicle's own forces. A held vehicle ignores it.
+ * `steering` is the steering rule of whoever drives the vehicle this step.
  */
 export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
   input: DrivingInput,
+  steering: DriverSteering,
   held = false,
   externalForce: Readonly<Vec3> = NO_EXTERNAL_FORCE,
 ): void {
@@ -186,7 +189,8 @@ export function updateVehicle(
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
-  const { maxRoadWheelSteer, reference, utilization, limitDemand } = model.steering;
+  const { maxRoadWheelSteer } = model.steering;
+  const { lever, utilization, limitDemand } = steering;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
@@ -203,29 +207,20 @@ export function updateVehicle(
       vehicle.course.s,
       workspace.front,
     );
-    // The driver's input is a fraction of the steering limit: the front tire's pure-lateral slip at the steering
-    // utilization on the material under the front wheel (unit grip where there is none), as an angle from the travel
-    // direction of the reference point. `turn` adds the front axle's angle on the tightest steady flat turn at the
-    // utilization and the current speed.
+    // The driver's input sets the front tire's pure-lateral slip at the steering utilization on the material under the
+    // front wheel (unit grip where there is none), measured from the front reach point's travel direction; the lever
+    // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for.
     const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
+    const askedYawRate =
+      (vehicle.actuator.steering * utilization * grip * model.tire.muY * VEHICLE_GRAVITY) /
+      planarSpeed(body, STEERING_LOW_SPEED_REGULARIZATION);
     const travelDirection = vehicleTravelDirection(
       body,
-      reference === 'front' ? frontBeforeSteer.reachVelocity : body.velocity,
+      frontBeforeSteer.reachVelocity,
+      lever * (vehicle.yawRate - askedYawRate),
       STEERING_LOW_SPEED_REGULARIZATION,
     );
-    const slipAngle = Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand));
-    const limit = Math.min(
-      maxRoadWheelSteer,
-      reference === 'turn'
-        ? slipAngle +
-            steadyTurnFrontAngle(
-              body,
-              compiledVehicle.frontAxle,
-              utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
-              STEERING_LOW_SPEED_REGULARIZATION,
-            )
-        : slipAngle,
-    );
+    const limit = Math.min(maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand)));
     const automaticMax = maxRoadWheelSteer - limit;
     vehicle.frontSteerAngle = clamp(travelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
@@ -356,28 +351,23 @@ export function updateVehicle(
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
-/**
- * The front axle's angle `atan(frontAxle/Rmin)` on the tightest steady turn at the body's planar speed, where
- * `Rmin = V^2/lateralAcceleration` with `V^2` regularized at standstill.
- */
-function steadyTurnFrontAngle(
-  body: BodyKinematics,
-  frontAxle: number,
-  lateralAcceleration: number,
-  lowSpeedRegularization: number,
-): number {
-  const longitudinal = dot3(body.velocity, body.forward);
-  const lateral = dot3(body.velocity, body.right);
-  return Math.atan(
-    (frontAxle * lateralAcceleration) /
-      (longitudinal * longitudinal + lateral * lateral + lowSpeedRegularization * lowSpeedRegularization),
-  );
+/** The body's planar speed, regularized at standstill: `hypot(bodyForwardSpeed, bodyLateralSpeed, v0)`. */
+function planarSpeed(body: BodyKinematics, lowSpeedRegularization: number): number {
+  return Math.hypot(dot3(body.velocity, body.forward), dot3(body.velocity, body.right), lowSpeedRegularization);
 }
 
-/** The travel direction of a point moving at `velocity`, in the body-pitch plane; finite and zero at rest. */
-function vehicleTravelDirection(body: BodyKinematics, velocity: Vec3, lowSpeedRegularization: number): number {
+/**
+ * The travel direction of a point moving at `velocity`, its lateral speed less `lateralOffset`, in the body-pitch plane;
+ * finite and zero at rest.
+ */
+function vehicleTravelDirection(
+  body: BodyKinematics,
+  velocity: Vec3,
+  lateralOffset: number,
+  lowSpeedRegularization: number,
+): number {
   const longitudinal = dot3(velocity, body.forward);
-  const lateral = dot3(velocity, body.right);
+  const lateral = dot3(velocity, body.right) - lateralOffset;
   return Math.atan2(lateral, Math.hypot(longitudinal, lowSpeedRegularization));
 }
 

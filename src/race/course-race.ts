@@ -28,6 +28,8 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
 import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
+import { driverSteering } from '../vehicle/steering-rule.js';
 import {
   createCompetitorObservation,
   writeCompetitorObservation,
@@ -80,12 +82,18 @@ export function createCourseRace(options: {
   const { initialSpeed } = configuration;
   const { runtime } = options;
   // Entries sharing a vehicle share its model, and unpaced entries sharing an envelope share its fixed driver.
+  // Every driver but the player drives by the default steering rule, resolved once on each model's vehicle.
   const models = new Map<SessionEntry['vehicle'], VehicleModel>();
+  const defaultSteerings = new Map<VehicleModel, Readonly<DriverSteering>>();
   const modelOf = (vehicle: SessionEntry['vehicle']) => {
     let model = models.get(vehicle);
-    if (!model) models.set(vehicle, (model = createVehicleModel(vehicle, SIM_DT)));
+    if (!model) {
+      models.set(vehicle, (model = createVehicleModel(vehicle, SIM_DT)));
+      defaultSteerings.set(model, driverSteering(vehicle.drivingDefinition.compiledDriving.defaultSteering, model));
+    }
     return model;
   };
+  const defaultSteering = (model: VehicleModel) => defaultSteerings.get(model)!;
   // Rival driving exists only with an envelope; Session resolution admits no rivals without one. An entry with a pace
   // ratio drives its own driver at the utilization and speed cap its pace sets; the others share their envelope's
   // fixed driver, which the Session compiled.
@@ -129,7 +137,9 @@ export function createCourseRace(options: {
     // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of the lane nearest it.
     const recoveryIntent = driving?.intent ?? null;
     const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent, body.vehicle.course.l);
-    const body = createPresentVehicle(id, actor, driving, (self, s) => vacantPlace(self, s, recoveryLane));
+    const body = createPresentVehicle(id, actor, driving, defaultSteering(actor.model), (self, s) =>
+      vacantPlace(self, s, recoveryLane),
+    );
     return {
       id,
       /** Its present vehicle. */
@@ -325,11 +335,12 @@ export function createCourseRace(options: {
   const holdReady = (input: DrivingInput) => {
     for (const body of activeBodies) {
       body.step.input = body === activeBodies[0] ? input : idle;
-      updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, true);
+      updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, body.step.steering, true);
     }
     startPhase.advance();
   };
-  const move = (body: PresentVehicle, input: DrivingInput) => advancePresentVehicle(runtime.readers, body, input);
+  const move = (body: PresentVehicle, input: DrivingInput, steering = defaultSteering(body.model)) =>
+    advancePresentVehicle(runtime.readers, body, input, steering);
   const { legalRecovery } = placement;
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
@@ -340,6 +351,7 @@ export function createCourseRace(options: {
     runtime,
     forks,
     modelOf,
+    defaultSteering,
     placement,
     laneDriving,
     view: { appearanceLine, outOfView },

@@ -6,6 +6,7 @@ import { compileTireCharacteristics, type CompiledTireCharacteristics } from './
 import type { TorqueProtectionPolicy } from './torque-protection.js';
 import { compileBodyContact, type CompiledBodyContact } from './body-contact.js';
 import { createVehicleSteeringCalibration, type CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
+import { createSteeringRule, type SteeringRule } from '../steering-rule.js';
 
 const PASCALS_PER_BAR = 1e5;
 // Pitch protection measures a small attitude against the road line; beyond this it is not a limit.
@@ -16,7 +17,10 @@ export interface CompiledDriving {
   readonly powertrain: Readonly<PowertrainRules>;
   /** Steering, throttle and brake response rates; the only steering rate. */
   readonly actuator: Readonly<CompiledDrivingActuators>;
+  /** The steering rack. */
   readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
+  /** The default steering rule: every driver but the player drives by it, and the player starts from it. */
+  readonly defaultSteering: Readonly<SteeringRule>;
   /** The game-wide tire, shared by both stations. */
   readonly tire: Readonly<CompiledTireCharacteristics>;
   /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
@@ -119,18 +123,12 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     }),
     actuator,
     steering: withDefinitionPath(
-      () =>
-        createVehicleSteeringCalibration(
-          (definition.maxRoadWheelSteerDegrees * Math.PI) / 180,
-          definition.steeringReference,
-          definition.steeringUtilization,
-          tire,
-        ),
-      {
-        maxRoadWheelSteer: 'maxRoadWheelSteerDegrees',
-        reference: 'steeringReference',
-        utilization: 'steeringUtilization',
-      },
+      () => createVehicleSteeringCalibration((definition.maxRoadWheelSteerDegrees * Math.PI) / 180),
+      { maxRoadWheelSteer: 'maxRoadWheelSteerDegrees' },
+    ),
+    defaultSteering: withDefinitionPath(
+      () => createSteeringRule(definition.steeringReference, definition.steeringUtilization),
+      { reference: 'steeringReference', utilization: 'steeringUtilization' },
     ),
     tire,
     suspensionProgression: definition.suspensionProgression,

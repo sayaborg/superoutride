@@ -9,6 +9,7 @@ import {
   type VehicleState,
 } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import { createAutomaticPowertrainState } from '../vehicle/physics/automatic-powertrain.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
@@ -99,7 +100,7 @@ interface RecoveryOptions {
 }
 
 /**
- * One fixed gameplay step under the step's input and external force (N, world). `blocked` says whether a fixed object
+ * One fixed gameplay step under the step's input, its driver's steering rule and external force (N, world). `blocked` says whether a fixed object
  * (a solid sprite or a wall's free end) pushes the vehicle this step. Recovery observes the completed step; physics
  * faults stay visible.
  */
@@ -110,12 +111,18 @@ export function advanceVehicleWithRecovery(
   {
     state,
     input,
+    steering,
     place,
     externalForce,
     blocked = false,
-  }: RecoveryOptions & { input: DrivingInput; externalForce: Readonly<Vec3>; blocked?: boolean },
+  }: RecoveryOptions & {
+    input: DrivingInput;
+    steering: DriverSteering;
+    externalForce: Readonly<Vec3>;
+    blocked?: boolean;
+  },
 ): RecoveryReason | null {
-  updateVehicle(world, vehicle, model, input, false, externalForce);
+  updateVehicle(world, vehicle, model, input, steering, false, externalForce);
   return updateRecovery(world, vehicle, model, { state, place }, blocked);
 }
 
