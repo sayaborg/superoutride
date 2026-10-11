@@ -15,7 +15,9 @@ export function createCourseWorld(
   window: CourseLoadingWindow,
 ) {
   if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
-  if (Math.min(...gates.grid.map((slot) => slot.at.s)) < window.cameraDistance)
+  // Every slot of either grid, which a Session may start from.
+  const stations = [...gates.grid, ...(gates.bikeGrid ?? [])].map((slot) => slot.at.s);
+  if (Math.min(...stations) < window.cameraDistance)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   const coverage = resolveLoadingCoverage(window, vehicles);
   // Before its lock, a fork's parent Section alone carries the forward coverage.
@@ -27,6 +29,6 @@ export function createCourseWorld(
     for (const link of current.outgoing) reached.add(link.to.section);
   }
   const runtime = createRouteRuntime(section, coverage);
-  runtime.refresh(Math.min(...gates.grid.map((slot) => slot.at.s)), Math.max(...gates.grid.map((slot) => slot.at.s)));
+  runtime.refresh(Math.min(...stations), Math.max(...stations));
   return runtime;
 }

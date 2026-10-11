@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 48;
+const COURSE_DOCUMENT_VERSION = 49;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -212,10 +212,22 @@ export interface CourseLandmarkDocument {
   readonly at: CoursePosition;
 }
 
+export interface CourseGridSlotDocument {
+  readonly at: CoursePosition;
+  readonly lane: string;
+}
+
 export type CourseGateDocument =
   | CourseLandmarkDocument
-  /** The grid: each slot a lane at a Position, its lateral the lane's centre. */
-  | { readonly kind: 'start'; readonly grid: readonly { readonly at: CoursePosition; readonly lane: string }[] }
+  /**
+   * The grids: each slot a lane at a Position, its lateral the lane's centre. `grid` serves every Session; `bikeGrid`,
+   * when not null, serves the Sessions whose competitors all ride bikes.
+   */
+  | {
+      readonly kind: 'start';
+      readonly grid: readonly CourseGridSlotDocument[];
+      readonly bikeGrid: readonly CourseGridSlotDocument[] | null;
+    }
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
 /** Position-free course rules; series own ARCADE settings. */
@@ -673,18 +685,21 @@ function section(value: unknown, path: string): SectionDocument {
 function gate(value: unknown, path: string): CourseGateDocument {
   const kind = value && typeof value === 'object' ? (value as Record<string, unknown>).kind : undefined;
   if (kind === 'start') {
-    const v = readRecord(value, path, ['kind', 'grid']);
-    return Object.freeze({
-      kind,
-      grid: readArray(
-        v.grid,
-        `${path}/grid`,
+    const v = readRecord(value, path, ['kind', 'grid', 'bikeGrid']);
+    const grid = (slots: unknown, at: string) =>
+      readArray(
+        slots,
+        at,
         (item, at) => {
           const slot = readRecord(item, at, ['at', 'lane']);
           return Object.freeze({ at: position(slot.at, `${at}/at`), lane: readString(slot.lane, `${at}/lane`, ID) });
         },
         { max: COURSE_DOCUMENT_LIMITS.startGridSlots },
-      ),
+      );
+    return Object.freeze({
+      kind,
+      grid: grid(v.grid, `${path}/grid`),
+      bikeGrid: v.bikeGrid === null ? null : grid(v.bikeGrid, `${path}/bikeGrid`),
     });
   }
   if (kind === 'checkpoint' || kind === 'finish') {

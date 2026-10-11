@@ -74,6 +74,11 @@ that entry stands (Turbo OutRun); with "last" the player starts in the last slot
 their order in front. Rivals avoid repeating a vehicle/color pair where the entries allow.
 Cars and motorcycles may share a field.
 
+**Grid.** Cars start from a staggered grid of two columns. A course may also have a grid for motorcycles, three a row
+in steps with the pole at the front on the left, as in the Tsukuba road racing championship; a field of motorcycles
+alone starts from it, and a field with a car from the car grid, in every mode. A grid may hold more slots than sixteen;
+a field uses the front sixteen, and its last slot is the sixteenth.
+
 **Stage interval and appearance.** An entry takes part in a stage interval. An entry starting at the
 first stage stands in its grid slot. An entry joining later appears ahead of the player by its ahead
 distance when the player enters its first stage, moving at its driver's planned speed there. After its

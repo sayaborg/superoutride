@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 48,
+  "version": 49,
   "name": "OUTRUN TRIAL A",
   "entry": "stage-1",
   "maxLaps": 1,
@@ -2393,7 +2393,8 @@
               },
               "lane": "c"
             }
-          ]
+          ],
+          "bikeGrid": null
         },
         {
           "kind": "checkpoint",

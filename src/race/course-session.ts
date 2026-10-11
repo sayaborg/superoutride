@@ -7,6 +7,7 @@ import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { courseStartGrid, type CompiledGridSlot } from '../course/compiler/course-rules.js';
 import type { AheadAppearance, SeriesClass, StageInterval } from '../content/series-catalog.js';
 import type { SessionConfiguration } from './session-configuration.js';
 import { drawRivalPairs, rivalPoolPairs, type VehicleColor } from './free-play-field.js';
@@ -15,8 +16,6 @@ import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { KILOMETERS_PER_HOUR_PER_METER_PER_SECOND } from '../vehicle/physics/vehicle-definitions.js';
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
-
-type GridSlot = CompiledCourse['gates']['grid'][number];
 
 /**
  * A Session vehicle with its envelope; the envelope is null only for a player without one (a DEV-tuned vehicle, or a
@@ -34,7 +33,7 @@ export interface EntryVehicle {
 export interface SessionEntry extends EntryVehicle {
   readonly id: string;
   /** The grid slot of a competitor taking part from STAGE 1; null for one appearing ahead. */
-  readonly slot: GridSlot | null;
+  readonly slot: CompiledGridSlot | null;
   readonly ahead: AheadAppearance | null;
   /** A color of the vehicle's sprite set. */
   readonly color: string;
@@ -87,6 +86,13 @@ export function sessionDemand(
 
 const rivalId = (index: number) => `RIVAL_${String(index + 1).padStart(2, '0')}`;
 
+// The grid a field starts from: the course's bike grid when every competitor rides a bike (`courseStartGrid`).
+const fieldGrid = (course: CompiledCourse, field: readonly EntryVehicle[]) =>
+  courseStartGrid(
+    course.gates,
+    field.every((entry) => entry.vehicle.vehicleDefinition.listing.form === 'bike'),
+  );
+
 // The ARCADE class entry the player takes: the rearmost grid entry of its vehicle.
 const ownEntry = (arcade: SeriesClass, vehicleId: string) =>
   arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
@@ -112,8 +118,10 @@ export function sessionPlayerColor(
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
  * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
- * Session seed; TIME TRIAL stands the player alone in the grid's last slot, without traffic. Traffic candidates come
- * from `field.vehicleOf` with their drivers, compiled once. The player's color is `sessionPlayerColor`'s.
+ * Session seed; TIME TRIAL stands the player alone in the grid's last slot, without traffic. The grid is the slots
+ * the field's vehicles start from (`courseStartGrid`), whose last is the sixteenth or a shorter grid's last. Traffic
+ * candidates come from `field.vehicleOf` with their drivers, compiled once. The player's color is
+ * `sessionPlayerColor`'s.
  */
 export function resolveCourseSession(
   course: CompiledCourse,
@@ -248,11 +256,12 @@ function arcadeEntries(
   playerColor: string,
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
-  const { grid } = course.gates;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const gridEntries = arcade.entries.filter((entry) => entry.slot !== null);
   const own = ownEntry(arcade, playerVehicleId)!;
   const others = arcade.entries.filter((entry) => entry !== own);
+  const rivals = others.map((entry) => vehicleOf(entry.vehicle));
+  const grid = fieldGrid(course, [player, ...rivals]);
   // `own` keeps every grid entry's slot; `last` gives the player the rearmost of the grid entries' slots and the
   // other grid entries, in order, the slots in front of it. Entries appearing ahead have no slot.
   const slots = gridEntries.map((entry) => entry.slot!);
@@ -278,7 +287,7 @@ function arcadeEntries(
         color: entry.color,
         pace: entry.pace,
         stages: entry.stages,
-        ...vehicleOf(entry.vehicle),
+        ...rivals[index]!,
       }),
     ),
   ]);
@@ -297,10 +306,11 @@ function freePlayEntries(
   pool: readonly VehicleColor[],
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly SessionEntry[] {
-  const { grid } = course.gates;
-  const first = grid.length - 1 - rivalCount;
   const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
   const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
+  const rivals = drawn.map((pair) => vehicleOf(pair.vehicle));
+  const grid = fieldGrid(course, [player, ...rivals]);
+  const first = grid.length - 1 - rivalCount;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
@@ -319,7 +329,7 @@ function freePlayEntries(
         color: pair.color,
         pace: null,
         stages: null,
-        ...vehicleOf(pair.vehicle),
+        ...rivals[index]!,
       }),
     ),
   ]);

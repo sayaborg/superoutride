@@ -349,7 +349,12 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
       const source = documents.find((s) => s.id === series.id)!;
       return series.classes.map((settings) => {
         const course = compiledCourses.find((c) => c.id === settings.course)!;
-        return Object.freeze({ course, settings: requireLoaded(admitSeriesClass(settings, course, source.path)) });
+        return Object.freeze({
+          course,
+          settings: requireLoaded(
+            admitSeriesClass(settings, course, definitions.value.definitions.vehicles, source.path),
+          ),
+        });
       });
     });
     return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };

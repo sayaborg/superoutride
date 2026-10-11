@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 48,
+  format: "superoutride.course", version: 49,
   name, entry, maxLaps,
   sections, links
 }
@@ -323,17 +323,21 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 
 | Kind         | Fields after `kind` | Placement                                                                                                         |
 | ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `start`      | `grid: [{at,lane}]` | Exactly one, in the entry Section, when race settings exist                                                       |
+| `start`      | `grid`, `bikeGrid`  | Exactly one, in the entry Section, when race settings exist                                                       |
 | `checkpoint` | `id`, `at`          | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
 | `finish`     | `id`, `at`          | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
 | `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 | `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 
-Grid slots are listed in grid order, from the front of the grid to its back: their route s never increases along
-the list. A Session's field takes the rearmost slots: the rivals in order, then the player in the last slot. Each
-slot must be in a lane wider than zero there, on supported
-material, at/after entry and before the first checkpoint, finish or lock gate. The grid must hold the
-Session entries; its capacity is one player plus the product maximum rival count. Starting velocity is zero.
+A start gate has two grids, each a list of slots `{at, lane}`: `grid` serves every Session, and `bikeGrid`, when it
+is not null, serves a Session whose competitors all ride bikes, in place of `grid`; a Session with a car starts from
+`grid`. Which one a Session starts from thus depends only on its field's vehicles, in every mode (`courseStartGrid`).
+Slots are listed in grid order, from the front of the grid to its back: their route s never increases along the list.
+A grid may hold more slots than a Session's sixteen competitors (`startGridSlots`, 32); a Session uses only its first
+sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A Session's field takes the
+rearmost of the slots it uses: the rivals in order, then the player in its last slot. Each slot of either grid must be
+in a lane wider than zero there, on supported material, at/after entry and before the first checkpoint, finish or lock
+gate; a grid has at least one slot. The grid a Session starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
 A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
@@ -346,8 +350,9 @@ non-circuits use 1. [Series](#series-documents) own ARCADE settings.
 A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
 and time budgets for those courses only, and only a class offers ARCADE and the checkpoint clock. An untimed course runs
 FREE PLAY and TIME TRIAL Sessions. Compilation requires the start, grid and finish coverage described
-above for every course; the grid holds at least the player. Compiled `rules` retain `maxLaps`;
-compiled `gates` provide the resolved grid and per-Section landmark intervals to race and tools.
+above for every course; each grid holds at least the player. Compiled `rules` retain `maxLaps`;
+compiled `gates` provide the resolved grids (`grid`, and `bikeGrid` or null) and per-Section landmark intervals to race
+and tools.
 
 ### Null meanings
 
@@ -363,6 +368,7 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | Sprite body `movable`            | A fixed object                                            |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
 | Solid wall `freeStart`/`freeEnd` | That end joins a course limit or another solid wall       |
+| Start `bikeGrid`                 | `grid` serves every Session, a field of bikes included    |
 
 ### Numeric and resource domains
 
@@ -417,7 +423,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `coefficientBytes`                                              |              1 GiB | Moving-edge 21 km probe used about 121 MiB in one phase; both phases measure 1.9–2.0× on the RIBBON courses, about 242 MiB; ×2 length and ×2 Strip complexity, rounded up |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                                                                     |
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                                                                       |
-| Start gate `startGridSlots`                                             |                 16 | `SESSION_RULE_LIMITS.competitors`; sixteen competitors, the player included: a gameplay capacity                                                                          |
+| Start gate `startGridSlots` (each grid)                                 |                 32 | `SESSION_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a Session uses                                                          |
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                                                                                 |
 | `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                                                                    |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                                                                                 |
@@ -663,7 +669,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 47, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 48, incorporating Link recipe v4, physical
 recipe v8, image-source recipe v3 and appearance recipe v14. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 
@@ -949,7 +955,10 @@ of the class has at least one grid entry, which the player can take. `playerSlot
 maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
 manifest alike, against the delivered course IDs and the vehicle catalog. A course may be run by several classes of
 one or several series. A class is admitted against its compiled
-course: `laps` within `maxLaps`, every entry's slot within the grid, every ahead lane below the fewest lanes of the
+course: `laps` within `maxLaps`, every entry's slot within the slots its field uses of the grid it starts from (the
+bike grid when every entry is a bike and the course has one), no bike among the candidate vehicles of a field that is
+not all bikes on a course with a bike grid (below, [Measured products](#measured-products)), every ahead lane below the
+fewest lanes of the
 course's Sections, and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
 Session admits the class it drives.
@@ -1007,7 +1016,8 @@ budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
 slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. In FREE PLAY and TIME TRIAL the
-player stands in the grid's last slot and the rivals in the slots directly in front of it, `RIVAL_01` frontmost.
+player stands in the last slot of the grid its field starts from and the rivals in the slots directly in front of it,
+`RIVAL_01` frontmost.
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
 pool vehicle's sprite set declares) by the Session seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
@@ -1107,7 +1117,10 @@ A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha
 
 A reference run depends on the course, the vehicle and the procedure alone: it drives the course's `maxLaps` and a
 Session reads the laps it runs, so no series or class value enters it, and classes running the same course and
-vehicle share one measurement. Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
+vehicle share one measurement. It starts, alone, from the last slot of the grid its vehicle starts from: a bike's from
+the course's bike grid, when it has one. A class whose player could start from the other grid (a bike candidate in a
+field with a car, on a course with a bike grid) would need a second measurement, so series admission refuses it and the
+grid needs no place in the identities. Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
 `procedureSha256` (the reference run's identity) and `vehicles`: one entry per vehicle some class runs on the course,
 each once, in catalog order. An entry
 has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
@@ -1456,7 +1469,10 @@ Its plan follows the centreline of the circuit's own survey drawing, as straight
 2,044.96 m. Its profile follows the drawing's longitudinal section, scaled against 5 m elevation samples of the
 Geospatial Information Authority of Japan (5.1 m from lowest to highest). Lane widths follow the drawing's stations. The
 road has no cant. Its three Sections are the circuit's timing sectors, whose ends are the checkpoints and the finish;
-the grid stands after the control line, since a circuit's finish is the seam returning to its entry.
+the grid stands after the control line, since a circuit's finish is the seam returning to its entry. The car grid
+is 16 slots in two staggered columns 8 m apart, the pole in lane a (the left lane); the bike grid is 18 slots, three a
+row in lanes a, b and c from the left, each slot 3 m behind the one before (9 m a row, 51 m from the first to the
+last), its first at the car grid's pole. Bike grid slots lie at lane centres, about 5.7 m apart across.
 
 Its scenery follows K's own onboard recordings, in the state of the front-camera recording: landmark sprites are cut
 from their frames (sources and recipes under `content/sprite-sources/`), the sky is made from two of the front-camera
@@ -1506,11 +1522,11 @@ The content build delivers one course index (`superoutride.course-index` version
 without loading them. It lists every compiled course once, in build order (course file name order), as
 `{id, name, type, maxLaps, gridSlots}`: the course ID, the document's display name, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
-(1 to `startGridSlots`). Every value comes from the course
-document and its compilation. Admission requires exactly the delivered course entries of the manifest, each once,
-and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals that
-start from the grid fit it: at most its slots less the player's (`gridRivalCapacity`), which Session resolution checks
-and FREE PLAY OPTIONS offers; ARCADE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
+that every Session can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`). Every value comes from
+the course document and its compilation. Admission requires exactly the delivered course entries of the manifest, each
+once, and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals
+that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which Session
+resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; ARCADE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.
 
 ## Course loading

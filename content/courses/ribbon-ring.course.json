@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 48,
+  "version": 49,
   "name": "RIBBON RING",
   "entry": "ring-outward",
   "maxLaps": 3,
@@ -431,7 +431,8 @@
               "at": { "joint": "straight-1", "offset": 15 },
               "lane": "b"
             }
-          ]
+          ],
+          "bikeGrid": null
         },
         {
           "kind": "checkpoint",

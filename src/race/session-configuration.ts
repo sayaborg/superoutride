@@ -1,5 +1,6 @@
 import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { courseGridCapacity, courseStartGrid } from '../course/compiler/course-rules.js';
 import type { SeriesClass } from '../content/series-catalog.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
@@ -115,10 +116,18 @@ export function compileSessionConfiguration(
       };
     }
   }
-  // The grid holds the rivals that start from it: in ARCADE the entries with a slot, not those appearing ahead.
+  // The grid holds the rivals that start from it: in ARCADE the entries with a slot, not those appearing ahead, on the
+  // grid of the class's field; FREE PLAY's rivals, drawn later, on either grid.
+  const formOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!.listing.form;
+  const slots =
+    rules.mode === 'ARCADE'
+      ? courseStartGrid(
+          course.gates,
+          arcade!.entries.every((entry) => formOf(entry.vehicle) === 'bike'),
+        ).length
+      : courseGridCapacity(course.gates);
   const gridRivals =
     rules.mode === 'ARCADE' ? arcade!.entries.filter((entry) => entry.slot !== null).length - 1 : rules.rivalCount;
-  if (gridRivals > gridRivalCapacity(course.gates.grid.length))
-    throw new RangeError('The authored grid cannot hold this field');
+  if (gridRivals > gridRivalCapacity(slots)) throw new RangeError('The authored grid cannot hold this field');
   return Object.freeze({ ...choice, ...rules });
 }

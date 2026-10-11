@@ -14,6 +14,7 @@ import {
 } from '../core/admission.js';
 import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { courseStartGrid } from '../course/compiler/course-rules.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createCourseRoute } from '../course/course-route.js';
 import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR, type VehicleId } from '../vehicle/physics/vehicle-definitions.js';
@@ -374,16 +375,22 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 }
 
 /**
- * Admit a class against its compiled course: the laps fit the course's lap maximum, every entry's slot is in the grid,
- * every ahead entry's lane exists in every Section of the course, and each rank limit names a race gate of the course
- * with N below the field size. The build admits every class; a Session admits the class it drives.
+ * Admit a class against its compiled course and the vehicle catalog: the laps fit the course's lap maximum, every
+ * entry's slot is in the grid its field starts from (`courseStartGrid`), a field that is not all bikes has no bike
+ * candidate on a course with a bike grid (whose reference run starts from that grid), every ahead entry's lane exists
+ * in every Section of the course, and each rank limit names a race gate of the course with N below the field size. The
+ * build admits every class; a Session admits the class it drives.
  */
 export function admitSeriesClass(
   settings: SeriesClass,
   course: CompiledCourse,
+  vehicles: readonly CompiledVehicleDefinition[],
   document: string,
 ): AdmissionResult<SeriesClass> {
   const index = settings.series.classes.indexOf(settings);
+  const bike = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!.listing.form === 'bike';
+  const bikesOnly = settings.entries.every((entry) => bike(entry.vehicle));
+  const grid = courseStartGrid(course.gates, bikesOnly);
   return admit(document, () => {
     requireAdmission(
       settings.laps <= course.rules.maxLaps,
@@ -393,10 +400,19 @@ export function admitSeriesClass(
     );
     settings.entries.forEach((entry, i) =>
       requireAdmission(
-        entry.slot === null || entry.slot < course.gates.grid.length,
+        entry.slot === null || entry.slot < grid.length,
         'invalid_value',
         `/classes/${index}/entries/${i}/slot`,
         `The grid of ${course.id} has no slot ${entry.slot}`,
+      ),
+    );
+    // A bike's reference run, alone, starts from the bike grid; its class's field must start there too.
+    settings.vehicles.forEach((vehicle, i) =>
+      requireAdmission(
+        bikesOnly || course.gates.bikeGrid === null || !bike(vehicle),
+        'invalid_value',
+        `/classes/${index}/vehicles/${i}`,
+        `${vehicle} starts from the bike grid of ${course.id}, where only a field of bikes starts`,
       ),
     );
     const gates = new Set(
@@ -460,7 +476,12 @@ export async function loadSeriesCatalog(
 }
 
 /** A delivered class admitted against its delivered course. */
-export function loadSeriesClass(content: ContentDelivery, settings: SeriesClass, course: CompiledCourse): SeriesClass {
+export function loadSeriesClass(
+  content: ContentDelivery,
+  settings: SeriesClass,
+  course: CompiledCourse,
+  vehicles: readonly CompiledVehicleDefinition[],
+): SeriesClass {
   const document = content.manifest.files.find((file) => file.kind === 'series' && file.id === settings.series.id)!;
-  return requireLoaded(admitSeriesClass(settings, course, document.path));
+  return requireLoaded(admitSeriesClass(settings, course, vehicles, document.path));
 }

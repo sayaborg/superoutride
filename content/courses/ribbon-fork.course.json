@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 48,
+  "version": 49,
   "name": "RIBBON FORK",
   "entry": "junction-road",
   "maxLaps": 1,
@@ -541,7 +541,8 @@
               "at": { "joint": "straight-1", "offset": 15 },
               "lane": "b"
             }
-          ]
+          ],
+          "bikeGrid": null
         },
         {
           "kind": "lock",

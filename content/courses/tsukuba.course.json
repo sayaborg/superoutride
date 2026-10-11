@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 48,
+  "version": 49,
   "name": "TSUKUBA",
   "entry": "sector-1",
   "maxLaps": 30,
@@ -2599,6 +2599,80 @@
             },
             {
               "at": { "joint": "home-a", "offset": 8 },
+              "lane": "c"
+            }
+          ],
+          "bikeGrid": [
+            {
+              "at": { "joint": "t1-entry", "offset": -58.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -61.47 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -64.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -67.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -70.47 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -73.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -76.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -79.47 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -82.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -85.47 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -88.47 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "t1-entry", "offset": -91.47 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 92 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 89 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 86 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 83 },
+              "lane": "a"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 80 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "home-a", "offset": 77 },
               "lane": "c"
             }
           ]

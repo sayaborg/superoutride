@@ -12,6 +12,7 @@ import {
 import { COURSE_DOCUMENT_LIMITS } from '../course/course-limits.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { courseGridCapacity } from '../course/compiler/course-rules.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 import type { ContentManifest } from './content-manifest.js';
 import type { ContentDelivery } from './content-delivery.js';
@@ -23,7 +24,7 @@ export interface CourseIndexEntry {
   readonly name: string;
   readonly type: CompiledCourse['type'];
   readonly maxLaps: number;
-  /** The grid's slots: how many competitors, the player included, can start from it. */
+  /** How many competitors, the player included, every Session of the course can start (`courseGridCapacity`). */
   readonly gridSlots: number;
 }
 export type CourseIndex = readonly CourseIndexEntry[];
@@ -42,7 +43,7 @@ export function courseIndexDocument(courses: readonly CompiledCourse[]) {
       name: course.name,
       type: course.type,
       maxLaps: course.rules.maxLaps,
-      gridSlots: course.gates.grid.length,
+      gridSlots: courseGridCapacity(course.gates),
     })),
   };
 }
@@ -84,7 +85,7 @@ export function readCourseIndex(
       });
       const gridSlots = readNumber(entry.gridSlots, `${at}/gridSlots`, {
         min: 1,
-        max: COURSE_DOCUMENT_LIMITS.startGridSlots,
+        max: SESSION_RULE_LIMITS.competitors,
         integer: true,
       });
       return Object.freeze({ id, name, type, maxLaps, gridSlots });

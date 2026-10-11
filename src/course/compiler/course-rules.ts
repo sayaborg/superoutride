@@ -1,11 +1,18 @@
 import type { compileCourseTopology } from './course-links.js';
-import type { CourseDocument, CourseLandmarkDocument } from '../course-document.js';
+import type { CourseDocument, CourseGridSlotDocument, CourseLandmarkDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints } from '../course-geometry.js';
 import { courseBoundaryAt } from '../course-boundaries.js';
 import { courseRoadsAt } from '../course-lanes.js';
 import { stripSupportsInterval } from '../strip-material.js';
+import { SESSION_RULE_LIMITS } from '../session-rules.js';
 import type { CompiledSection } from './course-graph.js';
+
+/** A grid slot: its Position in the entry Section and its lateral, the lane's centre there. */
+export interface CompiledGridSlot {
+  readonly at: CompiledCoursePosition;
+  readonly l: number;
+}
 
 export interface CompiledCourseLandmark {
   readonly id: string;
@@ -106,36 +113,60 @@ export function compileCourseGates(
     return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
   });
   const surface = entry.material;
-  check(startGate.grid.length > 0, `${start.path}/grid`, 'Grid must contain the player');
   const first = intervals.find((i) => i.section === entry)!;
   const firstGate = Math.min(
     first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),
     entry.fork?.lock.s ?? Infinity,
   );
   // Grid order runs from the front of the grid to its back.
-  let front = Infinity;
-  const grid = startGate.grid.map((slot, i) => {
-    const position = resolve(entry, slot.at, `${start.path}/grid/${i}/at`);
-    check(
-      position.s >= 0 && position.s < firstGate,
-      `${start.path}/grid/${i}`,
-      'Grid must lie between entry and the first gate',
+  const compileGrid = (slots: readonly CourseGridSlotDocument[], path: string) => {
+    check(slots.length > 0, path, 'Grid must contain the player');
+    let front = Infinity;
+    return Object.freeze(
+      slots.map((slot, i): CompiledGridSlot => {
+        const position = resolve(entry, slot.at, `${path}/${i}/at`);
+        check(
+          position.s >= 0 && position.s < firstGate,
+          `${path}/${i}`,
+          'Grid must lie between entry and the first gate',
+        );
+        check(position.s <= front, `${path}/${i}`, 'Grid slots must be ordered from front to back');
+        front = position.s;
+        const lane = entry.lanes.byId.get(slot.lane);
+        requireCourse(lane !== undefined, `${path}/${i}/lane`, 'Unknown lane', 'unresolved_reference');
+        check(
+          courseBoundaryAt(lane.width, position.s) > 0,
+          `${path}/${i}/lane`,
+          'A grid slot lies in a lane wider than zero',
+        );
+        const l = courseBoundaryAt(lane.center, position.s);
+        check(surface.sample(position.s, l) !== null, `${path}/${i}`, 'Grid must be supported');
+        return Object.freeze({ at: position, l });
+      }),
     );
-    check(position.s <= front, `${start.path}/grid/${i}`, 'Grid slots must be ordered from front to back');
-    front = position.s;
-    const lane = entry.lanes.byId.get(slot.lane);
-    requireCourse(lane !== undefined, `${start.path}/grid/${i}/lane`, 'Unknown lane', 'unresolved_reference');
-    check(
-      courseBoundaryAt(lane.width, position.s) > 0,
-      `${start.path}/grid/${i}/lane`,
-      'A grid slot lies in a lane wider than zero',
-    );
-    const l = courseBoundaryAt(lane.center, position.s);
-    check(surface.sample(position.s, l) !== null, `${start.path}/grid/${i}`, 'Grid must be supported');
-    return Object.freeze({ at: position, l });
-  });
+  };
+  const grid = compileGrid(startGate.grid, `${start.path}/grid`);
+  const bikeGrid = startGate.bikeGrid && compileGrid(startGate.bikeGrid, `${start.path}/bikeGrid`);
   return Object.freeze({
-    grid: Object.freeze(grid),
+    /** Every Session's grid, front to back. */
+    grid,
+    /** The grid of a Session whose competitors all ride bikes, front to back; null when `grid` serves it too. */
+    bikeGrid,
     intervals: Object.freeze(intervals),
   });
+}
+
+type CourseGrids = Pick<ReturnType<typeof compileCourseGates>, 'grid' | 'bikeGrid'>;
+
+/**
+ * The slots a Session starts from: the course's bike grid when every competitor rides a bike and the course has one,
+ * else its grid; of either, only the first `SESSION_RULE_LIMITS.competitors` (16) slots.
+ */
+export function courseStartGrid(gates: CourseGrids, bikesOnly: boolean): readonly CompiledGridSlot[] {
+  return Object.freeze(((bikesOnly && gates.bikeGrid) || gates.grid).slice(0, SESSION_RULE_LIMITS.competitors));
+}
+
+/** How many competitors, the player included, every Session of a course can start: the fewer slots its grids use. */
+export function courseGridCapacity(gates: CourseGrids): number {
+  return Math.min(courseStartGrid(gates, false).length, courseStartGrid(gates, true).length);
 }

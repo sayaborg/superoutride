@@ -30,6 +30,7 @@ import { readFileSync } from 'node:fs';
 import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
+import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -85,7 +86,12 @@ function scenarioClass(course, { series, class: classId }) {
     : scenarioSeries.seriesClass('scenario-rules', classId);
   assert.ok(settings && settings.course === course.id, `No class ${classId} on ${course.id}`);
   return requireLoaded(
-    admitSeriesClass(settings, course, series ? `${series}.series.json` : SCENARIO_SERIES_PATH.pathname),
+    admitSeriesClass(
+      settings,
+      course,
+      definitions.vehicles,
+      series ? `${series}.series.json` : SCENARIO_SERIES_PATH.pathname,
+    ),
   );
 }
 
@@ -554,7 +560,11 @@ export async function runScenario({ course }, scenario) {
     assert.ok(ending, `${scenario.name}: never ended`);
     if (scenario.mode === 'TIME_TRIAL') {
       assert.equal(race.rivals.length, 0, 'TIME TRIAL has rivals');
-      assert.equal(slot, course.gates.grid.at(-1), 'TIME TRIAL does not start from the last grid slot');
+      assert.equal(
+        slot,
+        courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1),
+        'TIME TRIAL does not start from the last grid slot',
+      );
       assert.equal(race.clock.deadlineSeconds, null, 'TIME TRIAL has a clock');
     }
     if (expect.position) assert.equal(ending.position, expect.position);

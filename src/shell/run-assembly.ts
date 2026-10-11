@@ -82,7 +82,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     courseId = named.course;
   } else courseId = request.courseId;
   const course = await loadDeliveredCourse(content, courseId, materials);
-  const arcade = named && loadSeriesClass(content, named, course);
+  const arcade = named && loadSeriesClass(content, named, course, vehicles);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
   const prepared = await prepareSession(
     content,

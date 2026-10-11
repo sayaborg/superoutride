@@ -662,23 +662,24 @@ function readSection(
     const at = `${pointer}/gates/${i}`;
     const v = record(gate);
     if (v.kind === 'start')
-      list(v.grid).forEach((slot, k) => {
-        // A slot lies at its lane's centre.
-        const sv = record(slot);
-        const lane = lanes.byId.get(String(sv.lane));
-        let station: { s: number; l: number } | undefined;
-        try {
-          const s = resolve(sv.at as unknown as CoursePosition, `${at}/grid/${k}/at`).s;
-          if (lane) station = { s, l: courseBoundaryAt(lane.center, s) };
-        } catch {
-          // The Position's problem is read with it below.
-        }
-        add('grid-slot', `${at}/grid/${k}`, sv, {
-          positions: ['at'],
-          values: { slot: k, lane: sv.lane },
-          ...(station ? { station } : {}),
+      for (const grid of ['grid', 'bikeGrid'] as const)
+        list(v[grid]).forEach((slot, k) => {
+          // A slot lies at its lane's centre.
+          const sv = record(slot);
+          const lane = lanes.byId.get(String(sv.lane));
+          let station: { s: number; l: number } | undefined;
+          try {
+            const s = resolve(sv.at as unknown as CoursePosition, `${at}/${grid}/${k}/at`).s;
+            if (lane) station = { s, l: courseBoundaryAt(lane.center, s) };
+          } catch {
+            // The Position's problem is read with it below.
+          }
+          add('grid-slot', `${at}/${grid}/${k}`, sv, {
+            positions: ['at'],
+            values: { grid, slot: k, lane: sv.lane },
+            ...(station ? { station } : {}),
+          });
         });
-      });
     else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
   });
   // Lanes and medians: each lane's edges and centre and each median's edges, derived; their written widths (a list's
