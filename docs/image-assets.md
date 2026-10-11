@@ -132,25 +132,26 @@ table either, and the HUD pictures follow them; the document must hold at least 
 free. Pattern 0, the space, must
 have only index 0: it is the empty tile.
 
-| Patterns | Names                                 | Content                                                                         |
-| -------- | ------------------------------------- | ------------------------------------------------------------------------------- |
-| 95–98    | `LAMP_ON_TL`…`_BR`                    | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7              |
-| 99–102   | `LAMP_OFF_TL`…`_BR`                   | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5           |
-| 103–147  | `METER_a_b` (0 ≤ a ≤ b ≤ 8)           | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground |
-| 148–154  | `METER_RIGHT_1`…`_7`                  | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground    |
-| 155–274  | `TACH_b_r_ON`, `_OFF` (b 0–19, r 0–2) | Tachometer bar b in tile row r of its column, slot 1 lit or slot 8 unlit        |
-| 275–340  | `DIGIT_d_k` (d 0–9, then `OFF`)       | Tile k of a 2×3-tile seven-segment digit: lit segments slot 1, the others 8     |
-| 341–356  | `ARROW_LEFT_0`…`_15`                  | Tile k of the 4×4-tile road arrow pointing left: slot 1 outlined in slot 2      |
-| 357–372  | `ARROW_RIGHT_0`…`_15`                 | The same pointing right                                                         |
+| Patterns  | Names                           | Content                                                                         |
+| --------- | ------------------------------- | ------------------------------------------------------------------------------- |
+| 95–98     | `LAMP_ON_TL`…`_BR`              | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7              |
+| 99–102    | `LAMP_OFF_TL`…`_BR`             | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5           |
+| 103–147   | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground |
+| 148–154   | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground    |
+| 155–1522  | `TACH_c_r_b_k` (b 1–8, k 0–8)   | Tachometer tile (c, r): bars before b slots 1/8, the rest 9/10; before k lit    |
+| 1523–1588 | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile seven-segment digit: lit segments slot 1, the others 8     |
+| 1589–1604 | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left: slot 1 outlined in slot 2      |
+| 1605–1620 | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                         |
 
 The signal lamps are authored. The other part tiles are drawn by the HUD tiles command
 ([Development](development.md#hud-tiles-command)), which writes them in place:
 
 - A meter cell is 4 pixels high with 2 pixels clear above and below; `METER_a_b` serves a meter filled from the left
   with its cut part (slot 4) at the fill's end, and `METER_RIGHT_k` a meter filled from the right.
-- The tachometer's bars are 3 pixels wide with a pixel's gap, two to a tile: an even bar in columns 0–2 and an odd one
-  in columns 4–6. From the left their heights are 4, 4, 4, 4, 5, 5, 6, 7, 8, 8, 10, 11, 12, 13, 15, 16, 18, 20, 22 and
-  24 pixels, a quadratic curve, standing on the bottom of their column's three tiles.
+- The tachometer's 80 bars are a pixel wide without gaps, eight to a tile; bar `i` is `4 + round(20*(i/79)^2)` pixels
+  high, a quadratic curve from 4 to 24, standing on the bottom of its column's three tiles. Only the 19 of the 30
+  tiles (`TACHOMETER_TILES`) that hold part of a bar have patterns: 72 each, for every split `b` between the tile's
+  first and second color and every count `k` of lit bars.
 - A segment digit is 16×24 pixels with a pixel's margin all round; each of its seven segments is 3 pixels thick with
   tapered ends. `DIGIT_OFF` has every segment unlit.
 - The road arrow is 32×32 pixels: a head over a shaft, outlined by a pixel.
@@ -160,24 +161,25 @@ palette of its own after the named palettes, in that order:
 
 | Patterns  | Palette | Name         | Picture                                          | Frames                                   |
 | --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
-| 373–1524  | 7       | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
-| 1525–2676 | 8       | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
-| 2677–3828 | 9       | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
-| 3829–5016 | 10      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+| 1621–2772 | 9       | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 2773–3924 | 10      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 3925–5076 | 11      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 5077–6264 | 12      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
 
 Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
 row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
 `36*f+6*r+c`. A picture's palette holds its 15 colors in slots 1–15. The [HUD picture generator](#hud-picture-generator)
 writes the pictures and their palettes in place; no table changes.
 
-Palettes 0 through 6 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal), BAR (unlit
-lamps and empty HUD parts) and VFD (the blue-green of the segment digits), and the HUD pictures' palettes follow; later
+Palettes 0 through 8 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal), BAR (unlit
+lamps and empty HUD parts), VFD (the blue-green of the segment digits, whose unlit color is a faint trace) and
+GREEN_YELLOW and YELLOW_RED (a tachometer tile where those colors meet), and the HUD pictures' palettes follow; later
 palettes are free. A document holds at most 65536 patterns and 256
 palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
 text grid cell keeps any admitted pair. A tile's palette chooses its color, so one lamp, meter, bar or digit
 tile serves every color. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a meter's
-ground, 4 a meter's cut part (red in every named palette), 5 a lamp's gloss, 6 its rim, 7 its shaded body and 8 the
-main color unlit. The
+ground, 4 a meter's cut part (red in every named palette), 5 a lamp's gloss, 6 its rim, 7 its shaded body, 8 the
+main color unlit, and 9 and 10 the second color lit and unlit (GREEN_YELLOW's yellow and YELLOW_RED's red). The
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
 `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns
 (a character without a pattern is a `RangeError`) and paints one tile's opaque pixels.

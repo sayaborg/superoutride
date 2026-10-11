@@ -5,6 +5,7 @@ import {
   HUD_TILES,
   hudPictureFrame,
   TACHOMETER_BARS,
+  TACHOMETER_TILES,
   TEXT_PALETTES,
   type HudPicture,
 } from '../image/text-tiles.js';
@@ -167,8 +168,16 @@ const writeDigit = (text: TextLayer, column: number, row: number, digit: number 
 };
 /** The speed's digits, right-aligned; the speed is held at 999 km/h. */
 const SPEED_DIGITS = 3;
-/** The tachometer bars before the first red bar that are yellow. */
-const TACHOMETER_YELLOW_BARS = 3;
+/** The tachometer bars before the first red bar that are yellow: 3/20 of the scale. */
+const TACHOMETER_YELLOW_BARS = 12;
+/** A tachometer tile's palette by the colors of its first and last bars: green, yellow or red, or where two meet. */
+const TACHOMETER_PALETTES: Readonly<Record<string, number>> = Object.freeze({
+  '0-0': TEXT_PALETTES.GREEN,
+  '1-1': TEXT_PALETTES.YELLOW,
+  '2-2': TEXT_PALETTES.RED,
+  '0-1': TEXT_PALETTES.GREEN_YELLOW,
+  '1-2': TEXT_PALETTES.YELLOW_RED,
+});
 /** The road arrow, 4×4 tiles. */
 const writeArrow = (text: TextLayer, place: Place, side: 'LEFT' | 'RIGHT') => {
   const [column, row] = HUD_LAYOUT[place] as readonly [number, number];
@@ -376,22 +385,24 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write({ player: { powertrain }, session }, text) {
       const [column, row] = HUD_LAYOUT.tachometer,
         barRpm = (bar: number) => ((bar + 1) * session.fuelCutRpm) / TACHOMETER_BARS;
-      let firstRed = 0;
+      let firstRed = 0,
+        lit = 0;
       while (firstRed < TACHOMETER_BARS && barRpm(firstRed) < session.redlineRpm) firstRed++;
-      for (let bar = 0; bar < TACHOMETER_BARS; bar++) {
-        const palette =
-          powertrain.fuelCut || bar >= firstRed
-            ? TEXT_PALETTES.RED
-            : bar >= firstRed - TACHOMETER_YELLOW_BARS
-              ? TEXT_PALETTES.YELLOW
-              : TEXT_PALETTES.GREEN;
-        const state = powertrain.engineRpm >= barRpm(bar) ? 'ON' : 'OFF';
-        // Two bars share a tile: the left one is the tile, the right one its overlay, each in its own palette.
-        for (let r = 0; r < DIGIT_TILES.rows; r++) {
-          const pattern = HUD_TILES[`TACH_${bar}_${r}_${state}`]!;
-          if (bar % 2) text.overlay(column + (bar >> 1), row + r, pattern, palette);
-          else text.put(column + (bar >> 1), row + r, pattern, palette);
-        }
+      while (lit < TACHOMETER_BARS && powertrain.engineRpm >= barRpm(lit)) lit++;
+      // 0 green, 1 yellow, 2 red.
+      const color = (bar: number) =>
+        powertrain.fuelCut || bar >= firstRed ? 2 : bar >= firstRed - TACHOMETER_YELLOW_BARS ? 1 : 0;
+      // A tile holds eight bars: at most two colors, which meet at its split, and its lit bars from the left.
+      for (const [c, r] of TACHOMETER_TILES) {
+        const first = c * 8,
+          left = color(first),
+          right = color(first + 7);
+        let split = 1;
+        while (split < 8 && color(first + split) === left) split++;
+        const palette = TACHOMETER_PALETTES[`${left}-${right}`];
+        if (palette === undefined) throw new Error(`A tachometer tile cannot hold colors ${left} and ${right}`);
+        const k = Math.min(8, Math.max(0, lit - first));
+        text.put(column + c, row + r, HUD_TILES[`TACH_${c}_${r}_${split}_${k}`]!, palette);
       }
     },
   },

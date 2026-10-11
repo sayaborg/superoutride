@@ -11,14 +11,38 @@ export const TEXT_CHARACTERS = /^[\x20-\x7e]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /**
- * Palettes 0 through 6 are named: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts) and
- * VFD (the segment digits). They use the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's
- * cut part (red), 5 a lamp's gloss, 6 its rim, 7 its shaded body and 8 the main color unlit. The HUD pictures' palettes
- * follow them; later palettes are free.
+ * Palettes 0 through 8 are named: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts), VFD
+ * (the segment digits) and GREEN_YELLOW and YELLOW_RED (a tachometer tile where two of its colors meet). They use the
+ * same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's gloss, 6 its
+ * rim, 7 its shaded body, 8 the main color unlit, and 9 and 10 the second color, lit and unlit. The HUD pictures'
+ * palettes follow them; later palettes are free.
  */
-export const TEXT_PALETTES = Object.freeze({ WHITE: 0, YELLOW: 1, RED: 2, DARK: 3, GREEN: 4, BAR: 5, VFD: 6 });
-/** The tachometer's bars, two to a tile, from the left. */
-export const TACHOMETER_BARS = 20;
+export const TEXT_PALETTES = Object.freeze({
+  WHITE: 0,
+  YELLOW: 1,
+  RED: 2,
+  DARK: 3,
+  GREEN: 4,
+  BAR: 5,
+  VFD: 6,
+  GREEN_YELLOW: 7,
+  YELLOW_RED: 8,
+});
+/** The tachometer's bars, a pixel wide and eight to a tile, from the left. */
+export const TACHOMETER_BARS = 80;
+/** Tachometer bar i's height in pixels: a quadratic curve from 4 at the left to 24, three tiles, at the right. */
+export const tachometerBarHeight = (i: number) => 4 + Math.round(20 * (i / (TACHOMETER_BARS - 1)) ** 2);
+/**
+ * The tachometer's tiles that hold part of a bar, as [column, row] within its 10-by-3 tiles, the bars standing on the
+ * bottom row.
+ */
+export const TACHOMETER_TILES: readonly (readonly [number, number])[] = Object.freeze(
+  Array.from({ length: TACHOMETER_BARS / 8 }, (_, column) => [0, 1, 2].map((row) => [column, row] as const))
+    .flat()
+    .filter(([column, row]) =>
+      Array.from({ length: 8 }, (_, x) => tachometerBarHeight(column * 8 + x)).some((h) => h > (2 - row) * 8),
+    ),
+);
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 /** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */
@@ -28,8 +52,9 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
  * The HUD part tiles the HUD tiles command draws, after the signal lamps, in this order:
  * - `METER_a_b` (0 <= a <= b <= 8): a meter cell, 4 pixels high in rows 2 to 5, slot 1 in columns before a, slot 4 (the
  *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
- * - `TACH_b_r_ON` and `_OFF`: tachometer bar b's part in its column's tile row r, slot 1 lit and slot 8 unlit; an even
- *   bar stands in columns 0 to 2 of its tile, an odd one in columns 4 to 6.
+ * - `TACH_c_r_b_k` (b 1 to 8, k 0 to 8): the tachometer tile at column c and row r of `TACHOMETER_TILES`, its eight
+ *   bars' parts in that row; bars before b take the first color and the rest the second, and bars before k are lit:
+ *   slot 1 or 9 lit, 8 or 10 unlit.
  * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel seven-segment digit, lit segments in slot 1 and the
  *   others in slot 8.
  * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow, slot 1 outlined in slot 2.
@@ -37,9 +62,9 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
 export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
   ...Array.from({ length: 9 }, (_, a) => Array.from({ length: 9 - a }, (_, k) => `METER_${a}_${a + k}`)).flat(),
   ...Array.from({ length: 7 }, (_, k) => `METER_RIGHT_${k + 1}`),
-  ...Array.from({ length: TACHOMETER_BARS }, (_, b) =>
-    [0, 1, 2].flatMap((r) => [`TACH_${b}_${r}_ON`, `TACH_${b}_${r}_OFF`]),
-  ).flat(),
+  ...TACHOMETER_TILES.flatMap(([c, r]) =>
+    Array.from({ length: 8 }, (_, b) => Array.from({ length: 9 }, (_, k) => `TACH_${c}_${r}_${b + 1}_${k}`)).flat(),
+  ),
   ...[...'0123456789'.split(''), 'OFF'].flatMap((d) => tiles(`DIGIT_${d}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
   ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),

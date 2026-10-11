@@ -2,20 +2,13 @@ import {
   ARROW_TILES,
   DIGIT_TILES,
   HUD_DRAWN_TILE_NAMES,
-  TACHOMETER_BARS,
+  TACHOMETER_TILES,
+  tachometerBarHeight,
   TEXT_TILE_SIZE,
 } from '../../src/image/text-tiles.js';
 
-/**
- * The tachometer bars' heights in pixels, from the left: they grow along a quadratic curve to the three tiles' 24
- * pixels, standing on the bottom row.
- */
-export const TACHOMETER_HEIGHTS = Object.freeze([4, 4, 4, 4, 5, 5, 6, 7, 8, 8, 10, 11, 12, 13, 15, 16, 18, 20, 22, 24]);
-
 /** A meter cell's rows: 4 pixels high, 2 pixels clear above and below. */
 const METER_ROWS = [2, 3, 4, 5];
-/** A tachometer bar is 3 pixels wide with a pixel's gap, two to a tile. */
-const TACHOMETER_BAR_WIDTH = 3;
 
 type Pixels = (x: number, y: number) => number;
 /** One 8-by-8 pattern from a function of its pixels. */
@@ -29,14 +22,16 @@ const tileOf = (picture: Pixels, columns: number, k: number) =>
 
 const meter = (filled: (x: number) => number) => pattern((x, y) => (METER_ROWS.includes(y) ? filled(x) : 0));
 
-/** Tachometer bar b's pixels in its 24-pixel-high column of tiles, slot `slot`. */
-const tachometer = (b: number, row: number, slot: number) => {
-  const left = (b % 2) * (TEXT_TILE_SIZE / 2),
-    top = DIGIT_TILES.rows * TEXT_TILE_SIZE - TACHOMETER_HEIGHTS[b]!;
-  return pattern((x, y) =>
-    x >= left && x < left + TACHOMETER_BAR_WIDTH && row * TEXT_TILE_SIZE + y >= top ? slot : 0,
-  );
-};
+/**
+ * The tachometer tile at `column` and `row`: each pixel-wide bar's part in that row, standing on the bottom row; bars
+ * before `split` in slot 1 lit or 8 unlit, the rest in 9 lit or 10 unlit, and bars before `lit` lit.
+ */
+const tachometer = (column: number, row: number, split: number, lit: number) =>
+  pattern((x, y) => {
+    const top = DIGIT_TILES.rows * TEXT_TILE_SIZE - tachometerBarHeight(column * TEXT_TILE_SIZE + x);
+    if (row * TEXT_TILE_SIZE + y < top) return 0;
+    return x < split ? (x < lit ? 1 : 8) : x < lit ? 9 : 10;
+  });
 
 /**
  * The seven segments of a 16-by-24-pixel digit, a to g, each 3 pixels thick with tapered ends and a pixel's margin:
@@ -110,11 +105,10 @@ export function drawHudParts(): number[][] {
       `METER_RIGHT_${k}`,
       meter((x) => (x >= TEXT_TILE_SIZE - k ? 1 : 3)),
     );
-  for (let b = 0; b < TACHOMETER_BARS; b++)
-    for (let row = 0; row < DIGIT_TILES.rows; row++) {
-      drawn.set(`TACH_${b}_${row}_ON`, tachometer(b, row, 1));
-      drawn.set(`TACH_${b}_${row}_OFF`, tachometer(b, row, 8));
-    }
+  for (const [column, row] of TACHOMETER_TILES)
+    for (let split = 1; split <= TEXT_TILE_SIZE; split++)
+      for (let lit = 0; lit <= TEXT_TILE_SIZE; lit++)
+        drawn.set(`TACH_${column}_${row}_${split}_${lit}`, tachometer(column, row, split, lit));
   const digitTiles = DIGIT_TILES.columns * DIGIT_TILES.rows;
   [...DIGIT_SEGMENTS, ''].forEach((lit, d) => {
     for (let k = 0; k < digitTiles; k++)
