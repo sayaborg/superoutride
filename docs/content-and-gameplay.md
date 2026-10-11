@@ -963,8 +963,11 @@ course's Sections, and rank limits naming checkpoint or FINISH gates of that cou
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
 Session admits the class it drives.
 
-The delivered series are RIBBON and TRIAL, development series; each document holds its classes, with their fields
-and traffic. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),
+The delivered series are TSUKUBA CLUBMAN, the first product series, and RIBBON and TRIAL, development series; each
+document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN runs TSUKUBA in GTI CUP (GOLF GTI 16V) and
+911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
+class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
+1.02 at the pole to 0.88. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),
 which share the course and its TESTAROSSA and VFR750R reference times. RIBBON COAST is the
 [verification course](#verification-course); TRIAL holds the
 [trial courses](#trial-courses); no class runs RIBBON ROUGH.
@@ -1477,7 +1480,7 @@ last), its first at the car grid's pole. Bike grid slots lie at lane centres, ab
 Its scenery follows K's own onboard recordings, in the state of the front-camera recording: landmark sprites are cut
 from their frames (sources and recipes under `content/sprite-sources/`), the sky is made from two of the front-camera
 recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
-the verges' outer edges keep vehicles in. The course is untimed until a series holds it.
+the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
 ## Observation formats
 

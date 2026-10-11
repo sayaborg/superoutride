@@ -1,0 +1,67 @@
+{
+  "format": "superoutride.series",
+  "version": 10,
+  "id": "tsukuba-clubman",
+  "title": "TSUKUBA CLUBMAN",
+  "dev": false,
+  "timeMargin": 1.35,
+  "fixedColors": false,
+  "classes": [
+    {
+      "id": "gti-cup",
+      "title": "GTI CUP",
+      "course": "tsukuba",
+      "laps": 5,
+      "vehicles": ["GOLF_GTI_16V"],
+      "entries": [
+        { "vehicle": "GOLF_GTI_16V", "color": "red", "pace": 1.02, "stages": null, "slot": 0, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "white", "pace": 1.01, "stages": null, "slot": 1, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "black", "pace": 1.0, "stages": null, "slot": 2, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "silver", "pace": 0.99, "stages": null, "slot": 3, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "red", "pace": 0.98, "stages": null, "slot": 4, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "white", "pace": 0.97, "stages": null, "slot": 5, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "black", "pace": 0.96, "stages": null, "slot": 6, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "silver", "pace": 0.95, "stages": null, "slot": 7, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "red", "pace": 0.94, "stages": null, "slot": 8, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "white", "pace": 0.93, "stages": null, "slot": 9, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "black", "pace": 0.92, "stages": null, "slot": 10, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "silver", "pace": 0.91, "stages": null, "slot": 11, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "red", "pace": 0.9, "stages": null, "slot": 12, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "white", "pace": 0.89, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "black", "pace": 0.88, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "GOLF_GTI_16V", "color": "silver", "pace": 0.87, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null
+    },
+    {
+      "id": "911-cup",
+      "title": "911 CUP",
+      "course": "tsukuba",
+      "laps": 5,
+      "vehicles": ["911_TURBO_3_3"],
+      "entries": [
+        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 1.02, "stages": null, "slot": 0, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "black", "pace": 1.01, "stages": null, "slot": 1, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "red", "pace": 1.0, "stages": null, "slot": 2, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "white", "pace": 0.99, "stages": null, "slot": 3, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 0.98, "stages": null, "slot": 4, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "black", "pace": 0.97, "stages": null, "slot": 5, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "red", "pace": 0.96, "stages": null, "slot": 6, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "white", "pace": 0.95, "stages": null, "slot": 7, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 0.94, "stages": null, "slot": 8, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "black", "pace": 0.93, "stages": null, "slot": 9, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "red", "pace": 0.92, "stages": null, "slot": 10, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "white", "pace": 0.91, "stages": null, "slot": 11, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 0.9, "stages": null, "slot": 12, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "black", "pace": 0.89, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "red", "pace": 0.88, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "911_TURBO_3_3", "color": "white", "pace": 0.87, "stages": null, "slot": 15, "ahead": null }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null
+    }
+  ]
+}
