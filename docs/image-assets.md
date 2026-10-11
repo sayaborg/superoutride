@@ -452,3 +452,51 @@ output for its recipe: silver, black, red and white. Its surface gives the hood 
 wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
 its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
 each). The reference photographs and screenshots used to judge a set are not saved here.
+
+## HUD picture generator
+
+The HUD pictures are drawn from sources saved under `content/hud-picture-sources/`: `recipes.json` and one source
+`<name>.png` for each picture it names. They are production-only data, which the build does not deliver; the sources
+are pictures K generated and holds the rights to. `npm run hud-tiles`
+([Development](development.md#hud-tiles-command)) draws every picture; the same sources and recipes always give the
+same pictures.
+
+**Recipes.** `superoutride.hud-picture-recipes` version 1:
+
+```text
+{format, version, size: 48, colors: 15, supersampling: 10, alphaThreshold: 0.5,
+ steeringWheel: {white, openingRadius, erosion, rimLeather: {radius, saturation, exponent, scale},
+                 edgeAngles, outerSmoothing, innerSmoothing},
+ pictures: {<name>: {kind: "steeringWheel", rimCentre: [x, y], hubOffset: [x, y], gamma}
+                  | {kind: "topBridge", centre: [x, y]}, ...}}
+```
+
+Each picture is `size` pixels square, in `colors` colors and transparency: a palette of its own, shared by all its
+frames and saved as RGB555. Coordinates are source pixels from the top-left corner. A steering wheel turns a full turn
+in 32 frames 11.25° apart, frame 0 upright; a top bridge turns from −22.5° to +22.5° in 33 frames 45/32° apart, frame 16
+upright; each next frame is turned clockwise.
+
+**Steering wheels.** A source shows the wheel squarely from the driver, upright, on white; its rim's outer diameter,
+350 mm, fills the picture. The background is the white (every channel at least `white`) that a disk of
+`openingRadius` fits in, grown back through the white it touches, so the white around the wheel, between the rim and
+the spokes and in the lightening holes is cut out and thin white stitching stays. The rest, opened once, is the solid,
+and its edge loses `erosion` pixels, which drops the light fringe; every cut-out pixel takes the color of the nearest
+solid one, so filtering never mixes in white. Colors are raised to the power `gamma` (as fractions of full scale); the
+rim's leather, farther than `rimLeather.radius` from the rim centre and less saturated than `rimLeather.saturation`
+(the largest channel less the smallest), becomes `255 (v/255)^exponent × scale`, which evens out its sheen.
+
+The rim's outer and inner edges are measured at `edgeAngles` angles about `rimCentre`: going inward, the first solid
+pixel and the first gap after it; an inner edge whose rim thickness is a quarter or more from the median is replaced
+by the edges either side. Each edge is smoothed round the circle by a Gaussian of `outerSmoothing` or `innerSmoothing`
+angles and remapped radially onto the circle of its mean radius, so the rim is a perfect ring. Inside the rim the hub
+is moved onto the rim centre: a point at radius r takes the source `hubOffset × (1 − r/inner radius)` away. The rim's
+band is always opaque (from 3 pixels outside the inner circle to 2 inside the outer) and nothing outside the outer
+circle is.
+
+**Top bridges.** A source shows the bridge squarely from the rider, upright, on transparency; it turns about `centre`
+and its width fills the picture.
+
+**Frames.** Each frame is drawn at `supersampling` samples a side for each pixel, read bilinearly, and reduced by a
+box filter over premultiplied color; a pixel covered for at least `alphaThreshold` is opaque. The palette is k-means
+clustering of every opaque pixel of all the picture's frames from deterministic k-means++ seeds, and each pixel takes
+its nearest color.

@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.hud-picture-recipes",
+  "version": 1,
+  "size": 48,
+  "colors": 15,
+  "supersampling": 10,
+  "alphaThreshold": 0.5,
+  "steeringWheel": {
+    "white": 247,
+    "openingRadius": 4,
+    "erosion": 2,
+    "rimLeather": { "radius": 430, "saturation": 50, "exponent": 1.7, "scale": 0.8 },
+    "edgeAngles": 1440,
+    "outerSmoothing": 6,
+    "innerSmoothing": 10
+  },
+  "pictures": {
+    "prototipo": { "kind": "steeringWheel", "rimCentre": [628.31, 628.25], "hubOffset": [1, -2], "gamma": 1 },
+    "mod02": { "kind": "steeringWheel", "rimCentre": [625.37, 601.31], "hubOffset": [0, -18], "gamma": 1.25 },
+    "montecarlo": { "kind": "steeringWheel", "rimCentre": [625.09, 614.58], "hubOffset": [0, -4], "gamma": 1.25 },
+    "top-bridge": { "kind": "topBridge", "centre": [480, 480] }
+  }
+}

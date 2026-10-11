@@ -14,6 +14,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
 | `npm test`                    | All checks, build, startup smoke and driving scenarios              |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
+| `npm run hud-tiles`           | Draw the HUD pictures from their sources and recipes                |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
 
 ### Driving scenarios
@@ -372,6 +373,18 @@ one ([Image assets](image-assets.md#vehicle-picture-generator)), so the command 
 follows the set's name. It also writes a check
 sheet, `dist/pictures/<set>.png`: every full-size picture over its shadow, eight directions a row, which nothing reads.
 The build admits the saved set and generates nothing.
+
+### HUD tiles command
+
+The HUD tiles command draws every HUD picture by the [HUD picture generator](image-assets.md#hud-picture-generator),
+printing one JSON result (or the diagnostics, exiting 1):
+
+```sh
+npm run hud-tiles
+```
+
+It reads `content/hud-picture-sources/recipes.json` and the sources beside it and writes a check sheet of each picture,
+`dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
 
 ### Listening on devices
 
