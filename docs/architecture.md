@@ -728,8 +728,9 @@ consumers; the plan coordinate projection in them is read-only, and only physics
 vehicle state. Race owns the camera-independent competitor observations (`competitor-observation.ts`): one per
 competitor, the player included, holding only the values display, camera and audio read (identity and form, pose,
 render height, chainage and lateral, velocities, speed, body pitch, lateral acceleration, brake lamp, the actual controls (the
-steering actuator, the front road wheel's offset from automatic steering as a fraction of the steering limit, and the
-throttle and brake actuators), powertrain
+steering actuator, the front road wheel's offset from automatic steering as a fraction of the steering limit, the
+throttle and brake actuators, and the share of each station's requested brake torque that the torque protections
+apply, 1 without a request), powertrain
 observations including the selected gear, the fuel-cut latch and the race's simulation seconds at the latest shift,
 and tire observations)
 and never vehicle state or a model. The race copies them at the end of every advance, including held READY steps,

@@ -22,8 +22,17 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly speed: number;
   /** The front road wheel's angle to the body, radians, positive to the right. */
   readonly frontSteerAngle: number;
-  /** The vehicle's actual controls: the throttle and brake actuators, in [0, 1]. */
-  readonly control: { readonly throttle: number; readonly brake: number };
+  /**
+   * The vehicle's actual controls: the steering actuator in [-1, 1], the throttle and brake actuators in [0, 1], and
+   * the share of each station's requested brake torque the torque protections apply, in [0, 1] (1 without a request).
+   */
+  readonly control: {
+    readonly steering: number;
+    readonly throttle: number;
+    readonly brake: number;
+    readonly frontBrakeApplied: number;
+    readonly rearBrakeApplied: number;
+  };
   readonly powertrain: {
     /** The selected forward gear, from 1. */
     readonly gear: number;
@@ -87,7 +96,7 @@ export function createCompetitorObservation(
     brakeLampOn: false,
     speed: 0,
     frontSteerAngle: 0,
-    control: { throttle: 0, brake: 0 },
+    control: { steering: 0, throttle: 0, brake: 0, frontBrakeApplied: 1, rearBrakeApplied: 1 },
     powertrain: {
       gear: 1,
       engineRpm: 0,
@@ -127,8 +136,11 @@ export function writeCompetitorObservation(
   out.speed = vehicle.speed;
   out.frontSteerAngle = vehicle.frontSteerAngle;
   const { control } = vehicle;
+  out.control.steering = control.steeringActuator;
   out.control.throttle = control.throttleActuator;
   out.control.brake = control.brakeActuator;
+  out.control.frontBrakeApplied = control.frontBrakeApplied;
+  out.control.rearBrakeApplied = control.rearBrakeApplied;
   const { powertrain } = vehicle;
   out.powertrain.gear = powertrain.gear;
   out.powertrain.engineRpm = powertrain.engineRpm;

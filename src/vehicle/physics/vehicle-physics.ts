@@ -184,6 +184,8 @@ export function updateVehicle(
     }
     vehicle.control.throttleActuator = vehicle.actuator.throttle;
     vehicle.control.brakeActuator = vehicle.actuator.brake;
+    vehicle.control.frontBrakeApplied = 1;
+    vehicle.control.rearBrakeApplied = 1;
     return;
   }
   const velocityBeforeX = vehicle.velocityX,
@@ -343,6 +345,8 @@ export function updateVehicle(
       vehicle.control.steeringActuator = vehicle.actuator.steering;
       vehicle.control.throttleActuator = vehicle.actuator.throttle;
       vehicle.control.brakeActuator = vehicle.actuator.brake;
+      vehicle.control.frontBrakeApplied = appliedShare(resolved.frontInput.brakeTorque, frontRequest.brakeTorque);
+      vehicle.control.rearBrakeApplied = appliedShare(resolved.rearInput.brakeTorque, rearRequest.brakeTorque);
       recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
     }
   }
@@ -354,6 +358,11 @@ export function updateVehicle(
   vehicle.longitudinalAcceleration = dot3(velocityDelta, finalBody.forward) / model.step;
   vehicle.lateralAcceleration = dot3(velocityDelta, finalBody.right) / model.step;
   publishVehicleRenderY(vehicle, model);
+}
+
+/** The share of a requested brake torque that is applied; 1 without a request. */
+function appliedShare(applied: number, requested: number): number {
+  return requested > 0 ? Math.min(1, applied / requested) : 1;
 }
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });

@@ -15,6 +15,9 @@ interface VehicleControlObservation {
   steeringActuator: number;
   throttleActuator: number;
   brakeActuator: number;
+  /** The share of each station's requested brake torque that the torque protections apply, in [0, 1]; 1 without a request. */
+  frontBrakeApplied: number;
+  rearBrakeApplied: number;
 }
 
 /** Shared public world-state fields. `course` is a derived plan coordinate cache, never world authority. */
@@ -48,7 +51,7 @@ export interface BodyKinematics {
 }
 
 export function createVehicleControlObservation(): VehicleControlObservation {
-  return { steeringActuator: 0, throttleActuator: 0, brakeActuator: 0 };
+  return { steeringActuator: 0, throttleActuator: 0, brakeActuator: 0, frontBrakeApplied: 1, rearBrakeApplied: 1 };
 }
 
 export function resetVehicleControlObservation(vehicle: VehicleDynamicsState): void {
