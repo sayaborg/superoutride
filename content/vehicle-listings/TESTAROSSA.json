@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 2,
+  "version": 3,
   "form": "car",
   "selectionOrder": 1,
-  "visuals": { "spriteSet": "testarossa", "palette": "red" },
+  "visuals": { "spriteSet": "testarossa", "palette": "red", "steeringPicture": "montecarlo" },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",

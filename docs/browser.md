@@ -322,16 +322,18 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
 | 16    | While the camera is held at its yaw limit: a yellow arrow at the edge the road goes on, steady                     |
-| 25–29 | Columns 18–21: the steering picture (4×4 tiles) and under it, in row 29's upper 4 pixels, the steering input bar   |
+| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                    |
+| 29    | Columns 18–21, in the upper 4 pixels: the steering input bar                                                       |
 | 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
 | 27–29 | Bars of 10 cells (1-pixel steps) between end caps: GAS, BRAKE and RPM                                              |
 
-The steering picture, in the middle of the frame's width, shows where the front wheel actually points: the player
+The steering picture, in the middle of the frame's width, is the one the player vehicle's listing names
+([Image assets](image-assets.md#text-tiles)) and shows where the front wheel actually points: the player
 observation's front road-wheel angle to the body times the HUD's steering ratio for the vehicle's form, 18 for a car
-(its steering wheel) and 1 for a bike (its top bridge), one value per form. The picture has 32 frames 11.25° apart,
-frame 0 straight ahead and each next frame clockwise; the HUD draws frame `round(angle/11.25°)` modulo 32, so turning
-right turns it clockwise and a turn past a full revolution repeats the frames. The picture is never rotated at run
-time. Under it the input bar shows only the player's steering input from the final input sample, from the bar's
+(its steering wheel) and 1 for a bike (its top bridge), one value per form. The HUD draws the picture's upright frame
+plus `round(angle/step)`, so turning right turns it clockwise: a steering wheel's 32 frames make a full turn and a
+turn past it repeats them; a top bridge's 33 frames stop at ±22.5°. The picture is never rotated at run time and may
+lie over the player's vehicle. Under it the input bar shows only the player's steering input from the final input sample, from the bar's
 centre (between columns 19 and 20) toward the input's side, `round(|input|*16)` of its 16 pixels a side, yellow over
 the bar ground, with no end caps.
 

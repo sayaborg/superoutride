@@ -1,4 +1,4 @@
-import { HUD_PICTURE_FRAMES, HUD_PICTURE_TILES, HUD_PICTURES, HUD_TILES, TEXT_PALETTES } from '../image/text-tiles.js';
+import { HUD_PICTURE_TILES, HUD_TILES, hudPictureFrame, TEXT_PALETTES, type HudPicture } from '../image/text-tiles.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
 import { MODE_NAMES, type RunRequest } from './run-request.js';
@@ -12,8 +12,8 @@ import type { CameraState } from '../view/camera.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
- * camera's observation, the Session's course, mode and the player vehicle's engine speeds from its definitions, and
- * the record the run compares against.
+ * camera's observation, the Session's course, mode and the player vehicle's engine speeds and steering picture from
+ * its definitions, and the record the run compares against.
  */
 export interface HudFacts {
   readonly race: RaceFacts;
@@ -27,6 +27,8 @@ export interface HudFacts {
     /** The tachometer's redline and full scale, where the limiter cuts fuel. */
     readonly redlineRpm: number;
     readonly fuelCutRpm: number;
+    /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
+    readonly steeringPicture: HudPicture;
   };
   /**
    * The stored record for the selection, from the records before the run, once its route (TIME TRIAL) or goal (ARCADE)
@@ -84,14 +86,14 @@ export const HUD_LAYOUT = Object.freeze({
   lamp3: [23, 13],
   outcome: ['center', 16],
   cause: ['center', 17],
-  steeringPicture: [18, 25],
+  steeringPicture: [17, 23],
   steeringInput: [18, 29],
   gasLabel: [0, 27],
-  gasBar: [6, 27],
+  gasBar: [5, 27],
   brakeLabel: [0, 28],
-  brakeBar: [6, 28],
+  brakeBar: [5, 28],
   rpmLabel: [0, 29],
-  rpmBar: [6, 29],
+  rpmBar: [5, 29],
 } as const satisfies Record<string, readonly [number | 'center', number]>);
 
 type Place = keyof typeof HUD_LAYOUT;
@@ -150,20 +152,15 @@ const inputMark = (fraction: number) => ({ pixel: barPixel(fraction), palette: T
  * The steering picture's ratio of the drawn wheel's angle to the front road wheel's, by form: a car's steering wheel,
  * a bike's top bridge.
  */
-const STEERING_PICTURES = Object.freeze({
-  car: { picture: HUD_PICTURES.STEERING_CAR, ratio: 18 },
-  bike: { picture: HUD_PICTURES.STEERING_BIKE, ratio: 1 },
-});
-/** A picture's frame `round(angle/step)` modulo the frames, clockwise; the picture is never rotated at run time. */
-const writePicture = (text: TextLayer, place: Place, first: number, angle: number) => {
-  const step = (2 * Math.PI) / HUD_PICTURE_FRAMES,
-    frame = ((Math.round(angle / step) % HUD_PICTURE_FRAMES) + HUD_PICTURE_FRAMES) % HUD_PICTURE_FRAMES;
+const STEERING_RATIOS = Object.freeze({ car: 18, bike: 1 });
+/** A picture's frame for `angle` clockwise, in its own palette. */
+const writePicture = (text: TextLayer, place: Place, picture: HudPicture, angle: number) => {
   const column = columnOf(place, HUD_PICTURE_TILES),
     row = HUD_LAYOUT[place][1],
-    base = first + frame * HUD_PICTURE_TILES * HUD_PICTURE_TILES;
+    base = picture.first + hudPictureFrame(picture, angle) * HUD_PICTURE_TILES * HUD_PICTURE_TILES;
   for (let y = 0; y < HUD_PICTURE_TILES; y++)
     for (let x = 0; x < HUD_PICTURE_TILES; x++)
-      text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, TEXT_PALETTES.PICTURE);
+      text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, picture.palette);
 };
 /** The input bar's cells on each side of its centre; 8 pixels each. */
 const INPUT_HALF_CELLS = 2;
@@ -288,11 +285,15 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // The front road wheel's actual angle, as the form's steering picture turns with it.
+    // The front road wheel's actual angle, as the vehicle's steering picture turns with it.
     when: () => true,
-    write({ player }, text) {
-      const { picture, ratio } = STEERING_PICTURES[player.form];
-      writePicture(text, 'steeringPicture', picture, player.frontSteerAngle * ratio);
+    write({ player, session }, text) {
+      writePicture(
+        text,
+        'steeringPicture',
+        session.steeringPicture,
+        player.frontSteerAngle * STEERING_RATIOS[player.form],
+      );
     },
   },
   {

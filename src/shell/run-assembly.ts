@@ -227,8 +227,8 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
-  // The Session's course and mode, which the HUD shows during READY, and the player vehicle's tachometer scale from
-  // its definitions; a DEV rebuild's Session gives its own mode and tuned definition.
+  // The Session's course and mode, which the HUD shows during READY, and the player vehicle's tachometer scale and
+  // steering picture from its definitions; a DEV rebuild's Session gives its own mode and tuned definition.
   const hudSession = ({
     configuration,
     entries,
@@ -243,6 +243,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       mode: configuration.mode,
       redlineRpm,
       fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
+      steeringPicture: vehicleDefinition.steeringPicture,
     };
   };
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every

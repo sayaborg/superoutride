@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 2,
+  "version": 3,
   "form": "car",
   "selectionOrder": 3,
-  "visuals": { "spriteSet": "corvette-c4", "palette": "blue" },
+  "visuals": { "spriteSet": "corvette-c4", "palette": "blue", "steeringPicture": "montecarlo" },
   "sound": "CORVETTE_C4",
   "metadata": {
     "manufacturer": "Chevrolet",

@@ -2,7 +2,15 @@ import type { PNG as PngDecoder } from 'pngjs';
 import { admit } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { unpackRgba } from '../../src/image/rgb555.js';
+import {
+  HUD_PICTURE_TILES,
+  HUD_PICTURES,
+  TEXT_TILE_SIZE,
+  type HudPicture,
+  type TextTilesDocument,
+} from '../../src/image/text-tiles.js';
 import type { ContentStore } from '../authoring/content-store.js';
+import { requireInput } from '../course/authoring-io.js';
 import {
   HUD_PICTURE_RECIPES_FILE,
   HUD_PICTURE_SOURCES_DIRECTORY,
@@ -27,15 +35,6 @@ export interface DrawnHudPicture {
   readonly frames: readonly Uint8Array[];
   /** RGB555 colors of slots 1 to 15. */
   readonly palette: readonly number[];
-}
-
-/** How a picture's frames turn: a full turn in equal steps from upright, or a span about upright. */
-export interface HudPictureTurn {
-  readonly frames: number;
-  /** The angle between frames, radians, clockwise. */
-  readonly step: number;
-  /** The frame drawn upright. */
-  readonly upright: number;
 }
 
 type Channels = readonly [Float32Array, Float32Array, Float32Array];
@@ -332,7 +331,7 @@ function steeringWheelFrames(
   image: RgbaImage,
   picture: SteeringWheelRecipe,
   recipe: HudPictureRecipes,
-  turn: HudPictureTurn,
+  turn: HudPicture,
 ): Frame[] {
   const { width, height } = image,
     method = recipe.steeringWheel;
@@ -410,7 +409,7 @@ function steeringWheelFrames(
 }
 
 /** A top bridge's frames: the source turned about its centre by each frame's angle, its width filling the picture. */
-function topBridgeFrames(image: RgbaImage, picture: TopBridgeRecipe, recipe: HudPictureRecipes, turn: HudPictureTurn) {
+function topBridgeFrames(image: RgbaImage, picture: TopBridgeRecipe, recipe: HudPictureRecipes, turn: HudPicture) {
   const { width, height } = image;
   const { rgb, alpha } = planes(image);
   const premultiplied = rgb.map((plane) => plane.map((value, i) => (value * alpha[i]!) / 255)) as unknown as Channels;
@@ -447,7 +446,7 @@ export function drawHudPicture(
   image: RgbaImage,
   picture: HudPictureRecipe,
   recipe: HudPictureRecipes,
-  turn: HudPictureTurn,
+  turn: HudPicture,
 ): DrawnHudPicture {
   const frames =
     picture.kind === 'steeringWheel'
@@ -456,20 +455,56 @@ export function drawHudPicture(
   return quantize(frames, recipe.colors);
 }
 
-/** How each kind of picture turns: a steering wheel a full turn in 32 frames, a top bridge ±22.5° in 33. */
-export const HUD_PICTURE_TURNS: Readonly<Record<HudPictureRecipe['kind'], HudPictureTurn>> = Object.freeze({
-  steeringWheel: { frames: 32, step: (2 * Math.PI) / 32, upright: 0 },
-  topBridge: { frames: 33, step: (45 / 32) * (Math.PI / 180), upright: 16 },
-});
-
-/** Draw every HUD picture the recipes name from its source, in the recipes' order. */
+/**
+ * Draw every HUD picture from its source, in the text tiles' order of HUD pictures, whose frames and turning it
+ * follows; the recipes name exactly those pictures, `HUD_PICTURE_TILES` tiles square.
+ */
 export async function drawHudPictures(store: ContentStore, PNG: typeof PngDecoder) {
   const json = JSON.parse(new TextDecoder().decode(await store.read(HUD_PICTURE_RECIPES_FILE))) as unknown;
-  const recipes = requireLoaded(admit(`content/${HUD_PICTURE_RECIPES_FILE}`, () => readHudPictureRecipes(json)));
-  const drawn = new Map<string, DrawnHudPicture>();
-  for (const [name, picture] of Object.entries(recipes.pictures)) {
+  const path = `content/${HUD_PICTURE_RECIPES_FILE}`;
+  const recipes = requireLoaded(admit(path, () => readHudPictureRecipes(json)));
+  const names = Object.keys(HUD_PICTURES);
+  requireInput(
+    Object.keys(recipes.pictures).sort().join() === [...names].sort().join(),
+    `${path}#/pictures`,
+    `The recipes name exactly the HUD pictures: ${names.join(', ')}`,
+  );
+  requireInput(
+    recipes.size === HUD_PICTURE_TILES * TEXT_TILE_SIZE,
+    `${path}#/size`,
+    `A HUD picture is ${HUD_PICTURE_TILES * TEXT_TILE_SIZE} pixels square`,
+  );
+  const drawn = new Map<HudPicture, DrawnHudPicture>();
+  for (const name of names) {
     const image = await decodeSpritePng(await store.read(`${HUD_PICTURE_SOURCES_DIRECTORY}/${name}.png`), PNG);
-    drawn.set(name, drawHudPicture(image, picture, recipes, HUD_PICTURE_TURNS[picture.kind]));
+    drawn.set(HUD_PICTURES[name]!, drawHudPicture(image, recipes.pictures[name]!, recipes, HUD_PICTURES[name]!));
   }
-  return { recipes, drawn };
+  return drawn;
+}
+
+/**
+ * The text tiles document with these HUD pictures in place of those it held: the patterns before the first picture
+ * and the named palettes are kept, and each picture's frames, tile rows from the top left, and palette follow them.
+ */
+export function withHudPictures(document: TextTilesDocument, drawn: ReadonlyMap<HudPicture, DrawnHudPicture>) {
+  const pictures = [...drawn.keys()],
+    tiles = HUD_PICTURE_TILES,
+    size = tiles * TEXT_TILE_SIZE;
+  const patterns = document.patterns.slice(0, pictures[0]!.first);
+  const palettes = document.palettes.slice(0, pictures[0]!.palette);
+  for (const picture of pictures) {
+    const { frames, palette } = drawn.get(picture)!;
+    for (const frame of frames)
+      for (let row = 0; row < tiles; row++)
+        for (let column = 0; column < tiles; column++)
+          patterns.push({
+            indices: Array.from({ length: TEXT_TILE_SIZE * TEXT_TILE_SIZE }, (_, i) => {
+              const x = column * TEXT_TILE_SIZE + (i % TEXT_TILE_SIZE),
+                y = row * TEXT_TILE_SIZE + Math.floor(i / TEXT_TILE_SIZE);
+              return frame[y * size + x]!;
+            }),
+          });
+    palettes.push([0, ...palette, ...Array<number>(15 - palette.length).fill(0)]);
+  }
+  return { ...document, patterns, palettes };
 }

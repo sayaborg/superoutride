@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 2,
+  "version": 3,
   "form": "car",
   "selectionOrder": 5,
-  "visuals": { "spriteSet": "delta-hf-integrale", "palette": "white" },
+  "visuals": { "spriteSet": "delta-hf-integrale", "palette": "white", "steeringPicture": "prototipo" },
   "sound": "DELTA_HF_INTEGRALE",
   "metadata": {
     "manufacturer": "Lancia",

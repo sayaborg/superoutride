@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 2,
+  "version": 3,
   "form": "car",
   "selectionOrder": 4,
-  "visuals": { "spriteSet": "golf-gti-16v", "palette": "red" },
+  "visuals": { "spriteSet": "golf-gti-16v", "palette": "red", "steeringPicture": "mod02" },
   "sound": "GOLF_GTI_16V",
   "metadata": {
     "manufacturer": "Volkswagen",

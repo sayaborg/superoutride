@@ -144,18 +144,26 @@ have only index 0: it is the empty tile.
 | 138–144  | `INPUT_FILL_RIGHT_1`…`_7`   | The same, filled k pixels from the right                                  |
 | 145, 146 | `ARROW_LEFT`, `ARROW_RIGHT` | Arrows pointing left and right, slot 1 with the glyphs' slot 2 shadow     |
 
-The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`): `STEERING_CAR`
-(patterns 147–658, a steering wheel) and then `STEERING_BIKE` (659–1170, a top bridge). Each picture is 32 frames of
-32×32 pixels, frame 0 upright and each next frame turned 11.25° clockwise; a frame is 4×4 tiles, its 16 patterns row
-by row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
-`16*f+4*r+c`. Pictures are drawn in the PICTURE palette, whose slots 1–6 are their own colors. Replacing a picture is
-replacing those patterns and colors in place; no table changes.
+The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`), each with a
+palette of its own after the named palettes, in that order:
 
-Palettes 0 through 6 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal), BAR
-(unlit lamps and empty HUD parts) and PICTURE (the HUD pictures); later palettes are free. A document holds at most 65536 patterns and 256
+| Patterns  | Palette | Name         | Picture                                          | Frames                                   |
+| --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
+| 147–1298  | 6       | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 1299–2450 | 7       | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 2451–3602 | 8       | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 3603–4790 | 9       | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+
+Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
+row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
+`36*f+6*r+c`. A picture's palette holds its 15 colors in slots 1–15. The [HUD picture generator](#hud-picture-generator)
+writes the pictures and their palettes in place; no table changes.
+
+Palettes 0 through 5 are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal) and BAR
+(unlit lamps and empty HUD parts), and the HUD pictures' palettes follow; later palettes are free. A document holds at most 65536 patterns and 256
 palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
 text grid cell keeps any admitted pair. A tile's palette chooses its color, so one lamp or bar
-tile serves every color. Every named palette but PICTURE uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
+tile serves every color. Every named palette uses the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's
 ground, 5 a lamp's gloss, 6 its rim and 7 its shaded body. The
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
 `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns
@@ -458,8 +466,8 @@ each). The reference photographs and screenshots used to judge a set are not sav
 The HUD pictures are drawn from sources saved under `content/hud-picture-sources/`: `recipes.json` and one source
 `<name>.png` for each picture it names. They are production-only data, which the build does not deliver; the sources
 are pictures K generated and holds the rights to. `npm run hud-tiles`
-([Development](development.md#hud-tiles-command)) draws every picture; the same sources and recipes always give the
-same pictures.
+([Development](development.md#hud-tiles-command)) draws every picture and writes them into the
+[text tiles](#text-tiles) in place of those they held; the same sources and recipes always give the same pictures.
 
 **Recipes.** `superoutride.hud-picture-recipes` version 1:
 
@@ -471,10 +479,10 @@ same pictures.
                   | {kind: "topBridge", centre: [x, y]}, ...}}
 ```
 
-Each picture is `size` pixels square, in `colors` colors and transparency: a palette of its own, shared by all its
-frames and saved as RGB555. Coordinates are source pixels from the top-left corner. A steering wheel turns a full turn
-in 32 frames 11.25° apart, frame 0 upright; a top bridge turns from −22.5° to +22.5° in 33 frames 45/32° apart, frame 16
-upright; each next frame is turned clockwise.
+The recipes name exactly the text tiles' HUD pictures, whose frames and turning the generator follows. Each picture is
+`size` pixels square, the text tiles' 48, in `colors` colors and transparency: a palette of its own, shared by all its
+frames and saved as RGB555. `kind` says how its source is read. Coordinates are source pixels from the top-left
+corner.
 
 **Steering wheels.** A source shows the wheel squarely from the driver, upright, on white; its rim's outer diameter,
 350 mm, fills the picture. The background is the white (every channel at least `white`) that a disk of

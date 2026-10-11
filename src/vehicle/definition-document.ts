@@ -1,4 +1,5 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
+import { HUD_PICTURES, type HudPicture } from '../image/text-tiles.js';
 import { spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
@@ -40,10 +41,10 @@ export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> 
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
   readonly format: 'superoutride.vehicle-listing';
-  readonly version: 2;
+  readonly version: 3;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
-  readonly visuals: Readonly<{ spriteSet: string; palette: string }>;
+  readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringPicture: string }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
@@ -53,22 +54,27 @@ export interface CompiledVehicleMechanics {
   readonly sha256: string;
   readonly compiledVehicle: CompiledVehicle;
 }
-/** An admitted listing: its document, which holds every listed fact, and what its sprite set and sound IDs name. */
+/**
+ * An admitted listing: its document, which holds every listed fact, and what its sprite set, steering picture and
+ * sound IDs name.
+ */
 export interface CompiledVehicleListing {
   readonly source: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
+  readonly steeringPicture: HudPicture;
   readonly sound: CompiledEngineSound;
 }
 /**
  * One vehicle: its mechanics and listing documents, paired by identifier in the catalog, each fact published once. The
- * documents hold the authored facts (form and metadata are read from `listing`); `compiledVehicle`, `spriteSet` and
- * `sound` are what the mechanics compile to and what the listing's IDs name.
+ * documents hold the authored facts (form and metadata are read from `listing`); `compiledVehicle`, `spriteSet`,
+ * `steeringPicture` and `sound` are what the mechanics compile to and what the listing's IDs name.
  */
 export interface CompiledVehicleDefinition {
   readonly mechanics: VehicleMechanicsDocument;
   readonly mechanicsSha256: string;
   readonly listing: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
+  readonly steeringPicture: HudPicture;
   readonly compiledVehicle: CompiledVehicle;
   readonly sound: CompiledEngineSound;
 }
@@ -153,7 +159,7 @@ export function compileVehicleListingDocument(
       value,
       ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
       'superoutride.vehicle-listing',
-      2,
+      3,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -185,10 +191,11 @@ export function compileVehicleListingDocument(
       ),
       physicsAnchor: named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']),
     } as unknown as VehicleMetadata;
-    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette']);
+    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture']);
     const visuals = {
       spriteSet: readString(visual.spriteSet, '/visuals/spriteSet'),
       palette: readString(visual.palette, '/visuals/palette'),
+      steeringPicture: readString(visual.steeringPicture, '/visuals/steeringPicture'),
     };
     if (!Object.hasOwn(sprites.sets, visuals.spriteSet))
       throw new AdmissionError(
@@ -205,19 +212,26 @@ export function compileVehicleListingDocument(
     );
     if (!spriteSetHasColor(spriteSet, visuals.palette))
       throw new AdmissionError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
+    if (!Object.hasOwn(HUD_PICTURES, visuals.steeringPicture))
+      throw new AdmissionError(
+        'unresolved_reference',
+        '/visuals/steeringPicture',
+        `Unknown steering picture: ${visuals.steeringPicture}`,
+      );
+    const steeringPicture = HUD_PICTURES[visuals.steeringPicture]!;
     const soundId = readString(v.sound, '/sound');
     if (!Object.hasOwn(sounds, soundId))
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
-      version: 2,
+      version: 3,
       form: v.form,
       selectionOrder,
       visuals,
       sound: soundId,
       metadata,
     } as unknown as VehicleListingDocument);
-    return Object.freeze({ source, spriteSet, sound: sounds[soundId]! });
+    return Object.freeze({ source, spriteSet, steeringPicture, sound: sounds[soundId]! });
   });
 }
 
@@ -231,6 +245,7 @@ export function createVehicleDefinition(
     mechanicsSha256: mechanics.sha256,
     listing: listing.source,
     spriteSet: listing.spriteSet,
+    steeringPicture: listing.steeringPicture,
     compiledVehicle: mechanics.compiledVehicle,
     sound: listing.sound,
   });

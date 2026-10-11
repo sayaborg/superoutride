@@ -1,9 +1,9 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 2,
+  "version": 3,
   "form": "car",
   "selectionOrder": 2,
-  "visuals": { "spriteSet": "911-turbo-3-3", "palette": "silver" },
+  "visuals": { "spriteSet": "911-turbo-3-3", "palette": "silver", "steeringPicture": "prototipo" },
   "sound": "911_TURBO_3_3",
   "metadata": {
     "manufacturer": "Porsche",
