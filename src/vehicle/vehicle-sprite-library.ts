@@ -19,6 +19,9 @@ import type { VehiclePicture, VehiclePictureSize, VehicleSpriteSet } from './veh
  */
 export const VEHICLE_PICTURE_SIZES = 6;
 
+/** The number of colors every vehicle sprite set declares ([Image assets](../../docs/image-assets.md#vehicle-sprite-library)). */
+export const VEHICLE_COLORS = 4;
+
 export interface SpriteAssets {
   readonly sets: Readonly<Record<string, VehicleSpriteSet>>;
 }
@@ -102,7 +105,7 @@ function readFrame(value: unknown, path: string, extra: readonly string[] = []) 
 }
 
 /**
- * Admit one vehicle sprite set, its pointers relative to the set: at least two named palettes of slots 1–14 and the
+ * Admit one vehicle sprite set, its pointers relative to the set: exactly four named palettes of slots 1–14 and the
  * brake lamp's off and on colors; its grid binds every one of its pictures; each picture has every size, each size its
  * picture and its shadow on the same texel grid (the anchors differ by whole texels).
  */
@@ -129,7 +132,12 @@ export function readVehicleSpriteSet(value: unknown, name: string): VehicleSprit
     Object.freeze(readArray(value, path, readRgb555, { length: 14 })),
   );
   const colors = Object.freeze(Object.keys(palettes));
-  requireAdmission(colors.length >= 2, 'invalid_value', '/palettes', 'A set declares at least two colors');
+  requireAdmission(
+    colors.length === VEHICLE_COLORS,
+    'invalid_value',
+    '/palettes',
+    `A set declares exactly ${VEHICLE_COLORS} colors`,
+  );
   const lamp = readRecord(set.brakeLamp, '/brakeLamp', ['off', 'on']);
   const brakeLamp = Object.freeze({
     off: readRgb555(lamp.off, '/brakeLamp/off'),

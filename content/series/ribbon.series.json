@@ -13,9 +13,7 @@
       "course": "ribbon-coast",
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
-      "entries": [
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
-      ],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
@@ -31,9 +29,9 @@
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
       "entries": [
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 13, "ahead": null },
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
@@ -46,9 +44,9 @@
       "laps": 2,
       "vehicles": ["TESTAROSSA"],
       "entries": [
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 13, "ahead": null },
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},
@@ -61,9 +59,9 @@
       "laps": 3,
       "vehicles": ["VFR750R"],
       "entries": [
-        { "vehicle": "VFR750R", "color": "alternate", "pace": 1, "stages": null, "slot": 13, "ahead": null },
-        { "vehicle": "VFR750R", "color": "original", "pace": 1, "stages": null, "slot": 14, "ahead": null },
-        { "vehicle": "VFR750R", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
+        { "vehicle": "VFR750R", "color": "red", "pace": 1, "stages": null, "slot": 13, "ahead": null },
+        { "vehicle": "VFR750R", "color": "white", "pace": 1, "stages": null, "slot": 14, "ahead": null },
+        { "vehicle": "VFR750R", "color": "white", "pace": 1, "stages": null, "slot": 15, "ahead": null }
       ],
       "playerSlot": "last",
       "rankLimits": {},

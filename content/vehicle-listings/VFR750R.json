@@ -3,7 +3,7 @@
   "version": 2,
   "form": "bike",
   "selectionOrder": 6,
-  "visuals": { "spriteSet": "vfr750r", "palette": "original" },
+  "visuals": { "spriteSet": "vfr750r", "palette": "white" },
   "sound": "VFR750R",
   "metadata": {
     "manufacturer": "Honda",

@@ -3,7 +3,7 @@
   "version": 2,
   "form": "bike",
   "selectionOrder": 8,
-  "visuals": { "spriteSet": "fxrt-sport-glide", "palette": "original" },
+  "visuals": { "spriteSet": "fxrt-sport-glide", "palette": "black" },
   "sound": "FXRT_SPORT_GLIDE",
   "metadata": {
     "manufacturer": "Harley-Davidson",

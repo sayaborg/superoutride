@@ -294,7 +294,7 @@ none:
 
 ```text
 {format, version, yawVariants, bankVariants, bankDegrees?,
- palettes: {original: [14 RGB555], alternate: [14 RGB555], ...}, brakeLamp: {off: RGB555, on: RGB555},
+ palettes: {red: [14 RGB555], yellow: [14 RGB555], white: [14 RGB555], black: [14 RGB555]}, brakeLamp: {off: RGB555, on: RGB555},
  assets: [[pictureIndex, ...], ...], pictures: [{sizes: [Size, ...]}, ...]}
 Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...], shadow: {width, height, anchorX, anchorY, rows}}
 ```
@@ -303,12 +303,13 @@ Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...], shadow: {width
 fills at least one cell, and one picture may fill several. A picture has exactly six sizes, 0 to 5
 (`VEHICLE_PICTURE_SIZES`): size 5 is the one the farthest rendered depth (200 m) selects. A frame's `rows` run top to
 bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` transparent, `1`–`e` the palette's slots
-1–14 and `f` the brake lamp. A named palette lists the colors of slots 1–14. A set declares `bankDegrees` exactly when it has more than one bank
+1–14 and `f` the brake lamp. A set has exactly four colors (`VEHICLE_COLORS`), each a palette named by its color
+(`red`, `silver`, …) listing the colors of slots 1–14; the vehicle listing names the default, the first. A set declares `bankDegrees` exactly when it has more than one bank
 image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass line that its outermost
 bank images depict. Bank selection divides the vehicle's displayed lean by it.
 
 Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once: it names at
-least two palettes of 14 colors and both lamp colors; every picture has every size; every size has its shadow, whose
+four palettes of 14 colors and both lamp colors; every picture has every size; every size has its shadow, whose
 anchor differs from the picture's by whole texels; and every grid cell names a picture, every picture filling one. Vehicle admission checks form-specific bank dimensions and default-color references
 ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)). The authoring core
 ([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the same rules,
@@ -330,7 +331,8 @@ octave `k` of a full-size picture whose anchor sits at the vehicle's base point 
 behind its ground line sees half the vehicle's width behind it), each reduced texel taking the set slot nearest its
 mixture's color in every color and lamp state; their shadows are the vehicle's overall length by width rectangle seen
 by each size's contract camera. Cars have 48 yaw images (7.5° apart); motorcycles 48 yaw by 5 bank images
-(`bankDegrees` 60). Each has an `original` and an `alternate` color, the brake lamp's off and on colors 13379 and 31974.
+(`bankDegrees` 60). Their body is slots 1–3, one color from the highlight to the shade, which each color replaces; the
+brake lamp's off and on colors are 13379 and 31974.
 
 ## Vehicle picture generator
 
@@ -369,7 +371,7 @@ view, stations and heights are metres in vehicle coordinates (origin at the base
  surface: {stations: [z, ...], across: [x, ...], heights: [[y, ...], ...]},
  paint: {color: [r, g, b], tolerance, brightness, exposure, shade},
  slots: {body, neutral, glass: 2, accent}, bodyKeys: [brightness, ...],
- palettes: {original: [[r, g, b] × 14], alternate: [...]}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
+ palettes: {red: [[r, g, b] × 14], yellow: [...], white: [...], black: [...]}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
 ```
 
 `vehicle` names the mechanics document (`content/vehicles/<vehicle>.json`) whose overall length, width and height,
@@ -444,8 +446,9 @@ rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texe
 TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye; its recipe has no
 corrections. The command's draft of it looks the same and differs in about one texel in nine, mostly by one step of
 the body ramp: the generator has since gained smooth slopes and the rules above. Its body colors follow the reds of the
-reference game's car as seen in a screenshot; its `alternate` is a yellow of the same steps. 911 TURBO 3.3's saved set
-is the command's output for its recipe: silver, with a black `alternate`. Its surface gives the hood between the front
+reference game's car as seen in a screenshot; its yellow, white and black follow the same steps from light to dark,
+and its palettes are the recipe's, the pictures as the prototype drew them. 911 TURBO 3.3's saved set is the command's
+output for its recipe: silver, black, red and white. Its surface gives the hood between the front
 wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
 its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
 each). The reference photographs and screenshots used to judge a set are not saved here.

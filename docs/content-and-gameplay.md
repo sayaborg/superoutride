@@ -917,9 +917,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "course": "ribbon-coast",
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
-      "entries": [
-        { "vehicle": "TESTAROSSA", "color": "original", "pace": 1, "stages": null, "slot": 15, "ahead": null }
-      ],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {

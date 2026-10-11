@@ -669,8 +669,8 @@ course references to unknown material IDs report the authored Strip `/material` 
 
 Listing admission receives the completed sprite library with the listing document. It resolves the
 named set and the default color for every image once. Cars require exactly one bank image per yaw;
-bikes require an odd bank count of at least three, including neutral. Image admission guarantees at
-least two identical named color choices across the set and one shared brake-lamp off/on declaration
+bikes require an odd bank count of at least three, including neutral. Image admission guarantees
+exactly four named color choices across the set and one shared brake-lamp off/on declaration
 for reserved slot 15. Image colors omit that reserved slot.
 Unresolved set/color and incompatible bank dimensions produce listing-document diagnostics;
 malformed library/set declarations identify the image document. Consumers receive the admitted set.

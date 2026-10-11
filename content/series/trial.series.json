@@ -13,9 +13,7 @@
       "course": "outrun-trial-a",
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
-      "entries": [
-        { "vehicle": "TESTAROSSA", "color": "alternate", "pace": 1, "stages": null, "slot": 14, "ahead": null }
-      ],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "yellow", "pace": 1, "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
@@ -30,9 +28,7 @@
       "course": "outrun-trial-a-steep",
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
-      "entries": [
-        { "vehicle": "TESTAROSSA", "color": "alternate", "pace": 1, "stages": null, "slot": 14, "ahead": null }
-      ],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "yellow", "pace": 1, "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
