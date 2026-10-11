@@ -964,8 +964,8 @@ with N an integer from 1 to below the field size (the number of entries). The bu
 Session admits the class it drives.
 
 The delivered series are TSUKUBA CLUBMAN, the first product series, and RIBBON and TRIAL, development series; each
-document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN runs TSUKUBA in GTI CUP (GOLF GTI 16V) and
-911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
+document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
+GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
 1.02 at the pole to 0.88. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),
 which share the course and its TESTAROSSA and VFR750R reference times. RIBBON COAST is the

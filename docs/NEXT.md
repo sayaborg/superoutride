@@ -4,8 +4,8 @@
 
 - One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING, RIBBON ROUGH and the trial courses OUTRUN
   TRIAL A and A STEEP with ARCADE/FREE PLAY Sessions; RIBBON ROUGH is an untimed evaluation course.
-- TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its GTI CUP and
-  911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)); PRODUCTION 750 waits (below).
+- TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its PRODUCTION 750,
+  GTI CUP and 911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)).
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
   and gates.
   Circuits are closed cycles of two or more Sections.
@@ -91,12 +91,12 @@ and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON
 together use every Session rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
-- TSUKUBA's remaining work: TSUKUBA CLUBMAN's PRODUCTION 750 class (16 VFR750R, as the series' other classes), whose
-  VFR750R reference run cannot be measured: at the reference driver's 0.9 utilization the bike weaves at full steering
-  input from the final corner's entry and overturns on its exit in the first lap (at 0.88 it completes; under other
-  steering rules it leaves the road in sector 1), so the bike's driving at the limit is fixed first; the GSX-R750 joins
-  the class once it is in the catalog; solid barriers in place of the course limits at the verges; review of the
-  scenery on real devices; signboard walls, which today are sprites standing in a row.
+- TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaves
+  at full steering input from the final corner's entry and overturns on its exit (at 0.88 it completes), so its
+  reference run recovers 16 times in 30 laps and PRODUCTION 750's times and pace schedule include those recoveries; the
+  class is measured again once bike handling or the AI driving changes. The GSX-R750 joins the class once it is in the
+  catalog. Solid barriers in place of the course limits at the verges; review of the scenery on real devices; signboard
+  walls, which today are sprites standing in a row.
 
 - Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
   SELECT SERIES switches between them; the attract demo replaces the text title.
