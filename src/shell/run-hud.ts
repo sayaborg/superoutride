@@ -1,9 +1,17 @@
-import { HUD_PICTURE_TILES, HUD_TILES, hudPictureFrame, TEXT_PALETTES, type HudPicture } from '../image/text-tiles.js';
+import {
+  ARROW_TILES,
+  DIGIT_TILES,
+  HUD_PICTURE_TILES,
+  HUD_TILES,
+  hudPictureFrame,
+  TACHOMETER_BARS,
+  TEXT_PALETTES,
+  type HudPicture,
+} from '../image/text-tiles.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
 import { MODE_NAMES, type RunRequest } from './run-request.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import type { DrivingInput } from '../vehicle/driving-input.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
 import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-time.js';
 import { shownStanding } from './run-result.js';
@@ -11,14 +19,12 @@ import type { ComparedRecord } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the player's final input sample, the
- * camera's observation, the Session's course, mode and the player vehicle's engine speeds and steering picture from
+ * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the Session's course, mode and the player vehicle's engine speeds and steering picture from
  * its definitions, and the record the run compares against.
  */
 export interface HudFacts {
   readonly race: RaceFacts;
   readonly player: CompetitorObservation;
-  readonly input: DrivingInput;
   /** Whether the camera is held at its yaw limit, and on which side. */
   readonly camera: Pick<CameraState, 'heldAtLimit'>;
   readonly session: {
@@ -54,8 +60,8 @@ const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', 
 
 /**
  * Where every HUD element sits in the 40×30 text grid, as [column, row]; a value written right-aligned ends at its
- * column, `'center'` centres a line on its row, and a signal lamp's, picture's or input bar's place is its top-left
- * tile. Moving an element is a change of these numbers only.
+ * column, `'center'` centres a line on its row, and a lamp's, arrow's, digit's, picture's, meter's or the
+ * tachometer's place is its top-left tile. Moving an element is a change of these numbers only.
  */
 export const HUD_LAYOUT = Object.freeze({
   timeLabel: [1, 1],
@@ -71,13 +77,10 @@ export const HUD_LAYOUT = Object.freeze({
   bestTime: [10, 5],
   pass: [27, 4],
   target: [24, 5],
-  gear: [29, 27],
-  speed: [29, 28],
-  speedUnit: [31, 28],
   extend: ['center', 7],
   split: ['center', 7],
-  roadLeft: [0, 16],
-  roadRight: [39, 16],
+  roadLeft: [0, 13],
+  roadRight: [36, 13],
   courseName: ['center', 10],
   mode: ['center', 11],
   record: ['center', 12],
@@ -86,14 +89,14 @@ export const HUD_LAYOUT = Object.freeze({
   lamp3: [23, 13],
   outcome: ['center', 16],
   cause: ['center', 17],
+  speed: [1, 26],
+  speedUnit: [7, 28],
   steeringPicture: [17, 23],
-  steeringInput: [18, 29],
-  gasLabel: [0, 27],
-  gasBar: [5, 27],
-  brakeLabel: [0, 28],
-  brakeBar: [5, 28],
-  rpmLabel: [0, 29],
-  rpmBar: [5, 29],
+  steeringBar: [17, 29],
+  tachometer: [26, 26],
+  gear: [37, 26],
+  throttleBar: [26, 29],
+  brakeBar: [33, 29],
 } as const satisfies Record<string, readonly [number | 'center', number]>);
 
 type Place = keyof typeof HUD_LAYOUT;
@@ -114,39 +117,69 @@ const writeLamp = (text: TextLayer, place: Place, lit: boolean, palette: number)
     text.put(column + (i & 1), row + (i >> 1), HUD_TILES[`LAMP_${lit ? 'ON' : 'OFF'}_${part}`]!, palette),
   );
 };
-/** A bar's cells; each holds 8 pixels, so a bar is 80 pixels long between its end caps. */
-const BAR_CELLS = 10;
-const BAR_PIXELS = BAR_CELLS * 8;
-const barPixel = (fraction: number) => Math.min(BAR_PIXELS, Math.max(0, Math.round(fraction * BAR_PIXELS)));
+/** A meter is 6 cells of 8 pixels. */
+const METER_CELLS = 6;
+const METER_PIXELS = METER_CELLS * 8;
+const meterPixel = (fraction: number) => Math.min(METER_PIXELS, Math.max(0, Math.round(fraction * METER_PIXELS)));
+const clampCell = (pixels: number, cell: number) => Math.min(8, Math.max(0, pixels - cell * 8));
 /**
- * The one bar part: end caps at the place and after its cells, the pixels `[from, to)` filled, each cell RED from the
- * `red` pixel on (`'all'` for every cell) and WHITE before it, and 1-pixel marks drawn over the cells in their palettes.
+ * A meter from the left: its first `to` pixels filled, slot 1 before pixel `cut` and the cut part (slot 4, red) from
+ * there, over the ground.
  */
-const writeBar = (
-  text: TextLayer,
-  place: Place,
-  from: number,
-  to: number,
-  red: number | 'all' | null,
-  marks: readonly { readonly pixel: number; readonly palette: number }[],
-) => {
-  const column = columnOf(place, 1),
+const writeMeter = (text: TextLayer, place: Place, cut: number, to: number, palette: number) => {
+  const column = columnOf(place, METER_CELLS),
     row = HUD_LAYOUT[place][1];
-  text.put(column, row, HUD_TILES.BAR_LEFT!, TEXT_PALETTES.WHITE);
-  text.put(column + BAR_CELLS + 1, row, HUD_TILES.BAR_RIGHT!, TEXT_PALETTES.WHITE);
-  for (let cell = 0; cell < BAR_CELLS; cell++) {
-    const start = cell * 8,
-      filled = Math.max(0, Math.min(to, start + 8) - Math.max(from, start));
-    const tile = filled > 0 && from > start ? `BAR_FILL_RIGHT_${filled}` : `BAR_FILL_${filled}`;
-    const palette = red === 'all' || (red !== null && start >= red) ? TEXT_PALETTES.RED : TEXT_PALETTES.WHITE;
-    text.put(column + 1 + cell, row, HUD_TILES[tile]!, palette);
-  }
-  for (const { pixel, palette } of marks) {
-    const at = Math.min(BAR_PIXELS - 1, pixel);
-    text.overlay(column + 1 + (at >> 3), row, HUD_TILES[`BAR_MARK_${at & 7}`]!, palette);
+  for (let cell = 0; cell < METER_CELLS; cell++)
+    text.put(
+      column + cell,
+      row,
+      HUD_TILES[`METER_${clampCell(Math.min(cut, to), cell)}_${clampCell(to, cell)}`]!,
+      palette,
+    );
+};
+/** A meter from its centre: `pixels` of its half toward the side of `sign`, over the ground. */
+const writeCentredMeter = (text: TextLayer, place: Place, sign: number, pixels: number, palette: number) => {
+  const column = columnOf(place, METER_CELLS),
+    row = HUD_LAYOUT[place][1],
+    half = METER_CELLS / 2;
+  for (let cell = 0; cell < half; cell++) {
+    const right = sign > 0 ? clampCell(pixels, cell) : 0,
+      left = sign < 0 ? clampCell(pixels, cell) : 0;
+    text.put(column + half + cell, row, HUD_TILES[`METER_${right}_${right}`]!, palette);
+    text.put(
+      column + half - 1 - cell,
+      row,
+      HUD_TILES[left > 0 && left < 8 ? `METER_RIGHT_${left}` : `METER_${left}_${left}`]!,
+      palette,
+    );
   }
 };
-const inputMark = (fraction: number) => ({ pixel: barPixel(fraction), palette: TEXT_PALETTES.YELLOW });
+/** A 2×3-tile segment digit, or one with every segment unlit when `digit` is null. */
+const writeDigit = (text: TextLayer, column: number, row: number, digit: number | null, palette: number) => {
+  const tiles = DIGIT_TILES.columns * DIGIT_TILES.rows;
+  for (let k = 0; k < tiles; k++)
+    text.put(
+      column + (k % DIGIT_TILES.columns),
+      row + Math.floor(k / DIGIT_TILES.columns),
+      HUD_TILES[`DIGIT_${digit ?? 'OFF'}_${k}`]!,
+      palette,
+    );
+};
+/** The speed's digits, right-aligned; the speed is held at 999 km/h. */
+const SPEED_DIGITS = 3;
+/** The tachometer bars before the first red bar that are yellow. */
+const TACHOMETER_YELLOW_BARS = 3;
+/** The road arrow, 4×4 tiles. */
+const writeArrow = (text: TextLayer, place: Place, side: 'LEFT' | 'RIGHT') => {
+  const [column, row] = HUD_LAYOUT[place] as readonly [number, number];
+  for (let k = 0; k < ARROW_TILES * ARROW_TILES; k++)
+    text.put(
+      column + (k % ARROW_TILES),
+      row + Math.floor(k / ARROW_TILES),
+      HUD_TILES[`ARROW_${side}_${k}`]!,
+      TEXT_PALETTES.YELLOW,
+    );
+};
 
 /**
  * The steering picture's ratio of the drawn wheel's angle to the front road wheel's, by form: a car's steering wheel,
@@ -162,8 +195,6 @@ const writePicture = (text: TextLayer, place: Place, picture: HudPicture, angle:
     for (let x = 0; x < HUD_PICTURE_TILES; x++)
       text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, picture.palette);
 };
-/** The input bar's cells on each side of its centre; 8 pixels each. */
-const INPUT_HALF_CELLS = 2;
 
 const extended = ({ clock }: RaceFacts) => {
   const extension = clock.lastExtension;
@@ -195,9 +226,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     middle: true,
     when: ({ camera }) => camera.heldAtLimit !== 0,
     write({ camera }, text) {
-      const place = camera.heldAtLimit > 0 ? 'roadLeft' : 'roadRight';
-      const [column, row] = HUD_LAYOUT[place];
-      text.put(column, row, HUD_TILES[camera.heldAtLimit > 0 ? 'ARROW_LEFT' : 'ARROW_RIGHT']!, TEXT_PALETTES.YELLOW);
+      if (camera.heldAtLimit > 0) writeArrow(text, 'roadLeft', 'LEFT');
+      else writeArrow(text, 'roadRight', 'RIGHT');
     },
   },
   {
@@ -269,19 +299,32 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write: ({ race }, text) => write(text, 'target', `TARGET ${Math.round(race.stageRivalGap!)}M`),
   },
   {
+    // The speed in km/h, right-aligned segment digits; a missing leading digit is unlit.
+    when: () => true,
+    write({ player }, text) {
+      const speed = String(Math.min(10 ** SPEED_DIGITS - 1, Math.round(player.speed * 3.6))),
+        [column, row] = HUD_LAYOUT.speed;
+      for (let i = 0; i < SPEED_DIGITS; i++) {
+        const digit = speed[i - (SPEED_DIGITS - speed.length)];
+        writeDigit(
+          text,
+          column + i * DIGIT_TILES.columns,
+          row,
+          digit === undefined ? null : Number(digit),
+          TEXT_PALETTES.VFD,
+        );
+      }
+      write(text, 'speedUnit', 'km/h');
+    },
+  },
+  {
     // The gear, yellow briefly after a shift.
     when: () => true,
     write({ race, player: { powertrain } }, text) {
       const shifted =
         powertrain.shiftSeconds !== null && race.simulationSeconds - powertrain.shiftSeconds < HUD_DURATIONS.shift;
-      writeRight(text, 'gear', String(powertrain.gear), shifted ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE);
-    },
-  },
-  {
-    when: () => true,
-    write({ player }, text) {
-      writeRight(text, 'speed', String(Math.round(player.speed * 3.6)));
-      write(text, 'speedUnit', 'KM/H');
+      const [column, row] = HUD_LAYOUT.gear;
+      writeDigit(text, column, row, powertrain.gear % 10, shifted ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.VFD);
     },
   },
   {
@@ -297,55 +340,59 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // The player's steering input from the centre, one pixel per sixteenth, yellow over the bar ground.
+    // The steering actuator from the centre toward its side, white.
     when: () => true,
-    write({ input }, text) {
-      const half = INPUT_HALF_CELLS * 8,
-        pixels = Math.round(Math.abs(input.steering) * half),
-        column = columnOf('steeringInput', 1),
-        row = HUD_LAYOUT.steeringInput[1];
-      for (let cell = 0; cell < INPUT_HALF_CELLS; cell++) {
-        const filled = Math.max(0, Math.min(8, pixels - cell * 8));
-        const right = input.steering > 0 ? filled : 0,
-          left = input.steering < 0 ? filled : 0;
-        text.put(column + INPUT_HALF_CELLS + cell, row, HUD_TILES[`INPUT_FILL_${right}`]!, TEXT_PALETTES.YELLOW);
-        text.put(
-          column + INPUT_HALF_CELLS - 1 - cell,
-          row,
-          HUD_TILES[left > 0 && left < 8 ? `INPUT_FILL_RIGHT_${left}` : `INPUT_FILL_${left}`]!,
-          TEXT_PALETTES.YELLOW,
-        );
-      }
+    write({ player: { control } }, text) {
+      const half = METER_PIXELS / 2;
+      writeCentredMeter(
+        text,
+        'steeringBar',
+        Math.sign(control.steering),
+        Math.min(half, Math.round(Math.abs(control.steering) * half)),
+        TEXT_PALETTES.WHITE,
+      );
     },
   },
   {
+    // The throttle actuator, green, and in red its part beyond the effective opening the protections leave.
     when: () => true,
-    write({ player, input }, text) {
-      write(text, 'gasLabel', 'GAS');
-      writeBar(text, 'gasBar', 0, barPixel(player.control.throttle), null, [inputMark(Number(input.throttle))]);
+    write({ player: { control, powertrain } }, text) {
+      const effective = Math.min(control.throttle, powertrain.effectiveOpening);
+      writeMeter(text, 'throttleBar', meterPixel(effective), meterPixel(control.throttle), TEXT_PALETTES.GREEN);
     },
   },
   {
+    // The brake actuator, yellow, and in red its part the protections take from the station they take most from.
     when: () => true,
-    write({ player, input }, text) {
-      write(text, 'brakeLabel', 'BRAKE');
-      writeBar(text, 'brakeBar', 0, barPixel(player.control.brake), null, [inputMark(Number(input.brake))]);
+    write({ player: { control } }, text) {
+      const applied = control.brake * Math.min(control.frontBrakeApplied, control.rearBrakeApplied);
+      writeMeter(text, 'brakeBar', meterPixel(applied), meterPixel(control.brake), TEXT_PALETTES.YELLOW);
     },
   },
   {
-    // The tachometer to the fuel cut: red from the redline (a red mark), wholly red while the limiter cuts fuel.
+    // The tachometer to the fuel cut: a bar is lit once the engine reaches its speed; green, yellow for the bars just
+    // before the redline and red from it, and wholly red while the limiter cuts fuel.
     when: () => true,
     write({ player: { powertrain }, session }, text) {
-      const redline = barPixel(session.redlineRpm / session.fuelCutRpm);
-      write(text, 'rpmLabel', 'RPM');
-      writeBar(
-        text,
-        'rpmBar',
-        0,
-        barPixel(powertrain.engineRpm / session.fuelCutRpm),
-        powertrain.fuelCut ? 'all' : redline,
-        [{ pixel: redline, palette: TEXT_PALETTES.RED }],
-      );
+      const [column, row] = HUD_LAYOUT.tachometer,
+        barRpm = (bar: number) => ((bar + 1) * session.fuelCutRpm) / TACHOMETER_BARS;
+      let firstRed = 0;
+      while (firstRed < TACHOMETER_BARS && barRpm(firstRed) < session.redlineRpm) firstRed++;
+      for (let bar = 0; bar < TACHOMETER_BARS; bar++) {
+        const palette =
+          powertrain.fuelCut || bar >= firstRed
+            ? TEXT_PALETTES.RED
+            : bar >= firstRed - TACHOMETER_YELLOW_BARS
+              ? TEXT_PALETTES.YELLOW
+              : TEXT_PALETTES.GREEN;
+        const state = powertrain.engineRpm >= barRpm(bar) ? 'ON' : 'OFF';
+        // Two bars share a tile: the left one is the tile, the right one its overlay, each in its own palette.
+        for (let r = 0; r < DIGIT_TILES.rows; r++) {
+          const pattern = HUD_TILES[`TACH_${bar}_${r}_${state}`]!;
+          if (bar % 2) text.overlay(column + (bar >> 1), row + r, pattern, palette);
+          else text.put(column + (bar >> 1), row + r, pattern, palette);
+        }
+      }
     },
   },
   {

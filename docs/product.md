@@ -228,7 +228,7 @@ may pass below the road.
 ## 9. HUD
 
 The product HUD is drawn inside the 320×240 frame. It reads only published observations: race facts,
-the player's final input sample, the player vehicle's observations and the camera's. It is a set of independent
+the player vehicle's observations and the camera's. It is a set of independent
 elements, each reading one observation; the active Session rules determine which appear.
 
 | Condition                      | Elements                                                             |
@@ -246,16 +246,29 @@ elements, each reading one observation; the active Session rules determine which
 | A record exists                | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
-middle; the road and the player's vehicle stay clear. Times read `1'23"456`. TIME turns red under ten
-seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
-lap's time holds in yellow for two seconds. Steering is a picture of the steering wheel (a bike's top
-bridge) turned as the front wheel actually is, over a bar of the player's input; throttle and brake are
-bars whose fill is the vehicle's actual value and whose mark is the player's input; the tachometer bar is red from the
-redline and wholly red while the limiter cuts fuel; the gear turns yellow briefly at a shift. Three
-signal lamps light red one per second and turn green at GO. Text and HUD parts use one original font
-of 8×8 tiles (uppercase and lowercase letters, digits and symbols) in the same indexed format as
-sprites and backgrounds: 15 colors and transparency per palette, one palette per tile. Fork guidance
-is course appearance (signs), not HUD. DEV UI stays separate from the HUD.
+middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME
+turns red under ten seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
+lap's time holds in yellow for two seconds. Three signal lamps light red one per second and turn green at GO.
+
+The lower row, from the left:
+
+- **Speed:** three seven-segment digits in km/h, right-aligned, in the blue-green of a vacuum fluorescent display;
+  an unused leading digit shows all its segments unlit.
+- **Steering:** a picture of the vehicle's steering wheel (a bike's top bridge), 48 pixels square, turned as the front
+  wheel actually is: its listing names the picture (montecarlo for TESTAROSSA and CORVETTE C4, prototipo for 911
+  TURBO 3.3 and DELTA HF INTEGRALE, mod02 for GOLF GTI 16V, top-bridge for the bikes). Under it a white bar grows from
+  its centre toward the side of the steering actuator, so a key's input grows to full and an analog one follows it.
+- **Tachometer:** 20 bars rising in a quadratic curve from 4 to 24 pixels, from 0 to the fuel-cut speed; a bar lights
+  once the engine reaches its speed and stays dark otherwise. Bars are green, yellow for the three just before the
+  redline and red from it, and all red while the limiter cuts fuel.
+- **Gear:** one seven-segment digit in the same blue-green, yellow briefly at a shift.
+- **Throttle and brake:** green and yellow bars of the actuators; the part the vehicle's protections take away (beyond
+  the effective throttle opening, and of the brake at the axle they reduce most) shows red at the bar's end.
+
+There are no labels and no shift light. Text and HUD parts use one original font of 8×8 tiles (uppercase and lowercase
+letters, digits and symbols) in the same indexed format as sprites and backgrounds: 15 colors and transparency per
+palette, one palette per tile. Fork guidance is course appearance (signs), not HUD. DEV UI stays separate from the
+HUD.
 
 ## 10. Records and settings
 

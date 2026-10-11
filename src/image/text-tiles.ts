@@ -11,31 +11,47 @@ export const TEXT_CHARACTERS = /^[\x20-\x7e]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /**
- * Palettes 0 through 5 are named: the text colors, GREEN (signal lamps and normal) and BAR (unlit and empty HUD parts).
- * They use the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 5 a lamp's gloss, 6 its rim and 7
- * its shaded body. The HUD pictures' palettes follow them; later palettes are free.
+ * Palettes 0 through 6 are named: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts) and
+ * VFD (the segment digits). They use the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's
+ * cut part (red), 5 a lamp's gloss, 6 its rim, 7 its shaded body and 8 the main color unlit. The HUD pictures' palettes
+ * follow them; later palettes are free.
  */
-export const TEXT_PALETTES = Object.freeze({ WHITE: 0, YELLOW: 1, RED: 2, DARK: 3, GREEN: 4, BAR: 5 });
+export const TEXT_PALETTES = Object.freeze({ WHITE: 0, YELLOW: 1, RED: 2, DARK: 3, GREEN: 4, BAR: 5, VFD: 6 });
+/** The tachometer's bars, two to a tile, from the left. */
+export const TACHOMETER_BARS = 20;
+/** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
+export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
+/** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */
+export const ARROW_TILES = 4;
+const tiles = (prefix: string, count: number) => Array.from({ length: count }, (_, k) => `${prefix}_${k}`);
+/**
+ * The HUD part tiles the HUD tiles command draws, after the signal lamps, in this order:
+ * - `METER_a_b` (0 <= a <= b <= 8): a meter cell, 4 pixels high in rows 2 to 5, slot 1 in columns before a, slot 4 (the
+ *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
+ * - `TACH_b_r_ON` and `_OFF`: tachometer bar b's part in its column's tile row r, slot 1 lit and slot 8 unlit; an even
+ *   bar stands in columns 0 to 2 of its tile, an odd one in columns 4 to 6.
+ * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel seven-segment digit, lit segments in slot 1 and the
+ *   others in slot 8.
+ * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow, slot 1 outlined in slot 2.
+ */
+export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
+  ...Array.from({ length: 9 }, (_, a) => Array.from({ length: 9 - a }, (_, k) => `METER_${a}_${a + k}`)).flat(),
+  ...Array.from({ length: 7 }, (_, k) => `METER_RIGHT_${k + 1}`),
+  ...Array.from({ length: TACHOMETER_BARS }, (_, b) =>
+    [0, 1, 2].flatMap((r) => [`TACH_${b}_${r}_ON`, `TACH_${b}_${r}_OFF`]),
+  ).flat(),
+  ...[...'0123456789'.split(''), 'OFF'].flatMap((d) => tiles(`DIGIT_${d}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
+  ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
+  ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
+]);
 /**
  * The HUD part tiles follow the characters in this order, as the characters follow code order, so the mapping needs no
- * saved table. A bar cell is a 6-pixel-high bar in rows 1 to 6: `BAR_FILL_k` fills k pixels from the left in slot 1
- * over the slot 3 ground, `BAR_FILL_RIGHT_k` k pixels from the right; `BAR_MARK_k` is a full-height line in column k
- * drawn over a bar; `BAR_LEFT` and `BAR_RIGHT` close the bar. A signal lamp is 2 by 2 tiles, lit or unlit. An input
- * cell, `INPUT_FILL_k` and `INPUT_FILL_RIGHT_k`, is the same as a bar cell 4 pixels high in rows 0 to 3.
- * `ARROW_LEFT` and `ARROW_RIGHT` are arrows drawn as the font's glyphs are, slot 1 with its slot 2 shadow.
+ * saved table: the signal lamps, 2 by 2 tiles lit or unlit, and then the drawn part tiles.
  */
 const HUD_TILE_NAMES = [
-  ...Array.from({ length: 9 }, (_, k) => `BAR_FILL_${k}`),
-  ...Array.from({ length: 7 }, (_, k) => `BAR_FILL_RIGHT_${k + 1}`),
-  ...Array.from({ length: 8 }, (_, k) => `BAR_MARK_${k}`),
-  'BAR_LEFT',
-  'BAR_RIGHT',
   ...['ON', 'OFF'].flatMap((state) => ['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${state}_${part}`)),
-  ...Array.from({ length: 9 }, (_, k) => `INPUT_FILL_${k}`),
-  ...Array.from({ length: 7 }, (_, k) => `INPUT_FILL_RIGHT_${k + 1}`),
-  'ARROW_LEFT',
-  'ARROW_RIGHT',
-] as const;
+  ...HUD_DRAWN_TILE_NAMES,
+];
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(
   Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, CHARACTER_COUNT + i])),

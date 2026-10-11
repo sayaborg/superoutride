@@ -225,7 +225,7 @@ and numeric requests in `[0,1]` have the same canonical meaning.
 
 Each fixed step, `sample()` takes the step's gamepad reading and then builds one `DrivingInput` from the
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
-sample is a published read-only observation (`lastSample`); the HUD reads it. The screen host
+sample is a published read-only observation (`lastSample`). The screen host
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
 sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. A run's start resets input once.
 
@@ -321,11 +321,11 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                             |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
-| 16    | While the camera is held at its yaw limit: a yellow arrow at the edge the road goes on, steady                     |
+| 13–16 | While the camera is held at its yaw limit: a yellow 4×4-tile arrow, steady, in columns 0–3 or 36–39                |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile segment digits; columns 7–10 of row 28: `km/h`                              |
 | 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                    |
-| 29    | Columns 18–21, in the upper 4 pixels: the steering input bar                                                       |
-| 27–28 | The gear and the speed in km/h with `KM/H`                                                                         |
-| 27–29 | Bars of 10 cells (1-pixel steps) between end caps: GAS, BRAKE and RPM                                              |
+| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                            |
+| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                   |
 
 The steering picture, in the middle of the frame's width, is the one the player vehicle's listing names
 ([Image assets](image-assets.md#text-tiles)) and shows where the front wheel actually points: the player
@@ -333,20 +333,28 @@ observation's front road-wheel angle to the body times the HUD's steering ratio 
 (its steering wheel) and 1 for a bike (its top bridge), one value per form. The HUD draws the picture's upright frame
 plus `round(angle/step)`, so turning right turns it clockwise: a steering wheel's 32 frames make a full turn and a
 turn past it repeats them; a top bridge's 33 frames stop at ±22.5°. The picture is never rotated at run time and may
-lie over the player's vehicle. Under it the input bar shows only the player's steering input from the final input sample, from the bar's
-centre (between columns 19 and 20) toward the input's side, `round(|input|*16)` of its 16 pixels a side, yellow over
-the bar ground, with no end caps.
+lie over the player's vehicle.
 
-Throttle and brake are bars whose fill is the vehicle's actual value from the player's observation (the throttle and
-brake actuators) and whose yellow 1-pixel mark is the player's input from the final input sample. The
-tachometer bar runs from 0 to the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
-definition's margin): cells from the redline on are red, with a red mark at the redline, and the whole bar is red while
-the limiter cuts fuel. One bar part draws all three, its marks on the text layer's overlay tiles.
+The three meters read the player's observation and are 4 pixels high, 2 pixels clear of their tiles' top and bottom,
+without labels, end caps or marks; a meter of `f` fills `round(f*48)` pixels. The steering meter, under the picture,
+grows from its centre (between columns 19 and 20) toward the steering actuator's side, `round(|steering|*24)` of its 24
+pixels a side, white, so a key's rate-limited input grows to full and an analog input follows it. The throttle meter
+fills to the throttle actuator in green and the brake meter to the brake actuator in yellow; the part the protections
+take away shows red at the fill's end: the throttle beyond the powertrain's effective opening, and the brake beyond its
+share applied at the station whose share is smaller (`frontBrakeApplied`, `rearBrakeApplied`).
 
-Rows 8 to 24, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
+The speed shows `round(speed*3.6)` km/h, held at 999, in three segment digits right-aligned in the VFD palette; a
+leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in the VFD palette,
+yellow after a shift. The tachometer's 20 bars, two to a tile, stand on row 28's bottom; bar `b` (from 0) lights once
+the engine speed reaches `(b+1)/20` of the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
+definition's margin) and is unlit (its palette's unlit color) otherwise. A bar whose speed reaches the redline is red,
+the three before the first red bar are yellow and the rest green; every bar is red while the limiter cuts fuel. An
+even bar is its tile and an odd one that tile's overlay, so neighbours can differ in palette.
+
+Rows 8 to 22, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
 reads only the camera's `heldAtLimit` (1 when its yaw source has turned right beyond the limit, -1 left, 0 within
-it), for FACING and MOVING alike: held on the right, the road goes on to the left, so `ARROW_LEFT` stands in column 0,
-and held on the left `ARROW_RIGHT` stands in column 39. Its row is fixed, clear of the road and the player's vehicle,
+it), for FACING and MOVING alike: held on the right, the road goes on to the left, so the left arrow stands in columns
+0–3, and held on the left the right arrow stands in columns 36–39. Its row is fixed, clear of the road and the player's vehicle,
 and does not follow the DEV horizon row. While the PAUSE menu or RESULT is
 over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.
 

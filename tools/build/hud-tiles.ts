@@ -12,12 +12,13 @@ import {
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
-import { drawHudPictures, withHudPictures } from '../graphics/hud-pictures.js';
+import { drawHudParts } from '../graphics/hud-parts.js';
+import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
 
 /**
- * The HUD tiles command: draw every HUD picture from its source and recipe (`content/hud-picture-sources/`) and
- * write them into the text tiles, `content/text-tiles/default.json`, with a check sheet of each,
- * `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
+ * The HUD tiles command: draw the HUD part tiles and every HUD picture from its source and recipe
+ * (`content/hud-picture-sources/`) and write them into the text tiles, `content/text-tiles/default.json`, with a check
+ * sheet of each picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
  */
 const USAGE = 'Usage: npm run hud-tiles';
 const TEXT_TILES = 'text-tiles/default.json';
@@ -27,7 +28,7 @@ try {
   requireInput(process.argv.length === 2, '/arguments', USAGE);
   const drawn = await drawHudPictures(store, PNG);
   const saved = JSON.parse(new TextDecoder().decode(await store.read(TEXT_TILES))) as TextTilesDocument;
-  const document = withHudPictures(saved, drawn);
+  const document = withHudTiles(saved, drawHudParts(), drawn);
   requireLoaded(admit(`content/${TEXT_TILES}`, () => compileTextTiles(document)));
   await replaceDocument(store, TEXT_TILES, document);
 

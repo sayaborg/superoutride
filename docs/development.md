@@ -14,7 +14,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
 | `npm test`                    | All checks, build, startup smoke and driving scenarios              |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
-| `npm run hud-tiles`           | Draw the HUD pictures into the text tiles from their sources        |
+| `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles            |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
 
 ### Driving scenarios
@@ -376,15 +376,17 @@ The build admits the saved set and generates nothing.
 
 ### HUD tiles command
 
-The HUD tiles command draws every HUD picture by the [HUD picture generator](image-assets.md#hud-picture-generator),
-printing one JSON result (or the diagnostics, exiting 1):
+The HUD tiles command draws the HUD's drawn part tiles ([Image assets](image-assets.md#text-tiles)) and every HUD
+picture by the [HUD picture generator](image-assets.md#hud-picture-generator), printing one JSON result (or the
+diagnostics, exiting 1):
 
 ```sh
 npm run hud-tiles
 ```
 
-It reads `content/hud-picture-sources/recipes.json` and the sources beside it, writes the pictures and their palettes
-into `content/text-tiles/default.json`, keeping its other patterns and palettes, and writes a check sheet of each
+It reads `content/hud-picture-sources/recipes.json` and the sources beside it, writes the part tiles, the pictures and
+their palettes into `content/text-tiles/default.json`, keeping its characters, signal lamps and named palettes, and
+writes a check sheet of each
 picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads. The build admits
 the saved text tiles and draws nothing.
 

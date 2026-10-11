@@ -3,8 +3,11 @@ import { admit } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { unpackRgba } from '../../src/image/rgb555.js';
 import {
+  HUD_DRAWN_TILE_NAMES,
   HUD_PICTURE_TILES,
   HUD_PICTURES,
+  HUD_TILES,
+  TEXT_PALETTES,
   TEXT_TILE_SIZE,
   type HudPicture,
   type TextTilesDocument,
@@ -483,17 +486,25 @@ export async function drawHudPictures(store: ContentStore, PNG: typeof PngDecode
 }
 
 /**
- * The text tiles document with these HUD pictures in place of those it held: the patterns before the first picture
- * and the named palettes are kept, and each picture's frames, tile rows from the top left, and palette follow them.
+ * The text tiles document with these drawn HUD part tiles and pictures in place of those it held: the characters, the
+ * signal lamps and the named palettes are kept, and the part tiles, then each picture's frames, tile rows from the top
+ * left, and palette follow them.
  */
-export function withHudPictures(document: TextTilesDocument, drawn: ReadonlyMap<HudPicture, DrawnHudPicture>) {
-  const pictures = [...drawn.keys()],
-    tiles = HUD_PICTURE_TILES,
+export function withHudTiles(
+  document: TextTilesDocument,
+  parts: readonly (readonly number[])[],
+  drawn: ReadonlyMap<HudPicture, DrawnHudPicture>,
+): TextTilesDocument {
+  const tiles = HUD_PICTURE_TILES,
     size = tiles * TEXT_TILE_SIZE;
-  const patterns = document.patterns.slice(0, pictures[0]!.first);
-  const palettes = document.palettes.slice(0, pictures[0]!.palette);
-  for (const picture of pictures) {
-    const { frames, palette } = drawn.get(picture)!;
+  const patterns = [
+    ...document.patterns.slice(0, HUD_TILES[HUD_DRAWN_TILE_NAMES[0]!]!),
+    ...parts.map((indices) => ({ indices })),
+  ];
+  const palettes = document.palettes.slice(0, Object.keys(TEXT_PALETTES).length);
+  for (const [picture, { frames, palette }] of drawn) {
+    if (patterns.length !== picture.first || palettes.length !== picture.palette)
+      throw new Error(`HUD picture ${picture.name} does not follow the part tiles and named palettes`);
     for (const frame of frames)
       for (let row = 0; row < tiles; row++)
         for (let column = 0; column < tiles; column++)
