@@ -16,6 +16,7 @@ import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalo
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
+import { attractClasses, createAttractDemo } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createCourseMap } from '../view/course-map.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
@@ -267,8 +268,17 @@ async function startPage(): Promise<void> {
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
-        // TITLE stands over black until the attract demo.
-        titleBackground: { draw: () => false, tick: () => {} },
+        titleBackground: createAttractDemo(attractClasses(series.series), vehicles, {
+          assemble: (next, laps, sliceMilliseconds, signal) =>
+            assembleRun(
+              page,
+              next,
+              createRunScreenState(() => {}),
+              undefined,
+              { laps, sliceMilliseconds, signal },
+            ),
+          drawSeed: page.drawSeed,
+        }),
         setVolume: (name, percent) => shell.setVolume(name, percent),
         audition: (track) => {
           const audition = playTrack(shell, track);

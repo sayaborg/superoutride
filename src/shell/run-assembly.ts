@@ -21,6 +21,7 @@ import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../co
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import type { RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { createCourseMap } from '../view/course-map.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
@@ -81,6 +82,17 @@ export interface RunAssemblyReport {
   }): void;
 }
 
+/**
+ * The attract demo's run: no player input reaches it (the player's Session driver drives), it sounds and records
+ * nothing, and before it is shown it is stepped headlessly in fixed steps until the player has driven `laps` laps of
+ * the course's route, yielding to the page every `sliceMilliseconds` of work; `signal` abandons it.
+ */
+export interface DemoRun {
+  readonly laps: number;
+  readonly sliceMilliseconds: number;
+  readonly signal: AbortSignal;
+}
+
 /** Shares of a run's loading: its course's files, then the course compiled, then its Session prepared. */
 const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
 
@@ -94,6 +106,7 @@ export async function assembleRun(
   request: RunRequest,
   state: RunScreenState,
   report?: RunAssemblyReport,
+  demo?: DemoRun,
 ): Promise<Run> {
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   // ARCADE drives its class on the class's course; the other modes drive the course they name.
@@ -154,42 +167,43 @@ export async function assembleRun(
     observation: () => active.race.observe().player,
     yawSource: page.player.settings.cameras[entry.listing.form],
   });
-  // The run's DEV controls, only with DEV.
-  const devControls = page.dev
-    ? mountRunDevControls(vehicle, {
-        canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
-        recover: () => {
-          active.race.recoverPlayer();
-          lifecycle.reset();
-        },
-        // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-        // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-        // product Session and the delivered definition.
-        rebuildSession: (driving) => {
-          active = build({
-            vehicle: createSessionVehicle(entry, driving),
-            configuration: compileSessionConfiguration(
-              {
-                mode: 'FREE_PLAY',
-                vehicleId: settings.vehicleId,
-                color: settings.color,
-                lapCount: active.session.configuration.lapCount,
-                rivalCount: 0,
-                rivalPool: formPool(page.freePlay, entry).id,
-                traffic: NO_TRAFFIC,
-              },
-              course,
-              arcade,
-              { vehicles, freePlay: page.freePlay },
-            ),
-          });
-          lifecycle.update(true);
-          afterEndingSeconds = 0;
-          start();
-          state.restart();
-        },
-      })
-    : null;
+  // The run's DEV controls, only with DEV and never in the attract demo.
+  const devControls =
+    page.dev && !demo
+      ? mountRunDevControls(vehicle, {
+          canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
+          recover: () => {
+            active.race.recoverPlayer();
+            lifecycle.reset();
+          },
+          // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+          // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
+          // product Session and the delivered definition.
+          rebuildSession: (driving) => {
+            active = build({
+              vehicle: createSessionVehicle(entry, driving),
+              configuration: compileSessionConfiguration(
+                {
+                  mode: 'FREE_PLAY',
+                  vehicleId: settings.vehicleId,
+                  color: settings.color,
+                  lapCount: active.session.configuration.lapCount,
+                  rivalCount: 0,
+                  rivalPool: formPool(page.freePlay, entry).id,
+                  traffic: NO_TRAFFIC,
+                },
+                course,
+                arcade,
+                { vehicles, freePlay: page.freePlay },
+              ),
+            });
+            lifecycle.update(true);
+            afterEndingSeconds = 0;
+            start();
+            state.restart();
+          },
+        })
+      : null;
   // Every Session shares the compiled course's ground, so its maximum is derived once.
   performanceHud?.setCourse({
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
@@ -255,11 +269,13 @@ export async function assembleRun(
   const tick = () => {
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
-    const step = race.advance(shell.inputManager.sample());
+    // The attract demo takes no input: the player's Session driver drives, and nothing sounds or is recorded.
+    const step = race.advance(demo ? null : shell.inputManager.sample());
+    lifecycle.update(step.recovered);
+    if (demo) return;
     effects.step(race, race);
     // Each contact of the player's that began in the step sounds once, as it begins.
     for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
-    lifecycle.update(step.recovered);
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
       if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned) record();
@@ -348,6 +364,18 @@ export async function assembleRun(
     active.race.start();
   };
   start();
+  if (demo) {
+    // The demo is shown from a point of its race, not from the grid: step it there headlessly in the race's fixed step.
+    const until = demo.laps * createCourseMap(course).lengthMeters;
+    let slice = performance.now();
+    while (active.race.player.actor.vehicle.course.s < until && active.race.outcome.status !== 'GOAL') {
+      tick();
+      if (performance.now() - slice < demo.sliceMilliseconds) continue;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (demo.signal.aborted) throw demo.signal.reason;
+      slice = performance.now();
+    }
+  }
   return {
     tick,
     draw,

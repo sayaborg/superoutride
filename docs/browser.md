@@ -104,7 +104,16 @@ During a transition no screen advances, the route is the menu's, and menu comman
 the transition and the shell presents each frame at the host's brightness.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
-(18×7 tiles) centred at y 16 over black, the attract demo's place ([product](product.md#6-flow-and-screens)). Before the first gesture `PRESS START` blinks in YELLOW, centred on
+(18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) runs the
+product ARCADE classes (never DEV ones) in series and class order, looping: each a real Session of its class and
+field, assembled as a run with no player input (the player's Session driver drives the class's first vehicle in its
+first color at the default steering), with no HUD, no sound and no record. Before it is shown, it is stepped headlessly
+in the race's fixed step until the player has driven a seeded 0.5–2 laps of the course's route, in slices of 12 ms of
+work that yield to the page; meanwhile TITLE stands over black. Each class is shown 30 s, brightening from black over
+the transition's 8 steps and darkening over 8 more before the next loads; the logo and lines stay bright, and while it
+is fully shown its series title, class title, vehicle (manufacturer and model) and color display name are written in
+WHITE on rows 21, 22, 24 and 25, right-aligned to column 38. Leaving TITLE stops it; returning resumes with the next
+class. A class that cannot load is passed over; with no product class TITLE stays over black. Before the first gesture `PRESS START` blinks in YELLOW, centred on
 row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back
