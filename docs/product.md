@@ -197,16 +197,19 @@ tiles over the frame, and every choice is made inside the frame: every character
 English. TITLE shows the title logo over the attract demo. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
 through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
 vehicle, up and down change the color. Every vehicle comes
-in four colors, named by color; the first is its default. PRESS START is the first user gesture, which
-enables sound and requests fullscreen where the browser allows it. There is no continue. While the
-title is idle, an attract demo drives a product ARCADE course with the driver at the wheel; any input
-returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
+in four colors, each shown by its period paint name; the first is its default. PRESS START is the first user gesture,
+which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the mode on the same
+screen. There is no continue. Behind TITLE the attract demo runs the product ARCADE classes in series and class order,
+looping: each a real Session of its class and field, its first vehicle in its first color driven by the reference
+driver, shown for 30 seconds from a seeded point between the second half of lap 1 and lap 2 with no HUD and no sound,
+its series, class, vehicle and color written at the right. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
 time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
 
-Menu screens are text on a plain background. Menus show one item at a time, which left and right change like steering an
+Menu screens are text on a plain background or a series image. ARCADE's screens stand over the series image: SELECT
+SERIES slides between the series images, and its title track plays through the series' screens. Menus show one item at a time, which left and right change like steering an
 arcade wheel, wrapping at both ends; SETTINGS keeps a vertical list whose values left and right change. Every change of
 screen goes through black. A mode, series, class or course that offers nothing to select is shown dimmed and cannot be
-chosen. While a run loads, the frame shows the PRE-RACE card (class, course map, laps, field, start slot and best time); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
+chosen: CONFIRM on it is denied. While a run loads, the frame shows the PRE-RACE card (class, course map, laps, field, start slot and best time); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
 
 ## 7. Start and finish
 

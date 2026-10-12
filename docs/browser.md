@@ -104,7 +104,7 @@ During a transition no screen advances, the route is the menu's, and menu comman
 the transition and the shell presents each frame at the host's brightness.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
-(18×7 tiles) centred at y 16 over its background. Before the first gesture `PRESS START` blinks in YELLOW, centred on
+(18×7 tiles) centred at y 16 over black, the attract demo's place ([product](product.md#6-flow-and-screens)). Before the first gesture `PRESS START` blinks in YELLOW, centred on
 row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back

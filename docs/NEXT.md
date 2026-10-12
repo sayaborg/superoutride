@@ -68,8 +68,20 @@
   cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
   reads to 110 % of redline; the ground continues behind a closed course limit; a locked engine's inertia joins the
   wheel solve; SELECT VEHICLE is a catalog page per vehicle with its curves and physical values.
+- Stage FE is complete but for the attract demo ([Stage FE conflict](#stage-fe-conflict)): one tile picture format
+  serves the sky, the series images and the title logo, which `npm run screen-pictures` draws from K's sources; TITLE
+  shows the logo, PRESS START and then the mode line; menus are carousels (SETTINGS, OPTIONS and LAPS lists) with Z/X,
+  DARK items that deny, and a black transition between screens; ARCADE's screens stand over the series image, SELECT
+  SERIES slides between them and the series' title track plays until READY; SELECT MUSIC offers a series' race tracks
+  and MUSIC OFF; the PRE-RACE card, with the course map north up by the course's bearing, is every run's loading
+  screen; 17 effects sound, `final-lap` and `new-record` among them. The screens smoke saves every screen to
+  `dist/screens/`. FE-1, FE-6, FE-8 and FE-9 were split (FE-1a rename / FE-1b format; FE-6a color names / FE-6b SELECT
+  SERIES / FE-6c CLASS, VEHICLE, MUSIC; FE-8a TITLE / FE-8b attract demo; FE-9a LOADING removed / FE-9b
+  specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
+  test.
 
-Next PR: the next PR of Stage 16, awaiting its proposal.
+Next PR: K's decision on the attract demo's fast-forward ([Stage FE conflict](#stage-fe-conflict)), then FE-8b; then
+the next PR of Stage 16.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -103,9 +115,6 @@ are collected from the topic specifications; their order within this stage is no
   catalog. Solid barriers in place of the course limits at the verges; review of the scenery on real devices; signboard
   walls, which today are sprites standing in a row.
 
-- Series images and attract demo: each series has one 320×240 image (20×15 tiles of 16×16 px), and
-  SELECT SERIES switches between them; the attract demo replaces the text title.
-
 ### Course format follow-ups
 
 - Circuit closure: a circuit written in round lengths does not close. Before the first product circuit, decide how
@@ -128,13 +137,12 @@ it, and passing off that line are designed once product courses exist to evaluat
 
 ### Placeholder recordings
 
-The recordings delivered today are placeholders (electronic tones) for building Stage 14. Before the product, K's files
-replace them under the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
+The music and impact recordings delivered today are placeholders (electronic tones) for building Stage 14; the 17
+effects are K's provisional two-operator FM recordings (Stage FE). Before the product, K's files replace them under
+the same names, with no code change ([Audio](audio.md#recordings-and-music-documents)):
 
 - Music (`content/music/`): `placeholder-one.m4a` and `placeholder-two.m4a`, each with its music document; the product
-  tracks bring their own names and documents.
-- Effects (`content/effects/`): `countdown-lamp`, `countdown-go`, `checkpoint`, `lap`, `extend`, `goal`, `game-over`,
-  `menu-move`, `menu-confirm` and `menu-back` (`.m4a`).
+  tracks bring their own names and documents. TSUKUBA CLUBMAN's title track is `placeholder-one` until K delivers one.
 - Impacts (`content/impacts/`): `vehicle`, `wall`, `object` and `movable` (`.m4a`).
 
 ### Reference and remaster goals
@@ -239,6 +247,22 @@ palettes (for example a night section), adding a lighting axis beside color in t
 slots 1–14 of every picture, lit headlamps included, with the brake lamp's off and on colors per lighting. Each vehicle uses the lighting at its own chainage,
 and switching is a cut.
 
+### Stage FE conflict
+
+The attract demo (§1.8 of Stage FE) asks for two things no option gives together: each class's Session is stepped
+headlessly in the race's fixed step to a seeded point between the second half of lap 1 and lap 2, and the black before
+it shows lasts at most about one second on a phone. A 16-vehicle TSUKUBA Session costs about 9–10 ms a fixed step in
+Node 24 here (Xeon 2.8 GHz; the race's tire solve dominates), so reaching 0.5–2 laps (about 1,800–7,200 steps) takes
+about 17–70 s; in headless Chromium the first demo appeared after 102 s, course compilation included. A real device
+that drives such a Session at 60 steps a second is not much faster. Spreading the fast-forward over the previous
+demo's 30 s cannot keep up either: it needs about 230 steps a second besides the shown demo's 60.
+
+FE-8b implements the demo as specified otherwise, the fast-forward in slices of 12 ms behind the logo and PRESS START
+over black, and waits as an open PR. Options for K: (a) accept the long black (each class loads behind the logo);
+(b) start the demo from a point reached within the budget (about 100 steps here: still READY on the grid); (c) start
+each Session from saved state (a snapshot of a measured run, not a stepped Session); (d) fewer vehicles while
+fast-forwarding. Until then TITLE stands over black.
+
 ### Pending product decisions
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
@@ -269,7 +293,8 @@ and switching is a cut.
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                            |
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                             |
-| Front end        | Attract demo idle time                                                                                                                                                                                       |
+| Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                              |
+| Front end        | FREE PLAY and TIME TRIAL wallpaper and title music (black and silent today; their SELECT MUSIC offers every track and MUSIC OFF)                                                                             |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                          |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                        |
 | HUD              | Whether the upper rows (TIME, POS, LAP) take the lower row's look                                                                                                                                            |
@@ -288,11 +313,36 @@ and switching is a cut.
 | Vehicle art      | VFR750R's four colors once its pictures are generated: the real tricolour and three fictional racing schemes                                                                                                 |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                          |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                        |
-| Menus            | How SELECT MUSIC and SELECT COURSE show more than the 14 items a list screen holds                                                                                                                           |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
 | Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                     |
 | Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)                                                                            |
+
+### Stage FE decisions for K
+
+Choices made where Stage FE left them open, each recorded in its PR:
+
+- Pictures: the area filter weights color by alpha; median cut runs on RGB555 channels; the course image recipe keeps
+  its version (skies unchanged, no re-measure).
+- Effects: `new-record` sounds as RESULT appears (after the 1.3 s outcome effect at the default delay; DEV delays of 0
+  and 1 s overlap them).
+- Menus: OPTIONS and LAPS keep vertical lists; PAUSE, RESULT, LOAD FAILED and CLEAR RECORDS? are carousels; a single
+  item draws no arrows; no screen advances during a transition (READY's countdown starts fully bright); SELECT
+  SERIES draws no arrows with one series.
+- Music: MUSIC OFF is saved as the latest music choice `off` with no player record version change; the SETTINGS
+  audition plays the first track after MUSIC OFF.
+- Color display names (13 characters at most, for SELECT VEHICLE's unchanged color line): 911 TURBO 3.3 SILVER,
+  BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO MODENA, BIANCO, NERO; GOLF GTI 16V TORNADO RED, ALPINE
+  WHITE, BLACK, SILVER; DELTA HF INTEGRALE BIANCO, ROSSO MONZA, BLU LANCIA, NERO; CORVETTE C4 BRIGHT RED; FXRT SPORT
+  GLIDE VIVID BLACK; every other color its plain name. To confirm or replace.
+- SELECT CLASS: BIKES when the whole field is bikes; with several vehicles row 26 counts them; BEST is the class's best
+  at any goal, counted only while its identities are current (course index version 3 carries each course's build
+  identity); `--'--"--` as specified although times show thousandths.
+- PRE-RACE: the start bar stands at the entry Section's origin; a BRANCH map takes each fork's first exit; FREE PLAY has
+  no BEST line; RETRY passes the card too; the course format change changed every course identity, so records saved
+  in browsers no longer count (reference times were re-measured, unchanged).
+- TITLE: the mode line starts on the latest mode. Attract demo (FE-8b): the demo picture brightens and darkens over
+  the transition's steps while the logo and lines stay; a class that cannot load is passed over.
 
 ### Selected circuits
 
