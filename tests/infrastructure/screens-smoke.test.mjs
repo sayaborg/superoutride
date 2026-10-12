@@ -50,6 +50,7 @@ test('the front end screens render from the delivered content', async () => {
       player,
       dev: true,
       vehicleSha256: new Map(),
+      logo: pictures.get('title-logo'),
     },
     {
       frame,
@@ -57,6 +58,7 @@ test('the front end screens render from the delivered content', async () => {
       present: () => {},
       show: (next) => (screen = next),
       activate: () => {},
+      titleBackground: { draw: () => false, tick: () => {} },
       setVolume: () => {},
       audition: () => () => {},
       titleMusic: (track) => (titleTrack = track?.id ?? null),
@@ -88,10 +90,11 @@ test('the front end screens render from the delivered content', async () => {
       for (let i = 0; i < SERIES_SLIDE_STEPS; i++) screen.tick();
     });
 
+  // TITLE: PRESS START, then the mode line for the rest of the page.
   flow.title();
-  await capture('title');
+  await capture('title-press-start');
   send('CONFIRM');
-  await capture('select-mode');
+  await capture('title');
   send('CONFIRM');
   // RIBBON, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
   await capture('select-series');
@@ -117,7 +120,7 @@ test('the front end screens render from the delivered content', async () => {
   // Each class screen starts from the class chosen last, so one RIGHT reaches the next class.
   for (const [i, classId] of ['production-750', 'gti-cup', '911-cup'].entries()) {
     flow.title();
-    send('CONFIRM', 'CONFIRM');
+    send('CONFIRM');
     while (titleTrack !== 'placeholder-one') send('LEFT');
     if (i === 0) await capture('select-series-tsukuba');
     send('CONFIRM');

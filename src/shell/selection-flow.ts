@@ -18,6 +18,8 @@ import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
 import { createSeriesScreen, SERIES_SLIDE_STEPS } from './series-screen.js';
+import { createTitleScreen, type TitleBackground, type TitleState } from './title-screen.js';
+import type { TilePicture } from '../image/tile-picture.js';
 import { createPictureMenuScreen, type PictureMenuLine } from './picture-menu-screen.js';
 import { classBestMilliseconds } from './run-records.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
@@ -51,6 +53,8 @@ export interface SelectionCatalog {
   readonly player: PlayerRecord;
   /** `dev=1`: DEV series and courses in no series are offered. */
   readonly dev: boolean;
+  /** The title logo, which TITLE shows. */
+  readonly logo: TilePicture;
   /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
   readonly vehicleSha256: ReadonlyMap<string, string>;
 }
@@ -61,8 +65,10 @@ export interface SelectionDevices {
   readonly text: TextLayer;
   present(): void;
   show(screen: Screen): void;
-  /** A confirm on TITLE: the user gesture that enables sound and fullscreen where the browser allows them. */
+  /** CONFIRM on PRESS START: the user gesture that enables sound and fullscreen where the browser allows them. */
   activate(): void;
+  /** What TITLE stands over: the attract demo. */
+  readonly titleBackground: TitleBackground;
   /** Request the selected run; `back` returns to the last selection screen. */
   run(request: RunRequest, back: () => void): void;
   /** Set a volume in percent. */
@@ -143,7 +149,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const back = () => {
     do step--;
     while (step >= 0 && !needed(FLOW[mode][step]!));
-    if (step < 0) selectMode();
+    if (step < 0) title();
     else showStep();
   };
   const forward = () => {
@@ -199,40 +205,22 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // OPTIONS and LAPS lead on to SELECT MUSIC.
   const next = (): MenuItem => ({ label: 'NEXT', entry: last(), confirm: forward });
 
-  function title() {
-    step = -1;
-    devices.titleMusic(null);
-    const items: readonly MenuItem[] = [
+  // TITLE's PRESS START is confirmed once for the page; afterwards TITLE shows the mode line.
+  const titleState: TitleState = { pressed: false };
+  // TITLE's mode line: the modes, then SETTINGS. A mode that offers nothing is DARK.
+  const settings = () =>
+    showSettings(
+      player,
       {
-        label: 'START',
-        confirm: () => {
-          devices.activate();
-          selectMode();
-        },
+        menu,
+        setVolume: devices.setVolume,
+        // The latest track, else the first: MUSIC OFF has nothing to set the volume by.
+        audition: () => devices.audition(music.find((t) => t.id === latestTrack(player, music)) ?? music[0]!),
       },
-      {
-        label: 'SETTINGS',
-        confirm: () => {
-          devices.activate();
-          showSettings(
-            player,
-            {
-              menu,
-              setVolume: devices.setVolume,
-              // The latest track, else the first: MUSIC OFF has nothing to set the volume by.
-              audition: () => devices.audition(music.find((t) => t.id === latestTrack(player, music)) ?? music[0]!),
-            },
-            title,
-          );
-        },
-      },
-    ];
-    menu({ title: 'SUPER OUTRIDE', items: () => items });
-  }
-  function selectMode() {
-    step = -1;
-    devices.titleMusic(null);
-    const items = MODES.map((m): MenuItem => ({
+      title,
+    );
+  const titleItems: readonly MenuItem[] = [
+    ...MODES.map((m): MenuItem => ({
       label: m.label,
       disabled: !offered(m.mode),
       confirm: () => {
@@ -241,12 +229,28 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         remember('mode', mode);
         forward();
       },
-    }));
-    menu(
-      { title: 'SELECT MODE', items: () => items, back: title },
-      Math.max(
-        0,
-        MODES.findIndex((m) => m.mode === mode),
+    })),
+    { label: 'SETTINGS', confirm: settings },
+  ];
+
+  function title() {
+    step = -1;
+    devices.titleMusic(null);
+    devices.show(
+      createTitleScreen(
+        devices.frame,
+        devices.text,
+        devices.present,
+        catalog.logo,
+        devices.titleBackground,
+        titleState,
+        titleItems,
+        Math.max(
+          0,
+          MODES.findIndex((m) => m.mode === mode),
+        ),
+        // CONFIRM on PRESS START is the user gesture that enables sound and fullscreen.
+        { press: () => devices.activate() },
       ),
     );
   }

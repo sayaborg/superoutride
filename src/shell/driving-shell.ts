@@ -64,6 +64,7 @@ export interface BrowserDrivingShell {
 
 /** The effect each menu response sounds. */
 const MENU_SOUNDS: Readonly<Record<MenuResponse, EffectRecording>> = Object.freeze({
+  start: 'press-start',
   move: 'menu-move',
   slide: 'series-slide',
   confirm: 'menu-confirm',
