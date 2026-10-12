@@ -64,7 +64,7 @@
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
 
-Next PR: PT-2 of Stage PT, then Stage 16's next PR, awaiting its proposal.
+Next PR: PT-3 of Stage PT, then Stage 16's next PR, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -85,12 +85,9 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
 
-Five PRs in order; PT-1, the five-point torque curves, has landed. Units are SI (kW, N·m, kg, mm, kg m²).
+Five PRs in order; PT-1 (five-point torque curves) and PT-2 (fuel cut at 105 % / 103 % and the curve above
+redline) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
 
-- **PT-2 — Fuel cut and the curve above redline.** Fuel cut enters above `1.05 * redlineRpm` and clears at or below
-  `1.03 * redlineRpm`; the game-wide `fuelCutEnterRedlineRatio` (1.05) and `fuelCutClearRedlineRatio` (1.03) replace
-  `fuelCutRedlineMargin`, with `1 < clear < enter`, in a new driving document version. Above redline the torque
-  curve continues its D–E line and FMEP stays at its redline value; upshift stays at redline.
 - **PT-3 — Tachometer at 110 %.** Full scale is `1.10 * redlineRpm`; bar `i` lights at `(i+1)/80` of it; the colour
   rule is unchanged and the scale no longer depends on the fuel-cut speed.
 - **PT-4 — Engine inertia while the clutch is locked.** A locked engine's inertia joins the wheel solve through the

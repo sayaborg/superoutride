@@ -347,8 +347,8 @@ The speed shows `round(speed*3.6)` km/h, held at 999, in three segment digits ri
 leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in the VFD palette,
 yellow after a shift; unlit segments are a faint trace of the lit color. The tachometer's 80 bars, a pixel wide and
 eight to a tile, stand on row 28's bottom, `4 + round(20*(i/79)^2)` pixels high for bar `i` (from 0); bar `i` lights once
-the engine speed reaches `(i+1)/80` of the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline plus the driving
-definition's margin) and is unlit (its palette's unlit color) otherwise. A bar whose speed reaches the redline is red,
+the engine speed reaches `(i+1)/80` of the fuel-cut speed (`fuelCutRpm`: the player vehicle's redline times the driving
+definition's `fuelCutEnterRedlineRatio`) and is unlit (its palette's unlit color) otherwise. A bar whose speed reaches the redline is red,
 the 12 before the first red bar (3/20 of the scale) are yellow and the rest green; every bar is red while the limiter
 cuts fuel. A tile's bars take at most two colors, so a tile where green meets yellow or yellow meets red takes the
 GREEN_YELLOW or YELLOW_RED palette and the pattern that splits its bars there.

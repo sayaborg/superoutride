@@ -44,8 +44,8 @@ steps and never rejects a driving definition.
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
-`fuelCutRedlineMargin` (0.02) and `clutchLockIdleMargin` (0.02) are numerical margins that keep
-latches from chattering; they are edited only in the file. `suspensionProgression` (9.8) is the
+`fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
+latches' thresholds and keep them from chattering; they are edited only in the file. `suspensionProgression` (9.8) is the
 game-wide suspension stiffness at full travel as a multiple of each ride spring rate
 ([Vehicle physics](vehicle-physics.md#suspension)); it is also edited only in the file. It must be finite and at
 least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
@@ -87,8 +87,8 @@ driver's throttle actuator keeps its traversal time as the requested opening, an
 bounds take effect within each mechanics substep. Drive is split by the fixed front drive fraction,
 so a bound from either axle changes drive to both.
 Throttle traversal is 0.25 s apply / 0.125 s release; brake traversal is 0.15 s apply / 0.10 s release.
-Rates are their reciprocals. `fuelCutRedlineMargin=0.02` is dimensionless: fuel cuts above 1.02 times
-redline and returns at redline. Engine friction uses provisional game-wide friction mean effective
+Rates are their reciprocals. The fuel-cut ratios are dimensionless: fuel cuts above 1.05 times redline
+and returns at 1.03 times redline. Engine friction uses provisional game-wide friction mean effective
 pressures of 1.0 bar at idle (`idleFrictionMeanEffectivePressureBar`) and 2.5 bar at redline
 (`redlineFrictionMeanEffectivePressureBar`), linear in RPM between them and held outside that range;
 a 4-stroke engine's friction torque is `FMEP * displacement / (4*pi)` and a 2-stroke engine's is

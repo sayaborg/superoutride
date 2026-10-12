@@ -261,7 +261,8 @@ export function compileDrivingDocument(
       'maxRoadWheelSteerDegrees',
       'steeringTraversalSeconds',
       'steeringUtilization',
-      'fuelCutRedlineMargin',
+      'fuelCutEnterRedlineRatio',
+      'fuelCutClearRedlineRatio',
       'idleFrictionMeanEffectivePressureBar',
       'redlineFrictionMeanEffectivePressureBar',
       'drivelineEfficiency',
@@ -286,7 +287,7 @@ export function compileDrivingDocument(
         'bodyContact',
       ],
       'superoutride.driving-definition',
-      18,
+      19,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {

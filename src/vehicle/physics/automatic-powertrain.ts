@@ -28,7 +28,9 @@ export interface CompiledAutomaticPowertrainDefinition extends AutomaticPowertra
 
 /** Game-wide powertrain rules converted from the driving definition; pressures are in Pa. */
 export interface PowertrainRules {
-  readonly fuelCutRedlineMargin: number;
+  /** Fuel cut enters above this multiple of redline and clears at or below the clear multiple; 1 < clear < enter. */
+  readonly fuelCutEnterRedlineRatio: number;
+  readonly fuelCutClearRedlineRatio: number;
   readonly idleFrictionMeanEffectivePressure: number;
   readonly redlineFrictionMeanEffectivePressure: number;
   readonly drivelineEfficiency: number;
@@ -42,7 +44,8 @@ export interface PowertrainRules {
 
 /** One vehicle's powertrain under the game-wide rules; friction and inertia are never vehicle values. */
 export interface PowertrainConstants {
-  readonly fuelCutRedlineMargin: number;
+  readonly fuelCutEnterRedlineRatio: number;
+  readonly fuelCutClearRedlineRatio: number;
   readonly drivelineEfficiency: number;
   readonly idleFrictionTorque: number;
   readonly redlineFrictionTorque: number;
@@ -65,7 +68,8 @@ export function resolvePowertrainConstants(
 ): Readonly<PowertrainConstants> {
   const torquePerPressure = (definition.displacementCc * 1e-6) / (2 * Math.PI * (definition.cycle / 2));
   return Object.freeze({
-    fuelCutRedlineMargin: rules.fuelCutRedlineMargin,
+    fuelCutEnterRedlineRatio: rules.fuelCutEnterRedlineRatio,
+    fuelCutClearRedlineRatio: rules.fuelCutClearRedlineRatio,
     drivelineEfficiency: rules.drivelineEfficiency,
     idleFrictionTorque: rules.idleFrictionMeanEffectivePressure * torquePerPressure,
     redlineFrictionTorque: rules.redlineFrictionMeanEffectivePressure * torquePerPressure,
@@ -216,8 +220,8 @@ export function prepareAutomaticPowertrain(
     state.shift.toRpm = rpm;
   }
   if (state.fuelCut) {
-    if (rpm <= definition.redlineRpm) state.fuelCut = false;
-  } else if (rpm > fuelCutRpm(definition.redlineRpm, constants.fuelCutRedlineMargin)) {
+    if (rpm <= definition.redlineRpm * constants.fuelCutClearRedlineRatio) state.fuelCut = false;
+  } else if (rpm > fuelCutRpm(definition.redlineRpm, constants.fuelCutEnterRedlineRatio)) {
     state.fuelCut = true;
   }
 
@@ -335,7 +339,7 @@ function engineFrictionTorque(
   return constants.idleFrictionTorque + (constants.redlineFrictionTorque - constants.idleFrictionTorque) * t;
 }
 
-/** Below idle, sample the idle torque. */
+/** Below idle, sample the idle torque; above redline, continue the D–E line, never below zero. */
 function sampleEngineTorque(
   definition: Pick<AutomaticPowertrainDefinition, 'idleRpm' | 'torqueCurve'>,
   rpm: number,
@@ -346,17 +350,17 @@ function sampleEngineTorque(
   for (let i = 1; i < curve.length; i += 1) {
     const a = curve[i - 1]!;
     const b = curve[i]!;
-    if (sampleRpm <= b.rpm) {
+    if (sampleRpm <= b.rpm || i === curve.length - 1) {
       const t = (sampleRpm - a.rpm) / (b.rpm - a.rpm);
-      return a.torqueNewtonMeters + (b.torqueNewtonMeters - a.torqueNewtonMeters) * t;
+      return Math.max(0, a.torqueNewtonMeters + (b.torqueNewtonMeters - a.torqueNewtonMeters) * t);
     }
   }
-  return curve[curve.length - 1]!.torqueNewtonMeters;
+  throw new Error('torque curve has at least two points');
 }
 
-/** The engine speed above which the limiter cuts fuel: the redline plus the game-wide margin. */
-export function fuelCutRpm(redlineRpm: number, fuelCutRedlineMargin: number): number {
-  return redlineRpm * (1 + fuelCutRedlineMargin);
+/** The engine speed above which the limiter cuts fuel: redline times the game-wide entry ratio. */
+export function fuelCutRpm(redlineRpm: number, fuelCutEnterRedlineRatio: number): number {
+  return redlineRpm * fuelCutEnterRedlineRatio;
 }
 
 function coupledEngineRpm(definition: AutomaticPowertrainDefinition, wheelOmega: number, gear: number): number {

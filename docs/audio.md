@@ -49,7 +49,7 @@ processor's own `rpm` parameter range (1 to 24000) is the only bound. Excitation
 powertrain's effective opening, so it includes the idle-holding opening. Closed throttle has a positive
 excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. While the observation reports
 fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
-without combustion. At the limiter the physical latch alternates between redline and the fuel-cut threshold,
+without combustion. At the limiter the physical latch alternates between its clear and entry thresholds (1.03 and 1.05 times redline),
 so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger excitation,
 pumping included, shortens pulse rise time, while decay time is independent of load.
 

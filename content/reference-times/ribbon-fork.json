@@ -6,7 +6,7 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "6a0033e7ef18b3a2428d122ca3bc7a397c2ce9aaca527c581d910b3e0a2b3b40",
+      "vehicleSha256": "77f8dafa3fe93534d24852c653ce1371ab132fcce99584b8f9b513cc6c05b818",
       "initialSeconds": 26.82832891803792,
       "after": [
         ["cliff-route-CP1", [12.284172379534251]],

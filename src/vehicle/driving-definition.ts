@@ -9,7 +9,10 @@ export interface DrivingDefinition {
   readonly steeringReference: SteeringReference;
   /** The default steering rule's fraction of the front tire's lateral force bound that full steering input reaches. */
   readonly steeringUtilization: number;
-  readonly fuelCutRedlineMargin: number;
+  /** Fuel cut enters above this multiple of redline. */
+  readonly fuelCutEnterRedlineRatio: number;
+  /** Fuel cut clears at or below this multiple of redline. */
+  readonly fuelCutClearRedlineRatio: number;
   readonly idleFrictionMeanEffectivePressureBar: number;
   readonly redlineFrictionMeanEffectivePressureBar: number;
   readonly drivelineEfficiency: number;

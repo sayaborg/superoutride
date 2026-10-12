@@ -242,7 +242,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
       courseName: course.name,
       mode: configuration.mode,
       redlineRpm,
-      fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutRedlineMargin),
+      fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutEnterRedlineRatio),
       steeringPicture: vehicleDefinition.steeringPicture,
     };
   };

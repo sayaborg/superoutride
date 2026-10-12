@@ -312,9 +312,10 @@ unchanged sequence. Recovery sets the gear without a shift and keeps the record.
 read the observation.
 
 Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
-`redlineRpm * (1 + fuelCutRedlineMargin)`, clears when RPM returns to redline or below, and holds
-the effective opening's upper bound at 0 while latched. There is no pre-redline torque taper. The game-wide driving
-definition owns the provisional margin, 0.02.
+`redlineRpm * fuelCutEnterRedlineRatio`, clears when RPM returns to `redlineRpm * fuelCutClearRedlineRatio` or
+below, and holds the effective opening's upper bound at 0 while latched. There is no pre-redline torque taper. The
+game-wide driving definition owns the two ratios, 1.05 and 1.03. Upshift stays at redline, so engine RPM passes
+redline only while it revs freely, with the driven wheels airborne, or while held.
 
 Engine friction torque derives from the vehicle's displacement and cycle and the game-wide friction
 mean effective pressure (FMEP):
@@ -342,7 +343,8 @@ Priority is therefore fuel cut, then the drive-torque upper bound (TCS and anti-
 holding and MSR. The powertrain state publishes
 the effective opening as an observation. Full opening therefore delivers exactly the curve torque; smaller openings, released
 throttle and fuel cut give less or negative engine torque. Below idle, curve torque keeps its idle
-value.
+value; above redline it continues the straight line of the curve's D–E segment, never below zero, while FMEP stays
+at its redline value.
 
 Engine speed is powertrain state with a rotor inertia derived from displacement:
 `engineInertia = displacementLitres * engineInertiaKilogramSquareMetersPerLitre`.
@@ -577,7 +579,7 @@ vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 3 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 18.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 19.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -625,7 +627,8 @@ dimensions and its derived `reach` and `footprint`.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
 fields: `maxRoadWheelSteerDegrees`,
-`steeringTraversalSeconds`, positive `fuelCutRedlineMargin`, positive
+`steeringTraversalSeconds`, `fuelCutEnterRedlineRatio` and `fuelCutClearRedlineRatio` with
+1 < clear < enter, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1, finite `suspensionProgression` of at least 1,
