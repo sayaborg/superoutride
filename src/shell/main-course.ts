@@ -16,6 +16,8 @@ import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalo
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { attractClasses, createAttractDemo } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createCourseMap } from '../view/course-map.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
@@ -241,6 +243,15 @@ async function startPage(): Promise<void> {
         true,
       );
     }
+    // The attract demo behind TITLE: one live Session per product ARCADE class, its courses compiled once, released
+    // with the page.
+    const demoCourses = new Map<string, Promise<CompiledCourse>>();
+    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, async (next) => {
+      const state = createRunScreenState(() => {});
+      const run = await assembleRun(page, next, state, undefined, { courses: demoCourses });
+      return { run, finished: () => state.finished };
+    });
+    window.addEventListener('pagehide', () => attractDemo.dispose());
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
     // Each vehicle's identity, which records are kept against, for the records SELECT CLASS shows.
     const vehicleSha256 = new Map<string, string>();
@@ -268,8 +279,7 @@ async function startPage(): Promise<void> {
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
-        // TITLE stands over black until the attract demo.
-        titleBackground: { draw: () => false, tick: () => {} },
+        titleBackground: attractDemo,
         setVolume: (name, percent) => shell.setVolume(name, percent),
         audition: (track) => {
           const audition = playTrack(shell, track);

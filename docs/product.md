@@ -200,9 +200,11 @@ vehicle, up and down change the color. Every vehicle comes
 in four colors, each shown by its period paint name; the first is its default. PRESS START is the first user gesture,
 which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the mode on the same
 screen. There is no continue. Behind TITLE the attract demo runs the product ARCADE classes in series and class order,
-looping: each a real Session of its class and field, its first vehicle in its first color driven by the reference
-driver, shown for 30 seconds from a seeded point between the second half of lap 1 and lap 2 with no HUD and no sound,
-its series, class, vehicle and color written at the right. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
+looping, 30 seconds a turn with no HUD and no sound, its series, class, vehicle and color written at the right. Each
+class keeps one race, a real Session of its class and field with its first vehicle in its first color driven by the
+reference driver: its first turn shows the start (READY, then GO), and each later turn resumes the race where the last
+one left it, so from the second round the demo shows racing in progress. A race that ends is shown to the end of its
+RESULT delay, its turn ends early, and the class's next turn starts a new race. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
 time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
 
 Menu screens are text on a plain background or a series image. ARCADE's screens stand over the series image: SELECT

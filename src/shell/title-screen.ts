@@ -20,6 +20,10 @@ export interface TitleBackground {
   draw(frame: SoftwareSurface, text: TextLayer): boolean;
   /** Advance one fixed step while TITLE is current. */
   tick(): void;
+  /** TITLE is shown: start, or resume with the next class. */
+  enter(): void;
+  /** TITLE is left: stop. */
+  leave(): void;
 }
 
 /** TITLE's state that outlives the screen: whether PRESS START was confirmed, which it is once for the page. */
@@ -46,6 +50,7 @@ export function createTitleScreen(
 ): Screen {
   const menu = createMenu({ title: '', items: () => modes }, initial);
   let steps = 0;
+  background.enter();
   return {
     live: false,
     tick() {
@@ -59,7 +64,10 @@ export function createTitleScreen(
       actions.press();
       return 'start';
     },
-    leave: () => menu.leave(),
+    leave() {
+      menu.leave();
+      background.leave();
+    },
     render() {
       text.clear();
       if (!background.draw(frame, text)) frame.clear(SCREEN_BACKGROUND);

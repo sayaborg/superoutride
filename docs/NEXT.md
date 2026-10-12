@@ -26,7 +26,7 @@
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings: each
   class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by several
-  classes and series; measured products belong to course and vehicle, and a Session applies its series' margin; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone; the attract demo waits for its stage.
+  classes and series; measured products belong to course and vehicle, and a Session applies its series' margin; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -68,20 +68,22 @@
   cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
   reads to 110 % of redline; the ground continues behind a closed course limit; a locked engine's inertia joins the
   wheel solve; SELECT VEHICLE is a catalog page per vehicle with its curves and physical values.
-- Stage FE is complete but for the attract demo ([Stage FE conflict](#stage-fe-conflict)): one tile picture format
+- Stage FE is complete: one tile picture format
   serves the sky, the series images and the title logo, which `npm run screen-pictures` draws from K's sources; TITLE
   shows the logo, PRESS START and then the mode line; menus are carousels (SETTINGS, OPTIONS and LAPS lists) with Z/X,
   DARK items that deny, and a black transition between screens; ARCADE's screens stand over the series image, SELECT
   SERIES slides between them and the series' title track plays until READY; SELECT MUSIC offers a series' race tracks
   and MUSIC OFF; the PRE-RACE card, with the course map north up by the course's bearing, is every run's loading
-  screen; 17 effects sound, `final-lap` and `new-record` among them. The screens smoke saves every screen to
+  screen; 17 effects sound, `final-lap` and `new-record` among them. Behind TITLE the attract demo keeps one race per
+  product ARCADE class and resumes it on the class's next turn (K's decision replacing a fast-forward to mid-race,
+  which cost tens of seconds behind black). The screens smoke saves every screen to
   `dist/screens/`. FE-1, FE-6, FE-8 and FE-9 were split (FE-1a rename / FE-1b format; FE-6a color names / FE-6b SELECT
   SERIES / FE-6c CLASS, VEHICLE, MUSIC; FE-8a TITLE / FE-8b attract demo; FE-9a LOADING removed / FE-9b
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test.
 
-Next PR: K's decision on the attract demo's fast-forward ([Stage FE conflict](#stage-fe-conflict)), then FE-8b; then
-the next PR of Stage 16.
+Next PR: the published startup check against each PR's built site before merge (K's decision), then the next PR of
+Stage 16.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -158,7 +160,7 @@ Suzuka's lower crossing is represented as a tunnel with one road surface drawn a
 ### Series values
 
 Each class sets its rule values from playtests on the produced course: rank limits, ahead distances,
-pace ratios, time margin, grid spacing and entry colors. Add the attract demo once product ARCADE courses exist.
+pace ratios, time margin, grid spacing and entry colors.
 
 ### Series production starting points
 
@@ -247,22 +249,6 @@ palettes (for example a night section), adding a lighting axis beside color in t
 slots 1–14 of every picture, lit headlamps included, with the brake lamp's off and on colors per lighting. Each vehicle uses the lighting at its own chainage,
 and switching is a cut.
 
-### Stage FE conflict
-
-The attract demo (§1.8 of Stage FE) asks for two things no option gives together: each class's Session is stepped
-headlessly in the race's fixed step to a seeded point between the second half of lap 1 and lap 2, and the black before
-it shows lasts at most about one second on a phone. A 16-vehicle TSUKUBA Session costs about 9–10 ms a fixed step in
-Node 24 here (Xeon 2.8 GHz; the race's tire solve dominates), so reaching 0.5–2 laps (about 1,800–7,200 steps) takes
-about 17–70 s; in headless Chromium the first demo appeared after 102 s, course compilation included. A real device
-that drives such a Session at 60 steps a second is not much faster. Spreading the fast-forward over the previous
-demo's 30 s cannot keep up either: it needs about 230 steps a second besides the shown demo's 60.
-
-FE-8b implements the demo as specified otherwise, the fast-forward in slices of 12 ms behind the logo and PRESS START
-over black, and waits as an open PR. Options for K: (a) accept the long black (each class loads behind the logo);
-(b) start the demo from a point reached within the budget (about 100 steps here: still READY on the grid); (c) start
-each Session from saved state (a snapshot of a measured run, not a stepped Session); (d) fewer vehicles while
-fast-forwarding. Until then TITLE stands over black.
-
 ### Pending product decisions
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
@@ -343,7 +329,9 @@ Choices made where Stage FE left them open, each recorded in its PR:
   no BEST line; RETRY passes the card too; the course format change changed every course identity, so records saved
   in browsers no longer count (reference times were re-measured, unchanged).
 - TITLE: the mode line starts on the latest mode. Attract demo (FE-8b): the demo picture brightens and darkens over
-  the transition's steps while the logo and lines stay; a class that cannot load is passed over.
+  the transition's steps while the logo and lines stay; a turn's 30 s include its brightening and darkening; the
+  classes of one course share one compiled course; every class's Session stays alive (about 6 MB of heap for the
+  three TSUKUBA CLUBMAN classes together, 71 MB with the first alone).
 
 ### Selected circuits
 

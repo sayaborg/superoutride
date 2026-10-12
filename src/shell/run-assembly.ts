@@ -81,6 +81,15 @@ export interface RunAssemblyReport {
   }): void;
 }
 
+/**
+ * The attract demo's run: no player input reaches it (the player's Session driver drives) and it sounds and records
+ * nothing. Its course comes from `courses`, the demo's compiled courses by ID, so the classes of one course compile
+ * it once.
+ */
+export interface DemoRun {
+  readonly courses: Map<string, Promise<CompiledCourse>>;
+}
+
 /** Shares of a run's loading: its course's files, then the course compiled, then its Session prepared. */
 const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
 
@@ -94,6 +103,7 @@ export async function assembleRun(
   request: RunRequest,
   state: RunScreenState,
   report?: RunAssemblyReport,
+  demo?: DemoRun,
 ): Promise<Run> {
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   // ARCADE drives its class on the class's course; the other modes drive the course they name.
@@ -104,9 +114,20 @@ export async function assembleRun(
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
     courseId = named.course;
   } else courseId = request.courseId;
-  const course = await loadDeliveredCourse(content, courseId, materials, (files, total) =>
-    report?.progress((LOADING_SHARES.files * files) / total),
-  );
+  const load = () =>
+    loadDeliveredCourse(content, courseId, materials, (files, total) =>
+      report?.progress((LOADING_SHARES.files * files) / total),
+    );
+  let compiling = demo?.courses.get(courseId);
+  if (!compiling) {
+    compiling = load();
+    if (demo) {
+      demo.courses.set(courseId, compiling);
+      // A course that failed to load is loaded again by the next demo run that asks for it.
+      compiling.catch(() => demo.courses.delete(courseId));
+    }
+  }
+  const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
   const arcade = named && loadSeriesClass(content, named, course, vehicles);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
@@ -154,42 +175,43 @@ export async function assembleRun(
     observation: () => active.race.observe().player,
     yawSource: page.player.settings.cameras[entry.listing.form],
   });
-  // The run's DEV controls, only with DEV.
-  const devControls = page.dev
-    ? mountRunDevControls(vehicle, {
-        canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
-        recover: () => {
-          active.race.recoverPlayer();
-          lifecycle.reset();
-        },
-        // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
-        // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-        // product Session and the delivered definition.
-        rebuildSession: (driving) => {
-          active = build({
-            vehicle: createSessionVehicle(entry, driving),
-            configuration: compileSessionConfiguration(
-              {
-                mode: 'FREE_PLAY',
-                vehicleId: settings.vehicleId,
-                color: settings.color,
-                lapCount: active.session.configuration.lapCount,
-                rivalCount: 0,
-                rivalPool: formPool(page.freePlay, entry).id,
-                traffic: NO_TRAFFIC,
-              },
-              course,
-              arcade,
-              { vehicles, freePlay: page.freePlay },
-            ),
-          });
-          lifecycle.update(true);
-          afterEndingSeconds = 0;
-          start();
-          state.restart();
-        },
-      })
-    : null;
+  // The run's DEV controls, only with DEV and never in the attract demo.
+  const devControls =
+    page.dev && !demo
+      ? mountRunDevControls(vehicle, {
+          canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
+          recover: () => {
+            active.race.recoverPlayer();
+            lifecycle.reset();
+          },
+          // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+          // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
+          // product Session and the delivered definition.
+          rebuildSession: (driving) => {
+            active = build({
+              vehicle: createSessionVehicle(entry, driving),
+              configuration: compileSessionConfiguration(
+                {
+                  mode: 'FREE_PLAY',
+                  vehicleId: settings.vehicleId,
+                  color: settings.color,
+                  lapCount: active.session.configuration.lapCount,
+                  rivalCount: 0,
+                  rivalPool: formPool(page.freePlay, entry).id,
+                  traffic: NO_TRAFFIC,
+                },
+                course,
+                arcade,
+                { vehicles, freePlay: page.freePlay },
+              ),
+            });
+            lifecycle.update(true);
+            afterEndingSeconds = 0;
+            start();
+            state.restart();
+          },
+        })
+      : null;
   // Every Session shares the compiled course's ground, so its maximum is derived once.
   performanceHud?.setCourse({
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
@@ -255,17 +277,20 @@ export async function assembleRun(
   const tick = () => {
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
-    const step = race.advance(shell.inputManager.sample());
-    effects.step(race, race);
-    // Each contact of the player's that began in the step sounds once, as it begins.
-    for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
+    // The attract demo takes no input: the player's Session driver drives, and nothing sounds or is recorded.
+    const step = race.advance(demo ? null : shell.inputManager.sample());
     lifecycle.update(step.recovered);
-    performanceHud?.step(performance.now() - started);
+    if (!demo) {
+      effects.step(race, race);
+      // Each contact of the player's that began in the step sounds once, as it begins.
+      for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
+      performanceHud?.step(performance.now() - started);
+    }
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
-      if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned) record();
+      if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned && !demo) record();
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) {
         state.finish();
-        effects.result(active.records.judgement?.newRecord ?? false);
+        if (!demo) effects.result(active.records.judgement?.newRecord ?? false);
       } else afterEndingSeconds += SIM_DT;
     }
   };

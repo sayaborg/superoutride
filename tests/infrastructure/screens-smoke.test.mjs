@@ -58,7 +58,7 @@ test('the front end screens render from the delivered content', async () => {
       present: () => {},
       show: (next) => (screen = next),
       activate: () => {},
-      titleBackground: { draw: () => false, tick: () => {} },
+      titleBackground: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },
       setVolume: () => {},
       audition: () => () => {},
       titleMusic: (track) => (titleTrack = track?.id ?? null),
