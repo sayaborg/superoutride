@@ -25,6 +25,9 @@ const CONTROLS = Object.freeze([
   'RIGHT HALF: SLIDE UP GAS, DOWN BRAKE',
   'II PAUSE',
   '',
+  'MENUS',
+  'ENTER OR Z CONFIRM  ESC OR X BACK',
+  '',
   'GAMEPAD',
   'STICK OR D-PAD STEER  RT OR A GAS',
   'LT OR B BRAKE  START PAUSE',
@@ -101,7 +104,7 @@ export function showSettings(
       { label: 'CLEAR RECORDS', confirm: clearRecords },
     ];
     devices.menu(
-      { title: 'SETTINGS', items, back },
+      { title: 'SETTINGS', layout: 'list', items, back },
       Math.max(
         0,
         items().findIndex((item) => item.label === current),

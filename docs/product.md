@@ -202,7 +202,10 @@ title is idle, an attract demo drives a product ARCADE course with the driver at
 returns to the title. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
 time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
 
-Menu screens are text on a plain background. A mode, series, class or course that offers nothing to select is shown dimmed and cannot be chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
+Menu screens are text on a plain background. Menus show one item at a time, which left and right change like steering an
+arcade wheel, wrapping at both ends; SETTINGS keeps a vertical list whose values left and right change. Every change of
+screen goes through black. A mode, series, class or course that offers nothing to select is shown dimmed and cannot be
+chosen. While a run loads, the frame shows LOADING; a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
 
 ## 7. Start and finish
 

@@ -81,3 +81,16 @@ export function halveRgb555(value: number): number {
 export function halveRgb555Pixels(pixels: Uint16Array): void {
   for (let i = 0; i < pixels.length; i++) pixels[i] = halveRgb555(pixels[i]!);
 }
+
+/** Scale every channel of an RGB555 raster in place by `eighths`/8, flooring: 8 keeps it and 0 is black. */
+export function scaleRgb555Pixels(pixels: Uint16Array, eighths: number): void {
+  if (!Number.isInteger(eighths) || eighths < 0 || eighths > 8) throw new RangeError('Expected eighths in 0..8');
+  if (eighths === 8) return;
+  for (let i = 0; i < pixels.length; i++) {
+    const value = pixels[i]!;
+    pixels[i] =
+      (((((value >> 10) & 31) * eighths) >> 3) << 10) |
+      (((((value >> 5) & 31) * eighths) >> 3) << 5) |
+      (((value & 31) * eighths) >> 3);
+  }
+}

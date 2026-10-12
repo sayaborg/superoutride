@@ -4,7 +4,7 @@ import type { WallSoundRecords } from '../audio/wall-sounds.js';
 import type { WallRubObservation } from '../audio/scrape-voice.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
-import { expandRgb555Pixels } from '../image/rgb555.js';
+import { expandRgb555Pixels, scaleRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
@@ -25,8 +25,13 @@ import type { ImpactRecording } from '../audio/recordings.js';
 export interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
-  /** Expand the framebuffer to the canvas, update the touch indicators, then draw `overlay` (DEV only) on top. */
+  /**
+   * Expand the framebuffer to the canvas at the current brightness, update the touch indicators, then draw `overlay`
+   * (DEV only) on top.
+   */
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
+  /** The brightness frames are presented at, in eighths: the screen host's black transition sets it. */
+  setBrightness(eighths: number): void;
   /** The run's vehicles for the audio scene, and the player's wall rubs of the last step. */
   updateAudio(
     player: CompetitorObservation,
@@ -93,7 +98,11 @@ export function createBrowserDrivingShell(
   pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
   const audio = createAudioLifecycle(vehicles, surfaceSounds, wallSounds, audioSettings, player, recordingBytes);
+  let brightness = 8;
   return {
+    setBrightness(eighths): void {
+      brightness = eighths;
+    },
     setRoute(route): void {
       const live = route === 'driving';
       inputManager.setSuspended(!live);
@@ -118,7 +127,9 @@ export function createBrowserDrivingShell(
     framebuffer,
     inputManager,
     present(overlay): void {
-      // The RGB555 frame is expanded to the canvas's RGBA once per presented frame.
+      // The RGB555 frame is expanded to the canvas's RGBA once per presented frame; every screen draws its whole frame
+      // anew, so scaling it in place for a transition never compounds.
+      scaleRgb555Pixels(framebuffer.pixels, brightness);
       expandRgb555Pixels(framebuffer.pixels, presented);
       ctx.putImageData(imageData, 0, 0);
       touchIndicators.update(inputManager.touch);

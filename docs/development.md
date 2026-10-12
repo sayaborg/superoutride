@@ -12,7 +12,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run format`              | Format maintained files                                             |
 | `npm run format:check`        | Check formatting                                                    |
 | `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
-| `npm test`                    | All checks, build, startup smoke and driving scenarios              |
+| `npm test`                    | All checks, build, startup and screens smoke and driving scenarios  |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
 | `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles            |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
@@ -402,6 +402,13 @@ npm run screen-pictures
 It reads `content/screen-picture-sources/recipes.json` and the sources beside it, writes each picture as
 `content/screen-pictures/<name>.json` and a check sheet of it, `dist/screen-pictures/<name>.png`, over a grey ground,
 which nothing reads. The build admits the saved pictures and draws nothing.
+
+### Screens smoke
+
+`npm test` renders the front end's screens headlessly through the same screens the page shows, from the delivered
+content (`tests/infrastructure/screens-smoke.test.mjs`), and saves each drawn frame to `dist/screens/<name>.png` at
+twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test compares their pixels. A
+single file runs after `npm run build` with `node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
 
 ### Listening on devices
 

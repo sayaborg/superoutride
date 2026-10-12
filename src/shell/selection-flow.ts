@@ -224,26 +224,22 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         return menu({ title: 'SELECT CLASS', items: () => items, back }, Math.max(0, current));
       }
       case 'COURSE': {
-        // Series titles head their groups; they cannot be chosen.
-        const rows = groups.flatMap((group) => [
-          ...(groups.length > 1 || group.title ? [{ id: null, label: group.title || ' ' }] : []),
-          ...group.ids.map((id) => ({ id, label: courseOf(id).name })),
-        ]);
-        const items = rows.map(({ id, label }): MenuItem =>
-          id === null
-            ? { label, disabled: true }
-            : {
-                label,
-                confirm: () => {
-                  courseId = id;
-                  lapCount = Math.min(lapCount, courseOf(id).maxLaps);
-                  rivalCount = Math.min(rivalCount, maxRivals(id));
-                  remember('course', id);
-                  forward();
-                },
-              },
+        // Each course carries its group's series title under it.
+        const rows = groups.flatMap((group) =>
+          group.ids.map((id) => ({ id, label: courseOf(id).name, note: group.title })),
         );
-        const current = rows.findIndex((row) => row.id !== null && row.id === (courseId ?? latest('course')));
+        const items = rows.map(({ id, label, note }): MenuItem => ({
+          label,
+          note,
+          confirm: () => {
+            courseId = id;
+            lapCount = Math.min(lapCount, courseOf(id).maxLaps);
+            rivalCount = Math.min(rivalCount, maxRivals(id));
+            remember('course', id);
+            forward();
+          },
+        }));
+        const current = rows.findIndex((row) => row.id === (courseId ?? latest('course')));
         return menu({ title: 'SELECT COURSE', items: () => items, back }, Math.max(0, current));
       }
       case 'VEHICLE': {
@@ -321,12 +317,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             : []),
           next,
         ];
-        return menu({ title: 'OPTIONS', items, back });
+        return menu({ title: 'OPTIONS', layout: 'list', items, back });
       }
       case 'LAPS': {
         const maxLaps = courseOf(courseId!).maxLaps;
         return menu({
           title: 'LAPS',
+          layout: 'list',
           items: () => [
             number(
               'LAPS',

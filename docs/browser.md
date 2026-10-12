@@ -71,10 +71,24 @@ half brightness while the text layer, the HUD included, stays at full brightness
 RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
 new seed; QUIT ends the run and shows TITLE.
 
-Every list screen uses one menu part: a title and items, the current item YELLOW, unselectable items DARK and the
-rest WHITE, centred in the text grid without shortening, with the items on every second row; the title and any
-information lines keep one row each. A menu taller than the 30 rows is a `RangeError`. UP and DOWN move over the selectable items and wrap around;
-each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK leaves.
+Every menu screen uses one menu part: a title, information lines and items, centred in the text grid without
+shortening; the title and any information lines keep one row each, and a menu taller than the 30 rows is a
+`RangeError`. Each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK
+leaves. Its layout is a carousel or a list:
+
+- **Carousel** (every menu screen but SETTINGS, OPTIONS and LAPS): one item is shown at a time, YELLOW, with WHITE `<`
+  and `>` four columns either side when there are several; LEFT and RIGHT change it, like steering an arcade wheel,
+  and UP and DOWN act as LEFT and RIGHT; the list wraps at both ends. An item that offers nothing is shown DARK, and
+  CONFIRM on it denies (`menu-deny`) and does nothing. An item may carry a DARK note two rows under it (SELECT COURSE's
+  series title).
+- **List** (SETTINGS, OPTIONS and LAPS, whose items hold values): the items on every second row, the current item
+  YELLOW, unselectable items DARK and the rest WHITE; UP and DOWN move over the selectable items and wrap around, and
+  LEFT and RIGHT change the current item's value.
+
+Every change of screen goes through black: the frame darkens to black over 8 fixed steps, with its RGB555 channels
+scaled by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from black.
+During a transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns
+the transition and the shell presents each frame at the host's brightness.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
 SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
@@ -109,9 +123,8 @@ the first track) plays as an audition, so its volume is set by ear.
 - SELECT MODE: a mode with no selectable course is DARK.
 - SELECT SERIES lists the series with their titles; SELECT CLASS lists the chosen series' classes with their titles,
   and choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
-  names from the course index, grouped by series, each group headed by its series title (DARK). Each course is listed
-  once, under the first offered series in series order whose classes run it, in its classes' order; courses in no
-  series follow last, after a blank line.
+  names from the course index, grouped by series. Each course is listed once, under the first offered series in
+  series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
 - SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise, one catalog page per
   vehicle ([SELECT VEHICLE](#select-vehicle)). LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
@@ -339,12 +352,13 @@ hidden nothing does. Commands arrive at the current screen before each fixed ste
 Each screen says what a command did: moved the cursor or changed a value, confirmed something, or went back; a command
 that does nothing (CONFIRM on an item without an action, BACK on TITLE, a value at its end, a single-item move) says
 nothing. The screen host is the one place that turns that into a sound: `menu-move`, `menu-confirm`, `menu-entry` (the
-CONFIRM that starts the run, SELECT MUSIC's) or `menu-back`
+CONFIRM that starts the run, SELECT MUSIC's), `menu-deny` (CONFIRM on a DARK item) or `menu-back`
 ([Audio](audio.md#sound-effects)). Every list screen answers through the menu part, and SELECT VEHICLE (a vehicle or
 color change moves) and the run screen too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it
 goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.
 
-- **Keyboard:** the arrows give the directions and Enter CONFIRM; Escape is BACK in a menu and PAUSE while driving.
+- **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is BACK in a menu and PAUSE while
+  driving. Z and X command only on the menu route; while driving they stay the accelerator and the brake.
   Keys follow the operating system's repeat, except that a repeated Escape does not pause.
 - **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A CONFIRM
   and B BACK; Start is PAUSE while driving and CONFIRM in a menu. A control commands once, on its press, and never

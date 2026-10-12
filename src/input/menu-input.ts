@@ -17,6 +17,9 @@ const KEYS: ReadonlyMap<string, MenuCommand> = new Map<string, MenuCommand>([
   ['ArrowRight', 'RIGHT'],
   ['Enter', 'CONFIRM'],
   ['NumpadEnter', 'CONFIRM'],
+  // Z and X are CONFIRM and BACK on the menu route; while driving they are the pedals and only PAUSE reaches menus.
+  ['KeyZ', 'CONFIRM'],
+  ['KeyX', 'BACK'],
 ]);
 /** Standard-mapping buttons: D-pad, A and B; Start is PAUSE while driving and CONFIRM in a menu. */
 const BUTTONS: readonly (readonly [index: number, command: MenuCommand])[] = [
