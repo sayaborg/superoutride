@@ -3,6 +3,7 @@
   "version": 3,
   "materials": [
     { "id": "ASPHALT", "gripFactor": 1, "rollingResistance": 0.014 },
+    { "id": "WET_ASPHALT", "gripFactor": 0.7, "rollingResistance": 0.014 },
     { "id": "SHOULDER", "gripFactor": 0.78, "rollingResistance": 0.025 },
     { "id": "GRASS", "gripFactor": 0.43, "rollingResistance": 0.065 },
     { "id": "DIRT", "gripFactor": 0.52, "rollingResistance": 0.045 },

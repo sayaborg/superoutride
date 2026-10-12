@@ -1,7 +1,7 @@
 {
   "format": "superoutride.measured-envelope",
   "version": 1,
-  "vehicleSha256": "6c5a39a0758bbefab182650a3adda1d96d59715bbb4c1f256650aabffb40a16b",
+  "vehicleSha256": "7690ad8153372adebaa771ca6fd2bedb721de41fd6f2c849dc0ef6a622497ff8",
   "procedureSha256": "5bac6b49df0ad6f3f1b0c744dd57f3cb095aeb35351cc1025fa0102ad4193ce6",
   "envelope": {
     "maximumSpeed": 66.5927700333366,

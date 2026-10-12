@@ -100,12 +100,13 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
   courses deleted; `npm test` about 1 min 50 s locally); OT-3 (the OUTRUN TEST skeleton from its generator, the series
   and its drawn picture, measured); OT-3b (the reference line at a fork keeps to the centre lane until the exit's lane
-  appears; reference-driving version 4).
-- Next PR: OT-4 `WET_ASPHALT`, then OT-5 background transitions, OT-6 … OT-10 rows.
+  appears; reference-driving version 4); OT-4 (`WET_ASPHALT` in the material catalog and surface sounds).
+- Next PR: OT-5 background transitions, then OT-6 … OT-10 rows.
 - Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
   102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
   ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and
-  CLIFF ROAD and ALPINE PASS trimmed in their rows' PRs.
+  CLIFF ROAD and ALPINE PASS trimmed in their rows' PRs. The roads part too sharply after closure (the right road
+  moves 56 m in 180 m, about 17°): part them more gently in row 1's PR.
 - Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
   the entry and departures have no driving scenario since OT-1. The cone, barricade, fork sign, tree and hill sky
   images stay for OUTRUN TEST.
@@ -113,7 +114,9 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   two 3.6 m lanes, level at height 0, so every seam join matches; the fork's lock is 600 m before the stage's end
   (route loading needs 484 m past a lock), so the two roads run 400 m side by side with a 4 m median before they part;
   the stage's checkpoint is its end; the generic startup smoke compiles OUTRUN TEST like every delivered course (about
-  5 s), and no test drives it; traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3.
+  5 s), and no test drives it; traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3. OT-4: WET_ASPHALT's
+  grip factor 0.7 (Wong's dry/wet adhesion ranges), rolling resistance as ASPHALT's, high rolling band +6 dB and
+  friction susceptibility 0.7.
 - Splits: none.
 
 **Order.** OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan, profile, lanes, forks and gates, placeholder Strips
@@ -326,7 +329,7 @@ outer-to-outer travel, response time, bike attitude, combined tire demand, yaw/s
 transitions. Review pre-lock query coverage and parent-specific exit visibility separately from transfer
 space. Record margins and remaster departures with the content.
 
-Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), wet asphalt for rain sections, packed snow, mud and shallow water (off-road), and cobblestones. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
+Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow, mud and shallow water (off-road), and cobblestones. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
 palettes (for example a night section), adding a lighting axis beside color in the set's palettes, each recoloring
@@ -380,6 +383,7 @@ and switching is a cut.
 | Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                         |
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                 |
 | Vehicle art      | VFR750R's four colors once its pictures are generated: the real tricolour and three fictional racing schemes                                                                                                 |
+| Weather          | Falling rain over wet sections (WET_ASPHALT lies under an overcast sky without rain today)                                                                                                                   |
 | BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                          |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                        |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |

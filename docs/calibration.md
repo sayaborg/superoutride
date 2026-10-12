@@ -304,13 +304,20 @@ width is kept inside the noise band's numerical domain.
 
 The [surface-sound document](../content/surface-sounds/default.json) holds these values.
 
-| Surface  | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
-| -------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
-| ASPHALT  | 0.9         | 0.18         | 0.3 m          | 0.12          | 1                  | 1                       |
-| SHOULDER | 0.85        | 0.7          | 0.6 m          | 0.4           | 1.3                | 0.4                     |
-| GRASS    | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.75               | 0.04                    |
-| DIRT     | 1           | 0.55         | 0.8 m          | 0.8           | 1.5                | 0.12                    |
-| SAND     | 0.3         | 0.8          | 0.12 m         | 0.2           | 1.1                | 0.02                    |
+| Surface     | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
+| ----------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
+| ASPHALT     | 0.9         | 0.18         | 0.3 m          | 0.12          | 1                  | 1                       |
+| WET_ASPHALT | 0.9         | 0.36         | 0.3 m          | 0.12          | 1                  | 0.7                     |
+| SHOULDER    | 0.85        | 0.7          | 0.6 m          | 0.4           | 1.3                | 0.4                     |
+| GRASS       | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.75               | 0.04                    |
+| DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 1.5                | 0.12                    |
+| SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 1.1                | 0.02                    |
+
+WET_ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
+about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, _Tyre/Road Noise Reference Book_, 2002), taken
+as 6 dB on the high band (0.18 × 2); and its friction susceptibility, the tendency of sliding to excite the tire,
+scales with the friction it lubricates away, by the wet-road friction ratio 0.7 ([Surface materials](#surface-materials)).
+The texture, a property of the asphalt under the water, is unchanged.
 
 The [wall-sound document](../content/wall-sounds/default.json) holds the walls' friction inputs. They are the
 implementer's values, not chosen by listening. Course limits use `limit`.
@@ -325,6 +332,25 @@ implementer's values, not chosen by listening. Course limits use `limit`.
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain
 (`NOISE_BAND_DOMAIN`).
+
+## Surface materials
+
+The [material catalog](../content/materials/surface.json) holds each surface's grip factor (its scale on the tire
+law's friction) and rolling resistance coefficient.
+
+| Material    | Grip factor | Rolling resistance |
+| ----------- | ----------- | ------------------ |
+| ASPHALT     | 1           | 0.014              |
+| WET_ASPHALT | 0.7         | 0.014              |
+| SHOULDER    | 0.78        | 0.025              |
+| GRASS       | 0.43        | 0.065              |
+| DIRT        | 0.52        | 0.045              |
+| SAND        | 0.33        | 0.11               |
+
+WET_ASPHALT is ASPHALT with a water film: its grip factor is the wet-road friction ratio, 0.7, from the typical peak
+adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, _Theory of Ground Vehicles_, 4th ed., 2008, Table 1.1),
+the ratio of the ranges' midpoints (0.6 / 0.85 ≈ 0.71) rounded. Its rolling resistance is ASPHALT's: the film's extra
+resistance at speed is not modelled.
 
 ## MIX settings
 
