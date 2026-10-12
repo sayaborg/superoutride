@@ -81,113 +81,19 @@
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
   card → READY go through black.
+- Stage OT is complete. RIBBON is deleted and `npm test` (Node 24) takes about 2.5 minutes. OUTRUN TEST
+  ([Test course](content-and-gameplay.md#test-course)) is offered without DEV in every mode and the attract demo:
+  - 15 generated stages over 16 routes, each measured at 80–100 s for TESTAROSSA.
+  - Drawn pictures and skies.
+  - `WET_ASPHALT`, `DIRT` and `SAND` on the carriageway.
+  - `wipe`, `rise` and `cut` background transitions owned by the environment.
+    Forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision).
 
-Next PR: Stage OT, by its [ledger](#stage-ot--outrun-test).
+Next PR: [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage OT — OUTRUN TEST
-
-K's decisions of 2026-10-13, worked through PR after PR without waiting for review between PRs. Where a choice is left
-open, the PR takes the simplest option consistent with AGENTS and the owning specifications, records it under
-"Decisions for K" in the PR and below, and continues.
-
-**Ledger.**
-
-- Merged: FE-10 (inside a series the wallpaper stays); OT-1 (short driving scenarios on TSUKUBA and OUTRUN TRIAL A;
-  tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
-  courses deleted; `npm test` about 1 min 50 s locally); OT-3 (the OUTRUN TEST skeleton from its generator, the series
-  and its drawn picture, measured); OT-3b (the reference line at a fork keeps to the centre lane until the exit's lane
-  appears; reference-driving version 4); OT-4 (`WET_ASPHALT` in the material catalog and surface sounds); OT-5
-  (background transitions `cut`, `wipe` and `rise`; course document version 51); OT-6 (row 1: the stage context,
-  drawn pictures and skies, COASTLINE's scenery, arches, gentler road parting); OT-7 (row 2: GATEWAY's four-lane
-  boulevard, trees and stone gates; CLIFF ROAD's rock face, guardrail with gaps over the drop and wet stretches;
-  GATEWAY and CLIFF ROAD shortened under 100 s; FOREST measured 106.8 s, still to shorten in row 4); OT-8 (row 3:
-  FARMLAND's fields, fences, farmsteads and dirt at its crests; OLD TOWN's house fronts and wet cobbles; TUNNEL RUN's
-  seven tunnels with wet exits; TUNNEL RUN shortened); OT-9 (row 4: LAKESIDE's lake and four bridges; DESERT's
-  saguaros, poles, mesas and sand drifts; ALPINE PASS's rock face, valley drop and wet summit under a storm sky;
-  FOREST's dense trees and dirt shoulders; FOREST and ALPINE PASS shortened: awards now 88.8–96.7 s); OT-10 (row 5,
-  the goals: RIVIERA's seafront, hotels and yachts; INTERCHANGE's barriers, overpasses and gantries; DOWNHILL's ridge
-  with drops on both sides; RUINS' columns, arches and dirt; METROPOLIS' high-rise fronts, city tunnel and wet streets
-  under a dusk skyline; spectators along every finish; awards 88.8–99.4 s).
-- Next PR: OT-last (final review of all fifteen stages and the transitions, measure, docs, checkpoint).
-- Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
-  102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
-  ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and
-  CLIFF ROAD and ALPINE PASS trimmed in their rows' PRs. OT-6 parted the roads more gently (24 m apart at the stage's
-  end): largest awards now about 101 s.
-- Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
-  the entry and departures have no driving scenario since OT-1. The cone, barricade, fork sign, tree and hill sky
-  images stay for OUTRUN TEST.
-- Open decisions (OT-3): the course document is written by a generator (`npm run outrun-test`); stages start with
-  two 3.6 m lanes, level at height 0, so every seam join matches; the fork's lock is 600 m before the stage's end
-  (route loading needs 484 m past a lock), so the two roads run 400 m side by side with a 4 m median before they part;
-  the stage's checkpoint is its end; the generic startup smoke compiles OUTRUN TEST like every delivered course (about
-  5 s), and no test drives it; traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3. OT-4: WET_ASPHALT's
-  grip factor 0.7 (Wong's dry/wet adhesion ranges), rolling resistance as ASPHALT's, high rolling band +6 dB and
-  friction susceptibility 0.7. OT-9: the mesa is 35 m wide, drawn at half scale under the 1,048,576-texel sprite
-  limit; ALPINE PASS's storm arrives and leaves by rise. OT-10: traffic density is a series setting, so INTERCHANGE's
-  heavy traffic is its extra lanes' room for the series' traffic, not a denser stream.
-- Splits: none.
-
-**Order.** OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan, profile, lanes, forks and gates, placeholder Strips
-and one sky, the series, one `npm run measure`; playable from the menus); OT-4 `WET_ASPHALT`; OT-5 background
-transitions; OT-6 … OT-10 one PR per row (split by stage when too large); OT-last final review, one final
-`npm run measure`, docs and this checkpoint.
-
-**OUTRUN TEST.** A series `OUTRUN TEST` (`dev: false`: one class on the BRANCH course `OUTRUN TEST`, TESTAROSSA
-in red, no rivals, the clock with checkpoint extensions, series traffic at moderate density at TRIAL's speed, its drawn
-picture, TRIAL's placeholder music, course bearing 0, reference times and margin from `npm run measure` over all 16
-routes). No test uses it; its only driving is `npm run measure`, run after the skeleton, after PRs that change a stage's
-geometry, and once at the end.
-
-- Structure: OutRun's five rows of stages (1+2+3+4+5) and five goals. Each stage ends in a short split: the left exit
-  leads to the same position in the next row, the right exit to the next position (an inner stage is entered from two
-  stages by a seam join). Each row-5 stage ends at its own goal; 16 routes. Each branch is a new Section at once;
-  unselected branches show `fork-warning` and `fork-closed`. Difficulty rises to the right in every row. Each stage ends
-  with a checkpoint gate extending the clock, each goal with a finish gate and a goal arch. A stage takes 80–100 s
-  (about 90 s) for TESTAROSSA near its limit, sized beforehand from its measured envelope.
-- Stages, left to right by row: 1 COASTLINE (divided 3+3 coastal highway merging into 6 lanes, sea one side, palms;
-  fast, forgiving); 2 GATEWAY (wide tree-lined boulevard through stone gates, gentle rolling), CLIFF ROAD (two lanes,
-  rock face and a drop to the sea, guardrail with gaps, wet sections); 3 FARMLAND (roller-coaster through fields, blind
-  crests and repeated jumps, dirt patches), OLD TOWN (narrow streets walled by buildings, near-right-angle corners,
-  lanes narrowing to one, wet cobble-colored stretch), TUNNEL RUN (6–8 short tunnels with daylight gaps, wet at tunnel
-  exits); 4 LAKESIDE (long fast sweepers along a lake, several bridges), DESERT (horizon-long undulating straights,
-  mesas, sand drifts), ALPINE PASS (switchback hairpins up a steep grade, valley drop one side, wet upper section under
-  a dark sky), FOREST (narrow unbroken S-bends, dense trees, dirt shoulders and patches); 5 RIVIERA (flat fast seafront
-  with crowds, GOAL 1), INTERCHANGE (lanes appear and end, overpasses, heavy traffic, GOAL 2), DOWNHILL (long descent,
-  big jumps, a ridge road dropping away both sides, GOAL 3), RUINS (rough road between ancient columns, dirt, GOAL 4),
-  METROPOLIS (avenues between high-rise walls, a city tunnel, wet streets, GOAL 5). Every stage differs clearly in
-  plan, profile, cross section and scenery; together they use every capability of the format (lanes appearing and
-  ending, medians, walls above and below the road, invisible and visual-only walls, opened course limits with a drop,
-  tunnels, steep grades, lifting crests, jumps, tight and fast corners, Strips of every surface).
-- Surfaces: `WET_ASPHALT` joins the material catalog, its grip and rolling derived from asphalt's by a cited wet-road
-  friction ratio (calibration.md) and its surface sound likewise; darker, bluer asphalt with lighter reflective bands,
-  under an overcast sky (falling rain is a pending capability). `DIRT` and `SAND` lie as patches and drifts on the
-  carriageway. Low-grip sections sit where they test handling: corner entries, crests, landings, mixed patches.
-- Background transitions, owned by the environment: a knot names its background and how it arrives: `wipe` (the new
-  map replaces the old tile column by tile column toward the side the road turns, left to right on a straight, over
-  about one second), `rise` (the old map sinks below the horizon row as the new one rises, as whole rows, over about
-  one second) or `cut` (the default; tunnels keep it). Whole tiles of one map or the other with their own palettes, no
-  mixing or fades; screen time from the moment `camera.s` crosses the knot, finishing even if the vehicle stops or
-  reverses; crossing back runs the reverse. OUTRUN TEST alternates `wipe` and `rise` at stage starts; TSUKUBA and
-  TRIAL keep theirs. Evidence: a rendered sequence across one of each.
-- Pictures: drawn programmatically by deterministic production-only sources (a script writing the source PNG and its
-  recipe), so K can replace any one later: sprites through the sprite-source pipeline at 40 texels/m with shadows where
-  they stand on the ground; skies as course skies, 40 tiles high and opaque; the series picture 320×240 with its name.
-  The period's arcade look, clean outlined shapes, 15 colors, no noise; reuse existing pictures where they fit. About
-  4–8 scenery pictures per stage, gate and goal arches, about 8 skies. Solid scenery no wider than its picture; grass
-  and bushes not solid.
-- Each course or picture PR renders frames with `npm run course -- render` and inspects them: per stage a contact
-  sheet of at least 10 frames (start, every quarter, signature features, fork or goal) showing its character, clean
-  contact of pictures, walls and cliffs aligned to the road, visible low-grip patches, landings on road with no
-  recoveries, and whole-tile transitions. Every picture reads at its smallest LOD.
-- Done: `npm test` (Node 24) in about 2–3 minutes; no black frame inside an ARCADE series;
-  OUTRUN TEST offered without `dev=1` in every mode and the attract demo; `npm run measure` completes for its 16 routes
-  with each stage 80–100 s; this ledger replaced by a short checkpoint; one final summary listing the decisions, the
-  `npm test` time, each stage's reference time and contact sheets.
 
 ## Audit 2 leftovers
 
@@ -379,6 +285,7 @@ and switching is a cut.
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                             |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                              |
+| Test course      | Stage OT "Decisions for K" ([below](#stage-ot-decisions-for-k))                                                                                                                                              |
 | Front end        | FREE PLAY and TIME TRIAL wallpaper and title music (black and silent today; their SELECT MUSIC offers every track and MUSIC OFF)                                                                             |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                          |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                        |
@@ -397,7 +304,6 @@ and switching is a cut.
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                 |
 | Vehicle art      | VFR750R's four colors once its pictures are generated: the real tricolour and three fictional racing schemes                                                                                                 |
 | Weather          | Falling rain over wet sections (WET_ASPHALT lies under an overcast sky without rain today)                                                                                                                   |
-| BG transitions   | Whether environment changes use wipes or dissolves (palette fades are not expected)                                                                                                                          |
 | Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                        |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
@@ -431,6 +337,49 @@ Choices made where Stage FE left them open, each recorded in its PR:
   the transition's steps while the logo and lines stay; a turn's 30 s include its brightening and darkening; the
   classes of one course share one compiled course; every class's Session stays alive (about 6 MB of heap for the
   three TSUKUBA CLUBMAN classes together, 71 MB with the first alone).
+
+### Stage OT decisions for K
+
+Choices made where Stage OT left them open, each recorded in its PR:
+
+- FE-10: a wallpaper change asked for while a black transition runs still finishes through black; only a steady screen
+  cuts.
+- Tests (OT-1, OT-2): the TSUKUBA ARCADE scenario's player is 911 TURBO 3.3 against GOLF GTI 16V rivals at pace 1; the
+  scenarios are split in two files, neither over about 30 s. The images only RIBBON used (cones, barricade, fork signs,
+  tree, hill sky) stay for OUTRUN TEST.
+- Structure (OT-3):
+  - The course document is generated from a stage table.
+  - Every stage starts with two 3.6 m lanes, level at height 0. Forking stages end at 0 and goals at their own height.
+  - The fork's lock is 600 m before the stage end, because route loading needs 484 m past it. The two roads run side
+    by side with a 4 m median before they part.
+  - The checkpoint is the seam.
+  - The startup smoke compiles OUTRUN TEST (about 5 s), and no test drives it.
+  - Traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3.
+- Reference driving (OT-3b): no scenario was added for the right-exit defect. The measured report shows that class of
+  defect, a right exit far slower than its left.
+- `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and susceptibility
+  0.7, to tune on real devices.
+- Transitions (OT-5):
+  - A wipe lays both maps on the incoming map's scroll. The generator keeps yaw origins along each stage's left-most
+    predecessor, so a seam join from the other predecessor arrives turned by the difference of their headings.
+  - A rise keeps each map's own scroll.
+  - A wipe's direction comes from the road's turn over the 150 m ahead (threshold 0.05 rad).
+  - A transition takes 1 s. A new crossing during one starts from the map being brought in.
+- Pictures (OT-6 to OT-10):
+  - Fixed scenery carries a flat contact shadow in its picture. Outlines are 2 px, lit from the upper left.
+  - Verge scenery, stone gates, overpasses and gantries are pass-through. Guardrails, rock faces, barriers and building
+    fronts are solid walls.
+  - Sea stacks stand 38 m below the road.
+  - The tunnel portal stands only at the entrance, because sprites face the camera.
+  - The mesa is 35 m wide, drawn at half scale under the 1,048,576-texel sprite limit.
+  - LAKESIDE reuses the existing `sail` picture.
+- Wet stretches (OT-7 to OT-10):
+  - The overcast sky arrives by wipe 150 m before the wet road and clears 100 m after it.
+  - Tunnel exits arrive by cut and clear by wipe.
+  - ALPINE PASS's storm arrives and leaves by rise.
+- Timing: GATEWAY, CLIFF ROAD, TUNNEL RUN, ALPINE PASS and FOREST were shortened to bring every award within 80–100 s.
+- INTERCHANGE's heavy traffic: traffic density is a series setting, so INTERCHANGE's extra lanes carry the series'
+  traffic rather than a denser stream.
 
 ### Selected circuits
 

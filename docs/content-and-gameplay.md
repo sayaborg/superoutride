@@ -1487,13 +1487,22 @@ its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork
 takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
 TESTAROSSA's delivered envelope, and the measured reference times are the course's times. Each stage's sky arrives at
 its start by a `wipe` or a `rise`, alternately (the entry's by `cut`), its yaw origin keeping the sky's direction from
-its left-most predecessor; until the stages have their own skies, three course skies take turns. A checkpoint arch
+its left-most predecessor. A checkpoint arch
 stands 12 m into every stage but the entry, whose start gantry stands over its grid, and a goal arch over each finish.
 Each stage's own ground, Boundaries, walls, open limits, sprites and further environments are written by its design
 through a stage context ([`tools/course/outrun-test/`](../tools/course/outrun-test)), with pictures drawn for the
 course ([Image assets](image-assets.md#drawn-pictures)); its base ground is a verge either side of the road over its
 material, the road with rumble strips, edge lines and lane dashes, and the ground beyond, each in light and dark bands
 40 m long.
+
+Every stage has its own drawn sky and its own cross-section and scenery, so that together they use every capability of
+the format: solid walls above the road (house fronts, high-rise fronts, rock faces, barriers, tunnel bores) and below it
+(cliff and valley faces falling from transparent ground), visual-only walls (fences), guardrails broken by opened
+course limits over a drop (CLIFF ROAD), lanes that appear and end (GATEWAY, OLD TOWN, INTERCHANGE), tunnels with their
+own interior sky (TUNNEL RUN, METROPOLIS), steep grades, crests and jumps (FARMLAND, ALPINE PASS, DOWNHILL), and Strips
+of every surface on the carriageway: `WET_ASPHALT` stretches under an overcast or storm sky that arrives and clears
+within the stage (CLIFF ROAD, OLD TOWN, TUNNEL RUN's exits, ALPINE PASS's summit, METROPOLIS), `DIRT` at crests and bends
+(FARMLAND, FOREST, RUINS) and `SAND` drifts (DESERT). Spectators line the last 160 m before every goal.
 
 ## Product courses
 

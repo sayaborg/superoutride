@@ -416,7 +416,8 @@ recipes where the picture commands read them, then makes the pictures as those c
 those. Any source can be replaced by another image of the same name and size, and made by its own command without
 touching the course or this one. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
 default) under `dist/outrun-test-sheets/`: frames of the logical frame through the product scene from the stage's
-start, every eighth of it and its fork or goal, each labelled with its station, and for each Link named after
+start, every eighth of it and its fork or goal, each labelled with its station, and 150 m past each change of
+environment within it, and for each Link named after
 `--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
 transition shows; nothing reads them.
 
