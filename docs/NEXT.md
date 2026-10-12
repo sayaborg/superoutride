@@ -64,7 +64,7 @@
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
 
-Next PR: PT-4 of Stage PT, then Stage 16's next PR, awaiting its proposal.
+Next PR: PT-5 of Stage PT, then Stage 16's next PR, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -86,15 +86,9 @@ Requirements left from the second design audit, by when they are taken up:
 ## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
 
 Six PRs in order; PT-1 (five-point torque curves), PT-2 (fuel cut at 105 % / 103 % and the curve above
-redline), PT-3 (the tachometer at 110 % of redline) and PT-3a (the ground continues behind a closed course limit)
-have landed. Units are SI (kW, N·m, kg, mm, kg m²).
+redline), PT-3 (the tachometer at 110 % of redline), PT-3a (the ground continues behind a closed course limit) and
+PT-4 (engine inertia while the clutch is locked) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
 
-- **PT-4 — Engine inertia while the clutch is locked.** A locked engine's inertia joins the wheel solve through the
-  fixed drive split, `diag(Ifront, Irear) + Ie*G^2 * [[f^2, f(1-f)], [f(1-f), (1-f)^2]]`, inside the same implicit
-  step: exactly on the driven wheel for `f` of 0 or 1, otherwise by a safeguarded bracketed root finder on the
-  inertia torque, started from the previous substep's value; the Delta's step costs at most 3× a single-driven
-  vehicle's. Every wheel-pair solve (drive bounds, protected pair, trials) uses it; `drivelineEfficiency` stays a loss on
-  the engine's own torque. A shift while locked keeps wheel speeds; the clutch absorbs the energy difference.
 - **PT-5 — SELECT VEHICLE as a catalog page.** One page per vehicle: name, model year and identifier label, a turning
   picture in its colour at one uniform scale per vehicle, torque and power curves from `max(idle, 0.2 * redline)` to
   the fuel-cut entry over an axis of `0.2`–`1.1 * redlineRpm`, and the compiled physical values in two columns. The

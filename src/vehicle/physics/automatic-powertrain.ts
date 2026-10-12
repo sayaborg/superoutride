@@ -144,6 +144,11 @@ export interface PowertrainStep {
   launchGapTorque: number;
   clutchCapacityTorque: number;
   wheelPerEngineTorque: number;
+  /**
+   * kg m^2: engine inertia reflected to the drive-split wheel speed while locked, `engineInertia * (gearRatio *
+   * finalDriveRatio)^2`; 0 while slipping. The wheel solve carries it.
+   */
+  coupledInertia: number;
   /** Idle-holding opening. */
   lowerOpening: number;
   /** 0 during fuel cut, else 1. */
@@ -160,6 +165,7 @@ export function createPowertrainStep(): PowertrainStep {
     launchGapTorque: 0,
     clutchCapacityTorque: 0,
     wheelPerEngineTorque: 0,
+    coupledInertia: 0,
     lowerOpening: 0,
     upperOpening: 1,
   };
@@ -235,8 +241,9 @@ export function prepareAutomaticPowertrain(
   step.rpmPerTorque = rpmPerTorque;
   step.launchGapTorque = locked ? 0 : (definition.peakTorqueRpm - rpm) / rpmPerTorque;
   step.clutchCapacityTorque = clutchCapacityTorque;
-  step.wheelPerEngineTorque =
-    definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * constants.drivelineEfficiency;
+  const ratio = definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio;
+  step.wheelPerEngineTorque = ratio * constants.drivelineEfficiency;
+  step.coupledInertia = locked ? constants.engineInertia * ratio * ratio : 0;
   step.lowerOpening = clamp(((definition.idleRpm - rpm) / rpmPerTorque + friction) / (curve + friction), 0, 1);
   step.upperOpening = state.fuelCut ? 0 : 1;
   return step;

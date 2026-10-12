@@ -3,6 +3,8 @@ import { type Writable } from '../../core/writable.js';
 const PITCH_BISECTION_ITERATIONS = 12;
 // Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit.
 const PITCH_BARRIER_FREQUENCY = 6;
+// N m: the coupled locked-engine solve stops once its bracket on the inertia torque is this narrow.
+const COUPLED_INERTIA_TORQUE_TOLERANCE = 1e-6;
 
 import {
   createTireForceScratch,
@@ -191,6 +193,9 @@ export function createProtectedWheelPairWorkspace(front: WheelSolveInput, rear: 
   return {
     first: candidate(),
     second: candidate(),
+    coupled: { front, rear, inertia: 0, frontCopy: { ...front }, rearCopy: { ...rear } },
+    /** The last split-drive inertia torque solved, where the next solve starts. */
+    inertiaTorque: { value: 0 },
     pitch: createRoadPitch(),
     pitchScratch: { a: v(), b: v(), c: v() },
   };
@@ -263,13 +268,175 @@ function evaluatePair(
 }
 
 /**
- * Bounds on total drive-wheel torque, computed from the tires before the powertrain chooses its
- * opening. Requests carry the brake request and zero drive. Each driven station's bound is divided
- * by its fixed drive fraction and the tighter station bounds the total. TCS gives the upper bound
- * and MSR the lower bound (engine braking). The nose-up side of pitch protection bisects positive
- * total drive torque, brake fixed, until the pitch barrier holds; the requested drive torque caps
- * that search. The bounds only limit the effective opening; drive
- * torque is never trimmed after the powertrain.
+ * The requests and the coupled inertia left for the engine-term solve. With one driven wheel the locked engine's
+ * reflected inertia adds exactly to that wheel's own (copies of the requests carry it), and nothing is left to couple;
+ * otherwise the requests are unchanged and the full coupled inertia remains.
+ */
+function coupledPair(
+  compiledVehicle: CompiledVehicle,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  coupledInertia: number,
+  workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
+) {
+  const f = compiledVehicle.frontDriveTorqueFraction;
+  const out = workspace.coupled;
+  if (coupledInertia === 0 || (f > 0 && f < 1)) {
+    out.front = frontRequest;
+    out.rear = rearRequest;
+    out.inertia = coupledInertia;
+    return out;
+  }
+  Object.assign(out.frontCopy, frontRequest);
+  Object.assign(out.rearCopy, rearRequest);
+  if (f === 1) out.frontCopy.inertia += coupledInertia;
+  else out.rearCopy.inertia += coupledInertia;
+  out.front = out.frontCopy;
+  out.rear = out.rearCopy;
+  out.inertia = 0;
+  return out;
+}
+
+/**
+ * The wheel pair driven by an engine term: the engine's own torque at the wheels, `engineTorque * G *
+ * drivelineEfficiency`. A locked engine turns at G times the drive-split wheel speed, so its inertia reflected through
+ * the ratio, `coupledInertia = engineInertia * G^2` (0 unlocked), joins the pair through the fixed split without loss:
+ * the delivered drive is the engine term less `coupledInertia * (f*omegaDotF + (1-f)*omegaDotR)`, solved in the same
+ * implicit step. With one driven wheel, coupledPair has already added it to that wheel's own. Otherwise the inertia
+ * torque x is the root of `x - coupledInertia * (f*omegaDotF + (1-f)*omegaDotR)` at delivered drive
+ * `engineTorque - x`, which increases with slope at least 1; solveIncreasingRoot finds it to the tolerance from the
+ * last root solved, each trial running the unchanged wheel solves.
+ */
+function evaluateEnginePair(
+  compiledVehicle: CompiledVehicle,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  policy: TorqueProtectionPolicy,
+  engineTorque: number,
+  coupledInertia: number,
+  brakeScale: number,
+  candidate: PairCandidate,
+  guess: { value: number },
+) {
+  const f = compiledVehicle.frontDriveTorqueFraction;
+  const atInertiaTorque = (inertiaTorque: number) =>
+    evaluatePair(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      (engineTorque - inertiaTorque) * f,
+      (engineTorque - inertiaTorque) * (1 - f),
+      brakeScale,
+      candidate,
+    );
+  if (coupledInertia === 0) return atInertiaTorque(0);
+  let evaluated = NaN;
+  const residual = (inertiaTorque: number) => {
+    evaluated = inertiaTorque;
+    return inertiaTorque - coupledInertiaTorque(compiledVehicle, atInertiaTorque(inertiaTorque), coupledInertia);
+  };
+  const root = solveIncreasingRoot(residual, guess.value, COUPLED_INERTIA_TORQUE_TOLERANCE);
+  guess.value = root;
+  return evaluated === root ? candidate.value : atInertiaTorque(root);
+}
+
+/**
+ * The root of a residual that increases with slope at least 1, to within `tolerance`: the residual at the guess `x0`
+ * brackets the root between `x0` and `x0 - r(x0)`, and Illinois regula falsi narrows the bracket, bisecting whenever
+ * its secant point leaves it. A residual within the tolerance of zero puts its point within the tolerance of the root.
+ */
+function solveIncreasingRoot(residual: (x: number) => number, x0: number, tolerance: number): number {
+  const r0 = residual(x0);
+  if (!(Math.abs(r0) > tolerance)) return x0;
+  const x1 = x0 - r0,
+    r1 = residual(x1);
+  if (!(Math.abs(r1) > tolerance)) return x1;
+  let low = Math.min(x0, x1),
+    high = Math.max(x0, x1),
+    rLow = x0 < x1 ? r0 : r1,
+    rHigh = x0 < x1 ? r1 : r0,
+    lastReplaced = 0;
+  while (high - low > tolerance) {
+    let x = (low * rHigh - high * rLow) / (rHigh - rLow);
+    if (!(x > low && x < high)) x = (low + high) * 0.5;
+    const r = residual(x);
+    if (!(Math.abs(r) > tolerance)) return x;
+    // Illinois: when the same end is replaced twice in a row, the kept end's residual is halved, so the secant passes it.
+    if (r < 0) {
+      low = x;
+      rLow = r;
+      if (lastReplaced === -1) rHigh *= 0.5;
+      lastReplaced = -1;
+    } else {
+      high = x;
+      rHigh = r;
+      if (lastReplaced === 1) rLow *= 0.5;
+      lastReplaced = 1;
+    }
+  }
+  return (low + high) * 0.5;
+}
+
+/** The reflected engine inertia's torque at the wheels for a solved pair: `coupledInertia` times the split's omegaDot. */
+function coupledInertiaTorque(
+  compiledVehicle: CompiledVehicle,
+  pair: ProtectedWheelPair,
+  coupledInertia: number,
+): number {
+  const f = compiledVehicle.frontDriveTorqueFraction;
+  return coupledInertia * (pair.frontWheel.omegaDot * f + pair.rearWheel.omegaDot * (1 - f));
+}
+
+/**
+ * The engine term that delivers a total drive torque: the drive plus the coupled inertia's torque of the pair it
+ * drives. Monotone in the drive, so it maps a drive bound to an engine-term bound; the identity when unlocked.
+ */
+function engineTorqueForDrive(
+  compiledVehicle: CompiledVehicle,
+  body: BodyKinematics,
+  front: ContactObservation,
+  rear: ContactObservation,
+  frontRequest: WheelSolveInput,
+  rearRequest: WheelSolveInput,
+  policy: TorqueProtectionPolicy,
+  drive: number,
+  coupledInertia: number,
+  candidate: PairCandidate,
+): number {
+  if (coupledInertia === 0 || !Number.isFinite(drive)) return drive;
+  const f = compiledVehicle.frontDriveTorqueFraction;
+  const pair = evaluatePair(
+    compiledVehicle,
+    body,
+    front,
+    rear,
+    frontRequest,
+    rearRequest,
+    policy,
+    drive * f,
+    drive * (1 - f),
+    1,
+    candidate,
+  );
+  return drive + coupledInertiaTorque(compiledVehicle, pair, coupledInertia);
+}
+
+/**
+ * Bounds on the engine term (the engine's own torque at the wheels), computed from the tires before the powertrain
+ * chooses its opening. Requests carry the brake request and zero drive. Each driven station's bound on the delivered
+ * total drive is divided by its fixed drive fraction and the tighter station bounds the total. TCS gives the upper
+ * bound and MSR the lower bound (engine braking). The nose-up side of pitch protection bisects positive delivered
+ * drive, brake fixed, until the pitch barrier holds; the requested engine term's delivered drive caps that search.
+ * Each delivered-drive bound becomes the engine term that delivers it with the locked engine's `coupledInertia`
+ * (see evaluateEnginePair). The bounds only limit the effective opening; drive torque is never
+ * trimmed after the powertrain.
  */
 export function solveDriveTorqueBounds(
   compiledVehicle: CompiledVehicle,
@@ -280,12 +447,17 @@ export function solveDriveTorqueBounds(
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
   requestedDriveTorque: number,
+  coupledInertia: number,
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
   out: DriveTorqueBounds,
 ): DriveTorqueBounds {
   // Once per wheel and substep: every later trial reuses these requests with solver-chosen torques.
   validateWheelSolveInput(frontRequest);
   validateWheelSolveInput(rearRequest);
+  const coupled = coupledPair(compiledVehicle, frontRequest, rearRequest, coupledInertia, workspace);
+  frontRequest = coupled.front;
+  rearRequest = coupled.rear;
+  coupledInertia = coupled.inertia;
   const slot = workspace.first;
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
   let lower = -Infinity;
@@ -295,7 +467,18 @@ export function solveDriveTorqueBounds(
     if (frontFraction < 1)
       lower = Math.max(lower, msrDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
   }
-  out.lower = lower;
+  out.lower = engineTorqueForDrive(
+    compiledVehicle,
+    body,
+    front,
+    rear,
+    frontRequest,
+    rearRequest,
+    policy,
+    lower,
+    coupledInertia,
+    slot,
+  );
   out.upper = driveTorqueUpperBound(
     compiledVehicle,
     body,
@@ -305,8 +488,10 @@ export function solveDriveTorqueBounds(
     rearRequest,
     policy,
     requestedDriveTorque,
+    coupledInertia,
     observeRoadPitch(body, front, rear, workspace.pitch, workspace.pitchScratch),
     slot,
+    workspace.inertiaTorque,
   );
   return out;
 }
@@ -320,20 +505,65 @@ function driveTorqueUpperBound(
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
   requestedDriveTorque: number,
+  coupledInertia: number,
   pitch: RoadPitch,
   slot: PairCandidate,
+  guess: { value: number },
 ): number {
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
-  let upper = Infinity;
+  let upperDrive = Infinity;
   if (policy.wheelSlip) {
     if (frontFraction > 0)
-      upper = Math.min(upper, tcsDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
+      upperDrive = Math.min(upperDrive, tcsDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
     if (frontFraction < 1)
-      upper = Math.min(upper, tcsDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
+      upperDrive = Math.min(
+        upperDrive,
+        tcsDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction),
+      );
   }
+  const engineTorqueFor = (drive: number) =>
+    engineTorqueForDrive(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      drive,
+      coupledInertia,
+      slot,
+    );
+  const upper = engineTorqueFor(upperDrive);
   const requested = Math.min(requestedDriveTorque, upper);
   if (!(requested > 0) || !pitch.active) return upper;
-  const safe = (drive: number) => {
+  const safe = (value: ProtectedWheelPair) =>
+    pitchMargin(compiledVehicle, body, pitch, value.wrench, policy.pitchLimit, 1) >= 0;
+  const atEngineTorque = (engineTorque: number) =>
+    evaluateEnginePair(
+      compiledVehicle,
+      body,
+      front,
+      rear,
+      frontRequest,
+      rearRequest,
+      policy,
+      engineTorque,
+      coupledInertia,
+      1,
+      slot,
+      guess,
+    );
+  const deliveredDrive = (engineTorque: number, value: ProtectedWheelPair) =>
+    engineTorque - coupledInertiaTorque(compiledVehicle, value, coupledInertia);
+  const requestedPair = atEngineTorque(requested);
+  if (safe(requestedPair)) return upper;
+  let unsafe = deliveredDrive(requested, requestedPair);
+  const closedPair = atEngineTorque(0);
+  if (!safe(closedPair)) return 0;
+  let lower = deliveredDrive(0, closedPair);
+  for (let i = 0; i < PITCH_BISECTION_ITERATIONS; i++) {
+    const drive = (lower + unsafe) * 0.5;
     const value = evaluatePair(
       compiledVehicle,
       body,
@@ -347,24 +577,16 @@ function driveTorqueUpperBound(
       1,
       slot,
     );
-    return pitchMargin(compiledVehicle, body, pitch, value.wrench, policy.pitchLimit, 1) >= 0;
-  };
-  if (safe(requested)) return upper;
-  if (!safe(0)) return 0;
-  let lower = 0,
-    unsafe = requested;
-  for (let i = 0; i < PITCH_BISECTION_ITERATIONS; i++) {
-    const drive = (lower + unsafe) * 0.5;
-    if (safe(drive)) lower = drive;
+    if (safe(value)) lower = drive;
     else unsafe = drive;
   }
-  return lower;
+  return engineTorqueFor(lower);
 }
 
 /**
- * One wheel-pair solve with the powertrain's drive torque delivered as requested. ABS limits each
- * brake; the nose-down side of pitch protection bisects one brake scale until the pitch barrier
- * holds. Every trial uses the unchanged solve and wrench.
+ * One wheel-pair solve with the powertrain's engine term delivered as requested, the locked engine's
+ * `coupledInertia` included. ABS limits each brake; the nose-down side of pitch protection bisects one brake scale
+ * until the pitch barrier holds. Every trial uses the unchanged solve and wrench.
  */
 export function solveProtectedWheelPair(
   compiledVehicle: CompiledVehicle,
@@ -374,15 +596,20 @@ export function solveProtectedWheelPair(
   frontRequest: WheelSolveInput,
   rearRequest: WheelSolveInput,
   policy: TorqueProtectionPolicy,
+  engineTorque: number,
+  coupledInertia: number,
   workspace: ReturnType<typeof createProtectedWheelPairWorkspace>,
 ): ProtectedWheelPair {
-  // The requests were checked by solveDriveTorqueBounds; only the powertrain's drive torque is new.
-  if (!Number.isFinite(frontRequest.driveTorque) || !Number.isFinite(rearRequest.driveTorque))
-    throw new RangeError('drive torque must be finite');
+  // The requests were checked by solveDriveTorqueBounds; only the powertrain's engine term is new.
+  if (!Number.isFinite(engineTorque)) throw new RangeError('drive torque must be finite');
+  const coupled = coupledPair(compiledVehicle, frontRequest, rearRequest, coupledInertia, workspace);
+  frontRequest = coupled.front;
+  rearRequest = coupled.rear;
+  coupledInertia = coupled.inertia;
   let acceptedSlot = workspace.first,
     trialSlot = workspace.second;
   const evaluate = (brakeScale: number, slot: PairCandidate) =>
-    evaluatePair(
+    evaluateEnginePair(
       compiledVehicle,
       body,
       front,
@@ -390,10 +617,11 @@ export function solveProtectedWheelPair(
       frontRequest,
       rearRequest,
       policy,
-      frontRequest.driveTorque,
-      rearRequest.driveTorque,
+      engineTorque,
+      coupledInertia,
       brakeScale,
       slot,
+      workspace.inertiaTorque,
     );
   const requested = evaluate(1, acceptedSlot);
   const pitch = observeRoadPitch(body, front, rear, workspace.pitch, workspace.pitchScratch);

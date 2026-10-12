@@ -362,8 +362,8 @@ between locking and releasing at idle, so tire slip recovering after a release c
 clutch. A new or recovered powertrain applies the same rule to an engine at idle: it starts locked
 with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherwise slips at idle.
 
-- Locked: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels.
-  Engine braking exists only while locked.
+- Locked: engine RPM equals the wheel-derived RPM, and the signed engine torque reaches the wheels with the
+  engine's inertia. Engine braking exists only while locked.
 - Unlocked: one law advances engine RPM,
   `dRPM/dt = (opening*(curveTorque+frictionTorque) - frictionTorque - clutchTorque) / engineInertia`,
   by forward Euler at the RPM of the step's start. The clutch is a friction element with a fixed
@@ -374,6 +374,32 @@ with the wheel-derived RPM when that RPM reaches the clutch lock RPM, and otherw
   capacity and its friction instead of in one step, so engine speed never jumps and no inertia
   energy is discarded. Wheel torque is `clutchTorque * gearRatio * finalDriveRatio *
 drivelineEfficiency` and never negative. The locked clutch has no capacity limit.
+
+While the clutch is locked the engine is rigidly geared to the driven wheels, so its inertia joins the wheel solve.
+With `G = gearRatio * finalDriveRatio` of the current gear, `Ie = engineInertia`, `f = frontDriveTorqueFraction` and
+`omegaDotF`, `omegaDotR` the wheel angular accelerations of the step's implicit solve:
+
+```text
+engineOmegaDot = G * (f*omegaDotF + (1-f)*omegaDotR)
+inertiaTorque  = Ie * engineOmegaDot
+driveTorque    = engineTorque*G*drivelineEfficiency - inertiaTorque*G
+frontDrive     = f*driveTorque,   rearDrive = (1-f)*driveTorque
+```
+
+The fixed drive split is a differential whose input turns at the drive-split wheel speed that the wheel-derived RPM
+uses, so the wheel pair's inertia matrix is `diag(Ifront, Irear) + Ie*G^2 * [[f^2, f(1-f)], [f(1-f), (1-f)^2]]`. The
+reflected inertia passes through the driveline without loss; `drivelineEfficiency` is a loss on the engine's own
+torque only. The term is solved inside the same implicit step, never lagged. With one driven wheel (`f` of 0 or 1),
+`Ie*G^2` adds to that wheel's inertia, which is exact. Otherwise an outer monotone scalar solve finds the root of the
+residual `G*inertiaTorque - Ie*G^2*(f*omegaDotF + (1-f)*omegaDotR)`, which increases with the inertia torque with slope
+at least 1. It starts from the vehicle's last solved value `x0`: the root lies between `x0` and `x0` minus the
+residual there, and Illinois regula falsi narrows that bracket, bisecting whenever its secant point leaves it, until a
+residual or the bracket is within 1e-6 N m. Each trial runs the unchanged front and rear wheel solves. Every wheel-pair solve uses the same
+locked inertia: the drive-torque bounds (TCS, nose-up pitch protection, MSR), the protected pair (ABS, nose-down pitch
+protection) and all their trials. Unlocked or held, the wheels carry only their own inertia. A shift while locked
+keeps the wheel speeds and moves engine RPM to the new ratio; the clutch absorbs the engine's kinetic-energy
+difference, which is not modelled as a torque. The body wrench keeps its wheel-inertia terms; the engine rotor's
+reaction on the body is not modelled.
 
 While the clutch is at capacity, changing the opening does not change wheel torque, so a
 drive-torque upper bound below the capacity may be unreachable. The opening's upper bound is then
@@ -413,10 +439,12 @@ running-body assumptions; admission owns structural and domain validation.
 
 Each mechanics substep runs in one order: the powertrain prepares its step (shift, clutch and
 fuel-cut latches, and the opening-to-wheel-torque map at the current engine speed); torque
-protection bounds total drive-wheel torque from the tires; the powertrain completes the step with
-the effective opening, engine torque and clutch; the wheel pair is solved. Protection never trims
-drive torque after the powertrain: the bounds only limit the effective opening, so the wheels
-receive exactly the signed `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency`.
+protection bounds the engine term, the engine's own torque at the wheels, from the tires; the powertrain completes
+the step with the effective opening, engine torque and clutch; the wheel pair is solved. Protection never trims
+drive torque after the powertrain: the bounds only limit the effective opening, so the wheels receive exactly the
+signed engine term `clutchTorque * gearRatio * finalDriveRatio * drivelineEfficiency`, less the locked engine's
+inertia torque. Each bound below is found on the delivered total drive and becomes the engine term that delivers it
+with the locked engine's inertia; the opening's inverse keeps inverting the engine's own torque.
 
 TCS, MSR and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. With
 the pedal brake request and zero drive:

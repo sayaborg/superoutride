@@ -299,6 +299,7 @@ export function updateVehicle(
       rearRequest,
       model.torqueProtection,
       Math.max(0, powertrainWheelTorque(powertrainStep, boundedOpening(powertrainStep, requestedOpening))),
+      powertrainStep.coupledInertia,
       workspace.pair,
       workspace.driveTorqueBounds,
     );
@@ -308,9 +309,7 @@ export function updateVehicle(
       requestedOpening,
       driveTorqueBounds,
     );
-    // Signed drive torque, engine braking included, reaches the wheels untrimmed.
-    frontRequest.driveTorque = driveTorque * compiledVehicle.frontDriveTorqueFraction;
-    rearRequest.driveTorque = driveTorque - frontRequest.driveTorque;
+    // Signed drive torque, engine braking included, reaches the wheels untrimmed, the locked engine's inertia with it.
     const resolved = solveProtectedWheelPair(
       compiledVehicle,
       body,
@@ -319,6 +318,8 @@ export function updateVehicle(
       frontRequest,
       rearRequest,
       model.torqueProtection,
+      driveTorque,
+      powertrainStep.coupledInertia,
       workspace.pair,
     );
     const { frontWheel, rearWheel } = resolved;
