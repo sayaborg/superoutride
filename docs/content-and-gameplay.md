@@ -906,16 +906,17 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 11) is the one owner of its classes, its ARCADE races. It is saved
+A series document (`superoutride.series` version 12) is the one owner of its classes, its ARCADE races. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 11,
+  "version": 12,
   "id": "ribbon",
   "title": "RIBBON",
   "image": "ribbon",
+  "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
   "timeMargin": 1.35,
   "fixedColors": false,
@@ -940,7 +941,9 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 ```
 
 `title` is the display name. `image` names its series image, an opaque 20×15-tile
-[screen picture](image-assets.md#screen-pictures). `dev: true` marks a development series: front ends show it only with DEV.
+[screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
+plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
+([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
 player drives in its entry's color rather than its own chosen color. `classes` lists at least one class in selection
 order. A class is one ARCADE race: its `id`, unique within the series, its display name `title`, a delivered `course`,
@@ -957,7 +960,7 @@ every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
 of the class has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits`
 maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
-manifest alike, against the delivered course IDs, the vehicle catalog and the screen pictures. A course may be run by several classes of
+manifest alike, against the delivered course IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of
 one or several series. A class is admitted against its compiled
 course: `laps` within `maxLaps`, every entry's slot within the slots its field uses of the grid it starts from (the
 bike grid when every entry is a bike and the course has one), no bike among the candidate vehicles of a field that is
@@ -968,7 +971,9 @@ with N an integer from 1 to below the field size (the number of entries). The bu
 Session admits the class it drives.
 
 The delivered series are TSUKUBA CLUBMAN, the first product series, and RIBBON and TRIAL, development series; each
-document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
+document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN has no race tracks and the title track
+`placeholder-one` until K delivers its own; RIBBON and TRIAL play `placeholder-two` as their title track and offer both
+placeholders as race tracks. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
 1.02 at the pole to 0.88. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),

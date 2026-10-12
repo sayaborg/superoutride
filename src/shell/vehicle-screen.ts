@@ -196,7 +196,13 @@ export function createVehicleScreen(
   present: () => void,
   candidates: readonly CompiledVehicleDefinition[],
   fuelCutEnterRedlineRatio: number,
-  choice: { vehicleId: string | null; fixedColors: boolean; colorOf(vehicle: CompiledVehicleDefinition): string },
+  choice: {
+    vehicleId: string | null;
+    fixedColors: boolean;
+    colorOf(vehicle: CompiledVehicleDefinition): string;
+    /** Its CONFIRM starts the run: it answers `entry`. */
+    entry: boolean;
+  },
   actions: { confirm(vehicle: CompiledVehicleDefinition, color: string | null): void; back(): void },
 ): Screen {
   let index = Math.max(
@@ -235,7 +241,7 @@ export function createVehicleScreen(
       }
       if (command === 'CONFIRM') {
         actions.confirm(candidates[index]!, colors[color] ?? null);
-        return 'confirm';
+        return choice.entry ? 'entry' : 'confirm';
       }
       if (command === 'BACK') {
         actions.back();

@@ -13,8 +13,9 @@ export function playTrack(shell: Pick<BrowserDrivingShell, 'playRecording'>, tra
  * and loops; it pauses while the run is not live and continues from there when it is again; at GOAL or GAME OVER it fades
  * out with the music fade and stays silent through RESULT. A new Session (a DEV rebuild) stops the previous Session's
  * track, and its own starts at its READY. It reads only the race's status and whether the run is live, never a clock.
+ * A run with MUSIC OFF (no track) plays none.
  */
-export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>, track: MusicTrack) {
+export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>, track: MusicTrack | null) {
   let session: object | null = null,
     handle: RecordingHandle | null = null,
     ended = false,
@@ -28,7 +29,7 @@ export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>
       }
       if (ended) return;
       if (!handle) {
-        if (status !== 'READY') return;
+        if (status !== 'READY' || track === null) return;
         handle = playTrack(shell, track);
       }
       if (status === 'GOAL' || status === 'GAME_OVER') {

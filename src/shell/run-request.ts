@@ -1,4 +1,5 @@
-import type { SeriesCatalog } from '../content/series-catalog.js';
+import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
+import type { MusicTrack } from '../audio/music-document.js';
 import type { SessionRequest } from '../race/session-configuration.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
@@ -10,18 +11,30 @@ import type { MusicCatalog } from '../content/recording-catalog.js';
 /**
  * A requested run: where it is driven, its Session request, which the run's assembly admits, and its track. ARCADE names
  * a series and one of its classes, and the class names the course; FREE PLAY and TIME TRIAL name the course. The track,
- * like the color, is neither a Session rule nor a record condition.
+ * like the color, is neither a Session rule nor a record condition; null is MUSIC OFF, a race without music.
  */
 export type RunRequest = SessionRequest &
   (
     | { readonly mode: 'ARCADE'; readonly seriesId: string; readonly classId: string }
     | { readonly mode: Exclude<SessionRequest['mode'], 'ARCADE'>; readonly courseId: string }
-  ) & { readonly track: string };
+  ) & { readonly track: string | null };
 
-/** The player record's latest track when it is delivered, else the first track. */
-export function latestTrack(player: PlayerRecord, music: MusicCatalog): string {
+/** The latest SELECT MUSIC choice MUSIC OFF, as the player record keeps it among its latest selections. */
+export const MUSIC_OFF = 'off';
+
+/** The tracks a run offers besides MUSIC OFF: its ARCADE series' race tracks, else every delivered track. */
+export function offeredTracks(series: CompiledSeries | null, music: MusicCatalog): readonly MusicTrack[] {
+  return series ? series.music.race : music;
+}
+
+/**
+ * The run's track from the player record's latest SELECT MUSIC choice among `offered`: that track, or MUSIC OFF (null)
+ * when it was MUSIC OFF; else the first offered track, or MUSIC OFF when none is offered.
+ */
+export function latestTrack(player: PlayerRecord, offered: readonly MusicTrack[]): string | null {
   const latest = player.settings.latestSelections.music;
-  return music.find((track) => track.id === latest)?.id ?? music[0]!.id;
+  if (latest === MUSIC_OFF) return null;
+  return offered.find((track) => track.id === latest)?.id ?? offered[0]?.id ?? null;
 }
 
 /** Every mode's display name, in the order SELECT MODE lists them: the one source of mode names. */
@@ -75,7 +88,7 @@ export function readUrlRunRequest(
   const choice = {
     vehicleId,
     color: vehicle ? recordedColor(player, vehicle) : null,
-    track: latestTrack(player, music),
+    track: latestTrack(player, offeredTracks(arcade?.series ?? null, music)),
   };
   if (arcade) return Object.freeze({ ...choice, mode: 'ARCADE', seriesId: arcade.series.id, classId: arcade.id });
   const lapCount = Number(params.get('laps') ?? 1);

@@ -11,7 +11,7 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
-import { MODE_NAMES, latestTrack, recordedColor, type RunRequest } from './run-request.js';
+import { MODE_NAMES, MUSIC_OFF, latestTrack, offeredTracks, recordedColor, type RunRequest } from './run-request.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { Screen } from './screen-host.js';
@@ -61,6 +61,8 @@ export interface SelectionDevices {
   setVolume(name: VolumeName, percent: number): void;
   /** Play `track` from its start as an audition; the returned function stops it. */
   audition(track: MusicTrack): () => void;
+  /** The music the screen plays: a series' title track, which keeps playing while it stays the same, or none. */
+  titleMusic(track: MusicTrack | null): void;
 }
 
 /**
@@ -105,6 +107,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     courseId: string | null = null,
     vehicleId: string | null = null,
     color: string | null = null,
+    // The SELECT MUSIC choice; null is MUSIC OFF.
     track: string | null = null,
     lapCount = latestCount('laps', 1, Infinity) ?? 1,
     rivalCount = latestCount('rivals', 0, SESSION_RULE_LIMITS.rivals) ?? 0,
@@ -112,8 +115,18 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     traffic = trafficLevels.find((level) => level === latest('traffic')) ?? NO_TRAFFIC;
   // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
   const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
+  // The tracks the run offers besides MUSIC OFF: SELECT MUSIC is shown only when there are two or more choices.
+  const tracks = () => offeredTracks(mode === 'ARCADE' ? seriesChoice : null, music);
   const needed = (at: Step) =>
-    at === 'CLASS' ? seriesChoice!.classes.length > 1 : at === 'LAPS' ? courseOf(courseId!).maxLaps > 1 : true;
+    at === 'CLASS'
+      ? seriesChoice!.classes.length > 1
+      : at === 'LAPS'
+        ? courseOf(courseId!).maxLaps > 1
+        : at === 'MUSIC'
+          ? tracks().length > 0
+          : true;
+  // Whether the current screen is the last one shown, whose CONFIRM starts the run.
+  const last = () => FLOW[mode].slice(step + 1).every((at) => !needed(at));
   const menu = (definition: MenuDefinition, initial = 0) =>
     devices.show(createMenuScreen(devices.frame, devices.text, devices.present, definition, initial));
   const back = () => {
@@ -129,7 +142,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     else devices.run(request(), back);
   };
   const request = (): RunRequest => {
-    const choice = { vehicleId: vehicleId!, color, track: track! };
+    // Without SELECT MUSIC the run takes its only choice, MUSIC OFF.
+    const choice = { vehicleId: vehicleId!, color, track: needed('MUSIC') ? track : null };
     if (mode === 'ARCADE')
       return Object.freeze({ ...choice, mode, seriesId: seriesChoice!.id, classId: classChoice!.id });
     const course = { ...choice, courseId: courseId! };
@@ -143,10 +157,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     adjust: (by: -1 | 1) => set(Math.min(max, Math.max(min, value() + by))),
   });
   // OPTIONS and LAPS lead on to SELECT MUSIC.
-  const next: MenuItem = { label: 'NEXT', confirm: forward };
+  const next = (): MenuItem => ({ label: 'NEXT', entry: last(), confirm: forward });
 
   function title() {
     step = -1;
+    devices.titleMusic(null);
     const items: readonly MenuItem[] = [
       {
         label: 'START',
@@ -164,7 +179,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             {
               menu,
               setVolume: devices.setVolume,
-              audition: () => devices.audition(music.find((t) => t.id === latestTrack(player, music))!),
+              // The latest track, else the first: MUSIC OFF has nothing to set the volume by.
+              audition: () => devices.audition(music.find((t) => t.id === latestTrack(player, music)) ?? music[0]!),
             },
             title,
           );
@@ -175,6 +191,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   }
   function selectMode() {
     step = -1;
+    devices.titleMusic(null);
     const items = MODES.map((m): MenuItem => ({
       label: m.label,
       disabled: !offered(m.mode),
@@ -194,10 +211,17 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     );
   }
   function showStep() {
+    // A series' title track plays on its screens; other modes' screens are silent.
+    devices.titleMusic(mode === 'ARCADE' && seriesChoice ? seriesChoice.music.title : null);
     switch (FLOW[mode][step]!) {
       case 'SERIES': {
         const items = series.map((s): MenuItem => ({
           label: s.title,
+          // The series under the cursor plays its title track.
+          focus: () => {
+            devices.titleMusic(s.music.title);
+            return () => {};
+          },
           confirm: () => {
             // A series with one class needs no SELECT CLASS.
             if (s !== seriesChoice) [classChoice, vehicleId] = [s.classes.length === 1 ? s.classes[0]! : null, null];
@@ -259,6 +283,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,
               // The color the Session gives the player: with fixed colors its class entry's.
               colorOf: (v) => sessionPlayerColor(mode === 'ARCADE' ? classChoice : null, v, recordedColor(player, v)),
+              entry: last(),
             },
             {
               confirm: (vehicle, chosen) => {
@@ -315,7 +340,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
                 ),
               ]
             : []),
-          next,
+          next(),
         ];
         return menu({ title: 'OPTIONS', layout: 'list', items, back });
       }
@@ -332,24 +357,25 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               1,
               maxLaps,
             ),
-            next,
+            next(),
           ],
           back,
         });
       }
       case 'MUSIC': {
-        // The track under the cursor plays from its start; CONFIRM starts the run with it.
-        const items = music.map((t): MenuItem => ({
-          label: t.title,
+        // The offered tracks, then MUSIC OFF; choosing changes only the name. CONFIRM starts the run with it.
+        const choices = [...tracks().map((t) => ({ id: t.id, label: t.title })), { id: null, label: 'MUSIC OFF' }];
+        const items = choices.map((c): MenuItem => ({
+          label: c.label,
           entry: true,
-          focus: () => devices.audition(t),
           confirm: () => {
-            track = t.id;
-            remember('music', t.id);
+            track = c.id;
+            remember('music', c.id ?? MUSIC_OFF);
             forward();
           },
         }));
-        const current = music.findIndex((t) => t.id === (track ?? latest('music')));
+        const chosen = track ?? latestTrack(player, tracks());
+        const current = choices.findIndex((c) => c.id === chosen);
         return menu({ title: 'SELECT MUSIC', items: () => items, back }, Math.max(0, current));
       }
     }

@@ -167,9 +167,9 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
   let afterEndingSeconds = 0;
-  // The run's track, which the request names among the delivered tracks.
-  const track = page.music.find((t) => t.id === request.track);
-  if (!track) throw new RangeError(`Unknown track ${request.track}`);
+  // The run's track, which the request names among the delivered tracks; MUSIC OFF has none.
+  const track = request.track === null ? null : page.music.find((t) => t.id === request.track);
+  if (track === undefined) throw new RangeError(`Unknown track ${request.track}`);
   const music = createRunMusic(shell, track);
   const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
   // What the run records against, and the records before it, which the HUD compares with.

@@ -1,9 +1,10 @@
 {
   "format": "superoutride.series",
-  "version": 11,
+  "version": 12,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "image": "ribbon",
+  "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
   "timeMargin": 1.35,
   "fixedColors": false,

@@ -255,11 +255,13 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     async () => {
       const admitted = requireLoaded(compileRecordings(recordingSources));
       const documents = await sources('music', musicFiles);
-      requireLoaded(compileMusicCatalog(documents, TEXT_COLUMNS, admitted));
-      return [
-        ...recordingSources.map((source) => deliveredFile('recording', source.id, source.bytes)),
-        ...delivered('music', documents),
-      ];
+      return {
+        tracks: requireLoaded(compileMusicCatalog(documents, TEXT_COLUMNS, admitted)),
+        files: [
+          ...recordingSources.map((source) => deliveredFile('recording', source.id, source.bytes)),
+          ...delivered('music', documents),
+        ],
+      };
     },
   );
 
@@ -346,7 +348,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const seriesFiles = await read('series', '.series.json');
   const series = await stage(
     'series',
-    [definitions.key, screenPictures.key, ...courseKeys, ...inputs(seriesFiles)],
+    [definitions.key, screenPictures.key, recordings.key, ...courseKeys, ...inputs(seriesFiles)],
     async () => {
       const documents = await sources('series', seriesFiles);
       const catalog = requireLoaded(
@@ -355,6 +357,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
           compiledCourses.map((course) => course.id),
           definitions.value.definitions.vehicles,
           screenPictures.value.catalog,
+          recordings.value.tracks,
         ),
       );
       const seriesClasses = catalog.series.flatMap((series) => {
@@ -381,7 +384,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...surfaceSounds.value,
     ...wallSounds.value.files,
     ...audio.value,
-    ...recordings.value,
+    ...recordings.value.files,
     ...freePlay.value.files,
     ...sounds.value.files,
     ...definitions.value.files,

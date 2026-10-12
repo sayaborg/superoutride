@@ -24,10 +24,12 @@ import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 import type { TilePicture } from '../image/tile-picture.js';
+import type { MusicTrack } from '../audio/music-document.js';
+import type { MusicCatalog } from './recording-catalog.js';
 import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 11;
+export const SERIES_DOCUMENT_VERSION = 12;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its classes, its ARCADE races. `dev` series appear only with DEV. */
@@ -36,6 +38,8 @@ export interface CompiledSeries {
   readonly title: string;
   /** The series image: a 20×15-tile opaque screen picture, named by the document's `image`. */
   readonly image: TilePicture;
+  /** Its title track, which plays on its screens, and its race tracks (zero or more) in selection order. */
+  readonly music: { readonly title: MusicTrack; readonly race: readonly MusicTrack[] };
   readonly dev: boolean;
   readonly timeMargin: number;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
@@ -110,10 +114,11 @@ export function compileSeriesCatalog(
   courseIds: readonly string[],
   vehicles: readonly CompiledVehicleDefinition[],
   pictures: ScreenPictureCatalog,
+  music: MusicCatalog,
 ): AdmissionResult<SeriesCatalog> {
   const series: CompiledSeries[] = [];
   for (const source of sources) {
-    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, pictures));
+    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, pictures, music));
     if (!admitted.ok) return admitted;
     series.push(admitted.value);
   }
@@ -132,11 +137,12 @@ function readSeries(
   courseIds: readonly string[],
   catalog: readonly CompiledVehicleDefinition[],
   pictures: ScreenPictureCatalog,
+  music: MusicCatalog,
 ): CompiledSeries {
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'image', 'dev', 'timeMargin', 'fixedColors', 'classes'],
+    ['format', 'version', 'id', 'title', 'image', 'music', 'dev', 'timeMargin', 'fixedColors', 'classes'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
@@ -151,10 +157,24 @@ function readSeries(
     '/image',
     `A series image is an opaque screen picture of ${SERIES_IMAGE.columns}×${SERIES_IMAGE.rows} tiles`,
   );
+  const track = (value: unknown, path: string) => {
+    const name = readString(value, path);
+    const found = music.find((t) => t.id === name);
+    requireAdmission(found !== undefined, 'unresolved_reference', path, `Unknown track ${name}`);
+    return found;
+  };
+  const tracks = readRecord(root.music, '/music', ['title', 'race']);
+  const race = readArray(tracks.race, '/music/race', track);
+  requireUnique(
+    race.map((t) => t.id),
+    '/music/race',
+    'track',
+  );
   const series = {
     id,
     title: readString(root.title, '/title'),
     image,
+    music: Object.freeze({ title: track(tracks.title, '/music/title'), race }),
     dev: readBoolean(root.dev, '/dev'),
     timeMargin: readNumber(root.timeMargin, '/timeMargin', {
       min: 0,
@@ -479,17 +499,18 @@ export function admitSeriesClass(
   });
 }
 
-/** Admit the delivered series against the delivered courses, the given vehicle catalog and the screen pictures. */
+/** Admit the delivered series against the delivered courses, the given vehicle catalog, screen pictures and tracks. */
 export async function loadSeriesCatalog(
   content: ContentDelivery,
   vehicles: readonly CompiledVehicleDefinition[],
   pictures: ScreenPictureCatalog,
+  music: MusicCatalog,
 ): Promise<SeriesCatalog> {
   const sources: DocumentSource[] = [];
   for (const file of content.manifest.files.filter((file) => file.kind === 'series'))
     sources.push({ id: file.id, path: file.path, value: await content.json('series', file.id), sha256: file.sha256 });
   const courseIds = content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
-  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles, pictures));
+  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles, pictures, music));
 }
 
 /** A delivered class admitted against its delivered course. */

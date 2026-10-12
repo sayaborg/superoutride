@@ -95,8 +95,9 @@ SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture tha
 sound and requests fullscreen of the page where the browser allows them; a refusal is ignored, and a gamepad press is
 not a gesture the browser accepts. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
 CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
-TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC.
-BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on SELECT MUSIC requests the run, which shows
+TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC
+(only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
+last screen shown requests the run (`menu-entry`), which shows
 LOADING and then starts at once. Each screen starts from the current selection, else the player record's latest
 selection for that screen (SELECT MODE, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
 under the keys `mode`, `series`, `class`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
@@ -104,9 +105,10 @@ its choice as the latest. RETRY keeps the run's request; CHANGE VEHICLE goes to 
 first screen, and both pass the rest of the mode's screens and SELECT MUSIC again.
 
 A menu item can say what happens while the cursor is on it (`focus`): the menu calls it when the cursor comes to the
-item and its returned function once when the cursor leaves it or the screen host makes another screen current. SELECT
-MUSIC and SETTINGS use it for auditions, the one form of [playing a track](audio.md#music) from its start, looped: the
+item and its returned function once when the cursor leaves it or the screen host makes another screen current.
+SETTINGS uses it for its audition, the one form of [playing a track](audio.md#music) from its start, looped: the
 audition stops when the cursor or the screen leaves, and a track still decoding when the cursor leaves never sounds.
+SELECT SERIES uses it to play the title track of the series under the cursor.
 
 SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within 0–100
 (to the adjacent multiple of 5), CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING
@@ -117,7 +119,7 @@ which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the reco
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
 the audio lifetime's one path (`setVolume`): the record keeps it, the stepper shows MASTER, and every volume applies at
-once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else
+once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else, and after MUSIC OFF,
 the first track) plays as an audition, so its volume is set by ear.
 
 - SELECT MODE: a mode with no selectable course is DARK.
@@ -138,8 +140,14 @@ the first track) plays as an audition, so its volume is set by ear.
   record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
   change is saved there.
 - LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and NEXT.
-- SELECT MUSIC lists the delivered tracks' titles in their selection order, every track in every mode and series, with no
-  silent choice. The track under the cursor plays as an audition; CONFIRM starts the run with it.
+- SELECT MUSIC offers the run's tracks in their selection order, then `MUSIC OFF`: in ARCADE its series' race tracks,
+  otherwise every delivered track. It is shown only when there are two or more choices (one or more tracks); otherwise
+  the run takes MUSIC OFF. There is no audition: choosing changes only the name. CONFIRM starts the run with it; the
+  player record keeps MUSIC OFF as the latest choice `off`.
+- Music on the selection screens: in ARCADE the series' title track plays, from its start and looped, from SELECT
+  SERIES (the series under the cursor) through SELECT CLASS, SELECT VEHICLE, SELECT MUSIC and the run's loading, and
+  fades out over the black transition into READY; the run's track then starts at READY. Every other menu screen, and
+  RESULT, is silent. Leaving a run for a series screen plays the title track from its start again.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
 every delivered course is a DEV one today, so every mode is DARK.

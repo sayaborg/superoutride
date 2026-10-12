@@ -14,7 +14,9 @@ import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
 import { loadScreenPictures } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
-import { createScreenHost } from './screen-host.js';
+import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
+import { createMenuMusic } from './menu-music.js';
+import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
@@ -74,9 +76,9 @@ async function startPage(): Promise<void> {
     const status = dev ? createStatus() : null;
     const courseIndex = await loadCourseIndex(content);
     const screenPictures = await loadScreenPictures(content);
-    const series = await loadSeriesCatalog(content, vehicles, screenPictures);
-    const freePlay = await loadFreePlayRules(content);
     const music = await loadMusic(content, TEXT_COLUMNS);
+    const series = await loadSeriesCatalog(content, vehicles, screenPictures, music);
+    const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
     const displaySettings = createDisplaySettings();
     const textLayer = createTextLayer(await loadTextTiles(content));
@@ -92,6 +94,8 @@ async function startPage(): Promise<void> {
       (id) => content.bytes('recording', id),
     );
     const present = () => shell.present();
+    // The selection screens' music: a series' title track plays from SELECT SERIES until the run's READY.
+    const menuMusic = createMenuMusic(shell);
     const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
     const host = createScreenHost(window, document, shell, loading);
@@ -179,6 +183,8 @@ async function startPage(): Promise<void> {
         const assembled = await assembleRun(page, next, state);
         run = assembled;
         if (status) status.hidden = true;
+        // The title track fades out over the black transition into READY.
+        menuMusic.fadeOut(TRANSITION_STEPS * SIM_DT);
         host.show(
           createRunScreen(state, assembled, shell.framebuffer, textLayer, {
             retry: () => void request(next, back),
@@ -224,6 +230,7 @@ async function startPage(): Promise<void> {
           const audition = playTrack(shell, track);
           return () => audition.stop();
         },
+        titleMusic: (track) => menuMusic.play(track),
         run: (next, back) => void request(next, back),
       },
     );

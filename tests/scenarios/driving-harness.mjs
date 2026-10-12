@@ -29,6 +29,8 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 import { readFileSync } from 'node:fs';
 import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
+import { loadMusic } from '../../src/content/recording-catalog.js';
+import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
@@ -58,6 +60,7 @@ const freePlay = await loadFreePlayRules(content);
 const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
 
 const screenPictures = await loadScreenPictures(content);
+const music = await loadMusic(content, TEXT_COLUMNS);
 
 // The test-only series (never delivered) gives each RIBBON course ARCADE settings that exercise Session rules with the
 // build's TESTAROSSA time budgets and pace schedules.
@@ -75,11 +78,12 @@ const scenarioSeries = requireLoaded(
     ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'],
     definitions.vehicles,
     screenPictures,
+    music,
   ),
 );
 
 // The delivered series, for scenarios that run a course's product ARCADE settings (RIBBON COAST's traffic).
-const productSeries = await loadSeriesCatalog(content, definitions.vehicles, screenPictures);
+const productSeries = await loadSeriesCatalog(content, definitions.vehicles, screenPictures, music);
 
 export async function loadScenarioCourse(stem) {
   return { course: await loadDeliveredCourse(content, stem, materials) };

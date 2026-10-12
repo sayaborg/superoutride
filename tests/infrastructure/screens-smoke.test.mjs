@@ -28,15 +28,18 @@ test('the front end screens render from the delivered content', async () => {
   const text = createTextLayer(await loadTextTiles(content));
   // A fresh player record, kept in no storage.
   const player = openPlayerRecord(null);
-  let screen = null;
+  const music = await loadMusic(content, TEXT_COLUMNS);
+  let screen = null,
+    requested = null,
+    titleTrack = null;
   const flow = createSelectionFlow(
     {
       courses: await loadCourseIndex(content),
-      series: await loadSeriesCatalog(content, vehicles, pictures),
+      series: await loadSeriesCatalog(content, vehicles, pictures, music),
       vehicles,
       driving,
       freePlay: await loadFreePlayRules(content),
-      music: await loadMusic(content, TEXT_COLUMNS),
+      music,
       player,
       dev: true,
     },
@@ -48,7 +51,8 @@ test('the front end screens render from the delivered content', async () => {
       activate: () => {},
       setVolume: () => {},
       audition: () => () => {},
-      run: () => {},
+      titleMusic: (track) => (titleTrack = track?.id ?? null),
+      run: (request) => (requested = request),
     },
   );
 
@@ -76,7 +80,29 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM');
   await capture('select-mode');
   send('CONFIRM');
+  // RIBBON, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
   await capture('select-series');
+  assert.equal(titleTrack, 'placeholder-two');
   send('CONFIRM');
   await capture('select-class');
+  send('CONFIRM', 'CONFIRM');
+  await capture('select-music');
+  send('LEFT');
+  await capture('select-music-off');
+  send('CONFIRM');
+  assert.equal(requested?.seriesId, 'ribbon');
+  assert.equal(requested.track, null);
+  // TSUKUBA CLUBMAN has no race tracks: the run starts from SELECT VEHICLE with MUSIC OFF, for each of its classes.
+  // Each class screen starts from the class chosen last, so one RIGHT reaches the next class.
+  for (const [i, classId] of ['production-750', 'gti-cup', '911-cup'].entries()) {
+    flow.title();
+    send('CONFIRM', 'CONFIRM');
+    while (titleTrack !== 'placeholder-one') send('LEFT');
+    send('CONFIRM', ...(i > 0 ? ['RIGHT'] : []), 'CONFIRM');
+    requested = null;
+    send('CONFIRM');
+    assert.equal(requested?.classId, classId);
+    assert.equal(requested.track, null);
+    assert.equal(titleTrack, 'placeholder-one');
+  }
 });
