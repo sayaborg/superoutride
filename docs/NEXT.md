@@ -104,8 +104,10 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   (background transitions `cut`, `wipe` and `rise`; course document version 51); OT-6 (row 1: the stage context,
   drawn pictures and skies, COASTLINE's scenery, arches, gentler road parting); OT-7 (row 2: GATEWAY's four-lane
   boulevard, trees and stone gates; CLIFF ROAD's rock face, guardrail with gaps over the drop and wet stretches;
-  GATEWAY and CLIFF ROAD shortened under 100 s; FOREST measured 106.8 s, still to shorten in row 4).
-- Next PR: OT-8, row 3 (FARMLAND, OLD TOWN, TUNNEL RUN), then OT-9, OT-10.
+  GATEWAY and CLIFF ROAD shortened under 100 s; FOREST measured 106.8 s, still to shorten in row 4); OT-8 (row 3:
+  FARMLAND's fields, fences, farmsteads and dirt at its crests; OLD TOWN's house fronts and wet cobbles; TUNNEL RUN's
+  seven tunnels with wet exits; TUNNEL RUN shortened).
+- Next PR: OT-9, row 4 (LAKESIDE, DESERT, ALPINE PASS, FOREST; FOREST shortened), then OT-10.
 - Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
   102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
   ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and

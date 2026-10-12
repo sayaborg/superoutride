@@ -31,6 +31,7 @@ import {
 
 export { TEXELS_PER_METRE } from './kit.js';
 import { ROW2_SKIES, ROW2_SPRITES } from './row2.js';
+import { ROW3_SKIES, ROW3_SPRITES } from './row3.js';
 
 /** Two pillars and a banner across the road, its text in block letters: a checkpoint or goal arch. */
 function arch(text: string, banner: Color, letters: Color, check: boolean): Raster {
@@ -259,6 +260,7 @@ export const SPRITES: Readonly<Record<string, () => Raster>> = {
   'coast-shrub': () => shrub(2.4, [0x1c4a20, 0x2e7a30, 0x58a840], 5),
   'billboard-coast': () => billboard('OUTRUN', 0xf8f0e0, 0xd02828, 0x2858c8),
   ...ROW2_SPRITES,
+  ...ROW3_SPRITES,
 };
 
 /** A sunny coast: banded blue sky, white clouds, the sea to the horizon and far islands. */
@@ -285,4 +287,5 @@ function coastSky(): Raster {
 export const SKIES: Readonly<Record<string, () => Raster>> = {
   'sky-coast': coastSky,
   ...ROW2_SKIES,
+  ...ROW3_SKIES,
 };

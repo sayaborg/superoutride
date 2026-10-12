@@ -5,6 +5,10 @@
     "sky-coast": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-country": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-cliff": { "columns": 94, "rows": 40, "fit": "fill" },
-    "sky-overcast": { "columns": 94, "rows": 40, "fit": "fill" }
+    "sky-overcast": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-farm": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-town": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-mountain": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-tunnel": { "columns": 94, "rows": 40, "fit": "fill" }
   }
 }

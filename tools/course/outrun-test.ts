@@ -18,6 +18,14 @@ import {
 } from './outrun-test/context.js';
 import { coastline, COASTLINE_SURFACES } from './outrun-test/row1.js';
 import { CLIFF_SURFACES, cliffRoad, gateway, GATEWAY_SURFACES, gatewayWidths } from './outrun-test/row2.js';
+import {
+  farmland,
+  FARMLAND_SURFACES,
+  oldTown,
+  OLD_TOWN_SURFACES,
+  TUNNEL_SURFACES,
+  tunnelRun,
+} from './outrun-test/row3.js';
 
 type Turn = 'left' | 'right';
 /** A plan element: a straight of `length`, or an arc of `length` and `radius` turning `turn`. */
@@ -165,6 +173,10 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'farmland',
       name: 'FARMLAND',
+      sky: 'sky-farm',
+      surfaces: FARMLAND_SURFACES,
+      // Its crests: the body's high PVIs, past the entry straight.
+      scenery: (ctx) => farmland(ctx, [700, 1300, 2300, 2900, 3900]),
       body: [
         Rd(600, 30),
         S(900),
@@ -195,6 +207,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'old-town',
       name: 'OLD TOWN',
+      sky: 'sky-town',
+      surfaces: OLD_TOWN_SURFACES,
+      scenery: oldTown,
       body: [
         Rd(45, 85),
         S(350),
@@ -227,6 +242,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'tunnel-run',
       name: 'TUNNEL RUN',
+      sky: 'sky-mountain',
+      surfaces: TUNNEL_SURFACES,
+      scenery: tunnelRun,
       body: [
         Rd(160, 60),
         S(200),
@@ -247,8 +265,6 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Rd(140, 80),
         S(200),
         Ld(170, 70),
-        S(200),
-        Rd(190, 60),
       ],
       hills: [
         { s: 600, y: 15, curve: 150 },

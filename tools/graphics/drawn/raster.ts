@@ -64,13 +64,21 @@ export function fillPolygon(raster: Raster, points: readonly Point[], color: Col
   }
 }
 
-/** Fill an ellipse by pixel centres. */
-export function fillEllipse(raster: Raster, cx: number, cy: number, rx: number, ry: number, color: Color) {
+/** Fill an ellipse by pixel centres; `within` paints only pixels already drawn. */
+export function fillEllipse(
+  raster: Raster,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  color: Color,
+  within = false,
+) {
   for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
     for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
       const dx = (x + 0.5 - cx) / rx,
         dy = (y + 0.5 - cy) / ry;
-      if (dx * dx + dy * dy <= 1) plot(raster, x, y, color);
+      if (dx * dx + dy * dy <= 1 && (!within || drawn(raster, x, y))) plot(raster, x, y, color);
     }
 }
 
