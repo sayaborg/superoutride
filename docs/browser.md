@@ -98,10 +98,14 @@ leaves. Its layout is a carousel or a list:
   YELLOW, unselectable items DARK and the rest WHITE; UP and DOWN move over the selectable items and wrap around, and
   LEFT and RIGHT change the current item's value.
 
-Every change of screen goes through black: the frame darkens to black over 8 fixed steps, with its RGB555 channels
-scaled by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from black.
-During a transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns
-the transition and the shell presents each frame at the host's brightness.
+A change of screen goes through black: the frame darkens to black over 8 fixed steps, with its RGB555 channels scaled
+by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from black. During a
+transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns the
+transition and the shell presents each frame at the host's brightness. A screen declares the wallpaper it stands on
+(ARCADE's series image: SELECT SERIES, SELECT CLASS, SELECT VEHICLE, SELECT MUSIC and the PRE-RACE card); a change
+between two screens standing on the same wallpaper, asked for while no transition runs, is immediate, and the next
+frame draws the next screen at full brightness. So inside a series only what is drawn over the image changes, in
+either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and every other change go through black.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
 (18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of

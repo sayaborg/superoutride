@@ -47,6 +47,7 @@ export function createPictureMenuScreen(
   const menu = createMenu(definition, initial);
   return {
     live: false,
+    wallpaper: layout.picture,
     tick() {},
     command: (command) => menu.command(command),
     leave: () => menu.leave(),

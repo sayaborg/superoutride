@@ -80,13 +80,94 @@
   `dist/screens/`. FE-1, FE-6, FE-8 and FE-9 were split (FE-1a rename / FE-1b format; FE-6a color names / FE-6b SELECT
   SERIES / FE-6c CLASS, VEHICLE, MUSIC; FE-8a TITLE / FE-8b attract demo; FE-9a LOADING removed / FE-9b
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
-  test.
+  test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
+  card → READY go through black.
 
-Next PR: the next PR of Stage 16, awaiting its proposal.
+Next PR: Stage OT, by its [ledger](#stage-ot--remove-ribbon-and-build-outrun-test).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage OT — Remove RIBBON and build OUTRUN TEST
+
+K's decisions of 2026-10-13, worked through PR after PR without waiting for review between PRs. Where a choice is left
+open, the PR takes the simplest option consistent with AGENTS and the owning specifications, records it under
+"Decisions for K" in the PR and below, and continues.
+
+**Ledger.**
+
+- Merged: FE-10 (inside a series the wallpaper stays).
+- Next PR: OT-1, short replacement tests.
+- Open decisions: none.
+- Splits: none.
+
+**Order.** OT-1 short replacement tests; OT-2 delete RIBBON; OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan,
+profile, lanes, forks and gates, placeholder Strips and one sky, the series, one `npm run measure`; playable from the
+menus); OT-4 `WET_ASPHALT`; OT-5 background transitions; OT-6 … OT-10 one PR per row (split by stage when too large);
+OT-last final review, one final `npm run measure`, docs and this checkpoint.
+
+**OT-1/OT-2: remove RIBBON.** `npm test` should take about 2–3 minutes with no test file over about 30 s. Short
+scenarios on TSUKUBA and OUTRUN TRIAL A keep AGENTS check 4: TSUKUBA ARCADE through the test-only series (one lap from
+the grid with rivals, rank and GOAL, then the takeover stops the player on the runout); TSUKUBA's course limit pushes
+the player back (and stopped broadside, if short); OUTRUN TRIAL A's series traffic appears and leaves over a bounded
+stretch; TIME TRIAL finishes from the last slot on the quickest course. Every other test that loads a RIBBON course
+moves to TSUKUBA or TRIAL A, cut to what it checks. Forks and merges lose their automatic check. Values measured on
+RIBBON COAST keep their values, their comments restated as plain statements of how they were set. OT-2 then deletes the
+RIBBON series, its four courses and measured products, its picture and recipe entry, the DEV button loading RIBBON
+ROUGH, the replaced scenarios and every reference.
+
+**OT-3…: OUTRUN TEST.** A series `OUTRUN TEST` (`dev: false`: one class on the BRANCH course `OUTRUN TEST`, TESTAROSSA
+in red, no rivals, the clock with checkpoint extensions, series traffic at moderate density at TRIAL's speed, its drawn
+picture, TRIAL's placeholder music, course bearing 0, reference times and margin from `npm run measure` over all 16
+routes). No test uses it; its only driving is `npm run measure`, run after the skeleton, after PRs that change a stage's
+geometry, and once at the end.
+
+- Structure: OutRun's five rows of stages (1+2+3+4+5) and five goals. Each stage ends in a short split: the left exit
+  leads to the same position in the next row, the right exit to the next position (an inner stage is entered from two
+  stages by a seam join). Each row-5 stage ends at its own goal; 16 routes. Each branch is a new Section at once;
+  unselected branches show `fork-warning` and `fork-closed`. Difficulty rises to the right in every row. Each stage ends
+  with a checkpoint gate extending the clock, each goal with a finish gate and a goal arch. A stage takes 80–100 s
+  (about 90 s) for TESTAROSSA near its limit, sized beforehand from its measured envelope.
+- Stages, left to right by row: 1 COASTLINE (divided 3+3 coastal highway merging into 6 lanes, sea one side, palms;
+  fast, forgiving); 2 GATEWAY (wide tree-lined boulevard through stone gates, gentle rolling), CLIFF ROAD (two lanes,
+  rock face and a drop to the sea, guardrail with gaps, wet sections); 3 FARMLAND (roller-coaster through fields, blind
+  crests and repeated jumps, dirt patches), OLD TOWN (narrow streets walled by buildings, near-right-angle corners,
+  lanes narrowing to one, wet cobble-colored stretch), TUNNEL RUN (6–8 short tunnels with daylight gaps, wet at tunnel
+  exits); 4 LAKESIDE (long fast sweepers along a lake, several bridges), DESERT (horizon-long undulating straights,
+  mesas, sand drifts), ALPINE PASS (switchback hairpins up a steep grade, valley drop one side, wet upper section under
+  a dark sky), FOREST (narrow unbroken S-bends, dense trees, dirt shoulders and patches); 5 RIVIERA (flat fast seafront
+  with crowds, GOAL 1), INTERCHANGE (lanes appear and end, overpasses, heavy traffic, GOAL 2), DOWNHILL (long descent,
+  big jumps, a ridge road dropping away both sides, GOAL 3), RUINS (rough road between ancient columns, dirt, GOAL 4),
+  METROPOLIS (avenues between high-rise walls, a city tunnel, wet streets, GOAL 5). Every stage differs clearly in
+  plan, profile, cross section and scenery; together they use every capability of the format (lanes appearing and
+  ending, medians, walls above and below the road, invisible and visual-only walls, opened course limits with a drop,
+  tunnels, steep grades, lifting crests, jumps, tight and fast corners, Strips of every surface).
+- Surfaces: `WET_ASPHALT` joins the material catalog, its grip and rolling derived from asphalt's by a cited wet-road
+  friction ratio (calibration.md) and its surface sound likewise; darker, bluer asphalt with lighter reflective bands,
+  under an overcast sky (falling rain is a pending capability). `DIRT` and `SAND` lie as patches and drifts on the
+  carriageway. Low-grip sections sit where they test handling: corner entries, crests, landings, mixed patches.
+- Background transitions, owned by the environment: a knot names its background and how it arrives: `wipe` (the new
+  map replaces the old tile column by tile column toward the side the road turns, left to right on a straight, over
+  about one second), `rise` (the old map sinks below the horizon row as the new one rises, as whole rows, over about
+  one second) or `cut` (the default; tunnels keep it). Whole tiles of one map or the other with their own palettes, no
+  mixing or fades; screen time from the moment `camera.s` crosses the knot, finishing even if the vehicle stops or
+  reverses; crossing back runs the reverse. OUTRUN TEST alternates `wipe` and `rise` at stage starts; TSUKUBA and
+  TRIAL keep theirs. Evidence: a rendered sequence across one of each.
+- Pictures: drawn programmatically by deterministic production-only sources (a script writing the source PNG and its
+  recipe), so K can replace any one later: sprites through the sprite-source pipeline at 40 texels/m with shadows where
+  they stand on the ground; skies as course skies, 40 tiles high and opaque; the series picture 320×240 with its name.
+  The period's arcade look, clean outlined shapes, 15 colors, no noise; reuse existing pictures where they fit. About
+  4–8 scenery pictures per stage, gate and goal arches, about 8 skies. Solid scenery no wider than its picture; grass
+  and bushes not solid.
+- Each course or picture PR renders frames with `npm run course -- render` and inspects them: per stage a contact
+  sheet of at least 10 frames (start, every quarter, signature features, fork or goal) showing its character, clean
+  contact of pictures, walls and cliffs aligned to the road, visible low-grip patches, landings on road with no
+  recoveries, and whole-tile transitions. Every picture reads at its smallest LOD.
+- Done: `npm test` (Node 24) in about 2–3 minutes and no RIBBON anywhere; no black frame inside an ARCADE series;
+  OUTRUN TEST offered without `dev=1` in every mode and the attract demo; `npm run measure` completes for its 16 routes
+  with each stage 80–100 s; this ledger replaced by a short checkpoint; one final summary listing the decisions, the
+  `npm test` time, each stage's reference time and contact sheets.
 
 ## Audit 2 leftovers
 

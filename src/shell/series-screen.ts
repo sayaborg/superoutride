@@ -56,6 +56,10 @@ export function createSeriesScreen(
   };
   return {
     live: false,
+    // The series shown, or slid to.
+    get wallpaper() {
+      return series[index]!.image;
+    },
     tick() {
       if (slide && ++slide.steps === SERIES_SLIDE_STEPS) slide = null;
     },

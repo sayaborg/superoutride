@@ -21,6 +21,8 @@ import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-scre
 import { createCourseMap } from '../../src/view/course-map.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
+import { createScreenHost, TRANSITION_STEPS } from '../../src/shell/screen-host.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 
 // The screens smoke: the front end's screens render headlessly through the same screens the page shows, from the
 // delivered content. Each drawn frame is saved to `dist/screens/<name>.png` at twice the frame's size, as the reference
@@ -36,7 +38,9 @@ test('the front end screens render from the delivered content', async () => {
   const music = await loadMusic(content, TEXT_COLUMNS);
   const courses = await loadCourseIndex(content);
   const series = await loadSeriesCatalog(content, vehicles, pictures, music);
+  // Until the screen host joins at the end, the shown screen is current at once.
   let screen = null,
+    host = null,
     requested = null,
     titleTrack = null;
   const flow = createSelectionFlow(
@@ -56,7 +60,7 @@ test('the front end screens render from the delivered content', async () => {
       frame,
       text,
       present: () => {},
-      show: (next) => (screen = next),
+      show: (next) => (host ? host.show(next) : (screen = next)),
       activate: () => {},
       titleBackground: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },
       setVolume: () => {},
@@ -68,9 +72,8 @@ test('the front end screens render from the delivered content', async () => {
 
   const directory = new URL('../../dist/screens/', import.meta.url);
   await mkdir(directory, { recursive: true });
-  // Draw the current screen and save it at twice the frame's size, as the mockups are drawn.
-  const capture = async (name) => {
-    screen.render();
+  // Save the frame at twice its size, as the mockups are drawn.
+  const save = async (name) => {
     assert.ok(
       frame.pixels.some((pixel) => pixel !== 0),
       `${name} drew nothing`,
@@ -82,6 +85,11 @@ test('the front end screens render from the delivered content', async () => {
         png.data.set([r, g, b, 255], (y * png.width + x) * 4);
       }
     await writeFile(new URL(`${name}.png`, directory), PNG.sync.write(png));
+  };
+  // Draw the current screen and save it.
+  const capture = async (name) => {
+    screen.render();
+    await save(name);
   };
   // Each command, then the fixed steps a slide or other change takes.
   const send = (...commands) =>
@@ -150,4 +158,48 @@ test('the front end screens render from the delivered content', async () => {
   const map = createCourseMap(course);
   assert.ok(Math.abs(map.lengthMeters - 2045) < 100, `TSUKUBA's lap is ${map.lengthMeters} m`);
   assert.ok(map.checkpoints.length > 0);
+
+  // Inside a series the wallpaper stays: through the screen host, CONFIRM on SELECT CLASS draws SELECT VEHICLE on the
+  // next frame, at full brightness.
+  let now = 0;
+  const pending = [],
+    commands = [],
+    brightness = [];
+  globalThis.performance = { now: () => now };
+  globalThis.requestAnimationFrame = (callback) => pending.push(callback);
+  globalThis.cancelAnimationFrame = () => {};
+  const frames = (count) => {
+    for (let i = 0; i < count; i++) {
+      now += SIM_DT * 1000;
+      pending.splice(0).forEach((callback) => callback(now));
+    }
+  };
+  const page = { addEventListener: () => {}, hidden: false, location: { reload: () => {} } };
+  flow.title();
+  send('CONFIRM', 'CONFIRM');
+  const classScreen = screen;
+  host = createScreenHost(
+    page,
+    page,
+    {
+      setRoute() {},
+      menuCommands: () => commands.splice(0),
+      menuSound() {},
+      setBrightness: (eighths) => brightness.push(eighths),
+    },
+    classScreen,
+  );
+  frames(2 * TRANSITION_STEPS);
+  assert.equal(host.screen, classScreen);
+  await save('wallpaper-class');
+  brightness.length = 0;
+  commands.push('CONFIRM');
+  frames(1);
+  assert.notEqual(host.screen, classScreen);
+  assert.deepEqual(brightness, [TRANSITION_STEPS]);
+  await save('wallpaper-vehicle');
+  // BACK returns to SELECT CLASS on the next frame too.
+  commands.push('BACK');
+  frames(1);
+  assert.deepEqual(brightness, [TRANSITION_STEPS, TRANSITION_STEPS]);
 });

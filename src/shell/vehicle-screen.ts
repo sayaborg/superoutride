@@ -228,6 +228,7 @@ export function createVehicleScreen(
   const turn = (list: number, step: number, at: number) => (at + step + list) % list;
   return {
     live: false,
+    wallpaper: choice.background,
     tick() {
       steps++;
     },

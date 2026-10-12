@@ -97,6 +97,7 @@ export function createPreRaceScreen(
   };
   const screen: Screen = {
     live: false,
+    wallpaper: card.background,
     tick() {
       steps++;
       check();

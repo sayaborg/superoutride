@@ -1,5 +1,6 @@
 import { createFrameLoop } from './frame-loop.js';
 import type { MenuCommand, InputRoute } from '../input/menu-input.js';
+import type { TilePicture } from '../image/tile-picture.js';
 
 /**
  * What a menu command did: confirmed PRESS START (`start`), moved the cursor or changed a value, slid SELECT SERIES to another series, confirmed
@@ -18,6 +19,11 @@ export interface Screen {
   command(command: MenuCommand): MenuResponse | null | void;
   /** The host made another screen current. */
   leave?(): void;
+  /**
+   * The picture the screen stands on, drawn under everything else it draws: ARCADE's series image. Screens that stand
+   * on the same picture are one place, between which the host changes at once.
+   */
+  readonly wallpaper?: TilePicture | null;
 }
 
 /** The devices the host routes: driving input, sound and menu commands, and the sound of what a command did. */
@@ -35,9 +41,10 @@ export const TRANSITION_STEPS = 8;
 
 /**
  * The one owner of the current screen and of whether the page runs. The one frame loop runs while the page is visible
- * and advances and draws the current screen. Every change of screen goes through black: the frame darkens to black over
+ * and advances and draws the current screen. A change of screen goes through black: the frame darkens to black over
  * `TRANSITION_STEPS` fixed steps, then the next screen brightens from black over as many; meanwhile no screen advances
- * and menu commands are dropped. It owns the input route: driving (driving input and sound live, only PAUSE as a menu
+ * and menu commands are dropped. A change between two screens standing on the same wallpaper, asked for while no
+ * transition runs, is immediate: the next frame draws the next screen at full brightness. It owns the input route: driving (driving input and sound live, only PAUSE as a menu
  * command) exactly while the page is visible, no transition runs and the current screen is live, menu while it is
  * visible otherwise, and off while hidden. It alone watches document visibility and page hiding, and reloads a page
  * restored from the back/forward cache.
@@ -101,6 +108,12 @@ export function createScreenHost(
   target.addEventListener('pageshow', (event) => {
     if (event.persisted) target.location.reload();
   });
+  /** Make `target` the current screen at once, at full brightness. */
+  const cut = (target: Screen) => {
+    if (target !== screen) screen.leave?.();
+    [screen, next, brightness] = [target, null, TRANSITION_STEPS];
+    update();
+  };
   update();
   return Object.freeze({
     get screen() {
@@ -110,19 +123,18 @@ export function createScreenHost(
       return route === 'driving';
     },
     /**
-     * Make `target` the current screen through black; the screen it replaces is told it was left. A later request
-     * during the transition replaces its target; one for the current screen while darkening brightens it again.
+     * Make `target` the current screen through black, or at once when it stands on the current screen's wallpaper and
+     * no transition runs; the screen it replaces is told it was left. A later request during the transition replaces
+     * its target; one for the current screen while darkening brightens it again.
      */
     show(target: Screen) {
+      if (steady() && target.wallpaper && target.wallpaper === screen.wallpaper) return cut(target);
       next = target === screen ? null : target;
       update();
     },
     /** Make `target` the current screen at once, at full brightness: a run the URL starts directly. */
-    cut(target: Screen) {
-      if (target !== screen) screen.leave?.();
-      [screen, next, brightness] = [target, null, TRANSITION_STEPS];
-      update();
-    },
+    cut,
+
     /** The current screen's `live` may have changed. */
     refresh: update,
   });
