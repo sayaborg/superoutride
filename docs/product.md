@@ -181,19 +181,20 @@ several classes are every class's unless listed by class.
 ## 6. Flow and screens
 
 ```text
-TITLE (PRESS START) → SELECT MODE
-  ARCADE:     SELECT SERIES → SELECT CLASS (only when several) → SELECT VEHICLE + COLOR
-  FREE PLAY:  SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS
-  TIME TRIAL: SELECT COURSE → SELECT VEHICLE + COLOR → LAPS (circuits only)
-→ SELECT MUSIC → RACE → RESULT
+TITLE: attract demo behind the logo; PRESS START, then the mode on the same screen
+  ARCADE:     SELECT SERIES → SELECT CLASS (only when several) → SELECT VEHICLE + COLOR → SELECT MUSIC (series with tracks)
+  FREE PLAY:  SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS → SELECT MUSIC
+  TIME TRIAL: SELECT COURSE → SELECT VEHICLE + COLOR → LAPS (circuits only) → SELECT MUSIC
+→ PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; controls)
+TITLE's mode line: SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; controls)
 ```
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
-tiles over the frame, and every choice is made inside the frame. All text is English. The title is
-text until the attract demo exists. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
+tiles over the frame, and every choice is made inside the frame: every character, arrow and band edge sits on that
+8×8 grid, never offset by pixels, while pictures (the logo, series images and the sky) are 16×16 tiles. All text is
+English. TITLE shows the title logo over the attract demo. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
 through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
 vehicle, up and down change the color. Every vehicle comes
 in four colors, named by color; the first is its default. PRESS START is the first user gesture, which

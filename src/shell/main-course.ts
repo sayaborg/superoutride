@@ -12,7 +12,7 @@ import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
-import { loadScreenPictures } from '../content/screen-picture-catalog.js';
+import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
@@ -244,13 +244,26 @@ async function startPage(): Promise<void> {
         await sessionVehicleSha256(createSessionVehicle(vehicle, driving), materials),
       );
     const flow = createSelectionFlow(
-      { courses: courseIndex, series, vehicles, driving, freePlay, music, player, dev, vehicleSha256 },
+      {
+        courses: courseIndex,
+        series,
+        vehicles,
+        driving,
+        freePlay,
+        music,
+        player,
+        dev,
+        vehicleSha256,
+        logo: screenPictures.get(TITLE_LOGO.id)!,
+      },
       {
         frame: shell.framebuffer,
         text: textLayer,
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
+        // TITLE stands over black until the attract demo.
+        titleBackground: { draw: () => false, tick: () => {} },
         setVolume: (name, percent) => shell.setVolume(name, percent),
         audition: (track) => {
           const audition = playTrack(shell, track);

@@ -103,16 +103,20 @@ scaled by the remaining eighths, and the next screen brightens from black over 8
 During a transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns
 the transition and the shell presents each frame at the host's brightness.
 
-The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE offers START and
-SETTINGS; START leads to SELECT MODE. A CONFIRM on TITLE is the user gesture that enables
-sound and requests fullscreen of the page where the browser allows them; a refusal is ignored, and a gamepad press is
-not a gesture the browser accepts. After SELECT MODE each mode's screens follow in order: ARCADE: SELECT SERIES, SELECT
+The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
+(18×7 tiles) centred at y 16 over its background. Before the first gesture `PRESS START` blinks in YELLOW, centred on
+row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
+of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
+accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back
+to PRESS START. The mode line is a carousel on row 28 over rows 27–29 at half brightness: the mode (YELLOW, DARK when
+it offers nothing) between WHITE `<` and `>` four columns either side, among ARCADE, FREE PLAY, TIME TRIAL and
+SETTINGS; BACK does nothing. Choosing a mode leads to its screens, in order: ARCADE: SELECT SERIES, SELECT
 CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC
 (only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
 last screen shown requests the run (`menu-entry`), which shows
 the PRE-RACE card and then starts. Each screen starts from the current selection, else the player record's latest
-selection for that screen (SELECT MODE, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
+selection for that screen (TITLE's mode, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
 under the keys `mode`, `series`, `class`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
 its choice as the latest. RETRY keeps the run's request; CHANGE VEHICLE goes to SELECT VEHICLE and SELECT to the mode's
 first screen, and both pass the rest of the mode's screens and SELECT MUSIC again.
@@ -135,7 +139,7 @@ the audio lifetime's one path (`setVolume`): the record keeps it, the stepper sh
 once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else, and after MUSIC OFF,
 the first track) plays as an audition, so its volume is set by ear.
 
-- SELECT MODE: a mode with no selectable course is DARK.
+- TITLE: a mode with no selectable course is DARK.
 - SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (YELLOW) at columns 0–3
   pointing left and 36–39 pointing right on rows 13–16, and `PRESS START` (YELLOW, meaning CONFIRM) centred on row
   27; the arrows are drawn when there are several series. LEFT and RIGHT (and UP and DOWN) slide the next image in
