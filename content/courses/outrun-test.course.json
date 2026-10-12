@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 50,
+  "version": 51,
   "name": "OUTRUN TEST",
   "entry": "coastline",
   "maxLaps": 1,
@@ -211,7 +211,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "COASTLINE",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 },
+          "arrival": "cut"
         }
       ],
       "gates": [
@@ -447,7 +448,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "GATEWAY",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "gateway-sky", "horizonY": 320, "yawOrigin": 5.951258 },
+          "arrival": "wipe"
         }
       ],
       "gates": [
@@ -666,7 +668,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "CLIFF ROAD",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": 5.951258 },
+          "arrival": "rise"
         }
       ],
       "gates": [
@@ -881,7 +884,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "FARMLAND",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": -9.011353 },
+          "arrival": "wipe"
         }
       ],
       "gates": [
@@ -1099,7 +1103,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "OLD TOWN",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "gateway-sky", "horizonY": 320, "yawOrigin": -53.902891 },
+          "arrival": "rise"
         }
       ],
       "gates": [
@@ -1318,7 +1323,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "TUNNEL RUN",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": -53.902891 },
+          "arrival": "wipe"
         }
       ],
       "gates": [
@@ -1526,7 +1532,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "LAKESIDE",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": -23.974397999999997 },
+          "arrival": "rise"
         }
       ],
       "gates": [
@@ -1737,7 +1744,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "DESERT",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "gateway-sky", "horizonY": 320, "yawOrigin": -59.416266 },
+          "arrival": "wipe"
         }
       ],
       "gates": [
@@ -1953,7 +1961,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "ALPINE PASS",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": -123.712705 },
+          "arrival": "rise"
         }
       ],
       "gates": [
@@ -2195,7 +2204,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "FOREST",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": -123.712705 },
+          "arrival": "wipe"
         }
       ],
       "gates": [
@@ -2326,7 +2336,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "RIVIERA",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "gateway-sky", "horizonY": 320, "yawOrigin": -3.9890779999999997 },
+          "arrival": "rise"
         }
       ],
       "gates": [{ "kind": "finish", "id": "riviera-GOAL", "at": { "joint": "straight-13", "offset": 450 } }]
@@ -2495,7 +2506,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "INTERCHANGE",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": -60.438837 },
+          "arrival": "wipe"
         }
       ],
       "gates": [{ "kind": "finish", "id": "interchange-GOAL", "at": { "joint": "straight-17", "offset": 450 } }]
@@ -2634,7 +2646,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "DOWNHILL",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": -23.931649999999998 },
+          "arrival": "rise"
         }
       ],
       "gates": [{ "kind": "finish", "id": "downhill-GOAL", "at": { "joint": "straight-15", "offset": 450 } }]
@@ -2775,7 +2788,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "RUINS",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "gateway-sky", "horizonY": 320, "yawOrigin": -108.846611 },
+          "arrival": "wipe"
         }
       ],
       "gates": [{ "kind": "finish", "id": "ruins-GOAL", "at": { "joint": "straight-21", "offset": 450 } }]
@@ -2904,7 +2918,8 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "METROPOLIS",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 }
+          "background": { "image": "hill-sky", "horizonY": 320, "yawOrigin": -108.846611 },
+          "arrival": "rise"
         }
       ],
       "gates": [{ "kind": "finish", "id": "metropolis-GOAL", "at": { "joint": "straight-15", "offset": 450 } }]

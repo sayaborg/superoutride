@@ -3,6 +3,7 @@ import type { TilePicture } from '../image/tile-picture.js';
 import type { SpriteLodAsset } from '../image/sprite.js';
 import type { CompiledBoundary } from './course-boundaries.js';
 import type { StripGround } from './strip-ground.js';
+import type { BackgroundArrival } from './course-document.js';
 
 /** Decoded image facet; a compiler's canonical asset record structurally supplies it. */
 interface DecodedImage<Image> {
@@ -36,6 +37,7 @@ export interface CourseAppearance {
       readonly horizonY: number;
       readonly yawOriginRadians: number;
     };
+    readonly arrival: BackgroundArrival;
   }[];
   readonly sprites: readonly {
     readonly instance: CourseSpriteResource;

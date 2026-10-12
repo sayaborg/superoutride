@@ -100,8 +100,9 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
   courses deleted; `npm test` about 1 min 50 s locally); OT-3 (the OUTRUN TEST skeleton from its generator, the series
   and its drawn picture, measured); OT-3b (the reference line at a fork keeps to the centre lane until the exit's lane
-  appears; reference-driving version 4); OT-4 (`WET_ASPHALT` in the material catalog and surface sounds).
-- Next PR: OT-5 background transitions, then OT-6 … OT-10 rows.
+  appears; reference-driving version 4); OT-4 (`WET_ASPHALT` in the material catalog and surface sounds); OT-5
+  (background transitions `cut`, `wipe` and `rise`; course document version 51).
+- Next PR: OT-6, row 1 (COASTLINE), then OT-7 … OT-10.
 - Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
   102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
   ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and

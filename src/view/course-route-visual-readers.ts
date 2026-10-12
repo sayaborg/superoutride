@@ -7,6 +7,7 @@ import { createStripGroundSampler, type StripGroundReader } from './strip-ground
 import { createCourseRenderResources } from './course-render-resources.js';
 import { courseBoundaryAt } from '../course/course-boundaries.js';
 import type { RouteWall } from './course-wall.js';
+import type { RouteEnvironment } from './background-transition.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: RouteWindow) {
@@ -43,6 +44,22 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
         ),
       };
     });
+    // Each occurrence's environment intervals on the route ruler: the background, where its knot lies and how it
+    // arrives, identified by the occurrence and the interval's index.
+    const environments = new Map(
+      mapped.map(({ occurrence, native, backgrounds }) => [
+        occurrence,
+        native.environment.intervals.map((interval, index) =>
+          Object.freeze({
+            occurrence,
+            index,
+            start: routeS(occurrence, interval.sStart),
+            background: backgrounds[index]!,
+            arrival: native.backgrounds[index]!.arrival,
+          }),
+        ),
+      ]),
+    );
     const mappedByOccurrence = new Map(mapped.map((item) => [item.occurrence, item]));
     const sampler = createStripGroundSampler(
       occurrences.map((occurrence) => ({
@@ -131,7 +148,8 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       },
       /** The body of the movable placement at `index` of a Section. */
       movableBody,
-      backgroundAt(s: number) {
+      /** The environment interval at route station `s`: its background, its knot's route station and its arrival. */
+      environmentAt(s: number): RouteEnvironment {
         const occurrence = route.at(s) ?? (s < route.start ? occurrences[0]! : occurrences.at(-1)!);
         const mappedSection = mappedByOccurrence.get(occurrence)!;
         const index = stationIndexAt(
@@ -139,7 +157,7 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
           'sStart',
           routeSectionS(occurrence, s),
         );
-        return mappedSection.backgrounds[index]!;
+        return environments.get(occurrence)![index]!;
       },
     });
   }

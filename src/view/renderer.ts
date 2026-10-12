@@ -9,7 +9,6 @@ import { SoftwareSurface } from './software-surface.js';
 import { drawScaledSprite } from './sprite.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParameters } from './terrain-line.js';
-import { drawTileBackground, type TileBackground } from './tile-background.js';
 import { selectVehicleSprite, type VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
 import {
   collectVisibleCourseSprites,
@@ -69,7 +68,8 @@ export function createRenderMeasurements(): RenderMeasurements {
 }
 
 interface RenderScene {
-  readonly background: TileBackground;
+  /** The frame's background: a map, or a transition between two. */
+  readonly background: { draw(target: SoftwareSurface, camera: PseudoCamera): void };
   readonly guide: { readonly coordinates: PlanCoordinateReader };
   readonly camera: PseudoCamera;
   readonly vehicle: VehicleRenderRead;
@@ -129,7 +129,7 @@ export function renderDriving(
   const renderCamera = camera;
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
-  drawTileBackground(target, background, renderCamera);
+  background.draw(target, renderCamera);
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
   const playerProjection = pseudoProject(playerBase, camera);
   const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);

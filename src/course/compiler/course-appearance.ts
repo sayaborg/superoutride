@@ -14,7 +14,7 @@ import type { CompiledCourseImageSource } from './course-image-source.js';
 /** A course sky is a tile picture 40 tiles (640 px) high and opaque, so it writes every pixel it covers. */
 const SKY_TILE_ROWS = 40;
 
-export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 14 });
+export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 15 });
 
 /** A visible wall's picture: its color ground and the height range its opaque Strips span. */
 function compileWallAppearance(wall: CompiledWall & { readonly color: StripGround }): CourseWallAppearance {
@@ -136,6 +136,7 @@ export function compileCourseAppearance(
             horizonY: b.horizonY,
             yawOriginRadians: (b.yawOrigin * Math.PI) / 180,
           }),
+          arrival: environment.arrival,
         }),
       );
     },

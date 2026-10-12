@@ -17,8 +17,13 @@ import type { CourseLoadingWindow } from '../race/loading-coverage.js';
 import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
+import { createBackgroundTransition } from './background-transition.js';
 
 /** The scene's loading window: the product camera stands `cameraDistance` behind the player's route position. */
+/** How far ahead of the camera the road's turn decides a wipe's direction, and the heading change that counts as one. */
+const WIPE_TURN_AHEAD_METERS = 150;
+const WIPE_TURN_RADIANS = 0.05;
+
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
   cameraDistance: cameraDistance(CAMERA_DEFINITION),
   near: RENDER_NEAR_DEPTH_METERS,
@@ -48,10 +53,29 @@ export function createCourseScene(
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
+  const backgrounds = createBackgroundTransition(),
+    turnSample = createPlanCoordinateSample();
+  // The sign of the road's turn from the camera's station to `WIPE_TURN_AHEAD_METERS` ahead, 0 within the threshold or
+  // beyond the resident Route.
+  const turnAhead = (s: number) => {
+    const ahead = s + WIPE_TURN_AHEAD_METERS;
+    if (!runtime.window.at(s) || !runtime.window.at(ahead)) return 0;
+    const from = runtime.readers.coordinates.toWorld(s, 0, turnSample).heading,
+      to = runtime.readers.coordinates.toWorld(ahead, 0, turnSample).heading;
+    const turn = Math.atan2(Math.sin(to - from), Math.cos(to - from));
+    return Math.abs(turn) < WIPE_TURN_RADIANS ? 0 : Math.sign(turn);
+  };
   return Object.freeze({
     runtime,
     get world() {
       return runtime.readers;
+    },
+    /**
+     * One fixed step of the screen showing the course from `camera`: it advances the background's transition. Still
+     * frames, which never step, show the environment at the camera's station as it is.
+     */
+    advance(camera: CameraState) {
+      backgrounds.advance(rendering.read().environmentAt(camera.s), turnAhead(camera.s));
     },
     render(
       target: Parameters<typeof renderDriving>[0],
@@ -128,7 +152,7 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: renderData.backgroundAt(camera.s),
+          background: backgrounds.frame(renderData.environmentAt(camera.s)),
           guide: readers,
           camera,
           vehicle,

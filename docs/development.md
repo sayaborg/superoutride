@@ -402,7 +402,7 @@ deterministic, each printing one JSON result or its diagnostics:
 ```sh
 npm run outrun-test
 npm run outrun-test-pictures
-npm run outrun-test-sheets -- [stage ...] [--out directory]
+npm run outrun-test-sheets -- [stage ...] [--crossing link ...] [--out directory]
 ```
 
 `outrun-test` writes `content/courses/outrun-test.course.json` from the stage table in
@@ -413,7 +413,9 @@ recipes where the picture commands read them: the series picture to `content/scr
 `npm run screen-pictures`). Any source can be replaced by another image of the same name and size without touching the
 course. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
 default) under `dist/outrun-test-sheets/`: frames of the logical frame through the product scene from the stage's
-start, every eighth of it and its fork or goal, each labelled with its station, which nothing reads.
+start, every eighth of it and its fork or goal, each labelled with its station, and for each Link named after
+`--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
+transition shows; nothing reads them.
 
 ### Screens smoke
 

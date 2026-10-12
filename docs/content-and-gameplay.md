@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 50,
+  format: "superoutride.course", version: 51,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -159,9 +159,10 @@ it before every exit cut; a sprite's image width is not a length along s and doe
 
 Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
 Section has a compiled appearance. The environment list must begin at s=0.
-An environment element is `{at,name,background}` or a `repeat`; background is
+An environment element is `{at,name,background,arrival}` or a `repeat`; background is
 `{image,horizonY,yawOrigin}`, naming an image that uses the tiled
-background format. Sprite and background references are a Section's only relation to images: an
+background format, and `arrival` is how its background arrives when the camera crosses its knot: `cut`, `wipe` or
+`rise` ([Image assets](image-assets.md#background-transitions)); crossing it backward runs the reverse. Sprite and background references are a Section's only relation to images: an
 image without a delivered file is `asset_missing`, and a Section's images are exactly those its sprites and
 backgrounds reference. After expansion, environment knots must begin at s=0 and strictly increase
 inside `[0,Section.length)`, in expanded order. The compiler does not sort them.
@@ -195,7 +196,8 @@ a tunnel; a sprite repeat at 100 with every=20 and count=6 supplies its frames. 
 The renderer selects the background at `camera.s`, not at a visible sprite or a distant ground row.
 Thus an entrance frame visible ahead retains the exterior background; the interior begins exactly
 when camera.s reaches the entrance knot, and the exterior returns at the exit knot. With the current
-rearward camera, this follows the vehicle crossing by its camera distance. This is an immediate switch.
+rearward camera, this follows the vehicle crossing by its camera distance. A tunnel's knots use `cut`, an immediate
+switch.
 
 ### Strips
 
@@ -675,7 +677,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
 The compiler is `superoutride.course-compiler` version 48, incorporating Link recipe v4, physical
-recipe v9, image-source recipe v3 and appearance recipe v14. Source, material, solid image dimension or
+recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 
 Image inputs are explicit saved bytes, one per image the course names. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.
@@ -1483,7 +1485,9 @@ both its successors start where it ends. A goal stage ends in a 900 m straight, 
 finish 450 m before its end. The entry stage, COASTLINE, starts as a divided 3+3 highway (lanes w, a, b | c, d, e) with
 its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork's four. Stages are sized so that each
 takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
-TESTAROSSA's delivered envelope, and the measured reference times are the course's times.
+TESTAROSSA's delivered envelope, and the measured reference times are the course's times. Each stage's sky arrives at
+its start by a `wipe` or a `rise`, alternately (the entry's by `cut`), its yaw origin keeping the sky's direction from
+its left-most predecessor; until the stages have their own skies, three course skies take turns.
 
 ## Product courses
 

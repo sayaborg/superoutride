@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 50,
+  "version": 51,
   "name": "OUTRUN TRIAL A",
   "entry": "stage-1",
   "maxLaps": 1,
@@ -2263,7 +2263,8 @@
             "image": "coast-sky",
             "horizonY": 320,
             "yawOrigin": 0
-          }
+          },
+          "arrival": "cut"
         },
         {
           "at": {
@@ -2275,7 +2276,8 @@
             "image": "gateway-sky",
             "horizonY": 320,
             "yawOrigin": 0
-          }
+          },
+          "arrival": "cut"
         }
       ],
       "gates": [

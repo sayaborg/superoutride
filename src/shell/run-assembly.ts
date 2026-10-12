@@ -280,6 +280,8 @@ export async function assembleRun(
     // The attract demo takes no input: the player's Session driver drives, and nothing sounds or is recorded.
     const step = race.advance(demo ? null : shell.inputManager.sample());
     lifecycle.update(step.recovered);
+    // The background's transitions run in the screen's fixed steps, from the camera's station.
+    active.scene.advance(lifecycle.camera);
     if (!demo) {
       effects.step(race, race);
       // Each contact of the player's that began in the step sounds once, as it begins.

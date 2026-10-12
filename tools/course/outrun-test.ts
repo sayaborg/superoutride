@@ -679,7 +679,38 @@ function estimate(plan: readonly Element[], grade: (s: number) => number, entryS
   };
 }
 
+/** The heading at a plan's end from its start, degrees, positive to the right. */
+const endHeading = (plan: readonly Element[]) =>
+  plan.reduce(
+    (sum, e) => sum + (e.radius ? ((e.turn === 'right' ? 1 : -1) * e.length * 180) / (Math.PI * e.radius) : 0),
+    0,
+  );
+const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
+
+/**
+ * Each stage's sky yaw origin, degrees: the entry's 0, and each other stage's chosen so the sky's direction in the world
+ * continues from its left-most predecessor across the seam (another predecessor arrives with the sky turned by the
+ * difference of their headings).
+ */
+const yawOrigins = new Map<string, number>();
+ROWS.forEach((stages, row) =>
+  stages.forEach((design, position) => {
+    const before = row === 0 ? null : (ROWS[row - 1]![position] ?? ROWS[row - 1]![position - 1]!);
+    if (!before) yawOrigins.set(design.id, 0);
+    else
+      yawOrigins.set(
+        design.id,
+        round(wrapDegrees(yawOrigins.get(before.id)! - endHeading(planOf(before, false))), 1e-6),
+      );
+  }),
+);
+
+/** Placeholder skies until each stage's own: three course skies in turn, so every stage start changes its sky. */
+const PLACEHOLDER_SKIES = ['coast-sky', 'gateway-sky', 'hill-sky'];
+
 function buildStage(design: StageDesign, row: number, position: number): Built {
+  // The stage's index in row order, left to right.
+  const index = ROWS.slice(0, row).reduce((n, stages) => n + stages.length, 0) + position;
   const goal = row === ROWS.length - 1;
   const entry = row === 0;
   const plan = planOf(design, goal);
@@ -854,7 +885,15 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
     walls: [],
     openLimits: [],
     sprites,
-    environments: [{ at: at(0), name: design.name, background: { image: 'coast-sky', horizonY: 320, yawOrigin: 0 } }],
+    environments: [
+      {
+        at: at(0),
+        name: design.name,
+        background: { image: PLACEHOLDER_SKIES[index % 3]!, horizonY: 320, yawOrigin: yawOrigins.get(design.id)! },
+        // Stage starts alternate the two transitions; the course's entry has nothing to arrive from.
+        arrival: index === 0 ? 'cut' : index % 2 ? 'wipe' : 'rise',
+      },
+    ],
     gates,
   };
   return { section, links, length, estimate: estimate(plan, grade, entry ? 0 : 75).seconds };
@@ -864,7 +903,7 @@ try {
   const built = ROWS.flatMap((stages, row) => stages.map((design, position) => buildStage(design, row, position)));
   const course = {
     format: 'superoutride.course',
-    version: 50,
+    version: 51,
     name: 'OUTRUN TEST',
     entry: ROWS[0]![0]!.id,
     maxLaps: 1,
