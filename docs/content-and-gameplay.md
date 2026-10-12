@@ -283,8 +283,10 @@ run along the left and right outer edges of the covered material — the materia
 edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. Section `openLimits`
 declares where a course limit does not run: an array (empty when the Section has none) of `{side, start, end}`, side
 `"left"` or `"right"` from Position `start` to Position `end` (`start < end`, `invalid_value` otherwise). That side has no
-course limit over the declared interval; a wall for looks only beside it does not open it. A vehicle leaving through an
-open limit has no support beyond the material and falls; ordinary recovery returns it.
+course limit over the declared interval; a wall for looks only beside it does not open it. A course limit pushes and
+the ground supports: behind a closed limit the ground continues ([Architecture](architecture.md#material-cross-sections)),
+while a vehicle leaving through an open limit has no support beyond the material and falls; ordinary recovery returns
+it.
 
 ### Roadside objects
 
@@ -670,7 +672,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
 The compiler is `superoutride.course-compiler` version 48, incorporating Link recipe v4, physical
-recipe v8, image-source recipe v3 and appearance recipe v14. Source, material, solid image dimension or
+recipe v9, image-source recipe v3 and appearance recipe v14. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 
 Image inputs are explicit saved bytes, one per image the course names. [Image assets](image-assets.md#course-image-sources) owns source formats and diagnostics.

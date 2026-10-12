@@ -5,7 +5,8 @@ import { requireCourse } from '../course-diagnostics.js';
 
 export const COURSE_PHYSICAL_RECIPE = Object.freeze({
   id: 'superoutride.course-physical',
-  version: 8,
+  // Version 9: the ground continues behind a closed course limit.
+  version: 9,
 });
 
 /** Static compilation resolves authored physics once; no default height or implicit height. */

@@ -85,13 +85,15 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
 
-Five PRs in order; PT-1 (five-point torque curves), PT-2 (fuel cut at 105 % / 103 % and the curve above
-redline) and PT-3 (the tachometer at 110 % of redline) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
+Six PRs in order; PT-1 (five-point torque curves), PT-2 (fuel cut at 105 % / 103 % and the curve above
+redline), PT-3 (the tachometer at 110 % of redline) and PT-3a (the ground continues behind a closed course limit)
+have landed. Units are SI (kW, N·m, kg, mm, kg m²).
 
 - **PT-4 — Engine inertia while the clutch is locked.** A locked engine's inertia joins the wheel solve through the
   fixed drive split, `diag(Ifront, Irear) + Ie*G^2 * [[f^2, f(1-f)], [f(1-f), (1-f)^2]]`, inside the same implicit
-  step: exactly on the driven wheel for `f` of 0 or 1, otherwise by an outer monotone bisection on the inertia
-  torque. Every wheel-pair solve (drive bounds, protected pair, trials) uses it; `drivelineEfficiency` stays a loss on
+  step: exactly on the driven wheel for `f` of 0 or 1, otherwise by a safeguarded bracketed root finder on the
+  inertia torque, started from the previous substep's value; the Delta's step costs at most 3× a single-driven
+  vehicle's. Every wheel-pair solve (drive bounds, protected pair, trials) uses it; `drivelineEfficiency` stays a loss on
   the engine's own torque. A shift while locked keeps wheel speeds; the clutch absorbs the energy difference.
 - **PT-5 — SELECT VEHICLE as a catalog page.** One page per vehicle: name, model year and identifier label, a turning
   picture in its colour at one uniform scale per vehicle, torque and power curves from `max(idle, 0.2 * redline)` to
@@ -123,10 +125,6 @@ are collected from the topic specifications; their order within this stage is no
   not write the residual.
 - Conditional solid objects: a sprite shown by a fork's choice (`unselectedLink`) may also have a body in the format;
   the race does not place such objects yet (cones lining the closed exit once a fork is decided).
-- Course edge behind a course limit: a vehicle stopped against a course limit at a steep yaw can reach past the limit
-  with its front contact; where the ground beyond has no material, the front loses support, the body pitches down and
-  recovery reads it as surface penetration (RIBBON FORK's departure-left scenario stays about 3 cm clear of it). Decide
-  whether the limit keeps the contact stations, not only the footprint, or the ground extends past every limit.
 - Wall Strips keep knots of their own because heights have no named lines; revisit with the first product walls.
 - Oncoming lanes: a lane direction, when oncoming traffic is decided.
 

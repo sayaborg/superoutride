@@ -9,6 +9,7 @@ import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledLane, CompiledLanes } from '../course-lanes.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
+import type { CourseGround } from '../course-ground.js';
 import type { CourseObject } from '../course-objects.js';
 
 /** Canonical reusable node, including back-references. Topology may intentionally cycle. */
@@ -25,6 +26,8 @@ export interface CompiledSection {
   readonly material: StripMaterial;
   /** The lines vehicles cannot cross: solid walls and the course limits. */
   readonly barriers: readonly CourseBarrierLine[];
+  /** The physical ground: the material, continued behind each closed course limit. */
+  readonly ground: CourseGround;
   /** Solid objects — solid sprites, fixed or movable, and free wall ends — in station order. */
   readonly objects: readonly CourseObject[];
   readonly assets: readonly CompiledCourseImageSource[];

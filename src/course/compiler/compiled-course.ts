@@ -1,3 +1,4 @@
+import { compileCourseGround } from '../course-ground.js';
 import { createStripBudget } from '../strip-budget.js';
 import { compileCourseStrips } from './course-strip-ground.js';
 import { compileCourseLanes, validateCourseLanes } from './course-lanes.js';
@@ -156,6 +157,7 @@ function compileSection(
     ...physical,
     ...strips,
     barriers,
+    ground: compileCourseGround(strips.material, barriers, `${path}/strips`),
     objects,
     assets: Object.freeze([]),
     // Set by `compileAppearance`, after the fork structure and before anything reads it.

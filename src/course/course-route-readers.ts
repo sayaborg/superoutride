@@ -266,7 +266,7 @@ export function createCourseRouteReaders(route: RouteWindow) {
       occurrence.section.coordinates.domain.lateralAt(nativeS, bounds);
       const nativeL = l + occurrence.lateralOrigin;
       if (nativeL < bounds.left || nativeL > bounds.right) return null;
-      return occurrence.section.material.sampleInChart(nativeS, l, occurrence.lateralOrigin);
+      return occurrence.section.ground.sampleInChart(nativeS, l, occurrence.lateralOrigin);
     },
   });
   return Object.freeze({

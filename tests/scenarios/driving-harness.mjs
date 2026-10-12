@@ -31,6 +31,8 @@ import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../..
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
+import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
+import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -104,6 +106,68 @@ function finiteState(value, path = '', seen = new Set()) {
     seen.add(value);
     for (const [key, child] of Object.entries(value)) finiteState(child, `${path}.${key}`, seen);
   }
+}
+
+/**
+ * The closed course limits at a route station, as route laterals: each side's limit where that side's limit runs, else
+ * null.
+ */
+function closedLimitsAt(scene, s) {
+  const occurrence = scene.runtime.route.at(s);
+  if (!occurrence) return { left: null, right: null };
+  const nativeS = routeSectionS(occurrence, s);
+  const at = (keep) => {
+    const line = occurrence.section.barriers.find((b) => b.keep === keep && nativeS >= b.start && nativeS <= b.end);
+    return line ? line.lateralAt(nativeS) - occurrence.lateralOrigin : null;
+  };
+  return { left: at(1), right: at(-1) };
+}
+
+/**
+ * How far a contact station reaches past a closed course limit, in metres (negative inside), with each contact's load
+ * and material: the stations stand on the body's forward axis, their laterals from the road heading at the vehicle.
+ */
+function limitReach(scene, vehicle, compiledVehicle) {
+  const { s, l } = vehicle.course;
+  const limits = closedLimitsAt(scene, s);
+  const heading = scene.world.coordinates.toWorld(s, l, { x: 0, z: 0, s: 0, l: 0, heading: 0 }).heading;
+  const across = Math.sin(vehicle.yaw - heading);
+  const contacts = [
+    { l: l + across * compiledVehicle.frontAxle, tire: vehicle.tires.front },
+    { l: l - across * compiledVehicle.rearAxle, tire: vehicle.tires.rear },
+  ];
+  const past = (c) =>
+    Math.max(
+      limits.left === null ? -Infinity : limits.left - c.l,
+      limits.right === null ? -Infinity : c.l - limits.right,
+    );
+  return {
+    past: Math.max(...contacts.map(past)),
+    front: { load: contacts[0].tire.load, surface: contacts[0].tire.surface },
+    rear: { load: contacts[1].tire.load, surface: contacts[1].tire.surface },
+  };
+}
+
+/**
+ * Stands the player still at a route station, turned a quarter turn toward the left course limit, its centre where its
+ * front contact station reaches `reach` metres past the limit.
+ */
+function placeBroadside(scene, vehicle, model, s, reach) {
+  const p = model.compiledVehicle;
+  const limit = closedLimitsAt(scene, s).left;
+  assert.notEqual(limit, null, 'no closed left course limit at the broadside station');
+  const l = limit + p.frontAxle - reach;
+  const surface = supportedTargetSurface(scene.world, s, l);
+  vehicle.x = surface.point.x + surface.normal.x * p.desiredCgHeight;
+  vehicle.y = surface.point.y + surface.normal.y * p.desiredCgHeight;
+  vehicle.z = surface.point.z + surface.normal.z * p.desiredCgHeight;
+  vehicle.yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z) - Math.PI / 2;
+  vehicle.pitch = 0;
+  vehicle.yawRate = vehicle.pitchRate = 0;
+  vehicle.velocityX = vehicle.velocityY = vehicle.velocityZ = 0;
+  vehicle.frontWheelOmega = vehicle.rearWheelOmega = 0;
+  vehicle.course = initializePlanCoordinateObservation(scene.world.coordinates, vehicle.x, vehicle.z, s);
+  publishVehicleRenderY(vehicle, model);
 }
 
 function pavementBounds(scene, vehicle) {
@@ -244,6 +308,9 @@ export async function runScenario({ course }, scenario) {
     evidence.frames++;
   };
   race.start();
+  // The broadside policy stands the player against the course limit before READY, which holds it there until GO.
+  if (scenario.policy === 'broadside')
+    placeBroadside(scene, vehicle, actor.model, vehicle.course.s + scenario.ahead, scenario.reach);
   // The clock's first deadline: the initial time budget, in seconds from GO.
   const initialDeadline = race.clock.deadlineSeconds;
   let tick = 0;
@@ -266,10 +333,13 @@ export async function runScenario({ course }, scenario) {
       s: c.actor.vehicle.course.s,
       recoveries: c.actor.recovery.recoveries,
     }));
+    // A step that starts in READY holds the player; its contacts are observed from the first free step on.
+    const heldStep = race.outcome.status === 'READY';
     let input;
     if (race.outcome.status === 'READY') input = idle;
     else if (scenario.policy === 'reverse') input = idle;
     else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.steering, throttle: true };
+    else if (scenario.policy === 'broadside') input = { ...idle, brake: true };
     // Toward a course limit for a while, then back to the reference line.
     else if (scenario.policy === 'limit' && race.clock.elapsedSeconds < scenario.steerSeconds)
       input = { ...idle, steering: scenario.steering, throttle: true };
@@ -401,6 +471,16 @@ export async function runScenario({ course }, scenario) {
       ...race.traffic.map((t) => ({ id: t.id, recovery: t.step.state })),
     ])
       if (v.recovery.recoveries > 0) evidence.otherRecoveries[v.id] = v.recovery.recoveries;
+    // How far the player's contacts reach past a closed course limit, at the farthest, and the support they read there;
+    // a broadside stand keeps both contacts loaded on ground from its first step on.
+    if ((scenario.policy === 'departure' || scenario.policy === 'broadside') && !heldStep) {
+      const reach = limitReach(scene, vehicle, actor.model.compiledVehicle);
+      if (reach.past > (evidence.limitReach?.past ?? -Infinity)) evidence.limitReach = { tick, ...reach };
+      if (scenario.policy === 'broadside')
+        evidence.unsupportedTicks =
+          (evidence.unsupportedTicks ?? 0) +
+          (reach.front.load > 0 && reach.rear.load > 0 && reach.front.surface && reach.rear.surface ? 0 : 1);
+    }
     const bounds = pavementBounds(scene, vehicle);
     if (bounds) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
@@ -476,7 +556,7 @@ export async function runScenario({ course }, scenario) {
       break;
   }
   // A departure or a run into a course limit succeeds by lasting its time on the course.
-  const held = scenario.policy === 'departure' || scenario.policy === 'limit';
+  const held = scenario.policy === 'departure' || scenario.policy === 'limit' || scenario.policy === 'broadside';
   if (!held) assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
   if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
   if (scenario.policy === 'cones') {
@@ -513,6 +593,10 @@ export async function runScenario({ course }, scenario) {
     assert.equal(evidence.recoveries.at(-1)?.reason, 'outside-domain');
     assert.ok(vehicle.course.inDomain, 'recovery did not restore domain membership');
   }
+  if (scenario.policy === 'broadside') {
+    assert.ok(evidence.limitReach.past > 0, 'no contact reached past the course limit');
+    assert.equal(evidence.unsupportedTicks, 0, 'a contact lost its support behind the course limit');
+  }
   if (scenario.policy === 'departure')
     assert.ok(scenario.steering < 0 ? evidence.leftRoad : evidence.rightRoad, 'never departed the requested side');
   if (scenario.policy === 'closed') {
@@ -540,7 +624,7 @@ export async function runScenario({ course }, scenario) {
   assert.deepEqual(evidence.otherRecoveries, {}, 'a rival or traffic vehicle recovered');
   assert.deepEqual(evidence.otherContacts, {}, 'a wall or course limit pushed a rival or traffic vehicle');
   // Unless its policy sends it off the road, the player neither recovers nor meets a wall or course limit.
-  if (!['reverse', 'departure', 'limit', 'closed'].includes(scenario.policy)) {
+  if (!['reverse', 'departure', 'limit', 'closed', 'broadside'].includes(scenario.policy)) {
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     assert.equal(evidence.limitContact, null, 'ordinary driving met a wall or course limit');
   }

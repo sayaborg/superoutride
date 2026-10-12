@@ -40,6 +40,10 @@ export function materialOuterEdges(material: StripMaterial, path: string) {
       out.right = stripEdgeAt(edge.right, 'right', s);
       return out;
     },
+    /** The material of the outermost covered span on one side at s. */
+    materialAt(s: number, side: 'left' | 'right') {
+      return edges[stripSlabAt(material.slabs, s)]![side].value!;
+    },
     /** The edge's lateral change per metre of station at s, within its slab. */
     slopeAt(s: number, side: 'left' | 'right') {
       const line = edges[stripSlabAt(material.slabs, s)]![side][side]!;
