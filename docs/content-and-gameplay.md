@@ -399,42 +399,42 @@ master list. Allow two Sections per position, then round 100 up to 128; up to th
 Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selected linear courses
 (up to 18 named stages). These are capacity assumptions, not a reconstruction of Cool Riders' exact map.
 
-| Scope / table key                                                       |            Ceiling | Basis                                                                                                                                                                     |
-| ----------------------------------------------------------------------- | -----------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                                                                       |
-| `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                                                                       |
-| `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                                                                       |
-| Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                                                                          |
-| Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                            |
-| Section `plan` elements                                                 |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                   |
-| Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                                                                             |
-| Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                                                                        |
-| Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                              |
-| Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                        |
-| Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                                                                                |
-| Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                  |
-| Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                        |
-| Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                |
-| Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling                                                             |
-| Section `openLimits`                                                    |                256 | Both sides × 21 km × 3 open stretches/km × 2, rounded up                                                                                                                  |
-| Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                        |
-| `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                       |
-| `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                              |
-| Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                                                                              |
-| Each curb `curbColors`                                                  |                 64 | Two 16-step hue ramps (32 colors) × 2                                                                                                                                     |
-| Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                                                                           |
-| Section `stripSlabs` (all color and material tables)                    |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                                                                    |
-| Section `preblendCells`                                                 |             262144 | All 1 m dyadic levels at 42000 m in both phases (aligned and half-shifted) total fewer than 168100 cells, rounded up                                                      |
-| Section `coefficientBytes`                                              |              1 GiB | Moving-edge 21 km probe used about 121 MiB in one phase; both phases measure 1.9–2.0× on the RIBBON courses, about 242 MiB; ×2 length and ×2 Strip complexity, rounded up |
-| Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                                                                     |
-| Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                                                                       |
-| Start gate `startGridSlots` (each grid)                                 |                 32 | `SESSION_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a Session uses                                                          |
-| `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                                                                                 |
-| `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                                                                    |
-| `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                                                                                 |
-| Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                                                                                |
-| `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                                                                       |
-| Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up                                                   |
+| Scope / table key                                                       |            Ceiling | Basis                                                                                                                                                                                          |
+| ----------------------------------------------------------------------- | -----------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                                                                                            |
+| `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                                                                                            |
+| `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                                                                                            |
+| Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                                                                                               |
+| Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                                                                                                 |
+| Section `plan` elements                                                 |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                                                                                        |
+| Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                                                                                                  |
+| Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                                                                                             |
+| Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                                                                                                   |
+| Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                                                                                             |
+| Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                                                                                                     |
+| Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                                                                                       |
+| Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                                                                                             |
+| Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                                                                                                     |
+| Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling                                                                                  |
+| Section `openLimits`                                                    |                256 | Both sides × 21 km × 3 open stretches/km × 2, rounded up                                                                                                                                       |
+| Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                                                                                             |
+| `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                                                                                            |
+| `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                                                                                                   |
+| Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                                                                                                   |
+| Each curb `curbColors`                                                  |                 64 | Two 16-step hue ramps (32 colors) × 2                                                                                                                                                          |
+| Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                                                                                                |
+| Section `stripSlabs` (all color and material tables)                    |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                                                                                         |
+| Section `preblendCells`                                                 |             262144 | All 1 m dyadic levels at 42000 m in both phases (aligned and half-shifted) total fewer than 168100 cells, rounded up                                                                           |
+| Section `coefficientBytes`                                              |              1 GiB | Moving-edge 21 km probe used about 121 MiB in one phase; both phases measured 1.9–2.0× on the development courses then delivered, about 242 MiB; ×2 length and ×2 Strip complexity, rounded up |
+| Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                                                                                          |
+| Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                                                                                            |
+| Start gate `startGridSlots` (each grid)                                 |                 32 | `SESSION_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a Session uses                                                                               |
+| `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                                                                                                      |
+| `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                                                                                         |
+| `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                                                                                                      |
+| Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                                                                                                     |
+| `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                                                                                            |
+| Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up                                                                        |
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
 one leaf plus up to one repeat node and one iteration per permitted nesting level. Strip expansion
@@ -916,27 +916,27 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 {
   "format": "superoutride.series",
   "version": 12,
-  "id": "ribbon",
-  "title": "RIBBON",
-  "image": "ribbon",
+  "id": "trial",
+  "title": "TRIAL",
+  "image": "trial",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
   "timeMargin": 1.35,
   "fixedColors": false,
   "classes": [
     {
-      "id": "coast",
-      "title": "COAST",
-      "course": "ribbon-coast",
+      "id": "a",
+      "title": "A",
+      "course": "outrun-trial-a",
       "laps": 1,
       "vehicles": ["TESTAROSSA"],
-      "entries": [{ "vehicle": "TESTAROSSA", "color": "red", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
+      "entries": [{ "vehicle": "TESTAROSSA", "color": "yellow", "pace": 1, "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
-        "density": 10,
-        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "PX200E_ARCOBALENO"],
-        "speedKilometersPerHour": 80
+        "density": 6,
+        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
+        "speedKilometersPerHour": 120
       }
     }
   ]
@@ -973,16 +973,13 @@ course's Sections, and rank limits naming checkpoint or FINISH gates of that cou
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
 Session admits the class it drives.
 
-The delivered series are TSUKUBA CLUBMAN, the first product series, and RIBBON and TRIAL, development series; each
+The delivered series are TSUKUBA CLUBMAN, the first product series, and TRIAL, a development series; each
 document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN has no race tracks and the title track
-`placeholder-one` until K delivers its own; RIBBON and TRIAL play `placeholder-two` as their title track and offer both
+`placeholder-one` until K delivers its own; TRIAL plays `placeholder-two` as their title track and offer both
 placeholders as race tracks. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
-1.02 at the pole to 0.88. RIBBON runs RIBBON RING in two classes, RING CARS (TESTAROSSA, 2 laps) and RING BIKES (VFR750R, 3 laps),
-which share the course and its TESTAROSSA and VFR750R reference times. RIBBON COAST is the
-[verification course](#verification-course); TRIAL holds the
-[trial courses](#trial-courses); no class runs RIBBON ROUGH.
+1.02 at the pole to 0.88. TRIAL holds the [trial courses](#trial-courses).
 
 ## FREE PLAY document
 
@@ -1450,22 +1447,6 @@ violation is an internal invariant failure (`Error`).
 Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
-
-## Verification course
-
-`ribbon-coast` (RIBBON COAST) is a LINEAR verification course, not a product course: it gathers the situations Stage 13
-exercises in one timed ARCADE course, favouring kinds of scene over looks — lane counts that change at seams, roads of
-four, two and one lanes, a dirt section, walls with joined and free ends, an open course edge, solid trees and signs,
-and movable cones and a barricade. Its course document holds every Section, wall and object; the driving scenarios
-locate what they exercise from it ([Development](development.md)).
-
-## Evaluation test course
-
-`ribbon-rough` (RIBBON ROUGH, DEV button 4) is a playability test circuit, not a product course. Its extreme vertical
-profile and corners are authored for hands-on evaluation; its shape is not rounded off for completion. The reference
-driver cannot complete it, so no class runs it: it is untimed and delivered without reference runs or time budgets.
-Its surfaces carry color-only brightness Strips every metre, so speed and ground motion read on every surface; its
-course document holds them.
 
 ## Trial courses
 

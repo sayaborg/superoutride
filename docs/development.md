@@ -102,14 +102,14 @@ stands in for the content course of its file name (or joins the content under it
 and series come from the same compiled content.
 
 ```sh
-npm run course -- compile content/courses/ribbon-coast.course.json
-npm run course -- render content/courses/ribbon-coast.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
-npm run course -- report content/courses/ribbon-coast.course.json --step 25 --out /tmp/course-report
-npm run course -- structure content/courses/ribbon-coast.course.json --section coast-wide
-npm run course -- move content/courses/ribbon-coast.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
-npm run course -- set content/courses/ribbon-coast.course.json --values /sections/0/pis/1/radius=420 --out content/courses/ribbon-coast.course.json
-npm run course -- unbind content/courses/ribbon-coast.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
-npm run course -- remove-knots content/courses/ribbon-fork.course.json --tolerance 0 --apply all --out content/courses/ribbon-fork.course.json
+npm run course -- compile content/courses/outrun-trial-a.course.json
+npm run course -- render content/courses/outrun-trial-a.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+npm run course -- report content/courses/outrun-trial-a.course.json --step 25 --out /tmp/course-report
+npm run course -- structure content/courses/outrun-trial-a.course.json --section stage-1
+npm run course -- move content/courses/outrun-trial-a.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
+npm run course -- set content/courses/outrun-trial-a.course.json --values /sections/0/pis/1/radius=420 --out content/courses/outrun-trial-a.course.json
+npm run course -- unbind content/courses/outrun-trial-a.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
+npm run course -- remove-knots content/courses/outrun-trial-a.course.json --tolerance 0 --apply all --out content/courses/outrun-trial-a.course.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
@@ -155,7 +155,7 @@ npm run measure -- generate
 npm run measure -- regenerate
 npm run measure -- compare
 npm run measure -- trace --vehicle TESTAROSSA --out /tmp/envelope.json
-npm run measure -- trace --course ribbon-coast --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
+npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
 ```
 
 `generate` measures again only the envelopes and reference times whose identities are stale or that are absent, writes
@@ -317,7 +317,7 @@ with what it changes and whether the driving changes (its shift), rings their el
 when its row is clicked; applying any of them makes the measured products stale. "Preview chosen" draws the checked
 candidates applied with their shift and each Section's centreline shift and length change, and "Apply chosen" makes
 them one step. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
-The candidates are found on the page's thread; RIBBON COAST's unneeded knots take about 3 s.
+The candidates are found on the page's thread; a course's unneeded knots take seconds.
 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
 counted by kind above the views. The compile worker works them out after each change, from the document as it stands,

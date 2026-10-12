@@ -317,8 +317,8 @@ vehicle in selection order, no rivals and one lap. A class whose course's refere
 fails to load.
 
 ```text
-?series=ribbon&class=ring
-?course=ribbon-coast&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
+?series=trial&class=a
+?course=tsukuba&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
 ```
 
 A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.

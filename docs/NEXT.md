@@ -2,8 +2,8 @@
 
 ## Current state
 
-- One compiled graph scene serves RIBBON COAST, RIBBON FORK, RIBBON RING, RIBBON ROUGH and the trial courses OUTRUN
-  TRIAL A and A STEEP with ARCADE/FREE PLAY Sessions; RIBBON ROUGH is an untimed evaluation course.
+- One compiled graph scene serves TSUKUBA and the trial courses OUTRUN TRIAL A and A STEEP with ARCADE/FREE PLAY
+  Sessions.
 - TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its PRODUCTION 750,
   GTI CUP and 911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)).
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
@@ -37,8 +37,7 @@
 - Stage 13 is complete: vehicles have overall dimensions and road-aligned footprints that contact vehicles, walls,
   course limits and roadside objects through one external force on the ordinary mechanics; Carriageways have lanes,
   drivers follow lane centres, change lanes past slower vehicles or follow them and merge where their lane ends; traffic
-  appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option; RIBBON COAST is the verification
-  course of all of it.
+  appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option.
 - Stage 14 is complete: the AudioContext runs while the page is visible and the vehicle sounds only while a run is
   driven; recordings (AAC in MP4) and music documents are delivered and admitted; SELECT MUSIC chooses the run's track,
   which starts at READY, loops, pauses with the run and fades under the GOAL or GAME OVER jingle; countdown, crossing,
@@ -83,13 +82,13 @@
   test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
   card → READY go through black.
 
-Next PR: Stage OT, by its [ledger](#stage-ot--remove-ribbon-and-build-outrun-test).
+Next PR: Stage OT, by its [ledger](#stage-ot--outrun-test).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
-## Stage OT — Remove RIBBON and build OUTRUN TEST
+## Stage OT — OUTRUN TEST
 
 K's decisions of 2026-10-13, worked through PR after PR without waiting for review between PRs. Where a choice is left
 open, the PR takes the simplest option consistent with AGENTS and the owning specifications, records it under
@@ -98,29 +97,21 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
 **Ledger.**
 
 - Merged: FE-10 (inside a series the wallpaper stays); OT-1 (short driving scenarios on TSUKUBA and OUTRUN TRIAL A;
-  no test loads a RIBBON course; tests read delivered courses instead of compiling the content).
-- Next PR: OT-2, delete RIBBON.
+  tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
+  courses deleted; `npm test` about 1 min 50 s locally).
+- Next PR: OT-3, the OUTRUN TEST skeleton.
 - Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
-  the entry and departures have no driving scenario since OT-1.
+  the entry and departures have no driving scenario since OT-1. The cone, barricade, fork sign, tree and hill sky
+  images stay for OUTRUN TEST.
 - Open decisions: none.
 - Splits: none.
 
-**Order.** OT-1 short replacement tests; OT-2 delete RIBBON; OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan,
-profile, lanes, forks and gates, placeholder Strips and one sky, the series, one `npm run measure`; playable from the
-menus); OT-4 `WET_ASPHALT`; OT-5 background transitions; OT-6 … OT-10 one PR per row (split by stage when too large);
-OT-last final review, one final `npm run measure`, docs and this checkpoint.
+**Order.** OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan, profile, lanes, forks and gates, placeholder Strips
+and one sky, the series, one `npm run measure`; playable from the menus); OT-4 `WET_ASPHALT`; OT-5 background
+transitions; OT-6 … OT-10 one PR per row (split by stage when too large); OT-last final review, one final
+`npm run measure`, docs and this checkpoint.
 
-**OT-1/OT-2: remove RIBBON.** `npm test` should take about 2–3 minutes with no test file over about 30 s. Short
-scenarios on TSUKUBA and OUTRUN TRIAL A keep AGENTS check 4: TSUKUBA ARCADE through the test-only series (one lap from
-the grid with rivals, rank and GOAL, then the takeover stops the player on the runout); TSUKUBA's course limit pushes
-the player back (and stopped broadside, if short); OUTRUN TRIAL A's series traffic appears and leaves over a bounded
-stretch; TIME TRIAL finishes from the last slot on the quickest course. Every other test that loads a RIBBON course
-moves to TSUKUBA or TRIAL A, cut to what it checks. Forks and merges lose their automatic check. Values measured on
-RIBBON COAST keep their values, their comments restated as plain statements of how they were set. OT-2 then deletes the
-RIBBON series, its four courses and measured products, its picture and recipe entry, the DEV button loading RIBBON
-ROUGH, the replaced scenarios and every reference.
-
-**OT-3…: OUTRUN TEST.** A series `OUTRUN TEST` (`dev: false`: one class on the BRANCH course `OUTRUN TEST`, TESTAROSSA
+**OUTRUN TEST.** A series `OUTRUN TEST` (`dev: false`: one class on the BRANCH course `OUTRUN TEST`, TESTAROSSA
 in red, no rivals, the clock with checkpoint extensions, series traffic at moderate density at TRIAL's speed, its drawn
 picture, TRIAL's placeholder music, course bearing 0, reference times and margin from `npm run measure` over all 16
 routes). No test uses it; its only driving is `npm run measure`, run after the skeleton, after PRs that change a stage's
@@ -167,7 +158,7 @@ geometry, and once at the end.
   sheet of at least 10 frames (start, every quarter, signature features, fork or goal) showing its character, clean
   contact of pictures, walls and cliffs aligned to the road, visible low-grip patches, landings on road with no
   recoveries, and whole-tile transitions. Every picture reads at its smallest LOD.
-- Done: `npm test` (Node 24) in about 2–3 minutes and no RIBBON anywhere; no black frame inside an ARCADE series;
+- Done: `npm test` (Node 24) in about 2–3 minutes; no black frame inside an ARCADE series;
   OUTRUN TEST offered without `dev=1` in every mode and the attract demo; `npm run measure` completes for its 16 routes
   with each stage 80–100 s; this ledger replaced by a short checkpoint; one final summary listing the decisions, the
   `npm test` time, each stage's reference time and contact sheets.
@@ -316,7 +307,7 @@ Use continuous tool reference runs that complete reproducibly and use different 
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
 TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete 32-vehicle
 scene (sixteen competitors and sixteen traffic vehicles) with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
-application. Measure color-table preblend memory per km on the product courses (ribbon-coast's road is about 0.3 MB per km;
+application. Measure color-table preblend memory per km on the product courses (a two-lane road was about 0.3 MB per km;
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
 
@@ -352,12 +343,11 @@ and switching is a cut.
 | Tunnels          | Whether tunnel sides and ceilings are drawn by the renderer like walls (a ceiling is a second surface above the road), replacing sprite frames                                                               |
 | Walls            | Whether walls take the ground's arrow, text and curb constructs as well as strip and repeat (when a product course needs them)                                                                               |
 | Walls            | Whether wall friction varies by wall rather than being one game-wide `barrierFriction`                                                                                                                       |
-| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff on RIBBON COAST, about 0.3 MB per km of road) fits the device budget                                                                        |
+| Walls            | Whether walls' preblend memory (about 1.3–2.5 MB per km of cliff, about 0.3 MB per km of road, as measured on a development course) fits the device budget                                                   |
 | Rivals           | Whether rivals follow closer than traffic (in dense traffic they keep the 1.5 s following time and queue)                                                                                                    |
 | Rivals           | Whether an ahead entry's lane is checked where it appears rather than against the course's fewest lanes (Stage 16)                                                                                           |
 | Drivers          | Whether steering lookahead and response change: a lane change at about 47 m/s overshoots by about 1.7 m (with the rival racing line)                                                                         |
 | Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                |
-| Courses          | Whether RIBBON ROUGH stays an evaluation course or changes shape: drivers leave it at a kinked crest and on short narrow waves                                                                               |
 | Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                           |
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                            |
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |

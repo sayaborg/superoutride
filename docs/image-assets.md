@@ -561,4 +561,4 @@ share their pattern and palette, which are saved once.
 | ----------------- | ------------------- | --------------- |
 | `title-logo`      | the logo, cut out   | 18×7, `contain` |
 | `tsukuba-clubman` | 4:3                 | 20×15, `fill`   |
-| `ribbon`, `trial` | 320×240 plain (DEV) | 20×15, `fill`   |
+| `trial`           | 320×240 plain (DEV) | 20×15, `fill`   |
