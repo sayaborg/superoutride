@@ -9,6 +9,10 @@
     "sky-farm": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-town": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-mountain": { "columns": 94, "rows": 40, "fit": "fill" },
-    "sky-tunnel": { "columns": 94, "rows": 40, "fit": "fill" }
+    "sky-tunnel": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-lake": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-desert": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-alpine-dark": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-forest": { "columns": 94, "rows": 40, "fit": "fill" }
   }
 }

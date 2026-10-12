@@ -26,6 +26,16 @@ import {
   TUNNEL_SURFACES,
   tunnelRun,
 } from './outrun-test/row3.js';
+import {
+  ALPINE_SURFACES,
+  alpinePass,
+  desert,
+  DESERT_SURFACES,
+  forest,
+  FOREST_SURFACES,
+  lakeside,
+  LAKESIDE_SURFACES,
+} from './outrun-test/row4.js';
 
 type Turn = 'left' | 'right';
 /** A plan element: a straight of `length`, or an arc of `length` and `radius` turning `turn`. */
@@ -278,6 +288,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'lakeside',
       name: 'LAKESIDE',
+      sky: 'sky-lake',
+      surfaces: LAKESIDE_SURFACES,
+      scenery: lakeside,
       body: [
         Ld(1000, 40),
         S(400),
@@ -300,6 +313,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'desert',
       name: 'DESERT',
+      sky: 'sky-desert',
+      surfaces: DESERT_SURFACES,
+      scenery: desert,
       body: [Rd(2000, 8), S(2200), Ld(1600, 10), S(2000), Rd(1800, 9), S(900), Ld(2000, 6)],
       // Undulations: long, low waves.
       hills: [
@@ -318,6 +334,10 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'alpine-pass',
       name: 'ALPINE PASS',
+      sky: 'sky-mountain',
+      surfaces: ALPINE_SURFACES,
+      // The summit stretch: the body's highest PVIs, past the entry straight.
+      scenery: (ctx) => alpinePass(ctx, [1350, 2000]),
       // Switchbacks up the pass, a summit road, and back down.
       body: [
         Rd(120, 40),
@@ -333,22 +353,25 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Ld(180, 70),
         S(200),
         Rd(30, 160),
-        S(250),
+        S(170),
         Ld(30, 160),
-        S(250),
+        S(170),
         Rd(150, 40),
       ],
       hills: [
         { s: 100, y: 0, curve: 80 },
         { s: 1200, y: 120, curve: 80 },
-        { s: 1600, y: 126, curve: 120 },
-        { s: 1900, y: 120, curve: 80 },
-        { s: 2850, y: 0, curve: 80 },
+        { s: 1550, y: 126, curve: 120 },
+        { s: 1800, y: 120, curve: 80 },
+        { s: 2700, y: 0, curve: 80 },
       ],
     },
     {
       id: 'forest',
       name: 'FOREST',
+      sky: 'sky-forest',
+      surfaces: FOREST_SURFACES,
+      scenery: forest,
       body: [
         Rd(110, 70),
         Ld(100, 75),
@@ -368,12 +391,6 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Ld(100, 70),
         Rd(110, 70),
         Ld(95, 75),
-        Rd(90, 80),
-        Ld(115, 70),
-        Rd(100, 75),
-        Ld(85, 80),
-        Rd(120, 70),
-        Ld(105, 75),
       ],
       hills: [
         { s: 400, y: 4, curve: 150 },
