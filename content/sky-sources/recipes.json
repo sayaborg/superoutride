@@ -1,0 +1,7 @@
+{
+  "format": "superoutride.screen-picture-recipes",
+  "version": 1,
+  "pictures": {
+    "sky-coast": { "columns": 94, "rows": 40, "fit": "fill" }
+  }
+}

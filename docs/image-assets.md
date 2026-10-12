@@ -122,6 +122,19 @@ distant road and sprites do, and repeats at its own width: a full turn spans `2*
 closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
 
+## Drawn pictures
+
+OUTRUN TEST's pictures are drawn by a deterministic production-only program
+([`tools/graphics/drawn/`](../tools/graphics/drawn)), `npm run outrun-test-pictures` ([Development](development.md#outrun-test-commands)):
+outlined shapes in three tones of light, at most 15 colors a picture, sprites at 40 texels per metre standing on the
+middle of their bottom row with a flat contact shadow at their foot (fixed objects cast no shadow pictures of their
+own). Each picture is written as a source with its recipe and then made as the picture commands make it: the series
+picture as a [screen picture](#screen-pictures), sprites as `content/sprite-sources/<name>.png` and `.json` (the sprite
+recipe, `palette` null) imported as course images, and skies as `content/sky-sources/<name>.png` with an entry in that
+directory's `recipes.json` (the screen picture recipe format, 94 × 40 tiles, `fill`), drawn as course skies by the
+skies command into `content/images/<name>.json`. Replacing any source with another image of the same name and size and
+running its command replaces the picture without touching the course.
+
 ## Background transitions
 
 The background shown is the one of the environment interval at `camera.s`. When `camera.s` crosses a knot, its

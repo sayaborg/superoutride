@@ -8,6 +8,15 @@
 import { readFile } from 'node:fs/promises';
 import { format, resolveConfig } from 'prettier';
 import { atomicWrite, reportError } from './authoring-io.js';
+import {
+  BAND,
+  createStageContext,
+  DEFAULT_SURFACES,
+  type Lateral,
+  type StageContext,
+  type Surfaces,
+} from './outrun-test/context.js';
+import { coastline, COASTLINE_SURFACES } from './outrun-test/row1.js';
 
 type Turn = 'left' | 'right';
 /** A plan element: a straight of `length`, or an arc of `length` and `radius` turning `turn`. */
@@ -27,6 +36,11 @@ interface StageDesign {
   readonly hills?: readonly Pvi[];
   /** Lane widths over the whole stage (stations from the stage's start), keyed by lane id; omitted lanes keep defaults. */
   readonly widths?: (length: number, fork: number) => Readonly<Record<string, Width>>;
+  /** The stage's sky (a course image) and its ground's colors and materials. */
+  readonly sky?: string;
+  readonly surfaces?: Partial<Surfaces>;
+  /** The stage's own scenery: surfaces, Boundaries, walls, open limits, sprites and environments. */
+  readonly scenery?: (ctx: StageContext) => void;
 }
 
 const S = (length: number): Element => ({ length });
@@ -46,16 +60,6 @@ const FINAL = 900;
 /** A goal stage's final straight: the finish, then the runout. */
 const GOAL_FINAL = 900;
 const RUNOUT = 450;
-/** The verge each side of the outer lanes, metres of grass. */
-const VERGE = 12;
-
-// Placeholder colors (RGB555): asphalt, its lane lines, and two greens of the verge.
-const rgb = (r: number, g: number, b: number) => (r << 10) | (g << 5) | b;
-const ASPHALT = rgb(13, 13, 14),
-  ASPHALT_LIGHT = rgb(15, 15, 16),
-  LINE = rgb(28, 28, 28),
-  GRASS = rgb(9, 19, 6),
-  GRASS_LIGHT = rgb(11, 22, 7);
 
 /**
  * The stages by row, left to right: difficulty rises to the right in every row. Plans are sized from TESTAROSSA's
@@ -66,6 +70,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'coastline',
       name: 'COASTLINE',
+      sky: 'sky-coast',
+      surfaces: COASTLINE_SURFACES,
+      scenery: coastline,
       body: [
         Ld(1400, 18),
         S(600),
@@ -576,8 +583,7 @@ function lanesOf(design: StageDesign, length: number, entry: boolean, goal: bool
           [fork + 150, 0],
           [fork + 250, 4],
           [fork + 700, 4],
-          [fork + 880, 60],
-          [length, 60],
+          [length, 24],
         ],
         c: [
           [0, 0],
@@ -609,8 +615,7 @@ function lanesOf(design: StageDesign, length: number, entry: boolean, goal: bool
         [fork + 150, 0],
         [fork + 250, 4],
         [fork + 700, 4],
-        [fork + 880, 60],
-        [length, 60],
+        [length, 24],
       ],
       c: LANE,
       d: LANE,
@@ -751,87 +756,92 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
       ? { kind: 'median', width: widthOf(widths.m!, joints, length) }
       : { kind: 'lane', id, width: widthOf(widths[id]!, joints, length) },
   ).filter((lane) => lane.width !== 0 || ['a', 'b'].includes((lane as { id?: string }).id ?? ''));
-  const has = (id: string) => lanes.some((lane) => (lane as { id?: string }).id === id);
-  const leftLane = has('w') ? 'w' : 'a';
-  const rightLane = has('e') ? 'e' : has('d') ? 'd' : 'b';
-  const edge = (lane: string, side: 'left' | 'right', offset: number) => ({ lane, side, offset });
-  const whole = (left: unknown, right: unknown) => ({ start: at(0), end: at(length), left, right });
+  const ctxOptions = () => ({
+    id: design.id,
+    length,
+    joints,
+    plan,
+    lanes: lanes.flatMap((lane) => ((lane as { id?: string }).id ? [(lane as { id: string }).id] : [])),
+    final: length - (goal ? GOAL_FINAL : FINAL),
+    fork: !goal,
+    finish: goal ? length - RUNOUT : null,
+    entryEnd: ENTRY,
+  });
+  const ctx = createStageContext(ctxOptions());
+  const { has, edge, roadLeft, roadRight, leftLane, rightLane } = ctx;
+  const surfaces = { ...DEFAULT_SURFACES, ...design.surfaces };
+  const verge = surfaces.verge.width;
+  const whole = (left: Lateral | null, right: Lateral | null) => ({ start: at(0), end: at(length), left, right });
+  // The stage's own scenery, written into the context's records.
+  design.scenery?.(ctx);
 
-  // Placeholder surfaces: asphalt over the roads, grass verges and median, bands of light verge and lane lines.
+  // The ground: beyond the verges, the verges and the road, each in two colors of bands; the median; the stage's own
+  // surfaces; then the rumble strips and the lane lines over them.
   const strips: unknown[] = [
-    { kind: 'strip', ...whole(null, null), color: GRASS, material: null },
+    { kind: 'strip', ...whole(null, null), color: surfaces.ground[0], material: null },
     {
       kind: 'strip',
-      ...whole(edge(leftLane, 'left', -VERGE), edge(leftLane, 'left', 0)),
-      color: GRASS,
-      material: 'GRASS',
+      ...whole(roadLeft(verge), roadLeft()),
+      color: surfaces.verge.colors[0],
+      material: surfaces.verge.material,
     },
+    { kind: 'strip', ...whole(roadLeft(), roadRight()), color: surfaces.road[0], material: 'ASPHALT' },
     {
       kind: 'strip',
-      ...whole(edge(leftLane, 'left', 0), edge(rightLane, 'right', 0)),
-      color: ASPHALT,
-      material: 'ASPHALT',
-    },
-    {
-      kind: 'strip',
-      ...whole(edge(rightLane, 'right', 0), edge(rightLane, 'right', VERGE)),
-      color: GRASS,
-      material: 'GRASS',
+      ...whole(roadRight(), roadRight(verge)),
+      color: surfaces.verge.colors[0],
+      material: surfaces.verge.material,
     },
     ...(has('m')
-      ? [{ kind: 'strip', ...whole(edge('b', 'right', 0), edge('c', 'left', 0)), color: GRASS, material: 'GRASS' }]
+      ? [
+          {
+            kind: 'strip',
+            ...whole(edge('b', 'right'), edge('c', 'left')),
+            color: surfaces.median.colors[0],
+            material: surfaces.median.material,
+          },
+        ]
       : []),
-    {
-      kind: 'repeat',
-      every: 40,
-      count: Math.floor(length / 40),
-      elements: [
-        {
-          kind: 'strip',
-          start: at(0),
-          end: at(20),
-          left: null,
-          right: edge(leftLane, 'left', 0),
-          color: GRASS_LIGHT,
-          material: null,
-        },
-        {
-          kind: 'strip',
-          start: at(0),
-          end: at(20),
-          left: edge(rightLane, 'right', 0),
-          right: null,
-          color: GRASS_LIGHT,
-          material: null,
-        },
-        {
-          kind: 'strip',
-          start: at(0),
-          end: at(20),
-          left: edge(leftLane, 'left', 0),
-          right: edge(rightLane, 'right', 0),
-          color: ASPHALT_LIGHT,
-          material: null,
-        },
-      ],
-    },
-    {
-      kind: 'repeat',
-      every: 12,
-      count: Math.floor((length - 12) / 12),
-      elements: [
-        {
-          kind: 'strip',
-          start: at(0),
-          end: at(6),
-          left: edge('a', 'right', -0.08),
-          right: edge('a', 'right', 0.08),
-          color: LINE,
-          material: null,
-        },
-      ],
-    },
   ];
+  const base = createStageContext(ctxOptions());
+  base.bands(0, length, null, roadLeft(verge), surfaces.ground[1], BAND);
+  base.bands(0, length, roadRight(verge), null, surfaces.ground[1], BAND);
+  base.bands(0, length, roadLeft(verge), roadLeft(), surfaces.verge.colors[1], BAND);
+  base.bands(0, length, roadRight(), roadRight(verge), surfaces.verge.colors[1], BAND);
+  base.bands(0, length, roadLeft(), roadRight(), surfaces.road[1], BAND);
+  if (has('m')) base.bands(0, length, edge('b', 'right'), edge('c', 'left'), surfaces.median.colors[1], BAND);
+  const lines = createStageContext(ctxOptions());
+  if (surfaces.rumble) {
+    lines.bands(0, length, roadLeft(0.9), roadLeft(), surfaces.rumble[0], 8, 4);
+    lines.bands(4, length, roadLeft(0.9), roadLeft(), surfaces.rumble[1], 8, 4);
+    lines.bands(0, length, roadRight(), roadRight(0.9), surfaces.rumble[0], 8, 4);
+    lines.bands(4, length, roadRight(), roadRight(0.9), surfaces.rumble[1], 8, 4);
+  }
+  // Solid edge lines inside each road's edges, dashed lines between its lanes.
+  const solid = (lateral: { lane: string; side: 'left' | 'right' }, inward: number) =>
+    lines.strip(
+      0,
+      length,
+      edge(lateral.lane, lateral.side, inward > 0 ? 0.15 : -0.3),
+      edge(lateral.lane, lateral.side, inward > 0 ? 0.3 : -0.15),
+      surfaces.line,
+    );
+  solid({ lane: leftLane, side: 'left' }, 1);
+  solid({ lane: rightLane, side: 'right' }, -1);
+  if (has('m')) {
+    solid({ lane: 'b', side: 'right' }, -1);
+    solid({ lane: 'c', side: 'left' }, 1);
+  }
+  const dashes = (lane: string, from: number) =>
+    lines.bands(from, length, edge(lane, 'right', -0.08), edge(lane, 'right', 0.08), surfaces.line, 12, 6);
+  // Between each two lanes that touch: from the start, or for the second road's lanes from the fork straight.
+  lanes.forEach((lane, i) => {
+    const following = lanes[i + 1] as { kind: string; id?: string } | undefined;
+    const id = (lane as { id?: string }).id;
+    if (!id || following?.kind !== 'lane') return;
+    dashes(id, !entry && ['c', 'd'].includes(following.id!) && id !== 'b' ? ctx.final : 0);
+  });
+  strips.push(...base.records.strips, ...ctx.records.strips, ...lines.records.strips);
 
   // Gates: the start grid on the entry; a checkpoint at each forking stage's end, its lock and closure; a goal's finish.
   const fork = length - FINAL;
@@ -857,22 +867,17 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
     to: to.id,
   }));
   // The fork's signs: a warning past the lock and a closed sign at closure, on each road its Link does not take.
-  const sprites = links.flatMap((link, exit) => {
+  links.forEach((link, exit) => {
     const lane = exit ? 'c' : 'a';
-    return [
-      { image: 'fork-warning', s: fork + 330 },
-      { image: 'fork-closed', s: fork + 700 },
-    ].map(({ image, s }) => ({
-      kind: 'sprite',
-      image,
-      palette: 'original',
-      at: at(s),
-      lateral: edge(lane, 'right', 0),
-      groundOffset: 0,
-      unselectedLink: link.id,
-      body: null,
-    }));
+    ctx.sprite('fork-warning', fork + 330, edge(lane, 'right'), { unselectedLink: link.id });
+    ctx.sprite('fork-closed', fork + 700, edge(lane, 'right'), { unselectedLink: link.id });
   });
+  // The gates: the start gantry over the grid, a checkpoint arch just past every other stage's start (its predecessor's
+  // checkpoint is the seam) and a goal arch over each finish.
+  if (entry) ctx.sprite('start-gantry', 205, edge('a', 'center'));
+  else ctx.sprite('arch-checkpoint', 12, edge('a', 'right'));
+  if (goal) ctx.sprite('arch-goal', length - RUNOUT, edge('a', 'right'));
+  const yawOrigin = yawOrigins.get(design.id)!;
 
   const section = {
     id: design.id,
@@ -880,19 +885,24 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
     profile: pvis.map((p) => ({ at: at(p.s), y: p.y, curveLength: p.curve })),
     lanes,
     centerLane: 'a',
-    boundaries: [],
+    boundaries: ctx.records.boundaries,
     strips,
-    walls: [],
-    openLimits: [],
-    sprites,
+    walls: ctx.records.walls,
+    openLimits: ctx.records.openLimits,
+    sprites: ctx.records.sprites,
     environments: [
       {
         at: at(0),
         name: design.name,
-        background: { image: PLACEHOLDER_SKIES[index % 3]!, horizonY: 320, yawOrigin: yawOrigins.get(design.id)! },
+        background: { image: design.sky ?? PLACEHOLDER_SKIES[index % 3]!, horizonY: 320, yawOrigin },
         // Stage starts alternate the two transitions; the course's entry has nothing to arrive from.
         arrival: index === 0 ? 'cut' : index % 2 ? 'wipe' : 'rise',
       },
+      // The stage's own environments keep its sky's direction.
+      ...ctx.records.environments.map((e) => {
+        const knot = e as { background: Record<string, unknown> };
+        return { ...knot, background: { ...knot.background, yawOrigin } };
+      }),
     ],
     gates,
   };

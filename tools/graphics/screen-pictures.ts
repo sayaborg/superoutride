@@ -12,7 +12,6 @@ import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
 import {
   readScreenPictureRecipes,
-  SCREEN_PICTURE_RECIPES_FILE,
   SCREEN_PICTURE_SOURCES_DIRECTORY,
   type ScreenPictureRecipe,
 } from './screen-picture-recipe.js';
@@ -190,15 +189,24 @@ export function drawScreenPicture(
   return { format: TILE_PICTURE_FORMAT, version: 1, name, columns: recipe.columns, patterns, palettes, tiles };
 }
 
-/** Draw every screen picture the recipes name from its source, each admitted as a tile picture. */
-export async function drawScreenPictures(store: ContentStore, PNG: typeof PngDecoder) {
-  const json = JSON.parse(new TextDecoder().decode(await store.read(SCREEN_PICTURE_RECIPES_FILE))) as unknown;
-  const recipes = requireLoaded(admit(`content/${SCREEN_PICTURE_RECIPES_FILE}`, () => readScreenPictureRecipes(json)));
+/**
+ * Draw every tile picture the recipes of a sources directory name, each from its source `<name>.png` beside them, each
+ * admitted as a tile picture: the screen pictures from `screen-picture-sources/`, the drawn course skies from
+ * `sky-sources/`.
+ */
+export async function drawTilePictures(
+  store: ContentStore,
+  PNG: typeof PngDecoder,
+  directory: string = SCREEN_PICTURE_SOURCES_DIRECTORY,
+) {
+  const file = `${directory}/recipes.json`;
+  const json = JSON.parse(new TextDecoder().decode(await store.read(file))) as unknown;
+  const recipes = requireLoaded(admit(`content/${file}`, () => readScreenPictureRecipes(json)));
   const drawn = new Map<string, TilePictureDocument>();
   for (const [name, recipe] of [...recipes].sort(([a], [b]) => (a < b ? -1 : 1))) {
-    const source = await decodeSpritePng(await store.read(`${SCREEN_PICTURE_SOURCES_DIRECTORY}/${name}.png`), PNG);
+    const source = await decodeSpritePng(await store.read(`${directory}/${name}.png`), PNG);
     const document = drawScreenPicture(name, source, recipe);
-    requireLoaded(admit(`content/screen-pictures/${name}.json`, () => compileTilePicture(document)));
+    requireLoaded(admit(`content/${directory}/${name}.png`, () => compileTilePicture(document)));
     drawn.set(name, document);
   }
   return drawn;

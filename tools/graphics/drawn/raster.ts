@@ -118,19 +118,31 @@ export function bands(
 }
 
 /**
- * Draw `shape` (a function drawing into a raster in one placeholder color) with an outline: the shape's drawn pixels
- * take `fill` and every undrawn pixel 4-adjacent to one of them takes `outline`.
+ * Draw `draw`'s shapes with an outline `thickness` pixels wide: every undrawn pixel within that many 4-adjacent steps of
+ * a drawn one takes `outline`, then the shapes are copied over.
  */
-export function outlined(raster: Raster, outline: Color, draw: (layer: Raster) => void) {
+export function outlined(raster: Raster, outline: Color, draw: (layer: Raster) => void, thickness = 1) {
   const layer = createRaster(raster.width, raster.height);
   draw(layer);
-  for (let y = 0; y < raster.height; y++)
-    for (let x = 0; x < raster.width; x++) {
-      const i = y * raster.width + x;
-      if (layer.pixels[i]) continue;
-      if (drawn(layer, x - 1, y) || drawn(layer, x + 1, y) || drawn(layer, x, y - 1) || drawn(layer, x, y + 1))
-        raster.pixels[i] = outline | OPAQUE;
-    }
+  let edge = layer.pixels.map((value) => (value ? 1 : 0));
+  for (let pass = 0; pass < thickness; pass++) {
+    const grown = edge.slice();
+    for (let y = 0; y < raster.height; y++)
+      for (let x = 0; x < raster.width; x++) {
+        const i = y * raster.width + x;
+        if (edge[i]) continue;
+        if (
+          (x > 0 && edge[i - 1]) ||
+          (x + 1 < raster.width && edge[i + 1]) ||
+          (y > 0 && edge[i - raster.width]) ||
+          (y + 1 < raster.height && edge[i + raster.width])
+        ) {
+          grown[i] = 1;
+          raster.pixels[i] = outline | OPAQUE;
+        }
+      }
+    edge = grown;
+  }
   layer.pixels.forEach((value, i) => {
     if (value) raster.pixels[i] = value;
   });

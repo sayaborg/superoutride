@@ -56,8 +56,7 @@
             { "at": { "joint": "straight-13", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-13", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         { "kind": "lane", "id": "c", "width": 3.6 },
@@ -82,17 +81,17 @@
           "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": null,
-          "color": 9830,
+          "color": 12936,
           "material": null
         },
         {
           "kind": "strip",
           "start": { "joint": "straight-1", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": { "lane": "w", "side": "left", "offset": -12 },
+          "left": { "lane": "w", "side": "left", "offset": -14 },
           "right": { "lane": "w", "side": "left", "offset": 0 },
-          "color": 9830,
-          "material": "GRASS"
+          "color": 29490,
+          "material": "SHOULDER"
         },
         {
           "kind": "strip",
@@ -108,40 +107,234 @@
           "start": { "joint": "straight-1", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "e", "side": "right", "offset": 0 },
-          "right": { "lane": "e", "side": "right", "offset": 12 },
-          "color": 9830,
-          "material": "GRASS"
+          "right": { "lane": "e", "side": "right", "offset": 14 },
+          "color": 29490,
+          "material": "SHOULDER"
         },
         {
           "kind": "repeat",
           "every": 40,
-          "count": 169,
+          "count": 170,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "w", "side": "left", "offset": 0 },
-              "color": 11975,
+              "right": { "lane": "w", "side": "left", "offset": -14 },
+              "color": 13993,
               "material": null
-            },
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 170,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "e", "side": "right", "offset": 14 },
+              "right": null,
+              "color": 13993,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 170,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "w", "side": "left", "offset": -14 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 30548,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 170,
+          "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": { "lane": "e", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
+              "right": { "lane": "e", "side": "right", "offset": 14 },
+              "color": 30548,
               "material": null
-            },
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 170,
+          "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": { "lane": "w", "side": "left", "offset": 0 },
               "right": { "lane": "e", "side": "right", "offset": 0 },
-              "color": 15856,
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "lane": "w", "side": "left", "offset": -16 },
+          "color": 4503,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 60,
+          "count": 113,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": null,
+              "right": { "lane": "w", "side": "left", "offset": -16 },
+              "color": 5593,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 90,
+          "count": 76,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 10 },
+              "end": { "joint": "straight-1", "offset": 16 },
+              "left": { "lane": "w", "side": "left", "offset": -40 },
+              "right": { "lane": "w", "side": "left", "offset": -34 },
+              "color": 28607,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "w", "side": "left", "offset": -16 },
+          "right": { "lane": "w", "side": "left", "offset": -14 },
+          "color": 24173,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 848,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "w", "side": "left", "offset": -0.9 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 848,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "w", "side": "left", "offset": -0.9 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 848,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "e", "side": "right", "offset": 0 },
+              "right": { "lane": "e", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 848,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "e", "side": "right", "offset": 0 },
+              "right": { "lane": "e", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "w", "side": "left", "offset": 0.15 },
+          "right": { "lane": "w", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": -0.3 },
+          "right": { "lane": "e", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 566,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 6 },
+              "left": { "lane": "w", "side": "right", "offset": -0.08 },
+              "right": { "lane": "w", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -149,7 +342,7 @@
         {
           "kind": "repeat",
           "every": 12,
-          "count": 564,
+          "count": 566,
           "elements": [
             {
               "kind": "strip",
@@ -157,7 +350,39 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 566,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 566,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 6 },
+              "left": { "lane": "d", "side": "right", "offset": -0.08 },
+              "right": { "lane": "d", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -167,6 +392,1104 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "repeat",
+          "every": 46,
+          "count": 147,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "palm-bent",
+              "palette": "original",
+              "at": { "joint": "straight-1", "offset": 30 },
+              "lateral": { "lane": "w", "side": "left", "offset": -5 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 92,
+          "count": 73,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "palm-tall",
+              "palette": "original",
+              "at": { "joint": "straight-1", "offset": 52 },
+              "lateral": { "lane": "w", "side": "left", "offset": -9 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 70,
+          "count": 84,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "palm-tall",
+              "palette": "original",
+              "at": { "joint": "straight-1", "offset": 40 },
+              "lateral": { "lane": "e", "side": "right", "offset": 6 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": -80 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.769532668637112 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": 14.441083 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.736182984663174 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": 87.53142 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.824058094294742 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": 197.520838 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.126370513578877 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": -148.898904 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.96495246887207 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": -44.851212 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.26692734612152 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": 46.300036 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.760149139910936 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": 123.085392 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.374737475533038 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": 236.668738 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.82997956709005 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": -291.789393 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.373727705096826 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": -174.009811 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.99173620971851 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": -66.692776 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.945181579096243 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": 35.065943 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.304343721596524 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": 133.08068 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.64194052433595 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": 228.360991 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.280695712426677 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": -224.288146 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.600863806903362 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": -122.647593 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.520343340467662 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 4.70215 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.395189331145957 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 127.421959 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.52859316719696 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 213.924038 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.498097758507356 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": -183.091647 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.05997659964487 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": -94.706753 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.861280273413286 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": 0.065514 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.52404481684789 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": 73.529786 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.625741267111152 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": 201.391469 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.035542119527236 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -256.364725 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.899542676983401 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -158.26749 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.3686383087188 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -70.83084 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.586870060767978 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": 30.681798 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.806234827963635 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": 150.046279 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.528125304030254 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": 258.212446 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.474076590733603 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": 346.115708 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.352287743007764 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -252.558892 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.594434806611389 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -133.800179 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.6840572305955 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -46.415024 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.651376875583082 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": 50.821034 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.112110379152 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": 180.749692 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.273338209837675 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": 262.046785 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.241828912636265 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": -179.348686 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.405300378799438 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": -79.903658 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.470042689237744 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": 10.910823 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.647960680071265 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": 94.116291 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.979055499192327 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": 192.093286 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.37300750752911 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-10", "offset": -88.266167 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.022698764922097 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-10", "offset": 30.880236 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.634859973331913 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-10", "offset": 134.113954 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.31628606049344 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": -180.712456 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.07481901254505 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": -62.922096 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.834133794065565 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": 50.689605 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.177528600674123 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": 158.136196 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.196746581466869 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": 228.223447 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.695338053861633 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": -200.66564 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.176053401781246 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": -94.427923 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.799029243644327 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": 30.629421 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.288128807675093 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": 148.087104 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.995407530572265 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": -252.692834 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.224307161290199 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": -131.022792 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.196506716310978 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": -26.222347 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.916539903962985 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 70.843235 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.235077399061993 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 164.734216 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.75550495297648 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 280.57787 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.464666127692908 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 356.683547 },
+          "lateral": { "lane": "w", "side": "left", "offset": -11.221843414008617 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-red",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 448.425755 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.96826072758995 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -375.963324 },
+          "lateral": { "lane": "w", "side": "left", "offset": -10.425363850547 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "parasol-blue",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -247.978806 },
+          "lateral": { "lane": "w", "side": "left", "offset": -12.566332693211734 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": 100 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.27015677280724 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": 50.6453 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.217690045014024 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": -288.471613 },
+          "lateral": { "lane": "w", "side": "left", "offset": -24.747856402769685 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": -42.837884 },
+          "lateral": { "lane": "w", "side": "left", "offset": -21.08603146672249 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-4", "offset": 158.021205 },
+          "lateral": { "lane": "w", "side": "left", "offset": -23.88385110720992 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": -173.397511 },
+          "lateral": { "lane": "w", "side": "left", "offset": -25.41014795191586 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 45.355061 },
+          "lateral": { "lane": "w", "side": "left", "offset": -26.211697349324822 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": -245.437232 },
+          "lateral": { "lane": "w", "side": "left", "offset": -23.68584991618991 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": 64.728986 },
+          "lateral": { "lane": "w", "side": "left", "offset": -26.266829745844007 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -116.498365 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.544889256358147 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": 68.686414 },
+          "lateral": { "lane": "w", "side": "left", "offset": -22.168450444936752 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -331.686951 },
+          "lateral": { "lane": "w", "side": "left", "offset": -26.067965837195516 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -116.40753 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.403990611433983 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": -263.798601 },
+          "lateral": { "lane": "w", "side": "left", "offset": -24.208631187677383 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": 93.521419 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.096208684146404 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-10", "offset": -45.923027 },
+          "lateral": { "lane": "w", "side": "left", "offset": -22.38253305479884 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": -154.72751 },
+          "lateral": { "lane": "w", "side": "left", "offset": -26.45310378447175 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": 165.885262 },
+          "lateral": { "lane": "w", "side": "left", "offset": -19.870254712179303 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": 30.894797 },
+          "lateral": { "lane": "w", "side": "left", "offset": -20.432848673313856 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": -253.505912 },
+          "lateral": { "lane": "w", "side": "left", "offset": -25.468673054128885 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 46.76707 },
+          "lateral": { "lane": "w", "side": "left", "offset": -26.595738289877772 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 405.702329 },
+          "lateral": { "lane": "w", "side": "left", "offset": -25.308777004480362 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "end", "offset": -130.004191 },
+          "lateral": { "lane": "w", "side": "left", "offset": -22.844904510304332 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": -190 },
+          "lateral": { "lane": "e", "side": "right", "offset": 16 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": -168 },
+          "lateral": { "lane": "e", "side": "right", "offset": 19 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 136 },
+          "lateral": { "lane": "e", "side": "right", "offset": 16 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-5", "offset": 158 },
+          "lateral": { "lane": "e", "side": "right", "offset": 19 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -198 },
+          "lateral": { "lane": "e", "side": "right", "offset": 16 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "arc-8", "offset": -176 },
+          "lateral": { "lane": "e", "side": "right", "offset": 19 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": -162 },
+          "lateral": { "lane": "e", "side": "right", "offset": 16 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "beach-hut",
+          "palette": "original",
+          "at": { "joint": "straight-11", "offset": -140 },
+          "lateral": { "lane": "e", "side": "right", "offset": 19 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "billboard-coast",
+          "palette": "original",
+          "at": { "joint": "straight-3", "offset": 260 },
+          "lateral": { "lane": "e", "side": "right", "offset": 9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "billboard-coast",
+          "palette": "original",
+          "at": { "joint": "arc-6", "offset": 236 },
+          "lateral": { "lane": "e", "side": "right", "offset": 9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "billboard-coast",
+          "palette": "original",
+          "at": { "joint": "straight-9", "offset": -43 },
+          "lateral": { "lane": "e", "side": "right", "offset": 9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "billboard-coast",
+          "palette": "original",
+          "at": { "joint": "arc-12", "offset": 38 },
+          "lateral": { "lane": "e", "side": "right", "offset": 9 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "lighthouse",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -98 },
+          "lateral": { "lane": "w", "side": "left", "offset": -46 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -108 },
+          "lateral": { "lane": "w", "side": "left", "offset": -40 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "shore-rock",
+          "palette": "original",
+          "at": { "joint": "straight-7", "offset": -78 },
+          "lateral": { "lane": "w", "side": "left", "offset": -52 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 24,
+          "count": 49,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "coast-shrub",
+              "palette": "original",
+              "at": { "joint": "straight-1", "offset": 20 },
+              "lateral": { "lane": "b", "side": "right", "offset": 2 },
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
           "kind": "sprite",
           "image": "fork-warning",
           "palette": "original",
@@ -204,6 +1527,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "coastline-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "start-gantry",
+          "palette": "original",
+          "at": { "joint": "arc-2", "offset": 5 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -211,7 +1544,7 @@
         {
           "at": { "joint": "straight-1", "offset": 0 },
           "name": "COASTLINE",
-          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 },
+          "background": { "image": "sky-coast", "horizonY": 320, "yawOrigin": 0 },
           "arrival": "cut"
         }
       ],
@@ -285,8 +1618,7 @@
             { "at": { "joint": "straight-17", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-17", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -359,34 +1691,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 194,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 194,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 194,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 194,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 972,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 971,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 972,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 971,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 646,
+          "count": 648,
           "elements": [
             {
               "kind": "strip",
@@ -394,7 +1854,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-17", "offset": 0 },
+              "end": { "joint": "straight-17", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -441,6 +1917,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "gateway-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -505,8 +1991,7 @@
             { "at": { "joint": "straight-23", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-23", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -579,34 +2064,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 159,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 159,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 159,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 159,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 796,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 796,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 796,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 796,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 529,
+          "count": 531,
           "elements": [
             {
               "kind": "strip",
@@ -614,7 +2227,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-23", "offset": 0 },
+              "end": { "joint": "straight-23", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -661,6 +2290,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "cliff-road-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -721,8 +2360,7 @@
             { "at": { "joint": "straight-13", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-13", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -795,34 +2433,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 185,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 185,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 185,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 185,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 926,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 925,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 926,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 925,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 616,
+          "count": 617,
           "elements": [
             {
               "kind": "strip",
@@ -830,7 +2596,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-13", "offset": 0 },
+              "end": { "joint": "straight-13", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -877,6 +2659,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "farmland-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -940,8 +2732,7 @@
             { "at": { "joint": "straight-17", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-17", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -1014,34 +2805,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 101,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 101,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 101,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 101,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 506,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 506,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 506,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 506,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 336,
+          "count": 337,
           "elements": [
             {
               "kind": "strip",
@@ -1049,7 +2968,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-17", "offset": 0 },
+              "end": { "joint": "straight-17", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -1096,6 +3031,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "old-town-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -1160,8 +3105,7 @@
             { "at": { "joint": "straight-23", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-23", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -1234,34 +3178,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 138,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 138,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 138,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 138,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 691,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 690,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 691,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 690,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 459,
+          "count": 461,
           "elements": [
             {
               "kind": "strip",
@@ -1269,7 +3341,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-23", "offset": 0 },
+              "end": { "joint": "straight-23", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -1316,6 +3404,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "tunnel-run-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -1369,8 +3467,7 @@
             { "at": { "joint": "straight-13", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-13", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -1436,41 +3533,169 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 180,
+          "count": 181,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 905,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 904,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 905,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 904,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 602,
+          "count": 603,
           "elements": [
             {
               "kind": "strip",
@@ -1478,7 +3703,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-13", "offset": 0 },
+              "end": { "joint": "straight-13", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -1525,6 +3766,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "lakeside-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -1581,8 +3832,7 @@
             { "at": { "joint": "straight-9", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-9", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -1655,34 +3905,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 906,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 906,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 906,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 906,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 603,
+          "count": 604,
           "elements": [
             {
               "kind": "strip",
@@ -1690,7 +4068,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-9", "offset": 0 },
+              "end": { "joint": "straight-9", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -1737,6 +4131,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "desert-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -1798,8 +4202,7 @@
             { "at": { "joint": "straight-19", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-19", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -1872,34 +4275,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 102,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 102,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 102,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 102,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 511,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 510,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 511,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 510,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 339,
+          "count": 340,
           "elements": [
             {
               "kind": "strip",
@@ -1907,7 +4438,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-19", "offset": 0 },
+              "end": { "joint": "straight-19", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -1954,6 +4501,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "alpine-pass-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -2041,8 +4598,7 @@
             { "at": { "joint": "straight-26", "offset": 150 }, "width": 0 },
             { "at": { "joint": "straight-26", "offset": 250 }, "width": 4 },
             { "at": { "joint": "end", "offset": -200 }, "width": 4 },
-            { "at": { "joint": "end", "offset": -20 }, "width": 60 },
-            { "at": { "joint": "end", "offset": 0 }, "width": 60 }
+            { "at": { "joint": "end", "offset": 0 }, "width": 24 }
           ]
         },
         {
@@ -2108,41 +4664,169 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 105,
+          "count": 106,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "d", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "d", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 106,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 106,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 106,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 106,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 529,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 528,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 529,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 528,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "d", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "d", "side": "right", "offset": -0.3 },
+          "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 351,
+          "count": 353,
           "elements": [
             {
               "kind": "strip",
@@ -2150,7 +4834,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 75,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-26", "offset": 0 },
+              "end": { "joint": "straight-26", "offset": 6 },
+              "left": { "lane": "c", "side": "right", "offset": -0.08 },
+              "right": { "lane": "c", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -2197,6 +4897,16 @@
           "lateral": { "lane": "c", "side": "right", "offset": 0 },
           "groundOffset": 0,
           "unselectedLink": "forest-right",
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
           "body": null
         }
       ],
@@ -2288,34 +4998,162 @@
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "b", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "b", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 190,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 190,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 190,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 190,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 951,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 950,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 951,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 950,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 632,
+          "count": 634,
           "elements": [
             {
               "kind": "strip",
@@ -2323,7 +5161,7 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
               "material": null
             }
           ]
@@ -2331,7 +5169,28 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-goal",
+          "palette": "original",
+          "at": { "joint": "straight-13", "offset": 450 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "straight-1", "offset": 0 },
@@ -2451,33 +5310,177 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 186,
+          "count": 187,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "w", "side": "left", "offset": 0 },
-              "color": 11975,
+              "right": { "lane": "w", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
-            },
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 187,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "e", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 187,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "w", "side": "left", "offset": -12 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 187,
+          "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": { "lane": "e", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
+              "right": { "lane": "e", "side": "right", "offset": 12 },
+              "color": 11943,
               "material": null
-            },
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 187,
+          "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": { "lane": "w", "side": "left", "offset": 0 },
               "right": { "lane": "e", "side": "right", "offset": 0 },
-              "color": 15856,
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 934,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "w", "side": "left", "offset": -0.9 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 934,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "w", "side": "left", "offset": -0.9 },
+              "right": { "lane": "w", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 934,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "e", "side": "right", "offset": 0 },
+              "right": { "lane": "e", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 934,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "e", "side": "right", "offset": 0 },
+              "right": { "lane": "e", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "w", "side": "left", "offset": 0.15 },
+          "right": { "lane": "w", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "e", "side": "right", "offset": -0.3 },
+          "right": { "lane": "e", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 623,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 6 },
+              "left": { "lane": "w", "side": "right", "offset": -0.08 },
+              "right": { "lane": "w", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -2485,7 +5488,7 @@
         {
           "kind": "repeat",
           "every": 12,
-          "count": 621,
+          "count": 623,
           "elements": [
             {
               "kind": "strip",
@@ -2493,7 +5496,23 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12,
+          "count": 623,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 6 },
+              "left": { "lane": "b", "side": "right", "offset": -0.08 },
+              "right": { "lane": "b", "side": "right", "offset": 0.08 },
+              "color": 30653,
               "material": null
             }
           ]
@@ -2501,7 +5520,28 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-goal",
+          "palette": "original",
+          "at": { "joint": "straight-17", "offset": 450 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "straight-1", "offset": 0 },
@@ -2591,41 +5631,169 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 181,
+          "count": 182,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "b", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "b", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 182,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 182,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 182,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 182,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 909,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 908,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 909,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 908,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 604,
+          "count": 606,
           "elements": [
             {
               "kind": "strip",
@@ -2633,7 +5801,7 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
               "material": null
             }
           ]
@@ -2641,7 +5809,28 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-goal",
+          "palette": "original",
+          "at": { "joint": "straight-15", "offset": 450 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "straight-1", "offset": 0 },
@@ -2733,41 +5922,169 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 135,
+          "count": 136,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "b", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "b", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 136,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 136,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 136,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 136,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 680,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 679,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 680,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 679,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 452,
+          "count": 453,
           "elements": [
             {
               "kind": "strip",
@@ -2775,7 +6092,7 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
               "material": null
             }
           ]
@@ -2783,7 +6100,28 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-goal",
+          "palette": "original",
+          "at": { "joint": "straight-21", "offset": 450 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "straight-1", "offset": 0 },
@@ -2863,41 +6201,169 @@
         {
           "kind": "repeat",
           "every": 40,
-          "count": 117,
+          "count": 118,
           "elements": [
             {
               "kind": "strip",
               "start": { "joint": "straight-1", "offset": 0 },
               "end": { "joint": "straight-1", "offset": 20 },
               "left": null,
-              "right": { "lane": "a", "side": "left", "offset": 0 },
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "b", "side": "right", "offset": 0 },
-              "right": null,
-              "color": 11975,
-              "material": null
-            },
-            {
-              "kind": "strip",
-              "start": { "joint": "straight-1", "offset": 0 },
-              "end": { "joint": "straight-1", "offset": 20 },
-              "left": { "lane": "a", "side": "left", "offset": 0 },
-              "right": { "lane": "b", "side": "right", "offset": 0 },
-              "color": 15856,
+              "right": { "lane": "a", "side": "left", "offset": -12 },
+              "color": 11943,
               "material": null
             }
           ]
         },
         {
           "kind": "repeat",
+          "every": 40,
+          "count": 118,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 12 },
+              "right": null,
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 118,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": -12 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 118,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 12 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 118,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "a", "side": "left", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0 },
+              "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 589,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 589,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "a", "side": "left", "offset": -0.9 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 589,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 4 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 27846,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8,
+          "count": 589,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 4 },
+              "end": { "joint": "straight-1", "offset": 8 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "b", "side": "right", "offset": 0.9 },
+              "color": 30653,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "a", "side": "left", "offset": 0.15 },
+          "right": { "lane": "a", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "repeat",
           "every": 12,
-          "count": 391,
+          "count": 393,
           "elements": [
             {
               "kind": "strip",
@@ -2905,7 +6371,7 @@
               "end": { "joint": "straight-1", "offset": 6 },
               "left": { "lane": "a", "side": "right", "offset": -0.08 },
               "right": { "lane": "a", "side": "right", "offset": 0.08 },
-              "color": 29596,
+              "color": 30653,
               "material": null
             }
           ]
@@ -2913,7 +6379,28 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "arch-checkpoint",
+          "palette": "original",
+          "at": { "joint": "straight-1", "offset": 12 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "arch-goal",
+          "palette": "original",
+          "at": { "joint": "straight-15", "offset": 450 },
+          "lateral": { "lane": "a", "side": "right", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "straight-1", "offset": 0 },

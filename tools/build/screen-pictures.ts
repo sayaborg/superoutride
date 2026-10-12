@@ -6,7 +6,7 @@ import { SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-cata
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
-import { drawScreenPictures } from '../graphics/screen-pictures.js';
+import { drawTilePictures } from '../graphics/screen-pictures.js';
 
 /**
  * The screen pictures command: draw every screen picture from its source and recipe (`content/screen-picture-sources/`)
@@ -18,7 +18,7 @@ const store = createNodeContentStore();
 
 try {
   requireInput(process.argv.length === 2, '/arguments', USAGE);
-  const drawn = await drawScreenPictures(store, PNG);
+  const drawn = await drawTilePictures(store, PNG);
   const directory = new URL('../../dist/screen-pictures/', import.meta.url);
   await mkdir(directory, { recursive: true });
   const pictures: string[] = [],

@@ -1479,7 +1479,7 @@ goal.
 Every stage begins with one road of lanes a and b, 3.6 m each (lane a the centre lane), level at height 0, and a
 200 m entry straight over which its own cross-section starts. A forking stage ends in a 900 m straight: lanes c and d
 (3.6 m) appear right of a median over its first 150 m, the median opens to 4 m by 250 m, the lock is at 300 m and the
-closure at 700 m, where the roads part to 60 m apart by 880 m; `fork-warning` and `fork-closed` signs stand on the road
+closure at 700 m, after which the roads part to 24 m apart at the stage's end; `fork-warning` and `fork-closed` signs stand on the road
 each Link does not take, and the stage's checkpoint is its end, the seam. A forking stage ends level at height 0, so
 both its successors start where it ends. A goal stage ends in a 900 m straight, level at its last height, with its
 finish 450 m before its end. The entry stage, COASTLINE, starts as a divided 3+3 highway (lanes w, a, b | c, d, e) with
@@ -1487,7 +1487,13 @@ its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork
 takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
 TESTAROSSA's delivered envelope, and the measured reference times are the course's times. Each stage's sky arrives at
 its start by a `wipe` or a `rise`, alternately (the entry's by `cut`), its yaw origin keeping the sky's direction from
-its left-most predecessor; until the stages have their own skies, three course skies take turns.
+its left-most predecessor; until the stages have their own skies, three course skies take turns. A checkpoint arch
+stands 12 m into every stage but the entry, whose start gantry stands over its grid, and a goal arch over each finish.
+Each stage's own ground, Boundaries, walls, open limits, sprites and further environments are written by its design
+through a stage context ([`tools/course/outrun-test/`](../tools/course/outrun-test)), with pictures drawn for the
+course ([Image assets](image-assets.md#drawn-pictures)); its base ground is a verge either side of the road over its
+material, the road with rumble strips, edge lines and lane dashes, and the ground beyond, each in light and dark bands
+40 m long.
 
 ## Product courses
 

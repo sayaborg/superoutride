@@ -16,6 +16,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
 | `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles            |
 | `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator            |
+| `npm run skies`               | Draw the course skies that have sources into course images          |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
 
 ### Driving scenarios
@@ -409,13 +410,27 @@ npm run outrun-test-sheets -- [stage ...] [--crossing link ...] [--out directory
 [`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) and prints each stage's length and planning estimate;
 the measured products then follow from `npm run measure -- generate`. `outrun-test-pictures` draws the sources of the
 OUTRUN TEST pictures with the raster of [`tools/graphics/drawn/`](../tools/graphics/drawn) and writes them with their
-recipes where the picture commands read them: the series picture to `content/screen-picture-sources/` (then
-`npm run screen-pictures`). Any source can be replaced by another image of the same name and size without touching the
-course. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
+recipes where the picture commands read them, then makes the pictures as those commands do: the series picture to
+`content/screen-picture-sources/` (as `npm run screen-pictures`), sprites to `content/sprite-sources/` (as
+`npm run sprite -- import <name>`) and skies to `content/sky-sources/` (as `npm run skies`); given names, it draws only
+those. Any source can be replaced by another image of the same name and size, and made by its own command without
+touching the course or this one. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
 default) under `dist/outrun-test-sheets/`: frames of the logical frame through the product scene from the stage's
 start, every eighth of it and its fork or goal, each labelled with its station, and for each Link named after
 `--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
 transition shows; nothing reads them.
+
+### Skies command
+
+The skies command draws every course sky that has a source, `content/sky-sources/<name>.png` with its entry in that
+directory's `recipes.json`, as a tile picture 40 tiles high and opaque, and writes it as the course image
+`content/images/<name>.json`, printing one JSON result (or the diagnostics, exiting 1):
+
+```sh
+npm run skies
+```
+
+Skies without a source are left as they are.
 
 ### Screens smoke
 
