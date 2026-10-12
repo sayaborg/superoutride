@@ -347,7 +347,7 @@ with diagnostics at the set document's own pointers, and assembles the delivered
 The vehicle domain admits the library and owns its sets at run time: for a vehicle's color and lamp state it makes the
 set's one 16-slot palette once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic sprite reader.
 
-`testarossa` is a finished generated set ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
+`testarossa`, `911-turbo-3-3` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
 one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
 earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -474,7 +474,7 @@ and its palettes are the recipe's, the pictures as the prototype drew them. 911 
 output for its recipe: silver, black, red and white. Its surface gives the hood between the front
 wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
 its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
-each). The reference photographs and screenshots used to judge a set are not saved here.
+each). VFR750R's saved set is a prototype accepted as it stands, until its pictures are rendered from a 3D model: the generator's solid of four views with the rider aboard, its height taken as the rider-included 1.287 m rather than the mechanics document's, drawn at 64 yaw by 7 bank images (`bankDegrees` 60) by turning the solid about the line where its tyres meet the road, its sloping sides, which the generator colors as the underside, given back the color of the nearest side surface; its red is the paint, which the white palette keeps and the red, blue and black palettes replace. Its banks and height lie outside the command, so its views and recipe are not saved here. The reference photographs and screenshots used to judge a set are not saved here.
 
 ## HUD picture generator
 

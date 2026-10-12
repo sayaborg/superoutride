@@ -61,7 +61,8 @@
   and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
   arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
   six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's and 911 TURBO 3.3's pictures and shadows are finished sets generated
-  from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
+  from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)), and VFR750R's
+  a generated prototype with its rider and seven banks, kept until a 3D model's pictures replace it; the other
   vehicles keep their converted provisional pictures until their views are made.
 - Stage PT is complete: every torque curve has five points (idle, knee, maximum torque, maximum power, redline); fuel
   cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
