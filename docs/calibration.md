@@ -168,11 +168,12 @@ not claims of measured physical specifications.
 Overall length, width and height are the real vehicle's body dimensions (mirrors excluded), not tuning values; the
 width is also the side of the vehicle's square footprint ([Vehicle physics](vehicle-physics.md)).
 
-Torque-curve points contain RPM and torque in N m, joined linearly from idle through redline.
-Vehicle compilation derives peak-power RPM from the maximum of `rpm * torque` over the complete
-piecewise-linear curve, including any segment-interior maximum; that RPM must be below redline.
-Upshift occurs at redline. Downshift occurs when the next lower ratio would place the engine at or
-below that derived peak-power RPM. Shift RPM thresholds are not vehicle values.
+Each torque curve has five points of RPM and torque in N m, joined linearly: A at idle; B, the knee between A and
+C where the slope changes markedly; C, the maximum torque; D, the maximum power; and E at redline. C and D are the
+vehicle's rated figures where they are known (D's torque is rated power / ω); B and the curve's shape follow published
+descriptions of the engine; A and E are estimates, with E low enough that D stays the power peak
+([Vehicle physics](vehicle-physics.md#wheel-and-powertrain) admits the curve). Upshift occurs at redline. Downshift
+occurs when the next lower ratio would place the engine at or below D's RPM. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
 
 ## Exhaust topologies

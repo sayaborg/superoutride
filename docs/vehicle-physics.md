@@ -299,9 +299,7 @@ absolute torque residual. Contact reference speed stays fixed during the scalar 
 The automatic powertrain derives a wheel-derived RPM from drive-split wheel speed and the current
 ratio. Shift decisions use its magnitude: it upshifts one gear when that RPM reaches redline and
 downshifts one gear when the same wheel speed in the next lower ratio would put the engine at or
-below peak-power RPM. Vehicle
-compilation derives peak-power RPM once as the maximum of `rpm * torque` over the complete
-piecewise-linear torque curve, including an interior maximum within a segment.
+below peak-power RPM, the RPM of the torque curve's point D.
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
 A held vehicle does not shift.
 
@@ -351,8 +349,8 @@ Engine speed is powertrain state with a rotor inertia derived from displacement:
 `resolvePowertrainConstants` resolves the two friction torques (at idle and redline FMEP), the inertia, the
 clutch lock RPM `idleRpm * (1 + clutchLockIdleMargin)`, the clutch capacity
 `maximumCurveTorque * clutchCapacityFactor` and the game-wide efficiency and fuel-cut margin once, as
-the vehicle model's powertrain constants; none of them is a vehicle value. Vehicle compilation derives the launch RPM as peak-torque RPM, the lowest
-RPM of the curve's maximum torque; it only limits engine speed while the clutch slips.
+the vehicle model's powertrain constants; none of them is a vehicle value. The launch RPM is peak-torque RPM, the RPM of the curve's point C; it only limits engine speed while the clutch
+slips.
 
 The clutch lock is a hysteretic latch on the signed wheel-derived RPM, the powertrain state's only
 clutch memory (`clutchLocked`). An unlocked clutch locks when the wheel-derived RPM reaches the larger
@@ -398,9 +396,12 @@ turning it faster locks at the clutch lock RPM, `clutchLockIdleMargin` above idl
 from the idle RPM the engine already has. Negative wheel torque is engine braking: signed drive
 torque split by the drive fraction like positive drive, protected by MSR rather than by ABS.
 
-The piecewise-linear torque curve covers idle through redline. Admission checks its ordered RPM
-points, positive finite torques and coverage, and requires the derived peak-power RPM to be below
-redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
+The torque curve is five points joined linearly, in this order: A at `idleRpm`, B the knee between A and C,
+C the maximum torque, D the maximum power and E at `redlineRpm` ([Calibration](calibration.md#vehicle-values)).
+Admission requires exactly five points with finite, strictly increasing RPM and positive finite torques, A at
+`idleRpm` and E at `redlineRpm`, C's torque above every other point's, and peak-power RPM equal to D's RPM.
+Compilation derives peak-power RPM once as the maximum of `rpm * torque` over the piecewise-linear curve, including
+an interior maximum within a segment; since D is below E, peak power lies below redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
 strokes.
 
 [Calibration](calibration.md#vehicle-values) owns per-vehicle value authority, value meanings and
@@ -654,8 +655,9 @@ rates to traversal seconds, steering radians to degree fields, and tire stiffnes
 peak slip (with grip and knee named in the message). A nonrepresentable static compression points
 to ride frequency; otherwise a travel not beyond the static compression points to the travel field.
 Relationships identify an actionable field and name related inputs: gear ordering points to the
-violating element, curve coverage to `torqueCurve`, and a peak-power point at redline points to
-that torque-curve element's `rpm`.
+violating element, the point count and the idle and redline ends to `torqueCurve`, a point
+whose torque reaches C's to that element's `torqueNewtonMeters`, and a peak-power RPM other than D's to
+`torqueCurve/3/rpm`.
 Only `definition-document.ts` converts these relative paths into document JSON Pointers (through
 `admitDomain`) with the document filename; mechanics paths start at the mechanics document's root
 (for example `/mass`). Driving paths start at the

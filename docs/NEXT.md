@@ -64,7 +64,7 @@
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
 
-Next PR: the next PR of Stage 16, awaiting its proposal.
+Next PR: PT-2 of Stage PT, then Stage 16's next PR, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -83,6 +83,26 @@ Requirements left from the second design audit, by when they are taken up:
   - S12-02: pitch protection guarantees what its documentation states, excluding the road line's own acceleration,
     bump-stop impulses and discretization error.
 
+## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
+
+Five PRs in order; PT-1, the five-point torque curves, has landed. Units are SI (kW, N·m, kg, mm, kg m²).
+
+- **PT-2 — Fuel cut and the curve above redline.** Fuel cut enters above `1.05 * redlineRpm` and clears at or below
+  `1.03 * redlineRpm`; the game-wide `fuelCutEnterRedlineRatio` (1.05) and `fuelCutClearRedlineRatio` (1.03) replace
+  `fuelCutRedlineMargin`, with `1 < clear < enter`, in a new driving document version. Above redline the torque
+  curve continues its D–E line and FMEP stays at its redline value; upshift stays at redline.
+- **PT-3 — Tachometer at 110 %.** Full scale is `1.10 * redlineRpm`; bar `i` lights at `(i+1)/80` of it; the colour
+  rule is unchanged and the scale no longer depends on the fuel-cut speed.
+- **PT-4 — Engine inertia while the clutch is locked.** A locked engine's inertia joins the wheel solve through the
+  fixed drive split, `diag(Ifront, Irear) + Ie*G^2 * [[f^2, f(1-f)], [f(1-f), (1-f)^2]]`, inside the same implicit
+  step: exactly on the driven wheel for `f` of 0 or 1, otherwise by an outer monotone bisection on the inertia
+  torque. Every wheel-pair solve (drive bounds, protected pair, trials) uses it; `drivelineEfficiency` stays a loss on
+  the engine's own torque. A shift while locked keeps wheel speeds; the clutch absorbs the energy difference.
+- **PT-5 — SELECT VEHICLE as a catalog page.** One page per vehicle: name, model year and identifier label, a turning
+  picture in its colour at one uniform scale per vehicle, torque and power curves from `max(idle, 0.2 * redline)` to
+  the fuel-cut entry over an axis of `0.2`–`1.1 * redlineRpm`, and the compiled physical values in two columns. The
+  listing gains `engine` (≤ 5 characters) in a new listing version.
+
 ## Stage 16 — Produce product courses
 
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
@@ -91,10 +111,10 @@ and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON
 together use every Session rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
-- TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaves
-  at full steering input from the final corner's entry and overturns on its exit (at 0.88 it completes), so its
-  reference run recovers 16 times in 30 laps and PRODUCTION 750's times and pace schedule include those recoveries; the
-  class is measured again once bike handling or the AI driving changes. The GSX-R750 joins the class once it is in the
+- TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved
+  at full steering input from the final corner's entry and overturned on its exit, recovering 16 times in 30 laps;
+  with the five-point torque curves (PT-1) its reference run completes without recovery. Bike handling at the limit
+  is reviewed again once bike handling or the AI driving changes. The GSX-R750 joins the class once it is in the
   catalog. Solid barriers in place of the course limits at the verges; review of the scenery on real devices; signboard
   walls, which today are sprites standing in a row.
 

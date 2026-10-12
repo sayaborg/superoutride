@@ -1,66 +1,66 @@
 {
   "format": "superoutride.measured-envelope",
   "version": 1,
-  "vehicleSha256": "6b920685131671d0f89f057e01bb2c7eb58cea4c06d9829606b271c85c100bb3",
+  "vehicleSha256": "e4834112e18aaf9e803abe4fbdbb47f6a7cf709fa11f894111528ae3e8a525a5",
   "procedureSha256": "5bac6b49df0ad6f3f1b0c744dd57f3cb095aeb35351cc1025fa0102ad4193ce6",
   "envelope": {
-    "maximumSpeed": 66.39481619071412,
+    "maximumSpeed": 66.87882168502807,
     "rows": [
       {
         "speed": 5,
-        "acceleration": 7.3185957733919675,
-        "braking": 11.932310281716099,
-        "lateral": 3.3077102099754585,
-        "steeringGain": 16.781506875520876
+        "acceleration": 7.466300282434494,
+        "braking": 11.903998181065703,
+        "lateral": 3.3106619332935114,
+        "steeringGain": 16.755682369416526
       },
       {
         "speed": 15,
-        "acceleration": 6.014992294238976,
-        "braking": 12.312949750692734,
-        "lateral": 23.288812069135265,
-        "steeringGain": 23.953763733502747
+        "acceleration": 6.08779930769764,
+        "braking": 12.285718981256775,
+        "lateral": 23.325053174739743,
+        "steeringGain": 23.951584741180813
       },
       {
         "speed": 25,
-        "acceleration": 3.376608623475576,
-        "braking": 12.125459546896522,
-        "lateral": 22.858201460468806,
-        "steeringGain": 24.456885040379515
+        "acceleration": 3.405256730512299,
+        "braking": 12.130997645862287,
+        "lateral": 22.80628624402767,
+        "steeringGain": 24.453291671191216
       },
       {
         "speed": 35,
-        "acceleration": 2.1571425049416746,
-        "braking": 12.166195322459927,
-        "lateral": 22.446810148254126,
-        "steeringGain": 24.600930778274044
+        "acceleration": 2.279928276108052,
+        "braking": 12.149059463886545,
+        "lateral": 22.45432328003395,
+        "steeringGain": 24.60596774889858
       },
       {
         "speed": 45,
-        "acceleration": 1.3688618939803234,
-        "braking": 12.309810004178345,
-        "lateral": 22.268232549774403,
-        "steeringGain": 24.558683048826122
+        "acceleration": 1.423090378197358,
+        "braking": 12.287276526730153,
+        "lateral": 22.241609365055364,
+        "steeringGain": 24.565028550954253
       },
       {
         "speed": 55,
-        "acceleration": 0.6197427834477907,
-        "braking": 12.536435463862077,
-        "lateral": 22.38967232350713,
-        "steeringGain": 24.375131876407913
+        "acceleration": 0.6694790433587343,
+        "braking": 12.5188448108279,
+        "lateral": 22.366480320072522,
+        "steeringGain": 24.418512566114046
       },
       {
         "speed": 65,
-        "acceleration": 0.09884000364894518,
-        "braking": 12.839031547862945,
-        "lateral": 22.442262011834053,
-        "steeringGain": 24.214413186640442
+        "acceleration": 0.13084320252815473,
+        "braking": 12.858229034024262,
+        "lateral": 22.422829540068385,
+        "steeringGain": 24.221598723237364
       },
       {
-        "speed": 66.39481619071412,
-        "acceleration": 0.0031178282404766833,
-        "braking": 12.839031547862945,
-        "lateral": 22.45661120798292,
-        "steeringGain": 24.17697574380251
+        "speed": 66.87882168502807,
+        "acceleration": 0.0030815465274258713,
+        "braking": 12.858229034024262,
+        "lateral": 22.44192835443922,
+        "steeringGain": 24.16396435837369
       }
     ]
   }

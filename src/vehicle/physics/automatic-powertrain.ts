@@ -22,7 +22,7 @@ export interface AutomaticPowertrainDefinition {
 export interface CompiledAutomaticPowertrainDefinition extends AutomaticPowertrainDefinition {
   /** Derived once from the admitted torque curve; never authored as vehicle values. */
   readonly peakPowerRpm: number;
-  /** Launch speed: the lowest RPM of the curve's maximum torque, the slipping engine's upper limit. */
+  /** Launch speed: the RPM of the curve's maximum torque (point C), the slipping engine's upper limit. */
   readonly peakTorqueRpm: number;
 }
 
@@ -318,6 +318,11 @@ export function completeAutomaticPowertrain(
   return clutchTorque * step.wheelPerEngineTorque;
 }
 
+/** Five points: A idle, B the knee, C maximum torque, D maximum power, E redline. */
+const TORQUE_CURVE_POINTS = 5;
+const MAXIMUM_TORQUE_POINT = 2;
+const MAXIMUM_POWER_POINT = 3;
+
 const RPM_PER_RADIAN_PER_SECOND = 60 / (2 * Math.PI);
 
 /** Linear in RPM from idle to redline and held at those values outside that range. */
@@ -363,32 +368,30 @@ function assertWheelOmega(omega: number): void {
 }
 
 /** Exact maximum of rpm*torque on the piecewise-linear torque curve. */
-function peakPowerPoint(curve: readonly EngineTorquePoint[]): { readonly rpm: number; readonly pathIndex: number } {
+function peakPowerPoint(curve: readonly EngineTorquePoint[]): number {
   let peakRpm = curve[0]!.rpm;
   let peakPower = peakRpm * curve[0]!.torqueNewtonMeters;
-  let pathIndex = 0;
-  const take = (rpm: number, torque: number, index: number) => {
+  const take = (rpm: number, torque: number) => {
     const power = rpm * torque;
     if (power > peakPower || (power === peakPower && rpm > peakRpm)) {
       peakPower = power;
       peakRpm = rpm;
-      pathIndex = index;
     }
   };
   for (let i = 1; i < curve.length; i += 1) {
     const a = curve[i - 1]!;
     const b = curve[i]!;
-    take(b.rpm, b.torqueNewtonMeters, i);
+    take(b.rpm, b.torqueNewtonMeters);
     const slope = (b.torqueNewtonMeters - a.torqueNewtonMeters) / (b.rpm - a.rpm);
     if (slope >= 0) continue;
     const intercept = a.torqueNewtonMeters - slope * a.rpm;
     const stationaryRpm = -intercept / (2 * slope);
     if (stationaryRpm > a.rpm && stationaryRpm < b.rpm) {
       const torque = a.torqueNewtonMeters + slope * (stationaryRpm - a.rpm);
-      take(stationaryRpm, torque, i);
+      take(stationaryRpm, torque);
     }
   }
-  return { rpm: peakRpm, pathIndex };
+  return peakRpm;
 }
 
 export function compileAutomaticPowertrainDefinition(
@@ -418,41 +421,42 @@ export function compileAutomaticPowertrainDefinition(
         throw new DefinitionDomainError(`gearRatios/${i}`, `gearRatios/${i} must be less than gearRatios/${i - 1}`);
     }
   }
-  if (definition.torqueCurve.length < 2)
-    throw new DefinitionDomainError('torqueCurve', 'engine torque curve requires at least two points');
-  for (let i = 0; i < definition.torqueCurve.length; i += 1) {
-    const point = definition.torqueCurve[i]!;
-    if (!(point.rpm >= 0 && point.rpm <= definition.redlineRpm) || !Number.isFinite(point.rpm))
-      throw new DefinitionDomainError(
-        `torqueCurve/${i}/rpm`,
-        'torque curve rpm must be finite and lie in [0, redlineRpm]',
-      );
+  const curve = definition.torqueCurve;
+  if (curve.length !== TORQUE_CURVE_POINTS)
+    throw new DefinitionDomainError('torqueCurve', 'engine torque curve requires exactly five points');
+  for (let i = 0; i < curve.length; i += 1) {
+    const point = curve[i]!;
+    if (!Number.isFinite(point.rpm))
+      throw new DefinitionDomainError(`torqueCurve/${i}/rpm`, 'torque curve rpm must be finite');
     if (!(point.torqueNewtonMeters > 0) || !Number.isFinite(point.torqueNewtonMeters))
       throw new DefinitionDomainError(
         `torqueCurve/${i}/torqueNewtonMeters`,
         'torqueNewtonMeters must be finite and > 0',
       );
-    if (i > 0 && point.rpm <= definition.torqueCurve[i - 1]!.rpm) {
+    if (i > 0 && point.rpm <= curve[i - 1]!.rpm) {
       throw new DefinitionDomainError(
         `torqueCurve/${i}/rpm`,
         `torqueCurve/${i}/rpm must be greater than torqueCurve/${i - 1}/rpm`,
       );
     }
   }
-  if (
-    definition.torqueCurve[0]!.rpm > definition.idleRpm ||
-    definition.torqueCurve[definition.torqueCurve.length - 1]!.rpm < definition.redlineRpm
-  ) {
-    throw new DefinitionDomainError('torqueCurve', 'torqueCurve must cover idleRpm through redlineRpm');
+  if (curve[0]!.rpm !== definition.idleRpm || curve[TORQUE_CURVE_POINTS - 1]!.rpm !== definition.redlineRpm) {
+    throw new DefinitionDomainError('torqueCurve', 'torqueCurve must run from idleRpm to redlineRpm');
   }
-  const { rpm: peakPowerRpm, pathIndex: peakPowerPathIndex } = peakPowerPoint(definition.torqueCurve);
-  const peakTorque = definition.torqueCurve.reduce((best, point) =>
-    point.torqueNewtonMeters > best.torqueNewtonMeters ? point : best,
-  );
-  if (!(peakPowerRpm < definition.redlineRpm)) {
+  const maximumTorque = curve[MAXIMUM_TORQUE_POINT]!;
+  for (let i = 0; i < curve.length; i += 1) {
+    if (i !== MAXIMUM_TORQUE_POINT && !(curve[i]!.torqueNewtonMeters < maximumTorque.torqueNewtonMeters))
+      throw new DefinitionDomainError(
+        `torqueCurve/${i}/torqueNewtonMeters`,
+        `torqueCurve/${MAXIMUM_TORQUE_POINT} must carry the curve's maximum torque`,
+      );
+  }
+  // D below E makes peak power fall below redline: there is one rule, not two.
+  const peakPowerRpm = peakPowerPoint(curve);
+  if (peakPowerRpm !== curve[MAXIMUM_POWER_POINT]!.rpm) {
     throw new DefinitionDomainError(
-      `torqueCurve/${peakPowerPathIndex}/rpm`,
-      'peak-power RPM derived from torqueCurve must be less than redlineRpm',
+      `torqueCurve/${MAXIMUM_POWER_POINT}/rpm`,
+      `peak-power RPM derived from torqueCurve (${peakPowerRpm}) must equal torqueCurve/${MAXIMUM_POWER_POINT}/rpm`,
     );
   }
   return Object.freeze({
@@ -460,6 +464,6 @@ export function compileAutomaticPowertrainDefinition(
     gearRatios: Object.freeze([...definition.gearRatios]),
     torqueCurve: Object.freeze(definition.torqueCurve.map((point) => Object.freeze({ ...point }))),
     peakPowerRpm,
-    peakTorqueRpm: peakTorque.rpm,
+    peakTorqueRpm: maximumTorque.rpm,
   });
 }
