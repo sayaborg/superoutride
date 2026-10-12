@@ -159,6 +159,8 @@ several classes are every class's unless listed by class.
   lines; colors are not fixed.
 - **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
   vehicles in several colors.
+- **OUTRUN TEST** is a working series in OUTRUN's structure, offered in every mode without DEV: one BRANCH course
+  of 15 stages and 5 goals that exercises every kind of road, TESTAROSSA in red, alone, with the clock and traffic.
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic, chooses forks and aims
   for a goal within time.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by

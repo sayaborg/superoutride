@@ -540,7 +540,8 @@ its [series document](content-and-gameplay.md#series-documents) names it.
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
 picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`
-and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them. The same sources
+and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them, except
+`outrun-test`'s, which `npm run outrun-test-pictures` draws ([Development](development.md#outrun-test-commands)). The same sources
 and recipes always give the same pictures.
 
 ```text
@@ -562,3 +563,4 @@ share their pattern and palette, which are saved once.
 | `title-logo`      | the logo, cut out   | 18×7, `contain` |
 | `tsukuba-clubman` | 4:3                 | 20×15, `fill`   |
 | `trial`           | 320×240 plain (DEV) | 20×15, `fill`   |
+| `outrun-test`     | 320×240, drawn      | 20×15, `fill`   |

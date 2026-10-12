@@ -973,13 +973,16 @@ course's Sections, and rank limits naming checkpoint or FINISH gates of that cou
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
 Session admits the class it drives.
 
-The delivered series are TSUKUBA CLUBMAN, the first product series, and TRIAL, a development series; each
+The delivered series are TSUKUBA CLUBMAN, the first product series, OUTRUN TEST, a working series offered without DEV,
+and TRIAL, a development series; each
 document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN has no race tracks and the title track
-`placeholder-one` until K delivers its own; TRIAL plays `placeholder-two` as their title track and offer both
+`placeholder-one` until K delivers its own; OUTRUN TEST and TRIAL play `placeholder-two` as their title track and offer both
 placeholders as race tracks. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
-1.02 at the pole to 0.88. TRIAL holds the [trial courses](#trial-courses).
+1.02 at the pole to 0.88. OUTRUN TEST runs the [test course](#test-course) in one class: TESTAROSSA in red (fixed
+colors), alone from the pole, with the clock, a margin of 1.35 and traffic (density 6 at 120 km/h: GOLF GTI 16V,
+DELTA HF INTEGRALE, 911 TURBO 3.3). TRIAL holds the [trial courses](#trial-courses).
 
 ## FREE PLAY document
 
@@ -1457,6 +1460,29 @@ source's background turns there. A's hills keep the car on the ground over each 
 matched to how the hills look on screen instead. On A STEEP the reference driver leaves the course at a crest, so its
 time limit is generous; it stays so until the AI anticipates the load lost over a crest. Their scenery and pictures are
 provisional; the videos and their pixels are not in the repository. The development series TRIAL holds both.
+
+## Test course
+
+`outrun-test` (OUTRUN TEST) is a BRANCH course in OutRun's structure that exercises every kind of road the engine can
+draw and drive; no test drives it. Its document is written by a production-only generator,
+[`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) (`npm run outrun-test`), from a table of stages; edit the
+table and run the generator rather than the document. Each stage is one Section, in five rows of 1 to 5 stages, left
+to right: COASTLINE; GATEWAY, CLIFF ROAD; FARMLAND, OLD TOWN, TUNNEL RUN; LAKESIDE, DESERT, ALPINE PASS, FOREST;
+RIVIERA, INTERCHANGE, DOWNHILL, RUINS, METROPOLIS. Difficulty rises to the right in every row. A stage of rows 1–4
+ends in a fork: its left Link leads to the same position in the next row and its right Link to the next position, so an
+inner stage is entered from two stages above it (a seam join); there are 16 routes, and each row-5 stage ends at its own
+goal.
+
+Every stage begins with one road of lanes a and b, 3.6 m each (lane a the centre lane), level at height 0, and a
+200 m entry straight over which its own cross-section starts. A forking stage ends in a 900 m straight: lanes c and d
+(3.6 m) appear right of a median over its first 150 m, the median opens to 4 m by 250 m, the lock is at 300 m and the
+closure at 700 m, where the roads part to 60 m apart by 880 m; `fork-warning` and `fork-closed` signs stand on the road
+each Link does not take, and the stage's checkpoint is its end, the seam. A forking stage ends level at height 0, so
+both its successors start where it ends. A goal stage ends in a 900 m straight, level at its last height, with its
+finish 450 m before its end. The entry stage, COASTLINE, starts as a divided 3+3 highway (lanes w, a, b | c, d, e) with
+its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork's four. Stages are sized so that each
+takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
+TESTAROSSA's delivered envelope, and the measured reference times are the course's times.
 
 ## Product courses
 

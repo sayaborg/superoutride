@@ -98,12 +98,21 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
 
 - Merged: FE-10 (inside a series the wallpaper stays); OT-1 (short driving scenarios on TSUKUBA and OUTRUN TRIAL A;
   tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
-  courses deleted; `npm test` about 1 min 50 s locally).
-- Next PR: OT-3, the OUTRUN TEST skeleton.
+  courses deleted; `npm test` about 1 min 50 s locally); OT-3 (the OUTRUN TEST skeleton from its generator, the series
+  and its drawn picture, measured).
+- Next PR: OT-3b, the reference line at a fork follows the exit's lane only where that lane is wider than zero (right
+  exits measured about 135 s: the reference car ran along the road edge where the exit lanes had not yet appeared);
+  then OT-4 `WET_ASPHALT`, OT-5 background transitions, OT-6 … OT-10 rows.
+- Measured stage times (OT-3, s): COASTLINE 98, GATEWAY 98, FARMLAND 96, LAKESIDE 90, RIVIERA 89 (all-left route);
+  right-exit stages slower until OT-3b.
 - Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
   the entry and departures have no driving scenario since OT-1. The cone, barricade, fork sign, tree and hill sky
   images stay for OUTRUN TEST.
-- Open decisions: none.
+- Open decisions (OT-3): the course document is written by a generator (`npm run outrun-test`); stages start with
+  two 3.6 m lanes, level at height 0, so every seam join matches; the fork's lock is 600 m before the stage's end
+  (route loading needs 484 m past a lock), so the two roads run 400 m side by side with a 4 m median before they part;
+  the stage's checkpoint is its end; the generic startup smoke compiles OUTRUN TEST like every delivered course (about
+  5 s), and no test drives it; traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3.
 - Splits: none.
 
 **Order.** OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan, profile, lanes, forks and gates, placeholder Strips

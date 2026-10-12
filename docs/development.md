@@ -15,6 +15,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm test`                    | All checks, build, startup and screens smoke and driving scenarios  |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
 | `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles            |
+| `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator            |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
 
 ### Driving scenarios
@@ -392,6 +393,27 @@ npm run screen-pictures
 It reads `content/screen-picture-sources/recipes.json` and the sources beside it, writes each picture as
 `content/screen-pictures/<name>.json` and a check sheet of it, `dist/screen-pictures/<name>.png`, over a grey ground,
 which nothing reads. The build admits the saved pictures and draws nothing.
+
+### OUTRUN TEST commands
+
+The [test course](content-and-gameplay.md#test-course) and its pictures come from production-only generators, each
+deterministic, each printing one JSON result or its diagnostics:
+
+```sh
+npm run outrun-test
+npm run outrun-test-pictures
+npm run outrun-test-sheets -- [stage ...] [--out directory]
+```
+
+`outrun-test` writes `content/courses/outrun-test.course.json` from the stage table in
+[`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) and prints each stage's length and planning estimate;
+the measured products then follow from `npm run measure -- generate`. `outrun-test-pictures` draws the sources of the
+OUTRUN TEST pictures with the raster of [`tools/graphics/drawn/`](../tools/graphics/drawn) and writes them with their
+recipes where the picture commands read them: the series picture to `content/screen-picture-sources/` (then
+`npm run screen-pictures`). Any source can be replaced by another image of the same name and size without touching the
+course. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
+default) under `dist/outrun-test-sheets/`: frames of the logical frame through the product scene from the stage's
+start, every eighth of it and its fork or goal, each labelled with its station, which nothing reads.
 
 ### Screens smoke
 
