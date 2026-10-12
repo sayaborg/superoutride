@@ -60,7 +60,7 @@
 - The camera and pictures follow K's CAM decisions: the camera stands 6 m behind and 2 m above the player's base point
   and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
   arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
-  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's and 911 TURBO 3.3's pictures and shadows are finished sets generated
+  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures and shadows are finished sets generated
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)), and VFR750R's
   a generated prototype with its rider and seven banks, kept until a 3D model's pictures replace it; the other
   vehicles keep their converted provisional pictures until their views are made.
