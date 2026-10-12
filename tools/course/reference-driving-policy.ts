@@ -8,7 +8,8 @@ export const REFERENCE_DRIVER = Object.freeze({ ...ENVELOPE_DRIVER, utilization:
 
 /**
  * The reference driver's lateral target: the centre lane's centre and, at a fork, the centre of the lane the Link its
- * route takes names. It changes no lanes, so reference runs keep their path whatever traffic the course sees.
+ * route takes names where that lane is wider than zero. It changes no other lanes, so reference runs keep their path
+ * whatever traffic the course sees.
  */
 export function referenceLine(route: CourseRoute, exit: DriverIntent['exit']): (s: number) => number {
   return (s) => {
@@ -16,9 +17,9 @@ export function referenceLine(route: CourseRoute, exit: DriverIntent['exit']): (
     const section = occurrence.section,
       domain = section.coordinates.domain;
     const at = Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s)));
-    const lane = section.fork
-      ? (selectedSuccessor(route, occurrence) ?? section.fork.exits[exit(occurrence)]!.link).from.lane
-      : section.lanes.center;
+    const exitLane =
+      section.fork && (selectedSuccessor(route, occurrence) ?? section.fork.exits[exit(occurrence)]!.link).from.lane;
+    const lane = exitLane && courseBoundaryAt(exitLane.width, at) > 0 ? exitLane : section.lanes.center;
     return courseBoundaryAt(lane.center, at) - occurrence.lateralOrigin;
   };
 }

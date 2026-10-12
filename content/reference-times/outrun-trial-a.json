@@ -2,7 +2,7 @@
   "format": "superoutride.reference-times",
   "version": 2,
   "courseBuildSha256": "6f28d9111944f45be01d1e107a37a9da1dfc58f8d7b1a8885c5adbb4c91e8f3a",
-  "procedureSha256": "0b7c1a763713d0d61779c0882fdf5ba021c4583da68f09f190307210caf0b00c",
+  "procedureSha256": "7ff18085589c46c0ea0e798af47169f563299a8ae0b9aef8c36fa9037ecd84d6",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",

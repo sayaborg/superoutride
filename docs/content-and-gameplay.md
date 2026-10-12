@@ -774,7 +774,8 @@ exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
 
 `hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
 the same exits. Reference runs intend each planned Link's exit and change no lanes: their target is the centre lane's
-centre, and at a fork the centre of the lane the planned Link names (the reference line). Scenarios drive the player by
+centre, and at a fork the centre of the lane the planned Link names where that lane is wider than zero (the reference
+line): before an exit's lanes appear it keeps to the centre lane. Scenarios drive the player by
 its Session driver and name their exit indices. Unselected roads show saved state-selected signs. At/beyond closure, an
 actor is on a closed road when its l lies within a road there that the selected Link does not leave by (edges
 included). It recovers at the same chainage to the nearest lane centre of the selected road; progress observations
@@ -1094,7 +1095,7 @@ compiler's record is part of a course build identity. A code change that changes
 procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
 records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
 reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 3) records the race's fixed step, the Session seed, the reference driver (the
+`superoutride.reference-driving` version 4) records the race's fixed step, the Session seed, the reference driver (the
 driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
 spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`

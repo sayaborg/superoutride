@@ -99,12 +99,13 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
 - Merged: FE-10 (inside a series the wallpaper stays); OT-1 (short driving scenarios on TSUKUBA and OUTRUN TRIAL A;
   tests read delivered courses instead of compiling the content); OT-2 (the old development series and its four
   courses deleted; `npm test` about 1 min 50 s locally); OT-3 (the OUTRUN TEST skeleton from its generator, the series
-  and its drawn picture, measured).
-- Next PR: OT-3b, the reference line at a fork follows the exit's lane only where that lane is wider than zero (right
-  exits measured about 135 s: the reference car ran along the road edge where the exit lanes had not yet appeared);
-  then OT-4 `WET_ASPHALT`, OT-5 background transitions, OT-6 … OT-10 rows.
-- Measured stage times (OT-3, s): COASTLINE 98, GATEWAY 98, FARMLAND 96, LAKESIDE 90, RIVIERA 89 (all-left route);
-  right-exit stages slower until OT-3b.
+  and its drawn picture, measured); OT-3b (the reference line at a fork keeps to the centre lane until the exit's lane
+  appears; reference-driving version 4).
+- Next PR: OT-4 `WET_ASPHALT`, then OT-5 background transitions, OT-6 … OT-10 rows.
+- Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
+  102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
+  ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and
+  CLIFF ROAD and ALPINE PASS trimmed in their rows' PRs.
 - Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
   the entry and departures have no driving scenario since OT-1. The cone, barricade, fork sign, tree and hill sky
   images stay for OUTRUN TEST.
