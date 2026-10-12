@@ -109,7 +109,16 @@ export const SKY_HEIGHT = 640;
 export const HORIZON = 320;
 
 /** A cartoon cloud of overlapping puffs, outlined, light above and shaded beneath. */
-export function cloud(r: Raster, x: number, y: number, width: number, seed: number, light: Color, shade: Color) {
+export function cloud(
+  r: Raster,
+  x: number,
+  y: number,
+  width: number,
+  seed: number,
+  light: Color,
+  shade: Color,
+  rim: Color = 0x5a78b8,
+) {
   const next = sequence(seed);
   const puffs: [number, number, number][] = [];
   for (let i = 0; i < 7; i++) {
@@ -120,7 +129,7 @@ export function cloud(r: Raster, x: number, y: number, width: number, seed: numb
       width * (0.1 + 0.07 * next()),
     ]);
   }
-  outlined(r, 0x5a78b8, (l) => {
+  outlined(r, rim, (l) => {
     for (const [px, py, pr] of puffs) fillEllipse(l, px, py, pr, pr * 0.8, light);
     fillEllipse(l, x + width / 2, y - width * 0.04, width * 0.52, width * 0.13, light);
     fillRect(l, x - width * 0.05, y, width * 1.1, width * 0.08, light);

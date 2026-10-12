@@ -17,6 +17,7 @@ import {
   type Surfaces,
 } from './outrun-test/context.js';
 import { coastline, COASTLINE_SURFACES } from './outrun-test/row1.js';
+import { CLIFF_SURFACES, cliffRoad, gateway, GATEWAY_SURFACES, gatewayWidths } from './outrun-test/row2.js';
 
 type Turn = 'left' | 'right';
 /** A plan element: a straight of `length`, or an arc of `length` and `radius` turning `turn`. */
@@ -98,6 +99,10 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'gateway',
       name: 'GATEWAY',
+      sky: 'sky-country',
+      surfaces: GATEWAY_SURFACES,
+      widths: gatewayWidths,
+      scenery: gateway,
       body: [
         Rd(700, 40),
         S(500),
@@ -112,8 +117,6 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Ld(700, 30),
         S(400),
         Rd(600, 40),
-        S(300),
-        Ld(800, 25),
       ],
       hills: [
         { s: 600, y: 8, curve: 250 },
@@ -126,6 +129,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'cliff-road',
       name: 'CLIFF ROAD',
+      sky: 'sky-cliff',
+      surfaces: CLIFF_SURFACES,
+      scenery: cliffRoad,
       body: [
         Rd(250, 70),
         S(200),
@@ -146,8 +152,6 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Rd(170, 80),
         S(250),
         Ld(240, 70),
-        S(150),
-        Rd(300, 45),
       ],
       hills: [
         { s: 500, y: 12, curve: 200 },

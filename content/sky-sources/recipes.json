@@ -2,6 +2,9 @@
   "format": "superoutride.screen-picture-recipes",
   "version": 1,
   "pictures": {
-    "sky-coast": { "columns": 94, "rows": 40, "fit": "fill" }
+    "sky-coast": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-country": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-cliff": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-overcast": { "columns": 94, "rows": 40, "fit": "fill" }
   }
 }

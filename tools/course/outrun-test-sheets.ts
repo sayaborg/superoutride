@@ -19,7 +19,7 @@ import { referenceLine } from './reference-driving-policy.js';
  * [--out directory]` compiles the content once and writes, for each named stage (every stage when none and no
  * crossing is named), `<stage>.png`: frames of the game's logical frame through the product scene with TESTAROSSA at
  * rest on lane a's centre, from the stage's start through every eighth of it to its fork or goal, each labelled with its
- * station; and for each named Link, `crossing-<link>.png`: a drive across its seam at 30 m/s with the scene's fixed
+ * station, and every change of environment 150 m past its knot; and for each named Link, `crossing-<link>.png`: a drive across its seam at 30 m/s with the scene's fixed
  * steps, every sixth step, so the background's transition shows. Disposable outputs; nothing reads them.
  */
 const args = process.argv.slice(2);
@@ -75,6 +75,9 @@ try {
     if (section.fork) stations.push(section.fork.lock.s - 120, section.fork.lock.s + 40, section.fork.closure.s + 100);
     else stations.push(length - 600, length - 470, length - 300);
     stations.push(length - 5);
+    // Each change of environment within the stage (a wet stretch's sky, a tunnel), seen 150 m past its knot.
+    stations.push(...section.appearance.environments.slice(1).map((e) => Math.min(length - 5, e.at.s + 150)));
+    stations.sort((a, b) => a - b);
     const renderer = createCourseFrameRenderer(content, course, section, {
       vehicle: 'TESTAROSSA',
       ...(section.outgoing[0] ? { exit: section.outgoing[0].id, through: length } : {}),
