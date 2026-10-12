@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 3,
+  "version": 4,
   "form": "bike",
   "selectionOrder": 7,
   "visuals": { "spriteSet": "r80-gs-paris-dakar", "palette": "yellow", "steeringPicture": "top-bridge" },
@@ -10,6 +10,7 @@
     "model": "R 80 G/S Paris-Dakar",
     "period": "1984–1987",
     "mobileLabel": "R80",
+    "engine": "F2",
     "identifier": null,
     "selectedSpecification": [],
     "physicsAnchor": { "modelYear": "1985", "market": "European/ROW" }

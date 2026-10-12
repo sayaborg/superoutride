@@ -210,7 +210,7 @@ async function startPage(): Promise<void> {
     }
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
     const flow = createSelectionFlow(
-      { courses: courseIndex, series, vehicles, freePlay, music, player, dev },
+      { courses: courseIndex, series, vehicles, driving, freePlay, music, player, dev },
       {
         frame: shell.framebuffer,
         text: textLayer,

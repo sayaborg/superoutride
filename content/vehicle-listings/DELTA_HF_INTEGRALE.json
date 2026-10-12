@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 3,
+  "version": 4,
   "form": "car",
   "selectionOrder": 5,
   "visuals": { "spriteSet": "delta-hf-integrale", "palette": "white", "steeringPicture": "prototipo" },
@@ -10,6 +10,7 @@
     "model": "Delta HF Integrale",
     "period": "1988–1989",
     "mobileLabel": "DELTA",
+    "engine": "I4T",
     "identifier": null,
     "selectedSpecification": ["8V", "185 PS"],
     "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }

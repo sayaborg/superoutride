@@ -604,7 +604,7 @@ runtime physics receives the resolved object or `null`, never a fixed material e
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
 `superoutride.vehicle-mechanics` version 2 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
-`content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 3 document:
+`content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 4 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
 belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 19.
@@ -625,14 +625,14 @@ admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engin
 | `format`, `version` | `superoutride.vehicle-mechanics`, `2`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
-| Listing field       | Contract                                                                                                                                                                          |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-listing`, `3`                                                                                                                                               |
-| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                              |
-| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                           |
-| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringPicture` names the HUD's steering picture ([Image assets](image-assets.md#text-tiles))        |
-| `sound`             | Existing sound ID in the admitted engine-sound catalog ([Audio](audio.md#observations-and-engine-sounds))                                                                         |
-| `metadata`          | Required manufacturer, model, period and mobileLabel strings; identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
+| Listing field       | Contract                                                                                                                                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-listing`, `4`                                                                                                                                                                                                                |
+| `form`              | `car` or `bike`; selects sprite bank dimensions and form-specific displays; physics does not read it                                                                                                                                               |
+| `selectionOrder`    | Positive safe integer, unique across the catalog; ascending selection order independent of filenames and manifest order                                                                                                                            |
+| `visuals`           | `spriteSet` names a vehicle sprite set; `palette` names its default color; `steeringPicture` names the HUD's steering picture ([Image assets](image-assets.md#text-tiles))                                                                         |
+| `sound`             | Existing sound ID in the admitted engine-sound catalog ([Audio](audio.md#observations-and-engine-sounds))                                                                                                                                          |
+| `metadata`          | Required manufacturer, model, period and mobileLabel strings; engine, 1 to 5 characters of layout and cylinders (`F12`, `V8`); identifier (null or officialLabel/shortLabel); selectedSpecification string array; physicsAnchor (modelYear/market) |
 
 Vehicle numerical domains and cross-field relationships are those of vehicle, suspension and
 powertrain compilation: positive mass/inertia/geometry, finite nonnegative brakes/drag/damping,

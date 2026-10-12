@@ -347,7 +347,7 @@ function engineFrictionTorque(
 }
 
 /** Below idle, sample the idle torque; above redline, continue the D–E line, never below zero. */
-function sampleEngineTorque(
+export function sampleEngineTorque(
   definition: Pick<AutomaticPowertrainDefinition, 'idleRpm' | 'torqueCurve'>,
   rpm: number,
 ): number {

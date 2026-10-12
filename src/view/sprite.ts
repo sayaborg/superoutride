@@ -20,6 +20,22 @@ export function levelScale(pixelsPerMeter: number, level: number): number {
 }
 
 /**
+ * The edges of an image's picture drawn at `pixelsPerMeter` by drawScaledSprite, in pixels from its anchor: the level it
+ * draws and that level's texels at its scale.
+ */
+export function scaledSpriteBounds(
+  asset: SpriteAsset,
+  pixelsPerMeter: number,
+): { left: number; top: number; right: number; bottom: number } {
+  const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
+  const level = asset.levels[levelIndex]!;
+  const scale = levelScale(pixelsPerMeter, levelIndex);
+  const left = -scale * (level.anchorX + 0.5),
+    top = -scale * (level.anchorY + 0.5);
+  return { left, top, right: left + scale * level.width, bottom: top + scale * level.height };
+}
+
+/**
  * Draw an image's picture with its anchor at (`xAnchor`, `yAnchor`) and `pixelsPerMeter` at its base point: the
  * nearest-octave level, each pixel taking the texel under its centre; every row is drawn, those below the anchor too.
  */

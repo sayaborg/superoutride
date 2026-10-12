@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 3,
+  "version": 4,
   "form": "car",
   "selectionOrder": 3,
   "visuals": { "spriteSet": "corvette-c4", "palette": "blue", "steeringPicture": "montecarlo" },
@@ -10,6 +10,7 @@
     "model": "Corvette",
     "period": "1989–1990",
     "mobileLabel": "C4",
+    "engine": "V8",
     "identifier": { "officialLabel": "C4", "shortLabel": "C4" },
     "selectedSpecification": ["L98", "ZF 6-speed", "pre-facelift"],
     "physicsAnchor": { "modelYear": "1989", "market": "US" }

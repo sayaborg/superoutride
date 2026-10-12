@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 3,
+  "version": 4,
   "form": "car",
   "selectionOrder": 4,
   "visuals": { "spriteSet": "golf-gti-16v", "palette": "red", "steeringPicture": "mod02" },
@@ -10,6 +10,7 @@
     "model": "Golf GTI 16V",
     "period": "1986–1989",
     "mobileLabel": "GTI",
+    "engine": "I4",
     "identifier": { "officialLabel": "Mk2", "shortLabel": "Mk2" },
     "selectedSpecification": ["small bumpers"],
     "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }

@@ -228,6 +228,13 @@ export class TextTiles {
     return result;
   }
 
+  /** A named palette's main color (slot 1), for pixels drawn beside the text in its colors. */
+  mainColor(palette: number): number {
+    if (!Number.isInteger(palette) || palette < 0 || palette >= this.paletteCount)
+      throw new RangeError('unknown text palette');
+    return this.#palettes[(palette << 4) + 1]!;
+  }
+
   /** Paint one tile's opaque pixels at `offset` of an RGB555 target with row `stride`; index 0 leaves the target. */
   paint(target: Uint16Array, offset: number, stride: number, pattern: number, palette: number): void {
     const source = this.#patterns[pattern]!,

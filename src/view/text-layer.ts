@@ -34,6 +34,10 @@ export function createTextLayer(tiles: TextTiles) {
       throw new RangeError('unknown text palette');
   };
   return Object.freeze({
+    /** A palette's main color, for pixels drawn under the text in its colors. */
+    mainColor(palette: number): number {
+      return tiles.mainColor(palette);
+    },
     /** Empty every tile. */
     clear() {
       patterns.fill(EMPTY_TEXT_TILE);

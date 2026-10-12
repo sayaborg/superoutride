@@ -24,6 +24,8 @@ import type { CompiledEngineSound } from '../audio/engine-sound.js';
 import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
 
 export type VehicleForm = 'car' | 'bike';
+/** The longest engine label, which SELECT VEHICLE shows before the displacement. */
+const ENGINE_LABEL_LENGTH = 5;
 export interface VehicleMetadata {
   readonly manufacturer: string;
   readonly model: string;
@@ -32,6 +34,8 @@ export interface VehicleMetadata {
   readonly period: string;
   readonly physicsAnchor: Readonly<{ modelYear: string; market: string }>;
   readonly mobileLabel: string;
+  /** The engine's layout and cylinders in at most five characters, such as F12 or V8. */
+  readonly engine: string;
 }
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
 export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> {
@@ -41,7 +45,7 @@ export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> 
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
   readonly format: 'superoutride.vehicle-listing';
-  readonly version: 3;
+  readonly version: 4;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
   readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringPicture: string }>;
@@ -159,7 +163,7 @@ export function compileVehicleListingDocument(
       value,
       ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
       'superoutride.vehicle-listing',
-      3,
+      4,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -169,7 +173,7 @@ export function compileVehicleListingDocument(
       '/selectionOrder',
       'Expected a positive safe integer',
     );
-    const strings = ['manufacturer', 'model', 'period', 'mobileLabel'] as const;
+    const strings = ['manufacturer', 'model', 'period', 'mobileLabel', 'engine'] as const;
     const meta = readRecord(v.metadata, '/metadata', [
       ...strings,
       'identifier',
@@ -191,6 +195,12 @@ export function compileVehicleListingDocument(
       ),
       physicsAnchor: named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']),
     } as unknown as VehicleMetadata;
+    requireAdmission(
+      metadata.engine.length > 0 && metadata.engine.length <= ENGINE_LABEL_LENGTH,
+      'invalid_value',
+      '/metadata/engine',
+      `Expected 1 to ${ENGINE_LABEL_LENGTH} characters`,
+    );
     const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture']);
     const visuals = {
       spriteSet: readString(visual.spriteSet, '/visuals/spriteSet'),
@@ -224,7 +234,7 @@ export function compileVehicleListingDocument(
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
-      version: 3,
+      version: 4,
       form: v.form,
       selectionOrder,
       visuals,

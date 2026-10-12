@@ -193,8 +193,9 @@ TITLE:  SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
 tiles over the frame, and every choice is made inside the frame. All text is English. The title is
-text until the attract demo exists. SELECT VEHICLE + COLOR shows the vehicle's image turning through
-its yaw frames with its name; left and right change the vehicle, up and down change the color. Every vehicle comes
+text until the attract demo exists. SELECT VEHICLE + COLOR is a catalog page per vehicle: its name, its image turning
+through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
+vehicle, up and down change the color. Every vehicle comes
 in four colors, named by color; the first is its default. PRESS START is the first user gesture, which
 enables sound and requests fullscreen where the browser allows it. There is no continue. While the
 title is idle, an attract demo drives a product ARCADE course with the driver at the wheel; any input

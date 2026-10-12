@@ -6,6 +6,7 @@ import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { gridRivalCapacity } from '../race/session-configuration.js';
 import { sessionPlayerColor } from '../race/course-session.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
@@ -36,6 +37,8 @@ export interface SelectionCatalog {
   readonly courses: CourseIndex;
   readonly series: SeriesCatalog;
   readonly vehicles: readonly CompiledVehicleDefinition[];
+  /** The game-wide driving definition; SELECT VEHICLE's curves end at its fuel-cut entry. */
+  readonly driving: CompiledDrivingDefinition;
   readonly freePlay: FreePlayRules;
   /** The delivered tracks in selection order. */
   readonly music: MusicCatalog;
@@ -65,7 +68,7 @@ export interface SelectionDevices {
  * table; SELECT CLASS appears only for a series with several classes, LAPS only on a course with several laps. BACK returns to the previous screen. A mode, series or course that offers nothing to select is DARK.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
-  const { courses, vehicles, player, dev, freePlay, music } = catalog;
+  const { courses, vehicles, driving, player, dev, freePlay, music } = catalog;
   // FREE PLAY's POOL and TRAFFIC choices, in their rules' order; TRAFFIC starts with OFF.
   const pools = freePlay.rivalPools.map((pool) => pool.id);
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
@@ -254,6 +257,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             devices.text,
             devices.present,
             candidates,
+            driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio,
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 3,
+  "version": 4,
   "form": "car",
   "selectionOrder": 1,
   "visuals": { "spriteSet": "testarossa", "palette": "red", "steeringPicture": "montecarlo" },
@@ -10,6 +10,7 @@
     "model": "Testarossa",
     "period": "1988½–1991",
     "mobileLabel": "F110",
+    "engine": "F12",
     "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
     "selectedSpecification": ["5-bolt wheels"],
     "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }

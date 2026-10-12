@@ -63,8 +63,12 @@
   six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's and 911 TURBO 3.3's pictures and shadows are finished sets generated
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
+- Stage PT is complete: every torque curve has five points (idle, knee, maximum torque, maximum power, redline); fuel
+  cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
+  reads to 110 % of redline; the ground continues behind a closed course limit; a locked engine's inertia joins the
+  wheel solve; SELECT VEHICLE is a catalog page per vehicle with its curves and physical values.
 
-Next PR: PT-5 of Stage PT, then Stage 16's next PR, awaiting its proposal.
+Next PR: the next PR of Stage 16, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -82,17 +86,6 @@ Requirements left from the second design audit, by when they are taken up:
     says.
   - S12-02: pitch protection guarantees what its documentation states, excluding the road line's own acceleration,
     bump-stop impulses and discretization error.
-
-## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
-
-Six PRs in order; PT-1 (five-point torque curves), PT-2 (fuel cut at 105 % / 103 % and the curve above
-redline), PT-3 (the tachometer at 110 % of redline), PT-3a (the ground continues behind a closed course limit) and
-PT-4 (engine inertia while the clutch is locked) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
-
-- **PT-5 — SELECT VEHICLE as a catalog page.** One page per vehicle: name, model year and identifier label, a turning
-  picture in its colour at one uniform scale per vehicle, torque and power curves from `max(idle, 0.2 * redline)` to
-  the fuel-cut entry over an axis of `0.2`–`1.1 * redlineRpm`, and the compiled physical values in two columns. The
-  listing gains `engine` (≤ 5 characters) in a new listing version.
 
 ## Stage 16 — Produce product courses
 

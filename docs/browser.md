@@ -112,9 +112,8 @@ the first track) plays as an audition, so its volume is set by ear.
   names from the course index, grouped by series, each group headed by its series title (DARK). Each course is listed
   once, under the first offered series in series order whose classes run it, in its classes' order; courses in no
   series follow last, after a blank line.
-- SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise. The vehicle turns through
-  its yaw images on the plain background, one image every six fixed steps, drawn like a race vehicle at the
-  player-depth scale, above its name (manufacturer and model). LEFT and RIGHT change the vehicle and UP and DOWN its
+- SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise, one catalog page per
+  vehicle ([SELECT VEHICLE](#select-vehicle)). LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
   its entry's color in the chosen class, with no color choice. CONFIRM saves a chosen color in the player record.
@@ -144,6 +143,66 @@ record judgement ([Player record](#player-record)) gives the record lines. Its i
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
+
+### SELECT VEHICLE
+
+SELECT VEHICLE is a catalog page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its
+listing as the simulation holds them:
+
+| Rows  | Columns | Content                                                                                        |
+| ----- | ------- | ---------------------------------------------------------------------------------------------- |
+| 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                       |
+| 0     | 32–38   | `< n/N >`, the page among the offered vehicles (DARK)                                          |
+| 2     | 1–      | manufacturer and model (YELLOW)                                                                |
+| 3     | 1–      | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK) |
+| 3     | 22 / 31 | `TORQUE` (YELLOW) / `POWER` (RED)                                                              |
+| 4–10  | 0–19    | the turning picture                                                                            |
+| 4–11  | 22–39   | the curve graph                                                                                |
+| 11    | 1–      | the color, `^ RED 1/4 v` (WHITE); with fixed colors its name only                              |
+| 13–29 | 0–19    | engine and driveline: labels DARK at column 0, values WHITE at column 8                        |
+| 13–29 | 20–39   | body: labels DARK at column 20, values WHITE at column 28                                      |
+
+The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
+the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns
+0–19 by rows 4–10 (160×56 pixels), and that anchor centres the images in the box.
+
+The graph is drawn in pixels under the text, in x 176–319 and y 32–95. Its horizontal axis runs from 20 % to 110 % of
+redline, 16 pixels for each 10 %, with a grid line every 10 % (the last clipped at x 319); its vertical axis from 0 on
+row 95 to the top grid line on row 35, with grid lines at 25, 50, 75 and 100 %. The grid is DARK and the axes (x 176,
+y 95) a lighter grey. The torque curve (YELLOW) and the power curve (RED) are each scaled so its maximum touches the
+top grid line; they are a pixel wide, joined vertically between columns, and run from the larger of idle and 20 % of
+redline to the fuel-cut entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redline
+([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)). The graph has no axis numbers.
+
+| Engine column        | Example                   | Source                                                        |
+| -------------------- | ------------------------- | ------------------------------------------------------------- |
+| `ENGINE`             | `F12 4943cc`              | listing `metadata.engine`, `displacementCc`                   |
+| `CYCLE`              | `4-STROKE`                | `cycle`                                                       |
+| `POWER`              | `287kW/6300`              | the curve's maximum of `rpm*torque` (point D) and its RPM     |
+| `TORQUE`             | `490Nm/4500`              | the curve's maximum (point C) and its RPM                     |
+| `IDLE`, `REDLINE`    | `1000rpm`                 | `idleRpm`, `redlineRpm`                                       |
+| `DRIVE`              | `RWD`, `FWD`, `AWD 47/53` | `frontDriveTorqueFraction` 0, 1, otherwise front/rear percent |
+| `1ST` …              | `3.139`                   | one row per gear ratio                                        |
+| `FINAL`              | `3.210`                   | `finalDriveRatio`                                             |
+| `BRAKE F`, `BRAKE R` | `4800Nm`                  | brake torque maxima                                           |
+| `DRAG`               | `0.44kg/m`                | `quadraticDrag`                                               |
+
+| Body column                 | Example       | Source                                               |
+| --------------------------- | ------------- | ---------------------------------------------------- |
+| `LENGTH`, `WIDTH`, `HEIGHT` | `4485mm`      | overall dimensions                                   |
+| `W/BASE`                    | `2550mm`      | `frontAxle + rearAxle`                               |
+| `MASS`                      | `1625kg`      | `mass`                                               |
+| `F/R`                       | `40/60`       | static load percent; front is `rearAxle / wheelbase` |
+| `CG HT`                     | `478mm`       | `desiredCgHeight`                                    |
+| `YAW I`, `PITCH I`          | `3100kgm2`    | inertias                                             |
+| `TIRE F`, `TIRE R`          | `632mm`       | twice the wheel radius                               |
+| `RIDE`                      | `1.75/1.85Hz` | front/rear ride frequency                            |
+| `DAMPING`                   | `0.38/0.40`   | front/rear damping ratio                             |
+| `TRAVEL`                    | `290/290mm`   | front/rear `qTravel`                                 |
+
+Power and torque are integers from 100 up and have one decimal below (`8.8kW`, `16.5Nm`); RPM, millimetres, kilograms,
+inertias and brake torques are integers; ratios have three decimals and ride frequency, damping and drag two. No
+value is longer than 12 characters, and a six-speed vehicle's engine column ends on row 29. Wheel inertia is not shown.
 
 ## Selection and URL parameters
 
