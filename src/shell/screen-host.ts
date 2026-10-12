@@ -63,7 +63,7 @@ export function createScreenHost(
       if (!steady()) {
         // A transition: darken toward the next screen, which is made current at black, or brighten the current one.
         if (next === null) brightness++;
-        else if (--brightness === 0) {
+        else if (brightness === 0 || --brightness === 0) {
           screen.leave?.();
           [screen, next] = [next, null];
         }
