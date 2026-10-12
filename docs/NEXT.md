@@ -377,7 +377,8 @@ Choices made where Stage OT left them open, each recorded in its PR:
   - The overcast sky arrives by wipe 150 m before the wet road and clears 100 m after it.
   - Tunnel exits arrive by cut and clear by wipe.
   - ALPINE PASS's storm arrives and leaves by rise.
-- Timing: GATEWAY, CLIFF ROAD, TUNNEL RUN, ALPINE PASS and FOREST were shortened to bring every award within 80–100 s.
+- Timing: GATEWAY, CLIFF ROAD, TUNNEL RUN, ALPINE PASS and FOREST were shortened to bring every award within 80–100 s;
+  OT-last gave FOREST one bend back (79.1 to 82.3 s).
 - INTERCHANGE's heavy traffic: traffic density is a series setting, so INTERCHANGE's extra lanes carry the series'
   traffic rather than a denser stream.
 

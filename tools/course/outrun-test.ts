@@ -403,6 +403,7 @@ const ROWS: readonly (readonly StageDesign[])[] = [
         Ld(100, 70),
         Rd(110, 70),
         Ld(95, 75),
+        Rd(90, 80),
       ],
       hills: [
         { s: 400, y: 4, curve: 150 },
