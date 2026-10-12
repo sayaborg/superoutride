@@ -40,7 +40,7 @@ export interface BrowserDrivingShell {
   setRoute(route: InputRoute): void;
   /** Read the devices for a fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
-  /** Play what a menu command did: `menu-move`, `menu-confirm` or `menu-back`. */
+  /** Play what a menu command did: `menu-move`, `menu-confirm`, `menu-entry` or `menu-back`. */
   menuSound(response: MenuResponse): void;
   /**
    * Called within a user gesture outside driving: prepare sound so runs sound from their start, and request

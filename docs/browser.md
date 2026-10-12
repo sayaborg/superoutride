@@ -338,7 +338,8 @@ hidden nothing does. Commands arrive at the current screen before each fixed ste
 
 Each screen says what a command did: moved the cursor or changed a value, confirmed something, or went back; a command
 that does nothing (CONFIRM on an item without an action, BACK on TITLE, a value at its end, a single-item move) says
-nothing. The screen host is the one place that turns that into a sound: `menu-move`, `menu-confirm` or `menu-back`
+nothing. The screen host is the one place that turns that into a sound: `menu-move`, `menu-confirm`, `menu-entry` (the
+CONFIRM that starts the run, SELECT MUSIC's) or `menu-back`
 ([Audio](audio.md#sound-effects)). Every list screen answers through the menu part, and SELECT VEHICLE (a vehicle or
 color change moves) and the run screen too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it
 goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.

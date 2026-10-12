@@ -1,8 +1,11 @@
 import { createFrameLoop } from './frame-loop.js';
 import type { MenuCommand, InputRoute } from '../input/menu-input.js';
 
-/** What a menu command did: moved the cursor or changed a value, confirmed something, or went back. */
-export type MenuResponse = 'move' | 'confirm' | 'back';
+/**
+ * What a menu command did: moved the cursor or changed a value, confirmed something, confirmed the choice that starts
+ * the run (`entry`), or went back.
+ */
+export type MenuResponse = 'move' | 'confirm' | 'entry' | 'back';
 
 /** A screen owns the frame while it is current: it advances one fixed step and draws one frame. */
 export interface Screen {

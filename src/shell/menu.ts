@@ -19,6 +19,8 @@ export interface MenuItem {
   readonly disabled?: boolean;
   /** CONFIRM on this item. */
   confirm?(): void;
+  /** Its CONFIRM starts the run: it answers `entry` rather than `confirm`. */
+  readonly entry?: boolean;
   /** LEFT (-1) or RIGHT (+1) on this item, changing its value. */
   adjust?(step: -1 | 1): void;
   /**
@@ -104,7 +106,7 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       if (command === 'CONFIRM') {
         if (!item?.confirm) return null;
         item.confirm();
-        return 'confirm';
+        return item.entry ? 'entry' : 'confirm';
       }
       if ((command === 'LEFT' || command === 'RIGHT') && item?.adjust) {
         item.adjust(command === 'LEFT' ? -1 : 1);

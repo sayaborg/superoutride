@@ -344,6 +344,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         // The track under the cursor plays from its start; CONFIRM starts the run with it.
         const items = music.map((t): MenuItem => ({
           label: t.title,
+          entry: true,
           focus: () => devices.audition(t),
           confirm: () => {
             track = t.id;

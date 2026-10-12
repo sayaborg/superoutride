@@ -170,8 +170,9 @@ A recording is an authored audio file played as it is: AAC-LC in an MP4 containe
 fallback and no conversion. Recordings are content in three groups, each an authored directory: `content/music/<id>.m4a`,
 `content/effects/<name>.m4a` and `content/impacts/<name>.m4a`. Each is delivered as its authored bytes under manifest
 kind `recording` with the ID `<group>/<name>` (such as `effects/goal`), verified by SHA-256 like every delivered file.
-[`recordings.ts`](../src/audio/recordings.ts) is the one list of the effect names (`countdown-lamp`, `countdown-go`,
-`checkpoint`, `lap`, `extend`, `goal`, `game-over`, `menu-move`, `menu-confirm`, `menu-back`) and impact names
+[`recordings.ts`](../src/audio/recordings.ts) is the one list of the 17 effect names (`countdown-lamp`, `countdown-go`,
+`checkpoint`, `lap`, `extend`, `goal`, `game-over`, `menu-move`, `menu-confirm`, `menu-back`, `menu-deny`,
+`menu-entry`, `press-start`, `series-slide`, `prerace`, `final-lap`, `new-record`) and impact names
 (`vehicle`, `wall`, `object`, `movable`); the build requires exactly these and playback reads the same list. Volume
 balance between recordings is authored in the files: the game keeps no per-recording gain, equalization or trim.
 
@@ -231,14 +232,17 @@ SETTINGS play a track from its beginning, looped, through the same form; they ar
 ## Sound effects
 
 Effects are recordings played once on the `effects` bus, each at full volume; the game keeps no per-effect gain. The
+delivered effects are two-operator FM tones, AAC-LC mono at 44.1 kHz, their levels authored in the files. The
 scene decodes every effect when it is built, so the first of each sounds when it happens.
 
 The [run effects](../src/shell/run-effects.ts) read only race facts, after every fixed step of the run: `countdown-lamp`
 as each signal lamp lights during READY, `countdown-go` at GO, and for each of the player's crossings in the step's
-events one sound: none for the crossing that finishes the run (GOAL's jingle sounds), else `extend` when the crossing
-extended the clock, else `lap` at the finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER
-`game-over` play once, from that moment, while the track fades beneath them; a jingle may sound on into RESULT and
-stops when the run is left or its Session is replaced. Each happening sounds once: a step's facts are read once, so two
+events one sound: none for the crossing that finishes the run (GOAL's effect sounds), else `extend` when the crossing
+extended the clock, else `final-lap` at a circuit's finish line when the lap it begins is the last, else `lap` at the
+finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER `game-over` (effects of about 1.3 s) play
+once, from that moment, while the track fades beneath them; the outcome effect may sound on into RESULT and stops when
+the run is left or its Session is replaced. When RESULT shows NEW RECORD, `new-record` plays once as RESULT appears,
+after the outcome effect at the default RESULT delay. Each happening sounds once: a step's facts are read once, so two
 crossings in one frame both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
 crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
 

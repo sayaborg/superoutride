@@ -356,12 +356,12 @@ own vehicle sound; vehicles rubbing each other make no scraping sound.
 Music is original. The player selects a track on SELECT MUSIC before each race; every track is available
 in every mode and series, and there is no silent choice. The track under the cursor plays. The selected
 track starts from its beginning at READY and loops; it stops while the run is paused and continues from
-the same place. At GOAL and at GAME OVER a jingle plays once while the track fades out beneath it. Menus
+the same place. At GOAL and at GAME OVER an effect plays once while the track fades out beneath it. Menus
 and RESULT have no music. RETRY keeps the track; CHANGE VEHICLE passes SELECT MUSIC again.
 
-Sound effects cover the signal lamps and GO, checkpoint and lap crossings, time extensions, menu commands
-and the two jingles. One crossing gives one sound: the jingle at GOAL, else the time extension, else the
-crossing itself.
+Sound effects cover the signal lamps and GO, checkpoint and lap crossings, time extensions, menu commands,
+GOAL and GAME OVER, the last lap of a circuit and a new record. One crossing gives one sound: GOAL's effect, else the
+time extension, else the final lap when the lap just begun is the last, else the crossing itself.
 
 Music and effects have separate volumes; engine, tire and contact sound follow the master volume alone.
 In SETTINGS the latest selected track plays while the cursor is on MUSIC, so its volume is set by ear.

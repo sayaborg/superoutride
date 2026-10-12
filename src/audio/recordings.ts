@@ -13,6 +13,13 @@ export const EFFECT_RECORDINGS = Object.freeze([
   'menu-move',
   'menu-confirm',
   'menu-back',
+  'menu-deny',
+  'menu-entry',
+  'press-start',
+  'series-slide',
+  'prerace',
+  'final-lap',
+  'new-record',
 ] as const);
 export type EffectRecording = (typeof EFFECT_RECORDINGS)[number];
 

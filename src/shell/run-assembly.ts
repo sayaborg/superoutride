@@ -221,8 +221,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     performanceHud?.step(performance.now() - started);
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
       if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned) record();
-      if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) state.finish();
-      else afterEndingSeconds += SIM_DT;
+      if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) {
+        state.finish();
+        effects.result(active.records.judgement?.newRecord ?? false);
+      } else afterEndingSeconds += SIM_DT;
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
