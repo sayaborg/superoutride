@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "bike",
   "selectionOrder": 7,
-  "visuals": { "spriteSet": "r80-gs-paris-dakar", "palette": "yellow", "steeringPicture": "top-bridge" },
+  "visuals": {
+    "spriteSet": "r80-gs-paris-dakar",
+    "palette": "yellow",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "yellow": "YELLOW", "white": "WHITE", "red": "RED", "blue": "BLUE" }
+  },
   "sound": "R80_GS_PARIS_DAKAR",
   "metadata": {
     "manufacturer": "BMW",

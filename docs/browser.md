@@ -179,7 +179,7 @@ listing as the simulation holds them:
 | 3     | 22 / 31 | `TORQUE` (YELLOW) / `POWER` (RED)                                                              |
 | 4–10  | 0–19    | the turning picture                                                                            |
 | 4–11  | 22–39   | the curve graph                                                                                |
-| 11    | 1–      | the color, `^ RED 1/4 v` (WHITE); with fixed colors its name only                              |
+| 11    | 1–21    | the color's display name, `^ GUARDS RED 3/4 v` (WHITE); with fixed colors its name only        |
 | 13–29 | 0–19    | engine and driveline: labels DARK at column 0, values WHITE at column 8                        |
 | 13–29 | 20–39   | body: labels DARK at column 20, values WHITE at column 28                                      |
 

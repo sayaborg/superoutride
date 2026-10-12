@@ -1,6 +1,6 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
 import { HUD_PICTURES, type HudPicture } from '../image/text-tiles.js';
-import { spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
+import { spriteSetColors, spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
 import {
@@ -10,6 +10,7 @@ import {
   deepFreeze,
   readArray,
   readBoolean,
+  readDictionary,
   readDocument,
   readNumber,
   readRecord,
@@ -26,6 +27,9 @@ import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
 export type VehicleForm = 'car' | 'bike';
 /** The longest engine label, which SELECT VEHICLE shows before the displacement. */
 const ENGINE_LABEL_LENGTH = 5;
+/** The longest color display name: SELECT VEHICLE's color line, `^ NAME n/N v`, fits columns 1–21. */
+const COLOR_NAME_LENGTH = 13;
+const COLOR_NAME = new RegExp(`^[A-Z0-9 .'&/-]{1,${COLOR_NAME_LENGTH}}$`);
 export interface VehicleMetadata {
   readonly manufacturer: string;
   readonly model: string;
@@ -45,10 +49,16 @@ export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> 
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
   readonly format: 'superoutride.vehicle-listing';
-  readonly version: 4;
+  readonly version: 5;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
-  readonly visuals: Readonly<{ spriteSet: string; palette: string; steeringPicture: string }>;
+  readonly visuals: Readonly<{
+    spriteSet: string;
+    palette: string;
+    steeringPicture: string;
+    /** Each color's display name, its period paint name, by color ID: presentation only. */
+    colorNames: Readonly<Record<string, string>>;
+  }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
 }
@@ -163,7 +173,7 @@ export function compileVehicleListingDocument(
       value,
       ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
       'superoutride.vehicle-listing',
-      4,
+      5,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -201,11 +211,17 @@ export function compileVehicleListingDocument(
       '/metadata/engine',
       `Expected 1 to ${ENGINE_LABEL_LENGTH} characters`,
     );
-    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture']);
+    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture', 'colorNames']);
     const visuals = {
       spriteSet: readString(visual.spriteSet, '/visuals/spriteSet'),
       palette: readString(visual.palette, '/visuals/palette'),
       steeringPicture: readString(visual.steeringPicture, '/visuals/steeringPicture'),
+      colorNames: readDictionary(visual.colorNames, '/visuals/colorNames', (name, path) =>
+        readString(name, path, {
+          pattern: COLOR_NAME,
+          patternMessage: `Expected 1 to ${COLOR_NAME_LENGTH} uppercase characters the text tiles draw`,
+        }),
+      ),
     };
     if (!Object.hasOwn(sprites.sets, visuals.spriteSet))
       throw new AdmissionError(
@@ -222,6 +238,14 @@ export function compileVehicleListingDocument(
     );
     if (!spriteSetHasColor(spriteSet, visuals.palette))
       throw new AdmissionError('unresolved_reference', '/visuals/palette', `Unknown sprite color: ${visuals.palette}`);
+    const colors = spriteSetColors(spriteSet);
+    requireAdmission(
+      Object.keys(visuals.colorNames).length === colors.length &&
+        colors.every((color) => Object.hasOwn(visuals.colorNames, color)),
+      'invalid_value',
+      '/visuals/colorNames',
+      `Expected a display name for each color of ${visuals.spriteSet}: ${colors.join(', ')}`,
+    );
     if (!Object.hasOwn(HUD_PICTURES, visuals.steeringPicture))
       throw new AdmissionError(
         'unresolved_reference',
@@ -234,7 +258,7 @@ export function compileVehicleListingDocument(
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
       format: 'superoutride.vehicle-listing',
-      version: 4,
+      version: 5,
       form: v.form,
       selectionOrder,
       visuals,

@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "car",
   "selectionOrder": 5,
-  "visuals": { "spriteSet": "delta-hf-integrale", "palette": "white", "steeringPicture": "prototipo" },
+  "visuals": {
+    "spriteSet": "delta-hf-integrale",
+    "palette": "white",
+    "steeringPicture": "prototipo",
+    "colorNames": { "white": "BIANCO", "red": "ROSSO MONZA", "blue": "BLU LANCIA", "black": "NERO" }
+  },
   "sound": "DELTA_HF_INTEGRALE",
   "metadata": {
     "manufacturer": "Lancia",

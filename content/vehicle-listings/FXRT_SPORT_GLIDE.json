@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "bike",
   "selectionOrder": 8,
-  "visuals": { "spriteSet": "fxrt-sport-glide", "palette": "black", "steeringPicture": "top-bridge" },
+  "visuals": {
+    "spriteSet": "fxrt-sport-glide",
+    "palette": "black",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "black": "VIVID BLACK", "blue": "BLUE", "red": "RED", "silver": "SILVER" }
+  },
   "sound": "FXRT_SPORT_GLIDE",
   "metadata": {
     "manufacturer": "Harley-Davidson",

@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "car",
   "selectionOrder": 4,
-  "visuals": { "spriteSet": "golf-gti-16v", "palette": "red", "steeringPicture": "mod02" },
+  "visuals": {
+    "spriteSet": "golf-gti-16v",
+    "palette": "red",
+    "steeringPicture": "mod02",
+    "colorNames": { "red": "TORNADO RED", "white": "ALPINE WHITE", "black": "BLACK", "silver": "SILVER" }
+  },
   "sound": "GOLF_GTI_16V",
   "metadata": {
     "manufacturer": "Volkswagen",

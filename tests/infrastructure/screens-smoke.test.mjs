@@ -85,7 +85,9 @@ test('the front end screens render from the delivered content', async () => {
   assert.equal(titleTrack, 'placeholder-two');
   send('CONFIRM');
   await capture('select-class');
-  send('CONFIRM', 'CONFIRM');
+  send('CONFIRM');
+  await capture('select-vehicle');
+  send('CONFIRM');
   await capture('select-music');
   send('LEFT');
   await capture('select-music-off');

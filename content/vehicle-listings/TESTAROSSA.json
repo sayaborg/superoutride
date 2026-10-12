@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "car",
   "selectionOrder": 1,
-  "visuals": { "spriteSet": "testarossa", "palette": "red", "steeringPicture": "montecarlo" },
+  "visuals": {
+    "spriteSet": "testarossa",
+    "palette": "red",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "red": "ROSSO CORSA", "yellow": "GIALLO MODENA", "white": "BIANCO", "black": "NERO" }
+  },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",

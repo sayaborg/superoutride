@@ -1,9 +1,14 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 4,
+  "version": 5,
   "form": "bike",
   "selectionOrder": 6,
-  "visuals": { "spriteSet": "vfr750r", "palette": "white", "steeringPicture": "top-bridge" },
+  "visuals": {
+    "spriteSet": "vfr750r",
+    "palette": "white",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "white": "WHITE", "red": "RED", "blue": "BLUE", "black": "BLACK" }
+  },
   "sound": "VFR750R",
   "metadata": {
     "manufacturer": "Honda",

@@ -272,7 +272,7 @@ export function createVehicleScreen(
       text.write(1, 3, `${metadata.physicsAnchor.modelYear}${label}`, TEXT_PALETTES.DARK);
       text.write(22, 3, 'TORQUE', TEXT_PALETTES.YELLOW);
       text.write(31, 3, 'POWER', TEXT_PALETTES.RED);
-      const colorName = palette.toUpperCase();
+      const colorName = vehicle.listing.visuals.colorNames[palette]!;
       text.write(
         1,
         11,
