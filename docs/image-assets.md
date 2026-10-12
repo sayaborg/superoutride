@@ -529,3 +529,36 @@ and its width fills the picture.
 box filter over premultiplied color; a pixel covered for at least `alphaThreshold` is opaque. The palette is k-means
 clustering of every opaque pixel of all the picture's frames from deterministic k-means++ seeds, and each pixel takes
 its nearest color.
+
+## Screen pictures
+
+Screen pictures are the [tile pictures](#tile-pictures) the front end draws: the title logo and the series images.
+They are saved under `content/screen-pictures/<name>.json`, each named by its file, and delivered as authored (manifest
+kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `title-logo` is required and is 18×7 tiles
+(288×112 pixels) and may be transparent; a series image is 20×15 tiles (the 320×240 frame) and opaque, checked where
+its [series document](content-and-gameplay.md#series-documents) names it.
+
+**Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
+picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`
+and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them. The same sources
+and recipes always give the same pictures.
+
+```text
+{format: "superoutride.screen-picture-recipes", version: 1,
+ pictures: {<name>: {columns, rows, fit: "fill" | "contain"}, ...}}
+```
+
+The picture is `columns`×`rows` tiles. `fill` scales the source to the whole picture; `contain` scales it, keeping its
+aspect, to fit inside the picture, centred, the rest transparent. Scaling is the area filter: each picture pixel
+averages the source area it covers, its color weighted by alpha so transparent pixels lend no color, and keeps straight
+alpha. A pixel whose alpha is below 128 is index 0. Each tile then takes up to 15 RGB555 colors by median cut over
+its opaque pixels (the box with the widest channel range splits at that channel's median, at a value boundary, the
+first box and channel winning ties; each box's color is its rounded mean), and each opaque pixel the nearest of those
+colors; there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
+share their pattern and palette, which are saved once.
+
+| Picture           | Source              | Recipe          |
+| ----------------- | ------------------- | --------------- |
+| `title-logo`      | the logo, cut out   | 18×7, `contain` |
+| `tsukuba-clubman` | 4:3                 | 20×15, `fill`   |
+| `ribbon`, `trial` | 320×240 plain (DEV) | 20×15, `fill`   |

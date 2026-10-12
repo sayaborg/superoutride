@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 10,
+  "version": 11,
   "id": "ribbon",
   "title": "RIBBON",
+  "image": "ribbon",
   "dev": true,
   "timeMargin": 1.35,
   "fixedColors": false,

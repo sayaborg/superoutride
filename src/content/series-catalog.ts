@@ -23,15 +23,19 @@ import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
+import type { TilePicture } from '../image/tile-picture.js';
+import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 10;
+export const SERIES_DOCUMENT_VERSION = 11;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /** One series: the one owner of its classes, its ARCADE races. `dev` series appear only with DEV. */
 export interface CompiledSeries {
   readonly id: string;
   readonly title: string;
+  /** The series image: a 20×15-tile opaque screen picture, named by the document's `image`. */
+  readonly image: TilePicture;
   readonly dev: boolean;
   readonly timeMargin: number;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
@@ -105,10 +109,11 @@ export function compileSeriesCatalog(
   sources: readonly DocumentSource[],
   courseIds: readonly string[],
   vehicles: readonly CompiledVehicleDefinition[],
+  pictures: ScreenPictureCatalog,
 ): AdmissionResult<SeriesCatalog> {
   const series: CompiledSeries[] = [];
   for (const source of sources) {
-    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles));
+    const admitted = admit(source.path, () => readSeries(source, courseIds, vehicles, pictures));
     if (!admitted.ok) return admitted;
     series.push(admitted.value);
   }
@@ -126,19 +131,30 @@ function readSeries(
   source: DocumentSource,
   courseIds: readonly string[],
   catalog: readonly CompiledVehicleDefinition[],
+  pictures: ScreenPictureCatalog,
 ): CompiledSeries {
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'dev', 'timeMargin', 'fixedColors', 'classes'],
+    ['format', 'version', 'id', 'title', 'image', 'dev', 'timeMargin', 'fixedColors', 'classes'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
   const id = readString(root.id, '/id');
   requireAdmission(id === source.id, 'invalid_value', '/id', `Series ID must match its file name ${source.id}`);
+  const imageName = readString(root.image, '/image');
+  const image = pictures.get(imageName);
+  requireAdmission(image !== undefined, 'unresolved_reference', '/image', `Unknown screen picture ${imageName}`);
+  requireAdmission(
+    image.columns === SERIES_IMAGE.columns && image.rows === SERIES_IMAGE.rows && image.opaque,
+    'invalid_value',
+    '/image',
+    `A series image is an opaque screen picture of ${SERIES_IMAGE.columns}×${SERIES_IMAGE.rows} tiles`,
+  );
   const series = {
     id,
     title: readString(root.title, '/title'),
+    image,
     dev: readBoolean(root.dev, '/dev'),
     timeMargin: readNumber(root.timeMargin, '/timeMargin', {
       min: 0,
@@ -463,16 +479,17 @@ export function admitSeriesClass(
   });
 }
 
-/** Admit the delivered series against the delivered courses and the given vehicle catalog. */
+/** Admit the delivered series against the delivered courses, the given vehicle catalog and the screen pictures. */
 export async function loadSeriesCatalog(
   content: ContentDelivery,
   vehicles: readonly CompiledVehicleDefinition[],
+  pictures: ScreenPictureCatalog,
 ): Promise<SeriesCatalog> {
   const sources: DocumentSource[] = [];
   for (const file of content.manifest.files.filter((file) => file.kind === 'series'))
     sources.push({ id: file.id, path: file.path, value: await content.json('series', file.id), sha256: file.sha256 });
   const courseIds = content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
-  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles));
+  return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles, pictures));
 }
 
 /** A delivered class admitted against its delivered course. */

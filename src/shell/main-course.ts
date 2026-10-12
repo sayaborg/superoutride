@@ -12,6 +12,7 @@ import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
+import { loadScreenPictures } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost } from './screen-host.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
@@ -72,7 +73,8 @@ async function startPage(): Promise<void> {
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;
     const courseIndex = await loadCourseIndex(content);
-    const series = await loadSeriesCatalog(content, vehicles);
+    const screenPictures = await loadScreenPictures(content);
+    const series = await loadSeriesCatalog(content, vehicles, screenPictures);
     const freePlay = await loadFreePlayRules(content);
     const music = await loadMusic(content, TEXT_COLUMNS);
     const player = openPlayerRecord(browserStorage());

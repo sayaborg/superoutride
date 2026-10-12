@@ -390,6 +390,19 @@ writes a check sheet of each
 picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads. The build admits
 the saved text tiles and draws nothing.
 
+### Screen pictures command
+
+The screen pictures command draws every [screen picture](image-assets.md#screen-pictures) from its source and recipe,
+printing one JSON result (or the diagnostics, exiting 1):
+
+```sh
+npm run screen-pictures
+```
+
+It reads `content/screen-picture-sources/recipes.json` and the sources beside it, writes each picture as
+`content/screen-pictures/<name>.json` and a check sheet of it, `dist/screen-pictures/<name>.png`, over a grey ground,
+which nothing reads. The build admits the saved pictures and draws nothing.
+
 ### Listening on devices
 
 Sound settings are tuned by ear with `dev=1` in the game ([Browser](browser.md#sound-controls)).
@@ -420,7 +433,7 @@ vehicle envelopes, game time budgets and pace schedules from the [measured produ
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
-mechanics, vehicle listing, driving, material, surface-sound, wall-sound, audio, engine-sound, music, series and text tile documents are delivered exactly as authored in that
+mechanics, vehicle listing, driving, material, surface-sound, wall-sound, audio, engine-sound, music, series, screen picture and text tile documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
 as the exact bytes its author placed under `content/`. Entries contain no payload
 format/version. The delivery layout (`layoutDelivery` in
@@ -432,6 +445,7 @@ format/version. The delivery layout (`layoutDelivery` in
 | `course`          | Course file name stem (the course selection key)                                                | `courses/<id>.course.json`                | Course document                                                                                                                     |
 | `course-index`    | `courses`                                                                                       | `course-index.json`                       | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                                         |
 | `series`          | Series file name stem                                                                           | `series/<id>.series.json`                 | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                                                  |
+| `screen-picture`  | Screen picture name                                                                             | `screen-pictures/<id>.json`               | Screen picture, a tile picture ([Image assets](image-assets.md#screen-pictures))                                                    |
 | `image`           | Course image name, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`                    | Compiled course images, the vehicle sprite library and the text tiles                                                               |
 | `vehicle`         | Vehicle ID                                                                                      | `vehicles/<id>.json`                      | Vehicle mechanics document                                                                                                          |
 | `vehicle-listing` | Vehicle ID                                                                                      | `vehicle-listings/<id>.json`              | Vehicle listing document                                                                                                            |

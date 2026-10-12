@@ -19,6 +19,7 @@
     "sprite": "node --import tsx tools/build/sprite.ts",
     "pictures": "node --import tsx tools/build/pictures.ts",
     "hud-tiles": "node --import tsx tools/build/hud-tiles.ts",
+    "screen-pictures": "node --import tsx tools/build/screen-pictures.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs"
   },
   "devDependencies": {

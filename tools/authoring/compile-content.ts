@@ -21,6 +21,7 @@ import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
+import { compileScreenPictures, SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-catalog.js';
 import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
@@ -197,6 +198,13 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     return [deliveredFile('image', TEXT_TILES_ID, encodeContentJson(value))];
   });
 
+  // The screen pictures are delivered as authored once admitted; series name their images among them.
+  const screenPictureFiles = await read(SCREEN_PICTURES_DIRECTORY);
+  const screenPictures = await stage('screen-pictures', inputs(screenPictureFiles), async () => {
+    const documents = await sources(SCREEN_PICTURES_DIRECTORY, screenPictureFiles);
+    return { catalog: requireLoaded(compileScreenPictures(documents)), files: delivered('screen-picture', documents) };
+  });
+
   const materialFiles = await read('materials');
   const materials = await stage('materials', inputs(materialFiles), async () => {
     const documents = await sources('materials', materialFiles);
@@ -336,33 +344,39 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
 
   // Every class is admitted against its compiled course.
   const seriesFiles = await read('series', '.series.json');
-  const series = await stage('series', [definitions.key, ...courseKeys, ...inputs(seriesFiles)], async () => {
-    const documents = await sources('series', seriesFiles);
-    const catalog = requireLoaded(
-      compileSeriesCatalog(
-        documents,
-        compiledCourses.map((course) => course.id),
-        definitions.value.definitions.vehicles,
-      ),
-    );
-    const seriesClasses = catalog.series.flatMap((series) => {
-      const source = documents.find((s) => s.id === series.id)!;
-      return series.classes.map((settings) => {
-        const course = compiledCourses.find((c) => c.id === settings.course)!;
-        return Object.freeze({
-          course,
-          settings: requireLoaded(
-            admitSeriesClass(settings, course, definitions.value.definitions.vehicles, source.path),
-          ),
+  const series = await stage(
+    'series',
+    [definitions.key, screenPictures.key, ...courseKeys, ...inputs(seriesFiles)],
+    async () => {
+      const documents = await sources('series', seriesFiles);
+      const catalog = requireLoaded(
+        compileSeriesCatalog(
+          documents,
+          compiledCourses.map((course) => course.id),
+          definitions.value.definitions.vehicles,
+          screenPictures.value.catalog,
+        ),
+      );
+      const seriesClasses = catalog.series.flatMap((series) => {
+        const source = documents.find((s) => s.id === series.id)!;
+        return series.classes.map((settings) => {
+          const course = compiledCourses.find((c) => c.id === settings.course)!;
+          return Object.freeze({
+            course,
+            settings: requireLoaded(
+              admitSeriesClass(settings, course, definitions.value.definitions.vehicles, source.path),
+            ),
+          });
         });
       });
-    });
-    return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
-  });
+      return { seriesClasses: Object.freeze(seriesClasses), files: delivered('series', documents) };
+    },
+  );
 
   const files: DeliveredFile[] = [
     ...sprites.value.files,
     ...textTiles.value,
+    ...screenPictures.value.files,
     ...materials.value.files,
     ...surfaceSounds.value,
     ...wallSounds.value.files,

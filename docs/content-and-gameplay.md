@@ -906,15 +906,16 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 10) is the one owner of its classes, its ARCADE races. It is saved
+A series document (`superoutride.series` version 11) is the one owner of its classes, its ARCADE races. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 10,
+  "version": 11,
   "id": "ribbon",
   "title": "RIBBON",
+  "image": "ribbon",
   "dev": true,
   "timeMargin": 1.35,
   "fixedColors": false,
@@ -938,7 +939,8 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 }
 ```
 
-`title` is the display name. `dev: true` marks a development series: front ends show it only with DEV.
+`title` is the display name. `image` names its series image, an opaque 20×15-tile
+[screen picture](image-assets.md#screen-pictures). `dev: true` marks a development series: front ends show it only with DEV.
 `timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
 player drives in its entry's color rather than its own chosen color. `classes` lists at least one class in selection
 order. A class is one ARCADE race: its `id`, unique within the series, its display name `title`, a delivered `course`,
@@ -955,7 +957,7 @@ every route. On every route the distance
 falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
 of the class has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits`
 maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
-manifest alike, against the delivered course IDs and the vehicle catalog. A course may be run by several classes of
+manifest alike, against the delivered course IDs, the vehicle catalog and the screen pictures. A course may be run by several classes of
 one or several series. A class is admitted against its compiled
 course: `laps` within `maxLaps`, every entry's slot within the slots its field uses of the grid it starts from (the
 bike grid when every entry is a bike and the course has one), no bike among the candidate vehicles of a field that is

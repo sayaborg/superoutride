@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 10,
+  "version": 11,
   "id": "tsukuba-clubman",
   "title": "TSUKUBA CLUBMAN",
+  "image": "tsukuba-clubman",
   "dev": false,
   "timeMargin": 1.35,
   "fixedColors": false,

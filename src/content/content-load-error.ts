@@ -7,6 +7,7 @@ export type ContentKind =
   | 'course-index'
   | 'series'
   | 'image'
+  | 'screen-picture'
   | 'envelope'
   | 'reference-times'
   | 'schedule'
