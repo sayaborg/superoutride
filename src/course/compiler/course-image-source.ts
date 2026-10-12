@@ -2,7 +2,12 @@ import { AdmissionError, deepFreeze } from '../../core/admission.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
-import { compileTilePicture, type TilePictureDocument, type TilePicture } from '../../image/tile-picture.js';
+import {
+  compileTilePicture,
+  TILE_PICTURE_FORMAT,
+  type TilePictureDocument,
+  type TilePicture,
+} from '../../image/tile-picture.js';
 import {
   readSpriteLodAsset,
   spriteLodLayout,
@@ -141,7 +146,7 @@ export async function readCourseImageSources(
     }
     let admitted: AdmittedImage;
     try {
-      if ((value as { format?: string } | null)?.format === 'superoutride.tile-background') {
+      if ((value as { format?: string } | null)?.format === TILE_PICTURE_FORMAT) {
         const background = value as TilePictureDocument;
         if (
           Array.isArray(background.patterns) &&

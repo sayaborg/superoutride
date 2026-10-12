@@ -1,47 +1,58 @@
 import { readArray, readDocument, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
 
-const BACKGROUND_TILE_SIZE = 16;
-const BACKGROUND_TILE_ROWS = 40;
-/** The widest map, 4096 px: a full turn at the longest DEV focal length (400 px) is 2513 px. */
-const BACKGROUND_MAX_TILE_COLUMNS = 256;
-export const BACKGROUND_HEIGHT = BACKGROUND_TILE_ROWS * BACKGROUND_TILE_SIZE;
+/** A tile's side in pixels. */
+export const TILE_PICTURE_TILE_SIZE = 16;
+/** The widest and tallest maps: 4096 px, so a full turn at the longest DEV focal length (400 px, 2513 px) fits. */
+export const TILE_PICTURE_LIMITS = Object.freeze({ columns: 256, rows: 64 });
 
-/** The indexed pattern/palette format with a fixed tile arrangement rather than sprite levels. */
+/**
+ * The one tile picture format: 16×16 patterns of 4-bit indices, 16-entry RGB555 palettes, and a row-major map of
+ * `columns` tiles a row, each binding a pattern and a palette. Index 0 is transparent.
+ */
 export interface TilePictureDocument {
-  readonly format: 'superoutride.tile-background';
+  readonly format: 'superoutride.tile-picture';
   readonly version: 1;
   readonly name: string;
+  readonly columns: number;
   readonly patterns: readonly { readonly indices: readonly number[] }[];
   readonly palettes: readonly (readonly number[])[];
   readonly tiles: readonly (readonly [patternId: number, paletteId: number])[];
 }
 
-/** An opaque background symbol: the background is the frame's base plane, so index 0 is not admitted. */
-function readOpaqueSymbol(value: unknown, path: string): number {
-  const index = readPatternSymbol(value, path);
-  requireAdmission(index !== 0, 'invalid_value', path, 'Background patterns are opaque and cannot use index 0');
-  return index;
+export const TILE_PICTURE_FORMAT = 'superoutride.tile-picture';
+
+/** A target a picture is drawn into: RGB555 pixels, row-major. */
+export interface TilePictureTarget {
+  readonly pixels: Uint16Array;
+  readonly width: number;
+  readonly height: number;
 }
 
-/** Admit a saved tiled background and build its immutable raster reader. */
+/** Admit a saved tile picture and build its immutable raster reader. */
 export function compileTilePicture(value: unknown): TilePicture {
   const document = readDocument(
     value,
-    ['format', 'version', 'name', 'patterns', 'palettes', 'tiles'],
-    'superoutride.tile-background',
+    ['format', 'version', 'name', 'columns', 'patterns', 'palettes', 'tiles'],
+    TILE_PICTURE_FORMAT,
     1,
   );
   const name = readString(document.name, '/name');
+  const columns = readNumber(document.columns, '/columns', {
+    min: 1,
+    max: TILE_PICTURE_LIMITS.columns,
+    integer: true,
+  });
+  const size = TILE_PICTURE_TILE_SIZE * TILE_PICTURE_TILE_SIZE;
   const patterns = readArray(
     document.patterns,
     '/patterns',
     (value, path) =>
       new IndexedPattern(
-        16,
-        16,
-        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readOpaqueSymbol, {
-          length: 256,
+        TILE_PICTURE_TILE_SIZE,
+        TILE_PICTURE_TILE_SIZE,
+        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
+          length: size,
         }),
       ),
     { min: 1 },
@@ -57,45 +68,54 @@ export function compileTilePicture(value: unknown): TilePicture {
         readNumber(palette, `${path}/1`, { min: 0, max: palettes.length - 1, integer: true }),
       ] as const;
     },
-    { min: BACKGROUND_TILE_ROWS, max: BACKGROUND_MAX_TILE_COLUMNS * BACKGROUND_TILE_ROWS },
+    { min: columns, max: columns * TILE_PICTURE_LIMITS.rows },
   );
   requireAdmission(
-    tiles.length % BACKGROUND_TILE_ROWS === 0,
+    tiles.length % columns === 0,
     'invalid_value',
     '/tiles',
-    `A tiled background has ${BACKGROUND_TILE_ROWS} full rows of tiles`,
+    `A tile picture has full rows of ${columns} tiles`,
   );
-  return new TilePicture(name, patterns, palettes, tiles);
+  return new TilePicture(name, columns, patterns, palettes, tiles);
 }
 
 /** Private packed patterns, palette table and tile bindings are borrowed read-only by the raster. */
 export class TilePicture {
-  /** The map's width in pixels: its tile columns, which its tiles give, times 16. */
+  readonly columns: number;
+  readonly rows: number;
+  /** In pixels: its tile columns and rows times 16. */
   readonly width: number;
-  readonly height = BACKGROUND_HEIGHT;
-  readonly #columns: number;
+  readonly height: number;
+  /** No pattern holds index 0, so the picture writes every pixel it covers. */
+  readonly opaque: boolean;
   readonly #patterns: readonly IndexedPattern[];
   readonly #palettes: Uint16Array;
   readonly #tiles: Uint32Array;
 
-  /** Admitted opaque 16x16 patterns, 16-color palettes and one in-range binding per tile. */
+  /** Admitted 16×16 patterns, 16-color palettes and one in-range binding per tile, in full rows of `columns`. */
   constructor(
     readonly name: string,
+    columns: number,
     patterns: readonly IndexedPattern[],
     palettes: readonly (readonly number[])[],
     tiles: readonly (readonly [patternId: number, paletteId: number])[],
   ) {
     if (
+      !Number.isInteger(columns) ||
+      columns < 1 ||
       tiles.length === 0 ||
-      tiles.length % BACKGROUND_TILE_ROWS !== 0 ||
+      tiles.length % columns !== 0 ||
       !tiles.every(([pattern, palette]) => pattern < patterns.length && palette < palettes.length)
     )
-      throw new RangeError('A tiled background binds 40 full rows of tiles to existing patterns and palettes');
-    this.#columns = tiles.length / BACKGROUND_TILE_ROWS;
-    this.width = this.#columns * BACKGROUND_TILE_SIZE;
-    for (const pattern of patterns)
-      for (let i = 0; i < 256; i++)
-        if (!pattern.indexAt(i)) throw new RangeError('A tiled background pattern is opaque and has no index 0');
+      throw new RangeError('A tile picture binds full rows of tiles to existing patterns and palettes');
+    this.columns = columns;
+    this.rows = tiles.length / columns;
+    this.width = columns * TILE_PICTURE_TILE_SIZE;
+    this.height = this.rows * TILE_PICTURE_TILE_SIZE;
+    this.opaque = patterns.every((pattern) => {
+      for (let i = 0; i < 256; i++) if (!pattern.indexAt(i)) return false;
+      return true;
+    });
     this.#patterns = patterns;
     this.#palettes = new Uint16Array(palettes.length * 16);
     palettes.forEach((palette, id) => this.#palettes.set(palette, id << 4));
@@ -103,11 +123,14 @@ export class TilePicture {
     Object.freeze(this);
   }
 
-  /** Writes every destination pixel of the row; interiors share their tile lookup. */
+  /**
+   * Writes every destination pixel of one row of an opaque picture, repeating it horizontally from `imageX`;
+   * interiors share their tile lookup.
+   */
   paintRow(target: Uint16Array, destination: number, imageX: number, imageY: number, width: number): void {
     let x = ((imageX % this.width) + this.width) % this.width,
       written = 0;
-    const tileRow = (imageY >>> 4) * this.#columns,
+    const tileRow = (imageY >>> 4) * this.columns,
       row = (imageY & 15) << 4;
     while (written < width) {
       const column = x & 15,
@@ -120,6 +143,24 @@ export class TilePicture {
       written += count;
       x += count;
       if (x === this.width) x = 0;
+    }
+  }
+
+  /** Draw the picture once with its top-left corner at (`x`, `y`), clipped to the target; index 0 leaves the target. */
+  draw(target: TilePictureTarget, x: number, y: number): void {
+    const top = Math.max(0, -y),
+      bottom = Math.min(this.height, target.height - y),
+      left = Math.max(0, -x),
+      right = Math.min(this.width, target.width - x);
+    for (let imageY = top; imageY < bottom; imageY++) {
+      const tileRow = (imageY >>> 4) * this.columns,
+        row = (imageY & 15) << 4,
+        destination = (y + imageY) * target.width + x;
+      for (let imageX = left; imageX < right; imageX++) {
+        const tile = (tileRow + (imageX >>> 4)) * 2;
+        const index = this.#patterns[this.#tiles[tile]!]!.indexAt(row + (imageX & 15));
+        if (index) target.pixels[destination + imageX] = this.#palettes[(this.#tiles[tile + 1]! << 4) + index]!;
+      }
     }
   }
 }

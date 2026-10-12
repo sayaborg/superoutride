@@ -89,22 +89,30 @@ and verify bytes before decoding. Format and version are written only inside eac
 never in course asset references or manifest entries.
 Strips have no ground image inputs.
 
-## Infinite tiled background
+## Tile pictures
 
-The image is a tile map of 16 by 16 patterns, 40 tiles (640 pixels) high and of any width up to 256 tiles (4096
-pixels); its tiles give its width:
+One tile picture format serves the course sky, the series images and the title logo: 16×16 patterns of 4-bit
+indices, 16-entry RGB555 palettes, and a row-major map of `columns` tiles a row in full rows, each tile binding a
+pattern and a palette. Its tiles and `columns` give its height:
 
 ```text
 {
-  format: "superoutride.tile-background", version: 1, name,
+  format: "superoutride.tile-picture", version: 1, name, columns,
   patterns: [{indices}], palettes,
   tiles: [[patternId,paletteId], ...]
 }
 ```
 
-Tiles are row-major, in 40 full rows, and bind a pattern and 16-entry palette. The background is opaque: admission
-rejects any pattern index 0, used or not, at its JSON Pointer inside the image, so the background
-writes every pixel it covers. The map is a single infinite plane with no LOD.
+Index 0 is transparent; a picture none of whose patterns holds index 0 is opaque and writes every pixel it covers.
+A map is 1–256 tiles wide and 1–64 tiles high. `compileTilePicture` admits this document and builds the immutable
+`TilePicture` reader; the reader's constructor keeps only its local invariant that every tile binds an existing pattern
+and palette. Each use of the format states its own size and opacity where it admits the picture.
+
+## Infinite tiled background
+
+A course sky is a tile picture 40 tiles (640 pixels) high and opaque, of any width up to 256 tiles (4096 pixels); the
+course compiler checks both where the course admits its sky, at the environment's `background/image`. The map is a
+single infinite plane with no LOD.
 The source horizon row and Section-frame yaw origin are authored; yaw and pitch scroll the map, and camera
 translation has no effect. Vertically the mapping is linear: the screen horizon row
 ([projection](architecture.md#height-and-projection)) meets the image's horizon row, each screen row shows one
@@ -113,19 +121,17 @@ edge row. Horizontally it scrolls at the camera's focal length, `f` pixels per r
 distant road and sprites do, and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
 closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
-`compileTilePicture` admits this document and builds the immutable `TilePicture` reader;
-the reader's constructor keeps only its local invariant that every tile binds an existing pattern and palette.
 
 ## Text tiles
 
-`content/text-tiles/default.json` uses `superoutride.text-tiles` version 1, the tiled background's pattern and
+`content/text-tiles/default.json` uses `superoutride.text-tiles` version 1, the tile picture's pattern and
 palette fields without a tile arrangement:
 
 ```text
 {format: "superoutride.text-tiles", version: 1, name, patterns: [{indices}], palettes}
 ```
 
-Patterns are 8 by 8 and, unlike the background, admit index 0 as transparent. Patterns 0 through 94 are the
+Patterns are 8 by 8, and index 0 is transparent as in tile pictures. Patterns 0 through 94 are the
 printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table.
 The HUD part tiles follow them in one fixed order that code names, the same way, so their mapping needs no saved
 table either, and the HUD pictures follow them; the document must hold at least all of these, and later patterns are
@@ -254,9 +260,9 @@ the new image. Naming it in a course is the course's edit.
 
 ## Course image sources
 
-Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or BG
+Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile picture
 format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an immutable reader,
-a `SpriteAsset` or a tiled background; Section membership resolves to those, and rendering borrows them without
+a `SpriteAsset` or a tile picture; Section membership resolves to those, and rendering borrows them without
 decoding. Delivery checks the bytes against the manifest digest before they reach admission.
 
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)

@@ -4,13 +4,15 @@ import { type CoursePosition, type SectionDocument } from '../course-document.js
 import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
-import { BACKGROUND_HEIGHT } from '../../image/tile-picture.js';
 import type { CourseAppearance, CourseSpriteResource, CourseWallAppearance } from '../course-appearance.js';
 import type { StripGround } from '../strip-ground.js';
 import { stripEdgeAt } from '../strip-slabs.js';
 import type { CompiledWall } from './course-walls.js';
 import type { CourseSpritePlacement } from './course-objects.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
+
+/** A course sky is a tile picture 40 tiles (640 px) high and opaque, so it writes every pixel it covers. */
+const SKY_TILE_ROWS = 40;
 
 export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course-appearance', version: 14 });
 
@@ -110,11 +112,17 @@ export function compileCourseAppearance(
         throw new CourseInputError(
           'invalid_image_role',
           `${at}/background/image`,
-          'Background requires the single tiled plane format',
+          'Background requires the tile picture format',
         );
       const tiled = asset;
       requireCourse(
-        Number.isInteger(b.horizonY) && b.horizonY < BACKGROUND_HEIGHT,
+        tiled.image.rows === SKY_TILE_ROWS && tiled.image.opaque,
+        `${at}/background/image`,
+        `A sky is an opaque tile picture ${SKY_TILE_ROWS} tiles high`,
+        'invalid_image_role',
+      );
+      requireCourse(
+        Number.isInteger(b.horizonY) && b.horizonY < tiled.image.height,
         `${at}/background/horizonY`,
         'Background horizon must be an image row',
         'invalid_image_role',
