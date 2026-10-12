@@ -138,3 +138,24 @@ export function judgeRun(records: PlayerRecords, run: RecordedRun): RecordJudgem
     records: newRecord || newBestLap ? { ...records, timeTrial: { ...records.timeTrial, [key]: record } } : null,
   };
 }
+
+/**
+ * A class's best ARCADE time, in whole milliseconds, over the given vehicles (catalog ID to vehicle identity) at any of
+ * its course's goals: the records SELECT CLASS shows, counted only while their identities are current. Null when none.
+ */
+export function classBestMilliseconds(
+  records: PlayerRecords,
+  seriesId: string,
+  classId: string,
+  courseSha256: string,
+  vehicles: ReadonlyMap<string, string>,
+): number | null {
+  let best: number | null = null;
+  for (const [key, record] of Object.entries(records.arcade)) {
+    const [series, classKey, , vehicleId] = JSON.parse(key) as [string, string, string, string];
+    if (series !== seriesId || classKey !== classId) continue;
+    if (record.courseSha256 !== courseSha256 || record.vehicleSha256 !== vehicles.get(vehicleId)) continue;
+    if (best === null || record.timeMs < best) best = record.timeMs;
+  }
+  return best;
+}

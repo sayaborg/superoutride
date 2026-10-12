@@ -43,6 +43,7 @@ test('the front end screens render from the delivered content', async () => {
       music,
       player,
       dev: true,
+      vehicleSha256: new Map(),
     },
     {
       frame,

@@ -18,6 +18,10 @@ import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
 import { createSeriesScreen, SERIES_SLIDE_STEPS } from './series-screen.js';
+import { createPictureMenuScreen, type PictureMenuLine } from './picture-menu-screen.js';
+import { classBestMilliseconds } from './run-records.js';
+import { formatMilliseconds, NO_TIME } from './race-time.js';
+import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { SIM_DT } from '../race/fixed-step.js';
 
 type Mode = RunRequest['mode'];
@@ -47,6 +51,8 @@ export interface SelectionCatalog {
   readonly player: PlayerRecord;
   /** `dev=1`: DEV series and courses in no series are offered. */
   readonly dev: boolean;
+  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
+  readonly vehicleSha256: ReadonlyMap<string, string>;
 }
 
 /** Where the selection draws and what its screens lead to. */
@@ -155,6 +161,35 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     if (mode === 'TIME_TRIAL') return Object.freeze({ ...course, mode, lapCount });
     return Object.freeze({ ...course, mode, lapCount, rivalCount, rivalPool, traffic });
   };
+  // SELECT CLASS's lines: the course, laps and field; the vehicle, or how many vehicles; the class's best ARCADE time
+  // over its vehicles.
+  const classLines = (c: SeriesClass): readonly PictureMenuLine[] => {
+    const listed = c.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!);
+    const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
+    const fieldBikes = c.entries.every(
+      (e) => vehicles.find((v) => v.compiledVehicle.id === e.vehicle)!.listing.form === 'bike',
+    );
+    const vehicle =
+      listed.length === 1
+        ? `${listed[0]!.listing.metadata.manufacturer} ${listed[0]!.listing.metadata.model}`.toUpperCase()
+        : `${listed.length} ${form(listed.every((v) => v.listing.form === 'bike'))}`;
+    const best = classBestMilliseconds(
+      player.records,
+      c.series.id,
+      c.id,
+      courseOf(c.course).buildSha256,
+      catalog.vehicleSha256,
+    );
+    return [
+      {
+        row: 25,
+        text: `${courseOf(c.course).name}  ${c.laps} LAPS  ${c.entries.length} ${form(fieldBikes)}`,
+        palette: TEXT_PALETTES.WHITE,
+      },
+      { row: 26, text: vehicle, palette: TEXT_PALETTES.WHITE },
+      { row: 28, text: `BEST ${best === null ? NO_TIME : formatMilliseconds(best)}`, palette: TEXT_PALETTES.GREEN },
+    ];
+  };
   // A number item LEFT/RIGHT changes within [min, max].
   const number = (label: string, value: () => number, set: (n: number) => void, min: number, max: number) => ({
     label,
@@ -253,7 +288,22 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           },
         }));
         const current = seriesChoice!.classes.findIndex((c) => c.id === (classChoice?.id ?? latest('class')));
-        return menu({ title: 'SELECT CLASS', items: () => items, back }, Math.max(0, current));
+        const classes = seriesChoice!.classes;
+        return devices.show(
+          createPictureMenuScreen(
+            devices.frame,
+            devices.text,
+            devices.present,
+            { title: 'SELECT CLASS', items: () => items, back },
+            {
+              picture: seriesChoice!.image,
+              band: [22, 29],
+              choiceRow: 23,
+              lines: (index) => classLines(classes[index]!),
+            },
+            Math.max(0, current),
+          ),
+        );
       }
       case 'COURSE': {
         // Each course carries its group's series title under it.
@@ -292,6 +342,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               // The color the Session gives the player: with fixed colors its class entry's.
               colorOf: (v) => sessionPlayerColor(mode === 'ARCADE' ? classChoice : null, v, recordedColor(player, v)),
               entry: last(),
+              // In ARCADE the page stands over the series image at quarter brightness.
+              background: mode === 'ARCADE' ? seriesChoice!.image : null,
             },
             {
               confirm: (vehicle, chosen) => {
@@ -384,7 +436,23 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         }));
         const chosen = track ?? latestTrack(player, tracks());
         const current = choices.findIndex((c) => c.id === chosen);
-        return menu({ title: 'SELECT MUSIC', items: () => items, back }, Math.max(0, current));
+        return devices.show(
+          createPictureMenuScreen(
+            devices.frame,
+            devices.text,
+            devices.present,
+            { title: 'SELECT MUSIC', items: () => items, back },
+            {
+              picture: mode === 'ARCADE' ? seriesChoice!.image : null,
+              band: [22, 29],
+              choiceRow: 24,
+              lines: (index) => [
+                { row: 26, text: `TRACK ${index + 1} / ${choices.length}`, palette: TEXT_PALETTES.WHITE },
+              ],
+            },
+            Math.max(0, current),
+          ),
+        );
       }
     }
   }

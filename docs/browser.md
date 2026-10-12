@@ -130,12 +130,18 @@ the first track) plays as an audition, so its volume is set by ear.
   `series-slide`; commands during a slide do nothing. The series' title track plays from its start when SELECT SERIES
   is entered, and a slide crossfades from the old series' title track to the new one over the slide's 16 steps. A
   series that offers nothing (no class) shows its image at half brightness and denies CONFIRM.
-- SELECT CLASS lists the chosen series' classes with their titles,
-  and choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
+- SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class
+  title (YELLOW) between WHITE `<` and `>` four columns either side; on row 25 `<COURSE>  <n> LAPS  <field> BIKES|CARS`
+  (WHITE; BIKES when the whole field is bikes); on row 26 the vehicle's manufacturer and model in upper case, or
+  `<n> BIKES|CARS` when the class lists several vehicles; on row 28 `BEST <time>` (GREEN), the class's best ARCADE
+  record over its vehicles at any goal, counted only while its course and vehicle identities are current (the course
+  index's `buildSha256` and each vehicle's `sessionVehicleSha256`), else `--'--"--`. LEFT and RIGHT change the class;
+  choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
   names from the course index, grouped by series. Each course is listed once, under the first offered series in
   series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
 - SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise, one catalog page per
-  vehicle ([SELECT VEHICLE](#select-vehicle)). LEFT and RIGHT change the vehicle and UP and DOWN its
+  vehicle ([SELECT VEHICLE](#select-vehicle)), drawn in ARCADE over the series image at quarter brightness and
+  otherwise on the plain background. LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
   its entry's color in the chosen class, with no color choice. CONFIRM saves a chosen color in the player record.
@@ -147,7 +153,9 @@ the first track) plays as an audition, so its volume is set by ear.
   record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
   change is saved there.
 - LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and NEXT.
-- SELECT MUSIC offers the run's tracks in their selection order, then `MUSIC OFF`: in ARCADE its series' race tracks,
+- SELECT MUSIC shows the series image in ARCADE (else the plain background) with text rows 22–29 at half brightness:
+  on row 24 the choice's title (YELLOW) between `<` and `>`, on row 26 `TRACK n / N` (WHITE), counting MUSIC OFF. It
+  offers the run's tracks in their selection order, then `MUSIC OFF`: in ARCADE its series' race tracks,
   otherwise every delivered track. It is shown only when there are two or more choices (one or more tracks); otherwise
   the run takes MUSIC OFF. There is no audition: choosing changes only the name. CONFIRM starts the run with it; the
   player record keeps MUSIC OFF as the latest choice `off`.

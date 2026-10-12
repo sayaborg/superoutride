@@ -13,6 +13,8 @@ import {
   type VehicleSpriteImages,
 } from '../vehicle/vehicle-sprite-set.js';
 import { SCREEN_BACKGROUND } from './menu.js';
+import { halveRgb555 } from '../image/rgb555.js';
+import type { TilePicture } from '../image/tile-picture.js';
 import type { MenuResponse, Screen } from './screen-host.js';
 
 /** Fixed steps each yaw image stays on SELECT VEHICLE. */
@@ -202,6 +204,8 @@ export function createVehicleScreen(
     colorOf(vehicle: CompiledVehicleDefinition): string;
     /** Its CONFIRM starts the run: it answers `entry`. */
     entry: boolean;
+    /** A picture the page stands over at quarter brightness; null for the plain background. */
+    background: TilePicture | null;
   },
   actions: { confirm(vehicle: CompiledVehicleDefinition, color: string | null): void; back(): void },
 ): Screen {
@@ -259,7 +263,10 @@ export function createVehicleScreen(
       let fit = fits.get(id);
       if (!fit) fits.set(id, (fit = pictureFit(set)));
       const yaw = (Math.floor(steps / YAW_IMAGE_STEPS) % set.yawVariants) * ((Math.PI * 2) / set.yawVariants);
-      frame.clear(SCREEN_BACKGROUND);
+      if (choice.background) {
+        choice.background.draw(frame, 0, 0);
+        for (let i = 0; i < frame.pixels.length; i++) frame.pixels[i] = halveRgb555(halveRgb555(frame.pixels[i]!));
+      } else frame.clear(SCREEN_BACKGROUND);
       drawScaledSprite(frame, selectVehicleSprite(set, yaw).asset, fit.x, fit.y, fit.scale);
       drawGraph(frame, text, vehicle, fuelCutEnterRedlineRatio);
 

@@ -14,6 +14,7 @@ import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseGridCapacity } from '../course/compiler/course-rules.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
+import { SHA256_TEXT } from '../core/content-digest.js';
 import type { ContentManifest } from './content-manifest.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
@@ -26,10 +27,12 @@ export interface CourseIndexEntry {
   readonly maxLaps: number;
   /** How many competitors, the player included, every Session of the course can start (`courseGridCapacity`). */
   readonly gridSlots: number;
+  /** The compiled course's build identity, which records are kept against. */
+  readonly buildSha256: string;
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 2 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 3 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
@@ -44,6 +47,7 @@ export function courseIndexDocument(courses: readonly CompiledCourse[]) {
       type: course.type,
       maxLaps: course.rules.maxLaps,
       gridSlots: courseGridCapacity(course.gates),
+      buildSha256: course.identity.buildSha256,
     })),
   };
 }
@@ -63,7 +67,7 @@ export function readCourseIndex(
     );
     const delivered = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
     const courses = readIdentified(data.courses, '/courses', (value, at) => {
-      const entry = readRecord(value, at, ['id', 'name', 'type', 'maxLaps', 'gridSlots']);
+      const entry = readRecord(value, at, ['id', 'name', 'type', 'maxLaps', 'gridSlots', 'buildSha256']);
       const id = readString(entry.id, `${at}/id`);
       requireAdmission(delivered.includes(id), 'invalid_value', `${at}/id`, `Course ${id} is not delivered`);
       const type = readEnum(entry.type, COURSE_TYPES, `${at}/type`);
@@ -88,7 +92,8 @@ export function readCourseIndex(
         max: SESSION_RULE_LIMITS.competitors,
         integer: true,
       });
-      return Object.freeze({ id, name, type, maxLaps, gridSlots });
+      const buildSha256 = readString(entry.buildSha256, `${at}/buildSha256`, SHA256_TEXT);
+      return Object.freeze({ id, name, type, maxLaps, gridSlots, buildSha256 });
     });
     requireAdmission(
       courses.length === delivered.length,

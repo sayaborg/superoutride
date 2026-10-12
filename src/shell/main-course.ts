@@ -16,6 +16,7 @@ import { loadScreenPictures } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
+import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
@@ -217,8 +218,15 @@ async function startPage(): Promise<void> {
       );
     }
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
+    // Each vehicle's identity, which records are kept against, for the records SELECT CLASS shows.
+    const vehicleSha256 = new Map<string, string>();
+    for (const vehicle of vehicles)
+      vehicleSha256.set(
+        vehicle.compiledVehicle.id,
+        await sessionVehicleSha256(createSessionVehicle(vehicle, driving), materials),
+      );
     const flow = createSelectionFlow(
-      { courses: courseIndex, series, vehicles, driving, freePlay, music, player, dev },
+      { courses: courseIndex, series, vehicles, driving, freePlay, music, player, dev, vehicleSha256 },
       {
         frame: shell.framebuffer,
         text: textLayer,

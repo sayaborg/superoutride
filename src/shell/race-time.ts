@@ -12,6 +12,9 @@ export function formatRaceTime(seconds: number): string {
   return formatMilliseconds(raceMilliseconds(seconds));
 }
 
+/** A time not yet set, where a record's time would stand. */
+export const NO_TIME = `--'--"--`;
+
 /** Whole milliseconds as `1'23"456`. */
 export function formatMilliseconds(totalMilliseconds: number): string {
   const minutes = Math.floor(totalMilliseconds / 60_000);
