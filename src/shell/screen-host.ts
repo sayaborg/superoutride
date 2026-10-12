@@ -117,6 +117,12 @@ export function createScreenHost(
       next = target === screen ? null : target;
       update();
     },
+    /** Make `target` the current screen at once, at full brightness: a run the URL starts directly. */
+    cut(target: Screen) {
+      if (target !== screen) screen.leave?.();
+      [screen, next, brightness] = [target, null, TRANSITION_STEPS];
+      update();
+    },
     /** The current screen's `live` may have changed. */
     refresh: update,
   });

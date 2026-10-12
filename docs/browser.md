@@ -270,7 +270,7 @@ class and the vehicle catalog and derives its Session configuration (`compileSes
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
-with `series` and `class`, or with `course`, builds that run's request and starts the run through the PRE-RACE card; a URL with
+with `series` and `class`, or with `course`, builds that run's request and starts the run directly: its PRE-RACE card leaves as soon as the run is assembled, with no minimum stay and no black before READY, so a headless check reaches its first frame; a URL with
 neither starts at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
 like an assembly.
 

@@ -175,8 +175,9 @@ async function startPage(): Promise<void> {
       run = null;
       show();
     };
-    // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE.
-    const request = async (next: RunRequest, back = () => flow.title()) => {
+    // `back` leaves LOAD FAILED: to the screen that requested the run, by default TITLE. A run the URL names starts
+    // directly, for development and tests: its PRE-RACE card leaves once it is loaded, without black between.
+    const request = async (next: RunRequest, back = () => flow.title(), direct = false) => {
       if (assembling) return;
       assembling = true;
       run?.dispose();
@@ -205,18 +206,18 @@ async function startPage(): Promise<void> {
         });
         run = assembled;
         card.loaded();
-        await standing;
+        if (!direct) await standing;
         if (status) status.hidden = true;
         // The title track fades out over the black transition into READY.
         menuMusic.fadeOut(TRANSITION_STEPS * SIM_DT);
-        host.show(
-          createRunScreen(state, assembled, shell.framebuffer, textLayer, {
-            retry: () => void request(next, back),
-            changeVehicle: () => leave(() => flow.vehicle(next)),
-            select: () => leave(() => flow.select(next)),
-            title: () => leave(() => flow.title()),
-          }),
-        );
+        const screen = createRunScreen(state, assembled, shell.framebuffer, textLayer, {
+          retry: () => void request(next, back),
+          changeVehicle: () => leave(() => flow.vehicle(next)),
+          select: () => leave(() => flow.select(next)),
+          title: () => leave(() => flow.title()),
+        });
+        if (direct) host.cut(screen);
+        else host.show(screen);
       } catch (error) {
         fail(error, () => void request(next, back), back);
       } finally {
@@ -283,7 +284,7 @@ async function startPage(): Promise<void> {
     const urlRequest = () => {
       try {
         const named = readUrlRunRequest(parameters, series, vehicles, freePlay, player, music);
-        if (named) void request(named);
+        if (named) void request(named, undefined, true);
         else flow.title();
       } catch (error) {
         fail(error, urlRequest, () => flow.title());
