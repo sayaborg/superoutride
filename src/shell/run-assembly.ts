@@ -20,6 +20,7 @@ import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
 import type { RunRequest } from './run-request.js';
+import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
@@ -65,12 +66,35 @@ export interface RunPage {
   drawSeed(): number;
 }
 
+/** What a run's assembly reports while it loads: the PRE-RACE card's progress and facts. */
+export interface RunAssemblyReport {
+  /** The share of the run's loading done, 0 to 1. */
+  progress(fraction: number): void;
+  /** The course and Session are known: the course, the player's start slot and field, and READY's record. */
+  prepared(facts: {
+    readonly course: CompiledCourse;
+    readonly field: number;
+    readonly bikes: boolean;
+    readonly slot: number;
+    /** READY's record in milliseconds; null when none yet, undefined when the mode keeps none (FREE PLAY). */
+    readonly best: number | null | undefined;
+  }): void;
+}
+
+/** Shares of a run's loading: its course's files, then the course compiled, then its Session prepared. */
+const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
+
 /**
  * Assemble a run for `request`, started at once: the run lifetime of the course, its Session settings, field, products
  * and scene, the player's sprites and camera, and the run's DEV controls. `state` is its run screen's state, which the
  * run's DEV controls and race end change.
  */
-export async function assembleRun(page: RunPage, request: RunRequest, state: RunScreenState): Promise<Run> {
+export async function assembleRun(
+  page: RunPage,
+  request: RunRequest,
+  state: RunScreenState,
+  report?: RunAssemblyReport,
+): Promise<Run> {
   const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   // ARCADE drives its class on the class's course; the other modes drive the course they name.
   let named: SeriesClass | null = null,
@@ -80,7 +104,10 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
     courseId = named.course;
   } else courseId = request.courseId;
-  const course = await loadDeliveredCourse(content, courseId, materials);
+  const course = await loadDeliveredCourse(content, courseId, materials, (files, total) =>
+    report?.progress((LOADING_SHARES.files * files) / total),
+  );
+  report?.progress(LOADING_SHARES.compiled);
   const arcade = named && loadSeriesClass(content, named, course, vehicles);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
   const prepared = await prepareSession(
@@ -118,6 +145,7 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     return { session, scene, race, tuned: tuned !== null, records };
   };
   let active = build(null);
+  report?.progress(LOADING_SHARES.prepared);
   // The player's color is resolved with the Session; a DEV rebuild keeps it.
   const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
   const lifecycle = createDrivingLifecycle(createCameraRig(), {
@@ -193,6 +221,20 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     if (records.hud === undefined) records.hud = comparedRecord(recordsBefore, selection, active.race.routeLinks);
     return records.hud ?? null;
   };
+  // The PRE-RACE card's facts: the field, the player's slot on its grid and the record READY shows.
+  if (report) {
+    const { entries } = active.session;
+    const slot = entries[0]!.slot!;
+    const grid = course.gates.bikeGrid?.includes(slot) ? course.gates.bikeGrid : course.gates.grid;
+    const best = comparedRecord(recordsBefore, selection, active.race.routeLinks);
+    report.prepared({
+      course,
+      field: entries.length,
+      bikes: entries.every((e) => e.vehicle.vehicleDefinition.listing.form === 'bike'),
+      slot: grid.indexOf(slot) + 1,
+      best: settings.mode === 'FREE_PLAY' ? undefined : best === undefined ? null : (best?.timeMs ?? null),
+    });
+  }
   // The product Session's judgement against the records, made once when it reaches GOAL.
   const record = () => {
     const { race, records } = active;

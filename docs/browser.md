@@ -23,7 +23,7 @@ time, passing no step length, and the fractional remainder carries forward. One 
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
 hold the values of the latest completed step. There is one frame loop; it runs while the page is visible and
 advances and draws the current screen. Each start begins a fresh clock, so stopped real time never enters the
-simulation. Loading leaves the race clock stopped; an assembled run starts at once.
+simulation. Loading leaves the race clock stopped; an assembled run starts after the PRE-RACE card and the black transition.
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
@@ -38,7 +38,7 @@ values and the run's DEV controls (driving tuning, export, RECOVER). Page device
 run's observations to them.
 
 The page is loaded once. A URL that names a course, the selection screens and RETRY request a run, and every request
-passes the one assembly, after which the run starts at once; a DEV tuning rebuild replaces the Session inside its run. Assembly is
+passes the one assembly, after which the run starts once the PRE-RACE card leaves; a DEV tuning rebuild replaces the Session inside its run. Assembly is
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
@@ -57,7 +57,20 @@ visible and the current screen is live, and the host runs one symmetric procedur
 menu or off while hidden): driving clears input suspension; otherwise input is suspended (which resets it). The same
 procedure tells audio whether the page is visible and whether a run is driven ([Audio](audio.md#mix-and-lifetime)).
 
-The loading screen shows `LOADING` on the plain background while a run is assembled. After a failed assembly the
+The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. In
+ARCADE it shows the series image with rows 17–29 (y 136–240) at quarter brightness; other modes show it on black.
+Inside x 8–136, y 136–232 it draws the course map, north up by the course's bearing: the route's centreline (one lap of
+a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
+core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
+GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
+the class title (YELLOW; the mode's name outside ARCADE) on row 18, the course's name on row 20, `<length>KM  <n> LAPS`
+on row 21 (the route's length to 0.001 km, laps only on a circuit), `<field> CARS|BIKES  START P<slot>` on row 23 and
+`BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (no line in FREE PLAY). On
+row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
+the course's files to 70 %, its compilation to 80 %, the Session to 90 %, the assembled run to 100 %. The title, course
+name and laps show at once; the map and the Session's lines once the course is compiled and the Session prepared. The
+card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to
+READY. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
 the screen that requested it: the last selection screen, or TITLE for a run the URL or a DEV control requested. The
 reason is not drawn, since it may hold characters without text tiles: it goes to the console and, with `dev=1`, to a
@@ -68,7 +81,7 @@ or finished (the Session reached RESULT). The run runs only while neither holds:
 and driving input and sound stop, so no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
 half brightness while the text layer, the HUD included, stays at full brightness: the title `PAUSED` and
-RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which starts at once with a
+RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which passes the PRE-RACE card with a
 new seed; QUIT ends the run and shows TITLE.
 
 Every menu screen uses one menu part: a title, information lines and items, centred in the text grid without
@@ -98,7 +111,7 @@ CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELEC
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC
 (only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
 last screen shown requests the run (`menu-entry`), which shows
-LOADING and then starts at once. Each screen starts from the current selection, else the player record's latest
+the PRE-RACE card and then starts. Each screen starts from the current selection, else the player record's latest
 selection for that screen (SELECT MODE, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
 under the keys `mode`, `series`, `class`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
 its choice as the latest. RETRY keeps the run's request; CHANGE VEHICLE goes to SELECT VEHICLE and SELECT to the mode's
@@ -175,7 +188,7 @@ is drawn over the stopped frame at half brightness and takes the menu commands. 
 red; its lines are RANK n/m when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
 the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
 when it beat the recorded best lap. The race facts give the rank (by the race's standing) and times; the run's one
-record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, starting at once with
+record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
@@ -253,7 +266,7 @@ class and the vehicle catalog and derives its Session configuration (`compileSes
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
-with `series` and `class`, or with `course`, builds that run's request and starts the run at once; a URL with
+with `series` and `class`, or with `course`, builds that run's request and starts the run through the PRE-RACE card; a URL with
 neither starts at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
 like an assembly.
 

@@ -1,9 +1,10 @@
 {
   "format": "superoutride.course",
-  "version": 49,
+  "version": 50,
   "name": "TSUKUBA",
   "entry": "sector-1",
   "maxLaps": 30,
+  "bearing": 12,
   "sections": [
     {
       "id": "sector-1",

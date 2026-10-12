@@ -1,9 +1,10 @@
 {
   "format": "superoutride.course",
-  "version": 49,
+  "version": 50,
   "name": "RIBBON FORK",
   "entry": "junction-road",
   "maxLaps": 1,
+  "bearing": 0,
   "sections": [
     {
       "id": "junction-road",

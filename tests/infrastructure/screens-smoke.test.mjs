@@ -17,6 +17,10 @@ import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createSelectionFlow } from '../../src/shell/selection-flow.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
 import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
+import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
+import { createCourseMap } from '../../src/view/course-map.js';
+import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 
 // The screens smoke: the front end's screens render headlessly through the same screens the page shows, from the
 // delivered content. Each drawn frame is saved to `dist/screens/<name>.png` at twice the frame's size, as the reference
@@ -30,13 +34,15 @@ test('the front end screens render from the delivered content', async () => {
   // A fresh player record, kept in no storage.
   const player = openPlayerRecord(null);
   const music = await loadMusic(content, TEXT_COLUMNS);
+  const courses = await loadCourseIndex(content);
+  const series = await loadSeriesCatalog(content, vehicles, pictures, music);
   let screen = null,
     requested = null,
     titleTrack = null;
   const flow = createSelectionFlow(
     {
-      courses: await loadCourseIndex(content),
-      series: await loadSeriesCatalog(content, vehicles, pictures, music),
+      courses,
+      series,
       vehicles,
       driving,
       freePlay: await loadFreePlayRules(content),
@@ -124,4 +130,21 @@ test('the front end screens render from the delivered content', async () => {
     assert.equal(requested.track, null);
     assert.equal(titleTrack, 'placeholder-one');
   }
+
+  // The PRE-RACE card of the last request, 911 CUP: its course map from the compiled course, halfway loaded.
+  const course = await loadDeliveredCourse(content, 'tsukuba', await loadSurfaceMaterials(content));
+  const card = createPreRaceScreen(
+    frame,
+    text,
+    () => {},
+    preRaceCardOf(requested, series, courses),
+    () => {},
+  );
+  card.facts({ map: createCourseMap(course), field: 16, bikes: false, slot: 16, best: null });
+  card.progress(0.6);
+  screen = card.screen;
+  await capture('prerace');
+  const map = createCourseMap(course);
+  assert.ok(Math.abs(map.lengthMeters - 2045) < 100, `TSUKUBA's lap is ${map.lengthMeters} m`);
+  assert.ok(map.checkpoints.length > 0);
 });

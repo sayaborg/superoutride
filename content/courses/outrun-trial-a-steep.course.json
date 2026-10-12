@@ -1,9 +1,10 @@
 {
   "format": "superoutride.course",
-  "version": 49,
+  "version": 50,
   "name": "OUTRUN TRIAL A STEEP",
   "entry": "stage-1",
   "maxLaps": 1,
+  "bearing": 0,
   "sections": [
     {
       "id": "stage-1",

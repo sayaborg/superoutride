@@ -63,6 +63,8 @@ export interface CompiledCourse {
   readonly name: string;
   readonly type: ReturnType<typeof compileCourseTopology>;
   readonly rules: CourseRules;
+  /** The entry Section's road direction at its origin, degrees clockwise from north: the course map's north. */
+  readonly bearing: number;
   readonly gates: ReturnType<typeof compileCourseGates>;
   readonly identity: {
     readonly sourceSha256: string;
@@ -312,6 +314,7 @@ export async function compileCourseDocument(
         name: document.name,
         type,
         rules: Object.freeze({ maxLaps: document.maxLaps }),
+        bearing: document.bearing,
         gates,
         identity: Object.freeze({
           sourceSha256,

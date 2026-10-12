@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 49;
+const COURSE_DOCUMENT_VERSION = 50;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -244,6 +244,11 @@ export interface CourseDocument {
   readonly entry: string;
   /** The most laps a Session may run on this course. */
   readonly maxLaps: number;
+  /**
+   * The compass direction of the road at the entry Section's origin, degrees clockwise from north in [0, 360):
+   * presentation data that only the course map reads.
+   */
+  readonly bearing: number;
   readonly sections: readonly SectionDocument[];
   readonly links: readonly LinkDocument[];
 }
@@ -726,7 +731,7 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
     // Format and version are checked before the current schema's fields.
     const v = readDocument(
       input,
-      ['format', 'version', 'name', 'entry', 'maxLaps', 'sections', 'links'],
+      ['format', 'version', 'name', 'entry', 'maxLaps', 'bearing', 'sections', 'links'],
       'superoutride.course',
       COURSE_DOCUMENT_VERSION,
     );
@@ -740,6 +745,7 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
       }),
       entry: readString(v.entry, '/entry', ID),
       maxLaps: readNumber(v.maxLaps, '/maxLaps', { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
+      bearing: readNumber(v.bearing, '/bearing', { min: 0, max: 360, exclusiveMax: true }),
       sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),
       links: readIdentified(
         v.links,

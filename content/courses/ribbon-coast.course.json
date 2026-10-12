@@ -1,9 +1,10 @@
 {
   "format": "superoutride.course",
-  "version": 49,
+  "version": 50,
   "name": "RIBBON COAST",
   "entry": "coast-wide",
   "maxLaps": 1,
+  "bearing": 0,
   "sections": [
     {
       "id": "coast-wide",

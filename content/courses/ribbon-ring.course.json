@@ -1,9 +1,10 @@
 {
   "format": "superoutride.course",
-  "version": 49,
+  "version": 50,
   "name": "RIBBON RING",
   "entry": "ring-outward",
   "maxLaps": 3,
+  "bearing": 0,
   "sections": [
     {
       "id": "ring-outward",

@@ -27,8 +27,8 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 49,
-  name, entry, maxLaps,
+  format: "superoutride.course", version: 50,
+  name, entry, maxLaps, bearing,
   sections, links
 }
 Section {
@@ -347,7 +347,10 @@ closure geometry; the appearance compiler checks conditional signs against it. A
 lock or closure gates.
 
 `entry` names the Section a run enters. `maxLaps` is a position-free setting: an integer from 1 through 99;
-non-circuits use 1. [Series](#series-documents) own ARCADE settings.
+non-circuits use 1. [Series](#series-documents) own ARCADE settings. `bearing` is the compass direction of the road at
+the entry Section's origin, degrees clockwise from north in `[0, 360)`: presentation data that only the
+[course map](browser.md#screens) reads, published as the compiled course's `bearing`. TSUKUBA's is 12 (the home
+straight toward turn 1, from Drogger's detection point list; provisional); the other courses' are 0.
 
 A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
 and time budgets for those courses only, and only a class offers ARCADE and the checkpoint clock. An untimed course runs

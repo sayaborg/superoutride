@@ -227,7 +227,7 @@ or a HUD timer. When a Session's race enters READY (its first signal lamp), its 
 loops. While the run is not live (paused, or the page hidden) the track pauses, and it continues from where it paused
 when the run is live again. At GOAL or GAME OVER it fades out over the TIMING `musicFadeSeconds` and stays silent
 through RESULT. Leaving the run (RETRY, QUIT or a RESULT item) stops it, and a new Session, whether RETRY's or a DEV
-rebuild's, starts its track from the beginning at its own READY. Menus, LOADING and RESULT play no run track. A run the
+rebuild's, starts its track from the beginning at its own READY. Menus, the PRE-RACE card and RESULT play no run track. A run the
 URL started before any gesture has no audio at its READY, so its track does not play. The audition on SETTINGS plays a
 track from its beginning, looped, through the same form; it is not the run's track.
 
@@ -316,7 +316,7 @@ returning to active values cancels pending replacement. Tire replacement is spec
 Construction leaves the AudioContext unopened. The first eligible gesture creates it: the CONFIRM on TITLE, or any
 gesture during a run the URL started. From then on the context runs while the page is visible; only a hidden page
 suspends it, and becoming visible resumes it (an eligible gesture resumes it where the browser requires one). Pause,
-menus, LOADING and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero. The screen host's route
+menus, the PRE-RACE card and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero. The screen host's route
 is the one procedure that tells audio both facts, whether the page is visible and whether a run is driven
 (`setRoute`); audio never reads document visibility itself. While no run is driven, the live gate closes with the
 silence fade (`fadeSeconds`), the worklets of the voices on live buses rest from the transition time

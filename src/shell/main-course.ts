@@ -16,6 +16,8 @@ import { loadScreenPictures } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
+import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
+import { createCourseMap } from '../view/course-map.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
@@ -174,15 +176,31 @@ async function startPage(): Promise<void> {
       assembling = true;
       run?.dispose();
       run = null;
-      host.show(loading);
       if (status) {
         status.replaceChildren('Loading course…');
         status.hidden = false;
       }
       try {
+        // The PRE-RACE card stands while the run loads, at least its minimum time.
+        let shown = () => {};
+        const standing = new Promise<void>((resolve) => (shown = resolve));
+        const card = createPreRaceScreen(
+          shell.framebuffer,
+          textLayer,
+          present,
+          preRaceCardOf(next, series, courseIndex),
+          () => shown(),
+        );
+        host.show(card.screen);
+        shell.playRecording('effects/prerace', 'effects');
         const state = createRunScreenState(() => host.refresh());
-        const assembled = await assembleRun(page, next, state);
+        const assembled = await assembleRun(page, next, state, {
+          progress: (fraction) => card.progress(fraction),
+          prepared: ({ course, ...facts }) => card.facts({ map: createCourseMap(course), ...facts }),
+        });
         run = assembled;
+        card.loaded();
+        await standing;
         if (status) status.hidden = true;
         // The title track fades out over the black transition into READY.
         menuMusic.fadeOut(TRANSITION_STEPS * SIM_DT);
