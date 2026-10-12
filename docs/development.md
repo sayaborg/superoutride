@@ -528,3 +528,6 @@ frames fill: the check passes once it has text. It then follows the workbench's 
 and script, and compiles the build's published authored files over HTTP with the authoring core and the workbench's own
 store: the compile must succeed and every product must equal the published delivery (Chrome's `--dump-dom` does not
 finish a page with a worker, so this part runs the core in Node). `CHROME_BIN` selects a local Chromium executable.
+The Pages workflow runs it twice: every build, a pull request's included, stages the site under its exact source
+commit and checks it served locally (`http://127.0.0.1:8000/`) before anything is deployed, so a build whose site
+cannot start never reaches main; a push to main checks the deployed site again.

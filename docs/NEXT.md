@@ -82,8 +82,7 @@
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test.
 
-Next PR: the published startup check against each PR's built site before merge (K's decision), then the next PR of
-Stage 16.
+Next PR: the next PR of Stage 16, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -280,7 +279,6 @@ and switching is a cut.
 | Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                             |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                              |
-| CI               | Whether the published startup check (`verify-published-site.ts`) also runs against each PR's build before merge: after merge it found Stage FE's stalled startup only ten merges late                        |
 | Front end        | FREE PLAY and TIME TRIAL wallpaper and title music (black and silent today; their SELECT MUSIC offers every track and MUSIC OFF)                                                                             |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                          |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                        |
