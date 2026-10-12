@@ -64,7 +64,7 @@
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)); the other
   vehicles keep their converted provisional pictures until their views are made.
 
-Next PR: PT-3 of Stage PT, then Stage 16's next PR, awaiting its proposal.
+Next PR: PT-4 of Stage PT, then Stage 16's next PR, awaiting its proposal.
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -85,11 +85,9 @@ Requirements left from the second design audit, by when they are taken up:
 
 ## Stage PT — Torque curves, the range above redline, locked engine inertia and the vehicle catalog
 
-Five PRs in order; PT-1 (five-point torque curves) and PT-2 (fuel cut at 105 % / 103 % and the curve above
-redline) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
+Five PRs in order; PT-1 (five-point torque curves), PT-2 (fuel cut at 105 % / 103 % and the curve above
+redline) and PT-3 (the tachometer at 110 % of redline) have landed. Units are SI (kW, N·m, kg, mm, kg m²).
 
-- **PT-3 — Tachometer at 110 %.** Full scale is `1.10 * redlineRpm`; bar `i` lights at `(i+1)/80` of it; the colour
-  rule is unchanged and the scale no longer depends on the fuel-cut speed.
 - **PT-4 — Engine inertia while the clutch is locked.** A locked engine's inertia joins the wheel solve through the
   fixed drive split, `diag(Ifront, Irear) + Ie*G^2 * [[f^2, f(1-f)], [f(1-f), (1-f)^2]]`, inside the same implicit
   step: exactly on the driven wheel for `f` of 0 or 1, otherwise by an outer monotone bisection on the inertia

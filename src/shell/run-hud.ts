@@ -31,9 +31,8 @@ export interface HudFacts {
   readonly session: {
     readonly courseName: string;
     readonly mode: RunRequest['mode'];
-    /** The tachometer's redline and full scale, where the limiter cuts fuel. */
+    /** The tachometer's redline; its full scale is `TACHOMETER_FULL_SCALE` times it. */
     readonly redlineRpm: number;
-    readonly fuelCutRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
   };
@@ -168,6 +167,8 @@ const writeDigit = (text: TextLayer, column: number, row: number, digit: number 
 };
 /** The speed's digits, right-aligned; the speed is held at 999 km/h. */
 const SPEED_DIGITS = 3;
+/** The tachometer's full scale as a multiple of redline. */
+const TACHOMETER_FULL_SCALE = 1.1;
 /** The tachometer bars before the first red bar that are yellow: 3/20 of the scale. */
 const TACHOMETER_YELLOW_BARS = 12;
 /** A tachometer tile's palette by the colors of its first and last bars: green, yellow or red, or where two meet. */
@@ -379,12 +380,12 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // The tachometer to the fuel cut: a bar is lit once the engine reaches its speed; green, yellow for the bars just
+    // The tachometer to 110 % of redline: a bar is lit once the engine reaches its speed; green, yellow for the bars just
     // before the redline and red from it, and wholly red while the limiter cuts fuel.
     when: () => true,
     write({ player: { powertrain }, session }, text) {
       const [column, row] = HUD_LAYOUT.tachometer,
-        barRpm = (bar: number) => ((bar + 1) * session.fuelCutRpm) / TACHOMETER_BARS;
+        barRpm = (bar: number) => ((bar + 1) * TACHOMETER_FULL_SCALE * session.redlineRpm) / TACHOMETER_BARS;
       let firstRed = 0,
         lit = 0;
       while (firstRed < TACHOMETER_BARS && barRpm(firstRed) < session.redlineRpm) firstRed++;

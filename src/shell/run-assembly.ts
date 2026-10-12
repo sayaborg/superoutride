@@ -12,7 +12,6 @@ import { createCourseRace } from '../race/course-race.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { runResult } from './run-result.js';
 import { writeHud, type HudFacts } from './run-hud.js';
-import { fuelCutRpm } from '../vehicle/physics/automatic-powertrain.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareSession } from '../race/session-preparation.js';
@@ -236,13 +235,12 @@ export async function assembleRun(page: RunPage, request: RunRequest, state: Run
     readonly configuration: SessionConfiguration;
     readonly entries: readonly { readonly vehicle: SessionVehicle }[];
   }) => {
-    const { vehicleDefinition, drivingDefinition } = entries[0]!.vehicle;
+    const { vehicleDefinition } = entries[0]!.vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: course.name,
       mode: configuration.mode,
       redlineRpm,
-      fuelCutRpm: fuelCutRpm(redlineRpm, drivingDefinition.compiledDriving.powertrain.fuelCutEnterRedlineRatio),
       steeringPicture: vehicleDefinition.steeringPicture,
     };
   };
