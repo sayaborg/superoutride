@@ -16,6 +16,7 @@ import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createSelectionFlow } from '../../src/shell/selection-flow.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
+import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
 
 // The screens smoke: the front end's screens render headlessly through the same screens the page shows, from the
 // delivered content. Each drawn frame is saved to `dist/screens/<name>.png` at twice the frame's size, as the reference
@@ -73,7 +74,12 @@ test('the front end screens render from the delivered content', async () => {
       }
     await writeFile(new URL(`${name}.png`, directory), PNG.sync.write(png));
   };
-  const send = (...commands) => commands.forEach((command) => screen.command(command));
+  // Each command, then the fixed steps a slide or other change takes.
+  const send = (...commands) =>
+    commands.forEach((command) => {
+      screen.command(command);
+      for (let i = 0; i < SERIES_SLIDE_STEPS; i++) screen.tick();
+    });
 
   flow.title();
   await capture('title');
@@ -83,6 +89,12 @@ test('the front end screens render from the delivered content', async () => {
   // RIBBON, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
   await capture('select-series');
   assert.equal(titleTrack, 'placeholder-two');
+  // Halfway through a slide to the next series (TRIAL), then back to RIBBON.
+  screen.command('RIGHT');
+  for (let i = 0; i < SERIES_SLIDE_STEPS / 2; i++) screen.tick();
+  await capture('select-series-slide');
+  for (let i = 0; i < SERIES_SLIDE_STEPS / 2; i++) screen.tick();
+  send('LEFT');
   send('CONFIRM');
   await capture('select-class');
   send('CONFIRM');
@@ -100,7 +112,11 @@ test('the front end screens render from the delivered content', async () => {
     flow.title();
     send('CONFIRM', 'CONFIRM');
     while (titleTrack !== 'placeholder-one') send('LEFT');
-    send('CONFIRM', ...(i > 0 ? ['RIGHT'] : []), 'CONFIRM');
+    if (i === 0) await capture('select-series-tsukuba');
+    send('CONFIRM');
+    if (i === 0) await capture('select-class-tsukuba');
+    send(...(i > 0 ? ['RIGHT'] : []), 'CONFIRM');
+    if (i === 2) await capture('select-vehicle-tsukuba');
     requested = null;
     send('CONFIRM');
     assert.equal(requested?.classId, classId);

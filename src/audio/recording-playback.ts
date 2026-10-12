@@ -7,6 +7,17 @@ export interface RecordingLoop {
   readonly end: number;
 }
 
+/**
+ * How a recording plays: at `volume` (0–1), once or looped, from `from` seconds, and from the beginning either at full
+ * volume or rising linearly over `fadeInSeconds`.
+ */
+export interface PlaybackOptions {
+  readonly volume?: number;
+  readonly loop?: RecordingLoop | null;
+  readonly from?: number;
+  readonly fadeInSeconds?: number;
+}
+
 /** One playback of a decoded recording on a bus. */
 export interface RecordingPlayback {
   /** Play from the current position: from the start the first time, else where it paused. */
@@ -24,7 +35,8 @@ export interface RecordingPlayback {
 /**
  * Play `buffer` into `destination` at `volume` (0–1), once or looped, from `from` seconds (the beginning unless given).
  * Each playback has its own source and gain, so playbacks of one recording overlap. A loop runs sample-accurately
- * between its points (the source's own loop). A playback starting from the beginning starts at full volume; one
+ * between its points (the source's own loop). A playback starting from the beginning starts at full volume, or rises
+ * over `fadeInSeconds` when given; one
  * starting elsewhere or continuing from a pause fades in with the silence fade (`fadeSeconds`), and pause and stop fade
  * out with it before the source stops (`transitionSeconds`). A playback sounds one source at a time: playing again
  * before a paused source has stopped starts when it stops.
@@ -34,11 +46,7 @@ export function createRecordingPlayback(
   destination: AudioNode,
   buffer: AudioBuffer,
   control: () => ControlSettings,
-  {
-    volume = 1,
-    loop = null,
-    from = 0,
-  }: { readonly volume?: number; readonly loop?: RecordingLoop | null; readonly from?: number } = {},
+  { volume = 1, loop = null, from = 0, fadeInSeconds = 0 }: PlaybackOptions = {},
 ): RecordingPlayback {
   const gain = context.createGain();
   gain.gain.value = 0;
@@ -97,7 +105,8 @@ export function createRecordingPlayback(
       if (at > now) gain.gain.setTargetAtTime(volume, at, control().fadeSeconds);
       else if (offset === 0) {
         gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(volume, now);
+        gain.gain.setValueAtTime(fadeInSeconds > 0 ? 0 : volume, now);
+        if (fadeInSeconds > 0) gain.gain.linearRampToValueAtTime(volume, now + fadeInSeconds);
       } else follow(gain.gain, volume, now, control().fadeSeconds);
       playing.start(at, offset);
       source = playing;

@@ -199,7 +199,8 @@ recording is known only when it decodes it. The game admits delivered music docu
 impacts alike. The shell reads a recording's verified bytes from delivery and the scene decodes them
 (`decodeAudioData`), so the audio layer never reads delivery. A playback plays a decoded recording on a named bus at a
 volume from 0 to 1, once or looped; each playback has its own source and gain, so playbacks of one recording overlap.
-A playback starts at the recording's beginning unless it is given a start position (the workbench's music module
+A playback starts at the recording's beginning, at full volume or rising linearly over a given fade-in (a title
+track's crossfade), unless it is given a start position (the workbench's music module
 starts a few seconds before `loop.end`); a looped playback, once it reaches `loop.end`, returns to `loop.start`
 sample-accurately (the source's own loop). A playback from the beginning starts at full volume, since recordings start
 at their first sample, and one from elsewhere fades in with the silence fade (`fadeSeconds`); pausing fades out with
@@ -232,7 +233,9 @@ track from its beginning, looped, through the same form; it is not the run's tra
 
 The [menu music](../src/shell/menu-music.ts) is the one owner of the selection screens' music, a series' title track:
 it plays from its beginning, looped, through the same form, keeps playing while the screens ask for the same track,
-stops when they ask for another or none, and fades out over the black transition into READY (8 fixed steps).
+stops when they ask for another or none, crossfades to another over SELECT SERIES' slide (16 fixed steps: the old
+track fades out linearly as the new one rises from its beginning), and fades out over the black transition into READY
+(8 fixed steps).
 
 ## Sound effects
 

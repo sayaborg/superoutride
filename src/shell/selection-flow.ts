@@ -17,6 +17,8 @@ import type { MusicTrack } from '../audio/music-document.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
 import { showSettings } from './settings-screens.js';
+import { createSeriesScreen, SERIES_SLIDE_STEPS } from './series-screen.js';
+import { SIM_DT } from '../race/fixed-step.js';
 
 type Mode = RunRequest['mode'];
 type Step = 'SERIES' | 'CLASS' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'LAPS' | 'MUSIC';
@@ -61,8 +63,11 @@ export interface SelectionDevices {
   setVolume(name: VolumeName, percent: number): void;
   /** Play `track` from its start as an audition; the returned function stops it. */
   audition(track: MusicTrack): () => void;
-  /** The music the screen plays: a series' title track, which keeps playing while it stays the same, or none. */
-  titleMusic(track: MusicTrack | null): void;
+  /**
+   * The music the screen plays: a series' title track, which keeps playing while it stays the same, or none; another
+   * track crossfades with it over `crossfadeSeconds` when given.
+   */
+  titleMusic(track: MusicTrack | null, crossfadeSeconds?: number): void;
 }
 
 /**
@@ -215,23 +220,26 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     devices.titleMusic(mode === 'ARCADE' && seriesChoice ? seriesChoice.music.title : null);
     switch (FLOW[mode][step]!) {
       case 'SERIES': {
-        const items = series.map((s): MenuItem => ({
-          label: s.title,
-          // The series under the cursor plays its title track.
-          focus: () => {
-            devices.titleMusic(s.music.title);
-            return () => {};
-          },
-          confirm: () => {
-            // A series with one class needs no SELECT CLASS.
-            if (s !== seriesChoice) [classChoice, vehicleId] = [s.classes.length === 1 ? s.classes[0]! : null, null];
-            seriesChoice = s;
-            remember('series', s.id);
-            forward();
-          },
-        }));
-        const current = series.findIndex((s) => s.id === (seriesChoice?.id ?? latest('series')));
-        return menu({ title: 'SELECT SERIES', items: () => items, back }, Math.max(0, current));
+        // The shown series plays its title track from its start; a slide crossfades to the next one's.
+        const current = Math.max(
+          0,
+          series.findIndex((s) => s.id === (seriesChoice?.id ?? latest('series'))),
+        );
+        devices.titleMusic(series[current]!.music.title);
+        return devices.show(
+          createSeriesScreen(devices.frame, devices.text, devices.present, series, current, {
+            offers: (s) => s.classes.length > 0,
+            slide: (s) => devices.titleMusic(s.music.title, SERIES_SLIDE_STEPS * SIM_DT),
+            confirm: (s) => {
+              // A series with one class needs no SELECT CLASS.
+              if (s !== seriesChoice) [classChoice, vehicleId] = [s.classes.length === 1 ? s.classes[0]! : null, null];
+              seriesChoice = s;
+              remember('series', s.id);
+              forward();
+            },
+            back,
+          }),
+        );
       }
       case 'CLASS': {
         const items = seriesChoice!.classes.map((c): MenuItem => ({

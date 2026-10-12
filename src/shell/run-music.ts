@@ -3,9 +3,16 @@ import type { RaceStatus } from '../race/course-race.js';
 import type { RecordingHandle } from './recording-player.js';
 import type { BrowserDrivingShell } from './driving-shell.js';
 
-/** Play `track` from its start, looped, on the music bus: the run's track and every audition use this one form. */
-export function playTrack(shell: Pick<BrowserDrivingShell, 'playRecording'>, track: MusicTrack): RecordingHandle {
-  return shell.playRecording(`music/${track.id}`, 'music', { loop: track.loop });
+/**
+ * Play `track` from its start, looped, on the music bus, rising over `fadeInSeconds` when given: the run's track, the
+ * title tracks and the audition use this one form.
+ */
+export function playTrack(
+  shell: Pick<BrowserDrivingShell, 'playRecording'>,
+  track: MusicTrack,
+  fadeInSeconds = 0,
+): RecordingHandle {
+  return shell.playRecording(`music/${track.id}`, 'music', { loop: track.loop, fadeInSeconds });
 }
 
 /**

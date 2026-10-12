@@ -18,9 +18,9 @@ import { createTouchIndicators } from './touch-indicators.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
 import type { RecordingHandle } from './recording-player.js';
-import type { RecordingLoop } from '../audio/recording-playback.js';
+import type { PlaybackOptions } from '../audio/recording-playback.js';
 import type { SoundBus } from '../audio/sound-graph.js';
-import type { ImpactRecording } from '../audio/recordings.js';
+import type { EffectRecording, ImpactRecording } from '../audio/recordings.js';
 
 export interface BrowserDrivingShell {
   readonly framebuffer: SoftwareSurface;
@@ -45,7 +45,7 @@ export interface BrowserDrivingShell {
   setRoute(route: InputRoute): void;
   /** Read the devices for a fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
-  /** Play what a menu command did: `menu-move`, `menu-confirm`, `menu-entry` or `menu-back`. */
+  /** Play what a menu command did: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`, `menu-deny` or `menu-back`. */
   menuSound(response: MenuResponse): void;
   /**
    * Called within a user gesture outside driving: prepare sound so runs sound from their start, and request
@@ -57,14 +57,20 @@ export interface BrowserDrivingShell {
   /** A player contact that began: its counterpart's impact at a volume from its work (J). */
   playImpact(counterpart: ImpactRecording, work: number): void;
   /** Play the delivered recording `id` on `bus`; it sounds once decoded. */
-  playRecording(
-    id: string,
-    bus: SoundBus,
-    options?: { readonly volume?: number; readonly loop?: RecordingLoop | null },
-  ): RecordingHandle;
+  playRecording(id: string, bus: SoundBus, options?: Omit<PlaybackOptions, 'from'>): RecordingHandle;
   /** DEV only: the audio timing HUD's source. */
   readonly audioTiming: AudioTimingSource;
 }
+
+/** The effect each menu response sounds. */
+const MENU_SOUNDS: Readonly<Record<MenuResponse, EffectRecording>> = Object.freeze({
+  move: 'menu-move',
+  slide: 'series-slide',
+  confirm: 'menu-confirm',
+  entry: 'menu-entry',
+  deny: 'menu-deny',
+  back: 'menu-back',
+});
 
 /**
  * The page's browser devices: display, input and audio. They outlive every screen and run and hold no run. They
@@ -114,7 +120,7 @@ export function createBrowserDrivingShell(
       gamepads.read();
       return menuInput.poll();
     },
-    menuSound: (response) => void audio.playRecording(`effects/menu-${response}`, 'effects'),
+    menuSound: (response) => void audio.playRecording(`effects/${MENU_SOUNDS[response]}`, 'effects'),
     setVolume: (name, percent) => audio.setVolume(name, percent),
     playRecording: (id, bus, options) => audio.playRecording(id, bus, options),
     playImpact: (counterpart, work) => audio.playImpact(counterpart, work),

@@ -123,7 +123,14 @@ once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is it
 the first track) plays as an audition, so its volume is set by ear.
 
 - SELECT MODE: a mode with no selectable course is DARK.
-- SELECT SERIES lists the series with their titles; SELECT CLASS lists the chosen series' classes with their titles,
+- SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (YELLOW) at columns 0–3
+  pointing left and 36–39 pointing right on rows 13–16, and `PRESS START` (YELLOW, meaning CONFIRM) centred on row
+  27; the arrows are drawn when there are several series. LEFT and RIGHT (and UP and DOWN) slide the next image in
+  horizontally over 16 fixed steps in whole pixels, the arrows and text staying put, wrapping at both ends, and sound
+  `series-slide`; commands during a slide do nothing. The series' title track plays from its start when SELECT SERIES
+  is entered, and a slide crossfades from the old series' title track to the new one over the slide's 16 steps. A
+  series that offers nothing (no class) shows its image at half brightness and denies CONFIRM.
+- SELECT CLASS lists the chosen series' classes with their titles,
   and choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
   names from the course index, grouped by series. Each course is listed once, under the first offered series in
   series order whose classes run it, in its classes' order; courses in no series follow last, with no note.

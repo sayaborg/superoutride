@@ -1,5 +1,5 @@
 import type { createAudioScene } from '../audio/audio-scene.js';
-import type { RecordingLoop, RecordingPlayback } from '../audio/recording-playback.js';
+import type { PlaybackOptions, RecordingPlayback } from '../audio/recording-playback.js';
 import type { SoundBus } from '../audio/sound-graph.js';
 
 type AudioScene = Awaited<ReturnType<typeof createAudioScene>>;
@@ -54,11 +54,7 @@ export function createRecordingPlayer(
       if (scene) void decode(id, scene);
     },
     /** Play the recording `id` on `bus` from its start, once or looped, at `volume` (0–1). */
-    play(
-      id: string,
-      bus: SoundBus,
-      options?: { readonly volume?: number; readonly loop?: RecordingLoop | null },
-    ): RecordingHandle {
+    play(id: string, bus: SoundBus, options?: Omit<PlaybackOptions, 'from'>): RecordingHandle {
       const owner = scene;
       if (!owner) return SILENT;
       let state: 'playing' | 'paused' | 'ended' = 'playing';

@@ -13,7 +13,7 @@ import { createTireVoice } from './tire-voice.js';
 import { createScrapeVoice, type WallRubObservation } from './scrape-voice.js';
 import type { WallSoundRecords } from './wall-sounds.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
-import { createRecordingPlayback, type RecordingPlayback, type RecordingLoop } from './recording-playback.js';
+import { createRecordingPlayback, type RecordingPlayback, type PlaybackOptions } from './recording-playback.js';
 import type { TireSurfaceSounds } from './surface-sounds.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
@@ -224,11 +224,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       return context.decodeAudioData(bytes.slice().buffer);
     },
     /** A playback of a decoded recording on `bus`, not yet playing. */
-    createPlayback(
-      buffer: AudioBuffer,
-      bus: SoundBus,
-      options?: { readonly volume?: number; readonly loop?: RecordingLoop | null },
-    ): RecordingPlayback {
+    createPlayback(buffer: AudioBuffer, bus: SoundBus, options?: Omit<PlaybackOptions, 'from'>): RecordingPlayback {
       return createRecordingPlayback(context, graph.input(bus), buffer, () => control, options);
     },
     /** DEV: report each worklet's processing to `listener`, or stop with null. */

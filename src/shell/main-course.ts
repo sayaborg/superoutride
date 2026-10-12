@@ -230,7 +230,7 @@ async function startPage(): Promise<void> {
           const audition = playTrack(shell, track);
           return () => audition.stop();
         },
-        titleMusic: (track) => menuMusic.play(track),
+        titleMusic: (track, crossfadeSeconds) => menuMusic.play(track, crossfadeSeconds),
         run: (next, back) => void request(next, back),
       },
     );
