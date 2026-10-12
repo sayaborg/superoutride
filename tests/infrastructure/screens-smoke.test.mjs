@@ -104,10 +104,12 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM');
   await capture('title');
   send('CONFIRM');
-  // RIBBON, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
+  // TRIAL, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
+  const trial = series.series.find((s) => s.id === 'trial');
+  while (screen.wallpaper !== trial.image) send('RIGHT');
   await capture('select-series');
   assert.equal(titleTrack, 'placeholder-two');
-  // Halfway through a slide to the next series (TRIAL), then back to RIBBON.
+  // Halfway through a slide to the next series, then back to TRIAL.
   screen.command('RIGHT');
   for (let i = 0; i < SERIES_SLIDE_STEPS / 2; i++) screen.tick();
   await capture('select-series-slide');
@@ -122,7 +124,7 @@ test('the front end screens render from the delivered content', async () => {
   send('LEFT');
   await capture('select-music-off');
   send('CONFIRM');
-  assert.equal(requested?.seriesId, 'ribbon');
+  assert.equal(requested?.seriesId, 'trial');
   assert.equal(requested.track, null);
   // TSUKUBA CLUBMAN has no race tracks: the run starts from SELECT VEHICLE with MUSIC OFF, for each of its classes.
   // Each class screen starts from the class chosen last, so one RIGHT reaches the next class.

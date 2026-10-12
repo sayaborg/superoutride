@@ -1,148 +1,34 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { loadScenarioCourse, runScenario } from './driving-harness.mjs';
+import { scenarioTests } from './driving-harness.mjs';
 
-for (const stem of ['ribbon-coast', 'ribbon-fork', 'ribbon-ring']) {
-  test(`${stem}: deterministic driving scenarios`, async (t) => {
-    const loaded = await loadScenarioCourse(stem);
-    // Session-rule scenarios: ARCADE drives a class of the test series (session-rules.series.json) or a delivered one.
-    const sessionRules = {
-      'ribbon-coast': [
-        {
-          name: 'ARCADE finish ahead of a paced rival, then the takeover stops',
-          mode: 'ARCADE',
-          class: 'coast',
-          policy: 'finish',
-          afterEndingSeconds: 12,
-          seconds: 240,
-          expect: { outcome: 'GOAL', position: 'P1/2', stop: true, rivalsDrive: true },
-        },
-        {
-          name: 'ARCADE with the RIBBON series traffic',
-          mode: 'ARCADE',
-          series: 'ribbon',
-          class: 'coast',
-          policy: 'finish',
-          seed: 7,
-          seconds: 240,
-          // The outcome is open: the player's driver keeps to lanes, so traffic side by side on a two-lane road holds it.
-          expect: { traffic: true },
-        },
-        {
-          name: 'TIME TRIAL finish from the last slot',
-          mode: 'TIME_TRIAL',
-          policy: 'finish',
-          seconds: 240,
-          expect: { outcome: 'GOAL', position: 'P1/1' },
-        },
-      ],
-      'ribbon-fork': [
-        {
-          name: 'ARCADE ahead entry appears and leaves',
-          mode: 'ARCADE',
-          class: 'fork',
-          policy: 'appearance',
-          exit: 0,
-          seconds: 120,
-          expect: { outcome: 'GOAL', position: 'P1/1', appearance: { stage: 2, distance: 80, last: 2 } },
-        },
-      ],
-      'ribbon-ring': [
-        // RIBBON's two classes on RIBBON RING: each runs its own vehicle and laps with its own time limit.
-        ...['ring-cars', 'ring-bikes'].map((name) => ({
-          name: `ARCADE class ${name} finishes`,
-          mode: 'ARCADE',
-          series: 'ribbon',
-          class: name,
-          policy: 'finish',
-          seconds: 300,
-          expect: { outcome: 'GOAL', ownClass: true },
-        })),
-        {
-          name: 'ARCADE rank limit GAME OVER',
-          mode: 'ARCADE',
-          class: 'ring',
-          policy: 'rank',
-          afterEndingSeconds: 2,
-          seconds: 120,
-          expect: { outcome: 'GAME_OVER', cause: 'RANK', position: 'P2/2', rankGate: 'ring-CP1' },
-        },
-      ],
-    }[stem];
-    const scenarios = [
-      // Backing beyond the entry is the same on every course; coast runs it.
-      ...(stem === 'ribbon-coast' ? [{ name: 'reverse beyond entry', policy: 'reverse', seconds: 15 }] : []),
-      // Departures are symmetric, so each course departs to one side: fork to the left, the others to the right.
-      {
-        name: `departure ${stem === 'ribbon-fork' ? 'left' : 'right'}`,
-        policy: 'departure',
-        steering: stem === 'ribbon-fork' ? -1 : 1,
-        seconds: 20,
-      },
-      ...(stem === 'ribbon-fork'
-        ? [
-            ...[0, 1].map((exit) => ({
-              name: `fork ${exit === 0 ? 'left' : 'right'} finish`,
-              policy: 'finish',
-              exit,
-              seconds: 180,
-            })),
-            // Seed 0 sends the rival to exit 0 while the player approaches exit 1.
-            {
-              name: 'closed road through player finish',
-              policy: 'closed',
-              finish: true,
-              rivals: 1,
-              seed: 0,
-              rivalExit: 0,
-              exit: 1,
-              seconds: 180,
-            },
-            {
-              name: 'finished rival stops while player waits then finishes',
-              policy: 'closed',
-              finish: true,
-              waitForStop: true,
-              rivals: 1,
-              seed: 0,
-              rivalExit: 0,
-              exit: 1,
-              seconds: 180,
-            },
-          ]
-        : [
-            {
-              name: 'finish with rivals',
-              policy: 'finish',
-              rivals: 2,
-              laps: stem === 'ribbon-ring' ? 3 : 1,
-              seconds: 300,
-            },
-          ]),
-      ...(stem === 'ribbon-coast'
-        ? [
-            // On RIBBON COAST's first straight the player steers into the left course limit, which pushes it back.
-            { name: 'course limit pushes back', policy: 'limit', steering: -0.12, steerSeconds: 4, seconds: 14 },
-            // Stopped a quarter turn toward the left course limit with its front contact past the limit, the player
-            // keeps both contacts on ground and does not recover.
-            {
-              name: 'stopped broadside against a course limit',
-              policy: 'broadside',
-              ahead: 60,
-              reach: 0.6,
-              seconds: 8,
-            },
-            // The player keeps to the course's first row of movable objects, knocks them all and drives on over them.
-            { name: 'through the cone row', policy: 'cones', seconds: 240 },
-          ]
-        : []),
-      ...sessionRules,
-    ];
-    for (const scenario of scenarios)
-      await t.test(scenario.name, async () => {
-        const result = await runScenario(loaded, scenario);
-        assert.deepEqual(await runScenario(loaded, scenario), result, 'fixed-input replay diverged');
-        t.diagnostic(`${scenario.name}: ${JSON.stringify(result)}`);
-      });
-  });
-}
+// Short deterministic scenarios on the product course TSUKUBA and the trial course OUTRUN TRIAL A.
+scenarioTests({
+  tsukuba: [
+    // On the home straight the player steers into the left course limit, which pushes it back.
+    { name: 'course limit pushes back', policy: 'limit', steering: -0.12, steerSeconds: 4, seconds: 14 },
+    // Stopped a quarter turn toward the left course limit with its front contact past the limit, the player keeps
+    // both contacts on ground and does not recover.
+    { name: 'stopped broadside against a course limit', policy: 'broadside', ahead: 60, reach: 0.6, seconds: 4 },
+    // TSUKUBA's one lap is the quickest course to finish.
+    {
+      name: 'TIME TRIAL finish from the last slot',
+      mode: 'TIME_TRIAL',
+      policy: 'finish',
+      seconds: 120,
+      expect: { outcome: 'GOAL', position: 'P1/1' },
+    },
+  ],
+  'outrun-trial-a': [
+    {
+      name: 'ARCADE with the TRIAL series traffic',
+      mode: 'ARCADE',
+      series: 'trial',
+      class: 'a',
+      policy: 'finish',
+      seed: 7,
+      // A bounded stretch: traffic appears ahead and leaves the view behind the player; the outcome is open.
+      seconds: 30,
+      bounded: true,
+      expect: { traffic: true },
+    },
+  ],
+});

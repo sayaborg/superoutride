@@ -97,8 +97,11 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
 
 **Ledger.**
 
-- Merged: FE-10 (inside a series the wallpaper stays).
-- Next PR: OT-1, short replacement tests.
+- Merged: FE-10 (inside a series the wallpaper stays); OT-1 (short driving scenarios on TSUKUBA and OUTRUN TRIAL A;
+  no test loads a RIBBON course; tests read delivered courses instead of compiling the content).
+- Next PR: OT-2, delete RIBBON.
+- Lost checks (K's decision): forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond
+  the entry and departures have no driving scenario since OT-1.
 - Open decisions: none.
 - Splits: none.
 

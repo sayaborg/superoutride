@@ -253,8 +253,8 @@ the DEV slider keeps its previous value when a change would break it. Control fo
 [Wall scrape acoustics](../src/audio/wall-scrape-acoustics.ts) supplies the walls' scraping settings
 (`ScrapeSettings`): the items, meanings and ranges of the UNIFIED table above, except the work half-response, whose
 range is about a quarter to four times its default. The defaults are the implementer's, not chosen by listening: the
-UNIFIED defaults, a work half-response near the median wall-rub power of RIBBON COAST's departures (about 90 kW at about
-30 m/s, peaks about 12 MW) and slip half-response and rolloff for wall speeds.
+UNIFIED defaults, a work half-response of 90 kW, set near the median wall-rub power measured on departures from a road
+at about 30 m/s (peaks about 12 MW), and slip half-response and rolloff for wall speeds.
 
 | Key                   | Default   | Range / step            |
 | --------------------- | --------- | ----------------------- |
@@ -268,7 +268,7 @@ UNIFIED defaults, a work half-response near the median wall-rub power of RIBBON 
 [Impact acoustics](../src/audio/impact-acoustics.ts) supplies each counterpart's impact reference work
 (`ImpactSettings`): an impact sounds at `W / (W + reference)`. Ranges are about a quarter to four times each default.
 The defaults are the implementer's, not chosen by listening: about a 10 m/s closing of two cars (about 45 kJ), a hard
-hit of a wall or object (wall starts on RIBBON COAST's departures run from about 300 J to 1.6 MJ) and a cone at race
+hit of a wall or object (wall starts measured on departures from a road ran from about 300 J to 1.6 MJ) and a cone at race
 speed (about 7 kJ).
 
 | Key             | Counterpart                       | Default  | Range / step            |
@@ -315,12 +315,12 @@ The [surface-sound document](../content/surface-sounds/default.json) holds these
 The [wall-sound document](../content/wall-sounds/default.json) holds the walls' friction inputs. They are the
 implementer's values, not chosen by listening. Course limits use `limit`.
 
-| Wall sound  | Used by (RIBBON COAST)             | Friction roughness | Friction susceptibility |
-| ----------- | ---------------------------------- | ------------------ | ----------------------- |
-| `limit`     | Every course limit                 | 1                  | 0.5                     |
-| `guardrail` | The guardrail and its lead-in/out  | 1                  | 1                       |
-| `rock`      | The cliff face and its lead-in/out | 2                  | 0.2                     |
-| `wall`      | The low wall beside the wide road  | 1.5                | 0.5                     |
+| Wall sound  | Meant for            | Friction roughness | Friction susceptibility |
+| ----------- | -------------------- | ------------------ | ----------------------- |
+| `limit`     | Every course limit   | 1                  | 0.5                     |
+| `guardrail` | Guardrails           | 1                  | 1                       |
+| `rock`      | Rock and cliff faces | 2                  | 0.2                     |
+| `wall`      | Low walls            | 1.5                | 0.5                     |
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain

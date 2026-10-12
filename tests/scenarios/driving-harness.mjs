@@ -1,6 +1,7 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
@@ -62,8 +63,8 @@ const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, 
 const screenPictures = await loadScreenPictures(content);
 const music = await loadMusic(content, TEXT_COLUMNS);
 
-// The test-only series (never delivered) gives each RIBBON course ARCADE settings that exercise Session rules with the
-// build's TESTAROSSA time budgets and pace schedules.
+// The test-only series (never delivered) gives TSUKUBA ARCADE settings that exercise Session rules with the build's
+// time budgets and pace schedules.
 const SCENARIO_SERIES_PATH = new URL('./session-rules.series.json', import.meta.url);
 const scenarioSeries = requireLoaded(
   compileSeriesCatalog(
@@ -75,18 +76,32 @@ const scenarioSeries = requireLoaded(
         sha256: '',
       },
     ],
-    ['ribbon-coast', 'ribbon-fork', 'ribbon-ring'],
+    ['tsukuba'],
     definitions.vehicles,
     screenPictures,
     music,
   ),
 );
 
-// The delivered series, for scenarios that run a course's product ARCADE settings (RIBBON COAST's traffic).
+// The delivered series, for scenarios that run a course's delivered ARCADE settings (TRIAL's traffic).
 const productSeries = await loadSeriesCatalog(content, definitions.vehicles, screenPictures, music);
 
 export async function loadScenarioCourse(stem) {
   return { course: await loadDeliveredCourse(content, stem, materials) };
+}
+
+/** One test per course: its scenarios, each replayed once more from the same fixed inputs. */
+export function scenarioTests(courses) {
+  for (const [stem, scenarios] of Object.entries(courses))
+    test(`${stem}: deterministic driving scenarios`, async (t) => {
+      const loaded = await loadScenarioCourse(stem);
+      for (const scenario of scenarios)
+        await t.test(scenario.name, async () => {
+          const result = await runScenario(loaded, scenario);
+          assert.deepEqual(await runScenario(loaded, scenario), result, 'fixed-input replay diverged');
+          t.diagnostic(`${scenario.name}: ${JSON.stringify(result)}`);
+        });
+    });
 }
 
 /** The ARCADE class a scenario names: `class` of the test series, or of the delivered series `series`. */
@@ -327,9 +342,9 @@ export async function runScenario({ course }, scenario) {
   const accepted = new Set();
   const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
-  // Session-rule evidence (ARCADE and TIME TRIAL scenarios): the ending, what holds after it, appearances and
-  // departures, and the gate crossings of other competitors.
-  const rules = scenario.mode ? { appeared: [], departed: [], crossings: [] } : null;
+  // Session-rule evidence (ARCADE and TIME TRIAL scenarios that run to their ending): the ending, what holds after it,
+  // appearances and departures, and the gate crossings of other competitors. A bounded scenario drives a stretch only.
+  const rules = scenario.mode && !scenario.bounded ? { appeared: [], departed: [], crossings: [] } : null;
   // Traffic evidence: each traffic vehicle's appearance and departure ticks, and the most present at once.
   const traffic = { appeared: [], departed: 0, maxPresent: 0 };
   let trafficIds = new Set();
@@ -565,7 +580,8 @@ export async function runScenario({ course }, scenario) {
   }
   // A departure or a run into a course limit succeeds by lasting its time on the course.
   const held = scenario.policy === 'departure' || scenario.policy === 'limit' || scenario.policy === 'broadside';
-  if (!held) assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
+  if (!held && !scenario.bounded)
+    assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
   if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
   if (scenario.policy === 'cones') {
     // The player knocked every object of the row, kept to it over the landed ones without being held or recovered,
@@ -637,7 +653,7 @@ export async function runScenario({ course }, scenario) {
     assert.equal(evidence.limitContact, null, 'ordinary driving met a wall or course limit');
   }
   // A finish policy reaches GOAL unless its Session rules expect another outcome or leave it open.
-  if (scenario.policy === 'finish' && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
+  if (scenario.policy === 'finish' && !scenario.bounded && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
     assert.equal(race.outcome.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, session.configuration.lapCount);
     if (course.entry.fork)

@@ -19,16 +19,16 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ### Driving scenarios
 
-`tests/scenarios/driving.test.mjs` defines the scenarios; `driving-harness.mjs` assembles the same
-scene, race, vehicle physics, route readers, camera and rival sprite rendering as the browser, and prepares each
-Session from a request through the browser's path (`prepareSession`: the Session admission, the products it needs from
-delivery, and resolution).
+`tests/scenarios/arcade.test.mjs` and `driving.test.mjs` define the scenarios, by course, on the product course
+TSUKUBA and the trial course OUTRUN TRIAL A; `driving-harness.mjs` assembles the same scene, race, vehicle physics,
+route readers, camera and rival sprite rendering as the browser, and prepares each Session from a request through the
+browser's path (`prepareSession`: the Session admission, the products it needs from delivery, and resolution).
 The player is driven by the product's driver: an advance without input hands the player to its Session driver (the
 driver of the takeover after GOAL), which plans, follows, passes and merges by the drivers' rules toward the
-scenario's target exit at every fork. Policies that need other inputs script them: reverse, departure and the course
-limit hold pedals and steering, and the closed-road and cone policies steer for a scripted lateral over their stretch.
-`npm test` runs them on every CI build. After `npm run build`, use `npm run test:scenarios` alone.
-The Node test runner reports total wall time and per-scenario times; these are observations, not timing gates.
+scenario's target exit at every fork. Policies that need other inputs script them: the course limit and broadside
+policies hold pedals and steering. `npm test` runs them on every CI build. After `npm run build`, use
+`npm run test:scenarios` alone. The Node test runner reports total wall time and per-scenario times; these are
+observations, not timing gates.
 
 Each scenario runs twice at the browser's fixed 1/60-second step and compares a digest of every
 step's vehicle, recovery, progress and camera states plus outcome evidence. No pixel baselines or
@@ -36,41 +36,31 @@ wall-clock metrics enter the comparison. Rendering runs every simulated second, 
 and every tenth of a second outside the coordinate domain; it cycles through all three Strip methods.
 All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
 finite. Each actor's s may move at most the loading coverage record's one-step allowance per step unless recovered.
-The next pending crossing cannot move backward (an undiscovered fork successor is not a finish),
-and accepted finish counts cannot decrease. Reverse starts at −20 m/s with neutral pedals (there is no reverse
-input) and departures at 30 m/s: initial conditions through the ordinary vehicle constructor, with no pose or progress
-edits during a run. In every row, rivals and traffic neither recover nor meet a wall or course limit (the race's step
-observation names each vehicle a wall or course limit pushes); outside the reverse, departure, course limit and
-closed-road policies, the player neither recovers nor meets one either. Leaving the pavement is not checked: a lane
-change at speed can overshoot its lane a few centimetres off the pavement. Each row checks a situation no other row
-does:
+The next pending crossing cannot move backward, and accepted finish counts cannot decrease. The course limit policy
+starts at 30 m/s: initial conditions through the ordinary vehicle constructor, with no pose or progress edits during a
+run (the broadside policy places the player once, before READY). In every row, rivals and traffic neither recover nor
+meet a wall or course limit (the race's step observation names each vehicle a wall or course limit pushes); outside the
+course limit and broadside policies, the player neither recovers nor meets one either. Leaving the pavement is not
+checked: a lane change at speed can overshoot its lane a few centimetres off the pavement. Forks, merges, rank limits,
+ahead entries and movable objects have no driving scenario. Each row checks a situation no other row does:
 
-| Row (course)                                                 | Policy                                                                                                                                          | Passes when                                                                                                                                                                     |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| reverse beyond entry (coast)                                 | neutral pedals from −20 m/s                                                                                                                     | the player backs beyond the entry and out of the coordinate domain, and recovery (`outside-domain`) returns it into the domain                                                  |
-| departure right (coast, ring), departure left (fork)         | full lock and throttle for 20 s                                                                                                                 | the player leaves the pavement on that side, a wall or course limit pushes it (`limitContact`, from the race's step observation), and it neither recovers nor leaves the domain |
-| course limit pushes back (coast)                             | steering −0.12 for 4 s, then its driver                                                                                                         | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                                           |
-| fork left finish, fork right finish (fork)                   | its driver, to exit 0 / 1                                                                                                                       | GOAL through the selected exit                                                                                                                                                  |
-| closed road through player finish (fork)                     | idle for 3 s while the rival locks exit 0, then the exit-1 road until recovery, then its driver                                                 | wrong-course recovery off the closed Carriageway (the seed's rival choice is checked), then GOAL; no actor's s jumps without recovery                                           |
-| finished rival stops while player waits then finishes (fork) | as above, braking after recovery until the rival has stopped                                                                                    | the finished rival stays below 0.05 m/s for two seconds before the terminal, then the player reaches GOAL                                                                       |
-| finish with rivals (coast, 1 lap; ring, 3 laps)              | its driver, two rivals                                                                                                                          | GOAL after the course's laps                                                                                                                                                    |
-| through the cone row (coast)                                 | its driver, keeping to the lateral of the Route's first row of movable objects from 160 m before it until it has passed every object it knocked | every object of the row is knocked and landed, and the player drives on over them to GOAL                                                                                       |
+| Row (course)                                       | Policy                                                                             | Passes when                                                                                                                                          |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| course limit pushes back (TSUKUBA)                 | steering −0.12 for 4 s from 30 m/s on the home straight, then its driver           | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                |
+| stopped broadside against a course limit (TSUKUBA) | stood a quarter turn toward the left course limit, its front contact 0.6 m past it | a course limit pushes the player, both contacts stay loaded on ground behind the limit for every step, and it neither recovers nor leaves the domain |
 
-Seven rows cover Session rules. Each ARCADE row names its class: of a test-only series document,
-`tests/scenarios/session-rules.series.json` (never delivered), with the build's delivered TESTAROSSA reference times
-and pace schedules, or of the delivered RIBBON series (RIBBON COAST's traffic row and the two RIBBON RING class rows).
-The player drives the class's first vehicle, TESTAROSSA elsewhere. They add
-`rules` evidence: outcome, cause, ending time, position, distance past the finish, player speed, rival travel after the
-ending, and appearances and departures. After the ending, race time, progress, events and the position hold.
+Three rows cover Session rules. The ARCADE rows name their class: of a test-only series document,
+`tests/scenarios/session-rules.series.json` (never delivered), with the build's delivered reference times and pace
+schedules, or of the delivered TRIAL series. The player drives the class's first vehicle, TESTAROSSA elsewhere. Rows
+that run to their ending add `rules` evidence: outcome, cause, ending time, position, distance past the finish, player
+speed, rival travel after the ending, and appearances and departures. After the ending, race time, progress, events and
+the position hold.
 
-| Row (course)                                                             | Passes when                                                                                                                                                                                                                                        |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ARCADE finish ahead of a paced rival, then the takeover stops (coast)    | from the player's own front slot ahead of a paced 911 rival (p = 1): GOAL at P1/2; over the 12 seconds after it the takeover stops the player within its runout and the rival keeps driving                                                        |
-| ARCADE with the RIBBON series traffic (coast, seed 7)                    | traffic appears and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open: traffic side by side can hold the lane-keeping player                                                   |
-| TIME TRIAL finish from the last slot (coast)                             | from the last grid slot, without rivals or clock: GOAL at P1/1                                                                                                                                                                                     |
-| ARCADE ahead entry appears and leaves (fork)                             | an entry in STAGE 2 only appears 80 m ahead of the player when it enters STAGE 2 and, while the player brakes after STAGE 2, leaves the view; absent, it is neither observed nor counted in the position                                           |
-| ARCADE class ring-cars finishes, ARCADE class ring-bikes finishes (ring) | each RIBBON class on RIBBON RING drives its own first vehicle (TESTAROSSA, VFR750R) over its own laps (2, 3) to GOAL, its clock's first deadline being that vehicle's delivered initial reference time times RIBBON's margin (`ownClass` evidence) |
-| ARCADE rank limit GAME OVER (ring)                                       | `ring-CP1` is limited to rank 1 and the paced rival a slot ahead crosses it first: GAME OVER by RANK at that crossing's race time                                                                                                                  |
+| Row (course)                                                                        | Passes when                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ARCADE lap from the grid ahead of rivals, then the takeover stops (TSUKUBA)         | 911 TURBO 3.3 from the pole ahead of two paced GOLF GTI 16V rivals (p = 1) at the back of the grid: one lap to GOAL at P1/3; over the 16 seconds after it the takeover stops the player within its runout and the rivals keep driving |
+| TIME TRIAL finish from the last slot (TSUKUBA, the quickest course to finish)       | from the last grid slot, without rivals or clock: GOAL at P1/1                                                                                                                                                                        |
+| ARCADE with the TRIAL series traffic (OUTRUN TRIAL A, seed 7, 30 s bounded stretch) | traffic appears ahead and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open                                                                                       |
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.

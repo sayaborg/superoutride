@@ -1,8 +1,8 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { loadCourse } from '../../tools/course/authoring-io.ts';
+import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
@@ -24,8 +24,8 @@ const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
 
 async function setup() {
-  const file = fileURLToPath(new URL('../../content/courses/ribbon-ring.course.json', import.meta.url));
-  const { course, materials } = await loadCourse(file);
+  const materials = await loadSurfaceMaterials(definitionContent);
+  const course = await loadDeliveredCourse(definitionContent, 'tsukuba', materials);
   const testarossa = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const assets = createVehicleSprites(testarossa);
@@ -65,7 +65,7 @@ test('the view assembles fifteen rival sprites from race observations', async ()
   const { course, materials, scene, compiledVehicle } = await setup();
   const admitted = readRivalEnvelope(
     await sessionVehicleSha256(compiledVehicle, materials),
-    await (await readDeliveredContent()).json('envelope', 'TESTAROSSA'),
+    await definitionContent.json('envelope', 'TESTAROSSA'),
   );
   assert.ok(admitted.ok);
   const envelope = admitted.value;

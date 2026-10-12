@@ -1,21 +1,33 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { loadCourse } from '../../tools/course/authoring-io.ts';
+import { readFile } from 'node:fs/promises';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
+import { readCourseImages } from '../../tools/course/read-course-images.ts';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { compileCourseImages } from '../../tools/course/compile-course-images.ts';
 import { compileCourseDocument } from '../../src/course/compiler/compiled-course.js';
 import { courseFileSha256 } from '../../tools/course/course-file-id.ts';
-import { readCourseDocument } from '../../src/course/course-document.js';
+import { courseImageNames, readCourseDocument, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
-  const file = fileURLToPath(new URL('../../content/courses/ribbon-coast.course.json', import.meta.url));
-  const { document, images, materials } = await loadCourse(file);
+  const content = new URL('../../content/', import.meta.url);
+  const read = await readCourseDocumentBytes(
+    new Uint8Array(await readFile(new URL('courses/outrun-trial-a.course.json', content))),
+    'outrun-trial-a.course.json',
+  );
+  assert.ok(read.ok);
+  const document = read.value;
+  const images = await readCourseImages(
+    courseImageNames(document),
+    async (name) => new Uint8Array(await readFile(new URL(`images/${name}`, content))),
+  );
+  const materials = await loadSurfaceMaterials(await readDeliveredContent());
   const prepared = await compileCourseImages(document, images);
   const original = await compileCourseDocument(
     prepared.document,
-    'ribbon-coast',
+    'outrun-trial-a',
     await courseFileSha256(prepared.document),
     prepared.images,
     materials,
@@ -30,7 +42,7 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   assert.ok(admitted.ok);
   const replacement = await compileCourseDocument(
     admitted.value,
-    'ribbon-coast',
+    'outrun-trial-a',
     await courseFileSha256(admitted.value),
     prepared.images,
     materials,

@@ -61,8 +61,8 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     lowParticipation: 0.45,
     dcHz: 18,
   }),
-  // The walls' scraping: the UNIFIED defaults with a work reference near the median wall-rub power of RIBBON COAST's
-  // departures (about 90 kW at about 30 m/s) and slip mappings for wall speeds.
+  // The walls' scraping: the UNIFIED defaults with a work reference of 90 kW, set near the median wall-rub power
+  // measured on departures from a road at about 30 m/s, and slip mappings for wall speeds.
   scrape: Object.freeze<ScrapeSettings>({
     feedbackMaximumPerSecond: 8500,
     powerReferenceWatts: 90000,
@@ -114,7 +114,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     musicFadeSeconds: 2,
   }),
   // The reference work of each counterpart's impact: about a 10 m/s closing of two cars, a hard wall or object hit (wall
-  // starts on RIBBON COAST's departures range from about 300 J to 1.6 MJ) and a cone at race speed (about 7 kJ).
+  // starts measured on departures from a road ranged from about 300 J to 1.6 MJ) and a cone at race speed (about 7 kJ).
   impact: Object.freeze<ImpactSettings>({
     vehicleJoules: 50000,
     wallJoules: 100000,

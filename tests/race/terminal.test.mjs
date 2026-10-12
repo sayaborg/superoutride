@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
-import { loadCourse } from '../../tools/course/authoring-io.ts';
+import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
+import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { createCourseRoute } from '../../src/course/course-route.js';
 import { createCourseRouteReaders } from '../../src/course/course-route-readers.js';
 import {
@@ -19,11 +20,11 @@ const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
 const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) };
 
-const load = async (stem) =>
-  (await loadCourse(new URL(`../../content/courses/${stem}.course.json`, import.meta.url).pathname)).course;
+const materials = await loadSurfaceMaterials(definitionContent);
+const load = (stem) => loadDeliveredCourse(definitionContent, stem, materials);
 
 test('outside projection follows previous chainage across clamped and tangent-ray candidates', async () => {
-  const course = await load('ribbon-coast');
+  const course = await load('outrun-trial-a');
   // The linear chain loaded through its terminal Section.
   const chain = createCourseRoute(course.entry);
   chain.extendThrough(Infinity);
@@ -56,13 +57,13 @@ test('outside projection follows previous chainage across clamped and tangent-ra
   }
 });
 
-test('Session rejects short terminal runout, including solo play; forks and loops are not terminals', async () => {
-  const course = await load('ribbon-coast');
+test('Session rejects short terminal runout, including solo play; a loop is not a terminal', async () => {
+  const course = await load('outrun-trial-a');
   const vehicle = createSessionVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
-  const { envelope } = await (await readDeliveredContent()).json('envelope', 'TESTAROSSA');
+  const { envelope } = await definitionContent.json('envelope', 'TESTAROSSA');
   const request = {
     mode: 'FREE_PLAY',
     vehicleId: 'TESTAROSSA',
@@ -91,9 +92,7 @@ test('Session rejects short terminal runout, including solo play; forks and loop
     () => resolveCourseSession(short, null, configuration, 0, vehicle, envelope),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
-  const fork = createCourseRoute((await load('ribbon-fork')).entry).route;
-  assert.equal(fork.terminal, null);
-  const ringCourse = await load('ribbon-ring');
+  const ringCourse = await load('tsukuba');
   const ring = createCourseRoute(ringCourse.entry);
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
