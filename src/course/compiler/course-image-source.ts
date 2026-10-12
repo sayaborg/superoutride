@@ -2,11 +2,7 @@ import { AdmissionError, deepFreeze } from '../../core/admission.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
-import {
-  compileTileBackground,
-  type TileBackgroundDocument,
-  type TileBackgroundImage,
-} from '../../image/tile-background-image.js';
+import { compileTilePicture, type TilePictureDocument, type TilePicture } from '../../image/tile-picture.js';
 import {
   readSpriteLodAsset,
   spriteLodLayout,
@@ -28,7 +24,7 @@ export interface CourseImageBytes {
 
 type AdmittedImage =
   | { readonly kind: 'sprite'; readonly image: SpriteLodAsset; readonly document: SpriteLodDocument }
-  | { readonly kind: 'background'; readonly image: TileBackgroundImage; readonly document: TileBackgroundDocument };
+  | { readonly kind: 'background'; readonly image: TilePicture; readonly document: TilePictureDocument };
 
 /**
  * An image as the course uses it: its name (`id`), the SHA-256 of its saved bytes, worked out from the bytes, and the
@@ -36,7 +32,7 @@ type AdmittedImage =
  */
 export type CompiledCourseImageSource = { readonly id: string; readonly sha256: string } & (
   | { readonly kind: 'sprite'; readonly image: SpriteLodAsset }
-  | { readonly kind: 'background'; readonly image: TileBackgroundImage }
+  | { readonly kind: 'background'; readonly image: TilePicture }
 );
 
 /** An admitted image with the frozen saved document it was decoded from, for build-time compilers. */
@@ -146,7 +142,7 @@ export async function readCourseImageSources(
     let admitted: AdmittedImage;
     try {
       if ((value as { format?: string } | null)?.format === 'superoutride.tile-background') {
-        const background = value as TileBackgroundDocument;
+        const background = value as TilePictureDocument;
         if (
           Array.isArray(background.patterns) &&
           background.patterns.length * 256 + levelTexels > COURSE_DOCUMENT_LIMITS.imageTotalLevelTexels
@@ -154,7 +150,7 @@ export async function readCourseImageSources(
           error('resource_limit', name, 'Background patterns exceed source texel admission', inputIndex);
           continue;
         }
-        const image = compileTileBackground(value);
+        const image = compileTilePicture(value);
         levelTexels += background.patterns.length * 256;
         admitted = { kind: 'background', image, document: background };
       } else {

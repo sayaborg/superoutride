@@ -113,7 +113,7 @@ edge row. Horizontally it scrolls at the camera's focal length, `f` pixels per r
 distant road and sprites do, and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
 closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
-`compileTileBackground` admits this document and builds the immutable `TileBackgroundImage` reader;
+`compileTilePicture` admits this document and builds the immutable `TilePicture` reader;
 the reader's constructor keeps only its local invariant that every tile binds an existing pattern and palette.
 
 ## Text tiles

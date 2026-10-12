@@ -1,5 +1,5 @@
 import type { CompiledCoursePosition } from './course-geometry.js';
-import type { TileBackgroundImage } from '../image/tile-background-image.js';
+import type { TilePicture } from '../image/tile-picture.js';
 import type { SpriteLodAsset } from '../image/sprite.js';
 import type { CompiledBoundary } from './course-boundaries.js';
 import type { StripGround } from './strip-ground.js';
@@ -32,7 +32,7 @@ export interface CourseAppearance {
     readonly at: CompiledCoursePosition;
     readonly name: string;
     readonly background: {
-      readonly asset: DecodedImage<TileBackgroundImage>;
+      readonly asset: DecodedImage<TilePicture>;
       readonly horizonY: number;
       readonly yawOriginRadians: number;
     };

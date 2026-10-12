@@ -8,7 +8,7 @@ const BACKGROUND_MAX_TILE_COLUMNS = 256;
 export const BACKGROUND_HEIGHT = BACKGROUND_TILE_ROWS * BACKGROUND_TILE_SIZE;
 
 /** The indexed pattern/palette format with a fixed tile arrangement rather than sprite levels. */
-export interface TileBackgroundDocument {
+export interface TilePictureDocument {
   readonly format: 'superoutride.tile-background';
   readonly version: 1;
   readonly name: string;
@@ -25,7 +25,7 @@ function readOpaqueSymbol(value: unknown, path: string): number {
 }
 
 /** Admit a saved tiled background and build its immutable raster reader. */
-export function compileTileBackground(value: unknown): TileBackgroundImage {
+export function compileTilePicture(value: unknown): TilePicture {
   const document = readDocument(
     value,
     ['format', 'version', 'name', 'patterns', 'palettes', 'tiles'],
@@ -65,11 +65,11 @@ export function compileTileBackground(value: unknown): TileBackgroundImage {
     '/tiles',
     `A tiled background has ${BACKGROUND_TILE_ROWS} full rows of tiles`,
   );
-  return new TileBackgroundImage(name, patterns, palettes, tiles);
+  return new TilePicture(name, patterns, palettes, tiles);
 }
 
 /** Private packed patterns, palette table and tile bindings are borrowed read-only by the raster. */
-export class TileBackgroundImage {
+export class TilePicture {
   /** The map's width in pixels: its tile columns, which its tiles give, times 16. */
   readonly width: number;
   readonly height = BACKGROUND_HEIGHT;

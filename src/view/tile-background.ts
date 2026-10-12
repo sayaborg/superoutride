@@ -1,9 +1,9 @@
 import { horizonY, type PseudoCamera } from './projection.js';
-import type { TileBackgroundImage } from '../image/tile-background-image.js';
+import type { TilePicture } from '../image/tile-picture.js';
 import type { SoftwareSurface } from './software-surface.js';
 
 export interface TileBackground {
-  readonly image: TileBackgroundImage;
+  readonly image: TilePicture;
   readonly imageHorizonY: number;
   readonly yawOriginRadians: number;
 }
