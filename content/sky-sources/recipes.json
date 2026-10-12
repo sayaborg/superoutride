@@ -13,6 +13,8 @@
     "sky-lake": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-desert": { "columns": 94, "rows": 40, "fit": "fill" },
     "sky-alpine-dark": { "columns": 94, "rows": 40, "fit": "fill" },
-    "sky-forest": { "columns": 94, "rows": 40, "fit": "fill" }
+    "sky-forest": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-seafront": { "columns": 94, "rows": 40, "fit": "fill" },
+    "sky-city": { "columns": 94, "rows": 40, "fit": "fill" }
   }
 }

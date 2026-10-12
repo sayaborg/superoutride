@@ -108,8 +108,11 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   FARMLAND's fields, fences, farmsteads and dirt at its crests; OLD TOWN's house fronts and wet cobbles; TUNNEL RUN's
   seven tunnels with wet exits; TUNNEL RUN shortened); OT-9 (row 4: LAKESIDE's lake and four bridges; DESERT's
   saguaros, poles, mesas and sand drifts; ALPINE PASS's rock face, valley drop and wet summit under a storm sky;
-  FOREST's dense trees and dirt shoulders; FOREST and ALPINE PASS shortened: awards now 88.8–96.7 s).
-- Next PR: OT-10, row 5 (RIVIERA, INTERCHANGE, DOWNHILL, RUINS, METROPOLIS), then OT-last.
+  FOREST's dense trees and dirt shoulders; FOREST and ALPINE PASS shortened: awards now 88.8–96.7 s); OT-10 (row 5,
+  the goals: RIVIERA's seafront, hotels and yachts; INTERCHANGE's barriers, overpasses and gantries; DOWNHILL's ridge
+  with drops on both sides; RUINS' columns, arches and dirt; METROPOLIS' high-rise fronts, city tunnel and wet streets
+  under a dusk skyline; spectators along every finish; awards 88.8–99.4 s).
+- Next PR: OT-last (final review of all fifteen stages and the transitions, measure, docs, checkpoint).
 - Measured stage times (OT-3b, s; left / right exit): COASTLINE 97.7 / 97.9, GATEWAY 97.8 / 98.2, CLIFF ROAD 101.7 /
   102.1, FARMLAND 95.8 / 96.1, OLD TOWN 97.8–101.1, TUNNEL RUN 96.2 / 96.6, LAKESIDE 90.3 / 90.7, DESERT 90.7–93.1,
   ALPINE PASS 100.9 / 101.3, FOREST 117.0 / 117.3, goals 87.2–89.9 (METROPOLIS 96.4). FOREST is to be shortened and
@@ -124,7 +127,9 @@ open, the PR takes the simplest option consistent with AGENTS and the owning spe
   the stage's checkpoint is its end; the generic startup smoke compiles OUTRUN TEST like every delivered course (about
   5 s), and no test drives it; traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3. OT-4: WET_ASPHALT's
   grip factor 0.7 (Wong's dry/wet adhesion ranges), rolling resistance as ASPHALT's, high rolling band +6 dB and
-  friction susceptibility 0.7.
+  friction susceptibility 0.7. OT-9: the mesa is 35 m wide, drawn at half scale under the 1,048,576-texel sprite
+  limit; ALPINE PASS's storm arrives and leaves by rise. OT-10: traffic density is a series setting, so INTERCHANGE's
+  heavy traffic is its extra lanes' room for the series' traffic, not a denser stream.
 - Splits: none.
 
 **Order.** OT-3 OUTRUN TEST skeleton (15 stages, 5 goals, plan, profile, lanes, forks and gates, placeholder Strips

@@ -36,6 +36,18 @@ import {
   lakeside,
   LAKESIDE_SURFACES,
 } from './outrun-test/row4.js';
+import {
+  downhill,
+  DOWNHILL_SURFACES,
+  interchange,
+  INTERCHANGE_SURFACES,
+  metropolis,
+  METROPOLIS_SURFACES,
+  riviera,
+  RIVIERA_SURFACES,
+  ruins,
+  RUINS_SURFACES,
+} from './outrun-test/row5.js';
 
 type Turn = 'left' | 'right';
 /** A plan element: a straight of `length`, or an arc of `length` and `radius` turning `turn`. */
@@ -418,6 +430,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'riviera',
       name: 'RIVIERA',
+      sky: 'sky-seafront',
+      surfaces: RIVIERA_SURFACES,
+      scenery: riviera,
       body: [
         Rd(1200, 30),
         S(700),
@@ -435,6 +450,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'interchange',
       name: 'INTERCHANGE',
+      sky: 'sky-country',
+      surfaces: INTERCHANGE_SURFACES,
+      scenery: interchange,
       body: [
         Ld(600, 40),
         S(500),
@@ -487,6 +505,10 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'downhill',
       name: 'DOWNHILL',
+      sky: 'sky-mountain',
+      surfaces: DOWNHILL_SURFACES,
+      // The ridge: the descent's middle straight between two jumps.
+      scenery: (ctx) => downhill(ctx, [1400, 2000]),
       body: [
         Rd(400, 50),
         S(700),
@@ -517,6 +539,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'ruins',
       name: 'RUINS',
+      sky: 'sky-country',
+      surfaces: RUINS_SURFACES,
+      scenery: ruins,
       body: [
         Ld(150, 70),
         S(250),
@@ -548,6 +573,9 @@ const ROWS: readonly (readonly StageDesign[])[] = [
     {
       id: 'metropolis',
       name: 'METROPOLIS',
+      sky: 'sky-city',
+      surfaces: METROPOLIS_SURFACES,
+      scenery: metropolis,
       body: [
         Rd(50, 88),
         S(500),
