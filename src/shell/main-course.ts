@@ -21,7 +21,7 @@ import { createCourseMap } from '../view/course-map.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
-import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
+import { createLoadFailedScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
 import { assembleRun, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
@@ -44,7 +44,7 @@ import { playTrack } from './run-music.js';
  */
 async function startPage(): Promise<void> {
   const canvas = mustGet<HTMLCanvasElement>('game');
-  // Text outside the frame: the product shows LOADING and LOAD FAILED inside it, so this appears only with DEV, or when
+  // Text outside the frame: the product shows the PRE-RACE card and LOAD FAILED inside it, so this appears only with DEV, or when
   // the page itself cannot start and the frame cannot draw text.
   const createStatus = () => {
     const element = document.createElement('p');
@@ -99,9 +99,14 @@ async function startPage(): Promise<void> {
     const present = () => shell.present();
     // The selection screens' music: a series' title track plays from SELECT SERIES until the run's READY.
     const menuMusic = createMenuMusic(shell);
-    const loading = createLoadingScreen(shell.framebuffer, textLayer, present);
     // The one owner of the current screen; it runs the frame loop while the page is visible.
-    const host = createScreenHost(window, document, shell, loading);
+    // The page starts from black; the first screen, TITLE or a URL's run, brightens from it.
+    const host = createScreenHost(window, document, shell, {
+      live: false,
+      tick() {},
+      command() {},
+      render() {},
+    });
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
     // DEV's measurement lines stack at the top of the page, clear of the HUD's lower rows.
