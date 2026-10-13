@@ -1,4 +1,4 @@
-import { TEXT_MARKS, TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_FONTS, TEXT_MARKS, TEXT_PALETTES, type TextFont } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -32,8 +32,12 @@ export interface MenuItem {
   focus?(): () => void;
 }
 
-/** A line of text in WHITE, or segments written one after another in their palettes. */
-export type MenuLine = string | readonly { readonly text: string; readonly palette: number }[];
+/**
+ * A line of text in WHITE, or segments written one after another in their palettes and fonts (`normal` when absent); a
+ * line is as many rows high as its tallest font.
+ */
+export type MenuLine =
+  string | readonly { readonly text: string; readonly palette: number; readonly font?: TextFont }[];
 
 /**
  * How a menu shows its items. `carousel` shows one item at a time, which LEFT and RIGHT (and UP and DOWN) change,
@@ -47,7 +51,9 @@ export interface MenuDefinition {
   readonly title: string;
   /** The title's text palette; WHITE when absent. */
   readonly titlePalette?: number;
-  /** Lines of information between the title and the items: WHITE text, or segments in their own palettes. */
+  /** The title's font; `normal` when absent. */
+  readonly titleFont?: TextFont;
+  /** Lines of information between the title and the items: WHITE text, or segments in their own palettes and fonts. */
   readonly lines?: readonly MenuLine[];
   /** `carousel` when absent. */
   readonly layout?: MenuLayout;
@@ -148,7 +154,10 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
         lines = definition.lines ?? [];
       // The title, a blank row, any lines and another blank row, then the items: a carousel's one item, or a list's
       // items on every second row.
-      const first = 2 + (lines.length > 0 ? lines.length + 1 : 0);
+      const titleRows = TEXT_FONTS[definition.titleFont ?? 'normal'].rows,
+        lineRows = lines.map(rowsOf),
+        linesHeight = lineRows.reduce((n, rows) => n + rows, 0);
+      const first = titleRows + 1 + (lines.length > 0 ? linesHeight + 1 : 0);
       const notes = items.some((item) => item.note !== undefined);
       const rows = carousel
         ? Math.min(1, items.length) + (notes ? ITEM_ROWS : 0)
@@ -156,8 +165,14 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
       const height = first + rows;
       if (height > TEXT_ROWS) throw new RangeError(`A menu of ${height} rows does not fit the text grid`);
       const top = Math.floor((TEXT_ROWS - height) / 2);
-      writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE);
-      lines.forEach((line, i) => writeLine(text, top + 2 + i, line));
+      writeCentred(text, top, definition.title, definition.titlePalette ?? TEXT_PALETTES.WHITE, definition.titleFont);
+      lines.reduce(
+        (row, line, i) => {
+          writeLine(text, row, line);
+          return row + lineRows[i]!;
+        },
+        top + titleRows + 1,
+      );
       const label = (item: MenuItem) => (item.value === undefined ? item.label : `${item.label}  ${item.value}`);
       if (carousel) {
         const item = items[index];
@@ -180,12 +195,20 @@ export function createMenu(definition: MenuDefinition, initial = 0) {
 }
 export type Menu = ReturnType<typeof createMenu>;
 
-/** Write `line` centred on `row`: WHITE text, or segments written one after another in their palettes. */
+const segmentsOf = (line: MenuLine) =>
+  typeof line === 'string' ? [{ text: line, palette: TEXT_PALETTES.WHITE }] : line;
+/** The rows a line occupies: its tallest font's. */
+const rowsOf = (line: MenuLine) =>
+  Math.max(1, ...segmentsOf(line).map((segment) => TEXT_FONTS[segment.font ?? 'normal'].rows));
+
+/**
+ * Write `line` centred from `row`: WHITE text, or segments written one after another in their palettes and fonts.
+ */
 export function writeLine(text: TextLayer, row: number, line: MenuLine) {
-  const segments = typeof line === 'string' ? [{ text: line, palette: TEXT_PALETTES.WHITE }] : line;
+  const segments = segmentsOf(line);
   let column = Math.floor((TEXT_COLUMNS - segments.reduce((n, segment) => n + segment.text.length, 0)) / 2);
   for (const segment of segments) {
-    text.write(column, row, segment.text, segment.palette);
+    text.write(column, row, segment.text, segment.palette, segment.font);
     column += segment.text.length;
   }
 }
@@ -203,8 +226,8 @@ export function writeChoice(text: TextLayer, row: number, label: string, palette
 }
 
 /** Write `line` centred on `row` of the text grid. */
-export function writeCentred(text: TextLayer, row: number, line: string, palette: number) {
-  text.write(Math.floor((TEXT_COLUMNS - line.length) / 2), row, line, palette);
+export function writeCentred(text: TextLayer, row: number, line: string, palette: number, font?: TextFont) {
+  text.write(Math.floor((TEXT_COLUMNS - line.length) / 2), row, line, palette, font);
 }
 
 /** A screen showing one menu on the plain background. */

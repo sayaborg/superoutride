@@ -93,6 +93,10 @@ export const HUD_DRAWN_PALETTE_NAMES = [
  * are free.
  */
 export const TEXT_PALETTES = named([...AUTHORED_PALETTE_NAMES, ...HUD_DRAWN_PALETTE_NAMES] as const);
+/** An ornate font's palette in a style: the small font's, or the large font's top palette, its bottom following. */
+export function ornatePalette(font: Exclude<TextFont, 'normal'>, style: OrnateStyle): number {
+  return TEXT_PALETTES[`${font === 'ornateSmall' ? 'ORNATE_SMALL' : 'ORNATE_LARGE'}_${style}`];
+}
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 /** The signal lamp is 2 by 2 tiles, its patterns row by row from the top left. */

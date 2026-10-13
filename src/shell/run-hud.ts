@@ -5,6 +5,9 @@ import {
   HUD_TILES,
   hudPictureFrame,
   LAMP_TILES,
+  ornatePalette,
+  type OrnateStyle,
+  type TextFont,
   TEXT_PALETTES,
   type HudPicture,
 } from '../image/text-tiles.js';
@@ -65,12 +68,12 @@ const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', 
  */
 export const HUD_LAYOUT = Object.freeze({
   timeLabel: [1, 1],
-  timeValue: [3, 2],
-  elapsed: [9, 2],
-  positionLabel: [25, 1],
-  positionValue: [25, 2],
-  stageLabel: [33, 1],
-  stageValue: [36, 2],
+  timeValue: [8, 1],
+  elapsed: [11, 1],
+  positionLabel: [21, 1],
+  positionValue: [25, 1],
+  stageLabel: [31, 1],
+  stageValue: [38, 1],
   lapLabel: [1, 4],
   lapTime: [10, 4],
   bestLabel: [1, 5],
@@ -88,7 +91,7 @@ export const HUD_LAYOUT = Object.freeze({
   lamp2: [19, 13],
   lamp3: [23, 13],
   outcome: ['center', 16],
-  cause: ['center', 17],
+  cause: ['center', 18],
   speed: [1, 26],
   speedUnit: [7, 28],
   steeringPicture: [17, 23],
@@ -104,11 +107,19 @@ const columnOf = (place: Place, length: number) => {
   const column = HUD_LAYOUT[place][0];
   return column === 'center' ? Math.floor((TEXT_COLUMNS - length) / 2) : column;
 };
-const write = (text: TextLayer, place: Place, line: string, palette: number = TEXT_PALETTES.WHITE) =>
-  text.write(columnOf(place, line.length), HUD_LAYOUT[place][1], line, palette);
+/** A HUD line's font and palette. */
+interface HudStyle {
+  readonly font: TextFont;
+  readonly palette: number;
+}
+const large = (style: OrnateStyle): HudStyle => ({ font: 'ornateLarge', palette: ornatePalette('ornateLarge', style) });
+const small = (style: OrnateStyle): HudStyle => ({ font: 'ornateSmall', palette: ornatePalette('ornateSmall', style) });
+const NORMAL: HudStyle = { font: 'normal', palette: TEXT_PALETTES.WHITE };
+const write = (text: TextLayer, place: Place, line: string, { font, palette }: HudStyle = NORMAL) =>
+  text.write(columnOf(place, line.length), HUD_LAYOUT[place][1], line, palette, font);
 /** Right-aligned: the line's last character at the place's column. */
-const writeRight = (text: TextLayer, place: Place, line: string, palette: number = TEXT_PALETTES.WHITE) =>
-  text.write(columnOf(place, 1) - line.length + 1, HUD_LAYOUT[place][1], line, palette);
+const writeRight = (text: TextLayer, place: Place, line: string, { font, palette }: HudStyle = NORMAL) =>
+  text.write(columnOf(place, 1) - line.length + 1, HUD_LAYOUT[place][1], line, palette, font);
 /** A 2×2 signal lamp, its palette giving its state. */
 const writeLamp = (text: TextLayer, place: Place, palette: number) => {
   const column = columnOf(place, LAMP_TILES),
@@ -237,72 +248,73 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // Seconds remaining, rounded up; red under ten seconds, yellow for two seconds after an extension.
+    // Seconds remaining, rounded up, in the ornate large font: WHITE, RED under ten seconds and SUNSET (the yellow) for
+    // two seconds after an extension.
     when: ({ race }) => race.clock.deadlineSeconds !== null,
     write({ race }, text) {
       const { clock } = race;
       const remaining = Math.max(0, clock.deadlineSeconds! - clock.elapsedSeconds);
-      write(text, 'timeLabel', 'TIME');
+      write(text, 'timeLabel', 'TIME', large('WHITE'));
       writeRight(
         text,
         'timeValue',
         String(Math.ceil(remaining)),
-        extended(race) ? TEXT_PALETTES.YELLOW : remaining < 10 ? TEXT_PALETTES.RED : TEXT_PALETTES.WHITE,
+        large(extended(race) ? 'SUNSET' : remaining < 10 ? 'RED' : 'WHITE'),
       );
     },
   },
   {
     // Race time.
     when: () => true,
-    write: ({ race }, text) => write(text, 'elapsed', formatRaceTime(race.clock.elapsedSeconds)),
+    write: ({ race }, text) => write(text, 'elapsed', formatRaceTime(race.clock.elapsedSeconds), large('SUNSET')),
   },
   {
     when: ({ race }) => shownStanding(race) !== null,
     write({ race }, text) {
       const standing = shownStanding(race)!;
-      write(text, 'positionLabel', 'POS');
-      write(text, 'positionValue', `${standing.rank}/${standing.count}`);
+      write(text, 'positionLabel', 'POS', large('SUNSET'));
+      write(text, 'positionValue', `${standing.rank}/${standing.count}`, large('SUNSET'));
     },
   },
   {
     when: ({ race }) => race.courseType !== 'CIRCUIT',
     write({ race }, text) {
-      write(text, 'stageLabel', 'STAGE');
-      writeRight(text, 'stageValue', String(race.stage));
+      write(text, 'stageLabel', 'STAGE', large('SUNSET'));
+      writeRight(text, 'stageValue', String(race.stage), large('SUNSET'));
     },
   },
   {
-    // The lap and its time; a finished lap's time holds in yellow.
+    // The lap and its time; a finished lap's time holds, in SUNSET (the yellow) as the lap's own time is.
     when: ({ race }) => race.courseType === 'CIRCUIT',
     write({ race }, text) {
       const { player, clock, lap, lapCount } = race;
-      write(text, 'lapLabel', `LAP ${lap}/${lapCount}`);
+      write(text, 'lapLabel', `LAP ${lap}/${lapCount}`, small('SUNSET'));
       const lapStart = player.lapStartSeconds ?? 0;
       const held = player.lastLapSeconds !== null && clock.elapsedSeconds - lapStart < HUD_DURATIONS.lapHold;
       write(
         text,
         'lapTime',
         formatRaceTime(held ? player.lastLapSeconds! : clock.elapsedSeconds - lapStart),
-        held ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
+        small('SUNSET'),
       );
     },
   },
   {
     when: ({ race }) => race.courseType === 'CIRCUIT',
     write({ race }, text) {
-      write(text, 'bestLabel', 'BEST');
+      write(text, 'bestLabel', 'BEST', small('WHITE'));
       const best = race.player.bestLapSeconds;
-      write(text, 'bestTime', best === null ? `-'--"---` : formatRaceTime(best));
+      write(text, 'bestTime', best === null ? `-'--"---` : formatRaceTime(best), small('WHITE'));
     },
   },
   {
     // Until the run ends: an ended run has no next gate to pass.
     when: ({ race }) => !ended(race) && race.nextRankLimit !== null,
-    write: ({ race }, text) => write(text, 'pass', `PASS ${race.nextRankLimit}`),
+    write: ({ race }, text) => write(text, 'pass', `PASS ${race.nextRankLimit}`, small('WHITE')),
   },
   {
     when: ({ race }) => (race.stageRivalGap ?? 0) > 0,
-    write: ({ race }, text) => write(text, 'target', `TARGET ${Math.round(race.stageRivalGap!)}M`),
+    write: ({ race }, text) => write(text, 'target', `TARGET ${Math.round(race.stageRivalGap!)}M`, small('WHITE')),
   },
   {
     // The speed in km/h, right-aligned segment digits; a missing leading digit is unlit.
@@ -413,14 +425,14 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     middle: true,
     when: ({ race }) => beforeGo(race),
     write({ session }, text) {
-      write(text, 'courseName', session.courseName);
-      write(text, 'mode', MODE_NAMES[session.mode]);
+      write(text, 'courseName', session.courseName, small('WHITE'));
+      write(text, 'mode', MODE_NAMES[session.mode], small('WHITE'));
     },
   },
   {
     middle: true,
     when: ({ race, record }) => beforeGo(race) && record !== null,
-    write: ({ record }, text) => write(text, 'record', `RECORD ${formatMilliseconds(record!.timeMs)}`),
+    write: ({ record }, text) => write(text, 'record', `RECORD ${formatMilliseconds(record!.timeMs)}`, small('WHITE')),
   },
   {
     // The difference from the record run at the latest gate or lap crossing: green when faster, red otherwise.
@@ -440,7 +452,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
       const crossings = race.player.crossingSeconds,
         latest = crossings.length - 1;
       const difference = raceMilliseconds(crossings[latest]!) - record!.splitsMs![latest]!;
-      write(text, 'split', formatTimeDifference(difference), difference < 0 ? TEXT_PALETTES.GREEN : TEXT_PALETTES.RED);
+      write(text, 'split', formatTimeDifference(difference), small(difference < 0 ? 'GREEN' : 'RED'));
     },
   },
   {
@@ -449,7 +461,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: ({ race }) => extended(race),
     write({ race }, text) {
       const tenths = Math.round(race.clock.lastExtension!.ms / 100);
-      write(text, 'extend', `EXTEND +${Math.floor(tenths / 10)}"${tenths % 10}`, TEXT_PALETTES.YELLOW);
+      write(text, 'extend', `EXTEND +${Math.floor(tenths / 10)}"${tenths % 10}`, small('SUNSET'));
     },
   },
   {
@@ -458,8 +470,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: ({ race }) => ended(race),
     write({ race: { outcome } }, text) {
       const goal = outcome.status === 'GOAL';
-      write(text, 'outcome', goal ? 'GOAL' : 'GAME OVER', goal ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.RED);
-      if (!goal) write(text, 'cause', CAUSE_NAMES[outcome.cause!]);
+      write(text, 'outcome', goal ? 'GOAL' : 'GAME OVER', large(goal ? 'SUNSET' : 'RED'));
+      if (!goal) write(text, 'cause', CAUSE_NAMES[outcome.cause!], large('RED'));
     },
   },
 ];

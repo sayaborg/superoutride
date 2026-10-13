@@ -213,8 +213,8 @@ RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
 the field, rendering and sound continue and PAUSE stays available; a pause stops the count with the simulation.
 At RESULT the run finishes: the race stops and the RESULT menu
-is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome, GOAL in yellow or GAME OVER in
-red; its lines are RANK n/m when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
+is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome in the ornate large font, GOAL in
+SUNSET or GAME OVER in RED; its lines are RANK n/m (ornate large, SUNSET) when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
 the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
 when it beat the recorded best lap. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
@@ -453,18 +453,27 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 
 | Rows  | Elements                                                                                                                        |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                                        |
-| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                   |
-| 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                                            |
-| 7     | TIME TRIAL with a record: the difference from the record run for 2 s after each gate and lap crossing                           |
-| 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                                          |
+| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                |
+| 4–5   | Ornate small: LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM     |
+| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                              |
+| 7     | Ornate small: TIME TRIAL with a record, the difference from the record run for 2 s after each gate and lap crossing             |
+| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                      |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO |
-| 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                                        |
+| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it           |
 | 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39           |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h`                                    |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                      |
 | 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                 |
 | 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                         |
 | 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                |
+
+Rows 1–2 hold each label with its value beside it: TIME in columns 1–4 with the seconds right-aligned to column 8,
+race time from column 11, POS from column 21 with its value from column 25, and STAGE from column 31 with its number
+right-aligned to column 38. Their styles: TIME and the seconds WHITE, the seconds RED under 10 s and SUNSET after an
+extension; race time, POS and STAGE SUNSET. LAP and its time are SUNSET; BEST, PASS and TARGET WHITE; the difference
+from the record run GREEN or RED. A two-row line keeps its anchor and first row, and the line under it moves down a
+row: GAME OVER's cause stands on rows 18–19. RESULT's title (GOAL or GAME OVER) and its RANK line are the ornate
+large font in the race's styles (the rank SUNSET); its other lines, its items, the menus and the other screens keep
+the normal font.
 
 The steering picture, in the middle of the frame's width, is the one the player vehicle's listing names
 ([Image assets](image-assets.md#text-tiles)) and shows where the front wheel actually points: the player
@@ -497,15 +506,15 @@ reads only the camera's `heldAtLimit` (1 when its yaw source has turned right be
 it), for FACING and MOVING alike: held on the right, the road goes on to the left, so the left arrow stands in columns
 0–3, and held on the left the right arrow stands in columns 36–39. Its row is fixed, clear of the road and the player's vehicle,
 and does not follow the DEV horizon row. While the PAUSE menu or RESULT is
-over the frame, the notices in rows 7 to 17 are not drawn; the upper and lower rows stay.
+over the frame, the notices in rows 7 to 19 are not drawn; the upper and lower rows stay.
 
-Durations come from race facts, never from wall-clock time or HUD timers, so a pause stops them: TIME is yellow
-while race time is at most 2 s after an extension's race time, and red otherwise under 10 s remaining; a finished
-lap's time holds in yellow for 2 s of race time after the lap; the gear is yellow for 0.3 s of the race's
-simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
+Durations come from race facts, never from wall-clock time or HUD timers, so a pause stops them: TIME is SUNSET
+while race time is at most 2 s after an extension's race time, and RED otherwise under 10 s remaining; a finished
+lap's time holds for 2 s of race time after the lap, in the lap time's SUNSET; the gear is SEG_YELLOW for 0.3 s of the
+race's simulation time (every advanced step, READY and after the ending included) after the shift the race stamped.
 The signal lamps are green for 1 s of race time after GO. The difference from the record run shows for 2 s of race
-time after each crossing, green when faster (`-0"312`) and red otherwise (`+0"312`; `-1'02"312` from one minute on).
-Other text is white. These lengths sit in one constant.
+time after each crossing, GREEN when faster (`-0"312`) and RED otherwise (`+0"312`; `-1'02"312` from one minute on).
+These lengths sit in one constant.
 
 ## Performance HUD
 

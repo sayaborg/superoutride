@@ -2,7 +2,7 @@ import type { TextLayer } from '../view/text-layer.js';
 import { createMenu, type Menu, type MenuDefinition } from './menu.js';
 import { formatMilliseconds, formatRaceTime } from './race-time.js';
 import type { RunResult } from './run-result.js';
-import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { ornatePalette, TEXT_PALETTES } from '../image/text-tiles.js';
 import { halveRgb555Pixels } from '../image/rgb555.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { MenuResponse, Screen } from './screen-host.js';
@@ -86,9 +86,20 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
   ]);
   return {
     title: result.outcome,
-    titlePalette: result.outcome === 'GOAL' ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.RED,
+    titlePalette: ornatePalette('ornateLarge', result.outcome === 'GOAL' ? 'SUNSET' : 'RED'),
+    titleFont: 'ornateLarge',
     lines: [
-      ...(result.standing ? [`RANK ${result.standing.rank}/${result.standing.count}`] : []),
+      ...(result.standing
+        ? [
+            [
+              {
+                text: `RANK ${result.standing.rank}/${result.standing.count}`,
+                palette: ornatePalette('ornateLarge', 'SUNSET'),
+                font: 'ornateLarge' as const,
+              },
+            ],
+          ]
+        : []),
       `TIME ${formatRaceTime(result.raceSeconds)}`,
       ...(record?.previous ? [`RECORD ${formatMilliseconds(record.previous.timeMs)}`] : []),
       ...(record?.newRecord ? [[{ text: 'NEW RECORD', palette: TEXT_PALETTES.YELLOW }]] : []),

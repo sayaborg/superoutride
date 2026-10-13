@@ -92,6 +92,10 @@
   frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
   the attract demo holds only the shown and the next class's Sessions.
+- Stage HD is complete: the HUD tiles command writes every text-tile pattern from the HUD design sources and rules
+  ([Image assets](image-assets.md#hud-design-sources)): the normal font with ▲ ▼ ◀ ▶, the ornate small and large
+  fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
+  arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
 Next PR: [AI-3](#ai-3--remove-envelopes) of [Stage AI](#stage-ai--the-model-planned-driver), then
 [Stage 16](#stage-16--produce-product-courses).
@@ -159,6 +163,7 @@ Owning documents: browser (HUD and SETTINGS) and product (one sentence).
 - `BRAKE!!` shows while the player's speed exceeds the plan's speed at the station `0.5 s × speed` ahead, and hides
   once the speed falls below 97 % of that; not in flight, before GO, after GOAL or in the attract demo.
 - Text tiles at row 8, columns 16–22, in RED, blinking every 8 fixed steps.
+- Draw BRAKE!! in the large ornate font, RED style, rows 8–9, centred.
 - `SETTINGS → BRAKE SIGN ON/OFF`, default ON, kept in the player record's settings.
 
 Evidence: frames showing it before a TSUKUBA hairpin. No new test.
