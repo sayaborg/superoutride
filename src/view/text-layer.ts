@@ -1,4 +1,4 @@
-import { EMPTY_TEXT_TILE, TEXT_TILE_SIZE, type TextTiles } from '../image/text-tiles.js';
+import { EMPTY_TEXT_TILE, TEXT_FONTS, TEXT_TILE_SIZE, type TextFont, type TextTiles } from '../image/text-tiles.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from './display-scale.js';
 import type { SoftwareSurface } from './software-surface.js';
 
@@ -7,7 +7,8 @@ export const TEXT_COLUMNS = LOGICAL_WIDTH / TEXT_TILE_SIZE;
 export const TEXT_ROWS = LOGICAL_HEIGHT / TEXT_TILE_SIZE;
 
 /**
- * The one way to draw text in the frame: a grid of [pattern, palette] tiles over the scene. Drawing paints every
+ * The one way to draw text in the frame: a grid of [pattern, palette] tiles over the scene, text written in any of the
+ * text tiles' fonts. Drawing paints every
  * non-empty tile's opaque pixels; index 0 leaves the frame below visible.
  */
 export function createTextLayer(tiles: TextTiles) {
@@ -45,13 +46,22 @@ export function createTextLayer(tiles: TextTiles) {
       overlays.fill(EMPTY_TEXT_TILE);
       overlayPalettes.fill(0);
     },
-    /** Place `text` from (`column`, `row`) rightward in one palette; it must fit the row. */
-    write(column: number, row: number, text: string, palette: number) {
-      requirePalette(palette);
-      const codes = tiles.encode(text);
-      const start = at(column, row, codes.length);
-      patterns.set(codes, start);
-      palettes.fill(palette, start, start + codes.length);
+    /**
+     * Place `text` from (`column`, `row`) rightward in a font and style: the normal font in a named palette, an ornate
+     * font in a style's palette. A font of two rows occupies this row and the one below, its bottom row in the palette
+     * after the style's; the text must fit every row.
+     */
+    write(column: number, row: number, text: string, palette: number, font: TextFont = 'normal') {
+      // Every row is checked before any is written.
+      const lines = Array.from({ length: TEXT_FONTS[font].rows }, (_, r) => {
+        requirePalette(palette + r);
+        const codes = tiles.encode(text, font, r);
+        return { codes, start: at(column, row + r, codes.length), palette: palette + r };
+      });
+      for (const { codes, start, palette } of lines) {
+        patterns.set(codes, start);
+        palettes.fill(palette, start, start + codes.length);
+      }
     },
     /** Place one tile. */
     put(column: number, row: number, pattern: number, palette: number) {

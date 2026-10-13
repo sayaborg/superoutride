@@ -14,10 +14,11 @@ import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
 import { drawHudParts } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
-import { readNormalFont } from '../graphics/hud-design-sources.js';
+import { readNormalFont, readOrnateFonts } from '../graphics/hud-design-sources.js';
+import { drawOrnateFonts } from '../graphics/hud-fonts.js';
 
 /**
- * The HUD tiles command: read the characters from their design sources (`content/hud-design-sources/`), draw the HUD
+ * The HUD tiles command: read the fonts from their design sources (`content/hud-design-sources/`), draw the HUD
  * part tiles and every HUD picture from its source and recipe (`content/hud-picture-sources/`) and write them into the
  * text tiles, `content/text-tiles/default.json`, with a check
  * sheet of each picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
@@ -30,7 +31,12 @@ try {
   requireInput(process.argv.length === 2, '/arguments', USAGE);
   const drawn = await drawHudPictures(store, PNG);
   const saved = JSON.parse(new TextDecoder().decode(await store.read(TEXT_TILES))) as TextTilesDocument;
-  const document = withHudTiles(saved, await readNormalFont(store), drawHudParts(), drawn);
+  const ornate = drawOrnateFonts(await readOrnateFonts(store));
+  const document = withHudTiles(
+    saved,
+    { fonts: [...(await readNormalFont(store)), ...ornate.patterns], parts: drawHudParts(), palettes: ornate.palettes },
+    drawn,
+  );
   requireLoaded(admit(`content/${TEXT_TILES}`, () => compileTextTiles(document)));
   await replaceDocument(store, TEXT_TILES, document);
 

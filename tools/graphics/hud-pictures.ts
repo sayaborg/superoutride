@@ -3,6 +3,7 @@ import { admit } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { unpackRgba } from '../../src/image/rgb555.js';
 import {
+  HUD_DRAWN_PALETTE_NAMES,
   HUD_DRAWN_TILE_NAMES,
   HUD_PICTURE_TILES,
   HUD_PICTURES,
@@ -485,27 +486,39 @@ export async function drawHudPictures(store: ContentStore, PNG: typeof PngDecode
   return drawn;
 }
 
+/** The drawn text tiles: every font's patterns, the drawn HUD part tiles and the drawn named palettes by name. */
+export interface DrawnHudTiles {
+  readonly fonts: readonly (readonly number[])[];
+  readonly parts: readonly (readonly number[])[];
+  readonly palettes: ReadonlyMap<string, readonly number[]>;
+}
+
 /**
- * The text tiles document with these characters and drawn HUD part tiles and pictures in place of those it held: the
- * signal lamps and the named palettes are kept, and the characters, then the signal lamps, the part tiles, each
- * picture's frames, tile rows from the top left, and palette follow in the text tiles' order.
+ * The text tiles document with these drawn tiles and pictures in place of those it held: the signal lamps and the
+ * authored named palettes are kept, and the fonts, then the signal lamps, the part tiles and each picture's frames, tile
+ * rows from the top left, follow in the text tiles' order, as the drawn named palettes and then the pictures' palettes
+ * follow the authored ones.
  */
 export function withHudTiles(
   document: TextTilesDocument,
-  characters: readonly (readonly number[])[],
-  parts: readonly (readonly number[])[],
+  { fonts, parts, palettes: named }: DrawnHudTiles,
   drawn: ReadonlyMap<HudPicture, DrawnHudPicture>,
 ): TextTilesDocument {
   const tiles = HUD_PICTURE_TILES,
     size = tiles * TEXT_TILE_SIZE;
   const lamps = HUD_TILES.LAMP_ON_TL!;
+  if (fonts.length !== lamps) throw new Error('The fonts differ from the text tiles order');
+  if (named.size !== HUD_DRAWN_PALETTE_NAMES.length || HUD_DRAWN_PALETTE_NAMES.some((name) => !named.has(name)))
+    throw new Error('The drawn palettes differ from the text tiles order');
   const patterns = [
-    ...characters.map((indices) => ({ indices })),
+    ...fonts.map((indices) => ({ indices })),
     ...document.patterns.slice(lamps, HUD_TILES[HUD_DRAWN_TILE_NAMES[0]!]!),
     ...parts.map((indices) => ({ indices })),
   ];
-  if (characters.length !== lamps) throw new Error('The characters differ from the text tiles order');
-  const palettes = document.palettes.slice(0, Object.keys(TEXT_PALETTES).length);
+  const palettes = [
+    ...document.palettes.slice(0, TEXT_PALETTES[HUD_DRAWN_PALETTE_NAMES[0]]),
+    ...HUD_DRAWN_PALETTE_NAMES.map((name) => named.get(name)!),
+  ];
   for (const [picture, { frames, palette }] of drawn) {
     if (patterns.length !== picture.first || palettes.length !== picture.palette)
       throw new Error(`HUD picture ${picture.name} does not follow the part tiles and named palettes`);

@@ -1,6 +1,6 @@
 import { admit, readArray, readRecord, requireAdmission } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { readPatternSymbols } from '../../src/image/indexed-image.js';
+import { readIndexedPalette, readPatternSymbols } from '../../src/image/indexed-image.js';
 import { TEXT_CHARACTER_ORDER, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
 import type { ContentStore } from '../authoring/content-store.js';
 
@@ -50,6 +50,25 @@ function readCharacters<T>(
   );
 }
 
+/**
+ * A source palette: 16 colors with blue in the high five bits and red in the low five, as the sources' previews show
+ * them, saved as the text tiles' RGB555 with red high.
+ */
+const readSourcePalette = (value: unknown, path: string) =>
+  readIndexedPalette(value, path).map((color) => ((color & 0x1f) << 10) | (color & 0x3e0) | (color >> 10));
+
+/** A record of source palettes with exactly these names. */
+function readSourcePalettes(
+  value: unknown,
+  path: string,
+  names: readonly string[],
+): Readonly<Record<string, readonly number[]>> {
+  const record = readRecord(value, path, names);
+  return Object.freeze(
+    Object.fromEntries(names.map((name) => [name, readSourcePalette(record[name], `${path}/${name}`)])),
+  );
+}
+
 async function readSource(store: ContentStore, name: string): Promise<{ path: string; value: unknown }> {
   const file = `${HUD_DESIGN_SOURCES_DIRECTORY}/${name}`;
   return { path: `content/${file}`, value: JSON.parse(new TextDecoder().decode(await store.read(file))) as unknown };
@@ -80,6 +99,51 @@ export async function readNormalFont(store: ContentStore): Promise<readonly (rea
         },
       );
       return Object.freeze([...ascii, ...extra]);
+    }),
+  );
+}
+
+/** The ornate fonts: small, one pattern per character, and large, a top and a bottom pattern per character. */
+export interface OrnateFontSource {
+  /** Slots 1 to 7 the ink by row, 8 the shadow. */
+  readonly small: readonly (readonly number[])[];
+  /** Slots 1 to 8 the ink by row within each tile, 9 the shadow. */
+  readonly large: readonly { readonly top: readonly number[]; readonly bottom: readonly number[] }[];
+  /** The SUNSET style's palettes. */
+  readonly palettes: {
+    readonly smallSunset: readonly number[];
+    readonly largeSunsetTop: readonly number[];
+    readonly largeSunsetBottom: readonly number[];
+  };
+}
+
+const SUNSET_PALETTES = ['smallSunset', 'largeSunsetTop', 'largeSunsetBottom'];
+const palettes = (read: Readonly<Record<string, readonly number[]>>): OrnateFontSource['palettes'] =>
+  Object.freeze({
+    smallSunset: read.smallSunset!,
+    largeSunsetTop: read.largeSunsetTop!,
+    largeSunsetBottom: read.largeSunsetBottom!,
+  });
+
+/** The ornate fonts, each in the text tiles' character order, and the SUNSET style's palettes. */
+export async function readOrnateFonts(store: ContentStore): Promise<OrnateFontSource> {
+  const { path, value } = await readSource(store, 'font-ornate-patterns.json');
+  return requireLoaded(
+    admit(path, () => {
+      const document = readRecord(value, '', ['note', 'small', 'large', 'palettes']);
+      const count = TEXT_CHARACTER_ORDER.length;
+      return Object.freeze({
+        small: readCharacters(document.small, '/small', 0, count, ['char', 'indices'], (record, at) =>
+          readTile(record.indices, `${at}/indices`, 8),
+        ),
+        large: readCharacters(document.large, '/large', 0, count, ['char', 'top', 'bottom'], (record, at) =>
+          Object.freeze({
+            top: readTile(record.top, `${at}/top`, 9),
+            bottom: readTile(record.bottom, `${at}/bottom`, 9),
+          }),
+        ),
+        palettes: palettes(readSourcePalettes(document.palettes, '/palettes', SUNSET_PALETTES)),
+      });
     }),
   );
 }

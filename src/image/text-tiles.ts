@@ -28,23 +28,66 @@ export const TEXT_CHARACTERS = /^[\x20-\x7e\u25b2\u25bc\u25c0\u25b6]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /**
- * Palettes 0 through 8 are named: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts), VFD
+ * The fonts, each a pattern per character in the characters' order for each of its rows: the normal 8-by-8 font, the
+ * ornate small 8-by-8 font and the ornate large 8-by-16 font, two rows, all its top patterns and then all its bottom
+ * patterns. Row r of character c is pattern `first + r * TEXT_CHARACTER_ORDER.length + c`, drawn in the palette r after
+ * its style's: an ornate large style's bottom palette follows its top palette.
+ */
+export const TEXT_FONTS = Object.freeze({
+  normal: Object.freeze({ first: 0, rows: 1 }),
+  ornateSmall: Object.freeze({ first: CHARACTER_COUNT, rows: 1 }),
+  ornateLarge: Object.freeze({ first: 2 * CHARACTER_COUNT, rows: 2 }),
+});
+export type TextFont = keyof typeof TEXT_FONTS;
+/** The fonts' patterns: the characters' patterns come first, and the HUD part tiles follow. */
+const FONT_PATTERNS = 4 * CHARACTER_COUNT;
+/** The ornate fonts' styles, each a palette (the large font's a top and a bottom palette) per font. */
+export const ORNATE_STYLES = Object.freeze(['SUNSET', 'WHITE', 'RED', 'GREEN'] as const);
+export type OrnateStyle = (typeof ORNATE_STYLES)[number];
+
+const named = <const Names extends readonly string[]>(names: Names) =>
+  Object.freeze(Object.fromEntries(names.map((name, i) => [name, i]))) as { readonly [K in Names[number]]: number };
+/**
+ * The authored named palettes: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts), VFD
  * (the segment digits) and GREEN_YELLOW and YELLOW_RED (a tachometer tile where two of its colors meet). They use the
  * same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's gloss, 6 its
- * rim, 7 its shaded body, 8 the main color unlit, and 9 and 10 the second color, lit and unlit. The HUD pictures'
- * palettes follow them; later palettes are free.
+ * rim, 7 its shaded body, 8 the main color unlit, and 9 and 10 the second color, lit and unlit.
  */
-export const TEXT_PALETTES = Object.freeze({
-  WHITE: 0,
-  YELLOW: 1,
-  RED: 2,
-  DARK: 3,
-  GREEN: 4,
-  BAR: 5,
-  VFD: 6,
-  GREEN_YELLOW: 7,
-  YELLOW_RED: 8,
-});
+const AUTHORED_PALETTE_NAMES = [
+  'WHITE',
+  'YELLOW',
+  'RED',
+  'DARK',
+  'GREEN',
+  'BAR',
+  'VFD',
+  'GREEN_YELLOW',
+  'YELLOW_RED',
+] as const;
+/**
+ * The named palettes the HUD tiles command draws, after the authored ones, in this order: the ornate small font's
+ * styles, slots 1 to 7 its ink by row from the top and 8 its shadow, and the ornate large font's, each a top and a
+ * bottom palette (`_BOTTOM`), slots 1 to 8 the ink by row within the tile and 9 the shadow.
+ */
+export const HUD_DRAWN_PALETTE_NAMES = [
+  'ORNATE_SMALL_SUNSET',
+  'ORNATE_SMALL_WHITE',
+  'ORNATE_SMALL_RED',
+  'ORNATE_SMALL_GREEN',
+  'ORNATE_LARGE_SUNSET',
+  'ORNATE_LARGE_SUNSET_BOTTOM',
+  'ORNATE_LARGE_WHITE',
+  'ORNATE_LARGE_WHITE_BOTTOM',
+  'ORNATE_LARGE_RED',
+  'ORNATE_LARGE_RED_BOTTOM',
+  'ORNATE_LARGE_GREEN',
+  'ORNATE_LARGE_GREEN_BOTTOM',
+] as const;
+/**
+ * The named palettes: the authored ones, then the drawn ones. The HUD pictures' palettes follow them; later palettes
+ * are free.
+ */
+export const TEXT_PALETTES = named([...AUTHORED_PALETTE_NAMES, ...HUD_DRAWN_PALETTE_NAMES] as const);
 /** The tachometer's bars, a pixel wide and eight to a tile, from the left. */
 export const TACHOMETER_BARS = 80;
 /** Tachometer bar i's height in pixels: a quadratic curve from 4 at the left to 24, three tiles, at the right. */
@@ -87,7 +130,7 @@ export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
 ]);
 /**
- * The HUD part tiles follow the characters in this order, as the characters follow their order, so the mapping needs no
+ * The HUD part tiles follow the fonts in this order, as the characters follow their order, so the mapping needs no
  * saved table: the signal lamps, 2 by 2 tiles lit or unlit, and then the drawn part tiles.
  */
 const HUD_TILE_NAMES = [
@@ -96,7 +139,7 @@ const HUD_TILE_NAMES = [
 ];
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(
-  Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, CHARACTER_COUNT + i])),
+  Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, FONT_PATTERNS + i])),
 );
 /** A HUD picture's frame is 6 by 6 tiles (48 by 48 pixels). */
 export const HUD_PICTURE_TILES = 6;
@@ -134,7 +177,7 @@ export const HUD_PICTURES: Readonly<Record<string, HudPicture>> = Object.freeze(
   Object.fromEntries(
     HUD_PICTURE_TURNS.reduce<HudPicture[]>((pictures, [name, turn], k) => {
       const before = pictures[k - 1];
-      const first = before ? before.first + before.frames * FRAME_PATTERNS : CHARACTER_COUNT + HUD_TILE_NAMES.length;
+      const first = before ? before.first + before.frames * FRAME_PATTERNS : FONT_PATTERNS + HUD_TILE_NAMES.length;
       return [...pictures, Object.freeze({ name, first, palette: NAMED_PALETTE_COUNT + k, ...turn })];
     }, []).map((picture) => [picture.name, picture]),
   ),
@@ -211,8 +254,8 @@ export class TextTiles {
   readonly #palettes: Uint16Array;
 
   /**
-   * Admitted 8x8 patterns, at least the character, HUD part and HUD picture patterns with an empty space, and the named
-   * and HUD picture 16-color palettes.
+   * Admitted 8x8 patterns, at least the fonts', HUD part and HUD picture patterns with an empty space, and the named and
+   * HUD picture 16-color palettes.
    */
   constructor(
     readonly name: string,
@@ -226,7 +269,7 @@ export class TextTiles {
       !isEmpty(patterns[EMPTY_TEXT_TILE]!)
     )
       throw new RangeError(
-        'Text tiles need every character, HUD part and HUD picture as 8x8 patterns, an empty space and their palettes',
+        'Text tiles need every font, HUD part and HUD picture as 8x8 patterns, an empty space and their palettes',
       );
     this.#patterns = patterns;
     this.#palettes = new Uint16Array(palettes.length * 16);
@@ -236,13 +279,18 @@ export class TextTiles {
     Object.freeze(this);
   }
 
-  /** The pattern of each character of `text`; a character without a pattern is a RangeError. */
-  encode(text: string): number[] {
-    const result: number[] = [];
+  /**
+   * The pattern of each character of `text` in row `row` of `font`; a character without a pattern is a RangeError.
+   */
+  encode(text: string, font: TextFont = 'normal', row = 0): number[] {
+    const { first, rows } = TEXT_FONTS[font];
+    if (!Number.isInteger(row) || row < 0 || row >= rows) throw new RangeError(`${font} has no row ${row}`);
+    const base = first + row * CHARACTER_COUNT,
+      result: number[] = [];
     for (const character of text) {
       const pattern = CHARACTER_PATTERNS.get(character);
       if (pattern === undefined) throw new RangeError(`No text tile for ${JSON.stringify(character)}`);
-      result.push(pattern);
+      result.push(base + pattern);
     }
     return result;
   }
