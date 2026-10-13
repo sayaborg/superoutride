@@ -321,7 +321,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
           column + i * DIGIT_TILES.columns,
           row,
           digit === undefined ? null : Number(digit),
-          TEXT_PALETTES.VFD,
+          TEXT_PALETTES.SEG_VFD,
         );
       }
       write(text, 'speedUnit', 'km/h');
@@ -334,7 +334,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
       const shifted =
         powertrain.shiftSeconds !== null && race.simulationSeconds - powertrain.shiftSeconds < HUD_DURATIONS.shift;
       const [column, row] = HUD_LAYOUT.gear;
-      writeDigit(text, column, row, powertrain.gear % 10, shifted ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.VFD);
+      writeDigit(text, column, row, powertrain.gear % 10, shifted ? TEXT_PALETTES.SEG_YELLOW : TEXT_PALETTES.SEG_VFD);
     },
   },
   {

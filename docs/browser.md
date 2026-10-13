@@ -461,7 +461,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
 | 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
 | 13–16 | While the camera is held at its yaw limit: a yellow 4×4-tile arrow, steady, in columns 0–3 or 36–39                |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile segment digits; columns 7–10 of row 28: `km/h`                              |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h`                       |
 | 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                    |
 | 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                            |
 | 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                   |
@@ -482,9 +482,9 @@ fills to the throttle actuator in green and the brake meter to the brake actuato
 take away shows red at the fill's end: the throttle beyond the powertrain's effective opening, and the brake beyond its
 share applied at the station whose share is smaller (`frontBrakeApplied`, `rearBrakeApplied`).
 
-The speed shows `round(speed*3.6)` km/h, held at 999, in three segment digits right-aligned in the VFD palette; a
-leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in the VFD palette,
-yellow after a shift; unlit segments are a faint trace of the lit color. The tachometer's 80 bars, a pixel wide and
+The speed shows `round(speed*3.6)` km/h, held at 999, in three italic segment digits right-aligned in SEG_VFD; a
+leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in SEG_VFD, and in
+SEG_YELLOW after a shift; unlit segments are a dark trace of the lit color. The tachometer's 80 bars, a pixel wide and
 eight to a tile, stand on row 28's bottom, `4 + round(20*(i/79)^2)` pixels high for bar `i` (from 0); bar `i` lights once
 the engine speed reaches `(i+1)/80 * 1.10 * redlineRpm`, the full scale being 110 % of the player vehicle's redline,
 and is unlit (its palette's unlit color) otherwise. A bar whose speed reaches the redline is red,

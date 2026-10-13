@@ -48,8 +48,8 @@ export type OrnateStyle = (typeof ORNATE_STYLES)[number];
 const named = <const Names extends readonly string[]>(names: Names) =>
   Object.freeze(Object.fromEntries(names.map((name, i) => [name, i]))) as { readonly [K in Names[number]]: number };
 /**
- * The authored named palettes: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts), VFD
- * (the segment digits) and GREEN_YELLOW and YELLOW_RED (a tachometer tile where two of its colors meet). They use the
+ * The authored named palettes: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts) and
+ * GREEN_YELLOW and YELLOW_RED (a tachometer tile where two of its colors meet). They use the
  * same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's gloss, 6 its
  * rim, 7 its shaded body, 8 the main color unlit, and 9 and 10 the second color, lit and unlit.
  */
@@ -60,14 +60,15 @@ const AUTHORED_PALETTE_NAMES = [
   'DARK',
   'GREEN',
   'BAR',
-  'VFD',
   'GREEN_YELLOW',
   'YELLOW_RED',
 ] as const;
 /**
  * The named palettes the HUD tiles command draws, after the authored ones, in this order: the ornate small font's
  * styles, slots 1 to 7 its ink by row from the top and 8 its shadow, and the ornate large font's, each a top and a
- * bottom palette (`_BOTTOM`), slots 1 to 8 the ink by row within the tile and 9 the shadow.
+ * bottom palette (`_BOTTOM`), slots 1 to 8 the ink by row within the tile and 9 the shadow; and the segment digits'
+ * colors, slots 1 and 2 the lit core and edge and 3 and 4 the unlit core and edge: SEG_VFD, the instruments' color,
+ * SEG_YELLOW and SEG_RED, state colors.
  */
 export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_SMALL_SUNSET',
@@ -82,6 +83,9 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_LARGE_RED_BOTTOM',
   'ORNATE_LARGE_GREEN',
   'ORNATE_LARGE_GREEN_BOTTOM',
+  'SEG_VFD',
+  'SEG_YELLOW',
+  'SEG_RED',
 ] as const;
 /**
  * The named palettes: the authored ones, then the drawn ones. The HUD pictures' palettes follow them; later palettes
@@ -109,14 +113,14 @@ export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 export const ARROW_TILES = 4;
 const tiles = (prefix: string, count: number) => Array.from({ length: count }, (_, k) => `${prefix}_${k}`);
 /**
- * The HUD part tiles the HUD tiles command draws, after the signal lamps, in this order:
+ * The HUD part tiles the HUD tiles command writes, after the signal lamps, in this order:
  * - `METER_a_b` (0 <= a <= b <= 8): a meter cell, 4 pixels high in rows 2 to 5, slot 1 in columns before a, slot 4 (the
  *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
  * - `TACH_c_r_b_k` (b 1 to 8, k 0 to 8): the tachometer tile at column c and row r of `TACHOMETER_TILES`, its eight
  *   bars' parts in that row; bars before b take the first color and the rest the second, and bars before k are lit:
  *   slot 1 or 9 lit, 8 or 10 unlit.
- * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel seven-segment digit, lit segments in slot 1 and the
- *   others in slot 8.
+ * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel italic segment digit from the design sources, lit
+ *   segments in slots 1 and 2 and the others in 3 and 4.
  * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow, slot 1 outlined in slot 2.
  */
 export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([

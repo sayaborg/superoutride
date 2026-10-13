@@ -14,7 +14,7 @@ import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
 import { drawHudParts } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
-import { readNormalFont, readOrnateFonts } from '../graphics/hud-design-sources.js';
+import { readNormalFont, readOrnateFonts, readSegmentDigits } from '../graphics/hud-design-sources.js';
 import { drawOrnateFonts } from '../graphics/hud-fonts.js';
 
 /**
@@ -31,10 +31,17 @@ try {
   requireInput(process.argv.length === 2, '/arguments', USAGE);
   const drawn = await drawHudPictures(store, PNG);
   const saved = JSON.parse(new TextDecoder().decode(await store.read(TEXT_TILES))) as TextTilesDocument;
-  const ornate = drawOrnateFonts(await readOrnateFonts(store));
+  const ornate = drawOrnateFonts(await readOrnateFonts(store)),
+    digits = await readSegmentDigits(store);
+  const palettes = new Map([
+    ...ornate.palettes,
+    ['SEG_VFD', digits.palettes.VFD],
+    ['SEG_YELLOW', digits.palettes.YELLOW],
+    ['SEG_RED', digits.palettes.RED],
+  ]);
   const document = withHudTiles(
     saved,
-    { fonts: [...(await readNormalFont(store)), ...ornate.patterns], parts: drawHudParts(), palettes: ornate.palettes },
+    { fonts: [...(await readNormalFont(store)), ...ornate.patterns], parts: drawHudParts(digits), palettes },
     drawn,
   );
   requireLoaded(admit(`content/${TEXT_TILES}`, () => compileTextTiles(document)));

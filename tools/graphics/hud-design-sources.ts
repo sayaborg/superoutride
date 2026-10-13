@@ -1,7 +1,7 @@
 import { admit, readArray, readRecord, requireAdmission } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readIndexedPalette, readPatternSymbols } from '../../src/image/indexed-image.js';
-import { TEXT_CHARACTER_ORDER, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
+import { DIGIT_TILES, TEXT_CHARACTER_ORDER, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
 import type { ContentStore } from '../authoring/content-store.js';
 
 /**
@@ -143,6 +143,50 @@ export async function readOrnateFonts(store: ContentStore): Promise<OrnateFontSo
           }),
         ),
         palettes: palettes(readSourcePalettes(document.palettes, '/palettes', SUNSET_PALETTES)),
+      });
+    }),
+  );
+}
+
+/** The segment digits 0 to 9 and then OFF, in the text tiles' order of `DIGIT_d_k`. */
+const SEGMENT_DIGITS = Object.freeze([...'0123456789'.split(''), 'OFF']);
+
+/** The italic segment digits and their palettes. */
+export interface SegmentDigitsSource {
+  /** Each digit's 2-by-3 tiles row by row: slot 1 the lit core, 2 the lit edge, 3 the unlit core, 4 the unlit edge. */
+  readonly digits: readonly (readonly (readonly number[])[])[];
+  readonly palettes: {
+    readonly VFD: readonly number[];
+    readonly YELLOW: readonly number[];
+    readonly RED: readonly number[];
+  };
+}
+
+/** The italic segment digits, 0 to 9 and OFF, each 2 by 3 tiles, and the VFD, YELLOW and RED palettes. */
+export async function readSegmentDigits(store: ContentStore): Promise<SegmentDigitsSource> {
+  const { path, value } = await readSource(store, 'seg-digits.json');
+  return requireLoaded(
+    admit(path, () => {
+      const document = readRecord(value, '', ['note', 'digits', 'palettes']);
+      const digits = readArray(document.digits, '/digits', (entry) => entry, { length: SEGMENT_DIGITS.length }).map(
+        (entry, i) => {
+          const at = `/digits/${i}`,
+            record = readRecord(entry, at, ['digit', 'tiles']);
+          requireAdmission(
+            record.digit === SEGMENT_DIGITS[i],
+            'invalid_value',
+            `${at}/digit`,
+            `Expected ${SEGMENT_DIGITS[i]}`,
+          );
+          return readArray(record.tiles, `${at}/tiles`, (tile, tilePath) => readTile(tile, tilePath, 4), {
+            length: DIGIT_TILES.columns * DIGIT_TILES.rows,
+          });
+        },
+      );
+      const read = readSourcePalettes(document.palettes, '/palettes', ['VFD', 'YELLOW', 'RED']);
+      return Object.freeze({
+        digits: Object.freeze(digits),
+        palettes: Object.freeze({ VFD: read.VFD!, YELLOW: read.YELLOW!, RED: read.RED! }),
       });
     }),
   );

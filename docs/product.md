@@ -266,8 +266,8 @@ lap's time holds in yellow for two seconds. Three signal lamps light red one per
 
 The lower row, from the left:
 
-- **Speed:** three seven-segment digits in km/h, right-aligned, in the blue-green of a vacuum fluorescent display;
-  an unused leading digit shows all its segments unlit, and unlit segments are only faintly visible.
+- **Speed:** three italic seven-segment digits in km/h, right-aligned, in the blue-green of a vacuum fluorescent display;
+  an unused leading digit shows all its segments unlit, and unlit segments are a dark trace of the lit color.
 - **Steering:** a picture of the vehicle's steering wheel (a bike's top bridge), 48 pixels square, turned as the front
   wheel actually is: its listing names the picture (montecarlo for TESTAROSSA and CORVETTE C4, prototipo for 911
   TURBO 3.3 and DELTA HF INTEGRALE, mod02 for GOLF GTI 16V, top-bridge for the bikes). Under it a white bar grows from
@@ -275,7 +275,7 @@ The lower row, from the left:
 - **Tachometer:** 80 pixel-wide bars rising in a quadratic curve from 4 to 24 pixels, from 0 to 110 % of the redline; a
   bar lights once the engine reaches its speed and stays dark otherwise. Bars are green, yellow for the 12 just before
   the redline (3/20 of the scale) and red from it, and all red while the limiter cuts fuel.
-- **Gear:** one seven-segment digit in the same blue-green, yellow briefly at a shift.
+- **Gear:** one italic seven-segment digit in the same blue-green, yellow briefly at a shift.
 - **Throttle and brake:** green and yellow bars of the actuators; the part the vehicle's protections take away (beyond
   the effective throttle opening, and of the brake at the axle they reduce most) shows red at the bar's end.
 

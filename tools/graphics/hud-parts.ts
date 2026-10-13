@@ -1,3 +1,4 @@
+import type { SegmentDigitsSource } from './hud-design-sources.js';
 import {
   ARROW_TILES,
   DIGIT_TILES,
@@ -33,48 +34,6 @@ const tachometer = (column: number, row: number, split: number, lit: number) =>
     return x < split ? (x < lit ? 1 : 8) : x < lit ? 9 : 10;
   });
 
-/**
- * The seven segments of a 16-by-24-pixel digit, a to g, each 3 pixels thick with tapered ends and a pixel's margin:
- * [x, y] of each segment's middle line's first and last pixels.
- */
-const SEGMENTS = Object.freeze({
-  a: [4, 2, 11, 2],
-  b: [13, 4, 13, 9],
-  c: [13, 13, 13, 19],
-  d: [4, 21, 11, 21],
-  e: [2, 13, 2, 19],
-  f: [2, 4, 2, 9],
-  g: [4, 11, 11, 11],
-} as const);
-const DIGIT_SEGMENTS = Object.freeze([
-  'abcdef',
-  'bc',
-  'abdeg',
-  'abcdg',
-  'bcfg',
-  'acdfg',
-  'acdefg',
-  'abc',
-  'abcdefg',
-  'abcdfg',
-]);
-/** The segment holding a pixel, or null: the middle line and, one pixel either side of it, all but its end pixels. */
-const segmentAt = (x: number, y: number) => {
-  for (const [name, [x0, y0, x1, y1]] of Object.entries(SEGMENTS)) {
-    const across = y0 === y1 ? Math.abs(y - y0) : Math.abs(x - x0),
-      along = y0 === y1 ? x : y,
-      [from, to] = y0 === y1 ? [x0, x1] : [y0, y1];
-    if (across <= 1 && along >= from + across && along <= to - across) return name;
-  }
-  return null;
-};
-const digit =
-  (lit: string): Pixels =>
-  (x, y) => {
-    const segment = segmentAt(x, y);
-    return segment === null ? 0 : lit.includes(segment) ? 1 : 8;
-  };
-
 /** The left road arrow, 32 pixels square: a head pointing left over a shaft, slot 1 outlined in slot 2. */
 const ARROW_SIZE = ARROW_TILES * TEXT_TILE_SIZE;
 const inArrow = (x: number, y: number) => {
@@ -91,9 +50,12 @@ const arrowLeft: Pixels = (x, y) => {
   return 0;
 };
 
-/** Every drawn HUD part tile's 64 palette indices, in the text tiles' order of `HUD_DRAWN_TILE_NAMES`. */
-export function drawHudParts(): number[][] {
-  const drawn = new Map<string, number[]>();
+/**
+ * Every drawn HUD part tile's 64 palette indices, in the text tiles' order of `HUD_DRAWN_TILE_NAMES`: the segment digits
+ * as their source gives them and the rest drawn.
+ */
+export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly number[])[] {
+  const drawn = new Map<string, readonly number[]>();
   for (let a = 0; a <= TEXT_TILE_SIZE; a++)
     for (let b = a; b <= TEXT_TILE_SIZE; b++)
       drawn.set(
@@ -109,11 +71,9 @@ export function drawHudParts(): number[][] {
     for (let split = 1; split <= TEXT_TILE_SIZE; split++)
       for (let lit = 0; lit <= TEXT_TILE_SIZE; lit++)
         drawn.set(`TACH_${column}_${row}_${split}_${lit}`, tachometer(column, row, split, lit));
-  const digitTiles = DIGIT_TILES.columns * DIGIT_TILES.rows;
-  [...DIGIT_SEGMENTS, ''].forEach((lit, d) => {
-    for (let k = 0; k < digitTiles; k++)
-      drawn.set(`DIGIT_${d < 10 ? d : 'OFF'}_${k}`, tileOf(digit(lit), DIGIT_TILES.columns, k));
-  });
+  segmentDigits.digits.forEach((tiles, d) =>
+    tiles.forEach((tile, k) => drawn.set(`DIGIT_${d < 10 ? d : 'OFF'}_${k}`, tile)),
+  );
   for (let k = 0; k < ARROW_TILES * ARROW_TILES; k++) {
     drawn.set(`ARROW_LEFT_${k}`, tileOf(arrowLeft, ARROW_TILES, k));
     drawn.set(
