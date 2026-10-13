@@ -175,7 +175,7 @@ export function readCourseReference(
 
 /**
  * The delivered reference times of a course and vehicle, in seconds before any margin: a Session derives its time
- * budgets from them with its series' `timeMargin` (`readCourseTimeBudgets`).
+ * budgets from them with its class's `timeMargin` (`readCourseTimeBudgets`).
  */
 export function courseReferenceTimesProduct(
   course: CompiledCourse,

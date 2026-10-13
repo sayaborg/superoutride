@@ -29,10 +29,13 @@ import type { MusicCatalog } from './recording-catalog.js';
 import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 12;
+export const SERIES_DOCUMENT_VERSION = 13;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
-/** One series: the one owner of its classes, its ARCADE races. `dev` series appear only with DEV. */
+/**
+ * One series: a named set of classes, the one owner of its classes, its ARCADE races. It holds no rule values; every
+ * rule is its classes'. `dev` series appear only with DEV.
+ */
 export interface CompiledSeries {
   readonly id: string;
   readonly title: string;
@@ -41,9 +44,6 @@ export interface CompiledSeries {
   /** Its title track, which plays on its screens, and its race tracks (zero or more) in selection order. */
   readonly music: { readonly title: MusicTrack; readonly race: readonly MusicTrack[] };
   readonly dev: boolean;
-  readonly timeMargin: number;
-  /** Whether the player drives in its entry's color rather than its own chosen color. */
-  readonly fixedColors: boolean;
   /** The classes in selection order. */
   readonly classes: readonly SeriesClass[];
 }
@@ -95,6 +95,10 @@ export interface SeriesClass {
   readonly rankLimits: Readonly<Record<string, number>>;
   /** The course's ARCADE traffic; null for none. */
   readonly traffic: TrafficSettings | null;
+  /** The clock's margin over the reference times: positive and at most `SESSION_RULE_LIMITS.timeMargin`. */
+  readonly timeMargin: number;
+  /** Whether the player drives in its entry's color rather than its own chosen color. */
+  readonly fixedColors: boolean;
 }
 
 export interface SeriesCatalog {
@@ -142,7 +146,7 @@ function readSeries(
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'image', 'music', 'dev', 'timeMargin', 'fixedColors', 'classes'],
+    ['format', 'version', 'id', 'title', 'image', 'music', 'dev', 'classes'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
@@ -176,12 +180,6 @@ function readSeries(
     image,
     music: Object.freeze({ title: track(tracks.title, '/music/title'), race }),
     dev: readBoolean(root.dev, '/dev'),
-    timeMargin: readNumber(root.timeMargin, '/timeMargin', {
-      min: 0,
-      max: SESSION_RULE_LIMITS.timeMargin,
-      exclusiveMin: true,
-    }),
-    fixedColors: readBoolean(root.fixedColors, '/fixedColors'),
     classes: [] as SeriesClass[],
   };
   const classes = readIdentified(
@@ -198,6 +196,8 @@ function readSeries(
         'playerSlot',
         'rankLimits',
         'traffic',
+        'timeMargin',
+        'fixedColors',
       ]);
       const course = readString(entry.course, `${at}/course`);
       requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
@@ -230,6 +230,12 @@ function readSeries(
           readNumber(limit, path, { min: 1, max: SESSION_RULE_LIMITS.rivals, integer: true }),
         ),
         traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
+        timeMargin: readNumber(entry.timeMargin, `${at}/timeMargin`, {
+          min: 0,
+          max: SESSION_RULE_LIMITS.timeMargin,
+          exclusiveMin: true,
+        }),
+        fixedColors: readBoolean(entry.fixedColors, `${at}/fixedColors`),
       });
     },
     { min: 1 },

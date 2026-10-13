@@ -1,13 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 12,
+  "version": 13,
   "id": "tsukuba-clubman",
   "title": "TSUKUBA CLUBMAN",
   "image": "tsukuba-clubman",
   "music": { "title": "placeholder-one", "race": [] },
   "dev": false,
-  "timeMargin": 1.35,
-  "fixedColors": false,
   "classes": [
     {
       "id": "production-750",
@@ -35,7 +33,9 @@
       ],
       "playerSlot": "last",
       "rankLimits": {},
-      "traffic": null
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
     },
     {
       "id": "gti-cup",
@@ -63,7 +63,9 @@
       ],
       "playerSlot": "last",
       "rankLimits": {},
-      "traffic": null
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
     },
     {
       "id": "911-cup",
@@ -91,7 +93,9 @@
       ],
       "playerSlot": "last",
       "rankLimits": {},
-      "traffic": null
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
     }
   ]
 }

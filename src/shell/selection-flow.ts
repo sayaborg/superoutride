@@ -342,7 +342,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio,
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
-              fixedColors: mode === 'ARCADE' && seriesChoice!.fixedColors,
+              fixedColors: mode === 'ARCADE' && classChoice!.fixedColors,
               // The color the Session gives the player: with fixed colors its class entry's.
               colorOf: (v) => sessionPlayerColor(mode === 'ARCADE' ? classChoice : null, v, recordedColor(player, v)),
               entry: last(),

@@ -31,8 +31,8 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 | Term                  | Meaning                                                                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `mode`                | Session rules selection only: ARCADE, FREE PLAY or TIME TRIAL.                                                                                                           |
-| `Series`              | A product grouping of classes with their time margin and color rule; the one owner of ARCADE settings.                                                                   |
-| `Class`               | One ARCADE race of a series: a course, laps, vehicle candidates, rivals and traffic; not a TypeScript class.                                                             |
+| `Series`              | A product grouping of classes; it holds no rule values. The one owner of ARCADE settings through its classes.                                                            |
+| `Class`               | One ARCADE race of a series: a course, laps, vehicle candidates, rivals, traffic, time margin and color rule; not a TypeScript class.                                    |
 | `Stage`               | The route interval between consecutive race gates; a rule and display term, never a course `Section`.                                                                    |
 | `method`              | A choice of algorithm or application method outside Session rules.                                                                                                       |
 | `view`                | The rendering layer (`src/view`), not an occurrence reader or an observation.                                                                                            |

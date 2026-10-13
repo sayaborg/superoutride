@@ -1,13 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 12,
+  "version": 13,
   "id": "trial",
   "title": "TRIAL",
   "image": "trial",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
-  "timeMargin": 1.35,
-  "fixedColors": false,
   "classes": [
     {
       "id": "a",
@@ -22,7 +20,9 @@
         "density": 6,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
         "speedKilometersPerHour": 120
-      }
+      },
+      "timeMargin": 1.35,
+      "fixedColors": false
     },
     {
       "id": "a-steep",
@@ -37,7 +37,9 @@
         "density": 6,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
         "speedKilometersPerHour": 120
-      }
+      },
+      "timeMargin": 1.35,
+      "fixedColors": false
     }
   ]
 }

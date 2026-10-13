@@ -30,7 +30,7 @@ export interface SessionCatalog {
  * from a request to a Session, which the browser and the driving scenarios share. It admits the request
  * (`compileSessionConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity, the
- * clock's time budgets (the course's reference times for the player's vehicle with its series' margin), ARCADE's pace
+ * clock's time budgets (the course's reference times for the player's vehicle with its class's margin), ARCADE's pace
  * schedule and the course's racing lines. `resolve(seed)` resolves the Session with a seed; a DEV rebuild passes its
  * tuned vehicle and configuration, which have no budgets. A delivery without measured products (no racing lines in its
  * manifest: the workbench's build while measurements are stale) admits only a Session that demands no time budgets
@@ -64,10 +64,10 @@ export async function prepareSession(
   for (const id of demand.vehicleIds) if (!fieldVehicles.has(id)) fieldVehicles.set(id, await loadEntryVehicle(id));
   const vehicleOf = (id: string) => fieldVehicles.get(id)!;
   // A timed Session's reference times must be delivered; a missing file stops loading rather than dropping the clock.
-  // Its budgets are those times with its series' margin.
+  // Its budgets are those times with its class's margin.
   const budgets = demand.budgets
     ? await admitProduct(content, 'reference-times', `${course.id}/${vehicleId}`, (value, document) =>
-        readCourseTimeBudgets(course, player.sha256, arcade!.series.timeMargin, value, document),
+        readCourseTimeBudgets(course, player.sha256, arcade!.timeMargin, value, document),
       )
     : null;
   const paceSchedule = demand.paceSchedule

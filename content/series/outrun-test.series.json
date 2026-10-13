@@ -1,13 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 12,
+  "version": 13,
   "id": "outrun-test",
   "title": "OUTRUN TEST",
   "image": "outrun-test",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": false,
-  "timeMargin": 1.35,
-  "fixedColors": true,
   "classes": [
     {
       "id": "outrun-test",
@@ -22,7 +20,9 @@
         "density": 6,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE", "911_TURBO_3_3"],
         "speedKilometersPerHour": 120
-      }
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
     }
   ]
 }

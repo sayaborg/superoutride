@@ -13,7 +13,7 @@ export function gridRivalCapacity(slots: number): number {
 
 interface SessionChoice {
   readonly vehicleId: string;
-  /** The player's color; null for the Session's own choice (the vehicle's default, or a fixed series color). */
+  /** The player's color; null for the Session's own choice (the vehicle's default, or a fixed class color). */
   readonly color: string | null;
 }
 

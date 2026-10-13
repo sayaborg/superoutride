@@ -15,7 +15,7 @@
   BG is one infinite tiled plane with a linear vertical row mapping.
 - The measurement tool (`npm run measure`) saves each course's racing lines and, for each course a class runs, its
   vehicles' reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
-  measured for; the build admits and delivers them and runs no driving, and a Session applies its series' margin. Vehicle and course identities derive from delivered
+  measured for; the build admits and delivers them and runs no driving, and a Session applies its class's margin. Vehicle and course identities derive from delivered
   document SHA-256, procedure identities from each procedure's record. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
 - Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
@@ -26,7 +26,7 @@
   exhausts are collector graphs.
 - The [product specification](product.md) is the target for Stages GS and 16. Series documents own ARCADE settings:
   each class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by
-  several classes and series; measured products belong to course and vehicle, and a Session applies its series' margin;
+  several classes and series; measured products belong to course and vehicle, and a Session applies its class's margin;
   FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone. Stage GS replaces MODE with SERIES, CLASS and
   SESSION (RACE / TIME ATTACK).
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
@@ -100,7 +100,7 @@
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
 Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver) and, beside it,
-[GS-2](#gs-2--series-rules-move-to-classes) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
+[GS-3](#gs-3--time-attack) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -206,20 +206,12 @@ stream's logic. GS-5 waits for both streams, then runs alone.
 
 | PR   | Purpose                                                                       | Kind             |
 | ---- | ----------------------------------------------------------------------------- | ---------------- |
-| GS-2 | Series rule values move to classes                                            | format + logic   |
 | GS-3 | TIME ATTACK session replaces TIME TRIAL; records become TIME ATTACK per class | logic + deletion |
 | GS-4 | MODE is removed from the flow: TITLE line, SELECT SESSION, URL                | logic + deletion |
 | GS-5 | Rename `Session` → Run across code and documents                              | rename only      |
 
 Split any PR that exceeds one review and report the split. If GS-3 and GS-4 need old and new paths side by side, GS-4
 removes the old one and says so here.
-
-### GS-2 — Series rules move to classes
-
-`timeMargin`, `fixedColors` and every other rule value move from the series document into each class; the series
-keeps `dev`, which is visibility. Bump the series document version and migrate the delivered series documents with
-identical values per class. Run admission reads the class's values and nothing reads a series rule. Measured products
-are unaffected. Behaviour is unchanged: the PR lists the admitted values before and after.
 
 ### GS-3 — TIME ATTACK
 

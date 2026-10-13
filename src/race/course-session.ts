@@ -104,7 +104,7 @@ const ownEntry = (arcade: SeriesClass, vehicleId: string) =>
   arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
 
 /**
- * The player's color in a Session: with ARCADE settings whose series fixes colors, its own entry's; else the chosen
+ * The player's color in a Session: with ARCADE settings whose class fixes colors, its own entry's; else the chosen
  * color, else the vehicle's default color. Selection screens show the same color.
  */
 export function sessionPlayerColor(
@@ -112,7 +112,7 @@ export function sessionPlayerColor(
   vehicle: CompiledVehicleDefinition,
   chosen: string | null,
 ): string {
-  const own = arcade?.series.fixedColors ? ownEntry(arcade, vehicle.compiledVehicle.id) : undefined;
+  const own = arcade?.fixedColors ? ownEntry(arcade, vehicle.compiledVehicle.id) : undefined;
   return own?.color ?? chosen ?? vehicle.listing.visuals.palette;
 }
 

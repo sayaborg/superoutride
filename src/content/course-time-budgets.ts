@@ -27,21 +27,21 @@ export function courseBudgetLandmarks(course: CompiledCourse) {
   return result;
 }
 
-/** A course's delivered reference times for one Session vehicle, in seconds before any series margin. */
+/** A course's delivered reference times for one Session vehicle, in seconds before any class margin. */
 export const COURSE_REFERENCE_TIMES_FORMAT = Object.freeze({
   format: 'superoutride.course-reference-times',
   version: 1,
 } as const);
 const SECONDS = { min: 0, exclusiveMin: true };
 
-/** A time budget in integer milliseconds: the reference time multiplied by the series margin, rounded up once. */
+/** A time budget in integer milliseconds: the reference time multiplied by the class's margin, rounded up once. */
 export function timeBudgetMilliseconds(timeMargin: number, seconds: number): number {
   return Math.ceil(1000 * timeMargin * seconds);
 }
 
 /**
  * Admit a course's delivered reference times for the Session vehicle of `vehicleSha256` and derive the time budgets of
- * a series with `timeMargin` from them. Browser admission consumes only these small build-generated times, never
+ * a class with `timeMargin` from them. Browser admission consumes only these small build-generated times, never
  * simulation traces.
  */
 export function readCourseTimeBudgets(

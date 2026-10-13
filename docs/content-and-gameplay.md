@@ -914,20 +914,19 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 12) is the one owner of its classes, its ARCADE races. It is saved
+A series document (`superoutride.series` version 13) is the one owner of its classes, its ARCADE races. A series
+holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 12,
+  "version": 13,
   "id": "trial",
   "title": "TRIAL",
   "image": "trial",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
-  "timeMargin": 1.35,
-  "fixedColors": false,
   "classes": [
     {
       "id": "a",
@@ -942,7 +941,9 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
         "density": 6,
         "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
         "speedKilometersPerHour": 120
-      }
+      },
+      "timeMargin": 1.35,
+      "fixedColors": false
     }
   ]
 }
@@ -951,13 +952,13 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 `title` is the display name. `image` names its series image, an opaque 20×15-tile
 [screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
 plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
-([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV.
-`timeMargin` is the series' one time margin: positive, finite and at most 10. `fixedColors` says whether the
-player drives in its entry's color rather than its own chosen color. `classes` lists at least one class in selection
-order. A class is one ARCADE race: its `id`, unique within the series, its display name `title`, a delivered `course`,
-its `laps` (1 through 99), its ARCADE vehicle candidates `vehicles` (at least one, unique and in the catalog, in
-selection order), `entries`, `playerSlot`, `rankLimits` and `traffic` (null, or traffic settings whose vehicles are
-catalog vehicles; see [Traffic](#traffic)). `entries` lists the
+([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV; it is
+visibility, not a rule. `classes` lists at least one class in selection order. A class is one ARCADE race: its `id`,
+unique within the series, its display name `title`, a delivered `course`, its `laps` (1 through 99), its ARCADE vehicle
+candidates `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`,
+`rankLimits`, `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)),
+`timeMargin`, the clock's margin (positive, finite and at most 10), and `fixedColors`, whether the player drives in
+its entry's color rather than its own chosen color. `entries` lists the
 whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a positive pace ratio `pace`, `stages` (null for the
 whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
 course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
@@ -1102,16 +1103,16 @@ version 4) record these identities as `procedureSha256`; the reference run's rec
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
 ```text
-budgetMs(state) = ceil(1000*timeMargin(series)*referenceSeconds(state))
+budgetMs(state) = ceil(1000*timeMargin(class)*referenceSeconds(state))
 ```
 
-Reference times are keyed by course, vehicle and route state, and time budgets by series as well, through its margin.
+Reference times are keyed by course, vehicle and route state, and time budgets by class as well, through its margin.
 Each delivered reference-times file (`superoutride.course-reference-times` version 1: `courseBuildSha256`,
 `vehicleSha256`, `initialSeconds` and `after`, in seconds before any margin) belongs to one course and vehicle
 (`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the longest legal
 upcoming interval from that state over every route the course admits, so it never depends on the route already
 driven. A timed Session admits its course's file for its vehicle (`readCourseTimeBudgets`) and derives each budget
-with its series' margin as above, so every series and class running that course and vehicle reads the same file.
+with its class's margin as above, so every class running that course and vehicle reads the same file.
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
 earned non-finish checkpoint adds the next budget once, carrying unused time without a cap. FINISH
@@ -1136,7 +1137,7 @@ each once, in catalog order. An entry
 has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
 each budget landmark in the course's order, `[gate, seconds]` with one longest next interval per lap, as a time
 reference times' `after`) and `schedule` (the pace schedule's `start` and `sections`). The
-times are seconds before any series margin, as the reference runs measured them, and are delivered so; only a
+times are seconds before any class margin, as the reference runs measured them, and are delivered so; only a
 Session's budget rounds, once, after its margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
 identities and the station spacing.
 
@@ -1146,7 +1147,7 @@ delivered racing lines, reference times and schedules from them, each once. A sa
 owned by no course, or reference times whose entries are not the vehicles the
 classes run on that course in catalog order (a measurement no class uses is stale), fail
 with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
-malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the series document
+malformed values fail as any admitted document does. Changing a class's `timeMargin` changes only the series document
 and needs no measurement. Tools that produce the measured products, or need none, compile the content without
 them (`measured: false`).
 

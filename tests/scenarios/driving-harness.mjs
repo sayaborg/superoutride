@@ -701,14 +701,14 @@ export async function runScenario({ course }, scenario) {
     }
     if (expect.position) assert.equal(ending.position, expect.position);
     // An ARCADE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times
-    // on the course and its series' margin.
+    // on the course and its class's margin.
     if (expect.ownClass) {
-      const { vehicles, laps, series } = arcade;
+      const { vehicles, laps, timeMargin } = arcade;
       const reference = await content.json('reference-times', `${course.id}/${vehicles[0]}`);
       assert.equal(session.entries[0].vehicle.vehicleDefinition.compiledVehicle.id, vehicles[0]);
       assert.equal(session.configuration.lapCount, laps);
       assert.equal(race.player.progress.acceptedFinishCount, laps);
-      assert.equal(initialDeadline, Math.ceil(1000 * series.timeMargin * reference.initialSeconds) / 1000);
+      assert.equal(initialDeadline, Math.ceil(1000 * timeMargin * reference.initialSeconds) / 1000);
       evidence.ownClass = { vehicle: vehicles[0], laps, initialDeadline };
     }
     // The takeover stops the finished player on its runout: its speed cap² / (2a) at the Session driver's a.

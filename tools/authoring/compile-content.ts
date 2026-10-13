@@ -444,7 +444,7 @@ function namedImages(bytes: Uint8Array): string[] {
 
 /**
  * The measured products: each course's racing lines and, for each course a class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
- * each delivered once. Every saved file must be current and owned. A Session applies its series' margin to the
+ * each delivered once. Every saved file must be current and owned. A Session applies its class's margin to the
  * delivered times.
  */
 async function measuredFiles(

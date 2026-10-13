@@ -59,7 +59,7 @@ export interface SavedPaceSchedule {
   readonly sections: readonly (readonly [string, readonly number[]])[];
 }
 
-/** One vehicle's reference times on a course, before any series margin, and its pace schedule. */
+/** One vehicle's reference times on a course, before any class margin, and its pace schedule. */
 export interface SavedReferenceVehicle {
   readonly vehicleId: string;
   readonly vehicleSha256: string;

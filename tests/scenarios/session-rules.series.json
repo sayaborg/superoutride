@@ -1,13 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 12,
+  "version": 13,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "image": "trial",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
-  "timeMargin": 1.35,
-  "fixedColors": false,
   "classes": [
     {
       "id": "tsukuba",
@@ -22,7 +20,9 @@
       ],
       "playerSlot": "own",
       "rankLimits": {},
-      "traffic": null
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
     }
   ]
 }
