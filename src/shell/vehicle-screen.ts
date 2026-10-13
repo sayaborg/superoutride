@@ -43,7 +43,7 @@ const GRAPH = Object.freeze({
 const GRAPH_AXIS_COLOR = 22 | (22 << 5) | (22 << 10);
 const GEAR_LABELS = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 /** The value columns: labels at a column's first text column, values eight columns on, from row 13. */
-const VALUE_COLUMNS = Object.freeze({ engine: 0, body: 20, valueOffset: 8, firstRow: 13 });
+const VALUE_COLUMNS = Object.freeze({ engine: 0, body: 21, valueOffset: 8, firstRow: 13 });
 
 /** A vehicle's display name: its manufacturer and model. */
 export function vehicleName(vehicle: CompiledVehicleDefinition): string {

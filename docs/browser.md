@@ -252,7 +252,7 @@ listing as the simulation holds them:
 | 4–11  | 22–39   | the curve graph                                                                                |
 | 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE); with fixed colors its name only        |
 | 13–29 | 0–19    | engine and driveline: labels DARK at column 0, values WHITE at column 8                        |
-| 13–29 | 20–39   | body: labels DARK at column 20, values WHITE at column 28                                      |
+| 13–29 | 21–39   | body: labels DARK at column 21, values WHITE at column 29                                      |
 
 The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns
@@ -294,7 +294,8 @@ redline to the fuel-cut entry, `fuelCutEnterRedlineRatio` times redline, followi
 
 Power and torque are integers from 100 up and have one decimal below (`8.8kW`, `16.5Nm`); RPM, millimetres, kilograms,
 inertias and brake torques are integers; ratios have three decimals and ride frequency, damping and drag two. No
-value is longer than 12 characters, and a six-speed vehicle's engine column ends on row 29. Wheel inertia is not shown.
+engine value is longer than 12 characters, ending by column 19 so column 20 stays clear before the body labels, and no
+body value longer than 11, ending by column 39; a six-speed vehicle's engine column ends on row 29. Wheel inertia is not shown.
 
 ## Selection and URL parameters
 
