@@ -8,7 +8,6 @@ export type ContentKind =
   | 'series'
   | 'image'
   | 'screen-picture'
-  | 'envelope'
   | 'reference-times'
   | 'schedule'
   | 'racing-line'

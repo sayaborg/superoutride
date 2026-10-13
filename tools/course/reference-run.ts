@@ -4,7 +4,6 @@ type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
-import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
 import type { RacingLines } from '../../src/content/racing-line.js';
 import type { racingLineProcedure } from './racing-line.js';
@@ -48,7 +47,6 @@ export function runCourseReference(
   course: CompiledCourse,
   vehicleConfiguration: SessionVehicle,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
-  envelope: RivalEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
   lines: RacingLines,
@@ -63,7 +61,7 @@ export function runCourseReference(
     null,
     catalog,
   );
-  const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration, envelope);
+  const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
   // The reference driver steers by its own rule, the centre reference at its utilization.
   const race = createCourseRace({
     session,

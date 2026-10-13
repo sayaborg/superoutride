@@ -15,7 +15,7 @@ export interface VehicleWorldPoseRead {
   readonly renderY: number;
 }
 
-/** Vehicle state read by the chase camera (body pitch and body-frame speeds) and the envelope driver. */
+/** Vehicle state read by the chase camera (body pitch and body-frame speeds) and drivers. */
 export interface VehicleMotionRead extends VehicleWorldPoseRead {
   readonly sprungPitch: number;
   readonly longitudinalSpeed: number;

@@ -13,8 +13,8 @@
   The content build compiles every delivered file from authored documents in one pass.
 - Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
   BG is one infinite tiled plane with a linear vertical row mapping.
-- The measurement tool (`npm run measure`) saves vehicle envelopes and, for each course a class runs, its vehicles'
-  reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
+- The measurement tool (`npm run measure`) saves each course's racing lines and, for each course a class runs, its
+  vehicles' reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
   measured for; the build admits and delivers them and runs no driving, and a Session applies its series' margin. Vehicle and course identities derive from delivered
   document SHA-256, procedure identities from each procedure's record. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
@@ -46,7 +46,7 @@
   owns the MASTER, MUSIC and EFFECTS volumes. Its recordings are placeholders until K's files replace them
   ([placeholder recordings](#placeholder-recordings)).
 - Stage 15 is complete: one authoring core compiles the authored documents for the build, the CLI and the workbench,
-  reusing unchanged stages; measured products (vehicle envelopes, reference times and pace schedules) are generated
+  reusing unchanged stages; measured products (racing lines, reference times and pace schedules) are generated
   by `npm run measure` and saved under `content/`; the workbench (`workbench.html` at the site root) edits a build's
   documents through the core in a worker, with its documents, changes, measure, run, music, sprite and course modules,
   and its changes leave as one archive; the course editor shows a course's form in four views (plan, profile, cross
@@ -97,7 +97,7 @@
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
-Next PR: [AI-3](#ai-3--remove-envelopes) of [Stage AI](#stage-ai--the-model-planned-driver), then
+Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver), then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -123,16 +123,8 @@ drives every driver, rivals and the player's Session driver on the racing line a
 
 | PR   | Purpose                                         |
 | ---- | ----------------------------------------------- |
-| AI-3 | Envelopes and their measurement are removed     |
 | AI-4 | Path offsets: passing, giving room and yielding |
 | AI-5 | BRAKE!! for the player                          |
-
-### AI-3 — Remove envelopes
-
-A deletion PR on its own: remove the envelope driver (`src/race/envelope-driver.ts`, unused since AI-2b), the envelope
-product, its format, its measurement and admission, `content/envelopes/`
-and the readers left; update development, calibration and content-and-gameplay; regenerate measured products if their
-identities change.
 
 ### AI-4 — Path offsets
 
@@ -293,7 +285,7 @@ Implement a timeline-based fitting workflow. For the selected vehicle, observati
 start/duration, turn direction, speed ratio to maximum speed, and relaxed/fast/limit headroom.
 Hills, environments, sprites and checkpoints use timestamped landmarks.
 
-Use measured vehicle envelopes and explicit authoring defaults, initially:
+Use the vehicle limits model ([Drivers](content-and-gameplay.md#drivers)) and explicit authoring defaults, initially:
 
 ```text
 u(relaxed, fast, limit) = (0.55, 0.75, 0.95)

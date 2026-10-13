@@ -7,10 +7,8 @@ import { createNodeContentStore, CONTENT_ROOT } from '../build/node-content-stor
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
 import { procedureSha256 } from './procedure.js';
-import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from './rival-envelope-measurement.js';
 import { referenceProcedure, runCourseReference } from './reference-run.js';
 import { racingLineProcedure, solveRacingLines } from './racing-line.js';
 import { racingLineDocument, readRacingLines } from '../../src/content/racing-line.js';
@@ -23,7 +21,7 @@ import { planMeasurement, type MeasureJob, type MeasureResult } from '../authori
  * `trace` writes one complete measurement or reference run to a disposable file.
  */
 const USAGE =
-  'Usage: npm run measure -- generate | regenerate | compare | trace --vehicle ID [--course ID [--route N] [--laps N]] --out file';
+  'Usage: npm run measure -- generate | regenerate | compare | trace --vehicle ID --course ID [--route N] [--laps N] --out file';
 const store = createNodeContentStore();
 
 const [verb, ...args] = process.argv.slice(2);
@@ -70,11 +68,7 @@ async function measure(verb: 'generate' | 'regenerate' | 'compare') {
     JSON.stringify({
       ok: true,
       seconds,
-      measured: plan.jobs.map(({ vehicleId, envelope, courses: due }) => ({
-        vehicle: vehicleId,
-        envelope: !envelope,
-        courses: due,
-      })),
+      measured: plan.jobs.map(({ vehicleId, courses: due }) => ({ vehicle: vehicleId, courses: due })),
       removed: plan.extra,
       report,
     }),
@@ -111,60 +105,45 @@ async function runJobs(jobs: readonly MeasureJob[]): Promise<Map<string, Measure
   return results;
 }
 
-/** One complete envelope measurement (`--vehicle`) or reference run (`--course`) in a disposable file. */
+/** One complete reference run of a course a class runs, in a disposable file. */
 async function trace(args: readonly string[]) {
   const opts = options(args, ['--vehicle', '--course', '--route', '--laps', '--out']);
-  requireInput(opts.has('--vehicle') && opts.has('--out'), '/arguments', USAGE);
+  requireInput(opts.has('--vehicle') && opts.has('--course') && opts.has('--out'), '/arguments', USAGE);
   const content: CompiledContent = requireCompiled(await compileContent(store, { measured: false }));
   const entry = content.definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
   const vehicle = createSessionVehicle(entry, content.definitions.driving);
-  const measured = measureRivalEnvelope(vehicle);
-  let result;
-  if (!opts.has('--course')) {
-    requireInput(!opts.has('--route') && !opts.has('--laps'), '/arguments', USAGE);
-    result = {
-      format: 'superoutride.vehicle-envelope',
-      version: 2,
-      procedureSha256: await procedureSha256(ENVELOPE_MEASUREMENT),
+  const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
+  requireInput(series, '/course', 'Reference runs need a course a class runs');
+  const { course } = series;
+  const routes = enumerateCourseRoutes(course.entry, course.type);
+  const lapCount = Number(opts.get('--laps') ?? series.settings.laps),
+    routeIndex = Number(opts.get('--route') ?? 0);
+  requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
+  // The course's racing lines, solved as the measured product's are.
+  const lineProcedure = racingLineProcedure(
+    Math.max(...content.definitions.vehicles.map((candidate) => candidate.compiledVehicle.footprint)),
+  );
+  const lineSha256 = await procedureSha256(lineProcedure);
+  const lines = requireLoaded(
+    readRacingLines(course, racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))),
+  );
+  const result = {
+    format: 'superoutride.reference-run',
+    version: 4,
+    courseBuildSha256: course.identity.buildSha256,
+    procedureSha256: await procedureSha256(referenceProcedure(lineProcedure)),
+    vehicle,
+    ...runCourseReference(
+      course,
       vehicle,
-      ...measured,
-    };
-  } else {
-    const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
-    requireInput(series, '/course', 'Reference runs need a course a class runs');
-    const { course } = series;
-    const routes = enumerateCourseRoutes(course.entry, course.type);
-    const lapCount = Number(opts.get('--laps') ?? series.settings.laps),
-      routeIndex = Number(opts.get('--route') ?? 0);
-    requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
-    const envelope: RivalEnvelope = { maximumSpeed: measured.maximumSpeed, rows: measured.rows };
-    // The course's racing lines, solved as the measured product's are.
-    const lineProcedure = racingLineProcedure(
-      Math.max(...content.definitions.vehicles.map((entry) => entry.compiledVehicle.footprint)),
-    );
-    const lineSha256 = await procedureSha256(lineProcedure);
-    const lines = requireLoaded(
-      readRacingLines(course, racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))),
-    );
-    result = {
-      format: 'superoutride.reference-run',
-      version: 4,
-      courseBuildSha256: course.identity.buildSha256,
-      procedureSha256: await procedureSha256(referenceProcedure(lineProcedure)),
-      vehicle,
-      ...runCourseReference(
-        course,
-        vehicle,
-        { vehicles: content.definitions.vehicles, freePlay: content.freePlay },
-        envelope,
-        routes[routeIndex]!,
-        lapCount,
-        lines,
-        true,
-      ),
-    };
-  }
+      { vehicles: content.definitions.vehicles, freePlay: content.freePlay },
+      routes[routeIndex]!,
+      lapCount,
+      lines,
+      true,
+    ),
+  };
   const output = path.resolve(opts.get('--out')!);
   await atomicWrite(output, JSON.stringify(result) + '\n');
   console.log(JSON.stringify({ ok: true, output, format: result.format, procedureSha256: result.procedureSha256 }));

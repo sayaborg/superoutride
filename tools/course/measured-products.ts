@@ -1,7 +1,6 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { courseBudgetLandmarks } from '../../src/content/course-time-budgets.js';
 import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
-import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope, type RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
 import { RACING_LINE_FORMAT, readRacingLines, type RacingLineDocument } from '../../src/content/racing-line.js';
 import {
@@ -20,19 +19,13 @@ import { readCourseReference, type CourseReferenceTimes } from './course-referen
 import type { runCourseReference } from './reference-run.js';
 
 /**
- * The measured products saved under `content/`: each catalog vehicle's envelope and, for each course a class runs, the
+ * The measured products saved under `content/`: each course's racing lines and, for each course a class runs, the
  * reference times and pace schedules of every vehicle a class runs there, which the measurement tool writes and builds
  * admit. A reference run depends on the course, the vehicle and the procedure alone (it drives the course's `maxLaps`,
  * and a Session reads the laps it runs), so classes sharing a course and vehicle share one measurement.
  */
-export const MEASURED_ENVELOPE_FORMAT = Object.freeze({
-  format: 'superoutride.measured-envelope',
-  version: 1,
-} as const);
 export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 2 } as const);
 
-/** The saved envelope of a catalog vehicle, under `content/`. */
-export const measuredEnvelopePath = (vehicleId: string) => `envelopes/${vehicleId}.json`;
 /** The saved reference times of a course a class runs, under `content/`. */
 export const referenceTimesPath = (courseId: string) => `reference-times/${courseId}.json`;
 /** The saved racing lines of a course, under `content/`. */
@@ -81,24 +74,6 @@ export interface SavedReferenceTimes {
   readonly courseBuildSha256: string;
   readonly procedureSha256: string;
   readonly vehicles: readonly SavedReferenceVehicle[];
-}
-
-export interface SavedEnvelope {
-  readonly format: typeof MEASURED_ENVELOPE_FORMAT.format;
-  readonly version: typeof MEASURED_ENVELOPE_FORMAT.version;
-  readonly vehicleSha256: string;
-  readonly procedureSha256: string;
-  readonly envelope: RivalEnvelope;
-}
-
-/** The saved envelope of a measurement: its vehicle and procedure identities and the rows driving reads. */
-export function savedEnvelope(vehicleSha256: string, procedureSha256: string, envelope: RivalEnvelope): SavedEnvelope {
-  return {
-    ...MEASURED_ENVELOPE_FORMAT,
-    vehicleSha256,
-    procedureSha256,
-    envelope: { maximumSpeed: envelope.maximumSpeed, rows: envelope.rows },
-  };
 }
 
 /**
@@ -167,11 +142,6 @@ function paceSchedule(entryId: string, runs: readonly ReferenceRun[]): SavedPace
   };
 }
 
-/** The delivered rival envelope of a saved envelope. */
-export function deliveredEnvelope(saved: SavedEnvelope) {
-  return { ...RIVAL_ENVELOPE_FORMAT, vehicleSha256: saved.vehicleSha256, envelope: saved.envelope };
-}
-
 /** A saved vehicle's reference times as the budget reader reads them. */
 export function referenceTimes(saved: SavedReferenceVehicle): CourseReferenceTimes {
   const after = new Map(saved.after);
@@ -201,33 +171,6 @@ function readUnder<T>(base: string, result: AdmissionResult<T>): T {
   if (result.ok) return result.value;
   const [diagnostic] = result.diagnostics;
   throw new AdmissionError(diagnostic!.code, `${base}${diagnostic!.path}`, diagnostic!.message);
-}
-
-/**
- * Admit a saved envelope for the Session vehicle of `vehicleSha256` measured by the procedure `procedureSha256`: its
- * identities current and its rows those the delivered envelope admits.
- */
-export function readSavedEnvelope(
-  vehicleSha256: string,
-  procedureSha256: string,
-  input: unknown,
-  document = '',
-): AdmissionResult<SavedEnvelope> {
-  return admit(document, () => {
-    const data = readDocument(
-      input,
-      ['format', 'version', 'vehicleSha256', 'procedureSha256', 'envelope'],
-      MEASURED_ENVELOPE_FORMAT.format,
-      MEASURED_ENVELOPE_FORMAT.version,
-    );
-    if (readString(data.vehicleSha256, '/vehicleSha256', SHA256_TEXT) !== vehicleSha256)
-      staleMeasurement('/vehicleSha256', "The vehicle's mechanics, driving or materials changed since it was measured");
-    if (readString(data.procedureSha256, '/procedureSha256', SHA256_TEXT) !== procedureSha256)
-      staleMeasurement('/procedureSha256', 'The envelope measurement changed since it was measured');
-    const saved = input as SavedEnvelope;
-    readUnder('', readRivalEnvelope(vehicleSha256, deliveredEnvelope(saved)));
-    return saved;
-  });
 }
 
 /**

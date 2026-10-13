@@ -156,18 +156,16 @@ the content compiled by the authoring core; it never reads `dist/`:
 npm run measure -- generate
 npm run measure -- regenerate
 npm run measure -- compare
-npm run measure -- trace --vehicle TESTAROSSA --out /tmp/envelope.json
 npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
 ```
 
-`generate` solves again each course's stale or absent racing lines first, then measures again only the envelopes and
-reference times whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line
-makes its course's reference times stale), writes them, removes saved products no catalog vehicle or
-course owns, and prints what it measured with each changed
+`generate` solves again each course's stale or absent racing lines first, then measures again only the reference
+times whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line makes its
+course's reference times stale), writes them, removes saved products no course owns, and prints what it measured with each changed
 time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
 measures everything, writes nothing, and fails listing the files that would change; CI does not run it. `trace` writes
-one complete envelope measurement, or with `--course` one reference run of a course a class runs (route index and
-laps optional; laps default to the first class running it), to a disposable file. Vehicles are measured in parallel on up to four workers. The measurement itself
+one reference run of a course a class runs (route index and laps optional; laps default to the first class running
+it) to a disposable file. Vehicles are measured in parallel on up to four workers. The measurement itself
 (which products are stale, the jobs, the saved files) is one implementation in
 [`tools/authoring/measure.ts`](../tools/authoring/measure.ts), free of Node and the browser; the tool and the
 workbench differ only in how they start workers and write files.
@@ -236,7 +234,7 @@ its document there. Containers open on demand, a long one 200 entries at a time,
 without expanding.
 
 When only measured products are stale, the header says so and the workbench also compiles the content without them,
-so editing and previews go on. The Measure module lists the stale envelopes, course entries and racing lines and measures them with
+so editing and previews go on. The Measure module lists the stale course entries and racing lines and measures them with
 the measurement tool's implementation, on up to four workers off the page's thread, showing which vehicle and phase it
 is on; it can be cancelled. The results are preview measurements for this build only: they are not changes, not a
 history step and not in the archive, and they are used only while their vehicle, course and procedure identities match
@@ -467,7 +465,7 @@ listed below and the content manifest. Product modules compile to `dist/<layer>/
 layer's modules in `dist/content/`; delivered files stay under `dist/delivery/` so modules and data never share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Strips are
 in-memory compiler products, not committed files or an additional delivered image format. Build also delivers the
-racing lines, vehicle envelopes, game time budgets and pace schedules from the [measured products](#measured-products) saved under
+racing lines, game time budgets and pace schedules from the [measured products](#measured-products) saved under
 `content/`; it runs no driving. Browsers load these products.
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
@@ -498,7 +496,6 @@ format/version. The delivery layout (`layoutDelivery` in
 | `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                            | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                         |
 | `music`           | Track ID                                                                                        | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                                   |
 | `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`                   | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                                       |
-| `envelope`        | Vehicle ID                                                                                      | `envelopes/<id>.json`                     | Rival driving envelope (`superoutride.rival-envelope` v1: vehicle identity, maximum speed and measured rows)                        |
 | `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed Session derives its budgets (`superoutride.course-reference-times` v1) |
 | `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                                              |
 | `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v1)                                                                           |
@@ -530,7 +527,7 @@ music documents (admitted against those recordings), FREE PLAY rules, engine sou
 sounds) and their images, the course index, then series (admitted against those courses and the vehicle catalog).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
-lines, each catalog vehicle's envelope, which FREE PLAY rivals and runout admission read, and for each course a class runs, once for each vehicle a
+lines and, for each course a class runs, once for each vehicle a
 class runs there, its reference times (before any margin; a Session applies its series' margin) and pace schedule; only
 courses a class runs are timed, since only ARCADE has the clock and rival pace. A stale, absent or unowned saved product fails the build
 ([Measured products](content-and-gameplay.md#measured-products)). A document whose bytes are not UTF-8 JSON is an

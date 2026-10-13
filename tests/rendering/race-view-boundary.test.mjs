@@ -8,13 +8,12 @@ import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
+import { createSessionVehicle } from '../../src/content/session-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
-import { readRivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -62,13 +61,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 });
 
 test('the view assembles fifteen rival sprites from race observations', async () => {
-  const { course, materials, scene, compiledVehicle } = await setup();
-  const admitted = readRivalEnvelope(
-    await sessionVehicleSha256(compiledVehicle, materials),
-    await definitionContent.json('envelope', 'TESTAROSSA'),
-  );
-  assert.ok(admitted.ok);
-  const envelope = admitted.value;
+  const { course, scene, compiledVehicle } = await setup();
   const configuration = compileSessionConfiguration(
     {
       mode: 'FREE_PLAY',
@@ -83,9 +76,9 @@ test('the view assembles fifteen rival sprites from race observations', async ()
     null,
     { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) },
   );
-  const settings = resolveCourseSession(course, null, configuration, 0, compiledVehicle, envelope, null, {
+  const settings = resolveCourseSession(course, null, configuration, 0, compiledVehicle, null, {
     rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
-    vehicleOf: () => ({ vehicle: compiledVehicle, envelope }),
+    vehicleOf: () => ({ vehicle: compiledVehicle }),
   });
   const race = createCourseRace({ session: settings, runtime: scene.runtime });
   assert.equal(race.rivals.length, 15);

@@ -30,7 +30,7 @@ for both stations and revalidates no admitted value. Updates never recheck compi
 steering, tires, stations, materials or numerical constants). They check the canonical pedal input once per update
 and the finiteness of wheel state, contact observations and torque requests once per wheel and substep; numerical
 solvers keep guards on the values they generate.
-Browser, race, reference/envelope tools, scenarios, startup smoke and image generation use the same
+Browser, race, reference tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates take no step argument; they integrate the
 model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
@@ -506,7 +506,7 @@ is the vehicle's, and the driver's rule says how input moves it. A rule is a ref
 (`0 < X <= 1`). The game-wide driving definition's `steeringReference` and `steeringUtilization` are the default rule, the
 player's until it chooses its own ([Browser](browser.md#player-record)); the player drives by its rule only while its
 own input reaches its vehicle. A driver drives by its own rule, the centre reference at its utilization
-([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity, envelope,
+([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
 reference time or pace schedule.
 The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`; the
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is

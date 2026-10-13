@@ -404,7 +404,7 @@ the road alone, never on walls, vehicles or objects. Vehicle pictures and their 
 each its own picture, from a solid built from four views of the vehicle (front, side, rear and top), by the
 [picture contract](image-assets.md#picture-contract). Courses and assets are saved files.
 Courses, images and definitions are saved documents. One authoring core compiles them for the build, the CLI and the
-workbench. The workbench is a browser page served with each build: it edits documents, previews measured envelopes and
+workbench. The workbench is a browser page served with each build: it edits documents, previews measured racing lines and
 reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive
 of documents. [Development](development.md) owns the commands.
 

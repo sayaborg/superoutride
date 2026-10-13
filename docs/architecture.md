@@ -7,7 +7,7 @@ This document owns coordinate and geometry contracts, projection, camera metric,
 ## Admission boundary
 
 Course documents and assets are checked when read and compiled; delivered manifests, vehicle
-definitions, envelopes, time budgets and external Session selections are checked at their intake. Cross-object
+definitions, racing lines, time budgets and external Session selections are checked at their intake. Cross-object
 Session admission relates the requested settings, course and vehicle before actors exist.
 Inside those boundaries, course/race constructors, readers and updates trust admitted data and
 internal arguments: they do not repeat shape/domain checks or retain impossible failure branches.
@@ -17,7 +17,7 @@ failure propagation belongs to the vehicle layer, not course/race input validati
 ### Content admission toolkit
 
 [`core/admission.ts`](../src/core/admission.ts) is the one admission toolkit for authored formats and for the
-generated products (the content manifest, rival envelopes, reference times and pace schedules the game reads, and the
+generated products (the content manifest, racing lines, reference times and pace schedules the game reads, and the
 reference reports the tools read), which carry format/version headers and are admitted with the same rules, unknown
 fields included.
 Its shape readers check a JSON value and throw one `AdmissionError` addressed by a JSON Pointer:
@@ -674,18 +674,18 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                                                           |
-| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit, content digests and work slices                                                                                                                                                                                                                                                  |
-| 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                                       |
-| 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                                                              |
-| 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                                                         |
-| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                                                            |
-| 6     | content | Content manifest format and, separately, delivery (fetch, digest verification, decode); saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery; the Session vehicle and its identity; generated envelope and time-budget formats and their admission |
-| 7     | input   | Keyboard/touch/gamepad adapters and arbitration producing vehicle operation requests; the published final sample and touch observation                                                                                                                                                                                                                   |
-| 8     | race    | Sessions, course worlds, fixed step, progress, gates, timing, drivers with lane following and the fork field, traffic, contacts between vehicles, barrier lines and standing objects, and recovery                                                                                                                                                       |
-| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                                                                                                                                                                   |
-| 10    | shell   | DOM, frame loop, screens and the selection flow, run assembly, the player record and records, HUD, DEV, startup and browser composition                                                                                                                                                                                                                  |
+| Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                                                                             |
+| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit, content digests and work slices                                                                                                                                                                                                                                                                    |
+| 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                                                         |
+| 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                                                                                |
+| 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                                                                           |
+| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                                                                              |
+| 6     | content | Content manifest format and, separately, delivery (fetch, digest verification, decode); saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery; the Session vehicle and its identity; generated racing-line, time-budget and pace-schedule formats and their admission |
+| 7     | input   | Keyboard/touch/gamepad adapters and arbitration producing vehicle operation requests; the published final sample and touch observation                                                                                                                                                                                                                                     |
+| 8     | race    | Sessions, course worlds, fixed step, progress, gates, timing, drivers with lane following and the fork field, traffic, contacts between vehicles, barrier lines and standing objects, and recovery                                                                                                                                                                         |
+| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                                                                                                                                                                                     |
+| 10    | shell   | DOM, frame loop, screens and the selection flow, run assembly, the player record and records, HUD, DEV, startup and browser composition                                                                                                                                                                                                                                    |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
@@ -720,7 +720,7 @@ a browser content store, a layered store for its changes (`createLayeredStore`) 
 
 There are no other dependency exceptions. Course commands and reference
 production belong to `tools/course`; the product retains shared course admission, live driving policy,
-and envelope/time-budget readers. Sprite normalization, palette generation, LOD compilation and the
+and racing-line, time-budget and pace-schedule readers. Sprite normalization, palette generation, LOD compilation and the
 sprite operations belong to `tools/graphics`. Shared image formats, filters, codecs and product limits remain
 in `src/image`; authoring-only limits stay with the tools.
 
@@ -737,7 +737,7 @@ it is built; vehicle mechanics never import race, so every composition passes `S
 browser, race, tools and scenarios lives below shell: content owns the Session vehicle (vehicle and
 driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity on a material catalog,
 `sessionVehicleSha256`) and the
-generated product formats with their admission (`rival-envelope.ts`, `course-time-budgets.ts`, and `admitProduct`,
+generated product formats with their admission (`racing-line.ts`, `course-time-budgets.ts`, and `admitProduct`,
 which admits a delivered product with its delivered path as the diagnostic document), shared by the build's
 producers and the race and browser that admit them; race owns the fixed simulation step (`SIM_DT`) and the course
 world (`createCourseWorld`: the Route runtime loaded for an observer window, the driver lookahead and one

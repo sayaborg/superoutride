@@ -3,7 +3,6 @@ import { readCourseTimeBudgets } from '../content/course-time-budgets.js';
 import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
-import { readRivalEnvelope } from '../content/rival-envelope.js';
 import { readRacingLines } from '../content/racing-line.js';
 import type { SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, sessionVehicleSha256, type SessionVehicle } from '../content/session-vehicle.js';
@@ -30,12 +29,12 @@ export interface SessionCatalog {
  * Prepare a requested Session on `course`, whose class is `arcade` (null on an untimed course): the one path
  * from a request to a Session, which the browser and the driving scenarios share. It admits the request
  * (`compileSessionConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
- * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity and
- * envelope, the clock's time budgets (the course's reference times for the player's vehicle with its series' margin)
- * and ARCADE's pace schedule. `resolve(seed)` resolves the Session with a seed; a
- * DEV rebuild passes its tuned vehicle and configuration, which have no envelope or budgets. A delivery without
- * measured products (no envelope in its manifest: the workbench's build while measurements are stale) admits only a
- * Session that demands none, and its player drives without an envelope, as a DEV-tuned vehicle does.
+ * Session needs (`sessionDemand`): the player's and every other Session vehicle with its reference identity, the
+ * clock's time budgets (the course's reference times for the player's vehicle with its series' margin), ARCADE's pace
+ * schedule and the course's racing lines. `resolve(seed)` resolves the Session with a seed; a DEV rebuild passes its
+ * tuned vehicle and configuration, which have no budgets. A delivery without measured products (no racing lines in its
+ * manifest: the workbench's build while measurements are stale) admits only a Session that demands no time budgets
+ * or pace schedule, whose drivers drive the centre lane for the racing line.
  */
 export async function prepareSession(
   content: ContentDelivery,
@@ -48,19 +47,16 @@ export async function prepareSession(
   const { vehicles, driving, materials } = catalog;
   const configuration = compileSessionConfiguration(request, course, arcade, catalog, initialSpeed);
   const demand = sessionDemand(configuration, arcade, vehicles);
-  const measured = content.manifest.files.some((file) => file.kind === 'envelope');
-  if (!measured && (demand.vehicleIds.length || demand.budgets || demand.paceSchedule))
-    throw new RangeError('Without measured products a Session has no rivals, no traffic and no time limit');
+  const measured = content.manifest.files.some((file) => file.kind === 'racing-line');
+  if (!measured && (demand.budgets || demand.paceSchedule))
+    throw new RangeError('Without measured products a Session has no time limit and no pace schedule');
   const loadEntryVehicle = async (id: string): Promise<EntryVehicle & { readonly sha256: string }> => {
     const vehicle = createSessionVehicle(
       vehicles.find((v) => v.compiledVehicle.id === id)!,
       driving,
     );
     const sha256 = await sessionVehicleSha256(vehicle, materials);
-    const envelope = measured
-      ? await admitProduct(content, 'envelope', id, (value, document) => readRivalEnvelope(sha256, value, document))
-      : null;
-    return { vehicle, envelope, sha256 };
+    return { vehicle, sha256 };
   };
   const { vehicleId } = configuration;
   const player = await loadEntryVehicle(vehicleId);
@@ -80,7 +76,7 @@ export async function prepareSession(
       )
     : undefined;
   // The course's racing lines, delivered with the measured products.
-  const racingLines = content.manifest.files.some((file) => file.kind === 'racing-line' && file.id === course.id)
+  const racingLines = measured
     ? await admitProduct(content, 'racing-line', course.id, (value, document) =>
         readRacingLines(course, value, document),
       )
@@ -102,7 +98,6 @@ export async function prepareSession(
         resolved,
         seed,
         tuned?.vehicle ?? player.vehicle,
-        tuned ? null : player.envelope,
         tuned ? null : budgets,
         { vehicleOf, rivalPool: sessionDemand(resolved, arcade, vehicles).rivalPool, paceSchedule, racingLines },
       );

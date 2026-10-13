@@ -111,13 +111,7 @@ relative motion in hertz, independent of the masses because the force scales wit
 `barrierFriction` is the dimensionless ratio of the friction along a wall or course limit to its push (0.3 is a
 provisional value, to be judged on devices).
 
-The full driving source document participates in vehicle identity for measured envelopes, reference times and
-time budgets. Top-speed envelope measurement ends at steady-speed convergence or at the first
-top-gear fuel-cut recovery; after a recovery the maximum is the greatest speed observed during the run.
-Envelopes are measured on the envelope procedure's own reference surface, `ENVELOPE_REFERENCE_SURFACE`
-in `tools/course/rival-envelope-measurement.ts`: grip factor 1 and rolling resistance 0 everywhere. It is not a
-catalog material, so material IDs and values do not move the envelope; the reference is the vehicle's
-capability on unit grip without surface drag.
+The full driving source document participates in vehicle identity for reference times and time budgets.
 
 A driver's utilization is the fraction of its tires' friction ellipses it plans to use: it scales the lateral and
 longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and acceleration

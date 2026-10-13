@@ -5,7 +5,6 @@
  * next position, and five goals in the last row. Every stage is one Section; the generator owns its plan, profile,
  * lanes, fork, gates and surfaces, from the stage table below.
  */
-import { readFile } from 'node:fs/promises';
 import { format, resolveConfig } from 'prettier';
 import { atomicWrite, reportError } from './authoring-io.js';
 import {
@@ -94,7 +93,7 @@ const RUNOUT = 450;
 
 /**
  * The stages by row, left to right: difficulty rises to the right in every row. Plans are sized from TESTAROSSA's
- * envelope so each stage takes about 90 s at the reference driver's utilization (see `estimate`).
+ * limits (`SIZING`) so each stage takes about 90 s at the reference driver's utilization (see `estimate`).
  */
 const ROWS: readonly (readonly StageDesign[])[] = [
   [
@@ -702,15 +701,36 @@ interface Built {
   readonly estimate: number;
 }
 
-const envelope = JSON.parse(await readFile(new URL('../../content/envelopes/TESTAROSSA.json', import.meta.url), 'utf8'))
-  .envelope as {
-  maximumSpeed: number;
-  rows: { speed: number; acceleration: number; braking: number; lateral: number }[];
-};
+/**
+ * TESTAROSSA's speed-indexed acceleration, braking and lateral limits as measured when the stages were sized, kept so
+ * the generated course stays as authored.
+ */
+const SIZING: {
+  readonly maximumSpeed: number;
+  readonly rows: readonly { speed: number; acceleration: number; braking: number; lateral: number }[];
+} = Object.freeze({
+  maximumSpeed: 83.01171733550791,
+  rows: [
+    { speed: 5, acceleration: 7.971121546951972, braking: 13.697454897092518, lateral: 4.836725274532194 },
+    { speed: 15, acceleration: 7.333755058136738, braking: 14.163743740548096, lateral: 22.88963045383348 },
+    { speed: 25, acceleration: 4.813428656859685, braking: 14.734078993206339, lateral: 22.38633789286054 },
+    { speed: 35, acceleration: 3.326855050473867, braking: 14.998827611890633, lateral: 21.93519498688467 },
+    { speed: 45, acceleration: 2.8004672073500245, braking: 15.322431887152348, lateral: 21.525080112372247 },
+    { speed: 55, acceleration: 1.8498304065199562, braking: 15.523213626353325, lateral: 21.360578540874283 },
+    { speed: 65, acceleration: 0.9921668896573692, braking: 15.812030673380235, lateral: 21.54131897968735 },
+    { speed: 75, acceleration: 0.52037804980651, braking: 16.346187056081902, lateral: 21.578238596913753 },
+    {
+      speed: 83.01171733550791,
+      acceleration: 0.0030402258538515525,
+      braking: 16.346187056081902,
+      lateral: 21.641575004709605,
+    },
+  ],
+});
 /** The reference driver's utilization (`REFERENCE_DRIVER`). */
 const UTILIZATION = 0.9;
 const at = (key: 'acceleration' | 'braking' | 'lateral', v: number) => {
-  const rows = envelope.rows;
+  const rows = SIZING.rows;
   if (v <= rows[0]!.speed) return rows[0]![key];
   for (let i = 1; i < rows.length; i++)
     if (v <= rows[i]!.speed) {
@@ -731,9 +751,9 @@ function estimate(plan: readonly Element[], grade: (s: number) => number, entryS
   const curvature: number[] = [];
   for (const e of plan) for (let i = 0; i < e.length; i++) curvature.push(e.radius ? 1 / e.radius : 0);
   const limit = curvature.map((k) => {
-    if (k === 0) return envelope.maximumSpeed;
-    let v = envelope.maximumSpeed;
-    for (let n = 0; n < 20; n++) v = Math.min(envelope.maximumSpeed, Math.sqrt((UTILIZATION * at('lateral', v)) / k));
+    if (k === 0) return SIZING.maximumSpeed;
+    let v = SIZING.maximumSpeed;
+    for (let n = 0; n < 20; n++) v = Math.min(SIZING.maximumSpeed, Math.sqrt((UTILIZATION * at('lateral', v)) / k));
     return v;
   });
   const v = [...limit];

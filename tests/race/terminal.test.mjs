@@ -63,7 +63,6 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
-  const { envelope } = await definitionContent.json('envelope', 'TESTAROSSA');
   const request = {
     mode: 'FREE_PLAY',
     vehicleId: 'TESTAROSSA',
@@ -74,7 +73,7 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
     traffic: 'OFF',
   };
   const configuration = compileSessionConfiguration(request, course, null, catalog);
-  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, 0, vehicle, envelope));
+  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, 0, vehicle));
   const short = {
     ...course,
     gates: {
@@ -89,7 +88,7 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
     },
   };
   assert.throws(
-    () => resolveCourseSession(short, null, configuration, 0, vehicle, envelope),
+    () => resolveCourseSession(short, null, configuration, 0, vehicle),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
   const ringCourse = await load('tsukuba');
@@ -97,13 +96,6 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
   assert.doesNotThrow(() =>
-    resolveCourseSession(
-      ringCourse,
-      null,
-      compileSessionConfiguration(request, ringCourse, null, catalog),
-      0,
-      vehicle,
-      envelope,
-    ),
+    resolveCourseSession(ringCourse, null, compileSessionConfiguration(request, ringCourse, null, catalog), 0, vehicle),
   );
 });

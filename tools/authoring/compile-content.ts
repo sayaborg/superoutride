@@ -34,17 +34,13 @@ import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { procedureSha256 } from '../course/procedure.js';
-import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
 import { referenceProcedure } from '../course/reference-run.js';
 import { racingLineProcedure } from '../course/racing-line.js';
 import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
-  deliveredEnvelope,
   deliveredSchedule,
   measuredCourses,
-  measuredEnvelopePath,
   racingLinePath,
-  readSavedEnvelope,
   readSavedRacingLines,
   readSavedReferenceTimes,
   referenceTimes,
@@ -89,8 +85,8 @@ export type ContentCompilation = (
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
  * one pass: vehicle sprite library, text tiles, materials, surface sounds, wall sounds, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
- * the wall sounds) and their images, the course index, series, then the measured products: each catalog vehicle's
- * envelope and each series course's time budgets and pace schedules from the saved measurements, which must be current.
+ * the wall sounds) and their images, the course index, series, then the measured products: each course's racing lines
+ * and each series course's time budgets and pace schedules from the saved measurements, which must be current.
  * Each stage receives earlier products directly and admits its documents as delivery does. With `measured: false` it
  * stops before the measured products, for tools that produce them or do not use them. An expected content error ends
  * compilation with its diagnostics and no product; other failures, store reads included, propagate.
@@ -396,8 +392,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...series.value.files,
   ];
   if (measured) {
-    const envelopeFiles = await read('envelopes', ''),
-      timeFiles = await read('reference-times', ''),
+    const timeFiles = await read('reference-times', ''),
       lineFiles = await read('racing-lines', '');
     const products = await stage(
       'measured',
@@ -406,7 +401,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         materials.key,
         series.key,
         ...courses.map((course) => course.key),
-        ...inputs(envelopeFiles),
         ...inputs(timeFiles),
         ...inputs(lineFiles),
       ],
@@ -449,8 +443,7 @@ function namedImages(bytes: Uint8Array): string[] {
 }
 
 /**
- * The measured products: each course's racing lines, each catalog vehicle's delivered envelope and, for each course a
- * class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
+ * The measured products: each course's racing lines and, for each course a class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
  * each delivered once. Every saved file must be current and owned. A Session applies its series' margin to the
  * delivered times.
  */
@@ -469,8 +462,7 @@ async function measuredFiles(
   const lineProcedure = racingLineProcedure(
     Math.max(...definitions.vehicles.map((entry) => entry.compiledVehicle.footprint)),
   );
-  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
-    referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
+  const referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
   const vehicleSha256 = new Map<string, string>();
   for (const entry of definitions.vehicles)
     vehicleSha256.set(
@@ -481,20 +473,16 @@ async function measuredFiles(
     seriesClasses,
     definitions.vehicles.map((entry) => entry.compiledVehicle.id),
   );
-  // Every saved measurement belongs to a catalog vehicle or a course a class runs, and each of those has its own.
+  // Every saved measurement belongs to a course, and each course has its own.
   const owned = new Set([
-    ...definitions.vehicles.map((entry) => measuredEnvelopePath(entry.compiledVehicle.id)),
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
     ...compiledCourses.map((course) => racingLinePath(course.id)),
   ]);
   const saved = new Set<string>();
-  for (const directory of ['envelopes', 'reference-times', 'racing-lines'])
+  for (const directory of ['reference-times', 'racing-lines'])
     for (const name of await store.list(directory)) saved.add(`${directory}/${name}`);
   for (const path of saved)
-    if (!owned.has(path))
-      requireLoaded(
-        admit(`content/${path}`, () => staleMeasurement('', 'No catalog vehicle or course a class runs owns it')),
-      );
+    if (!owned.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'No course owns it')));
   const savedJson = async (path: string) => {
     if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
     return json(path);
@@ -521,10 +509,7 @@ async function measuredFiles(
   }
   for (const entry of definitions.vehicles) {
     const id = entry.compiledVehicle.id,
-      sha256 = vehicleSha256.get(id)!,
-      path = measuredEnvelopePath(id);
-    const saved = requireLoaded(readSavedEnvelope(sha256, measurementSha256, await savedJson(path), `content/${path}`));
-    add('envelope', id, encodeContentJson(deliveredEnvelope(saved)));
+      sha256 = vehicleSha256.get(id)!;
     for (const { course } of courses) {
       const vehicle = times.get(course.id)!.vehicles.find((candidate) => candidate.vehicleId === id);
       if (!vehicle) continue;

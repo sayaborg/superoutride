@@ -37,7 +37,7 @@ catalogs (materials, surface sounds, vehicle and driving definitions, series, te
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
 controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its Session
-settings, the field's Session vehicles, envelopes, time budgets and pace schedule, the Session, scene and race,
+settings, the field's Session vehicles, racing lines, time budgets and pace schedule, the Session, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
 run's observations to them.
@@ -335,8 +335,8 @@ commit's build instead of `version.txt`'s, and the page takes its delivery from 
 (`window.opener`, same origin) instead of fetching `../delivery/`. That delivery passes the same manifest admission and
 digest checks; only the transport differs. Without that workbench page, or without its answer within 10 s, the page
 fails to start and says why. With `dev=1`, the DEV toggle reads `WORKBENCH BUILD`. A delivery without measured
-products admits only Sessions that need none: FREE PLAY without rivals or traffic, with the player driving without an
-envelope, as after a DEV rebuild.
+products admits only Sessions that need none: no time limit and no pace schedule, its drivers driving the centre lane
+for the racing line.
 
 ## Driving input
 
@@ -630,7 +630,7 @@ is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, cou
 tuned values at once. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
-and no envelope or time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the

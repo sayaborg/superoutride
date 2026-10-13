@@ -3,7 +3,6 @@ import { SIM_DT } from './fixed-step.js';
 import { assertBodyContactStability } from '../vehicle/physics/body-contact.js';
 import { createVehicleModel, VEHICLE_SUBSTEPS, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { createVehicleLimits, type VehicleLimits } from '../vehicle/vehicle-limits.js';
-import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
 import type { RacingLines } from '../content/racing-line.js';
@@ -19,18 +18,14 @@ import { KILOMETERS_PER_HOUR_PER_METER_PER_SECOND } from '../vehicle/physics/veh
 
 const NO_RANK_LIMITS: Readonly<Record<string, number>> = Object.freeze({});
 
-/**
- * A Session vehicle with its envelope; the envelope is null only for a player without one (a DEV-tuned vehicle, or a
- * delivery without measured products), whose Session has no rivals.
- */
+/** An entry's Session vehicle. */
 export interface EntryVehicle {
   readonly vehicle: SessionVehicle;
-  readonly envelope: RivalEnvelope | null;
 }
 
 /**
  * One competitor's resolved entry: its stable ID, grid slot or ahead appearance, color, pace ratio, stage interval,
- * Session vehicle and that vehicle's envelope.
+ * and Session vehicle.
  */
 export interface SessionEntry extends EntryVehicle {
   readonly id: string;
@@ -45,9 +40,8 @@ export interface SessionEntry extends EntryVehicle {
   readonly stages: StageInterval | null;
 }
 
-/** A traffic vehicle candidate: its Session vehicle and envelope, its sprite colors and its driver, compiled once. */
+/** A traffic vehicle candidate: its Session vehicle, its sprite colors and its driver, compiled once. */
 export interface TrafficCandidate extends EntryVehicle {
-  readonly envelope: RivalEnvelope;
   readonly colors: readonly string[];
   readonly driver: PlannedDriver;
 }
@@ -69,10 +63,10 @@ export interface ResolvedTraffic {
 }
 
 /**
- * What a Session of `configuration` needs besides the player's own vehicle and envelope, decided with its entries: the
+ * What a Session of `configuration` needs besides the player's own vehicle, decided with its entries: the
  * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — ARCADE's class
- * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its Session vehicle and
- * envelope (`vehicleIds`, unique, in first-use order), the time budgets of its clock and ARCADE's pace schedule.
+ * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its Session vehicle
+ * (`vehicleIds`, unique, in first-use order), the time budgets of its clock and ARCADE's pace schedule.
  */
 export function sessionDemand(
   configuration: SessionConfiguration,
@@ -125,7 +119,7 @@ export function sessionPlayerColor(
 /**
  * Resolve one admitted Session configuration (`compileSessionConfiguration`) with its `seed` before actors/ticks
  * exist. Graph and catalog objects remain shared references. `arcade` is the Session's admitted class, which
- * ARCADE reads. A Session without an envelope (a DEV-tuned vehicle, or no measured products) has no rivals and no time limit. The resolved
+ * ARCADE reads. The resolved
  * entries list the player first, then each rival. ARCADE takes the class's entries: the player the rearmost entry of
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
@@ -141,7 +135,6 @@ export function resolveCourseSession(
   configuration: SessionConfiguration,
   seed: number,
   vehicle: SessionVehicle,
-  envelope: RivalEnvelope | null,
   budgets: CourseTimeBudgets | null = null,
   field: {
     /** Every other entry's Session vehicle; a Session with rivals requires it. */
@@ -171,8 +164,6 @@ export function resolveCourseSession(
     throw new RangeError("ARCADE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
-  if (!envelope && (configuration.rivalCount > 0 || configuration.timeLimit))
-    throw new RangeError('A Session without an envelope has no rivals and no time limit');
   if (configuration.rivalCount > 0 && !field.vehicleOf)
     throw new RangeError('A Session with rivals requires their Session vehicles');
   if (configuration.traffic && !field.vehicleOf)
@@ -202,12 +193,12 @@ export function resolveCourseSession(
   };
   const entries =
     configuration.mode === 'ARCADE'
-      ? arcadeEntries(course, arcade!, { vehicle, envelope }, playerColor, field.vehicleOf!)
+      ? arcadeEntries(course, arcade!, { vehicle }, playerColor, field.vehicleOf!)
       : freePlayEntries(
           course,
           configuration.rivalCount,
           seed,
-          { vehicle, envelope },
+          { vehicle },
           playerColor,
           field.rivalPool ?? [],
           field.vehicleOf!,
@@ -239,11 +230,9 @@ export function resolveCourseSession(
         candidates: Object.freeze(
           configuration.traffic.vehicles.map((id) => {
             const candidate = field.vehicleOf!(id);
-            if (!candidate.envelope) throw new RangeError(`Traffic vehicle ${id} has no envelope`);
             const { model, limits, speedCap } = mechanicsOf(candidate.vehicle);
             return Object.freeze({
               ...candidate,
-              envelope: candidate.envelope,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
               // Traffic never changes lanes to pass; it follows a slower vehicle in its lane and merges where its lane ends.
               driver: compilePlannedDriver(model, limits, rivalUtilization, Math.min(trafficSpeed, speedCap), false),

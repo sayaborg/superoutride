@@ -1016,7 +1016,7 @@ ARCADE resolves its class: one of the class's vehicle candidates, its entries an
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
-vehicle, envelope, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
+vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
 TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
@@ -1028,14 +1028,13 @@ FREE PLAY document's density at its traffic speed with every catalog vehicle as 
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
 vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once
-(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and envelope (a
-missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75 with that speed as its
+(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and compiles its driver once: the rival utilization 0.75 with that speed as its
 speed cap, so a vehicle whose own speed cap is lower keeps its own; curve speeds and following are any
 driver's. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot, its Session vehicle (vehicle calibration and protection settings) and that vehicle's envelope. In FREE PLAY and TIME TRIAL the
+slot and its Session vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME TRIAL the
 player stands in the last slot of the grid its field starts from and the rivals in the slots directly in front of it,
 `RIVAL_01` frontmost.
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
@@ -1052,8 +1051,6 @@ road tangent. It is finite and may be negative; product Sessions and reference r
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 TIME TRIAL Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
-The player's envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
-identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
 `speedCap² / (2*a)` metres remaining to that Section's end for every entry, the player included. Here `speedCap` is
 the entry vehicle's speed cap and `a` its Session driver's planning braking at the fixed Session driver utilization
@@ -1072,7 +1069,7 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 ### Reference times and clock
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
-reads completed envelopes and time budgets and owns live Session driving policy.
+reads completed racing lines, time budgets and pace schedules and owns live Session driving policy.
 The measurement tool's continuous reference runs are TIME TRIAL Sessions: product physics, the configured start from the
 last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
@@ -1089,21 +1086,18 @@ The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the JSON
 driving and surface-material documents. Everything a Session drives—compiled mechanics, driving
 settings and material physics—derives from those documents; the vehicle listing is not part of it. Any
 change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
-definition is not delivered and has no identity, so a Session rebuilt by DEV tuning uses no envelope or time
+definition is not delivered and has no identity, so a Session rebuilt by DEV tuning uses no time
 budgets ([Browser](browser.md#dev-controls)). This digest is saved with each measured product and is independently
-recomputed by build and browser envelope and budget admission; both reject products carrying an old digest.
+recomputed by build and browser budget and schedule admission; both reject products carrying an old digest.
 Each procedure that produces a measured product has one record, its name, version and the values that decide its
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
-procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
-records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
-reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
+procedure's version. The reference run (`REFERENCE_RUN`,
 `superoutride.reference-driving` version 6) records the race's fixed step, the Session seed, the reference driver (the
 driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing; its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
-version 4 and `superoutride.vehicle-envelope` version 2) record these identities as `procedureSha256`. The delivered
-envelope carries only its rows and maximum speed; the measurement record is in the measurement trace
+version 4) record these identities as `procedureSha256`; the reference run's record is in its trace
 (`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
@@ -1128,13 +1122,8 @@ run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and event
 ### Measured products
 
 The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
-under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each catalog vehicle
-has `content/envelopes/<vehicle>.json`, each course a class runs has `content/reference-times/<course>.json`, and
-every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
-
-A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha256` (the Session vehicle's identity),
-`procedureSha256` (the envelope measurement's identity) and `envelope`, the delivered envelope's `maximumSpeed` and
-`rows`. The delivered envelope is `superoutride.rival-envelope` with the same `vehicleSha256` and `envelope`.
+under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each course a class runs has
+`content/reference-times/<course>.json`, and every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
 
 A reference run depends on the course, the vehicle and the procedure alone: it drives the course's `maxLaps` and a
 Session reads the laps it runs, so no series or class value enters it, and classes running the same course and
@@ -1153,8 +1142,8 @@ identities and the station spacing.
 
 A saved product is current while its identities equal the current course build, Session vehicle and procedure
 identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
-delivered envelopes, reference times and schedules from them, each once. A saved product that is stale, absent or
-owned by no catalog vehicle or course a class runs, or reference times whose entries are not the vehicles the
+delivered racing lines, reference times and schedules from them, each once. A saved product that is stale, absent or
+owned by no course, or reference times whose entries are not the vehicles the
 classes run on that course in catalog order (a measurement no class uses is stale), fail
 with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
 malformed values fail as any admitted document does. Changing a series' `timeMargin` changes only the series document
@@ -1405,7 +1394,7 @@ from 30 m/s at full brake, its stopping distance from full application lies with
 utilization.
 
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
-and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
+and optional 10 Hz position/speed/utilization traces. The browser loads generated racing lines and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.
 
 ## Traffic
@@ -1598,7 +1587,7 @@ both its successors start where it ends. A goal stage ends in a 900 m straight, 
 finish 450 m before its end. The entry stage, COASTLINE, starts as a divided 3+3 highway (lanes w, a, b | c, d, e) with
 its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork's four. Stages are sized so that each
 takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
-TESTAROSSA's delivered envelope, and the measured reference times are the course's times. Each stage's sky arrives at
+TESTAROSSA's limits as measured when the stages were sized (its `SIZING` table), and the measured reference times are the course's times. Each stage's sky arrives at
 its start by a `wipe` or a `rise`, alternately (the entry's by `cut`), its yaw origin keeping the sky's direction from
 its left-most predecessor. A checkpoint arch
 stands 12 m into every stage but the entry, whose start gantry stands over its grid, and a goal arch over each finish.

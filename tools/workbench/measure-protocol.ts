@@ -30,10 +30,9 @@ export type JobMessage =
 export type MeasureMessage =
   | {
       readonly type: 'plan';
-      /** Each job: its vehicle, whether its envelope is measured, and its courses. */
+      /** Each job: its vehicle and its courses. */
       readonly jobs: readonly {
         readonly vehicle: string;
-        readonly envelope: boolean;
         readonly courses: readonly string[];
       }[];
       /** The courses whose racing lines are solved. */

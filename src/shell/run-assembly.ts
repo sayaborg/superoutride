@@ -254,7 +254,7 @@ async function assembleCourseRun(
             active.race.recoverPlayer();
             lifecycle.reset();
           },
-          // A tuned driving definition has no delivered identity, so the rebuilt Session has no envelope,
+          // A tuned driving definition has no delivered identity, so the rebuilt Session has no
           // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
           // product Session and the delivered definition.
           rebuildSession: (driving) => {

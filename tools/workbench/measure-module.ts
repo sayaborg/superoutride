@@ -63,10 +63,7 @@ export const measureModule: WorkbenchModule = {
     };
     const showPlan = (message: Extract<MeasureMessage, { type: 'plan' }>) => {
       const items = message.jobs.map((job) =>
-        make(
-          'li',
-          `${job.vehicle}: ${[job.envelope ? 'envelope' : null, ...job.courses.map((course) => `reference times on ${course}`)].filter(Boolean).join(', ')}`,
-        ),
+        make('li', `${job.vehicle}: ${job.courses.map((course) => `reference times on ${course}`).join(', ')}`),
       );
       for (const course of message.racingLines) items.push(make('li', `${course}: racing lines`));
       for (const path of message.extra) items.push(make('li', `${path}: owned by no vehicle or course a class runs`));
@@ -105,7 +102,7 @@ export const measureModule: WorkbenchModule = {
           jobs = message.jobs.length;
           if (!jobs && !message.racingLines.length && !message.extra.length) idle('Nothing to measure.');
         } else if (message.type === 'progress')
-          progress.textContent = `Measuring: ${message.done} of ${jobs} vehicles done · ${message.vehicle}: ${message.phase === 'envelope' ? 'envelope' : `reference runs on ${message.phase}`}`;
+          progress.textContent = `Measuring: ${message.done} of ${jobs} vehicles done · ${message.vehicle}: reference runs on ${message.phase}`;
         else if (message.type === 'done') {
           const files = message.files.flatMap(([path, text]) =>
             text === null ? [] : [[path, new TextEncoder().encode(text)] as const],

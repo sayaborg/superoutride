@@ -1,9 +1,7 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { procedureSha256 } from '../course/procedure.js';
-import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
 import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
 import { racingLineProcedure, solveRacingLines } from '../course/racing-line.js';
 import {
@@ -14,15 +12,11 @@ import {
 } from '../../src/content/racing-line.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import {
-  MEASURED_ENVELOPE_FORMAT,
   REFERENCE_TIMES_FORMAT,
   measuredCourses,
-  measuredEnvelopePath,
   racingLinePath,
   referenceTimesPath,
-  savedEnvelope,
   savedReferenceVehicle,
-  type SavedEnvelope,
   type SavedReferenceTimes,
   type SavedReferenceVehicle,
 } from '../course/measured-products.js';
@@ -35,21 +29,15 @@ import type { ContentStore } from './content-store.js';
  * workers and write its files through their own stores.
  */
 
-/**
- * One vehicle's measurements: its envelope unless one is given, then its reference runs on each named course, driving
- * that course's racing lines (their document).
- */
+/** One vehicle's measurements: its reference runs on each named course, driving that course's racing lines. */
 export interface MeasureJob {
   readonly vehicleId: string;
-  readonly envelope: RivalEnvelope | null;
   readonly courses: readonly string[];
   readonly racingLines: Readonly<Record<string, RacingLineDocument>>;
 }
 
 export interface MeasureResult {
   readonly vehicleId: string;
-  /** The measured envelope, or null when the job gave one. */
-  readonly envelope: RivalEnvelope | null;
   readonly runs: readonly { readonly course: string; readonly runs: ReturnType<typeof runCourseReference>[] }[];
 }
 
@@ -65,7 +53,7 @@ export interface MeasurementPlan {
   readonly jobs: readonly MeasureJob[];
   /** The courses whose racing lines are solved: those stale (every course when asked). */
   readonly racingLines: readonly string[];
-  /** Saved measured products no catalog vehicle or course a class runs owns. */
+  /** Saved measured products no course owns. */
   readonly extra: readonly string[];
   /** The files the results save, with what changed by gate and lap. */
   assemble(results: ReadonlyMap<string, MeasureResult>): { writes: MeasuredWrite[]; report: unknown[] };
@@ -79,9 +67,6 @@ export function runMeasureJob(
 ): MeasureResult {
   const entry = content.definitions.vehicles.find((vehicle) => vehicle.compiledVehicle.id === job.vehicleId)!;
   const vehicle = createSessionVehicle(entry, content.definitions.driving);
-  if (!job.envelope) progress('envelope');
-  const measured = job.envelope ? null : measureRivalEnvelope(vehicle);
-  const envelope: RivalEnvelope = job.envelope ?? { maximumSpeed: measured!.maximumSpeed, rows: measured!.rows };
   const catalog = { vehicles: content.definitions.vehicles, freePlay: content.freePlay };
   const runs = job.courses.map((id) => {
     progress(id);
@@ -90,15 +75,15 @@ export function runMeasureJob(
     return {
       course: id,
       runs: enumerateCourseRoutes(course.entry, course.type).map((route) =>
-        runCourseReference(course, vehicle, catalog, envelope, route, course.rules.maxLaps, lines),
+        runCourseReference(course, vehicle, catalog, route, course.rules.maxLaps, lines),
       ),
     };
   });
-  return { vehicleId: job.vehicleId, envelope: measured ? envelope : null, runs };
+  return { vehicleId: job.vehicleId, runs };
 }
 
 /**
- * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) envelopes
+ * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) racing lines
  * and course entries, or everything when `everything` is set.
  */
 export async function planMeasurement(
@@ -107,7 +92,6 @@ export async function planMeasurement(
   everything: boolean,
 ): Promise<MeasurementPlan> {
   const savedNames = new Set([
-    ...(await store.list('envelopes')).map((name) => `envelopes/${name}`),
     ...(await store.list('reference-times')).map((name) => `reference-times/${name}`),
     ...(await store.list('racing-lines')).map((name) => `racing-lines/${name}`),
   ]);
@@ -126,8 +110,7 @@ export async function planMeasurement(
     Math.max(...content.definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.footprint)),
   );
   const lineSha256 = await procedureSha256(lineProcedure);
-  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
-    referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
+  const referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
   const lines: { course: CompiledContent['courses'][number]; saved: unknown }[] = [];
   for (const course of content.courses) lines.push({ course, saved: await savedJson(racingLinePath(course.id)) });
   const staleLines = lines.filter(({ course, saved }) => {
@@ -149,22 +132,14 @@ export async function planMeasurement(
         ? racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))
         : (saved as RacingLineDocument),
     );
-  // Each catalog vehicle's identity and its saved envelope when that is current.
-  const vehicles = new Map<string, { sha256: string; envelope: SavedEnvelope | null; saved: unknown }>();
+  // Each catalog vehicle's identity.
+  const vehicles = new Map<string, { sha256: string }>();
   for (const entry of content.definitions.vehicles) {
-    const id = entry.compiledVehicle.id;
     const sha256 = await sessionVehicleSha256(
       createSessionVehicle(entry, content.definitions.driving),
       content.materials,
     );
-    const saved = await savedJson(measuredEnvelopePath(id));
-    const current = saved as Partial<SavedEnvelope> | null;
-    const fresh =
-      current?.format === MEASURED_ENVELOPE_FORMAT.format &&
-      current.version === MEASURED_ENVELOPE_FORMAT.version &&
-      current.vehicleSha256 === sha256 &&
-      current.procedureSha256 === measurementSha256;
-    vehicles.set(id, { sha256, envelope: fresh ? (saved as SavedEnvelope) : null, saved });
+    vehicles.set(entry.compiledVehicle.id, { sha256 });
   }
   // Each course a class runs, with its saved file and the vehicles the classes run there.
   const courses: { course: CompiledContent['courses'][number]; candidates: readonly string[]; saved: unknown }[] = [];
@@ -187,24 +162,21 @@ export async function planMeasurement(
   }
   // One job per vehicle with anything to measure.
   const jobs: MeasureJob[] = [];
-  for (const [vehicleId, vehicle] of vehicles) {
-    const envelope = everything ? null : vehicle.envelope;
+  for (const vehicleId of vehicles.keys()) {
     const due = courses
       .filter(
         ({ course, candidates }) =>
           candidates.includes(vehicleId) && (everything || !fresh.get(course.id)!.has(vehicleId)),
       )
       .map(({ course }) => course.id);
-    if (!envelope || due.length)
+    if (due.length)
       jobs.push({
         vehicleId,
-        envelope: envelope?.envelope ?? null,
         courses: due,
         racingLines: Object.fromEntries(due.map((id) => [id, lineDocuments.get(id)!])),
       });
   }
   const owned = new Set([
-    ...[...vehicles.keys()].map(measuredEnvelopePath),
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
     ...content.courses.map((course) => racingLinePath(course.id)),
   ]);
@@ -218,18 +190,6 @@ export async function planMeasurement(
       const next = lineDocuments.get(course.id)!;
       report.push({ racingLines: course.id });
       writes.push({ path: racingLinePath(course.id), text: formatSavedJson(next), previous: saved });
-    }
-    // Envelopes, in catalog order.
-    for (const [vehicleId, vehicle] of vehicles) {
-      const result = results.get(vehicleId);
-      if (!result?.envelope) continue;
-      const next = savedEnvelope(vehicle.sha256, measurementSha256, result.envelope);
-      const previous = vehicle.saved as Partial<SavedEnvelope> | null;
-      report.push({
-        envelope: vehicleId,
-        maximumSpeed: { before: previous?.envelope?.maximumSpeed ?? null, after: next.envelope.maximumSpeed },
-      });
-      writes.push({ path: measuredEnvelopePath(vehicleId), text: formatSavedJson(next), previous: vehicle.saved });
     }
     // Reference times, each course's vehicles in catalog order.
     for (const { course, candidates, saved } of courses) {
