@@ -55,8 +55,8 @@ function stepVolume(value: number, by: -1 | 1): number {
  * SETTINGS: MASTER, MUSIC and EFFECTS volumes, which LEFT and RIGHT change in steps of five and the player record
  * keeps; CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING and the player record keeps;
  * CAR STEERING and BIKE STEERING (FRONT or CENTER) and CAR STEERING USE and BIKE STEERING USE (100%, 95% or 90%), which
- * LEFT and RIGHT switch and the player record keeps;
- * CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
+ * LEFT and RIGHT switch and the player record keeps; BRAKE SIGN (ON or OFF), which LEFT and RIGHT switch and the player
+ * record keeps; CONTROLS, a screen listing the controls; and CLEAR RECORDS, which asks once (NO first) before emptying the
  * records and keeps the settings. Each volume applies at once through `setVolume`. While the cursor is on MUSIC, the
  * latest track plays as an audition. BACK leaves.
  */
@@ -106,6 +106,11 @@ export function showSettings(
           },
         ];
       }),
+      {
+        label: 'BRAKE SIGN',
+        value: player.settings.brakeSign ? 'ON' : 'OFF',
+        adjust: () => player.updateSettings({ brakeSign: !player.settings.brakeSign }),
+      },
       { label: 'CONTROLS', confirm: controls },
       { label: 'CLEAR RECORDS', confirm: clearRecords },
     ];

@@ -373,6 +373,7 @@ async function assembleCourseRun(
       rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
+      brakeSign: page.player.settings.brakeSign,
     };
   };
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every

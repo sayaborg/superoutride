@@ -4,8 +4,10 @@ import { createSteeringRule, STEERING_REFERENCES, type SteeringRule } from '../v
 
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 6;
-/** The version before, whose settings are kept; its TIME TRIAL and ARCADE records, which name no class, are dropped. */
+const PLAYER_RECORD_VERSION = 7;
+/** The version before, which had no BRAKE SIGN setting; its settings and records are kept. */
+const BRAKE_SIGNLESS_VERSION = 6;
+/** The version before that, whose settings are kept; its TIME TRIAL and ARCADE records, which name no class, are dropped. */
 const MODE_RECORDS_VERSION = 5;
 /** The version before that, which had no steering settings either. */
 const STEERINGLESS_VERSION = 4;
@@ -43,6 +45,8 @@ export interface PlayerSettings {
   readonly cameras: Readonly<Record<VehicleForm, CameraYawSource>>;
   /** The steering rule the player drives by, by the player vehicle's form. */
   readonly steering: Readonly<Record<VehicleForm, SteeringRule>>;
+  /** Whether the HUD shows BRAKE!!. */
+  readonly brakeSign: boolean;
 }
 
 /**
@@ -83,6 +87,7 @@ const DEFAULT_SETTINGS = freezeSettings({
   latestSelections: {},
   cameras: DEFAULT_CAMERAS,
   steering: DEFAULT_STEERING,
+  brakeSign: true,
 });
 /** No records: what an older record or CLEAR RECORDS leaves. */
 export const NO_RECORDS = freezeRecords({ timeAttack: {} });
@@ -150,9 +155,10 @@ function readRecord(storage: Storage | null): { settings: PlayerSettings; record
 }
 
 /**
- * The settings and records of a record with exactly the declared shape, or null: version 6; or version 1 to 5, whose
- * settings carry over with no records (version 1 had none; versions 2 to 5 kept TIME TRIAL and ARCADE records, which
- * name no class). Settings before version 5 take the default steering, and those before version 4 the default cameras.
+ * The settings and records of a record with exactly the declared shape, or null: version 7 or 6 (whose settings take
+ * BRAKE SIGN ON); or version 1 to 5, whose settings carry over with no records (version 1 had none; versions 2 to 5
+ * kept TIME TRIAL and ARCADE records, which name no class). Settings before version 5 take the default steering, and
+ * those before version 4 the default cameras.
  */
 function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records: PlayerRecords } | null {
   if (!isObject(value)) return null;
@@ -170,7 +176,7 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
     return null;
   const settings = admitSettings(value.settings, version as number);
   if (!settings) return null;
-  if (version !== PLAYER_RECORD_VERSION) return { settings, records: NO_RECORDS };
+  if ((version as number) < BRAKE_SIGNLESS_VERSION) return { settings, records: NO_RECORDS };
   if (!hasExactKeys(value.records, ['timeAttack'])) return null;
   return {
     settings,
@@ -182,17 +188,20 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
 
 /**
  * Settings of exactly the declared shape of record `version`: with their cameras from version 4, else the default
- * cameras, and with their steering from version 5, else the default steering.
+ * cameras, with their steering from version 5, else the default steering, and with their BRAKE SIGN from version 7,
+ * else ON.
  */
 function admitSettings(settings: unknown, version: number): PlayerSettings | null {
   const withCameras = version >= STEERINGLESS_VERSION,
-    withSteering = version >= MODE_RECORDS_VERSION;
+    withSteering = version >= MODE_RECORDS_VERSION,
+    withBrakeSign = version > BRAKE_SIGNLESS_VERSION;
   const keys = [
     'vehicleColors',
     'volumes',
     'latestSelections',
     ...(withCameras ? ['cameras'] : []),
     ...(withSteering ? ['steering'] : []),
+    ...(withBrakeSign ? ['brakeSign'] : []),
   ];
   if (!hasExactKeys(settings, keys)) return null;
   const { vehicleColors, volumes, latestSelections } = settings;
@@ -205,12 +214,15 @@ function admitSettings(settings: unknown, version: number): PlayerSettings | nul
   const steering = withSteering ? settings.steering : DEFAULT_STEERING;
   if (!hasExactKeys(steering, VEHICLE_FORMS) || !VEHICLE_FORMS.every((form) => isSteeringChoice(steering[form])))
     return null;
+  const brakeSign = withBrakeSign ? settings.brakeSign : true;
+  if (typeof brakeSign !== 'boolean') return null;
   return freezeSettings({
     vehicleColors,
     volumes: volumes as Record<VolumeName, number>,
     latestSelections,
     cameras: cameras as Record<VehicleForm, CameraYawSource>,
     steering: steering as Record<VehicleForm, SteeringRule>,
+    brakeSign,
   });
 }
 
@@ -274,6 +286,7 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
       car: createSteeringRule(settings.steering.car.reference, settings.steering.car.utilization),
       bike: createSteeringRule(settings.steering.bike.reference, settings.steering.bike.utilization),
     }),
+    brakeSign: settings.brakeSign,
   });
 }
 // The records the player record publishes, read-only down to every record and its splits, wherever they came from.

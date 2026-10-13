@@ -583,6 +583,32 @@ export function planDriving(
 }
 
 /**
+ * The speed the driver's plan from the vehicle's station and speed along `lane`, without a vehicle ahead or a capacity
+ * correction, allows `distance` metres ahead (within the planned cells; beyond them, at the last node).
+ */
+export function plannedSpeedAhead(
+  road: DriverRoad,
+  car: VehicleDrivingRead,
+  driver: PlannedDriver,
+  lane: Lane,
+  ws: Workspace,
+  domain: DrivingDomain,
+  distance: number,
+): number {
+  const { s, l } = car.course;
+  const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
+  plan(road, s, speed, driver, lane, ws, domain, null, l - lateralOf(lane, s), false);
+  const at = s + distance;
+  for (let j = 1; j <= ws.count; j++)
+    if (ws.stations[j]! >= at) {
+      const a = ws.stations[j - 1]!,
+        t = (at - a) / (ws.stations[j]! - a);
+      return Math.sqrt(ws.free[j - 1]! + t * (ws.free[j]! - ws.free[j - 1]!));
+    }
+  return Math.sqrt(ws.free[ws.count]!);
+}
+
+/**
  * The driver's planned speed at route station `s` along `lane`, behind `leader` when one is given: its plan from its
  * speed cap, which no faster speed changes.
  */

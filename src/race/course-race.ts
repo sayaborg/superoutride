@@ -14,6 +14,7 @@ import type { LaneIntent, PathOffset } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
 import { createLaneDriving } from './lane-driving.js';
+import { createBrakeSign } from './brake-sign.js';
 import {
   advancePresentVehicle,
   createPresentVehicle,
@@ -215,6 +216,8 @@ export function createCourseRace(options: {
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
+  // BRAKE!! for the player, planned with its vehicle's mechanics.
+  const brakeSign = createBrakeSign(runtime.readers, runtime.window, options.session.mechanicsOf(playerEntry!.vehicle));
   // The player's own steering rule on its vehicle, resolved once; its driver's rule while a driver drives it.
   const playerOwnSteering = options.playerSteering
     ? driverSteering(options.playerSteering, playerActor.model)
@@ -648,6 +651,14 @@ export function createCourseRace(options: {
     get simulationSeconds() {
       return simulationSeconds;
     },
+    /**
+     * Whether BRAKE!! shows: the player's own input drives it while the run is running, it is not in flight, and its
+     * speed exceeds what a driver's plan at the reference utilization along its lateral allows half a second ahead
+     * ([BRAKE!!](../../docs/browser.md#brake)).
+     */
+    get brakeSign() {
+      return brakeSign.shown;
+    },
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {
       return playerGates + 1;
@@ -755,6 +766,10 @@ export function createCourseRace(options: {
       player.body.step.input = input ?? idle;
       step(input);
       simulationSeconds += SIM_DT;
+      brakeSign.update(
+        playerActor.vehicle,
+        input !== null && startPhase.status === 'GO' && outcome.status === 'RUNNING',
+      );
       playerContacts = contactLog.publish();
       publish();
       return stepObservation;
@@ -807,6 +822,7 @@ export type RaceFacts = Pick<
   CourseRace,
   | 'events'
   | 'simulationSeconds'
+  | 'brakeSign'
   | 'stage'
   | 'lap'
   | 'lapCount'

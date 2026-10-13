@@ -20,6 +20,7 @@ import { formatMilliseconds, formatRaceTime, formatTimeDifference } from './race
 import { shownStanding } from './run-result.js';
 import type { RecordSplit } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
+import { SIM_DT } from '../race/fixed-step.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the Session's course, the name of its rules and the player vehicle's engine speeds and steering picture from
@@ -38,6 +39,8 @@ export interface HudFacts {
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
+    /** Whether the player's SETTINGS show BRAKE!!. */
+    readonly brakeSign: boolean;
   };
   /**
    * The TIME ATTACK record READY shows, from the records before the run: its time and the display name of the vehicle it
@@ -60,6 +63,8 @@ export const HUD_DURATIONS = Object.freeze({
   go: 1,
   /** The difference from the record run shows after each gate and lap crossing (race time). */
   split: 2,
+  /** BRAKE!! blinks, shown and hidden for this many fixed steps each. */
+  brakeBlinkSteps: 8,
 });
 const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', RANK: 'RANK OUT' };
 
@@ -84,6 +89,7 @@ export const HUD_LAYOUT = Object.freeze({
   target: [24, 5],
   extend: ['center', 7],
   split: ['center', 7],
+  brake: ['center', 8],
   roadLeft: [0, 13],
   roadRight: [36, 13],
   courseName: ['center', 10],
@@ -454,6 +460,15 @@ const HUD_ELEMENTS: readonly HudElement[] = [
       const tenths = Math.round(race.clock.lastExtension!.ms / 100);
       write(text, 'extend', `EXTEND +${Math.floor(tenths / 10)}"${tenths % 10}`, small('SUNSET'));
     },
+  },
+  {
+    // BRAKE!! while the race shows it and SETTINGS allow, blinking by fixed steps.
+    middle: true,
+    when: ({ race, session }) =>
+      session.brakeSign &&
+      race.brakeSign &&
+      Math.floor(Math.round(race.simulationSeconds / SIM_DT) / HUD_DURATIONS.brakeBlinkSteps) % 2 === 0,
+    write: (_facts, text) => write(text, 'brake', 'BRAKE!!', large('RED')),
   },
   {
     // From the ending until RESULT: GOAL, or GAME OVER and its cause.

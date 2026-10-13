@@ -164,7 +164,8 @@ SETTINGS lists MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGH
 (to the adjacent multiple of 5), CAR CAMERA and BIKE CAMERA, which LEFT and RIGHT switch between FACING and MOVING
 ([camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE
 STEERING, which LEFT and RIGHT switch between FRONT and CENTER, and CAR STEERING USE and BIKE STEERING USE, which LEFT and
-RIGHT step through 100%, 95% and 90%, wrapping ([steering rule](vehicle-physics.md#actuators-and-steering)), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
+RIGHT step through 100%, 95% and 90%, wrapping ([steering rule](vehicle-physics.md#actuators-and-steering)), BRAKE
+SIGN, which LEFT and RIGHT switch between ON and OFF ([BRAKE!!](#brake)), CONTROLS, which shows the keyboard, touch and gamepad controls, and CLEAR RECORDS,
 which asks CLEAR RECORDS? with NO (selected first) and YES: YES empties the records, saves the player record with its
 settings unchanged and returns to SETTINGS, as NO and BACK do; BACK leaves each screen.
 The player record is the one owner of every volume. Each change, from SETTINGS or the DEV MASTER stepper, goes through
@@ -557,6 +558,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                     |
 | 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                                          |
 | 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                                            |
+| 8–9   | Ornate large RED, columns 16–22: `BRAKE!!` while the race shows it and BRAKE SIGN is ON, blinking ([BRAKE!!](#brake))                                                       |
 | 10–12 | Ornate small WHITE, before GO: the course's display name, the session (or FREE PLAY) and, in TIME ATTACK when one exists, `RECORD 1'23"456 <VEHICLE>` (its vehicle's model) |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                                             |
 | 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                                       |
@@ -616,6 +618,18 @@ The signal lamps are green for 1 s of race time after GO. The difference from th
 time after each crossing, GREEN when faster (`-0"312`) and RED otherwise (`+0"312`; `-1'02"312` from one minute on).
 These lengths sit in one constant.
 
+### BRAKE!!
+
+The race publishes `brakeSign` ([`src/race/brake-sign.ts`](../src/race/brake-sign.ts)): the player's vehicle planned
+as a driver ([Drivers](content-and-gameplay.md#drivers)) at utilization 0.9 with its own mechanics, without a vehicle
+ahead or a capacity correction, along the path that keeps its route lateral (read in steps of 0.25 m; at a fork before
+the lock, that lateral lies in the exit interval holding it, whose road the plan reads). After each step the sign shows
+once the player's speed exceeds the plan's speed at the station `0.5 s × speed` ahead, and hides once the speed falls
+below 97 % of that. It is off unless the player's own input drives the vehicle while the run is RUNNING (so never
+before GO, after the ending or in the attract demo) and off while neither tire is loaded (in flight). The plan costs one
+more driver per step. The HUD writes `BRAKE!!` centred on rows 8–9 (columns 16–22) in the ornate large font, RED,
+shown for 8 fixed steps and hidden for 8 (`floor(step / 8)` even), while BRAKE SIGN is ON.
+
 ## Performance HUD
 
 The DEV performance HUD (with `dev=1`), a line at the top of the page, displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
@@ -646,7 +660,7 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 6, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 7, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
@@ -657,6 +671,7 @@ through the record.
 | `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                                                                          |
 | `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
 | `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
+| `brakeSign`        | Whether the HUD shows BRAKE!!; default `true` (ON)                                                                                                                                              |
 
 `records` holds `timeAttack`, an object of TIME ATTACK records by key, one table per class. A key is the JSON array
 `[series ID, class ID, goal]`, made in one place, the goal being the FINISH gate the run reached (a circuit has one);
@@ -685,15 +700,16 @@ can reach is known: from the start on a course with one goal, else once the race
 the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
 of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the Session they were made for.
 
-Loading admits version 6 with exactly these keys and value types, and versions 1 to 5, whose settings carry over with
-no records: version 1 had none, and versions 2 to 5 kept TIME TRIAL and ARCADE records, whose keys name no class.
-Settings before
-version 5 take the default steering, and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
+Loading admits version 7 with exactly these keys and value types; version 6, whose settings and records carry over
+with BRAKE SIGN ON; and versions 1 to 5, whose settings carry over with no records: version 1 had none, and versions 2
+to 5 kept TIME TRIAL and ARCADE records, whose keys name no class. Settings before version 5 take the default steering,
+and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
 game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SETTINGS saves
-the cameras and steering, and a run reads its vehicle form's camera and steering rule when it is assembled. The race
+the cameras, steering and BRAKE SIGN, and a run reads its vehicle form's camera and steering rule and BRAKE SIGN when it
+is assembled. The race
 applies the player's steering rule only while the player's own input reaches the player's vehicle; whenever a driver
 drives it (the Session driver on request, the takeover after GOAL) it drives by that driver's rule, switching at once.
 Steering is no record condition: it changes no record key or identity, and a run with any steering choice is a

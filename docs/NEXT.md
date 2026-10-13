@@ -101,75 +101,18 @@
   ([Image assets](image-assets.md#hud-design-sources)): the normal font with ▲ ▼ ◀ ▶, the ornate small and large
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
+- Stage AI is complete: every course has measured racing lines; one planned driver, from each vehicle's limits model
+  at a utilization, drives rivals, traffic, reference runs, the attract demo and the takeover; rivals and the player's
+  Session driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
+  envelopes are gone; BRAKE!! warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
+  [BRAKE!!](browser.md#brake)).
 
-Next PR: [AI-5](#ai-5--brake) of [Stage AI](#stage-ai--the-model-planned-driver); then
-[GS-5](#gs-5--rename-session--run) of [Stage GS](#stage-gs--series-class-and-session-replace-mode) once Stages AI and HD
-are on main; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [GS-5](#gs-5--rename-session--run) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage AI — The model-planned driver
-
-AI vehicles are opponents whose speed tunes cleanly. They operate throttle, brake and steering smoothly and in analog
-form; they are not bound to the player's digital inputs. Their limits come from the vehicle's own definitions through a
-model, not from a separately measured envelope. Speed is one number, the utilization: the fraction of the tire
-friction ellipse used, and it acts on cornering, braking and acceleration alike. The same driver serves rivals,
-traffic, reference runs, the attract demo and the player's takeover after GOAL. Pedal inputs are already analog
-(`PedalRequest` accepts [0,1]); the player's devices are unchanged.
-
-Unchanged: rival pace, pace schedules and their formats; the utilization values (reference 0.9, unpaced 0.75, rival
-bounds 0.55–0.95); fork locking and rival exits; traffic's lanes and lane rules. Tests stay lean: the standing checks
-and existing scenarios pass, only the checks named below are added, an existing scenario changes only where this stage
-intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals. Racing lines are a
-measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#racing-lines)), and the planned driver
-drives every driver, rivals and the player's Session driver on the racing line and traffic in its lane (AI-2,
-[Drivers](content-and-gameplay.md#drivers)); drivers of the line pass, give room and yield by path offsets (AI-4,
-[Path offsets](content-and-gameplay.md#path-offsets)).
-
-| PR   | Purpose                |
-| ---- | ---------------------- |
-| AI-5 | BRAKE!! for the player |
-
-### AI-5 — BRAKE!!
-
-Owning documents: browser (HUD and SETTINGS) and product (one sentence).
-
-- The player's vehicle is planned like a driver at utilization 0.9 along the path that keeps its current lateral; at a
-  fork before the lock line it takes the exit whose fork interval holds its lateral; the plan costs one more driver.
-- `BRAKE!!` shows while the player's speed exceeds the plan's speed at the station `0.5 s × speed` ahead, and hides
-  once the speed falls below 97 % of that; not in flight, before GO, after GOAL or in the attract demo.
-- Text tiles at row 8, columns 16–22, in RED, blinking every 8 fixed steps.
-- Draw BRAKE!! in the large ornate font, RED style, rows 8–9, centred.
-- `SETTINGS → BRAKE SIGN ON/OFF`, default ON, kept in the player record's settings.
-
-Evidence: frames showing it before a TSUKUBA hairpin. No new test.
-
-### Decision rules for LD and AI
-
-Used instead of asking, each use recorded in its PR:
-
-1. A choice of algorithm inside a stated law (line solver, worker vs slices, root finding) is the implementer's,
-   stated in the owning document.
-2. The model check fails for a vehicle: improve the plan's model (load transfer, an axle's load share, drag) rather
-   than relax the 5 %; if one vehicle still fails, report it, keep the check for the others and continue.
-3. Reference times change by more than 10 % for a class: report it and continue.
-4. Driver cost above 2× the old driver per step: report the profile, optimise the plan's caching, and continue when it
-   is under 3×; at or above 3×, stop.
-5. A scenario's observed behaviour changes by design: update its expectation and say why in the PR; never relax a
-   scenario that checks safety (no recovery, no penetration, no collision).
-6. A name is not given: follow the vocabulary in the documentation index.
-7. A PR grows too large to review: split it within its item (AI-2a, AI-2b …), keep the game playable after each, and
-   report the split.
-
-### Stop conditions for LD and AI
-
-Stop and report, without merging the current PR, only when a product course's reference run recovers or fails to
-finish with the new driver and the cause is not in the plan's model; driver cost per step stays at or above 3× the
-old driver; or CI or Pages fails for a reason outside these stages. When AI-5 lands, report each PR's head commit, the
-LD frame-gap and heap tables, reference times before LD-1 and after AI-4 per class, the model check table, driver cost,
-every use of a decision rule and anything left open.
 
 ## Stage GS — SERIES, CLASS and SESSION replace MODE
 
