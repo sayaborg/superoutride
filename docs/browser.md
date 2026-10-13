@@ -270,7 +270,7 @@ the text reads over the picture.
 
 Values are written with labels DARK and values WHITE: the left column's labels at column 0 and values at column 8, the
 right column's at columns 20 and 28. Power and torque are integers from 10 up and have one decimal below (`8.8kW`);
-RPM, millimetres, kilograms, inertias and brake torques are integers; ratios have three decimals, wheel inertias one,
+RPM, millimetres, kilograms, inertias and brake torques are integers; ratios have three decimals below 10 and two from 10 up (`14.47`), wheel inertias one,
 and ride frequency, damping and drag two. A left value ends by column 18 and a right value by column 39.
 
 #### POWERTRAIN
@@ -295,8 +295,28 @@ entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redli
 
 #### CHASSIS
 
-The left column starts with `GEAR` at column 0 and `RATIO` at column 5 on row 14, then one row per gear: its label
-(`1ST` …) at column 0 and its ratio at column 4. `FINAL` (`finalDriveRatio`) and `DRIVE` (`RWD`, `FWD`, or `AWD 47/53`
+Row 3 heads the side view with `SIDE` (WHITE) at column 22, and `CG` and `W/BASE` (YELLOW) at columns 27 and 30. The
+side view is drawn in the graph's box at 30 px/m, the vehicle facing right with its wheelbase centred on x
+248 and the ground a grey line across x 176–319 on y 80:
+
+- each wheel a disc of its rolling radius standing on the ground at its axle, a WHITE ring a pixel wide filled DIM,
+  with a WHITE hub;
+- the wheelbase a YELLOW dimension line 3 pixels under the ground, with ticks 5 pixels deep at the axles;
+- the centre of mass, `frontAxle` behind the front axle at `desiredCgHeight`, a disc of radius 3.5 quartered YELLOW
+  and black on a dotted YELLOW plumb line to the ground;
+- the overall length and height a dotted DARK box from the ground. The listing holds no overhangs, so the length is
+  centred on the wheelbase.
+
+Under each wheel on row 11 its static load share is written, `R60%` and `F40%` (WHITE; the front share is
+`rearAxle / wheelbase`), each label's four columns centred under its wheel, moved apart evenly to keep a column between
+them, and kept within columns 22–39.
+
+The left column starts with `GEAR` at column 0, `RATIO` at column 5 and `KMH` at column 16 on row 14, then one row per
+gear: its label (`1ST` …) at column 0, its ratio at column 4, a bar and its road speed at redline in km/h right-aligned
+in columns 16–18. The road speed is `redlineRpm` turning the driven wheels' rolling radius through the gear and the final
+drive; the driven wheels are the front if `frontDriveTorqueFraction` exceeds one half, otherwise the rear. The bars share
+one scale for every vehicle, 0 to 320 km/h across x 72–127, on y 2–5 of the gear's row: DIM up to the previous gear's
+speed and YELLOW from there to the gear's own, a saw tooth over the gears; a speed beyond 320 km/h stops at x 127. `FINAL` (`finalDriveRatio`) and `DRIVE` (`RWD`, `FWD`, or `AWD 47/53`
 from `frontDriveTorqueFraction` 0, 1 or otherwise its front/rear percent) follow as values, then one empty row and the
 listing's `ERA` (`period`), `MKT` (`physicsAnchor.market`) and `SPEC` (each `selectedSpecification` entry in turn), with
 labels at column 0 and values at column 5, in upper case. Each is wrapped to lines of at most 14 characters by words:

@@ -50,8 +50,35 @@ export const GRAPH = Object.freeze({
   gridRedline: 0.1,
   gridLevels: 4,
 });
-/** The gear rows: labels at `label`, ratios at `ratio` under the `RATIO` heading at `ratioHeading`. */
-export const GEAR_COLUMNS = Object.freeze({ label: 0, ratio: 4, ratioHeading: 5 });
+/**
+ * The gear rows: labels at `label`, ratios at `ratio` under the `RATIO` heading at `ratioHeading`, road speeds at `kmh`
+ * under the `KMH` heading.
+ */
+export const GEAR_COLUMNS = Object.freeze({ label: 0, ratio: 4, ratioHeading: 5, kmh: 16 });
+/**
+ * The gear bars: 0 to `kmh` km/h across x `left`-`right`, one scale for every vehicle, on y 2-5 of each gear's text
+ * row; DIM up to the previous gear's speed at redline, YELLOW from there to the gear's own.
+ */
+export const GEAR_BARS = Object.freeze({ left: 72, right: 127, kmh: 320, top: 2, bottom: 5 });
+/**
+ * The side view in the graph's box (x `left`-`right`), at `pixelsPerMeter`, the ground on `groundY`, the vehicle facing
+ * right with its wheelbase centred on `centreX`. The wheelbase's dimension line stands `dimensionDepth` below the
+ * ground with ticks `tickDepth` deep; the centre of mass is a quartered disc of `cgRadius`; each wheel's load share
+ * is written on row `loadRow`, its 4 columns centred under the wheel within columns `loadFirstColumn`-`loadLastColumn`.
+ */
+export const SIDE_VIEW = Object.freeze({
+  left: 176,
+  right: 319,
+  centreX: 248,
+  groundY: 80,
+  pixelsPerMeter: 30,
+  dimensionDepth: 3,
+  tickDepth: 5,
+  cgRadius: 3.5,
+  loadRow: 11,
+  loadFirstColumn: 22,
+  loadLastColumn: 36,
+});
 /** The listed era, market and specification: labels at column 0, values at column 5, wrapped by words. */
 export const LISTING_COLUMNS = Object.freeze({ label: 0, value: 5 });
 /** A lighter grey than DARK, for axes (RGB555 22, 22, 22). */
@@ -77,7 +104,8 @@ export const integer = (value: number) => Math.round(value).toString();
 /** Power or torque: an integer from 10 up, one decimal below. */
 export const quantity = (value: number) => (Math.round(value * 10) >= 100 ? integer(value) : value.toFixed(1));
 export const millimetres = (metres: number) => `${integer(metres * 1000)}mm`;
-export const ratio = (value: number) => value.toFixed(3);
+/** A ratio in five characters: three decimals below 10, two from 10 up. */
+export const ratio = (value: number) => value.toFixed(Math.round(value * 1000) >= 10000 ? 2 : 3);
 export const twoDecimals = (value: number) => value.toFixed(2);
 
 /** Label (DARK) and value (WHITE) rows from `row`, labels at `column` and values `valueOffset` columns on. */
