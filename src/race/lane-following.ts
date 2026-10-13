@@ -1,4 +1,4 @@
-import type { DriverIntent } from './course-fork-field.js';
+import { LINE, type DriverIntent } from './course-fork-field.js';
 import type { RouteFootprint } from './body-contacts.js';
 import {
   canFollow,
@@ -52,7 +52,7 @@ export interface LaneIntent extends DriverIntent {
 export function createLaneFollowing(
   forks: {
     targetL(s: number, intent: DriverIntent): number;
-    adjacentLanes(s: number, lane: number): readonly number[];
+    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit']): readonly number[];
   },
   window: Pick<DrivingDomain, 'end'>,
 ) {
@@ -123,7 +123,7 @@ export function createLaneFollowing(
   const escape = (self: VehicleSighting, intent: DriverIntent, lane: number, other: VehicleSighting) => {
     const halfWidths = (self.width + other.width) / 2;
     let least = Infinity;
-    for (const candidate of forks.adjacentLanes(self.s, lane)) {
+    for (const candidate of forks.adjacentLanes(self.s, lane, intent.exit)) {
       trace(rest, self, intent, candidate, true);
       // The first distance after which the path stays clear.
       let clearFrom = -1;
@@ -245,7 +245,7 @@ export function createLaneFollowing(
     ): number | null {
       let best = -1,
         bestSpeed = target + PLANNED_DRIVER.passingMargin;
-      for (const candidate of forks.adjacentLanes(self.s, intent.lane)) {
+      for (const candidate of forks.adjacentLanes(self.s, intent.lane, intent.exit)) {
         if (ends(candidate) || !free(self, intent, candidate, sightings)) continue;
         const speed = speedBehind(ahead(self, intent, candidate, sightings));
         if (speed > bestSpeed) [best, bestSpeed] = [candidate, speed];
@@ -253,6 +253,25 @@ export function createLaneFollowing(
       if (best < 0) return null;
       intent.lane = best;
       return bestSpeed;
+    },
+    /**
+     * Return the driver, which drives the racing line but is in a lane, to the line when it is free and its plan behind
+     * the line's vehicle ahead (`speedBehind`) allows at least `target`, what it allows in its lane, and the line does not
+     * end ahead (`ends`). Returns the speed its plan allows on the line, or null when it stays.
+     */
+    rejoin(
+      intent: LaneIntent,
+      self: VehicleSighting,
+      sightings: readonly VehicleSighting[],
+      target: number,
+      speedBehind: (leader: DriverLeader | null) => number,
+      ends: (lane: number) => boolean,
+    ): number | null {
+      if (ends(LINE) || !free(self, intent, LINE, sightings)) return null;
+      const speed = speedBehind(ahead(self, intent, LINE, sightings));
+      if (speed < target) return null;
+      intent.lane = LINE;
+      return speed;
     },
   });
 }

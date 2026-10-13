@@ -33,6 +33,7 @@ import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
 import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
+import { LINE } from '../../src/race/course-fork-field.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -359,6 +360,8 @@ export async function runScenario({ course }, scenario) {
     else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
       input = { ...idle, brake: true };
     else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
+    // The player waits on the grid while the rival drives to the first fork.
+    else if (scenario.policy === 'branch') input = idle;
     // After the appeared entry's last stage, the player brakes until the entry has left the view.
     else if (
       scenario.policy === 'appearance' &&
@@ -559,6 +562,17 @@ export async function runScenario({ course }, scenario) {
         evidence.coneSpeed ?? Infinity,
         Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
       );
+    if (scenario.policy === 'branch') {
+      // The rival's farthest departure from its line from the fork's lock line to its closure, then the run ends.
+      const rival = race.rivals[0];
+      const fork = scene.runtime.route.occurrences.find((occurrence) => occurrence.section.fork);
+      const { s, l } = rival.actor.vehicle.course;
+      if (fork && s > fork.start + fork.section.fork.lock.s && s < fork.start + fork.section.fork.closure.s) {
+        evidence.branchDeparture = Math.max(evidence.branchDeparture ?? 0, Math.abs(l - rival.body.driving.target(s)));
+        evidence.branchOffLine ||= rival.body.driving.intent.lane !== LINE;
+      }
+      if (fork && s > fork.start + fork.section.fork.closure.s) break;
+    }
     if (
       ended ||
       ((scenario.policy === 'reverse' ||
@@ -624,6 +638,26 @@ export async function runScenario({ course }, scenario) {
       course.entry.fork.exits[scenario.rivalExit].link,
       `${scenario.name}: seed ${scenario.seed} no longer sends the rival to exit ${scenario.rivalExit}`,
     );
+  }
+  if (scenario.policy === 'branch') {
+    // The rival reached the first fork first and took its intended exit, holding its line through it.
+    const fork = scene.runtime.route.occurrences.find((occurrence) => occurrence.section.fork);
+    const rival = race.rivals[0];
+    const intended = fork.section.fork.exits[rival.body.driving.intent.exit(fork)].link;
+    assert.ok(
+      rival.actor.vehicle.course.s > fork.start + fork.section.fork.closure.s,
+      'the rival never passed the fork',
+    );
+    // Links compare by ID: a failing comparison would otherwise print the course graph.
+    assert.equal(race.forks.choice(fork)?.id, intended.id, 'the rival did not take its intended exit');
+    assert.notEqual(
+      intended.id,
+      fork.section.fork.exits[scenario.exit].link.id,
+      `seed ${scenario.seed}: the premise changed`,
+    );
+    assert.ok(!evidence.branchOffLine, 'the rival drove a lane through the fork, not the racing line');
+    assert.ok(evidence.branchDeparture < scenario.lineTolerance, 'the rival left its line through the fork');
+    evidence.branch = { exit: intended.id, departure: Math.round(evidence.branchDeparture * 100) / 100 };
   }
   if (scenario.finish) {
     assert.equal(race.outcome.status, 'GOAL');

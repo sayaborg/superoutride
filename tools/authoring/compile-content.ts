@@ -35,7 +35,7 @@ import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/se
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
-import { REFERENCE_RUN } from '../course/reference-run.js';
+import { referenceProcedure } from '../course/reference-run.js';
 import { racingLineProcedure } from '../course/racing-line.js';
 import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
@@ -465,8 +465,12 @@ async function measuredFiles(
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
     files.push(Object.freeze({ kind, id, bytes }));
   const json = async (path: string) => parseJson(await store.read(path), `content/${path}`);
+  // Reference runs drive the racing lines, so their procedure holds the lines' procedure.
+  const lineProcedure = racingLineProcedure(
+    Math.max(...definitions.vehicles.map((entry) => entry.compiledVehicle.footprint)),
+  );
   const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
-    referenceSha256 = await procedureSha256(REFERENCE_RUN);
+    referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
   const vehicleSha256 = new Map<string, string>();
   for (const entry of definitions.vehicles)
     vehicleSha256.set(
@@ -495,9 +499,7 @@ async function measuredFiles(
     if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
     return json(path);
   };
-  const lineSha256 = await procedureSha256(
-    racingLineProcedure(Math.max(...definitions.vehicles.map((entry) => entry.compiledVehicle.footprint))),
-  );
+  const lineSha256 = await procedureSha256(lineProcedure);
   for (const course of compiledCourses) {
     const path = racingLinePath(course.id);
     const lines = requireLoaded(readSavedRacingLines(course, lineSha256, await savedJson(path), `content/${path}`));

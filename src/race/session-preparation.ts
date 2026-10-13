@@ -4,6 +4,7 @@ import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';
 import { readPaceSchedule } from '../content/pace-schedule.js';
 import { readRivalEnvelope } from '../content/rival-envelope.js';
+import { readRacingLines } from '../content/racing-line.js';
 import type { SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, sessionVehicleSha256, type SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
@@ -78,6 +79,12 @@ export async function prepareSession(
         readPaceSchedule(course, player.sha256, value, document),
       )
     : undefined;
+  // The course's racing lines, delivered with the measured products.
+  const racingLines = content.manifest.files.some((file) => file.kind === 'racing-line' && file.id === course.id)
+    ? await admitProduct(content, 'racing-line', course.id, (value, document) =>
+        readRacingLines(course, value, document),
+      )
+    : null;
   return Object.freeze({
     configuration,
     /** The player's Session vehicle and its reference identity. */
@@ -97,7 +104,7 @@ export async function prepareSession(
         tuned?.vehicle ?? player.vehicle,
         tuned ? null : player.envelope,
         tuned ? null : budgets,
-        { vehicleOf, rivalPool: sessionDemand(resolved, arcade, vehicles).rivalPool, paceSchedule },
+        { vehicleOf, rivalPool: sessionDemand(resolved, arcade, vehicles).rivalPool, paceSchedule, racingLines },
       );
     },
   });

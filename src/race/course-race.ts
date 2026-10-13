@@ -122,7 +122,7 @@ export function createCourseRace(options: {
   // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
   const routes = enumerateCourseRoutes(course.entry, course.type);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
-  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor);
+  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor, options.session.racingLines);
   // A competitor: its present vehicle (`body`), which the race moves, and its part in the race. A rival's driver drives
   // it, paced when `pacing` is set; the player's input comes from its composition until the takeover after GOAL.
   const competitor = (
@@ -220,6 +220,7 @@ export function createCourseRace(options: {
       {
         driver,
         intent,
+        line: true,
         workspace: createPlannedDriverWorkspace(),
         target: (s: number) => forks.targetL(s, intent),
       },
@@ -434,6 +435,7 @@ export function createCourseRace(options: {
     player.body.driving = {
       driver: takeoverDriver,
       intent: takeoverIntent,
+      line: true,
       workspace: takeoverWorkspace,
       target: (station: number) => forks.targetL(station, takeoverIntent),
     };
@@ -455,6 +457,7 @@ export function createCourseRace(options: {
     player.body.driving = {
       driver: takeoverDriver,
       intent: playerIntent,
+      line: true,
       workspace: playerWorkspace,
       target: (station: number) => forks.targetL(station, playerIntent),
     };

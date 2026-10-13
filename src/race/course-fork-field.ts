@@ -4,12 +4,19 @@ import { courseBoundaryAt } from '../course/course-boundaries.js';
 import { courseRoadsAt, type CompiledLane, type CourseRoad } from '../course/course-lanes.js';
 import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
+import type { RacingLines } from '../content/racing-line.js';
+
+/**
+ * The lane index of the racing line: an intent in it drives the course's racing line toward its exit at each fork, a
+ * lane of every road it lies on that neither ends nor is carried across seams.
+ */
+export const LINE = -1;
 
 /**
  * A driver's intent: its lane, the index of a lane in its Section's lanes left to right (medians not counted) at route
- * station `at`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the lane is the
- * one it continues as across each seam: a Link's named lane continues as the next Section's centre lane, and the lanes
- * beside it in order.
+ * station `at`, or `LINE`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the
+ * lane is the one it continues as across each seam: a Link's named lane continues as the next Section's centre lane,
+ * and the lanes beside it in order; `LINE` stays the racing line.
  */
 export interface DriverIntent {
   readonly lane: number;
@@ -31,11 +38,15 @@ function lanesOf(section: CompiledSection): readonly CompiledLane[] {
 const roadOf = (section: CompiledSection, lane: CompiledLane, at: number): CourseRoad | undefined =>
   courseRoadsAt(section.lanes, at).find((road) => road.lanes.includes(lane));
 
-/** One field authority observes every eligible motion before publishing any irreversible choice. */
+/**
+ * One field authority observes every eligible motion before publishing any irreversible choice. `racingLines` are the
+ * course's; without them the racing line is the centre lane's centre.
+ */
 export function createCourseForkField(
   route: CourseRoute,
   lines: ReturnType<typeof createRouteCrossSections>,
   select: (link: CompiledLink) => void,
+  racingLines: RacingLines | null = null,
 ) {
   // The occurrence at route station s (clamped to the Route), and the native station there.
   const place = (s: number) => {
@@ -90,8 +101,18 @@ export function createCourseForkField(
     const l = courseBoundaryAt(lanesOf(from.section)[lane]!.center, fromAt) - from.lateralOrigin;
     return nearestLane(to, toAt, l, positive(to, toAt));
   };
+  // The racing line's route lateral at route station `s` toward the Link `exit` takes at a fork.
+  const lineL = (s: number, exit: DriverIntent['exit']) => {
+    const { occurrence, at } = place(s);
+    const section = occurrence.section;
+    if (!racingLines) return courseBoundaryAt(section.lanes.center.center, at) - occurrence.lateralOrigin;
+    return (
+      racingLines.lateral(section, section.fork ? exitLink(occurrence, exit) : null, at) - occurrence.lateralOrigin
+    );
+  };
   // The intent's lane at route station `s`: carried across each seam between.
   const laneIn = (intent: DriverIntent, s: number) => {
+    if (intent.lane === LINE) return LINE;
     let lane = intent.lane;
     const from = place(intent.at).occurrence,
       to = place(s).occurrence;
@@ -182,8 +203,9 @@ export function createCourseForkField(
         if (first) select(selected!);
       }
     },
-    /** The target l for an intent: the centre of its lane there (route lateral). */
+    /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
+      if (intent.lane === LINE) return lineL(s, intent.exit);
       const { occurrence, at } = place(s);
       return courseBoundaryAt(lanesOf(occurrence.section)[laneIn(intent, s)]!.center, at) - occurrence.lateralOrigin;
     },
@@ -203,6 +225,7 @@ export function createCourseForkField(
       end: number,
       intent: DriverIntent,
     ): { readonly s: number; readonly merge: number | null } | null {
+      if (intent.lane === LINE) return null;
       let lane = laneIn(intent, s);
       for (let k = place(s).occurrence.ordinal; k < route.occurrences.length; k++) {
         const occurrence = route.occurrences[k]!;
@@ -219,10 +242,21 @@ export function createCourseForkField(
       }
       return null;
     },
-    /** The lanes beside `lane` (the intent's lane index at route station `s`) in the same road there. */
-    adjacentLanes(s: number, lane: number): number[] {
+    /**
+     * The lanes beside `lane` (the intent's lane index at route station `s`) in the same road there; beside the racing
+     * line, the nearest lane on each side of it in the road of the Link `exit` takes.
+     */
+    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit']): number[] {
       const { occurrence, at } = place(s);
       const lanes = lanesOf(occurrence.section);
+      if (lane === LINE) {
+        const l = lineL(s, exit) + occurrence.lateralOrigin;
+        const road = forkField.roadLanes(s, exit);
+        const centre = (i: number) => courseBoundaryAt(lanes[i]!.center, at);
+        const left = road.filter((i) => centre(i) <= l).at(-1);
+        const right = road.find((i) => centre(i) > l);
+        return [left, right].filter((i) => i !== undefined);
+      }
       const road = roadOf(occurrence.section, lanes[lane]!, at);
       return [lane - 1, lane + 1].filter((i) => lanes[i] && road?.lanes.includes(lanes[i]!));
     },

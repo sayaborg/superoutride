@@ -160,8 +160,9 @@ npm run measure -- trace --vehicle TESTAROSSA --out /tmp/envelope.json
 npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
 ```
 
-`generate` measures again only the envelopes and reference times whose identities are stale or that are absent, and
-solves again each course's stale or absent racing lines, writes them, removes saved products no catalog vehicle or
+`generate` solves again each course's stale or absent racing lines first, then measures again only the envelopes and
+reference times whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line
+makes its course's reference times stale), writes them, removes saved products no catalog vehicle or
 course owns, and prints what it measured with each changed
 time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
 measures everything, writes nothing, and fails listing the files that would change; CI does not run it. `trace` writes

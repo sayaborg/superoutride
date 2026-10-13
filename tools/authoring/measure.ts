@@ -4,9 +4,15 @@ import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.j
 import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
-import { REFERENCE_RUN, runCourseReference } from '../course/reference-run.js';
+import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
 import { racingLineProcedure, solveRacingLines } from '../course/racing-line.js';
-import { RACING_LINE_FORMAT, racingLineDocument, type RacingLineDocument } from '../../src/content/racing-line.js';
+import {
+  RACING_LINE_FORMAT,
+  racingLineDocument,
+  readRacingLines,
+  type RacingLineDocument,
+} from '../../src/content/racing-line.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import {
   MEASURED_ENVELOPE_FORMAT,
   REFERENCE_TIMES_FORMAT,
@@ -29,11 +35,15 @@ import type { ContentStore } from './content-store.js';
  * workers and write its files through their own stores.
  */
 
-/** One vehicle's measurements: its envelope unless one is given, then its reference runs on each named course. */
+/**
+ * One vehicle's measurements: its envelope unless one is given, then its reference runs on each named course, driving
+ * that course's racing lines (their document).
+ */
 export interface MeasureJob {
   readonly vehicleId: string;
   readonly envelope: RivalEnvelope | null;
   readonly courses: readonly string[];
+  readonly racingLines: Readonly<Record<string, RacingLineDocument>>;
 }
 
 export interface MeasureResult {
@@ -76,10 +86,11 @@ export function runMeasureJob(
   const runs = job.courses.map((id) => {
     progress(id);
     const course = content.courses.find((candidate) => candidate.id === id)!;
+    const lines = requireLoaded(readRacingLines(course, job.racingLines[id]));
     return {
       course: id,
       runs: enumerateCourseRoutes(course.entry, course.type).map((route) =>
-        runCourseReference(course, vehicle, catalog, envelope, route, course.rules.maxLaps),
+        runCourseReference(course, vehicle, catalog, envelope, route, course.rules.maxLaps, lines),
       ),
     };
   });
@@ -110,13 +121,13 @@ export async function planMeasurement(
       throw error;
     }
   };
-  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
-    referenceSha256 = await procedureSha256(REFERENCE_RUN);
-  // Every course's racing lines, solved again when stale.
+  // Every course's racing lines, solved again when stale; reference runs drive them.
   const lineProcedure = racingLineProcedure(
     Math.max(...content.definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.footprint)),
   );
   const lineSha256 = await procedureSha256(lineProcedure);
+  const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
+    referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
   const lines: { course: CompiledContent['courses'][number]; saved: unknown }[] = [];
   for (const course of content.courses) lines.push({ course, saved: await savedJson(racingLinePath(course.id)) });
   const staleLines = lines.filter(({ course, saved }) => {
@@ -129,6 +140,15 @@ export async function planMeasurement(
       file.procedureSha256 !== lineSha256
     );
   });
+  // Each course's lines: the saved document when current, else solved now.
+  const lineDocuments = new Map<string, RacingLineDocument>();
+  for (const { course, saved } of lines)
+    lineDocuments.set(
+      course.id,
+      staleLines.some((stale) => stale.course === course)
+        ? racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))
+        : (saved as RacingLineDocument),
+    );
   // Each catalog vehicle's identity and its saved envelope when that is current.
   const vehicles = new Map<string, { sha256: string; envelope: SavedEnvelope | null; saved: unknown }>();
   for (const entry of content.definitions.vehicles) {
@@ -175,7 +195,13 @@ export async function planMeasurement(
           candidates.includes(vehicleId) && (everything || !fresh.get(course.id)!.has(vehicleId)),
       )
       .map(({ course }) => course.id);
-    if (!envelope || due.length) jobs.push({ vehicleId, envelope: envelope?.envelope ?? null, courses: due });
+    if (!envelope || due.length)
+      jobs.push({
+        vehicleId,
+        envelope: envelope?.envelope ?? null,
+        courses: due,
+        racingLines: Object.fromEntries(due.map((id) => [id, lineDocuments.get(id)!])),
+      });
   }
   const owned = new Set([
     ...[...vehicles.keys()].map(measuredEnvelopePath),
@@ -189,7 +215,7 @@ export async function planMeasurement(
     const writes: MeasuredWrite[] = [];
     // Racing lines, in course order.
     for (const { course, saved } of staleLines) {
-      const next = racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure));
+      const next = lineDocuments.get(course.id)!;
       report.push({ racingLines: course.id });
       writes.push({ path: racingLinePath(course.id), text: formatSavedJson(next), previous: saved });
     }

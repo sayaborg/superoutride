@@ -13,6 +13,9 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { referenceLine } from './reference-driving-policy.js';
+import { readFile } from 'node:fs/promises';
+import { readRacingLines } from '../../src/content/racing-line.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 
 /**
  * OUTRUN TEST's contact sheets, for review by eye: `npm run outrun-test-sheets -- [stage ...] [--crossing link ...]
@@ -89,6 +92,13 @@ try {
     await write(section.id, sheetOf(`${section.id.toUpperCase()} ${Math.round(length)} M`, frames));
   }
   const entry = content.definitions.vehicles.find((e) => e.compiledVehicle.id === 'TESTAROSSA')!;
+  // The course's saved racing lines, which the car keeps to.
+  const lines = requireLoaded(
+    readRacingLines(
+      course,
+      JSON.parse(await readFile(new URL(`../../content/racing-lines/${course.id}.json`, import.meta.url), 'utf8')),
+    ),
+  );
   for (const id of crossings) {
     const section = course.sections.find((s) => s.outgoing.some((link) => link.id === id));
     if (!section) throw new RangeError(`Unknown Link ${id}`);
@@ -103,7 +113,7 @@ try {
       target = createLogicalFrame();
     // The car keeps to the reference line toward the Link's exit.
     const exit = section.fork!.exits.findIndex((e) => e.link === link);
-    const lane = referenceLine(scene.runtime.route, () => exit);
+    const lane = referenceLine(scene.runtime.route, lines, () => exit);
     const frames: { pixels: Uint16Array; label: string }[] = [];
     // From 30 m before the seam at 30 m/s: the camera, 6 m behind, crosses it after about 1.2 s.
     for (let step = 0; step <= 150; step++) {

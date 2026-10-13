@@ -17,12 +17,15 @@ export interface VehicleActor {
 }
 
 /**
- * A driver driving a present vehicle: its planned driver, the lane intent it changes, its plan workspace and its target
- * lateral along the Route (`target`), a new function whenever its lane changes, since the driver caches by lane.
+ * A driver driving a present vehicle: its planned driver, the lane intent it changes, whether it drives the racing
+ * line, its plan workspace and its target lateral along the Route (`target`), a new function whenever its lane changes,
+ * since the driver caches by lane.
  */
 export interface VehicleDriving {
   readonly driver: PlannedDriver;
   readonly intent: LaneIntent;
+  /** Whether it drives the racing line, returning to it from a lane it moved to; else it keeps lanes. */
+  readonly line: boolean;
   readonly workspace: ReturnType<typeof createPlannedDriverWorkspace>;
   target: (s: number) => number;
 }

@@ -212,6 +212,8 @@ export function createPlannedDriverWorkspace() {
     z: cells(),
     y: cells(),
     headings: cells(),
+    chords: cells(),
+    roadCurvatures: cells(),
     lengths: cells(),
     grades: cells(),
     verticals: cells(),
@@ -220,7 +222,10 @@ export function createPlannedDriverWorkspace() {
     /** The grip each cell is planned on: its own, or less while the vehicle is off its path. */
     planGrips: cells(),
     corneringGrips: cells().fill(NaN),
-    /** Each cell's signed path curvature: the road's heading change along it over the chord. */
+    /**
+     * Each cell's signed path curvature: on a smooth path its chord's heading change from the cell before over their
+     * mean length; else the road's heading change along it over the chord, which a change of lane does not add to.
+     */
     curvatures: cells(),
     corneringSquared: cells(),
     corneringCurvatures: cells().fill(NaN),
@@ -265,6 +270,7 @@ function readCells(
   offset: number,
   driver: PlannedDriver,
   lane: Lane,
+  smooth: boolean,
   ws: Workspace,
   domain: DrivingDomain,
 ) {
@@ -289,12 +295,18 @@ function readCells(
   let previousS = NaN,
     previousX = 0,
     previousZ = 0,
-    previousHeading = 0;
+    previousHeading = 0,
+    previousChord = NaN,
+    previousLength = 0;
   let count = 0;
-  for (let cell = first; cell < first + CELLS - 1; cell++) {
+  // The cell before the vehicle's gives a smooth path's first chord.
+  for (let cell = first - 1; cell < first + CELLS - 1; cell++) {
     const aS = Math.max(domain.start, cell * spacing);
     const bS = Math.min(domain.end, (cell + 1) * spacing);
-    if (bS <= aS) break;
+    if (bS <= aS) {
+      if (cell < first) continue;
+      break;
+    }
     const i = ((cell % CELLS) + CELLS) % CELLS;
     if (ws.cellStarts[i] !== aS || ws.cellEnds[i] !== bS) {
       if (aS !== previousS) {
@@ -310,10 +322,11 @@ function readCells(
       ws.x[i] = b.x;
       ws.z[i] = b.z;
       ws.lengths[i] = Math.hypot(dx, dz);
+      ws.chords[i] = Math.atan2(dx, dz);
       // The road's heading change along the cell over the path's chord: the curvature of a path at a steady lateral,
       // which a change of lane does not add to.
       ws.headings[i] = b.heading;
-      ws.curvatures[i] =
+      ws.roadCurvatures[i] =
         wrapAngle(b.heading - previousHeading) / Math.max(PLANNED_DRIVER.minimumCurvatureChord, ws.lengths[i]!);
       const slopeA = height.sampleDifferential(aS, ws.differential).dYdS,
         yA = ws.differential.y;
@@ -328,11 +341,20 @@ function readCells(
       ws.cellStarts[i] = aS;
       ws.cellEnds[i] = bS;
     }
-    const curvature = ws.curvatures[i]!;
+    // A smooth path's own curvature: its chord's heading change from the cell before over their mean length.
+    const curvature =
+      smooth && !Number.isNaN(previousChord)
+        ? wrapAngle(ws.chords[i]! - previousChord) /
+          Math.max(PLANNED_DRIVER.minimumCurvatureChord, (ws.lengths[i]! + previousLength) / 2)
+        : ws.roadCurvatures[i]!;
+    ws.curvatures[i] = curvature;
     previousS = bS;
     previousX = ws.x[i]!;
     previousZ = ws.z[i]!;
     previousHeading = ws.headings[i]!;
+    previousChord = ws.chords[i]!;
+    previousLength = ws.lengths[i]!;
+    if (cell < first) continue;
     let grip = ws.grips[i]!;
     if (offPath && aS < horizon)
       grip = Math.min(grip, surfaces.sample(aS, lateralOf(lane, aS) + offset)?.gripFactor ?? 0);
@@ -514,10 +536,11 @@ function plan(
   ws: Workspace,
   domain: DrivingDomain,
   leader: DriverLeader | null,
-  offset = 0,
+  offset: number,
+  smooth: boolean,
 ) {
   const { limits } = driver;
-  const u = readCells(road, s, speed, offset, driver, lane, ws, domain);
+  const u = readCells(road, s, speed, offset, driver, lane, smooth, ws, domain);
   forwardPass(limits, ws, speed, u);
   const { terminalClearance, responseSeconds, followSeconds } = PLANNED_DRIVER;
   const response = speed * responseSeconds;
@@ -538,7 +561,8 @@ function plan(
 
 /**
  * The driver's plan now, at the vehicle's station and speed along `lane`, behind `leader` when one is given: its speed
- * now without and with the vehicle ahead (borrowed from the workspace). It first follows the tires' saturation.
+ * now without and with the vehicle ahead (borrowed from the workspace). It first follows the tires' saturation. A
+ * `smooth` path (the racing line) is planned on its own curvature, any other on the road's at its lateral.
  */
 export function planDriving(
   road: DriverRoad,
@@ -548,11 +572,12 @@ export function planDriving(
   ws: Workspace,
   domain: DrivingDomain,
   leader: DriverLeader | null,
+  smooth = false,
 ): { readonly free: number; readonly target: number } {
   correct(car, ws, driver.model.step);
   const { s, l } = car.course;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  return plan(road, s, speed, driver, lane, ws, domain, leader, l - lateralOf(lane, s));
+  return plan(road, s, speed, driver, lane, ws, domain, leader, l - lateralOf(lane, s), smooth);
 }
 
 /**
@@ -566,9 +591,10 @@ export function plannedSpeed(
   lane: Lane,
   domain: DrivingDomain,
   leader: DriverLeader | null = null,
+  smooth = false,
 ): number {
   const ws = createPlannedDriverWorkspace();
-  return plan(road, s, driver.speedCap, driver, lane, ws, domain, leader).target;
+  return plan(road, s, driver.speedCap, driver, lane, ws, domain, leader, 0, smooth).target;
 }
 
 /**
@@ -765,8 +791,9 @@ export function samplePlannedDrivingInput(
   lane: Lane,
   ws: Workspace,
   domain: DrivingDomain,
+  smooth = false,
 ): DrivingInput {
-  const { target } = planDriving(road, car, driver, lane, ws, domain, null);
+  const { target } = planDriving(road, car, driver, lane, ws, domain, null, smooth);
   return plannedDrivingInput(road, car, driver, lane, ws, target);
 }
 

@@ -764,7 +764,11 @@ zero; at a fork, a lane not in the road of the Link the intent follows (the inte
 once the occurrence is decided) ends at the lock line, or at closure once the fork is decided, so heading for an exit
 is merging; and a lane ends at a seam it does not continue across. Its driver merges toward the lane beside it that
 continues (below), crossing a median only then. The race carries each driver's lane to its station every step. The
-fork field's target (`targetL`) is the centre of the intent's lane, carried to the station. A grid rival starts in its
+fork field's target (`targetL`) is the centre of the intent's lane, carried to the station. The racing line is one more
+lane of every road it lies on (`LINE`): its target is the course's racing line toward the Link the intent follows at each
+fork (the intended exit's, or the selected one once decided), or the centre lane's centre without delivered racing
+lines; it never ends and is not carried across seams, and the lanes beside it are the nearest lane on each side of it in
+that road. A grid rival starts in its
 slot's lane, the lane nearest its slot (`intentLane`), and the player's driver and takeover start in the lane nearest
 the player. The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
@@ -775,9 +779,8 @@ exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
 ```
 
 `hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
-the same exits. Reference runs intend each planned Link's exit and change no lanes: their target is the centre lane's
-centre, and at a fork the centre of the lane the planned Link names where that lane is wider than zero (the reference
-line): before an exit's lanes appear it keeps to the centre lane. Scenarios drive the player by
+the same exits. Reference runs intend each planned Link's exit and change no lanes: their target is the racing line toward the
+planned Link at each fork (the reference line). Scenarios drive the player by
 its Session driver and name their exit indices. Unselected roads show saved state-selected signs. At/beyond closure, an
 actor is on a closed road when its l lies within a road there that the selected Link does not leave by (edges
 included). It recovers at the same chainage to the nearest lane centre of the selected road; progress observations
@@ -1095,8 +1098,9 @@ compiler's record is part of a course build identity. A code change that changes
 procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
 records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
 reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 5) records the race's fixed step, the Session seed, the reference driver (the
-driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
+`superoutride.reference-driving` version 6) records the race's fixed step, the Session seed, the reference driver (the
+driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing; its identity is that of the
+record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
 version 4 and `superoutride.vehicle-envelope` version 2) record these identities as `procedureSha256`. The delivered
 envelope carries only its rows and maximum speed; the measurement record is in the measurement trace
@@ -1191,7 +1195,8 @@ stations (every 5 m from its start, then its end), rounded to the millimetre. It
 (`racing-line`, by course ID). Admission (`readRacingLines`) checks the course identity, the spacing and one line of
 the right length for every Section and exit; the build also checks the procedure identity, and a stale or absent
 product fails it as any measured product does. The admitted lines read a Section's lateral toward an exit at a
-native station, interpolated linearly between stations.
+native station, interpolated linearly between stations. A Session admits its course's lines with its other measured
+products; rivals, reference runs and the player's Session driver drive them ([Drivers](#drivers)).
 
 ### Pace schedules
 
@@ -1227,11 +1232,17 @@ driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's lim
 ([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
 step to the next. It steers by its own steering rule, the centre reference at its utilization. Its path is its lane's
+centre: rivals and the player's Session driver (the attract demo and the takeover after GOAL) drive the racing line,
+the `LINE` lane, and traffic its lane. A driver of the line starts in the lane its grid slot or position gives it and,
+in any lane it moves to (merging around a standing object on the line, or passing), returns to the line once the line is
+free, no lane end on it lies within the lookahead, and its plan behind the line's vehicle ahead allows at least what it
+allows in its lane (`rejoin`). Occupancy, the vehicle ahead and stopping followers read the line as they read any lane's
 centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
 
 The speed plan reads a contiguous 5 m lattice up to 480 m ahead along the path, within the planning domain. Each cell
-reads the path's signed curvature (the road's heading change along the cell over the path's chord, so a path at a
-steady lateral turns with the road and a change of lane adds none), the profile's grade angle `θ` and vertical curvature
+reads the path's signed curvature: on the racing line, a smooth path, its own (its chord's heading change from the cell
+before over their mean length); on a lane, the road's heading change along the cell over the path's chord, so a path at
+a steady lateral turns with the road and a change of lane adds none. Each also reads the profile's grade angle `θ` and vertical curvature
 `kv` (positive in a sag) over the cell, and the grip factor and rolling resistance of the material under the path at
 the cell's start (no material: no grip). While the vehicle is more than `offPathMetres` (1 m) off its path, the cells
 within `offPathSeconds` (3 s) of its speed, at least `offPathLeast` (30 m), are planned on the lesser grip of that
@@ -1334,7 +1345,7 @@ each standing object's footprint (its depth along the road, its width across) as
 pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its planning braking:
 its braking limit at its utilization on level ground of unit grip, over its inertia; the player's, for others' checks,
 is the Session driver's. The reference line plans
-without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
+without a vehicle ahead and meets no other vehicle.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
 driver's lookahead by the rule above (its width reaching zero, a fork line it must leave its road by, or a seam it does

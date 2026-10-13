@@ -11,7 +11,10 @@ import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
 import { procedureSha256 } from './procedure.js';
 import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from './rival-envelope-measurement.js';
-import { REFERENCE_RUN, runCourseReference } from './reference-run.js';
+import { referenceProcedure, runCourseReference } from './reference-run.js';
+import { racingLineProcedure, solveRacingLines } from './racing-line.js';
+import { racingLineDocument, readRacingLines } from '../../src/content/racing-line.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import { planMeasurement, type MeasureJob, type MeasureResult } from '../authoring/measure.js';
 
 /**
@@ -136,11 +139,19 @@ async function trace(args: readonly string[]) {
       routeIndex = Number(opts.get('--route') ?? 0);
     requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
     const envelope: RivalEnvelope = { maximumSpeed: measured.maximumSpeed, rows: measured.rows };
+    // The course's racing lines, solved as the measured product's are.
+    const lineProcedure = racingLineProcedure(
+      Math.max(...content.definitions.vehicles.map((entry) => entry.compiledVehicle.footprint)),
+    );
+    const lineSha256 = await procedureSha256(lineProcedure);
+    const lines = requireLoaded(
+      readRacingLines(course, racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))),
+    );
     result = {
       format: 'superoutride.reference-run',
       version: 4,
       courseBuildSha256: course.identity.buildSha256,
-      procedureSha256: await procedureSha256(REFERENCE_RUN),
+      procedureSha256: await procedureSha256(referenceProcedure(lineProcedure)),
       vehicle,
       ...runCourseReference(
         course,
@@ -149,6 +160,7 @@ async function trace(args: readonly string[]) {
         envelope,
         routes[routeIndex]!,
         lapCount,
+        lines,
         true,
       ),
     };

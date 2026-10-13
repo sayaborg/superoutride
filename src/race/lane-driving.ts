@@ -2,7 +2,7 @@ import { wrapAngle } from '../core/math.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
-import type { createCourseForkField } from './course-fork-field.js';
+import { LINE, type createCourseForkField } from './course-fork-field.js';
 import {
   drivingDomainBefore,
   PLANNED_DRIVER,
@@ -153,7 +153,8 @@ export function createLaneDriving(options: {
         if (object === null) return seam && { s: seam.s, merge: seam.merge, seam: true };
         // A lane a standing object ends is left toward an adjacent lane of its road that does not end, the left one first.
         let merge: number | null = null;
-        for (const candidate of forks.adjacentLanes(s, lane)) if (merge === null && !ends(candidate)) merge = candidate;
+        for (const candidate of forks.adjacentLanes(s, lane, intent.exit))
+          if (merge === null && !ends(candidate)) merge = candidate;
         return { s: object, merge, seam: false };
       };
       let end = endOf(intent.lane);
@@ -172,6 +173,7 @@ export function createLaneDriving(options: {
         driving.workspace,
         planned,
         following.leader(intent, driven.sighting, sightings),
+        intent.lane === LINE,
       );
       let targetSpeed = plan.target;
       if (plan.target < plan.free && driver.passes && end === null) {
@@ -187,6 +189,21 @@ export function createLaneDriving(options: {
           driving.target = (station: number) => forks.targetL(station, intent);
           driven.sighting.target = driving.target(driven.sighting.s);
           targetSpeed = moved;
+        }
+      } else if (driving.line && intent.lane !== LINE && end === null) {
+        // A driver of the racing line in a lane returns to the line once it is free and no slower.
+        const rejoined = following.rejoin(
+          intent,
+          driven.sighting,
+          sightings,
+          plan.target,
+          (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
+          ends,
+        );
+        if (rejoined !== null) {
+          driving.target = (station: number) => forks.targetL(station, intent);
+          driven.sighting.target = driving.target(driven.sighting.s);
+          targetSpeed = rejoined;
         }
       }
       return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, targetSpeed);

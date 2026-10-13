@@ -6,6 +6,8 @@ import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-doc
 import type { SessionVehicle } from '../../src/content/session-vehicle.js';
 import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
+import type { RacingLines } from '../../src/content/racing-line.js';
+import type { racingLineProcedure } from './racing-line.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
@@ -30,12 +32,17 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 5,
+  version: 6,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
   scheduleSpacing: PACE_SCHEDULE_SPACING,
 });
+
+/** The reference run's whole record: its own and the racing line procedure's, whose lines it drives. */
+export function referenceProcedure(racingLine: ReturnType<typeof racingLineProcedure>) {
+  return Object.freeze({ ...REFERENCE_RUN, racingLine });
+}
 
 export function runCourseReference(
   course: CompiledCourse,
@@ -44,6 +51,7 @@ export function runCourseReference(
   envelope: RivalEnvelope,
   route: readonly CompiledLink[],
   lapCount: number,
+  lines: RacingLines,
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
@@ -71,8 +79,8 @@ export function runCourseReference(
     maximumSpeed = 0,
     maximumUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
-  // The reference line: the centre lane; the planned Link at each fork is the intended exit.
-  const lane = referenceLine(scene.runtime.route, (occurrence) =>
+  // The reference line: the racing line; the planned Link at each fork is the intended exit.
+  const lane = referenceLine(scene.runtime.route, lines, (occurrence) =>
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
   const workspace = createPlannedDriverWorkspace();
@@ -91,7 +99,7 @@ export function runCourseReference(
     const input =
       race.outcome.status === 'READY'
         ? IDLE_INPUT
-        : samplePlannedDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window);
+        : samplePlannedDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window, true);
     race.advance(input);
     if (race.outcome.status !== 'READY') {
       samples.seconds.push(race.clock.elapsedSeconds);

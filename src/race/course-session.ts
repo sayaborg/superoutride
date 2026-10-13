@@ -6,6 +6,7 @@ import { createVehicleLimits, type VehicleLimits } from '../vehicle/vehicle-limi
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
+import type { RacingLines } from '../content/racing-line.js';
 import type { SessionVehicle } from '../content/session-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid, type CompiledGridSlot } from '../course/compiler/course-rules.js';
@@ -149,6 +150,8 @@ export function resolveCourseSession(
     readonly rivalPool?: readonly VehicleColor[];
     /** The player vehicle's pace schedule on this course; ARCADE requires it. */
     readonly paceSchedule?: PaceSchedule;
+    /** The course's racing lines; without them drivers' racing line is the centre lane. */
+    readonly racingLines?: RacingLines | null;
   } = {},
 ) {
   // The Session's body contact: its driving definition's spring-damper, the one every contact in the Session reads,
@@ -258,6 +261,8 @@ export function resolveCourseSession(
     traffic,
     /** A Session vehicle's model, limits and speed cap. */
     mechanicsOf,
+    /** The course's racing lines, which rivals and the player's Session driver drive; null without them. */
+    racingLines: field.racingLines ?? null,
     /** The fixed driver of a Session vehicle, at the rival utilization and its speed cap. */
     driverOf,
     budgets: configuration.timeLimit ? budgets : null,

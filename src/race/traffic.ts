@@ -141,6 +141,7 @@ export function createTrafficField(options: {
         const driving = {
           driver: candidate.driver,
           intent,
+          line: false,
           workspace: createPlannedDriverWorkspace(),
           target: lane,
         };

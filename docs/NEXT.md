@@ -93,7 +93,7 @@
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
   the attract demo holds only the shown and the next class's Sessions.
 
-Next PR: [AI-2](#ai-2--the-model-planned-driver) of [Stage AI](#stage-ai--the-model-planned-driver), then
+Next PR: [AI-3](#ai-3--remove-envelopes) of [Stage AI](#stage-ai--the-model-planned-driver), then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -113,28 +113,15 @@ Unchanged: rival pace, pace schedules and their formats; the utilization values 
 bounds 0.55–0.95); fork locking and rival exits; traffic's lanes and lane rules. Tests stay lean: the standing checks
 and existing scenarios pass, only the checks named below are added, an existing scenario changes only where this stage
 intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals. Racing lines are a
-measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#racing-lines)).
+measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#racing-lines)), and the planned driver
+drives every driver, rivals and the player's Session driver on the racing line and traffic in its lane (AI-2,
+[Drivers](content-and-gameplay.md#drivers)).
 
-| PR   | Purpose                                               |
-| ---- | ----------------------------------------------------- |
-| AI-2 | The model-planned driver replaces the envelope driver |
-| AI-3 | Envelopes and their measurement are removed           |
-| AI-4 | Path offsets: passing, giving room and yielding       |
-| AI-5 | BRAKE!! for the player                                |
-
-### AI-2 — The model-planned driver
-
-Owning document: content-and-gameplay ([Drivers](content-and-gameplay.md#drivers)). The planned driver drives every
-driver on today's lines (AI-2a and AI-2b landed). The last part, AI-2c:
-
-- Path: a driver follows its line plus its offset (0 until AI-4). Rivals, reference runs, the attract demo and the
-  takeover follow the racing line; traffic its lane's centre under the existing lane rules. The three judgements
-  (occupancy, the vehicle ahead, whether the vehicles behind can stop) read a driver's path lateral where they read its
-  lane's centre today, one implementation each.
-- Reference runs use this driver on the racing line; regenerate reference times and pace schedules.
-- One new scenario: on a BRANCH course, a rival takes its intended exit's line through a fork and does not recover.
-
-Evidence: reference times before and after per class.
+| PR   | Purpose                                         |
+| ---- | ----------------------------------------------- |
+| AI-3 | Envelopes and their measurement are removed     |
+| AI-4 | Path offsets: passing, giving room and yielding |
+| AI-5 | BRAKE!! for the player                          |
 
 ### AI-3 — Remove envelopes
 
