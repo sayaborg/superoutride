@@ -17,7 +17,7 @@ modest vehicles (Mini, Beetle, Vespa, Super Cub) are chosen for their character,
 
 The game has no part purchases, tuning progression, upgrade choices during a run, arrests or goals of
 stopping another vehicle. Ordinary contact, rivals, traffic, rank and route choice remain.
-Every Session is single-player; there is no split screen or online play.
+Every run is single-player; there is no split screen or online play.
 
 A reference game's special controls are not adopted merely because it had them: there is no turbo
 button, jump control or siren.
@@ -31,31 +31,38 @@ into this world.
 
 ### Vehicle identity
 
-A vehicle behaves identically in every mode, series and course. A different specification of the same
+A vehicle behaves identically in every session, series and course. A different specification of the same
 model (road and rally-raid, road and Group A) is a different vehicle. Difficulty never changes vehicle
-mechanics; it is expressed by Session rules and rival driving (§3).
+mechanics; it is expressed by run rules and rival driving (§3).
 
 ## 2. Structure
 
-| Level   | Meaning                                                                        |
-| ------- | ------------------------------------------------------------------------------ |
-| MODE    | How to play: ARCADE, FREE PLAY or TIME TRIAL                                   |
-| SERIES  | In ARCADE, a reference game or original game: its classes and rules            |
-| CLASS   | One race of an ARCADE series: course, laps, vehicles, rivals and traffic       |
-| COURSE  | One road to drive; several classes and series may run a course, or none        |
-| VEHICLE | The vehicle the player drives                                                  |
-| STAGE   | The route interval between consecutive race gates (checkpoints and the finish) |
+| Level   | Meaning                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| SERIES  | A reference game or original game: a named set of classes with its title, image, music and class order       |
+| CLASS   | One complete race definition: course, laps, eligible vehicles, field, traffic, clock, time margin and colors |
+| SESSION | How a class is driven: RACE or TIME ATTACK; every class offers both                                          |
+| COURSE  | One road to drive; several classes and series may run a course, or none                                      |
+| VEHICLE | The vehicle the player drives                                                                                |
+| STAGE   | The route interval between consecutive race gates (checkpoints and the finish)                               |
+
+A series holds no rule values: every rule belongs to its classes, and classes of one series may repeat the same values.
+A series' only other setting is whether it appears without DEV, which is visibility, not a rule. Steering and camera
+belong to the player's SETTINGS alone; a class does not prescribe them.
+
+**FREE PLAY** is not a series. It is an assembly bench: any product course, any vehicle, rivals from a vehicle pool,
+traffic and laps (§4). Every delivered product course is available in FREE PLAY; a course that no class runs is
+available only there.
 
 LINEAR means one route without forks or laps (not a straight road), BRANCH a course with forks and
 several goals, and CIRCUIT a lapped course. Stages are rule intervals; they need not coincide with
-course Sections. Every delivered product course is available in FREE PLAY and TIME TRIAL, including
-courses that no class runs. Series, courses and vehicles are all available from the start;
+course Sections. Series, courses and vehicles are all available from the start;
 there is no unlocking, currency or progression.
 
-## 3. Session rules
+## 3. Run rules
 
-A Session combines these rule components. Forks, recovery and timing mechanics are common to all
-Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions).
+A run combines these rule components. Forks, recovery and timing mechanics are common to all
+runs ([Content and gameplay](content-and-gameplay.md) owns their definitions).
 
 | Component          | Values                                                                                  |
 | ------------------ | --------------------------------------------------------------------------------------- |
@@ -66,9 +73,9 @@ Sessions ([Content and gameplay](content-and-gameplay.md) owns their definitions
 | Laps               | Circuits only                                                                           |
 | Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed             |
 
-**Field.** A Session has at most sixteen competitors, the player included. The entries of a class list
+**Field.** A run has at most sixteen competitors, the player included. The entries of a class list
 its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
-order, in that entry's color when the series fixes colors and otherwise in the player's chosen color; the
+order, in that entry's color when the class fixes colors and otherwise in the player's chosen color; the
 remaining entries are the rivals. With the player slot "own entry position" the player starts where
 that entry stands (Turbo OutRun); with "last" the player starts in the last slot and the rivals keep
 their order in front. Rivals avoid repeating a vehicle/color pair where the entries allow.
@@ -76,7 +83,7 @@ Cars and motorcycles may share a field.
 
 **Grid.** Cars start from a staggered grid of two columns. A course may also have a grid for motorcycles, three a row
 in steps with the pole at the front on the left, as in the Tsukuba road racing championship; a field of motorcycles
-alone starts from it, and a field with a car from the car grid, in every mode. A grid may hold more slots than sixteen;
+alone starts from it, and a field with a car from the car grid, in every run. A grid may hold more slots than sixteen;
 a field uses the front sixteen, and its last slot is the sixteenth.
 
 **Stage interval and appearance.** An entry takes part in a stage interval. An entry starting at the
@@ -87,14 +94,13 @@ rival per stage and a final all-rival stage are all entries with different inter
 
 **Rank limits.** A gate with rank limit N fails the player at the moment the N-th other competitor
 crosses it before the player. An exact tie in event time goes to the player. Rank limits count the
-competitors present in the Session at that moment.
+competitors present in the run at that moment.
 
 **Clock.** The clock starts at GO; each newly earned checkpoint extends it once, and expiry ends the
-run in GAME OVER. The time allowance on a course derives from the player's selected vehicle: the
-reference driver's time for that vehicle on that course and route, multiplied by the series margin. A course has a
-time limit only when a class runs it.
+run in GAME OVER. The time allowance derives from the player's selected vehicle: the reference driver's time for
+that vehicle on the class's course and route, multiplied by the class's time margin. Only a RACE has a clock.
 
-**Rival pace.** In ARCADE, rival driving is relative to the player's selected vehicle. Each entry has a pace ratio
+**Rival pace.** In a RACE, rival driving is relative to the player's selected vehicle. Each entry has a pace ratio
 p. The rival follows a pace schedule: the times at which the player's vehicle passes each station in its reference
 run on that course, divided by p. A rival behind its schedule drives harder and one ahead of it drives easier,
 within its own vehicle's limits. The schedule does not depend on the player's actual position, so there is no
@@ -108,33 +114,42 @@ at closure recover to the selected road. Recovery preserves earned progress.
 **Traffic** vehicles are not competitors: they take no rank, never select a route and have no part in records.
 Traffic appears only on roads of two or more lanes.
 They are ordinary vehicles with ordinary drivers, travelling the player's way. Where each one appears along the
-road, its vehicle, color and lane follow from the Session seed. A traffic vehicle appears ahead at the farthest
+road, its vehicle, color and lane follow from the run's seed. A traffic vehicle appears ahead at the farthest
 visible distance, keeps its lane at the traffic speed, the same for every traffic vehicle as on a public road, slowing for
 corners as any driver does, and leaves once it
 is out of view. A traffic vehicle never changes lanes to pass: behind a slower vehicle it matches that vehicle's speed. Where
 its lane ends, it merges into the lane beside it once that lane is free. At most sixteen traffic vehicles are present at once.
 
-## 4. Modes
+## 4. Sessions and FREE PLAY
 
-**ARCADE** runs a class of a series (§5): its course, laps, vehicles, rivals and traffic, with the series' rules.
-Its settings are fixed; the player chooses the class, vehicle and color. A series may fix colors.
+A class is driven in one of two sessions, chosen after the class.
+
+**RACE** runs the class: its course, laps, vehicles, field and traffic, with its clock and its other rules. Its
+settings are fixed; the player chooses the vehicle among the class's and the color, unless the class fixes colors.
+
+**TIME ATTACK** runs the class's course with one of its vehicles alone: no rivals, no traffic, no clock. The player
+starts from the last grid slot, where the reference run starts. What it competes on depends on the course:
+
+- **CIRCUIT: the best single lap.** The run has no finish and no lap count: the player laps until ending the run, and
+  the class's lap count is not used. The standing-start first lap counts like any other. The run's result is its
+  fastest completed lap; its total time is neither a result nor recorded. The player ends the run from PAUSE, whose
+  QUIT leads to RESULT, showing the completed laps and the best; a run ended before completing a lap has no result.
+- **LINEAR and BRANCH: the completion time** to the goal reached, as a run with a finish. On forks the player selects
+  the route by driving.
 
 **FREE PLAY** runs any product course with any vehicle. There is no clock. OPTIONS choose the rival
 count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default: the player's vehicle form), traffic (OFF, LOW or HIGH; default OFF) and laps on circuits. Rival vehicles and colors are drawn from
-the pool by the Session seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
+the pool by the run's seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
 vehicles shapes the race; FREE PLAY needs no reference runs. The player starts from the last grid slot.
 FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 30 vehicles per kilometre, drawn from every
-vehicle, at 80 km/h.
-
-**TIME TRIAL** runs any product course alone: no rivals, no traffic, no clock. On circuits the player
-chooses the lap count. On forks the player selects the route by driving; the record belongs to the
-route driven. The player starts from the last grid slot, where the reference run starts.
+vehicle, at 80 km/h. FREE PLAY records nothing.
 
 ## 5. Series
 
 Series display names are the reference titles. Class, course and vehicle choices follow; rule values marked
-in §3 are set during course production. A series with one class names its course; the vehicles of a series with
-several classes are every class's unless listed by class.
+in §3 are set during course production. The table's rule columns (vehicles, clock, rank limits, field, player slot and
+traffic) are class values, written once where every class of the series has the same; a series with one class names
+its course. Each class also has its time margin and whether it fixes colors.
 
 | Series          | Classes and courses                                       | Vehicles                                                                                                | Clock | Rank limits          | Field                                   | Player slot | Traffic |
 | --------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----- | -------------------- | --------------------------------------- | ----------- | ------- |
@@ -159,8 +174,9 @@ several classes are every class's unless listed by class.
   lines; colors are not fixed.
 - **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
   vehicles in several colors.
-- **OUTRUN TEST** is a working series in OUTRUN's structure, offered in every mode without DEV: one BRANCH course
-  of 15 stages and 5 goals that exercises every kind of road, TESTAROSSA in red, alone, with the clock and traffic.
+- **OUTRUN TEST** is a working series in OUTRUN's structure and an ordinary series without DEV: one class on one
+  BRANCH course of 15 stages and 5 goals that exercises every kind of road, TESTAROSSA in red, alone, with the clock and
+  traffic. Its class offers RACE and TIME ATTACK, and its course is in FREE PLAY.
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic, chooses forks and aims
   for a goal within time.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
@@ -183,14 +199,14 @@ several classes are every class's unless listed by class.
 ## 6. Flow and screens
 
 ```text
-TITLE: attract demo behind the logo; PRESS START, then the mode on the same screen
-  ARCADE:     SELECT SERIES → SELECT CLASS (only when several) → SELECT VEHICLE + COLOR → SELECT MUSIC (series with tracks)
-  FREE PLAY:  SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS → SELECT MUSIC
-  TIME TRIAL: SELECT COURSE → SELECT VEHICLE + COLOR → LAPS (circuits only) → SELECT MUSIC
+TITLE: attract demo behind the logo; PRESS START, then the line SERIES / FREE PLAY / SETTINGS on the same screen
+  SERIES:    SELECT SERIES → SELECT CLASS (only when several) → SELECT SESSION (RACE / TIME ATTACK)
+             → SELECT VEHICLE + COLOR → SELECT MUSIC (series with tracks)
+  FREE PLAY: SELECT COURSE (grouped by series, each course once) → SELECT VEHICLE + COLOR → OPTIONS → SELECT MUSIC
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-TITLE's mode line: SETTINGS (MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; controls)
+SETTINGS: MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; controls
 ```
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
@@ -200,33 +216,44 @@ English. TITLE shows the title logo over the attract demo. SELECT VEHICLE + COLO
 through its yaw frames in its color, its torque and power curves and its physical values; left and right change the
 vehicle, up and down change the color. Every vehicle comes
 in four colors, each shown by its period paint name; the first is its default. PRESS START is the first user gesture,
-which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the mode on the same
-screen. There is no continue. Behind TITLE the attract demo runs the product ARCADE classes in series and class order,
+which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the line SERIES / FREE
+PLAY / SETTINGS on the same screen. There is no continue. Behind TITLE the attract demo runs the RACE sessions of the
+product classes in series and class order,
 looping, 30 seconds a turn with no HUD and no sound, its series, class, vehicle and color written at the right. Each
-class keeps one race, a real Session of its class and field with its first vehicle in its first color driven by the
+class keeps one race, a real RACE of its class and field with its first vehicle in its first color driven by the
 reference driver: its first turn shows the start (READY, then GO), and each later turn resumes the race where the last
 one left it, so from the second round the demo shows racing in progress. A race that ends is shown to the end of its
-RESULT delay, its turn ends early, and the class's next turn starts a new race. RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race
-time, best lap on circuits and new records. DEV controls, DEV displays and development series appear only when the URL has `dev=1`.
+RESULT delay, its turn ends early, and the class's next turn starts a new race. RESULT shows the outcome (GOAL or GAME
+OVER), rank when two or more competitors are ranked, race time, best lap on circuits and new records; a TIME ATTACK on
+a CIRCUIT shows its completed laps and its best lap, with no outcome line and no total time. DEV controls, DEV displays
+and development series appear only when the URL has `dev=1`.
 
-Menu screens are text on a plain background or a series image. ARCADE's screens stand over the series image: SELECT
+Menu screens are text on a plain background or a series image. A series' screens stand over the series image: SELECT
 SERIES slides between the series images, and its title track plays through the series' screens. Menus show one item at a time, which left and right change like steering an
-arcade wheel, wrapping at both ends; SETTINGS keeps a vertical list whose values left and right change. Once ARCADE has
-entered a series its screens are one place: from SELECT SERIES through the PRE-RACE card, in either direction, the
-series image stays on screen and only what is drawn over it changes, at once. Every other change of screen, entering
-or leaving the series and the PRE-RACE card's change to READY included, goes through black. A mode, series, class or course that offers nothing to select is shown dimmed and cannot be
-chosen: CONFIRM on it is denied. While a run loads, the frame shows the PRE-RACE card (class, course map, laps, field, start slot and best time); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and tests.
+arcade wheel, wrapping at both ends; SETTINGS keeps a vertical list whose values left and right change. Once the
+player has entered a series its screens are one place: from SELECT SERIES through SELECT SESSION to the PRE-RACE card,
+in either direction, the series image stays on screen and only what is drawn over it changes, at once. Every other
+change of screen, entering or leaving the series and the PRE-RACE card's change to READY included, goes through black.
+TIME ATTACK shows the class's record (its time, the vehicle it was set with and, on a circuit, its lap) on SELECT
+SESSION and at READY; there is no records menu, and a class's record is shown only inside that class. A series,
+class or course that offers nothing to select is shown dimmed and cannot be chosen: CONFIRM on it is denied. While a
+run loads, the frame shows the PRE-RACE card (class, session, course map, laps, field, start slot and, in TIME ATTACK,
+the record); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE menu are drawn over the stopped
+frame, dimmed to half brightness. A URL that names a class or a course starts that run directly, for development and
+tests: `series` and `class`, with `session=race` or `session=attack` (RACE when absent), name a class's run, and `course`
+names a FREE PLAY run.
 
 ## 7. Start and finish
 
-Every Session uses a standing start. All vehicles are held for 3 seconds of READY while signal lamps
+Every run uses a standing start. All vehicles are held for 3 seconds of READY while signal lamps
 count down to GO; engines rev freely with the throttle. There are no rolling starts and no jump starts.
 
 When the player finishes, the driver takes over the player's vehicle and brakes it to a stop on the
 runout while the rest of the field keeps driving; RESULT follows after 3 seconds. The player's rank is
 fixed at the finish: competitors unfinished at that moment rank behind. After GAME OVER the player's
 throttle is released and the vehicle coasts, still answering the player's steering and
-brake; RESULT follows after the same delay.
+brake; RESULT follows after the same delay. A TIME ATTACK on a CIRCUIT has no finish and no takeover: it ends only
+when the player quits it from PAUSE.
 
 ## 8. Camera
 
@@ -243,21 +270,21 @@ may pass below the road.
 
 The product HUD is drawn inside the 320×240 frame. It reads only published observations: race facts,
 the player vehicle's observations and the camera's. It is a set of independent
-elements, each reading one observation; the active Session rules determine which appear.
+elements, each reading one observation; the active run rules determine which appear.
 
 | Condition                      | Elements                                                             |
 | ------------------------------ | -------------------------------------------------------------------- |
 | Always                         | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake |
-| READY                          | Signal lamps, course name and mode                                   |
+| READY                          | Signal lamps, course name and session                                |
 | Clock on                       | TIME remaining, EXTEND                                               |
 | Two or more competitors ranked | POS n/m                                                              |
 | Next gate has a rank limit     | PASS n                                                               |
 | LINEAR or BRANCH               | STAGE n                                                              |
-| CIRCUIT                        | LAP x/y, lap time, BEST lap                                          |
+| CIRCUIT                        | LAP x/y (LAP x without a lap count), lap time, BEST lap              |
 | One rival per stage            | TARGET distance while that rival is ahead                            |
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
 | Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes         |
-| A record exists                | RECORD at READY; in TIME TRIAL the difference at each gate and lap   |
+| TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                 |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME
@@ -293,20 +320,25 @@ The browser keeps one versioned record of settings and records:
 
 - **Settings:** each vehicle's selected color, the three volumes, the car and bike cameras, the car and bike steering
   and the latest selections, FREE PLAY's options included.
-- **TIME TRIAL records:** best time and best lap for each course, route, lap count and vehicle.
-- **ARCADE records:** best completion time for each series, class, reached goal and vehicle.
+- **TIME ATTACK records:** one table per class, keyed by the class and the goal reached (a circuit has one). The value
+  is the best lap on a CIRCUIT and the completion time otherwise, with the record run's gate times (within the record
+  lap on a CIRCUIT) and the vehicle it was set with.
 
-A record keeps the identities of its course and vehicle definitions and is discarded when either
-changes. Only a run that reaches GOAL records. READY shows the record for the selection and RESULT
-shows it with NEW RECORD when it is beaten. In TIME TRIAL each gate and lap shows the difference from
-the record run for two seconds, green when faster and red when slower. SETTINGS can clear all records.
+Records are TIME ATTACK's alone; RACE and FREE PLAY record nothing. A record keeps the identities of its course and
+of its vehicle's definitions and is discarded when either changes. On a LINEAR or BRANCH course only a run that
+reaches GOAL records. On a CIRCUIT a lap that beats the record is recorded when it is completed, and NEW RECORD
+sounds then, so ending the run, or leaving it any other way, never loses it. READY shows the record and RESULT judges
+the run against the reached goal's record, or on a CIRCUIT shows the run's best lap against the record, with NEW
+RECORD when it is beaten. While a run is driven, each gate shows the difference from the record run for two seconds,
+green when faster and red when slower; on a CIRCUIT each lap is compared with the record lap, and on a course with
+several goals the record is compared only once the run can reach one goal. SETTINGS can clear all records.
 
 Steering is a rule of the driver, not a mechanism of the vehicle. The player chooses it for cars and for bikes: the
 reference (FRONT, the front wheel, or CENTER, the centre of mass) and the front tire's use at full steering (100%, 95% or
 90%), CENTER and 95% until chosen. It applies only while the player drives; rivals, traffic, reference driving and the
 driver who takes over after GOAL drive by the game's default, CENTER and 95%, whatever the player chose.
 
-An equal time keeps the earlier record. Color, music, camera and steering are not record conditions. Sessions rebuilt by
+An equal time keeps the earlier record. Color, music, camera and steering are not record conditions. Runs rebuilt by
 DEV tuning record nothing. There is no name entry, ghost or online ranking.
 
 ## 11. Input and display
@@ -360,7 +392,7 @@ itself. Solid objects are never damaged.
 A movable object such as a cone or a barricade has a mass. A vehicle that hits one knocks it away and
 loses speed in proportion to that mass: a cone costs almost nothing, a heavy barricade is felt. A knocked
 object shows one picture while it flies and another once it has landed, lies where it fell for the rest of
-the Session and is no longer solid.
+the run and is no longer solid.
 
 ## 13. Music and sound effects
 
@@ -370,8 +402,8 @@ on a vehicle, a wall or an object sounds once, louder the harder the hit. Only c
 own vehicle sound; vehicles rubbing each other make no scraping sound.
 
 Music is original. Each series has a title track, which plays from SELECT SERIES through the series' screens and
-fades out into READY, and zero or more race tracks. SELECT MUSIC offers the race tracks of the ARCADE series (every
-track in FREE PLAY and TIME TRIAL) and MUSIC OFF, a race without music; it appears only when there is a track to
+fades out into READY, and zero or more race tracks. SELECT MUSIC offers the race tracks of the series (every
+track in FREE PLAY) and MUSIC OFF, a race without music; it appears only when there is a track to
 choose, and choosing plays nothing. The selected
 track starts from its beginning at READY and loops; it stops while the run is paused and continues from
 the same place. At GOAL and at GAME OVER an effect plays once while the track fades out beneath it. Menus
@@ -420,7 +452,7 @@ areas reveal the background below as well as above the horizon. Material and col
 owns authoring; [Architecture](architecture.md#strip-rendering) owns preblending and pixel filtering.
 
 The product ground-display setting defaults to LEVEL-POINT. DEV provides its control, and
-switching redraws the current scene without changing vehicle state, camera or Session progress.
+switching redraws the current scene without changing vehicle state, camera or run progress.
 [Browser](browser.md#ground-display-setting) owns operation and setting lifetime. The three rendering
 modes are defined only in the rendering contract linked above. Ground contains no image assets;
 lettering, arrows, curbs and cliff edges expand from saved Strip constructs.

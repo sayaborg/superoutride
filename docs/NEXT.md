@@ -24,9 +24,11 @@
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages 12–16. Series documents own ARCADE settings: each
-  class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by several
-  classes and series; measured products belong to course and vehicle, and a Session applies its series' margin; FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone.
+- The [product specification](product.md) is the target for Stages GS and 16. Series documents own ARCADE settings:
+  each class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by
+  several classes and series; measured products belong to course and vehicle, and a Session applies its series' margin;
+  FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone. Stage GS replaces MODE with SERIES, CLASS and
+  SESSION (RACE / TIME ATTACK).
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -97,7 +99,8 @@
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
-Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver), then
+Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver) and, beside it,
+[GS-2](#gs-2--series-rules-move-to-classes) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -184,6 +187,68 @@ finish with the new driver and the cause is not in the plan's model; driver cost
 old driver; or CI or Pages fails for a reason outside these stages. When AI-5 lands, report each PR's head commit, the
 LD frame-gap and heap tables, reference times before LD-1 and after AI-4 per class, the model check table, driver cost,
 every use of a decision rule and anything left open.
+
+## Stage GS — SERIES, CLASS and SESSION replace MODE
+
+The game has no MODE level ([Product](product.md#2-structure)). A SERIES is a named set of classes and holds no rule
+values; a CLASS is one complete race definition; a SESSION is how a class is driven, RACE or TIME ATTACK, and every
+class offers both; FREE PLAY is not a series but the assembly bench. ARCADE and TIME TRIAL cease to exist: RACE is
+today's ARCADE run of a class, unchanged, and TIME ATTACK replaces TIME TRIAL. Records are TIME ATTACK's, one table
+per class. SETTINGS stays the one owner of steering and camera. Vehicles as compositions of parts and per-vehicle
+tires are not in this stage.
+
+Stage AI (on main) and Stage HD run beside this stage, which must neither block nor rewrite them. GS-1 to GS-4 stay in
+content, the series catalog, run admission, records and the shell's flow; they do not edit drivers, racing lines,
+reference runs, measurement, the text layer's fonts or HUD drawing. The one expected exception is GS-3's run without a
+finish, which may touch how the race owns its end; that change stays with the race's end and lap facts, and the
+takeover driver stays with Stage AI. Rebase on main before each PR and resolve conflicts in favour of the other
+stream's logic. GS-5 waits for both streams, then runs alone.
+
+| PR   | Purpose                                                                       | Kind             |
+| ---- | ----------------------------------------------------------------------------- | ---------------- |
+| GS-2 | Series rule values move to classes                                            | format + logic   |
+| GS-3 | TIME ATTACK session replaces TIME TRIAL; records become TIME ATTACK per class | logic + deletion |
+| GS-4 | MODE is removed from the flow: TITLE line, SELECT SESSION, URL                | logic + deletion |
+| GS-5 | Rename `Session` → Run across code and documents                              | rename only      |
+
+Split any PR that exceeds one review and report the split. If GS-3 and GS-4 need old and new paths side by side, GS-4
+removes the old one and says so here.
+
+### GS-2 — Series rules move to classes
+
+`timeMargin`, `fixedColors` and every other rule value move from the series document into each class; the series
+keeps `dev`, which is visibility. Bump the series document version and migrate the delivered series documents with
+identical values per class. Run admission reads the class's values and nothing reads a series rule. Measured products
+are unaffected. Behaviour is unchanged: the PR lists the admitted values before and after.
+
+### GS-3 — TIME ATTACK
+
+The run request names a class and a session. TIME ATTACK's admission takes the class's course, laps and vehicles and
+derives no rivals, no traffic and no clock. The player record's TIME TRIAL and ARCADE records are replaced by TIME
+ATTACK records ([Product](product.md#10-records-and-settings)); bump the record version and discard old records. RESULT,
+READY and the in-drive comparison read the one TIME ATTACK record. On a CIRCUIT the run is open-ended: the race
+publishes each completed lap, the record is judged and saved per lap, PAUSE's QUIT ends the run into RESULT, and RESULT
+shows the best lap and no total time. "A run without a finish" has one owner rather than a circuit special case in the
+shell; the PR reports the design. The TIME TRIAL request, its LAPS screen and its record code are deleted; driving
+scenarios that used TIME TRIAL move to TIME ATTACK of the same course where a class runs it.
+
+### GS-4 — MODE removed
+
+TITLE's line becomes SERIES / FREE PLAY / SETTINGS and SELECT SESSION is added. `MODE_NAMES` and every mode branch in
+the shell are removed; FREE PLAY is identified as FREE PLAY, not as a mode. URL parameters become `series` + `class`
+(+ `session=race|attack`) and `course`; `mode` disappears. The screens smoke saves the new screen.
+
+### GS-5 — Rename Session → Run
+
+Rename only, in code, types, files and documents, so that "Session" survives only as the product term RACE / TIME
+ATTACK: today's `Session` (one driven attempt) becomes Run, with one name for its one-record setup that fits the
+existing `RunRequest` and run-assembly vocabulary. Runs after Stages AI and HD are on main.
+
+### Stop conditions for GS
+
+Stop and report rather than decide when a class would need a value that differs from its series' others in a way the
+documents cannot express; a delivered behaviour other than records and flow would change; or a rule value is found
+that belongs neither to a class nor to FREE PLAY.
 
 ## Audit 2 leftovers
 
@@ -354,7 +419,7 @@ and switching is a cut.
 | Area             | Decision or future capability                                                                                                                                                                                |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                                                           |
-| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing and colors per class, and margins per series (Stage 16 playtests)                                                                              |
+| Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing, colors and margins per class (Stage 16 playtests)                                                                                             |
 | Series values    | TSUKUBA CLUBMAN's pace ratios (1.02 at the pole to 0.88), margin 1.35 and 5 laps on real devices; a rival reaches its 95% ceiling at about 1.02, so the pole has no room above it                            |
 | Grids            | Whether grid slots take a free lateral: TSUKUBA's bike slots stand at lane centres, about 5.7 m apart, wider than the real grid's about 4 m                                                                  |
 | Rivals           | Whether one-make rivals' pace ratios are shuffled each run (today each slot keeps its own)                                                                                                                   |
@@ -372,11 +437,10 @@ and switching is a cut.
 | Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                |
 | Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                           |
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                            |
-| Records          | Whether traffic settings belong to the ARCADE record key                                                                                                                                                     |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                             |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                              |
 | Test course      | Stage OT "Decisions for K" ([below](#stage-ot-decisions-for-k))                                                                                                                                              |
-| Front end        | FREE PLAY and TIME TRIAL wallpaper and title music (black and silent today; their SELECT MUSIC offers every track and MUSIC OFF)                                                                             |
+| Front end        | FREE PLAY wallpaper and title music (black and silent today; its SELECT MUSIC offers every track and MUSIC OFF)                                                                                              |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                          |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                        |
 | HUD              | Whether the upper rows (TIME, POS, LAP) take the lower row's look                                                                                                                                            |
@@ -384,7 +448,7 @@ and switching is a cut.
 | Steering         | Whether the default steering rule keeps a 7 m lane change at 240 km/h from overshooting: the cone-row scenario approaching from 120 m knocks 7 of its 10 objects, so it approaches from 160 m (real devices) |
 | Steering         | Which one front tire use at full steering the product keeps (real devices); SETTINGS then drops the choice. Until then the three choices move a player's cornering speed by about ±2.6% against the AI       |
 | Steering         | Whether the steering lever takes other lengths (such as the wheelbase, a rear-wheel reference) or is fixed at one design value                                                                               |
-| Steering         | Whether a series can prescribe steering and camera: a series rule binds every driver of the series, the AI follows it and reference driving is measured by it                                                |
+| Steering         | Future, not built now: if a DRIFT series is made, series-level rules for scoring, steering and camera open then, by which the series guarantees its experience; until then SETTINGS alone owns them          |
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                 |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                         |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                      |
