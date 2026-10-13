@@ -139,7 +139,8 @@ export function createVehicleScreen(
     color = 0,
     steps = 0,
     page = 0,
-    pageSteps = 0;
+    pageSteps = 0,
+    shownSteps = 0;
   const sets = new Map<string, VehicleSpriteImages>();
   // A vehicle's colors share its pictures' shapes, so one fit serves them all.
   const fits = new Map<string, ReturnType<typeof pictureFit>>();
@@ -148,6 +149,7 @@ export function createVehicleScreen(
     colors = choice.fixedColors ? [] : spriteSetColors(vehicle.spriteSet);
     color = Math.max(0, colors.indexOf(choice.colorOf(vehicle)));
     pageSteps = 0;
+    shownSteps = 0;
   };
   show();
   const turn = (list: number, step: number, at: number) => (at + step + list) % list;
@@ -156,6 +158,7 @@ export function createVehicleScreen(
     wallpaper: choice.background,
     tick() {
       steps++;
+      shownSteps++;
       if (++pageSteps === VEHICLE_PAGE_STEPS) {
         page = (page + 1) % PAGES.length;
         pageSteps = 0;
@@ -216,7 +219,7 @@ export function createVehicleScreen(
         TEXT_PALETTES.WHITE,
       );
       drawTabs(frame, text, page, pageSteps);
-      PAGES[page]!.draw({ frame, text, vehicle, fuelCutEnterRedlineRatio });
+      PAGES[page]!.draw({ frame, text, vehicle, fuelCutEnterRedlineRatio, shownSteps });
       text.draw(frame);
       present();
     },

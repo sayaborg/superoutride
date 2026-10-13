@@ -278,7 +278,8 @@ and ride frequency, damping and drag two. A left value ends by column 18 and a r
 Row 3 heads the graph with `TORQUE` (YELLOW) at column 22 and `POWER` (RED) at column 31. The graph is drawn in pixels
 under the text, in x 176–319 and y 32–95. Its horizontal axis runs from 20 % to 110 % of redline, 16 pixels for each
 10 %, with a grid line every 10 % (the last clipped at x 319); its vertical axis from 0 on row 95 to the top grid line
-on row 35, with grid lines at 25, 50, 75 and 100 %. The grid is DARK and the axes (x 176, y 95) a lighter grey. The
+on row 35, with grid lines at 25, 50, 75 and 100 %. The grid is DARK, the axes (x 176, y 95) a lighter grey, and the
+redline a RED line dashed every second pixel. The
 torque curve (YELLOW) and the power curve (RED) are each scaled so its maximum touches the top grid line; they are a
 pixel wide, joined vertically between columns, and run from the larger of idle and 20 % of redline to the fuel-cut
 entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redline
@@ -292,6 +293,47 @@ entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redli
 | `TORQUE`          | `490Nm/4500` | the curve's maximum (point C) and its RPM                 |
 | `IDLE`, `REDLINE` | `1000rpm`    | `idleRpm`, `redlineRpm`                                   |
 | `CUT`             | `7140rpm`    | the fuel-cut entry, `fuelCutEnterRedlineRatio` × redline  |
+
+The firing and the exhaust move in slow motion, 30 times slower than real: the engine turns at `idleRpm`, a cycle
+taking `cycleRevolutions` × 60 × 30 / `idleRpm` seconds, and the exhaust's pulses travel at `ACOUSTICS.waveSpeed`, the
+speed the exhaust's sound uses, slowed alike, so their timing keeps its real ratio. Their time is counted in fixed steps
+since the vehicle was shown, from the cycle's start. A cylinder fires at its `firingPhases` entry and stays lit for
+4 % of a cycle after it. Its bank is its cylinder-side junction (`exhaust.banks`), colored by junction number YELLOW,
+RED, GREEN and WHITE in turn.
+
+FIRING: row 22 has `FIRING` (DARK) and, at column 8, the crank degrees between firings in firing order as their
+shortest repeating run: `EVEN 120` when all are equal, the cycle's degrees for a single cylinder (`360`), otherwise the
+run joined by `-` (`90-270`). Under it one cycle (`cycleRevolutions` × 360°) runs across x 8–151 on a grey baseline on
+y 199, with a grey tick 3 pixels deep every 90°. Each cylinder has a tick two pixels wide at its phase, in its bank's
+color from y 192, and WHITE from y 188 while lit. The engine's place is a dotted grey cursor from y 186. Row 26 has `0`,
+`CRANK DEG` at column 5 and the cycle's degrees right-aligned in columns 16–18 (DARK), and row 28 has `IDLE x1/30`
+(DARK).
+
+EXHAUST: row 14 has `EXHAUST` at column 20 (DARK), the exhaust's form at column 28 (WHITE) and `cm` at column 37
+(DARK). The form counts the flows stage by stage: the cylinders, then the junctions at each depth reached from them
+along pipes from `from` to `to`, then the open ends leaving the last. Neighbouring stages with equal counts are one
+stage, and a single stage is written twice, so the vehicles read `12-2`, `6-2-1`, `8-2-1-2`, `4-1`, `4-2-1`, `2-1` and
+`1-1`. Row 29 has `PIPE` at column 20 (DARK) and each pipe's length in centimetres, joined by `/`, at column 25 (WHITE).
+
+The exhaust is drawn at the player depth's 40 px/m, true to its lengths
+(`src/view/exhaust-diagram.ts`; the screen makes it once for each engine sound):
+
+- Primaries take a text row each from row 16, grouped by junction in junction order with an empty row between groups,
+  in cylinder order, each running along its row's middle. Each primary's length in centimetres stands right-aligned in
+  columns 20–22 (WHITE).
+- Every cylinder-side junction stands where the longest primary ends (x 192 plus that primary's length), at the middle
+  of its primaries' rows. Each primary starts its own length before it, so unequal primaries show as staggered starts.
+- A pipe runs level from its `from` junction, then upright to its `to` junction. A downstream junction stands at the
+  farthest end of the pipes into it, at the mean height of the junctions they come from. A junction is placed once
+  every pipe into it from a placed junction has been, or, in a loop, once any has. Junctions the cylinders do not
+  reach this way are not drawn.
+- Open ends run level for their length, those leaving one junction 6 pixels apart about its height, each ending in a
+  grey outlet 5 pixels wide.
+- Pipes are tubes 3 pixels thick: the middle in the pipe's color, the side above or left halfway to white, the side
+  below or right at half brightness. Primaries are in their bank's color and the other pipes grey.
+- Each cylinder is a block of 6×7 pixels just before its primary, DIM edged in its bank's color, WHITE while lit.
+- Each firing sends a pulse, a WHITE dot with a grey trail, from the primary's start along every way to an open end,
+  splitting at each branch, never through a junction twice. It is gone past the end.
 
 #### CHASSIS
 

@@ -79,6 +79,52 @@ export const SIDE_VIEW = Object.freeze({
   loadFirstColumn: 22,
   loadLastColumn: 36,
 });
+/**
+ * POWERTRAIN's moving drawings run `SLOW_MOTION` times slower than real: the engine turns at idle and the exhaust's
+ * pulses travel at the speed of sound, both slowed alike, so their timing keeps its real ratio.
+ */
+export const SLOW_MOTION = 30;
+/** The bank colors of the firing strip's ticks and the exhaust's primaries, by junction number in turn. */
+export const BANK_PALETTES = Object.freeze([
+  TEXT_PALETTES.YELLOW,
+  TEXT_PALETTES.RED,
+  TEXT_PALETTES.GREEN,
+  TEXT_PALETTES.WHITE,
+]);
+/** The share of a cycle a cylinder stays lit after it fires, on the firing strip and in the exhaust. */
+export const FIRING_FLASH = 0.04;
+/**
+ * The firing strip: one cycle across x `left`-`right` on the baseline y `bottom`, a grey tick every `tickDegrees` of
+ * crank, each cylinder's tick from `top` + `tickInset` (from `top` while lit) and the cursor dotted from `top` - 2.
+ * `FIRING` and its intervals stand on `labelRow`, the axis labels on `axisRow` and the slow-motion note on `noteRow`.
+ */
+export const FIRING_STRIP = Object.freeze({
+  left: 8,
+  right: 151,
+  top: 188,
+  bottom: 199,
+  tickDegrees: 90,
+  tickInset: 4,
+  labelRow: 22,
+  axisRow: 26,
+  noteRow: 28,
+});
+/**
+ * The exhaust diagram at the player depth's 40 px/m, its longest primary starting at x `left`, its primaries from
+ * text row `firstRow`; the heading on `headingRow` (`EXHAUST` at column 20, the form at `formColumn` and `cm` at
+ * `unitColumn`), each primary's length in centimetres at column 20, and `PIPE` with the pipes' lengths on `pipeRow`
+ * from `pipeColumn`.
+ */
+export const EXHAUST_DIAGRAM = Object.freeze({
+  left: 192,
+  firstRow: 16,
+  outletSpacing: 6,
+  headingRow: 14,
+  formColumn: 28,
+  unitColumn: 37,
+  pipeRow: 29,
+  pipeColumn: 25,
+});
 /** The listed era, market and specification: labels at column 0, values at column 5, wrapped by words. */
 export const LISTING_COLUMNS = Object.freeze({ label: 0, value: 5 });
 /** A lighter grey than DARK, for axes (RGB555 22, 22, 22). */
@@ -86,12 +132,16 @@ export const GREY = 22 | (22 << 5) | (22 << 10);
 /** A darker grey than DARK, for grounds and rules (RGB555 12, 12, 12). */
 export const DIM = 12 | (12 << 5) | (12 << 10);
 
-/** What a page draws from: the frame and text under it, the shown vehicle and the fuel-cut entry ratio. */
+/**
+ * What a page draws from: the frame and text under it, the shown vehicle, the fuel-cut entry ratio and the fixed steps
+ * since the vehicle was shown.
+ */
 export interface VehiclePageScene {
   readonly frame: SoftwareSurface;
   readonly text: TextLayer;
   readonly vehicle: CompiledVehicleDefinition;
   readonly fuelCutEnterRedlineRatio: number;
+  readonly shownSteps: number;
 }
 
 /** One page of SELECT VEHICLE: the name its tab shows, and its drawing of the shown vehicle's pixels and text. */
