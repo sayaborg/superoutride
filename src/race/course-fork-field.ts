@@ -22,6 +22,8 @@ export interface DriverIntent {
   readonly lane: number;
   readonly at: number;
   exit(occurrence: RouteOccurrence): number;
+  /** On the racing line, the driver's offset from it at a route station (route lateral); none is 0. */
+  offset?(s: number): number;
 }
 
 // A Section's lanes, left to right.
@@ -205,7 +207,7 @@ export function createCourseForkField(
     },
     /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
-      if (intent.lane === LINE) return lineL(s, intent.exit);
+      if (intent.lane === LINE) return lineL(s, intent.exit) + (intent.offset?.(s) ?? 0);
       const { occurrence, at } = place(s);
       return courseBoundaryAt(lanesOf(occurrence.section)[laneIn(intent, s)]!.center, at) - occurrence.lateralOrigin;
     },
@@ -259,6 +261,11 @@ export function createCourseForkField(
       }
       const road = roadOf(occurrence.section, lanes[lane]!, at);
       return [lane - 1, lane + 1].filter((i) => lanes[i] && road?.lanes.includes(lanes[i]!));
+    },
+    /** The edges of the road an intent following `exit` drives at route station `s` (route laterals). */
+    roadEdges(s: number, exit: DriverIntent['exit']): { readonly left: number; readonly right: number } {
+      const { occurrence, road } = roadAt(s, exit);
+      return { left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin };
     },
     /** The lanes of the road an intent following `exit` drives at route station `s`, as lane indices. */
     roadLanes(s: number, exit: DriverIntent['exit']): number[] {

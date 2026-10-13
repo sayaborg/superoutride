@@ -16,7 +16,14 @@ import {
   type DrivingDomain,
   type PlannedDriver,
 } from './planned-driver.js';
-import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
+import {
+  createLaneFollowing,
+  PATH_OFFSET,
+  pathOffsetAt,
+  type LaneIntent,
+  type PathOffset,
+  type VehicleSighting,
+} from './lane-following.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import { presentTarget, type PresentVehicle } from './present-vehicle.js';
 
@@ -32,8 +39,10 @@ export function createLaneDriving(options: {
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
+  /** A circuit's lap length, by which drivers tell a competitor's lead in laps; null on other courses. */
+  readonly lapLength: number | null;
 }) {
-  const { road, window, forks, roadsideObjects, bodies } = options;
+  const { road, window, forks, roadsideObjects, bodies, lapLength } = options;
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
@@ -44,6 +53,7 @@ export function createLaneDriving(options: {
   // The road's heading at a vehicle's route position (kept in `roadSample`).
   const roadHeading = (vehicle: PresentVehicle['vehicle']) =>
     road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading;
+  const byStation = (a: VehicleSighting, b: VehicleSighting) => a.s - b.s;
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
   const probe: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
   // Drivers see the present vehicles as they stand now, and the standing objects as stopped vehicles from the rearmost
@@ -97,6 +107,8 @@ export function createLaneDriving(options: {
       sighting.width = width;
       sightings.push(sighting as VehicleSighting);
     });
+    // Drivers judge the vehicles in station order (a stable sort keeps a row's order).
+    sightings.sort(byStation);
   };
   // The appearing vehicle as drivers would see it.
   const appearing = {
@@ -111,6 +123,63 @@ export function createLaneDriving(options: {
     standing: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
+  // The racing line of an intent's exits, without its offset.
+  const lineIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
+  const line = (s: number) => forks.targetL(s, lineIntent);
+  /*
+   * A racing line driver's input: its plan along its path, which the vehicle ahead on it constrains, and the offset it
+   * heads for by the path offset rules. A new offset, at the offset resolution, blends from the path's offset here over
+   * the blend length; the driver's path is then a new function, since the driver caches by path, and its sighting heads
+   * for the new path at once.
+   */
+  const driveLine = (driven: PresentVehicle, offset: PathOffset, domain: DrivingDomain): DrivingInput => {
+    const driving = driven.driving!;
+    const { intent, driver } = driving;
+    const s = driven.vehicle.course.s;
+    const plan = planDriving(
+      road,
+      driven.vehicle,
+      driver,
+      driving.target,
+      driving.workspace,
+      domain,
+      following.leader(intent, driven.sighting, sightings),
+      true,
+    );
+    lineIntent.exit = intent.exit;
+    const { resolution, blendSeconds, blendLeast } = PATH_OFFSET;
+    const next =
+      Math.round(
+        following.offsetTarget(intent, driven.sighting, sightings, {
+          line,
+          path: driving.target,
+          edges: (station) => forks.roadEdges(station, intent.exit),
+          offset,
+          lapLength,
+          speedBehind: (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
+        }) / resolution,
+      ) * resolution;
+    if (next !== offset.to) {
+      offset.from = intent.offset?.(s) ?? pathOffsetAt(offset, s);
+      offset.to = next;
+      offset.at = s;
+      offset.length = Math.max(blendLeast, driven.sighting.speed * blendSeconds);
+      const blend = Object.freeze({ from: offset.from, to: offset.to, at: offset.at, length: offset.length });
+      // The path keeps within the road's edge margin, or no farther out than the line where the line is.
+      const own: LaneIntent = { lane: LINE, at: 0, exit: intent.exit };
+      const margin = driven.sighting.width / 2 + PATH_OFFSET.edgeClearance;
+      intent.offset = (station: number) => {
+        const shift = pathOffsetAt(blend, station);
+        if (shift === 0) return 0;
+        const l = forks.targetL(station, own),
+          { left, right } = forks.roadEdges(station, own.exit);
+        return Math.min(Math.max(l, right - margin), Math.max(Math.min(l, left + margin), l + shift)) - l;
+      };
+      driving.target = (station: number) => forks.targetL(station, intent);
+      driven.sighting.target = driving.target(driven.sighting.s);
+    }
+    return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, plan.target);
+  };
   return Object.freeze({
     /** Drivers see the present vehicles and the standing objects ahead as they stand at the step's start. */
     observe: () => observe(),
@@ -120,15 +189,14 @@ export function createLaneDriving(options: {
      * first merges one lane toward the lane that continues there (beside an object, an adjacent lane that does not end)
      * when that lane is free; while its lane still ends at a seam, the seam is its plan's terminal, so it slows to stop
      * there short of `terminalClearance` until it can merge, and an object is its vehicle ahead. Then its plan, which the
-     * vehicle ahead in its lane constrains, and that plan's input. When the vehicle ahead lowers the plan, a driver that
-     * passes moves to the free adjacent lane where its plan allows the most speed, if that beats its own lane by more
-     * than the passing margin and that lane does not end ahead, and drives that speed in its new lane (a new lane function,
-     * since the driver caches by lane); otherwise it follows. A move rewrites the lateral the driver's sighting is
-     * heading for at once, so drivers deciding later in the same step see it; position and speed keep their values from
-     * the step's start.
+     * vehicle ahead in its lane constrains, and that plan's input. A merge (a new lane function, since the driver caches
+     * by lane) rewrites the lateral the driver's sighting is heading for at once, so drivers deciding later in the same
+     * step see it; position and speed keep their values from the step's start. A driver of the racing line instead
+     * drives its line with its path offset.
      */
     drive(driven: PresentVehicle, domain: DrivingDomain = window): DrivingInput {
       const driving = driven.driving!;
+      if (driving.offset) return driveLine(driven, driving.offset, domain);
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
       forks.carry(intent, s);
@@ -173,40 +241,9 @@ export function createLaneDriving(options: {
         driving.workspace,
         planned,
         following.leader(intent, driven.sighting, sightings),
-        intent.lane === LINE,
+        false,
       );
-      let targetSpeed = plan.target;
-      if (plan.target < plan.free && driver.passes && end === null) {
-        const moved = following.moveOver(
-          intent,
-          driven.sighting,
-          sightings,
-          plan.target,
-          (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
-          ends,
-        );
-        if (moved !== null) {
-          driving.target = (station: number) => forks.targetL(station, intent);
-          driven.sighting.target = driving.target(driven.sighting.s);
-          targetSpeed = moved;
-        }
-      } else if (driving.line && intent.lane !== LINE && end === null) {
-        // A driver of the racing line in a lane returns to the line once it is free and no slower.
-        const rejoined = following.rejoin(
-          intent,
-          driven.sighting,
-          sightings,
-          plan.target,
-          (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
-          ends,
-        );
-        if (rejoined !== null) {
-          driving.target = (station: number) => forks.targetL(station, intent);
-          driven.sighting.target = driving.target(driven.sighting.s);
-          targetSpeed = rejoined;
-        }
-      }
-      return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, targetSpeed);
+      return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, plan.target);
     },
     /**
      * How fast a vehicle of `model` appears at (s, its intent's lane centre) under `driver`, seeing the present vehicles

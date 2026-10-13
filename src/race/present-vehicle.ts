@@ -5,7 +5,7 @@ import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import type { createPlannedDriverWorkspace, PlannedDriver } from './planned-driver.js';
-import type { LaneIntent, VehicleSighting } from './lane-following.js';
+import type { LaneIntent, PathOffset, VehicleSighting } from './lane-following.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import { advanceVehicleWithRecovery, type RecoveryState, type RecoveryTarget } from './recovery.js';
 
@@ -17,15 +17,15 @@ export interface VehicleActor {
 }
 
 /**
- * A driver driving a present vehicle: its planned driver, the lane intent it changes, whether it drives the racing
- * line, its plan workspace and its target lateral along the Route (`target`), a new function whenever its lane changes,
- * since the driver caches by lane.
+ * A driver driving a present vehicle: its planned driver, the lane intent it changes, its offset from the racing line
+ * when it drives the line, its plan workspace and its target lateral along the Route (`target`), a new function
+ * whenever its lane or offset changes, since the driver caches by path.
  */
 export interface VehicleDriving {
   readonly driver: PlannedDriver;
   readonly intent: LaneIntent;
-  /** Whether it drives the racing line, returning to it from a lane it moved to; else it keeps lanes. */
-  readonly line: boolean;
+  /** Its offset from the racing line when it drives the line (its intent's lane is `LINE`); null while it keeps lanes. */
+  readonly offset: PathOffset | null;
   readonly workspace: ReturnType<typeof createPlannedDriverWorkspace>;
   target: (s: number) => number;
 }

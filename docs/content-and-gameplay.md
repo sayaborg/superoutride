@@ -899,13 +899,14 @@ driver's planned speed there (the speed that is the driver's own planned target 
 ahead in that lane as its constraint, a standing object in that lane counting as a stopped vehicle), and awaits only
 the race gates after that station. An appearance reads the drivers' sightings, refreshed as the vehicles stand when it
 is decided, and the drivers' rules ([Drivers](#drivers)): the appearing
-vehicle, at its lane's centre, in line with the road and at its planned speed, is a vehicle ahead to those behind it. It waits for a
+vehicle, at its lane's centre, in line with the road and at its planned speed, is a vehicle ahead to those behind it. A rival appearing takes the racing line from its lane's centre
+([Path offsets](#path-offsets)). It waits for a
 later step while its place overlaps another vehicle's footprint or while a driven vehicle behind in its lane, whose
-driver never changes lanes to pass, could not stop for it (one moving backward can): for that vehicle's route speed `v_b` and its driver's braking `a_b`,
+driver does not pass, could not stop for it (one moving backward can): for that vehicle's route speed `v_b` and its driver's braking `a_b`,
 the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
 the same constraint the drivers plan with. A vehicle behind whose driver passes (a rival, or the player's
-takeover after GOAL) moves over or matches the new vehicle's speed, and the player avoids it, so neither holds an
+takeover after GOAL) moves aside or matches the new vehicle's speed, and the player avoids it, so neither holds an
 appearance back, however close. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
 
@@ -1228,11 +1229,10 @@ driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's lim
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
 step to the next. It steers by its own steering rule, the centre reference at its utilization. Its path is its lane's
 centre: rivals and the player's Session driver (the attract demo and the takeover after GOAL) drive the racing line,
-the `LINE` lane, and traffic its lane. A driver of the line starts in the lane its grid slot or position gives it and,
-in any lane it moves to (merging around a standing object on the line, or passing), returns to the line once the line is
-free, no lane end on it lies within the lookahead, and its plan behind the line's vehicle ahead allows at least what it
-allows in its lane (`rejoin`). Occupancy, the vehicle ahead and stopping followers read the line as they read any lane's
-centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
+the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
+([Path offsets](#path-offsets)), which starts as its lateral's offset from the line where it takes the line (its grid
+slot, the lane an ahead entry appears in, or where the player's Session driver takes over). Occupancy, the vehicle
+ahead and stopping followers read the line plus its offset as they read any lane's centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
 
 The speed plan reads a contiguous 5 m lattice up to 480 m ahead along the path, within the planning domain. Each cell
 reads the path's signed curvature: on the racing line, a smooth path, its own (its chord's heading change from the cell
@@ -1254,7 +1254,8 @@ by road, path and interval and its cornering speed also by limits, planned utili
   take-off, along the cell's grade, to its landing, and the segments crossed in flight carry speed.
 - Backward, from the plan's end constraints: each node the next node's speed braked back over the segment at the
   braking limit plus drag, grade, rolling and cornering drag, within the forward speeds; flight segments carry speed
-  back, so a take-off is no faster than the landing and what follows allow. The terminal is a stop
+  back, so a take-off is no faster than the landing and what follows allow; a segment over which even braking speeds
+  the vehicle up allows no more than standstill at its start. The terminal is a stop
   `terminalClearance` plus the response distance (`responseSeconds` times the speed) before it; the vehicle ahead is an
   end at its speed (below). An end inside a segment brakes from its own station.
 
@@ -1326,21 +1327,45 @@ adjacent lane of its road passes clear of the vehicle ahead side to side and sta
 no adjacent lane does. Such a driver stops that far behind a stopped vehicle, at least `terminalClearance` (2 m), and
 when the adjacent lane is free it starts and steers into it past the stopped vehicle; any other driver stops
 `terminalClearance` behind it. The
-plan is computed once per step, with and without this constraint. Whether a driver changes lanes to pass is an attribute its
-builder gives it (`passes`: whether it changes lanes to pass): rivals' drivers and the player's takeover pass; traffic
-drivers, which Session resolution compiles, do not. When the constraint lowers the planned speed, a driver that passes
-weighs each free adjacent lane of its road (passing never crosses a median) by the speed its plan allows there: its plan without a
-vehicle ahead, behind that lane's vehicle ahead under the same constraint (the current lane's curve speeds serve, since
-adjacent lanes differ little in them). It moves to the lane allowing the most, the left one on a tie, when that exceeds
-its constrained plan by more than `passingMargin` (0.15 m/s), and drives that speed in its new lane. It stays
-in its lane until another lane is faster by that margin. A lane is free when no
-vehicle in it lies between the driver's following distance ahead, `(F₁ + F₂)/2 + v × followSeconds`, and, behind,
-half the two footprints plus that vehicle's speed times `followSeconds`. Drivers read each vehicle's footprint `F` and
-each standing object's footprint (its depth along the road, its width across) as contacts do. With no faster free lane, or when it does not
-pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its planning braking:
+plan is computed once per step, with and without this constraint. Whether a driver passes is an attribute its builder
+gives it (`passes`): rivals' drivers and the player's Session driver pass, by their path offsets
+([Path offsets](#path-offsets)); traffic drivers, which Session resolution compiles, do not, and keep their lanes. A
+lane is free when no vehicle in it lies between the driver's following distance ahead, `(F₁ + F₂)/2 + v × followSeconds`,
+and, behind, half the two footprints plus that vehicle's speed times `followSeconds`. Drivers read each vehicle's
+footprint `F` and each standing object's footprint (its depth along the road, its width across) as contacts do. A
+driver that does not pass follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its planning braking:
 its braking limit at its utilization on level ground of unit grip, over its inertia; the player's, for others' checks,
 is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle.
+
+#### Path offsets
+
+A driver of the racing line, except a reference run, sets the offset of its path from the line by three rules, in this
+order; the first that applies sets the target offset, otherwise it is 0. On a circuit, stations and laps compare over
+the lap length.
+
+1. Yielding: a competitor closing from behind (within its speed times `followSeconds` behind, faster than the driver)
+   or alongside that leads the driver by a lap or more: the driver moves to the side of the line away from the lateral
+   that competitor is heading for, at least half the two widths plus `clearance` (0.5 m) from it, until it has passed.
+2. Giving room: a vehicle alongside, its footprint overlapping the driver's lengthwise, that came alongside before the
+   driver did (it was ahead when they came alongside, so the one that came alongside first keeps its line): the
+   driver's path keeps at least half the two widths plus `clearance` from that vehicle's lateral, moving away from it
+   and never toward it.
+3. Passing: when the vehicle ahead on its path lowers the driver's plan, the driver weighs the two constant offsets at
+   which its path passes that vehicle's lateral by half the two widths plus `clearance` on either side, each within the
+   road's edge margin, by the speed its plan allows behind the vehicle ahead on that path (the current curve speeds
+   serve). It takes the one exceeding its constrained plan by more than `passingMargin`, the left on a tie. The pass
+   then holds while that vehicle is ahead, no farther than the gap the pass began from plus half the two lengths, and
+   its side stays within the edge margin: the target stays while it clears that vehicle by the same distance, else
+   moves out to clear it. Alongside, giving room takes over.
+
+Every target lies within the road's edge margin: half the driver's width plus `edgeClearance` (0.3 m) inside the edges
+of the road it drives; and the path keeps within it, holding at the margin wherever the line plus the offset would
+leave it (or at the line, where the line itself lies outside the margin). The target is read in steps of `resolution` (0.25 m); a new one blends the offset from its value
+at the driver's station to the target by a cosine over `max(blendLeast, v × blendSeconds)` (30 m, 1.5 s), and the
+driver's path is then a new function, whose curvature the plan reads, so a move never asks for more than the plan
+allows. Nothing blocks a move. The constants are `PATH_OFFSET` in `src/race/lane-following.ts`. These rules replace
+lane changes for passing; traffic keeps its lanes and the lane rules below.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
 driver's lookahead by the rule above (its width reaching zero, a fork line it must leave its road by, or a seam it does

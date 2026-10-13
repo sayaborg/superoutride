@@ -102,7 +102,7 @@
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
-Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver); then
+Next PR: [AI-5](#ai-5--brake) of [Stage AI](#stage-ai--the-model-planned-driver); then
 [GS-5](#gs-5--rename-session--run) of [Stage GS](#stage-gs--series-class-and-session-replace-mode) once Stages AI and HD
 are on main; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -125,32 +125,12 @@ and existing scenarios pass, only the checks named below are added, an existing 
 intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals. Racing lines are a
 measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#racing-lines)), and the planned driver
 drives every driver, rivals and the player's Session driver on the racing line and traffic in its lane (AI-2,
-[Drivers](content-and-gameplay.md#drivers)).
+[Drivers](content-and-gameplay.md#drivers)); drivers of the line pass, give room and yield by path offsets (AI-4,
+[Path offsets](content-and-gameplay.md#path-offsets)).
 
-| PR   | Purpose                                         |
-| ---- | ----------------------------------------------- |
-| AI-4 | Path offsets: passing, giving room and yielding |
-| AI-5 | BRAKE!! for the player                          |
-
-### AI-4 — Path offsets
-
-Owning document: content-and-gameplay (Drivers). Rivals, reference runs aside, change their offset from the racing line
-by three rules, in this order; the first that applies sets the target offset, otherwise 0:
-
-1. Yielding: a competitor closing from behind that leads the race by a lap or more: move to the side of the path away
-   from that competitor's path, until it has passed.
-2. Giving room: a vehicle alongside, its footprint overlapping the driver's lengthwise, on either side: keep the
-   driver's path at least half the two widths plus 0.5 m from that vehicle's lateral, moving away, never toward it. Of
-   two vehicles alongside, the one that came alongside first keeps its line.
-3. Passing: when the vehicle ahead constrains the plan, evaluate the left and right offsets that clear it by half the
-   two widths plus 0.5 m within the road's edge margin; take the one whose plan is faster by more than
-   `passingMargin`, the left on a tie.
-
-A change of target offset moves the path by a smooth cosine blend over `max(30 m, v × 1.5 s)`; the plan reads the
-blended path's curvature, so a move never asks for more than the plan allows; there is no blocking. These rules
-replace the rivals' lane passing; traffic keeps lanes. Remove [Rival racing line](#rival-racing-line) when AI-4 lands.
-
-Evidence: a short video or frame strip of one pass, one give-room and one yield on TSUKUBA. No new test.
+| PR   | Purpose                |
+| ---- | ---------------------- |
+| AI-5 | BRAKE!! for the player |
 
 ### AI-5 — BRAKE!!
 
@@ -265,16 +245,6 @@ are collected from the topic specifications; their order within this stage is no
   the race does not place such objects yet (cones lining the closed exit once a fork is decided).
 - Wall Strips keep knots of their own because heights have no named lines; revisit with the first product walls.
 - Oncoming lanes: a lane direction, when oncoming traffic is decided.
-
-### Rival racing line
-
-The [product specification](product.md#12-interaction) states the target: traffic keeps its lane and the
-traffic speed, and rivals take the shortest line and thread between vehicles regardless of lanes. Until this
-work, rivals follow lane centres and change lanes past slower vehicles. The algorithm and its tuning start
-once product circuits are being produced.
-
-A racing line within the road width (the minimum-curvature line, compiled with the course), whether reference runs drive
-it, and passing off that line are designed once product courses exist to evaluate it on.
 
 ### Placeholder recordings
 

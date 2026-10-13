@@ -5,12 +5,12 @@ import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
-import { createCourseForkField } from './course-fork-field.js';
+import { createCourseForkField, LINE } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
 import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
 import { createBodyContacts, createContactFaces } from './body-contacts.js';
 import { createContactLog, type PlayerContacts } from './contact-log.js';
-import type { LaneIntent } from './lane-following.js';
+import type { LaneIntent, PathOffset } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
 import { createLaneDriving } from './lane-driving.js';
@@ -123,6 +123,30 @@ export function createCourseRace(options: {
   const routes = enumerateCourseRoutes(course.entry, course.type);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
   const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor, options.session.racingLines);
+  // A circuit's lap: its Sections around the cycle from the entry.
+  let lapLength: number | null = null;
+  if (course.type === 'CIRCUIT') {
+    lapLength = 0;
+    let section = course.entry;
+    do {
+      lapLength += section.coordinates.domain.end;
+      section = section.outgoing[0]!.to.section;
+    } while (section !== course.entry);
+  }
+  // A driver takes the racing line of its exits at route station s from lateral l, holding l's offset from the line
+  // (written to `offset`).
+  const lineProbe: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
+  const lineOffset = (): PathOffset => ({ from: 0, to: 0, at: 0, length: 0, alongside: new Map(), passing: null });
+  const takeLine = (intent: LaneIntent, s: number, l: number, offset = lineOffset()) => {
+    lineProbe.exit = intent.exit;
+    const from = l - forks.targetL(s, lineProbe);
+    intent.lane = LINE;
+    intent.at = s;
+    intent.offset = () => from;
+    Object.assign(offset, { from, to: from, at: s, length: 0, passing: null });
+    offset.alongside.clear();
+    return offset;
+  };
   // A competitor: its present vehicle (`body`), which the race moves, and its part in the race. A rival's driver drives
   // it, paced when `pacing` is set; the player's input comes from its composition until the takeover after GOAL.
   const competitor = (
@@ -208,9 +232,9 @@ export function createCourseRace(options: {
     const exit = (occurrence: RouteOccurrence) =>
       rivalExit(options.session.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
     // An ahead entry's lane is read where it appears; until then nothing reads it.
-    const intent: LaneIntent = entry.slot
-      ? { lane: forks.intentLane(entry.slot.at.s, entry.slot.l, exit), at: entry.slot.at.s, exit }
-      : { lane: entry.ahead!.lane, at: 0, exit };
+    const intent: LaneIntent = entry.slot ? { lane: LINE, at: 0, exit } : { lane: entry.ahead!.lane, at: 0, exit };
+    // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
+    const offset = entry.slot ? takeLine(intent, entry.slot.at.s, entry.slot.l) : lineOffset();
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
     const at = entry.slot ?? playerSlot;
     const { driver, pace, set } = rivalDriving[rivalIndex]!;
@@ -220,7 +244,7 @@ export function createCourseRace(options: {
       {
         driver,
         intent,
-        line: true,
+        offset,
         workspace: createPlannedDriverWorkspace(),
         target: (s: number) => forks.targetL(s, intent),
       },
@@ -281,6 +305,7 @@ export function createCourseRace(options: {
     forks,
     roadsideObjects,
     bodies,
+    lapLength,
   });
   // The race gates the player has crossed since GO, across laps: the player is in STAGE playerGates + 1.
   let playerGates = 0;
@@ -299,10 +324,14 @@ export function createCourseRace(options: {
       if (c.appeared || playerGates < c.stages!.first - 1) continue;
       const entry = rivalEntries[i]!;
       const s = player.actor.vehicle.course.s + entry.ahead!.distance;
-      const { intent, driver } = c.body.driving!;
-      // Its lane number is a lane of the Section where it appears.
+      const { intent, driver, offset } = c.body.driving!;
+      // Its lane number is a lane of the Section where it appears; it takes the racing line from that lane's centre.
+      intent.lane = entry.ahead!.lane;
+      intent.offset = undefined;
       intent.at = s;
-      const lane = (station: number) => forks.targetL(station, intent);
+      takeLine(intent, s, forks.targetL(s, intent), offset!);
+      c.body.driving!.target = (station: number) => forks.targetL(station, intent);
+      const lane = c.body.driving!.target;
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (placement.occupied(c.actor.model, s, lane(s))) continue;
       const speed = laneDriving.appearanceSpeed(c.actor.model, s, intent, driver);
@@ -423,26 +452,25 @@ export function createCourseRace(options: {
   // at, planning a stop at its runout distance past the finish, within any Route terminal.
   const takeoverDriver = options.session.driverOf(playerEntry!.vehicle);
   const takeoverWorkspace = createPlannedDriverWorkspace();
-  const takeoverIntent: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
+  const takeoverIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
   const takeOver = () => {
     const { s, l } = player.actor.vehicle.course;
-    takeoverIntent.lane = forks.intentLane(s, l, takeoverIntent.exit);
-    takeoverIntent.at = s;
+    const offset = takeLine(takeoverIntent, s, l);
     stopS = s + takeoverDriver.speedCap ** 2 / (2 * takeoverDriver.braking);
     // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
     player.body.driving = {
       driver: takeoverDriver,
       intent: takeoverIntent,
-      line: true,
+      offset,
       workspace: takeoverWorkspace,
       target: (station: number) => forks.targetL(station, takeoverIntent),
     };
   };
   // Before GOAL the player's Session driver drives the player when the composition asks (an advance without input), as
   // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
-  const playerIntent: LaneIntent = { lane: 0, at: 0, exit: options.playerExit ?? (() => 0) };
+  const playerIntent: LaneIntent = { lane: LINE, at: 0, exit: options.playerExit ?? (() => 0) };
   const playerWorkspace = createPlannedDriverWorkspace();
   const handOver = (driven: boolean) => {
     if (outcome.status === 'GOAL') return;
@@ -452,12 +480,11 @@ export function createCourseRace(options: {
     }
     if (player.body.driving) return;
     const { s, l } = player.actor.vehicle.course;
-    playerIntent.lane = forks.intentLane(s, l, playerIntent.exit);
-    playerIntent.at = s;
+    const offset = takeLine(playerIntent, s, l);
     player.body.driving = {
       driver: takeoverDriver,
       intent: playerIntent,
-      line: true,
+      offset,
       workspace: playerWorkspace,
       target: (station: number) => forks.targetL(station, playerIntent),
     };

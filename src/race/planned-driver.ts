@@ -54,7 +54,7 @@ export const PLANNED_DRIVER = Object.freeze({
   terminalClearance: 2,
   /** m/s: a planned speed within this of standstill is a stop. */
   speedDeadzone: 0.15,
-  /** m/s: how much more speed another lane must allow before a driver that passes moves to it. */
+  /** m/s: how much more speed another lane, or a passing offset, must allow before a driver that passes takes it. */
   passingMargin: 0.15,
   /** Metres: the steering path's least distance ahead, which holds at low speed. */
   minimumLookahead: 8,
@@ -86,9 +86,10 @@ export const PLANNED_DRIVER = Object.freeze({
 
 /**
  * A planned driver: its vehicle's model and limits, its utilization, speed cap, planning braking (the braking limit at
- * its utilization on level ground of unit grip, which other drivers' judgements read), whether it changes lanes to pass
- * slower vehicles (`passes`; a driver that does not only follows them, though it still merges where its lane ends), and
- * the steering rule it drives by: the centre reference at its own utilization. Its builder decides each.
+ * its utilization on level ground of unit grip, which other drivers' judgements read), whether it passes slower
+ * vehicles (`passes`, by its path offsets; a driver that does not only follows them, though it still merges where its
+ * lane ends), and the steering rule it drives by: the centre reference at its own utilization. Its builder decides
+ * each.
  */
 export interface PlannedDriver {
   readonly model: VehicleModel;
@@ -495,7 +496,8 @@ function backwardPass(
       v2 = out[j]!;
     else {
       const segment = ws.distances[j]! - ws.distances[j - 1]!;
-      v2 = out[j]! + 2 * segment * cellAcceleration(limits, ws, i, Math.sqrt(out[j]!), u, false);
+      // A segment where even braking speeds the vehicle up allows no more than standstill at its start.
+      v2 = Math.max(0, out[j]! + 2 * segment * cellAcceleration(limits, ws, i, Math.sqrt(out[j]!), u, false));
       // An end inside the segment brakes from its own station.
       const from = ws.stations[j - 1]!,
         to = ws.stations[j]!;
@@ -848,6 +850,11 @@ export function steeringPathLateral(path: ReturnType<typeof createSteeringPath>,
       return path.laterals[i - 1]! + ((path.laterals[i]! - path.laterals[i - 1]!) * (x - a)) / (path.distances[i]! - a);
     }
   return null;
+}
+
+/** The farthest distance (m) along the road a steering path traced at `speed` (m/s) reaches: four lookaheads. */
+export function steeringPathReach(speed: number): number {
+  return STEERING_PATH_LOOKAHEADS * steeringLookahead(speed);
 }
 
 /**
