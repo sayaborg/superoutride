@@ -17,6 +17,7 @@ import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createSelectionFlow } from '../../src/shell/selection-flow.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
 import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
+import { VEHICLE_PAGE_STEPS } from '../../src/shell/vehicle-page.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { createCourseMap } from '../../src/view/course-map.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
@@ -124,6 +125,9 @@ test('the front end screens render from the delivered content', async () => {
   await capture('select-session-attack');
   send('LEFT', 'CONFIRM');
   await capture('select-vehicle');
+  // The next page, CHASSIS, after the first page's time.
+  for (let i = 0; i < VEHICLE_PAGE_STEPS; i++) screen.tick();
+  await capture('select-vehicle-chassis');
   send('CONFIRM');
   await capture('select-music');
   send('LEFT');

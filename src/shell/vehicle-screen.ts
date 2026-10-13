@@ -1,11 +1,10 @@
-import { TEXT_MARKS, TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_MARKS, TEXT_PALETTES, TEXT_TILE_SIZE } from '../image/text-tiles.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import { drawScaledSprite, scaledSpriteBounds } from '../view/sprite.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { fuelCutRpm, sampleEngineTorque } from '../vehicle/physics/automatic-powertrain.js';
 import {
   createVehiclePaletteVariant,
   selectVehicleSprite,
@@ -16,101 +15,25 @@ import { SCREEN_BACKGROUND } from './menu.js';
 import { halveRgb555 } from '../image/rgb555.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { MenuResponse, Screen } from './screen-host.js';
+import {
+  DIM,
+  PAGE_TABS,
+  PICTURE_BOX,
+  PICTURE_SCALE_STEP,
+  VEHICLE_PAGE_STEPS,
+  WALLPAPER_SHADE,
+  YAW_IMAGE_STEPS,
+  type VehiclePage,
+} from './vehicle-page.js';
+import { POWERTRAIN_PAGE } from './vehicle-powertrain-page.js';
+import { CHASSIS_PAGE } from './vehicle-chassis-page.js';
 
-/** Fixed steps each yaw image stays on SELECT VEHICLE. */
-const YAW_IMAGE_STEPS = 6;
-/** The picture's box in pixels: text columns 0-19 by rows 4-10. */
-const PICTURE_BOX = Object.freeze({ x: 0, y: 32, width: 160, height: 56 });
-/** The factor by which a picture too large for its box shrinks from the player depth until it fits. */
-const PICTURE_SCALE_STEP = 0.99;
-/**
- * The curve graph in pixels, under text columns 22-39 and rows 4-11: its horizontal axis runs from 20 % of redline at
- * the left edge, 16 pixels for each 10 %, to 110 % beyond the right edge; its vertical axis from 0 on the bottom row to
- * 100 % on the top grid line, with grid lines every 25 % (15 pixels).
- */
-const GRAPH = Object.freeze({
-  left: 176,
-  right: 319,
-  bottom: 95,
-  top: 35,
-  firstRedline: 0.2,
-  lastRedline: 1.1,
-  pixelsPerRedline: 160,
-  gridRedline: 0.1,
-  gridLevels: 4,
-});
-/** The graph's axes, a lighter grey than its DARK grid (RGB555 22, 22, 22). */
-const GRAPH_AXIS_COLOR = 22 | (22 << 5) | (22 << 10);
-const GEAR_LABELS = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
-/** The value columns: labels at a column's first text column, values eight columns on, from row 13. */
-const VALUE_COLUMNS = Object.freeze({ engine: 0, body: 21, valueOffset: 8, firstRow: 13 });
+const PAGES: readonly VehiclePage[] = Object.freeze([POWERTRAIN_PAGE, CHASSIS_PAGE]);
 
 /** A vehicle's display name: its manufacturer and model. */
 export function vehicleName(vehicle: CompiledVehicleDefinition): string {
   const { manufacturer, model } = vehicle.listing.metadata;
   return `${manufacturer} ${model}`;
-}
-
-const integer = (value: number) => Math.round(value).toString();
-/** Power or torque: an integer from 100 up, one decimal below. */
-const quantity = (value: number) => (Math.round(value * 10) >= 1000 ? integer(value) : value.toFixed(1));
-const millimetres = (metres: number) => `${integer(metres * 1000)}mm`;
-const ratio = (value: number) => value.toFixed(3);
-const twoDecimals = (value: number) => value.toFixed(2);
-
-/** The curve's maximum torque and maximum power (kW), with their RPM: points C and D of the admitted curve. */
-function enginePeaks(vehicle: CompiledVehicleDefinition) {
-  const powertrain = vehicle.compiledVehicle.powertrain;
-  const { peakTorqueRpm, peakPowerRpm } = powertrain;
-  return {
-    torque: sampleEngineTorque(powertrain, peakTorqueRpm),
-    torqueRpm: peakTorqueRpm,
-    power: (sampleEngineTorque(powertrain, peakPowerRpm) * peakPowerRpm * 2 * Math.PI) / 60 / 1000,
-    powerRpm: peakPowerRpm,
-  };
-}
-
-/** The engine and driveline column and the body column, as label and value rows of the compiled vehicle. */
-function vehicleValues(vehicle: CompiledVehicleDefinition) {
-  const { mechanics, compiledVehicle: v } = vehicle;
-  const p = v.powertrain;
-  const peaks = enginePeaks(vehicle);
-  const f = v.frontDriveTorqueFraction;
-  const front = Math.round(f * 100);
-  const drive = f === 0 ? 'RWD' : f === 1 ? 'FWD' : `AWD ${front}/${100 - front}`;
-  const wheelbase = v.frontAxle + v.rearAxle;
-  const frontLoad = Math.round((v.rearAxle / wheelbase) * 100);
-  const engine: (readonly [string, string])[] = [
-    ['ENGINE', `${vehicle.listing.metadata.engine} ${integer(p.displacementCc)}cc`],
-    ['CYCLE', `${p.cycle}-STROKE`],
-    ['POWER', `${quantity(peaks.power)}kW/${integer(peaks.powerRpm)}`],
-    ['TORQUE', `${quantity(peaks.torque)}Nm/${integer(peaks.torqueRpm)}`],
-    ['IDLE', `${integer(p.idleRpm)}rpm`],
-    ['REDLINE', `${integer(p.redlineRpm)}rpm`],
-    ['DRIVE', drive],
-    ...p.gearRatios.map((gear, i) => [GEAR_LABELS[i]!, ratio(gear)] as const),
-    ['FINAL', ratio(p.finalDriveRatio)],
-    ['BRAKE F', `${integer(v.frontStation.maxBrakeTorque)}Nm`],
-    ['BRAKE R', `${integer(v.rearStation.maxBrakeTorque)}Nm`],
-    ['DRAG', `${twoDecimals(v.quadraticDrag)}kg/m`],
-  ];
-  const body: (readonly [string, string])[] = [
-    ['LENGTH', millimetres(v.overallLength)],
-    ['WIDTH', millimetres(v.overallWidth)],
-    ['HEIGHT', millimetres(v.overallHeight)],
-    ['W/BASE', millimetres(wheelbase)],
-    ['MASS', `${integer(v.mass)}kg`],
-    ['F/R', `${frontLoad}/${100 - frontLoad}`],
-    ['CG HT', millimetres(v.desiredCgHeight)],
-    ['YAW I', `${integer(v.yawInertia)}kgm2`],
-    ['PITCH I', `${integer(v.pitchInertia)}kgm2`],
-    ['TIRE F', millimetres(2 * mechanics.frontWheelRadius)],
-    ['TIRE R', millimetres(2 * mechanics.rearWheelRadius)],
-    ['RIDE', `${twoDecimals(mechanics.frontRideFrequency)}/${twoDecimals(mechanics.rearRideFrequency)}Hz`],
-    ['DAMPING', `${twoDecimals(mechanics.frontDampingRatio)}/${twoDecimals(mechanics.rearDampingRatio)}`],
-    ['TRAVEL', `${integer(mechanics.frontQTravel * 1000)}/${integer(mechanics.rearQTravel * 1000)}mm`],
-  ];
-  return { engine, body };
 }
 
 /**
@@ -143,54 +66,53 @@ function pictureFit(set: VehicleSpriteImages) {
   }
 }
 
-/**
- * The graph: DARK grid lines, lighter axes, and the torque (YELLOW) and power (RED) curves, each scaled so its maximum
- * touches the top grid line and joined vertically between columns, from the larger of idle and 20 % of redline to the
- * fuel-cut entry.
- */
-function drawGraph(frame: SoftwareSurface, text: TextLayer, vehicle: CompiledVehicleDefinition, fuelCutRatio: number) {
-  const powertrain = vehicle.compiledVehicle.powertrain;
-  const redline = powertrain.redlineRpm;
-  const height = GRAPH.bottom - GRAPH.top;
-  const xOf = (rpm: number) => GRAPH.left + (rpm / redline - GRAPH.firstRedline) * GRAPH.pixelsPerRedline;
-  const rpmOf = (x: number) => (GRAPH.firstRedline + (x - GRAPH.left) / GRAPH.pixelsPerRedline) * redline;
-  const grid = text.mainColor(TEXT_PALETTES.DARK);
-  for (let k = 1; k <= GRAPH.gridLevels; k++)
-    frame.fillSpan(GRAPH.bottom - (k * height) / GRAPH.gridLevels, GRAPH.left, GRAPH.right, grid);
-  const gridLines = Math.round((GRAPH.lastRedline - GRAPH.firstRedline) / GRAPH.gridRedline);
-  for (let k = 1; k <= gridLines; k++) {
-    const x = Math.min(GRAPH.right, GRAPH.left + k * GRAPH.gridRedline * GRAPH.pixelsPerRedline);
-    for (let y = GRAPH.top; y < GRAPH.bottom; y++) frame.setPixel(x, y, grid);
-  }
-  frame.fillSpan(GRAPH.bottom, GRAPH.left, GRAPH.right, GRAPH_AXIS_COLOR);
-  for (let y = GRAPH.top; y <= GRAPH.bottom; y++) frame.setPixel(GRAPH.left, y, GRAPH_AXIS_COLOR);
-
-  const peaks = enginePeaks(vehicle);
-  const first = Math.ceil(xOf(Math.max(powertrain.idleRpm, GRAPH.firstRedline * redline)));
-  const last = Math.min(GRAPH.right, Math.floor(xOf(fuelCutRpm(redline, fuelCutRatio))));
-  const curve = (share: (rpm: number) => number, color: number) => {
-    let previous: number | null = null;
-    for (let x = first; x <= last; x++) {
-      const y = GRAPH.bottom - Math.round(share(rpmOf(x)) * height);
-      const from = previous ?? y;
-      for (let row = Math.min(from, y); row <= Math.max(from, y); row++) frame.setPixel(x, row, color);
-      previous = y;
+/** Over a wallpaper: each pixel halved by the most halvings of the shade and the panels it lies in. */
+function shadeWallpaper(frame: SoftwareSurface) {
+  for (let y = 0; y < frame.height; y++)
+    for (let x = 0; x < frame.width; x++) {
+      let halvings: number = WALLPAPER_SHADE.halvings;
+      for (const panel of WALLPAPER_SHADE.panels)
+        if (x >= panel.left && x <= panel.right && y >= panel.top && y <= panel.bottom)
+          halvings = Math.max(halvings, panel.halvings);
+      const i = y * frame.width + x;
+      let value = frame.pixels[i]!;
+      for (let k = 0; k < halvings; k++) value = halveRgb555(value);
+      frame.pixels[i] = value;
     }
-  };
-  const peakPower = peaks.power * 1000;
-  curve(
-    (rpm) => (sampleEngineTorque(powertrain, rpm) * rpm * 2 * Math.PI) / 60 / peakPower,
-    text.mainColor(TEXT_PALETTES.RED),
-  );
-  curve((rpm) => sampleEngineTorque(powertrain, rpm) / peaks.torque, text.mainColor(TEXT_PALETTES.YELLOW));
 }
 
 /**
- * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, its
- * torque and power curves to the fuel-cut entry (`fuelCutEnterRedlineRatio` times redline) and its physical values as
- * the simulation holds them. LEFT and RIGHT change the vehicle and UP and DOWN its color, each wrapping around,
- * starting from `choice`; each vehicle is first shown in `colorOf` its color. With fixed colors it has no color choice
- * and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
+ * The page tabs: each page's name, the shown one WHITE and the others DARK, `PAGE n/N` (DARK), the shown page's time
+ * line under its name, YELLOW from the left over DIM by the share of its time gone, and a DIM rule across the frame.
+ */
+function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSteps: number) {
+  let column = PAGE_TABS.firstColumn;
+  PAGES.forEach(({ name }, k) => {
+    text.write(column, PAGE_TABS.row, name, k === page ? TEXT_PALETTES.WHITE : TEXT_PALETTES.DARK);
+    if (k === page) {
+      const left = column * TEXT_TILE_SIZE;
+      const right = left + name.length * TEXT_TILE_SIZE - 1;
+      frame.fillSpan(PAGE_TABS.timeLineY, left, right, DIM);
+      frame.fillSpan(
+        PAGE_TABS.timeLineY,
+        left,
+        left + Math.round((pageSteps / VEHICLE_PAGE_STEPS) * (right - left)),
+        text.mainColor(TEXT_PALETTES.YELLOW),
+      );
+    }
+    column += name.length + PAGE_TABS.gap;
+  });
+  text.write(PAGE_TABS.pageColumn, PAGE_TABS.row, `PAGE ${page + 1}/${PAGES.length}`, TEXT_PALETTES.DARK);
+  frame.fillSpan(PAGE_TABS.ruleY, 0, frame.width - 1, DIM);
+}
+
+/**
+ * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, and
+ * its pages (POWERTRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the fuel-cut entry at
+ * `fuelCutEnterRedlineRatio` times redline and the physical values as the simulation holds them. LEFT and RIGHT change
+ * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
+ * `colorOf` its color. A change of vehicle keeps the page and restarts its time. With fixed colors it has no color
+ * choice and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
  */
 export function createVehicleScreen(
   frame: SoftwareSurface,
@@ -204,7 +126,7 @@ export function createVehicleScreen(
     colorOf(vehicle: CompiledVehicleDefinition): string;
     /** Its CONFIRM starts the run: it answers `entry`. */
     entry: boolean;
-    /** A picture the page stands over at quarter brightness; null for the plain background. */
+    /** A picture the page stands over, shaded by `WALLPAPER_SHADE`; null for the plain background. */
     background: TilePicture | null;
   },
   actions: { confirm(vehicle: CompiledVehicleDefinition, color: string | null): void; back(): void },
@@ -215,7 +137,9 @@ export function createVehicleScreen(
   );
   let colors: readonly string[] = [],
     color = 0,
-    steps = 0;
+    steps = 0,
+    page = 0,
+    pageSteps = 0;
   const sets = new Map<string, VehicleSpriteImages>();
   // A vehicle's colors share its pictures' shapes, so one fit serves them all.
   const fits = new Map<string, ReturnType<typeof pictureFit>>();
@@ -223,6 +147,7 @@ export function createVehicleScreen(
     const vehicle = candidates[index]!;
     colors = choice.fixedColors ? [] : spriteSetColors(vehicle.spriteSet);
     color = Math.max(0, colors.indexOf(choice.colorOf(vehicle)));
+    pageSteps = 0;
   };
   show();
   const turn = (list: number, step: number, at: number) => (at + step + list) % list;
@@ -231,6 +156,10 @@ export function createVehicleScreen(
     wallpaper: choice.background,
     tick() {
       steps++;
+      if (++pageSteps === VEHICLE_PAGE_STEPS) {
+        page = (page + 1) % PAGES.length;
+        pageSteps = 0;
+      }
     },
     command(command: MenuCommand): MenuResponse | null {
       if (command === 'LEFT' || command === 'RIGHT') {
@@ -266,10 +195,9 @@ export function createVehicleScreen(
       const yaw = (Math.floor(steps / YAW_IMAGE_STEPS) % set.yawVariants) * ((Math.PI * 2) / set.yawVariants);
       if (choice.background) {
         choice.background.draw(frame, 0, 0);
-        for (let i = 0; i < frame.pixels.length; i++) frame.pixels[i] = halveRgb555(halveRgb555(frame.pixels[i]!));
+        shadeWallpaper(frame);
       } else frame.clear(SCREEN_BACKGROUND);
       drawScaledSprite(frame, selectVehicleSprite(set, yaw).asset, fit.x, fit.y, fit.scale);
-      drawGraph(frame, text, vehicle, fuelCutEnterRedlineRatio);
 
       const { metadata } = vehicle.listing;
       text.clear();
@@ -278,8 +206,6 @@ export function createVehicleScreen(
       text.write(1, 2, vehicleName(vehicle), TEXT_PALETTES.YELLOW);
       const label = metadata.identifier ? `  ${metadata.identifier.officialLabel.toUpperCase()}` : '';
       text.write(1, 3, `${metadata.physicsAnchor.modelYear}${label}`, TEXT_PALETTES.DARK);
-      text.write(22, 3, 'TORQUE', TEXT_PALETTES.YELLOW);
-      text.write(31, 3, 'POWER', TEXT_PALETTES.RED);
       const colorName = vehicle.listing.visuals.colorNames[palette]!;
       text.write(
         1,
@@ -289,14 +215,8 @@ export function createVehicleScreen(
           : colorName,
         TEXT_PALETTES.WHITE,
       );
-      const { engine, body } = vehicleValues(vehicle);
-      const column = (rows: readonly (readonly [string, string])[], at: number) =>
-        rows.forEach(([label, value], row) => {
-          text.write(at, VALUE_COLUMNS.firstRow + row, label, TEXT_PALETTES.DARK);
-          text.write(at + VALUE_COLUMNS.valueOffset, VALUE_COLUMNS.firstRow + row, value, TEXT_PALETTES.WHITE);
-        });
-      column(engine, VALUE_COLUMNS.engine);
-      column(body, VALUE_COLUMNS.body);
+      drawTabs(frame, text, page, pageSteps);
+      PAGES[page]!.draw({ frame, text, vehicle, fuelCutEnterRedlineRatio });
       text.draw(frame);
       present();
     },

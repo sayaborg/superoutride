@@ -1,5 +1,5 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
-import { HUD_PICTURES, type HudPicture } from '../image/text-tiles.js';
+import { HUD_PICTURES, TEXT_CHARACTERS, type HudPicture } from '../image/text-tiles.js';
 import { spriteSetColors, spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
@@ -30,6 +30,12 @@ const ENGINE_LABEL_LENGTH = 5;
 /** The longest color display name: SELECT VEHICLE's color line, `^ NAME n/N v`, fits columns 1–21. */
 const COLOR_NAME_LENGTH = 13;
 const COLOR_NAME = new RegExp(`^[A-Z0-9 .'&/-]{1,${COLOR_NAME_LENGTH}}$`);
+/** The longest word of a listed period, market or specification: SELECT VEHICLE wraps them by words to this width. */
+export const LISTING_LINE_LENGTH = 14;
+/** A listed period's, market's or specification's words: the text broken at spaces and after each slash. */
+export function listingWords(value: string): string[] {
+  return value.split(/ +|(?<=\/)/).filter((word) => word.length > 0);
+}
 export interface VehicleMetadata {
   readonly manufacturer: string;
   readonly model: string;
@@ -183,27 +189,46 @@ export function compileVehicleListingDocument(
       '/selectionOrder',
       'Expected a positive safe integer',
     );
-    const strings = ['manufacturer', 'model', 'period', 'mobileLabel', 'engine'] as const;
+    const strings = ['manufacturer', 'model', 'mobileLabel', 'engine'] as const;
     const meta = readRecord(v.metadata, '/metadata', [
       ...strings,
+      'period',
       'identifier',
       'selectedSpecification',
       'physicsAnchor',
     ]);
+    // Every metadata string is text the text tiles draw.
+    const drawable = (value: unknown, path: string) =>
+      readString(value, path, {
+        pattern: TEXT_CHARACTERS,
+        patternMessage: 'Expected characters the text tiles draw',
+      });
+    // A listed text SELECT VEHICLE wraps by words: none longer than the line.
+    const listed = (value: unknown, path: string) => {
+      const text = drawable(value, path);
+      requireAdmission(
+        listingWords(text).every((word) => word.length <= LISTING_LINE_LENGTH),
+        'invalid_value',
+        path,
+        `Expected words of at most ${LISTING_LINE_LENGTH} characters`,
+      );
+      return text;
+    };
     const named = (value: unknown, path: string, keys: readonly string[]) => {
       const record = readRecord(value, path, keys);
-      return Object.fromEntries(keys.map((key) => [key, readString(record[key], `${path}/${key}`)]));
+      return Object.fromEntries(keys.map((key) => [key, drawable(record[key], `${path}/${key}`)]));
     };
+    const anchor = named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']);
+    listed(anchor.market, '/metadata/physicsAnchor/market');
     const metadata = {
-      ...Object.fromEntries(strings.map((key) => [key, readString(meta[key], `/metadata/${key}`)])),
+      ...Object.fromEntries(strings.map((key) => [key, drawable(meta[key], `/metadata/${key}`)])),
+      period: listed(meta.period, '/metadata/period'),
       identifier:
         meta.identifier === null
           ? null
           : named(meta.identifier, '/metadata/identifier', ['officialLabel', 'shortLabel']),
-      selectedSpecification: readArray(meta.selectedSpecification, '/metadata/selectedSpecification', (x, at) =>
-        readString(x, at),
-      ),
-      physicsAnchor: named(meta.physicsAnchor, '/metadata/physicsAnchor', ['modelYear', 'market']),
+      selectedSpecification: readArray(meta.selectedSpecification, '/metadata/selectedSpecification', listed),
+      physicsAnchor: anchor,
     } as unknown as VehicleMetadata;
     requireAdmission(
       metadata.engine.length > 0 && metadata.engine.length <= ENGINE_LABEL_LENGTH,
