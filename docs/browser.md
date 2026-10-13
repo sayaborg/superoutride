@@ -1,7 +1,7 @@
 # Browser operation
 
 This document owns display, scheduling, keyboard/touch/gamepad input, URL settings, race status, HUD and DEV controls.
-[Content and gameplay](content-and-gameplay.md) owns Session rules and loading,
+[Content and gameplay](content-and-gameplay.md) owns run rules and loading,
 [Audio](audio.md) owns audio lifetime, and [Calibration](calibration.md) owns numeric settings.
 
 ## Display and scheduling
@@ -10,8 +10,8 @@ The logical canvas is 320×240 with image smoothing disabled. `LOGICAL_WIDTH` an
 the frame size's only authority: every frame is made by `createLogicalFrame`, and the camera's
 projection centre is the frame centre. The frame stores RGB555; each presented frame is expanded to the
 canvas's RGBA through one 32,768-entry table. A shared driving scene supplies the game and headless
-previews. All selected course, image, ground and Session inputs are ready before driving starts. A
-failed run assembly shows LOAD FAILED in the frame without reloading the page; an incomplete Session stays inactive.
+previews. All selected course, image, ground and run inputs are ready before driving starts. A
+failed run assembly shows LOAD FAILED in the frame without reloading the page; an incomplete run stays inactive.
 
 The page is laid out by CSS alone. The frame keeps 4:3 without interpolation: in landscape it fills the height of the
 safe area and is centered; in portrait it spans the width at the top. The touch area is the whole viewport wherever
@@ -29,21 +29,21 @@ work (`LOADING_SLICE_MILLISECONDS`), each followed by a yield to the event loop 
 loop and input run between them and TITLE, the attract demo and the PRE-RACE card keep drawing while a course loads. The
 page's own startup (delivered content and catalogs, before the first screen) is not sliced and happens once, over the
 page's black.
-Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
+Every run assembly, a DEV tuning rebuild included, picks a new run seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
 The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
-controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its Session
-settings, the field's Session vehicles, racing lines, time budgets and pace schedule, the Session, scene and race,
+controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its run
+settings, the field's run vehicles, racing lines, time budgets and pace schedule, the run, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
 run's observations to them.
 
 The page is loaded once. A URL that names a course, the selection screens and RETRY request a run, and every request
-passes the one assembly, after which the run starts once the PRE-RACE card leaves; a DEV tuning rebuild replaces the Session inside its run. Assembly is
+passes the one assembly, after which the run starts once the PRE-RACE card leaves; a DEV tuning rebuild replaces the run inside its run. Assembly is
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
@@ -76,9 +76,9 @@ on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'
 only).
 On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
-the course's files to 70 %, its compilation to 80 % (Section by Section), the Session to 90 %, the assembled run
+the course's files to 70 %, its compilation to 80 % (Section by Section), the run to 90 %, the assembled run
 to 100 %. The title, course
-name and laps show at once; the map and the Session's lines once the course is compiled and the Session prepared. The
+name and laps show at once; the map and the run's lines once the course is compiled and the run prepared. The
 card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to
 READY. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
@@ -87,7 +87,7 @@ reason is not drawn, since it may hold characters without text tiles: it goes to
 status element outside the frame, which also shows `Loading course…` while a run loads. Without `dev=1` nothing shows
 outside the frame, except when the page itself cannot start (its content or text tiles cannot load, so the frame
 cannot draw text): then its reason and a Retry that reloads the page show outside the frame. The run screen holds the run and its state: running, paused (manual PAUSE)
-or finished (the Session reached RESULT). The run runs only while neither holds: paused and finished advance no race,
+or finished (the run reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
 half brightness while the text layer, the HUD included, stays at full brightness: the title `PAUSED` and
@@ -121,22 +121,22 @@ either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
 (18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
-the demo Sessions and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
+the demo runs and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
 class order,
-looping, one 30 s turn each. It holds at most two Sessions, the shown class's and the next class's, each assembled as a
-run with no player input (the player's Session driver drives the class's first vehicle in its first color at the
-default steering), with no HUD, no sound and no record. Each holds its course's compilation, which held Sessions of one
-course share; a compilation no held Session uses is released. A Session is stepped in the race's fixed step, through
-the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its Session is released, so a
-class shown again starts a new Session from READY with the next seed. Each turn brightens
+looping, one 30 s turn each. It holds at most two runs, the shown class's and the next class's, each assembled as a
+run with no player input (the player's run driver drives the class's first vehicle in its first color at the
+default steering), with no HUD, no sound and no record. Each holds its course's compilation, which held runs of one
+course share; a compilation no held run uses is released. A run is stepped in the race's fixed step, through
+the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its run is released, so a
+class shown again starts a new run from READY with the next seed. Each turn brightens
 from black over the transition's 8 steps and darkens over 8 more; the logo and lines stay bright, and while it is fully
 shown its series title, class title, vehicle (manufacturer and model) and color display name are written in WHITE on
-rows 21, 22, 24 and 25, right-aligned to column 38. When a Session ends (the player's GOAL or GAME OVER) it is shown to
+rows 21, 22, 24 and 25, right-aligned to column 38. When a run ends (the player's GOAL or GAME OVER) it is shown to
 the end of its RESULT delay without RESULT and its turn darkens early. The first class loads behind the logo and PRESS
-START over black and its turn begins once it is loaded; each turn has the next class's Session loaded (loading only,
+START over black and its turn begins once it is loaded; each turn has the next class's run loaded (loading only,
 standing in READY), so no later turn waits on a load. A class that cannot load is passed over; with no product class
-TITLE stays over black. Leaving TITLE ends the shown turn and releases its Session; returning resumes with the next
-class's turn. The Sessions are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
+TITLE stays over black. Leaving TITLE ends the shown turn and releases its run; returning resumes with the next
+class's turn. The runs are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
 row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with TITLE's line for the rest of the page, with no way back
@@ -194,17 +194,17 @@ the first track) plays as an audition, so its volume is set by ear.
   `BEST LAP <time>` on a circuit, else `RECORD <time>` (GREEN; `--'--"--` without one), and on row 26 the manufacturer
   and model of the vehicle it was set with (WHITE). The record is the class's fastest current TIME ATTACK record at any
   goal (`shownRecord`), counted only while its course and vehicle identities are current (the course index's
-  `buildSha256` and the record vehicle's `sessionVehicleSha256`). Every class offers both sessions.
+  `buildSha256` and the record vehicle's `runVehicleSha256`). Every class offers both sessions.
 - SELECT VEHICLE offers the class's vehicles for a class and every catalog vehicle in FREE PLAY, one catalog page per
   vehicle ([SELECT VEHICLE](#select-vehicle)), drawn for a class over the series image at quarter brightness, its panels darker, and
   otherwise on the plain background. LEFT and RIGHT change the vehicle and UP and DOWN its
-  color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
+  color, both wrapping around. Each vehicle shows the color its run would give the player (one rule with the
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
   its entry's color in the chosen class, with no color choice. CONFIRM saves a chosen color in the player record.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
   change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
   current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
-  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. ARCADE
+  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. RACE
   takes its class's traffic, and TIME ATTACK has none. Every option starts from the player
   record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
   change is saved there.
@@ -234,7 +234,7 @@ A run without a finish, which QUIT ended, has RESULT (SUNSET) as its title and `
 TIME, and BEST LAP once it completed one. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the first selection screen after TITLE
-with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
+with the run's selection) and TITLE; leaving the run ends it. A run rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
 
 ### SELECT VEHICLE
@@ -389,10 +389,10 @@ the selection screens, in its order and with its display names.
 A run is requested as a typed run request ([`run-request.ts`](../src/shell/run-request.ts)): a class run names a series,
 one of its classes and its session (RACE or TIME ATTACK), and the class names the course and gives the laps, field and
 traffic; a FREE PLAY run names the course and its rival count, rival pool, traffic and laps. Both carry the vehicle,
-the player's color and the track. There is no mode: the one translation of a run request into its Session request
-(`sessionRequest`) gives RACE the ARCADE rules, TIME ATTACK its own and FREE PLAY its options. No class setting is looked
-up from a course. The run's assembly admits that Session request against the course, its class and the vehicle catalog
-and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
+the player's color and the track. There is no front-end mode: the one translation of a run request into the rules it is requested with
+(`rulesRequest`) gives a class run the rules its session names and FREE PLAY its options. No class setting is looked
+up from a course. The run's assembly admits those rules against the course, its class and the vehicle catalog
+and derives its run configuration (`compileRunConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
@@ -400,7 +400,7 @@ with `series` and `class`, or with `course`, builds that run's request and start
 neither starts at TITLE. The player's color is the player record's color for the vehicle. A URL request that cannot be built fails
 like an assembly.
 
-Session parameters are case-sensitive:
+Run parameters are case-sensitive:
 
 | Parameter | Meaning                                                                                                               |
 | --------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -419,7 +419,7 @@ laps and its course, with the checkpoint clock, ignoring individual query overri
 vehicle alone on its course. A URL naming a course runs FREE PLAY: `session` with `course` is an error, as are
 `course` together with `series` or `class`, `series` without `class` or the reverse, and an unknown class, course or
 session. FREE PLAY exposes those settings and has no clock. There is no `mode` or `clock` parameter, so an old value
-of either is other URL data and ignored. Invalid vehicle, numeric or course/Session
+of either is other URL data and ignored. Invalid vehicle, numeric or course/run
 combinations produce an error. FREE PLAY's defaults are the first vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
 fails to load.
 
@@ -436,7 +436,7 @@ commit's build instead of `version.txt`'s, and the page takes its delivery from 
 (`window.opener`, same origin) instead of fetching `../delivery/`. That delivery passes the same manifest admission and
 digest checks; only the transport differs. Without that workbench page, or without its answer within 10 s, the page
 fails to start and says why. With `dev=1`, the DEV toggle reads `WORKBENCH BUILD`. A delivery without measured
-products admits only Sessions that need none: no time limit and no pace schedule, its drivers driving the centre lane
+products admits only runs that need none: no time limit and no pace schedule, its drivers driving the centre lane
 for the racing line.
 
 ## Driving input
@@ -548,7 +548,7 @@ events](content-and-gameplay.md#race-time-and-events)), typed as the race's `Rac
 mechanics, and the HUD the player's competitor observation and the camera's observation of its yaw limit; the race
 gives the STAGE and the LAP. It is one table of
 independent elements, each with its condition and what it writes; the table alone decides which show, from the
-Session's rules (the clock, the course type) and race facts (two or more competitors ranked, the next gate's rank limit, the stage
+Run's rules (the clock, the course type) and race facts (two or more competitors ranked, the next gate's rank limit, the stage
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
@@ -666,7 +666,7 @@ through the record.
 
 | Setting            | Shape and default                                                                                                                                                                               |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vehicleColors`    | Selected color by vehicle ID, the player's Session color; default `{}`                                                                                                                          |
+| `vehicleColors`    | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
 | `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
 | `latestSelections` | Latest selection by selection-screen key; default `{}`                                                                                                                                          |
 | `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
@@ -682,13 +682,13 @@ CIRCUIT from the start of the record lap, its last the lap's own time), `vehicle
 
 Times are whole milliseconds by the one rule displays use (`raceMilliseconds`: floored after the display tolerance).
 `courseSha256` is the course's build identity and `vehicleSha256` the identity of the record's vehicle's delivered
-definitions (`sessionVehicleSha256`), the identities time budgets carry; a record counts only while both are current,
+definitions (`runVehicleSha256`), the identities time budgets carry; a record counts only while both are current,
 the latter checked against the identity of `vehicleId` whichever vehicle the run drives. The player record publishes
 its records read-only down to every record and its splits, loaded or set alike.
 
 [`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records. Only a
 TIME ATTACK run records (`createRunRecords`); RACE, FREE PLAY, the attract demo and a DEV-tuned rebuilt
-Session record and compare nothing, and a run requested by URL records as one requested from the menus. On a CIRCUIT
+Run record and compare nothing, and a run requested by URL records as one requested from the menus. On a CIRCUIT
 each completed lap is judged against the class's record when it completes: a faster lap is saved at once, with its
 gate times within the lap, and `new-record` sounds then, so ending the run, or leaving it any other way, never loses
 it. On a LINEAR or BRANCH course the run is judged once, at its finish, against the record of the goal reached, and a
@@ -698,11 +698,11 @@ run's crossing of the same index (within the lap on a CIRCUIT) against the recor
 can reach is known: from the start on a course with one goal, else once the race has decided the route
 (`routeLinks`), whose last FINISH is the goal. READY, the PRE-RACE card and RESULT show the record as it stood before
 the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
-of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the Session they were made for.
+of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the run they were made for.
 
 Loading admits version 7 with exactly these keys and value types; version 6, whose settings and records carry over
 with BRAKE SIGN ON; and versions 1 to 5, whose settings carry over with no records: version 1 had none, and versions 2
-to 5 kept TIME TRIAL and ARCADE records, whose keys name no class. Settings before version 5 take the default steering,
+to 5 kept TIME TRIAL and RACE records, whose keys name no class. Settings before version 5 take the default steering,
 and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
@@ -711,11 +711,11 @@ game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-con
 the cameras, steering and BRAKE SIGN, and a run reads its vehicle form's camera and steering rule and BRAKE SIGN when it
 is assembled. The race
 applies the player's steering rule only while the player's own input reaches the player's vehicle; whenever a driver
-drives it (the Session driver on request, the takeover after GOAL) it drives by that driver's rule, switching at once.
+drives it (the run driver on request, the takeover after GOAL) it drives by that driver's rule, switching at once.
 Steering is no record condition: it changes no record key or identity, and a run with any steering choice is a
-product Session that records; SELECT VEHICLE
+product run that records; SELECT VEHICLE
 saves colors, the selection screens save their latest selections, a run reaching GOAL saves records and CLEAR RECORDS
-empties them. A Session reads the player's vehicle color from `vehicleColors`, falling back to the vehicle's default
+empties them. A run reads the player's vehicle color from `vehicleColors`, falling back to the vehicle's default
 color when the record has none or names a color its sprite set lacks. DEV tuning and DEV sound settings are not
 stored.
 
@@ -732,22 +732,22 @@ DEV is an initially closed disclosure overlay. Its body scrolls within the safe 
 resizing the game. UI pointer starts stay outside driving input. Keydown is isolated, so keys typed
 in DEV controls never reach driving input, while keyup can release an already-held driving key.
 Escape closes the panel and returns focus to its summary. DEV has no keyboard shortcuts.
-The vehicle is chosen on SELECT VEHICLE; there is no vehicle selection during a Session. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
+The vehicle is chosen on SELECT VEHICLE; there is no vehicle selection during a run. Driving tuning, camera, sound and recovery controls remain available. The camera controls choose the
 camera definition's horizon row and height frequency for the session, unsaved
 ([Calibration](calibration.md#camera-settings)). RECOVER requests the race's manual recovery of the player vehicle when the active composition
-permits it: in a course session, only while the run is running and the race clock is RUNNING. The shell supplies
-the player's input only; it reads the Session vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
+permits it: in a course run, only while it is running and the race clock is RUNNING. The shell supplies
+the player's input only; it reads the run vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE, BODY CONTACT and ASSISTS. Each value uses a
 minus/value/plus control in the driving definition's units, wrapping at range endpoints; STEERING holds the rack bound
-(M) and the traversal time (ACT), and ASSISTS toggles wheel slip protection. RIVAL PACE drives no vehicle in a tuned Session, which has no rivals: it takes effect once the exported definition
-is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, course limits and objects push with the
+(M) and the traversal time (ACT), and ASSISTS toggles wheel slip protection. RIVAL PACE drives no vehicle in a tuned run, which has no rivals: it takes effect once the exported definition
+is adopted as content. BODY CONTACT is the rebuilt run's own: its walls, course limits and objects push with the
 tuned values at once. An admitted adjustment rebuilds the
-Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
-drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
+Run through the same assembly as startup: a new run vehicle with the same vehicle definition and materials
+drives the tuned definition, in a FREE PLAY run with no rivals, the current lap count, no time limit, start speed 0
 and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own rules (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
-tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
-driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
+tuned definition for further adjustments and export. Reloading the page restores the product run. EXPORT saves the tuned
+driving definition (`default.json`) and the run vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`);
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera; what its yaw
@@ -763,7 +763,7 @@ The browser control is only an adapter and does not own the value or its lifetim
 DEV's **Ground display** group exposes every method defined in
 [Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
 the single setting and redraws immediately, including while paused. Camera, vehicle,
-Session and occurrence history are preserved, with no restart or course recompilation. The setting
+Run and occurrence history are preserved, with no restart or course recompilation. The setting
 lasts for the loaded page and every run; a page reload restores the default. The controls use DEV input isolation.
 
 ### Sound controls

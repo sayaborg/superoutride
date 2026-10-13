@@ -11,7 +11,7 @@ import type { MenuCommand } from '../input/menu-input.js';
 /** The run screen's states besides running: manual PAUSE, and finished after GOAL or GAME OVER. */
 export interface RunFacts {
   readonly paused: boolean;
-  /** The current Session reached RESULT. */
+  /** The current run reached RESULT. */
   readonly finished: boolean;
 }
 
@@ -38,7 +38,7 @@ export function createRunScreenState(observe: (facts: RunFacts) => void) {
     finish() {
       update(paused, true);
     },
-    /** A rebuilt Session: clear `paused` and `finished`. */
+    /** A rebuilt run: clear `paused` and `finished`. */
     restart() {
       update(false, false);
     },

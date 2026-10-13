@@ -16,23 +16,23 @@ export function playTrack(
 }
 
 /**
- * The one owner of when a run's track plays. Each Session's track starts from its beginning when its race enters READY
+ * The one owner of when a run's track plays. Each run's track starts from its beginning when its race enters READY
  * and loops; it pauses while the run is not live and continues from there when it is again; at GOAL or GAME OVER it fades
- * out with the music fade and stays silent through RESULT. A new Session (a DEV rebuild) stops the previous Session's
+ * out with the music fade and stays silent through RESULT. A new run (a DEV rebuild) stops the previous run's
  * track, and its own starts at its READY. It reads only the race's status and whether the run is live, never a clock.
  * A run with MUSIC OFF (no track) plays none.
  */
 export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>, track: MusicTrack | null) {
-  let session: object | null = null,
+  let setup: object | null = null,
     handle: RecordingHandle | null = null,
     ended = false,
     paused = false;
   return {
-    /** Each drawn frame: the current Session (any object identifying it), its race status and whether the run is live. */
+    /** Each drawn frame: the current run (any object identifying it), its race status and whether the run is live. */
     update(current: object, status: RaceStatus, live: boolean): void {
-      if (current !== session) {
+      if (current !== setup) {
         handle?.stop();
-        [session, handle, ended, paused] = [current, null, false, false];
+        [setup, handle, ended, paused] = [current, null, false, false];
       }
       if (ended) return;
       if (!handle) {

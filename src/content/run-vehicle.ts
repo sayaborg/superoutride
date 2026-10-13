@@ -3,28 +3,25 @@ import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-defi
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
 
-/** The vehicle and driving definitions a Session drives; everything else derives from them. */
-export interface SessionVehicle {
+/** The vehicle and driving definitions a run drives; everything else derives from them. */
+export interface RunVehicle {
   readonly vehicleDefinition: CompiledVehicleDefinition;
   readonly drivingDefinition: CompiledDrivingDefinition;
 }
 
-/** The two admitted definitions a Session drives, shared by browser, race, tools and scenarios. */
-export function createSessionVehicle(
+/** The two admitted definitions a run drives, shared by browser, race, tools and scenarios. */
+export function createRunVehicle(
   vehicleDefinition: CompiledVehicleDefinition,
   drivingDefinition: CompiledDrivingDefinition,
-): SessionVehicle {
+): RunVehicle {
   return Object.freeze({ vehicleDefinition, drivingDefinition });
 }
 
 /**
- * Reference identity of a Session vehicle on the surface material catalog it drives on: the delivered SHA-256 of the
+ * Reference identity of a run vehicle on the surface material catalog it drives on: the delivered SHA-256 of the
  * vehicle mechanics, driving and material documents.
  */
-export function sessionVehicleSha256(
-  vehicle: SessionVehicle,
-  surfaceMaterials: SurfaceMaterialCatalog,
-): Promise<string> {
+export function runVehicleSha256(vehicle: RunVehicle, surfaceMaterials: SurfaceMaterialCatalog): Promise<string> {
   const driving = vehicle.drivingDefinition.sha256;
   if (driving === null) throw new Error('A driving definition outside delivery has no reference identity');
   const identity = JSON.stringify({

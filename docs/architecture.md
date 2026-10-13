@@ -7,8 +7,8 @@ This document owns coordinate and geometry contracts, projection, camera metric,
 ## Admission boundary
 
 Course documents and assets are checked when read and compiled; delivered manifests, vehicle
-definitions, racing lines, time budgets and external Session selections are checked at their intake. Cross-object
-Session admission relates the requested settings, course and vehicle before actors exist.
+definitions, racing lines, time budgets and external run selections are checked at their intake. Cross-object
+Run admission relates the requested settings, course and vehicle before actors exist.
 Inside those boundaries, course/race constructors, readers and updates trust admitted data and
 internal arguments: they do not repeat shape/domain checks or retain impossible failure branches.
 Outside-route sampling and live gameplay decisions remain ordinary behavior. Vehicle-domain
@@ -259,7 +259,7 @@ A sampling tolerance changes neither point ownership nor earned progress.
 The ordered plan elements are the segments, laid in order from the origin facing +Z. An arc of length `L` and radius
 `R` turns `delta = L/R` radians, positive to the right. Compiled segments keep internal geometry, exact s interval,
 starting pose and signed curvature. A straight has `kappa=0`. An arc has `kappa=sign(delta)/R`.
-The temporary joint station table (each element's start, and `"end"`) resolves positions, including Session
+The temporary joint station table (each element's start, and `"end"`) resolves positions, including run
 landmarks, and is discarded before publication.
 Section projection onto a straight or circular arc uses closed-form geometry.
 The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
@@ -422,7 +422,7 @@ screenY(base point) = y_t - (f/D_cam)*cos(phi)*(Y_p - Y_s)
 so pitch alone never moves the base point on screen, and only jumps and suspension motion, through the spring, move
 it. The camera may pass below the road; nothing holds it above. Near `|phi|=90` degrees (an overturning body) the
 camera height grows without bound, since `cos(phi)` approaches zero. The frequency `f` (2 Hz) is a camera definition
-value ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a Session rebuild and START place the
+value ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a run rebuild and START place the
 sprung height at the base point, at rest relative to it; route seams need no reset.
 
 ## Ground and background
@@ -609,9 +609,9 @@ so index 0 and empty tiles leave the scene visible.
 
 Vehicle documents choose a named sprite set and default color. `view/vehicle-sprites.ts` creates a vehicle's
 off/on pictures in one of its colors: the set's palette for that color with the brake lamp's off or on color in slot
-15, one palette for every picture and size. Each Session entry carries its color ([Session](content-and-gameplay.md#resolved-session)):
+15, one palette for every picture and size. Each run entry carries its color ([Run setup](content-and-gameplay.md#run-setup)):
 the player's is the series entry's, the chosen color or the vehicle's default color, and each rival's is its series
-entry's or its drawn FREE PLAY pair's; each traffic vehicle's color is drawn from its sprite set's colors by the Session
+entry's or its drawn FREE PLAY pair's; each traffic vehicle's color is drawn from its sprite set's colors by the run
 seed. Player rendering binds the player's vehicle in its entry's color at assembly; `createRaceSprites` draws every
 other vehicle from the sprite set of its observed vehicle ID in its observed color, binding each vehicle and color once
 on first use. No per-frame palette evaluation occurs. Every competitor observation, the
@@ -674,18 +674,18 @@ options and lint rules. [Development](development.md#typescript-tools) owns exec
 Product source is organized by domain. Shared definitions, product compilation and runtime representation
 belong inside that domain; an upper domain depends only on lower domains, and same-domain imports are unrestricted.
 
-| Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                                                                             |
-| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit, content digests and work slices                                                                                                                                                                                                                                                                    |
-| 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                                                         |
-| 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                                                                                |
-| 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                                                                           |
-| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                                                                              |
-| 6     | content | Content manifest format and, separately, delivery (fetch, digest verification, decode); saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery; the Session vehicle and its identity; generated racing-line, time-budget and pace-schedule formats and their admission |
-| 7     | input   | Keyboard/touch/gamepad adapters and arbitration producing vehicle operation requests; the published final sample and touch observation                                                                                                                                                                                                                                     |
-| 8     | race    | Sessions, course worlds, fixed step, progress, gates, timing, drivers with lane following and the fork field, traffic, contacts between vehicles, barrier lines and standing objects, and recovery                                                                                                                                                                         |
-| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                                                                                                                                                                                     |
-| 10    | shell   | DOM, frame loop, screens and the selection flow, run assembly, the player record and records, HUD, DEV, startup and browser composition                                                                                                                                                                                                                                    |
+| Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                                                                         |
+| ----- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit, content digests and work slices                                                                                                                                                                                                                                                                |
+| 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                                                     |
+| 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                                                                            |
+| 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                                                                       |
+| 5     | vehicle | Vehicle mechanics, vehicle and driving document compilation, vehicle sprite sets (library admission, color/lamp variants, yaw/bank selection) and accepted operation requests                                                                                                                                                                                          |
+| 6     | content | Content manifest format and, separately, delivery (fetch, digest verification, decode); saved JSON layout; document catalogs and their rules; loading courses, materials, the vehicle sprite library and vehicle/driving definitions from delivery; the run vehicle and its identity; generated racing-line, time-budget and pace-schedule formats and their admission |
+| 7     | input   | Keyboard/touch/gamepad adapters and arbitration producing vehicle operation requests; the published final sample and touch observation                                                                                                                                                                                                                                 |
+| 8     | race    | Runs, course worlds, fixed step, progress, gates, timing, drivers with lane following and the fork field, traffic, contacts between vehicles, barrier lines and standing objects, and recovery                                                                                                                                                                         |
+| 9     | view    | Cameras, projection, ground rows, sprite placement, course scenes, drawing composition and framebuffer                                                                                                                                                                                                                                                                 |
+| 10    | shell   | DOM, frame loop, screens and the selection flow, run assembly, the player record and records, HUD, DEV, startup and browser composition                                                                                                                                                                                                                                |
 
 The [dependency check](../tests/infrastructure/layer-dependencies.test.mjs) parses imports, type-only
 imports, re-exports, inline import types, literal dynamic imports, CommonJS references, worker entries
@@ -726,17 +726,17 @@ in `src/image`; authoring-only limits stay with the tools.
 
 Vehicle mechanics take dynamic state and an immutable vehicle model as separate inputs; state holds
 no definition value, and each race actor pairs its state with its model. The race builds every competitor's
-mechanics, the player's included, from its Session entry: one model per entry vehicle, shared by entries with the
-same vehicle, and each competitor's state and recovery state at its grid slot with the Session's start speed; each
+mechanics, the player's included, from its run entry: one model per entry vehicle, shared by entries with the
+same vehicle, and each competitor's state and recovery state at its grid slot with the run's start speed; each
 rival's driver comes from its entry's vehicle. The shell and other compositions supply the player's input only;
 manual recovery is a race operation, and body contact is a race computation whose force reaches each vehicle as the
 mechanics' one external-force input, so physics never sees another vehicle. `SIM_DT` is the only authority for the step length. The race advances in fixed
 steps of it: `advance(input)` takes no step length, and the start phase, the checkpoint clock's race time,
 recovery timing and event times all use `SIM_DT`. The model carries its fixed step, received when
 it is built; vehicle mechanics never import race, so every composition passes `SIM_DT` when it builds a model. The composition shared by
-browser, race, tools and scenarios lives below shell: content owns the Session vehicle (vehicle and
-driving definitions only: `SessionVehicle`, `createSessionVehicle` and its identity on a material catalog,
-`sessionVehicleSha256`) and the
+browser, race, tools and scenarios lives below shell: content owns the run vehicle (vehicle and
+driving definitions only: `RunVehicle`, `createRunVehicle` and its identity on a material catalog,
+`runVehicleSha256`) and the
 generated product formats with their admission (`racing-line.ts`, `course-time-budgets.ts`, and `admitProduct`,
 which admits a delivered product with its delivered path as the diagnostic document), shared by the build's
 producers and the race and browser that admit them; race owns the fixed simulation step (`SIM_DT`) and the course
@@ -790,7 +790,7 @@ Vehicle and driving document formats and their compilation belong to the vehicle
 assembles their catalog, and the generic manifest only resolves and verifies their bytes. Definition compilation resolves named sprite sets/default colors from the SHA-verified image library and sound IDs through the lower audio layer's
 TypeScript sound products and returns deeply immutable records that publish each fact once: the source documents and
 what they compile to or name, never a copy of a document field. [Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)
-owns the versioned formats and their format-specific admission rules. Composition roots load the collection before scene/Session creation and explicitly pass it to
+owns the versioned formats and their format-specific admission rules. Composition roots load the collection before scene/run creation and explicitly pass it to
 selection controls, HUD/audio, scene coverage, reference tools and scenarios. `compileVehicleDefinitions` admits the collection from
 definition documents and an admitted sprite library: consumers call it through `loadVehicleDefinitions` with delivered content, and the
 content build calls it directly with the documents and the library it has just compiled.

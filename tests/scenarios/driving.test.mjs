@@ -36,8 +36,8 @@ scenarioTests({
   ],
   'outrun-trial-a': [
     {
-      name: 'ARCADE with the TRIAL series traffic',
-      mode: 'ARCADE',
+      name: 'RACE with the TRIAL series traffic',
+      mode: 'RACE',
       series: 'trial',
       class: 'a',
       policy: 'finish',

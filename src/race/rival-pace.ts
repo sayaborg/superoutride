@@ -5,7 +5,7 @@ import { routeSectionS, type CourseRoute, type RouteOccurrence } from '../course
 import type { CompiledDriving } from '../vehicle/physics/compiled-driving.js';
 
 /**
- * An ARCADE rival's pace: its target times are the player vehicle's schedule divided by the pace ratio, summed by
+ * A RACE rival's pace: its target times are the player vehicle's schedule divided by the pace ratio, summed by
  * Section along the Route the rival runs. A grid rival's targets count from GO along the start schedule; a rival
  * joining later counts from where and when it joins. Its target utilization is proportional to its schedule
  * difference (race time minus target time): the minimum at minus the band or below, the maximum at plus the band or
@@ -47,7 +47,7 @@ export function createRivalPace(
         ? minimumSpeedFraction + ((utilization - minimumUtilization) / span) * (1 - minimumSpeedFraction)
         : 1;
     },
-    /** Join the Session at route station `s`: on schedule at the first station its schedule times. */
+    /** Join the run at route station `s`: on schedule at the first station its schedule times. */
     join(s: number) {
       const occurrence = route.at(s)!;
       ordinal = occurrence.ordinal;

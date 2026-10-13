@@ -10,7 +10,7 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import type { VehicleForm } from '../vehicle/definition-document.js';
 import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR } from '../vehicle/physics/vehicle-definitions.js';
 import type { ContentDelivery } from './content-delivery.js';
@@ -45,7 +45,7 @@ const ID = { maxLength: 16, pattern: /^[A-Z][A-Z0-9_]*$/, patternMessage: 'Expec
 /**
  * Admit the `superoutride.free-play` version 1 document: rival pools with unique IDs and nonempty unique forms, where
  * each vehicle form has a pool of that form alone (its vehicles' default); TRAFFIC levels with unique IDs other than
- * OFF and densities within the Session rule ceiling; and the traffic speed within the vehicle speed bound.
+ * OFF and densities within the run rule ceiling; and the traffic speed within the vehicle speed bound.
  */
 export function readFreePlayRules(value: unknown, document = ''): AdmissionResult<FreePlayRules> {
   return admit(document, () => {
@@ -77,7 +77,7 @@ export function readFreePlayRules(value: unknown, document = ''): AdmissionResul
         density: readNumber(level.density, `${at}/density`, {
           min: 0,
           exclusiveMin: true,
-          max: SESSION_RULE_LIMITS.trafficDensity,
+          max: RUN_RULE_LIMITS.trafficDensity,
         }),
       });
     });

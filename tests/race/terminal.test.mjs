@@ -9,12 +9,12 @@ import {
   createPlanCoordinateSample,
   createPlanProjectionWorkspace,
 } from '../../src/course/geometry/plan-coordinate.js';
-import { resolveCourseSession } from '../../src/race/course-session.js';
-import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { resolveRunSetup } from '../../src/race/run-setup.js';
+import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -57,9 +57,9 @@ test('outside projection follows previous chainage across clamped and tangent-ra
   }
 });
 
-test('Session rejects short terminal runout, including solo play; a loop is not a terminal', async () => {
+test('Run rejects short terminal runout, including solo play; a loop is not a terminal', async () => {
   const course = await load('outrun-trial-a');
-  const vehicle = createSessionVehicle(
+  const vehicle = createRunVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
@@ -72,8 +72,8 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
     rivalPool: 'CARS',
     traffic: 'OFF',
   };
-  const configuration = compileSessionConfiguration(request, course, null, catalog);
-  assert.doesNotThrow(() => resolveCourseSession(course, null, configuration, 0, vehicle));
+  const configuration = compileRunConfiguration(request, course, null, catalog);
+  assert.doesNotThrow(() => resolveRunSetup(course, null, configuration, 0, vehicle));
   const short = {
     ...course,
     gates: {
@@ -88,7 +88,7 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
     },
   };
   assert.throws(
-    () => resolveCourseSession(short, null, configuration, 0, vehicle),
+    () => resolveRunSetup(short, null, configuration, 0, vehicle),
     /FINISH .*TESTAROSSA requires .* m to stop/,
   );
   const ringCourse = await load('tsukuba');
@@ -96,6 +96,6 @@ test('Session rejects short terminal runout, including solo play; a loop is not 
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
   assert.doesNotThrow(() =>
-    resolveCourseSession(ringCourse, null, compileSessionConfiguration(request, ringCourse, null, catalog), 0, vehicle),
+    resolveRunSetup(ringCourse, null, compileRunConfiguration(request, ringCourse, null, catalog), 0, vehicle),
   );
 });

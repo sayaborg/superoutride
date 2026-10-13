@@ -1,6 +1,6 @@
 import type { CompiledSeries, SeriesCatalog } from '../content/series-catalog.js';
 import type { MusicTrack } from '../audio/music-document.js';
-import type { SessionRequest } from '../race/session-configuration.js';
+import type { RunRulesRequest } from '../race/run-configuration.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -8,7 +8,7 @@ import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { PlayerRecord } from './player-record.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 
-/** What every run request chooses: the vehicle, the player's color (null for the Session's own) and the track. */
+/** What every run request chooses: the vehicle, the player's color (null for the run's own) and the track. */
 interface RunChoice {
   readonly vehicleId: string;
   readonly color: string | null;
@@ -40,12 +40,12 @@ export interface FreePlayRunRequest extends RunChoice {
   /** OFF, or a TRAFFIC level ID of the FREE PLAY rules. */
   readonly traffic: string;
 }
-/** A requested run: a class's session or FREE PLAY. The run's assembly admits its Session request. */
+/** A requested run: a class's session or FREE PLAY. The run's assembly admits its run request. */
 export type RunRequest = ClassRunRequest | FreePlayRunRequest;
 
-/** The name a Session's rules are shown by (READY): its session, or FREE PLAY. */
-export const RULES_NAMES: Readonly<Record<SessionRequest['mode'], string>> = Object.freeze({
-  ARCADE: SESSION_NAMES.RACE,
+/** The name a run's rules are shown by (READY): its session, or FREE PLAY. */
+export const RULES_NAMES: Readonly<Record<RunRulesRequest['mode'], string>> = Object.freeze({
+  RACE: SESSION_NAMES.RACE,
   TIME_ATTACK: SESSION_NAMES.TIME_ATTACK,
   FREE_PLAY: 'FREE PLAY',
 });
@@ -55,10 +55,10 @@ export function isFreePlay(request: RunRequest): request is FreePlayRunRequest {
   return 'courseId' in request;
 }
 
-/** The Session request a run makes: RACE drives its class by the ARCADE rules, TIME ATTACK alone, FREE PLAY its options. */
-export function sessionRequest(request: RunRequest): SessionRequest {
+/** The rules a run is requested with: a class run's session names them, and FREE PLAY gives its options. */
+export function rulesRequest(request: RunRequest): RunRulesRequest {
   const { vehicleId, color } = request;
-  if (!isFreePlay(request)) return { mode: request.session === 'RACE' ? 'ARCADE' : 'TIME_ATTACK', vehicleId, color };
+  if (!isFreePlay(request)) return { mode: request.session, vehicleId, color };
   const { lapCount, rivalCount, rivalPool, traffic } = request;
   return { mode: 'FREE_PLAY', vehicleId, color, lapCount, rivalCount, rivalPool, traffic };
 }
@@ -94,7 +94,7 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
  * `mode` parameter is other URL data and ignored. Absent parameters take the defaults: the class's first vehicle for a
  * class, else the parameter's or the first catalog vehicle; one lap, no rivals, the pool of the player's vehicle form
  * and no traffic; the player record's color and latest track. Every value is admitted with the run
- * (`compileSessionConfiguration`), like a request from the selection screens.
+ * (`compileRunConfiguration`), like a request from the selection screens.
  */
 export function readUrlRunRequest(
   params: URLSearchParams,

@@ -36,8 +36,8 @@ nothing copies a model value into state. Updates take no step argument; they int
 model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement.
 
-`SessionVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
-vehicle's listing. Its reference identity `vehicleSha256` (`sessionVehicleSha256`, with the surface material catalog it
+`RunVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
+vehicle's listing. Its reference identity `vehicleSha256` (`runVehicleSha256`, with the surface material catalog it
 drives on) derives from the delivered SHA-256 of the mechanics, driving and material documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
@@ -188,7 +188,7 @@ when:
 4 − 4ζp + (1 − 2c)·p² > 0
 ```
 
-so ζ must be positive. Session resolution admits these once at the race's fixed step (`assertBodyContactStability`);
+so ζ must be positive. Run resolution admits these once at the race's fixed step (`assertBodyContactStability`);
 a violation is a `RangeError`. At the 1/60 s step the defaults (3 Hz, ζ = 1) give p = 0.314; with ζ = 1 the third condition bounds
 p below 0.98 (about 9.4 Hz).
 
@@ -667,9 +667,9 @@ and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity), `rivalPace`
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
 maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
-(frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: ARCADE rivals read it
-to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper. Vehicle models do not carry it: a Session reads it
-once, from the Session's driving definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times
+(frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: RACE rivals read it
+to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper. Vehicle models do not carry it: a run reads it
+once, from the run's driving definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times
 are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
 are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates and finite pressures in pascals after conversion, positive finite

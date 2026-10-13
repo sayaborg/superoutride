@@ -28,7 +28,7 @@ export interface DrivingDefinition {
   readonly wheelSlip: boolean;
   readonly tire: Readonly<TireCharacteristics>;
   /**
-   * ARCADE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
+   * RACE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
    * constant in seconds of its response.
    */
   readonly rivalPace: Readonly<{

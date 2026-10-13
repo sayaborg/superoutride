@@ -1,6 +1,6 @@
 import type { RepeatElement } from './course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
-import { SESSION_RULE_LIMITS } from './session-rules.js';
+import { RUN_RULE_LIMITS } from './run-rules.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 import { CourseInputError, courseFailure, courseSuccess, type CourseResult } from './course-diagnostics.js';
 import {
@@ -224,8 +224,8 @@ export interface CourseGridSlotDocument {
 export type CourseGateDocument =
   | CourseLandmarkDocument
   /**
-   * The grids: each slot a lane at a Position, its lateral the lane's centre. `grid` serves every Session; `bikeGrid`,
-   * when not null, serves the Sessions whose competitors all ride bikes.
+   * The grids: each slot a lane at a Position, its lateral the lane's centre. `grid` serves every run; `bikeGrid`,
+   * when not null, serves the runs whose competitors all ride bikes.
    */
   | {
       readonly kind: 'start';
@@ -234,7 +234,7 @@ export type CourseGateDocument =
     }
   | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
 
-/** Position-free course rules; series own ARCADE settings. */
+/** Position-free course rules; series own RACE settings. */
 export interface CourseRules {
   readonly maxLaps: number;
 }
@@ -246,7 +246,7 @@ export interface CourseDocument {
   readonly name: string;
   /** The Section a course run enters. */
   readonly entry: string;
-  /** The most laps a Session may run on this course. */
+  /** The most laps a run may take on this course. */
   readonly maxLaps: number;
   /**
    * The compass direction of the road at the entry Section's origin, degrees clockwise from north in [0, 360):
@@ -751,7 +751,7 @@ export function readCourseDocument(input: unknown, document = ''): CourseResult<
         patternMessage: 'Expected printable ASCII text',
       }),
       entry: readString(v.entry, '/entry', ID),
-      maxLaps: readNumber(v.maxLaps, '/maxLaps', { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
+      maxLaps: readNumber(v.maxLaps, '/maxLaps', { min: 1, max: RUN_RULE_LIMITS.laps, integer: true }),
       bearing: readNumber(v.bearing, '/bearing', { min: 0, max: 360, exclusiveMax: true }),
       sections: readIdentified(v.sections, '/sections', section, { max: COURSE_DOCUMENT_LIMITS.sections }),
       links: readIdentified(

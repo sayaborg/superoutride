@@ -17,20 +17,20 @@ function crossingEffect(event: RaceFacts['events'][number], race: RaceFacts): Ef
 /**
  * The one owner of a run's race effects, read from race facts after every fixed step: a signal lamp lighting, GO, the
  * player's crossings and the GOAL or GAME OVER effect, and NEW RECORD once RESULT shows it or a lap sets it. Each happening sounds once:
- * a Session's step is read once, and a new Session (a DEV rebuild) starts afresh. The outcome effect sounds on into
- * RESULT and stops when the run is left or its Session is replaced.
+ * a run's step is read once, and a new run (a DEV rebuild) starts afresh. The outcome effect sounds on into
+ * RESULT and stops when the run is left or its run is replaced.
  */
 export function createRunEffects(play: (effect: EffectRecording) => RecordingHandle) {
-  let session: object | null = null,
+  let setup: object | null = null,
     lamps = 0,
     status: RaceFacts['outcome']['status'] = 'WAITING',
     outcome: RecordingHandle | null = null;
   return {
-    /** After each fixed step: the current Session (any object identifying it) and its race facts. */
+    /** After each fixed step: the current run (any object identifying it) and its race facts. */
     step(current: object, race: RaceFacts): void {
-      if (current !== session) {
+      if (current !== setup) {
         outcome?.stop();
-        [session, lamps, status, outcome] = [current, 0, 'WAITING', null];
+        [setup, lamps, status, outcome] = [current, 0, 'WAITING', null];
       }
       const { signalLamps } = race.countdown;
       if (signalLamps > lamps) play('countdown-lamp');
@@ -48,7 +48,7 @@ export function createRunEffects(play: (effect: EffectRecording) => RecordingHan
       }
       status = next;
     },
-    /** RESULT shows the Session's outcome: `new-record` sounds once when it shows NEW RECORD. */
+    /** RESULT shows the run's outcome: `new-record` sounds once when it shows NEW RECORD. */
     result(newRecord: boolean): void {
       if (newRecord) play('new-record');
     },

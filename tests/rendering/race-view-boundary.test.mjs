@@ -8,11 +8,11 @@ import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import { resolveCourseSession } from '../../src/race/course-session.js';
-import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { resolveRunSetup } from '../../src/race/run-setup.js';
+import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
@@ -28,7 +28,7 @@ async function setup() {
   const testarossa = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const assets = createVehicleSprites(testarossa);
-  const compiledVehicle = createSessionVehicle(
+  const compiledVehicle = createRunVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
@@ -62,7 +62,7 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 
 test('the view assembles fifteen rival sprites from race observations', async () => {
   const { course, scene, compiledVehicle } = await setup();
-  const configuration = compileSessionConfiguration(
+  const configuration = compileRunConfiguration(
     {
       mode: 'FREE_PLAY',
       vehicleId: compiledVehicle.vehicleDefinition.compiledVehicle.id,
@@ -76,11 +76,11 @@ test('the view assembles fifteen rival sprites from race observations', async ()
     null,
     { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) },
   );
-  const settings = resolveCourseSession(course, null, configuration, 0, compiledVehicle, null, {
+  const settings = resolveRunSetup(course, null, configuration, 0, compiledVehicle, null, {
     rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
     vehicleOf: () => ({ vehicle: compiledVehicle }),
   });
-  const race = createCourseRace({ session: settings, runtime: scene.runtime });
+  const race = createCourseRace({ setup: settings, runtime: scene.runtime });
   assert.equal(race.rivals.length, 15);
   assert.deepEqual(race.advance({ steering: 0, throttle: false, brake: false }), { recovered: false, barriers: [] });
   const observed = race.observe();

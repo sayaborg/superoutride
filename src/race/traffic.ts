@@ -1,5 +1,5 @@
 import { mix } from './rival-exit.js';
-import type { ResolvedTraffic, TrafficCandidate } from './course-session.js';
+import type { ResolvedTraffic, TrafficCandidate } from './run-setup.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import type { LaneIntent } from './lane-following.js';
 import type { createLaneDriving } from './lane-driving.js';
@@ -22,7 +22,7 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 
-/** Salts separating the Session seed's traffic draws: the position offset and, per position, vehicle, color, lane, exits. */
+/** Salts separating the run seed's traffic draws: the position offset and, per position, vehicle, color, lane, exits. */
 const TRAFFIC_SALTS = Object.freeze({
   offset: 0x7f4a7c15,
   vehicle: 0x632be5ab,
@@ -33,7 +33,7 @@ const TRAFFIC_SALTS = Object.freeze({
 /** The 32-bit hash range, mapping a hash to [0, 1). */
 const HASH_RANGE = 2 ** 32;
 
-/** A draw for traffic position `position` from the Session seed: an integer in [0, count). */
+/** A draw for traffic position `position` from the run seed: an integer in [0, count). */
 export function trafficDraw(
   seed: number,
   kind: Exclude<keyof typeof TRAFFIC_SALTS, 'offset'>,
@@ -45,8 +45,8 @@ export function trafficDraw(
 }
 
 /**
- * The Session's traffic positions on the Route: stations `offset + k × spacing` (k = 0, 1, …) with the offset in
- * [0, spacing) drawn from the Session seed. `pass(line, visit)` visits, in order, each position the appearance line
+ * The run's traffic positions on the Route: stations `offset + k × spacing` (k = 0, 1, …) with the offset in
+ * [0, spacing) drawn from the run seed. `pass(line, visit)` visits, in order, each position the appearance line
  * has reached since the previous call; positions at or before the line at creation are never visited.
  */
 export function createTrafficPositions(traffic: ResolvedTraffic, seed: number, startLine: number) {
@@ -67,7 +67,7 @@ export interface TrafficMotion extends PresentVehicle {
 }
 
 /**
- * The Session's traffic: it appears at its positions as the appearance line, the farthest rendered station ahead of
+ * The run's traffic: it appears at its positions as the appearance line, the farthest rendered station ahead of
  * the player, reaches them, at most `limit` at once, drives as rivals do and leaves once out of view. It shares the
  * Route, the vehicle models, placement and the drivers' lane decisions with the competitors, and reads the player's
  * view (`appearanceLine`, `outOfView`).

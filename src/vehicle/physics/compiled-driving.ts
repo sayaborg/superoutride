@@ -27,7 +27,7 @@ export interface CompiledDriving {
   readonly suspensionProgression: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /**
-   * ARCADE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1; the speed cap's fraction of maximum speed at
+   * RACE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1; the speed cap's fraction of maximum speed at
    * the minimum utilization, in (0,1]; the schedule difference band and the response time constant, in seconds.
    */
   readonly rivalPace: DrivingDefinition['rivalPace'];

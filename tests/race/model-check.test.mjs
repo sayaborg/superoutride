@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
@@ -40,7 +40,7 @@ function flatWorld() {
 }
 
 for (const entry of definitions.vehicles) {
-  const model = createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT);
+  const model = createVehicleModel(createRunVehicle(entry, definitions.driving), SIM_DT);
   const limits = createVehicleLimits(model);
   const id = entry.compiledVehicle.id;
 

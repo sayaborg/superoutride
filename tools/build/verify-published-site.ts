@@ -52,7 +52,7 @@ for (let attempt = 1; attempt <= 10; attempt++) {
     );
     // The performance HUD is filled by rendered frames of the shared scene, not static HTML.
     const status = stdout.match(/<output\b[^>]*aria-label="Course performance"[^>]*>([\s\S]*?)<\/output>/)?.[1];
-    assert.ok(status && status.trim(), 'Published game did not reach its first rendered Session frame');
+    assert.ok(status && status.trim(), 'Published game did not reach its first rendered run frame');
     // The workbench's one address leads to this build's workbench, whose store is the build's published authored
     // files: the authoring core compiles them over HTTP, as the page does, into exactly the published delivery.
     const workbenchPage: URL = new URL(`build/${sha}/tools/workbench/workbench.html`, root);

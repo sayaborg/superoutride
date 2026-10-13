@@ -8,7 +8,7 @@ export interface RecordClass {
   readonly classId: string;
   /** The course's build identity. */
   readonly courseSha256: string;
-  /** The current identity of each catalog vehicle (`sessionVehicleSha256`); a record counts while its vehicle's does. */
+  /** The current identity of each catalog vehicle (`runVehicleSha256`); a record counts while its vehicle's does. */
   readonly vehicleSha256: ReadonlyMap<string, string>;
 }
 

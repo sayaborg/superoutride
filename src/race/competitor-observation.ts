@@ -3,7 +3,7 @@ import type { PowertrainShiftObservation } from '../vehicle/physics/automatic-po
 import type { VehicleMotionRead, VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
-import type { SessionVehicle } from '../content/session-vehicle.js';
+import type { RunVehicle } from '../content/run-vehicle.js';
 
 /**
  * One competitor's values for display, camera and audio, copied by the race at the end of every fixed
@@ -15,7 +15,7 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
   readonly vehicleId: string;
   /** The color of the vehicle's sprite set this competitor is drawn in. */
   readonly color: string;
-  readonly form: SessionVehicle['vehicleDefinition']['listing']['form'];
+  readonly form: RunVehicle['vehicleDefinition']['listing']['form'];
   readonly y: number;
   readonly brakeLampOn: boolean;
   /** Speed over ground, m/s. */

@@ -22,7 +22,7 @@ import type { runCourseReference } from './reference-run.js';
  * The measured products saved under `content/`: each course's racing lines and, for each course a class runs, the
  * reference times and pace schedules of every vehicle a class runs there, which the measurement tool writes and builds
  * admit. A reference run depends on the course, the vehicle and the procedure alone (it drives the course's `maxLaps`,
- * and a Session reads the laps it runs), so classes sharing a course and vehicle share one measurement.
+ * and a run reads the laps it runs), so classes sharing a course and vehicle share one measurement.
  */
 export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 2 } as const);
 
@@ -151,7 +151,7 @@ export function referenceTimes(saved: SavedReferenceVehicle): CourseReferenceTim
   });
 }
 
-/** The delivered pace schedule of a course and Session vehicle from its saved times. */
+/** The delivered pace schedule of a course and run vehicle from its saved times. */
 export function deliveredSchedule(courseBuildSha256: string, vehicleSha256: string, schedule: SavedPaceSchedule) {
   return { ...PACE_SCHEDULE_FORMAT, courseBuildSha256, vehicleSha256, spacing: PACE_SCHEDULE_SPACING, ...schedule };
 }
@@ -175,7 +175,7 @@ function readUnder<T>(base: string, result: AdmissionResult<T>): T {
 
 /**
  * Admit a course's saved reference times against the compiled course, the reference run's identity and the vehicles
- * the classes run there with their Session vehicle identities, in catalog order: every entry current, every budget
+ * the classes run there with their run vehicle identities, in catalog order: every entry current, every budget
  * landmark's times positive with one per lap, and each pace schedule what the delivered schedule admits.
  */
 export function readSavedReferenceTimes(

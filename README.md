@@ -17,14 +17,14 @@ npm test
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. Build stages saved content, completed sprites and Session data under
+Open `http://localhost:8000/`. Build stages saved content, completed sprites and run data under
 `dist/delivery/`. Strip constructs compile to immutable color and material fields before driving starts.
 The product display setting defaults to LEVEL-POINT; DEV provides its live selector.
 [Architecture](docs/architecture.md#strip-rendering) defines the three available methods.
 
 ## Controls and authoring
 
-[Browser](docs/browser.md) defines keyboard/touch operation, Session setup, URLs and DEV controls.
+[Browser](docs/browser.md) defines keyboard/touch operation, run setup, URLs and DEV controls.
 [Development](docs/development.md) lists course compilation, PNG previews, reports and graphics tools. Authored content lives under `content/`; generated outputs are disposable.
 
 ## Structure

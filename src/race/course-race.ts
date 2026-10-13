@@ -1,4 +1,4 @@
-import type { ResolvedCourseSession, SessionEntry } from './course-session.js';
+import type { RunSetup, RunEntry } from './run-setup.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -22,7 +22,7 @@ import {
   type VehicleActor,
   type VehicleDriving,
 } from './present-vehicle.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { createRivalPace } from './rival-pace.js';
 import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
@@ -70,29 +70,29 @@ interface RivalPacing {
 
 /**
  * Field composition over shared course readers, ordinary mechanics and ordered physical gates. The race
- * builds every competitor's mechanics, the player's included, from its Session entry's vehicle and each
+ * builds every competitor's mechanics, the player's included, from its run entry's vehicle and each
  * rival's driver from its entry's vehicle; callers supply the player's input only.
  */
 export function createCourseRace(options: {
-  readonly session: ResolvedCourseSession;
+  readonly setup: RunSetup;
   readonly runtime: RouteRuntime;
-  /** The target exit at each fork occurrence of the player's Session driver, which drives the player on request. */
+  /** The target exit at each fork occurrence of the player's run driver, which drives the player on request. */
   readonly playerExit?: (occurrence: RouteOccurrence) => number;
   /**
    * The steering rule the player drives by while the player's own input reaches its vehicle; the default rule when
-   * absent. A driver, the player's Session driver included, drives by its own rule.
+   * absent. A driver, the player's run driver included, drives by its own rule.
    */
   readonly playerSteering?: SteeringRule;
 }) {
-  const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.session;
+  const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.setup;
   const { initialSpeed } = configuration;
   const { runtime } = options;
-  // Entries sharing a vehicle share its model, which the Session built, and unpaced entries sharing a vehicle share its
+  // Entries sharing a vehicle share its model, which the run built, and unpaced entries sharing a vehicle share its
   // fixed driver. A driver drives by its own steering rule; a vehicle no driver drives, by the default rule, resolved
   // once on each model's vehicle.
   const defaultSteerings = new Map<VehicleModel, Readonly<DriverSteering>>();
-  const modelOf = (vehicle: SessionEntry['vehicle']) => {
-    const { model } = options.session.mechanicsOf(vehicle);
+  const modelOf = (vehicle: RunEntry['vehicle']) => {
+    const { model } = options.setup.mechanicsOf(vehicle);
     if (!defaultSteerings.has(model))
       defaultSteerings.set(model, driverSteering(vehicle.drivingDefinition.compiledDriving.defaultSteering, model));
     return model;
@@ -100,9 +100,9 @@ export function createCourseRace(options: {
   const defaultSteering = (model: VehicleModel) => defaultSteerings.get(model)!;
   const steeringOf = (body: PresentVehicle) => body.driving?.driver.steering ?? defaultSteering(body.model);
   // An entry with a pace ratio drives its own driver at the utilization and speed cap its pace sets; the others share
-  // their vehicle's fixed driver, which the Session compiled.
-  const drivingOf = (entry: SessionEntry) => {
-    if (entry.pace === null) return { driver: options.session.driverOf(entry.vehicle), pace: null, set: null };
+  // their vehicle's fixed driver, which the run compiled.
+  const drivingOf = (entry: RunEntry) => {
+    if (entry.pace === null) return { driver: options.setup.driverOf(entry.vehicle), pace: null, set: null };
     if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
     const pace = createRivalPace(
       runtime.route,
@@ -111,7 +111,7 @@ export function createCourseRace(options: {
       entry.vehicle.drivingDefinition.compiledDriving.rivalPace,
       SIM_DT,
     );
-    const { model, limits, speedCap } = options.session.mechanicsOf(entry.vehicle);
+    const { model, limits, speedCap } = options.setup.mechanicsOf(entry.vehicle);
     const variable = createVariablePlannedDriver(model, limits, pace.utilization, pace.speedFraction * speedCap, true);
     const set = (utilization: number, speedFraction: number) => variable.set(utilization, speedFraction * speedCap);
     return { driver: variable.driver, pace, set };
@@ -123,7 +123,7 @@ export function createCourseRace(options: {
   // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
   const routes = enumerateCourseRoutes(course.entry, course.type);
   // The fork field is the fork decider: the only holder of the Route's selection authority.
-  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor, options.session.racingLines);
+  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor, options.setup.racingLines);
   // A circuit's lap: its Sections around the cycle from the entry.
   let lapLength: number | null = null;
   if (course.type === 'CIRCUIT') {
@@ -155,7 +155,7 @@ export function createCourseRace(options: {
     actor: VehicleActor,
     driving: VehicleDriving | null,
     pacing: RivalPacing | null,
-    stages: SessionEntry['stages'],
+    stages: RunEntry['stages'],
   ) => {
     // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of the lane nearest it.
     const recoveryIntent = driving?.intent ?? null;
@@ -176,11 +176,11 @@ export function createCourseRace(options: {
       /** The stages this competitor takes part in; null for the whole run. */
       stages,
       /**
-       * Whether the competitor is in the Session: one that has not yet appeared or has left is never moved, ranked,
+       * Whether the competitor is in the run: one that has not yet appeared or has left is never moved, ranked,
        * judged, drawn or voiced.
        */
       present: stages === null || stages.first === 1,
-      /** Whether the competitor has entered the Session; its leaving is final. */
+      /** Whether the competitor has entered the run; its leaving is final. */
       appeared: stages === null || stages.first === 1,
       observer: createRouteProgress(lines, body.vehicle.course),
       get progress() {
@@ -205,9 +205,9 @@ export function createCourseRace(options: {
       },
     };
   };
-  // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the Session's start speed,
+  // Every competitor drives the model of its entry's vehicle, spawned at its grid slot with the run's start speed,
   // or, appearing ahead, where and as fast as it appears.
-  const spawn = (entry: SessionEntry, at: { s: number; l: number; initialSpeed: number }): VehicleActor => {
+  const spawn = (entry: RunEntry, at: { s: number; l: number; initialSpeed: number }): VehicleActor => {
     const model = modelOf(entry.vehicle);
     const vehicle = createVehicle(model, runtime.readers, at);
     return { vehicle, model, recovery: createRecoveryState(vehicle) };
@@ -217,7 +217,7 @@ export function createCourseRace(options: {
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
   // BRAKE!! for the player, planned with its vehicle's mechanics.
-  const brakeSign = createBrakeSign(runtime.readers, runtime.window, options.session.mechanicsOf(playerEntry!.vehicle));
+  const brakeSign = createBrakeSign(runtime.readers, runtime.window, options.setup.mechanicsOf(playerEntry!.vehicle));
   // The player's own steering rule on its vehicle, resolved once; its driver's rule while a driver drives it.
   const playerOwnSteering = options.playerSteering
     ? driverSteering(options.playerSteering, playerActor.model)
@@ -226,14 +226,14 @@ export function createCourseRace(options: {
   for (const entry of rivalEntries)
     if (entry.ahead && entry.ahead.distance > runtime.coverage.forwardMeters - runtime.coverage.maximumStepMeters)
       throw new RangeError(`${entry.id}: an ahead appearance beyond the loaded Route`);
-  // ARCADE rank limits judge the player against every other competitor's crossings.
+  // RACE rank limits judge the player against every other competitor's crossings.
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
     // A grid rival starts in the lane nearest its slot; an ahead entry names its lane.
-    // The race assigns each rival's target exits from the Session seed; its grid side implies none.
+    // The race assigns each rival's target exits from the run seed; its grid side implies none.
     const exit = (occurrence: RouteOccurrence) =>
-      rivalExit(options.session.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
+      rivalExit(options.setup.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
     // An ahead entry's lane is read where it appears; until then nothing reads it.
     const intent: LaneIntent = entry.slot ? { lane: LINE, at: 0, exit } : { lane: entry.ahead!.lane, at: 0, exit };
     // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
@@ -257,7 +257,7 @@ export function createCourseRace(options: {
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
   const competitors = [player, ...rivals];
-  // The competitors present in the Session, the player first, in competitor order, and their present vehicles.
+  // The competitors present in the run, the player first, in competitor order, and their present vehicles.
   let active = competitors.filter((c) => c.present);
   let activeBodies = active.map((c) => c.body);
   // Every vehicle present: the present competitors, then the traffic. Contacts, sightings and placement read it.
@@ -267,9 +267,9 @@ export function createCourseRace(options: {
     bodies.length = 0;
     bodies.push(...activeBodies, ...traffic);
   };
-  // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the Session's
+  // Body contacts push present vehicles apart, by one face rule for every pair (fixed objects included); the run's
   // driving definition holds the spring-damper.
-  const contactFaces = createContactFaces(runtime.readers.coordinates, options.session.bodyContact);
+  const contactFaces = createContactFaces(runtime.readers.coordinates, options.setup.bodyContact);
   // The player's contacts of each step, published at its end.
   const contactLog = createContactLog(player.id);
   let playerContacts: PlayerContacts = contactLog.publish();
@@ -278,7 +278,7 @@ export function createCourseRace(options: {
   const barrierContacts = createBarrierContacts(
     runtime.readers.coordinates,
     runtime.window,
-    options.session.bodyContact,
+    options.setup.bodyContact,
     contactFaces,
     SIM_DT,
     contactLog,
@@ -381,9 +381,9 @@ export function createCourseRace(options: {
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
   const trafficField = createTrafficField({
-    traffic: options.session.traffic,
-    seed: options.session.seed,
-    limit: SESSION_RULE_LIMITS.traffic,
+    traffic: options.setup.traffic,
+    seed: options.setup.seed,
+    limit: RUN_RULE_LIMITS.traffic,
     runtime,
     forks,
     modelOf,
@@ -451,9 +451,9 @@ export function createCourseRace(options: {
   let events = noEvents;
   const stepEvents: RaceEvent[] = [];
 
-  // The player's driving after its finish: its vehicle's Session driver, in the lane nearest the position it finished
+  // The player's driving after its finish: its vehicle's run driver, in the lane nearest the position it finished
   // at, planning a stop at its runout distance past the finish, within any Route terminal.
-  const takeoverDriver = options.session.driverOf(playerEntry!.vehicle);
+  const takeoverDriver = options.setup.driverOf(playerEntry!.vehicle);
   const takeoverWorkspace = createPlannedDriverWorkspace();
   const takeoverIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
@@ -471,7 +471,7 @@ export function createCourseRace(options: {
       target: (station: number) => forks.targetL(station, takeoverIntent),
     };
   };
-  // Before GOAL the player's Session driver drives the player when the composition asks (an advance without input), as
+  // Before GOAL the player's run driver drives the player when the composition asks (an advance without input), as
   // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
   const playerIntent: LaneIntent = { lane: LINE, at: 0, exit: options.playerExit ?? (() => 0) };
   const playerWorkspace = createPlannedDriverWorkspace();
@@ -663,12 +663,12 @@ export function createCourseRace(options: {
     get stage() {
       return playerGates + 1;
     },
-    /** The player's LAP on a CIRCUIT: one more than its accepted finishes, at most the Session's lap count if any. */
+    /** The player's LAP on a CIRCUIT: one more than its accepted finishes, at most the run's lap count if any. */
     get lap() {
       return Math.min(configuration.lapCount ?? Infinity, player.progress.acceptedFinishCount + 1);
     },
     /**
-     * The player's rank among the competitors present in the Session (`rankRaceProgress`) and their count: the one
+     * The player's rank among the competitors present in the run (`rankRaceProgress`) and their count: the one
      * standing every display reads.
      */
     get standing(): { readonly rank: number; readonly count: number } {
@@ -743,7 +743,7 @@ export function createCourseRace(options: {
     },
     start: () => startPhase.begin(),
     /**
-     * Whether the player can end the run now: a running run without a finish (its Session has no lap count), which
+     * Whether the player can end the run now: a running run without a finish (its run has no lap count), which
      * ends only so.
      */
     get endable(): boolean {
@@ -757,7 +757,7 @@ export function createCourseRace(options: {
     forks,
     /**
      * One fixed step of SIM_DT; the race takes no step length. `input` is the player's; null hands the player to its
-     * Session driver for the step (the player's own input resumes when one is given).
+     * Run driver for the step (the player's own input resumes when one is given).
      */
     advance(input: DrivingInput | null) {
       stepObservation.recovered = false;

@@ -12,7 +12,7 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { SESSION_RULE_LIMITS, type TrafficSettings } from '../course/session-rules.js';
+import { RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid } from '../course/compiler/course-rules.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -33,7 +33,7 @@ export const SERIES_DOCUMENT_VERSION = 13;
 const PLAYER_SLOTS = ['own', 'last'] as const;
 
 /**
- * One series: a named set of classes, the one owner of its classes, its ARCADE races. It holds no rule values; every
+ * One series: a named set of classes, the one owner of its classes, the races it runs. It holds no rule values; every
  * rule is its classes'. `dev` series appear only with DEV.
  */
 export interface CompiledSeries {
@@ -76,7 +76,7 @@ export interface StageInterval {
   readonly last: number;
 }
 
-/** One ARCADE race of a series: its course, laps, vehicle candidates, field and traffic. */
+/** One race of a series: its course, laps, vehicle candidates, field and traffic. */
 export interface SeriesClass {
   readonly series: CompiledSeries;
   /** Unique within its series. */
@@ -85,7 +85,7 @@ export interface SeriesClass {
   readonly title: string;
   readonly course: string;
   readonly laps: number;
-  /** ARCADE vehicle candidates in selection order. */
+  /** RACE vehicle candidates in selection order. */
   readonly vehicles: readonly VehicleId[];
   /** The whole field, grid entries in grid order; the player takes the rearmost grid entry of its vehicle. */
   readonly entries: readonly SeriesEntry[];
@@ -93,9 +93,9 @@ export interface SeriesClass {
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
-  /** The course's ARCADE traffic; null for none. */
+  /** The course's RACE traffic; null for none. */
   readonly traffic: TrafficSettings | null;
-  /** The clock's margin over the reference times: positive and at most `SESSION_RULE_LIMITS.timeMargin`. */
+  /** The clock's margin over the reference times: positive and at most `RUN_RULE_LIMITS.timeMargin`. */
   readonly timeMargin: number;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
   readonly fixedColors: boolean;
@@ -222,17 +222,17 @@ function readSeries(
         id: readString(entry.id, `${at}/id`),
         title: readString(entry.title, `${at}/title`),
         course,
-        laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: SESSION_RULE_LIMITS.laps, integer: true }),
+        laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: RUN_RULE_LIMITS.laps, integer: true }),
         vehicles,
         entries: readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf),
         playerSlot: readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`),
         rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
-          readNumber(limit, path, { min: 1, max: SESSION_RULE_LIMITS.rivals, integer: true }),
+          readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
         ),
         traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
         timeMargin: readNumber(entry.timeMargin, `${at}/timeMargin`, {
           min: 0,
-          max: SESSION_RULE_LIMITS.timeMargin,
+          max: RUN_RULE_LIMITS.timeMargin,
           exclusiveMin: true,
         }),
         fixedColors: readBoolean(entry.fixedColors, `${at}/fixedColors`),
@@ -274,7 +274,7 @@ function readEntries(
         requireAdmission(record.ahead === null, 'invalid_value', `${at}/ahead`, 'A grid entry has no ahead appearance');
         const slot = readNumber(record.slot, `${at}/slot`, {
           min: 0,
-          max: SESSION_RULE_LIMITS.competitors - 1,
+          max: RUN_RULE_LIMITS.competitors - 1,
           integer: true,
         });
         requireAdmission(
@@ -300,7 +300,7 @@ function readEntries(
         }),
       });
     },
-    { min: 1, max: SESSION_RULE_LIMITS.competitors },
+    { min: 1, max: RUN_RULE_LIMITS.competitors },
   );
   for (const candidate of candidates)
     requireAdmission(
@@ -312,7 +312,7 @@ function readEntries(
   return entries;
 }
 
-/** Traffic settings: a density within the Session rule ceiling, unique catalog vehicles and a speed in km/h. */
+/** Traffic settings: a density within the run rule ceiling, unique catalog vehicles and a speed in km/h. */
 function readTraffic(
   value: unknown,
   path: string,
@@ -334,7 +334,7 @@ function readTraffic(
     density: readNumber(record.density, `${path}/density`, {
       min: 0,
       exclusiveMin: true,
-      max: SESSION_RULE_LIMITS.trafficDensity,
+      max: RUN_RULE_LIMITS.trafficDensity,
     }),
     vehicles,
     speedKilometersPerHour: readNumber(record.speedKilometersPerHour, `${path}/speedKilometersPerHour`, {
@@ -421,7 +421,7 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
  * entry's slot is in the grid its field starts from (`courseStartGrid`), a field that is not all bikes has no bike
  * candidate on a course with a bike grid (whose reference run starts from that grid), every ahead entry's lane exists
  * in every Section of the course, and each rank limit names a race gate of the course with N below the field size. The
- * build admits every class; a Session admits the class it drives.
+ * build admits every class; a run admits the class it drives.
  */
 export function admitSeriesClass(
   settings: SeriesClass,

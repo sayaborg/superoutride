@@ -1,10 +1,10 @@
 import type { CourseIndex } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog, SeriesClass } from '../content/series-catalog.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
-import { gridRivalCapacity } from '../race/session-configuration.js';
-import { sessionPlayerColor } from '../race/course-session.js';
+import { gridRivalCapacity } from '../race/run-configuration.js';
+import { runPlayerColor } from '../race/run-setup.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -68,7 +68,7 @@ export interface SelectionCatalog {
   readonly dev: boolean;
   /** The title logo, which TITLE shows. */
   readonly logo: TilePicture;
-  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
+  /** Each catalog vehicle's identity (`runVehicleSha256`), which records are kept against. */
   readonly vehicleSha256: ReadonlyMap<string, string>;
 }
 
@@ -143,11 +143,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     // The SELECT MUSIC choice; null is MUSIC OFF.
     track: string | null = null,
     lapCount = latestCount('laps', 1, Infinity) ?? 1,
-    rivalCount = latestCount('rivals', 0, SESSION_RULE_LIMITS.rivals) ?? 0,
+    rivalCount = latestCount('rivals', 0, RUN_RULE_LIMITS.rivals) ?? 0,
     rivalPool = pools.find((pool) => pool === latest('pool')) ?? pools[0]!,
     traffic = trafficLevels.find((level) => level === latest('traffic')) ?? NO_TRAFFIC;
-  // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
-  const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
+  // The most rivals a course's grid holds within the run rules: the RIVALS range, which a course change keeps to.
+  const maxRivals = (id: string) => Math.min(RUN_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
   // The tracks the run offers besides MUSIC OFF: SELECT MUSIC is shown only when there are two or more choices.
   const tracks = () => offeredTracks(place === 'FREE_PLAY' ? null : seriesChoice, music);
   const needed = (at: Step) =>
@@ -405,8 +405,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: place === 'SERIES' && classChoice!.fixedColors,
-              // The color the Session gives the player: with fixed colors its class entry's.
-              colorOf: (v) => sessionPlayerColor(place === 'SERIES' ? classChoice : null, v, recordedColor(player, v)),
+              // The color the run gives the player: with fixed colors its class entry's.
+              colorOf: (v) => runPlayerColor(place === 'SERIES' ? classChoice : null, v, recordedColor(player, v)),
               entry: last(),
               // In a series the page stands over the series image at quarter brightness.
               background: place === 'SERIES' ? seriesChoice!.image : null,

@@ -34,8 +34,8 @@ steps and never rejects a driving definition.
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
 | Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01           |
 | Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
-| Rival pace | UMIN  | `rivalPace.minimumUtilization`              | ARCADE rival minimum driving utilization     | 0.55    | 0.30–1.00 / 0.05           |
-| Rival pace | UMAX  | `rivalPace.maximumUtilization`              | ARCADE rival maximum driving utilization     | 0.95    | 0.30–1.00 / 0.05           |
+| Rival pace | UMIN  | `rivalPace.minimumUtilization`              | RACE rival minimum driving utilization       | 0.55    | 0.30–1.00 / 0.05           |
+| Rival pace | UMAX  | `rivalPace.maximumUtilization`              | RACE rival maximum driving utilization       | 0.95    | 0.30–1.00 / 0.05           |
 | Rival pace | VMIN  | `rivalPace.minimumSpeedFraction`            | Rival speed cap at UMIN, × maximum speed     | 0.85    | 0.50–1.00 / 0.05           |
 | Rival pace | BAND  | `rivalPace.bandSeconds`                     | Schedule difference from UMIN to UMAX target | ±2.0 s  | 0.5–10.0 s / 0.5 s         |
 | Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
@@ -63,7 +63,7 @@ step positions. From any finite value, + moves to the smallest grid value above 
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the
 player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
-leaves the definition unchanged) and rebuilds the Session around a Session vehicle driving it
+leaves the definition unchanged) and rebuilds the run around a run vehicle driving it
 ([Browser](browser.md#dev-controls)).
 
 Tuned values reach the product only through the definition files. DEV EXPORT downloads the tuned
@@ -120,7 +120,7 @@ is its steady speed on a level straight of unit grip without rolling resistance,
 
 | Setting               | Value | Meaning                                                                                             |
 | --------------------- | ----- | --------------------------------------------------------------------------------------------------- |
-| Rival utilization     | 0.75  | Utilization of unpaced rivals, traffic and the player's Session driver (the takeover after GOAL)    |
+| Rival utilization     | 0.75  | Utilization of unpaced rivals, traffic and the player's run driver (the takeover after GOAL)        |
 | Reference utilization | 0.9   | Offline reference driver's utilization                                                              |
 | Following time        | 1.5 s | Drivers' following time (`PLANNED_DRIVER.followSeconds`)                                            |
 | Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`PLANNED_DRIVER.terminalClearance`) |

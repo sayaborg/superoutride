@@ -314,11 +314,11 @@ opposite of the push on the vehicle as its horizontal force, and an upward force
 `tan(launchDegrees)`, as the velocity change of that one step, and its contacts end. Flying, it is a point under gravity
 alone (`VEHICLE_GRAVITY`) on its route position and height, at constant horizontal speed, stepped with the fixed step;
 walls, limits and other objects do not act on it. In the step its height reaches the road height at its station it
-lands: it stays there, no longer solid, for the rest of the Session, outside the Route or off any material included. The
+lands: it stays there, no longer solid, for the rest of the run, outside the Route or off any material included. The
 race publishes each knocked object's Section, placement index, state (flying or landed) and place: its route position
 and height while flying, and once landed the Section and Section coordinates it lies at.
 
-### Section gates and Session settings
+### Section gates and run settings
 
 Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position; a grid slot's
 `lane` names a lane of the entry Section, and the slot lies at that lane's centre. Only checkpoint and finish gates have IDs, and
@@ -333,15 +333,15 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 | `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 
-A start gate has two grids, each a list of slots `{at, lane}`: `grid` serves every Session, and `bikeGrid`, when it
-is not null, serves a Session whose competitors all ride bikes, in place of `grid`; a Session with a car starts from
-`grid`. Which one a Session starts from thus depends only on its field's vehicles, in every mode (`courseStartGrid`).
+A start gate has two grids, each a list of slots `{at, lane}`: `grid` serves every run, and `bikeGrid`, when it
+is not null, serves a run whose competitors all ride bikes, in place of `grid`; a run with a car starts from
+`grid`. Which one a run starts from thus depends only on its field's vehicles, in every mode (`courseStartGrid`).
 Slots are listed in grid order, from the front of the grid to its back: their route s never increases along the list.
-A grid may hold more slots than a Session's sixteen competitors (`startGridSlots`, 32); a Session uses only its first
-sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A Session's field takes the
+A grid may hold more slots than a run's sixteen competitors (`startGridSlots`, 32); a run uses only its first
+sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A run's field takes the
 rearmost of the slots it uses: the rivals in order, then the player in its last slot. Each slot of either grid must be
 in a lane wider than zero there, on supported material, at/after entry and before the first checkpoint, finish or lock
-gate; a grid has at least one slot. The grid a Session starts from must hold its entries. Starting velocity is zero.
+gate; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
 A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
@@ -349,14 +349,14 @@ closure geometry; the appearance compiler checks conditional signs against it. A
 lock or closure gates.
 
 `entry` names the Section a run enters. `maxLaps` is a position-free setting: an integer from 1 through 99;
-non-circuits use 1. [Series](#series-documents) own ARCADE settings. `bearing` is the compass direction of the road at
+non-circuits use 1. [Series](#series-documents) own RACE settings. `bearing` is the compass direction of the road at
 the entry Section's origin, degrees clockwise from north in `[0, 360)`: presentation data that only the
 [course map](browser.md#screens) reads, published as the compiled course's `bearing`. TSUKUBA's is 12 (the home
 straight toward turn 1, from Drogger's detection point list; provisional); the other courses' are 0.
 
 A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
-and time budgets for those courses only, and only a class offers ARCADE, TIME ATTACK and the checkpoint clock. An
-untimed course runs FREE PLAY Sessions only. Compilation requires the start, grid and finish coverage described
+and time budgets for those courses only, and only a class offers RACE, TIME ATTACK and the checkpoint clock. An
+untimed course runs FREE PLAY runs only. Compilation requires the start, grid and finish coverage described
 above for every course; each grid holds at least the player. Compiled `rules` retain `maxLaps`;
 compiled `gates` provide the resolved grids (`grid`, and `bikeGrid` or null) and per-Section landmark intervals to race
 and tools.
@@ -375,7 +375,7 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | Sprite body `movable`            | A fixed object                                            |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
 | Solid wall `freeStart`/`freeEnd` | That end joins a course limit or another solid wall       |
-| Start `bikeGrid`                 | `grid` serves every Session, a field of bikes included    |
+| Start `bikeGrid`                 | `grid` serves every run, a field of bikes included        |
 
 ### Numeric and resource domains
 
@@ -430,7 +430,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `coefficientBytes`                                              |              1 GiB | Moving-edge 21 km probe used about 121 MiB in one phase; both phases measured 1.9–2.0× on the development courses then delivered, about 242 MiB; ×2 length and ×2 Strip complexity, rounded up |
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                                                                                          |
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                                                                                            |
-| Start gate `startGridSlots` (each grid)                                 |                 32 | `SESSION_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a Session uses                                                                               |
+| Start gate `startGridSlots` (each grid)                                 |                 32 | `RUN_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a run uses                                                                                       |
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                                                                                                      |
 | `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                                                                                         |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                                                                                                      |
@@ -464,8 +464,8 @@ the earlier (`invalid_position` otherwise). So a Position is written one way, an
 when the road before it is edited. Stations must lie in the finite Section and intervals must be
 positively representable. Resolved Lateral values also obey the lateral ceiling.
 Palette size, RGB555 range, SHA-256 length, glyph dimensions and angle units
-are format values, not entries in the resource table. Session rival/lap/time-margin rules remain owned by
-`SESSION_RULE_LIMITS`, shared with Session admission and controls rather than copied into document limits.
+are format values, not entries in the resource table. Run rival/lap/time-margin rules remain owned by
+`RUN_RULE_LIMITS`, shared with run admission and controls rather than copied into document limits.
 
 Limit-only revisions retain the format version. The compiler identity identifies compiled products: it advances
 when a revision can change the product of an accepted input, and a revision that only narrows admission keeps it,
@@ -669,7 +669,7 @@ from +x in degrees, from −360 to 360.
 CompiledCourse contains canonical Section, plan segment, Boundary, lane, Link,
 asset and landmark references plus immutable material tables. Merges reuse the same successor; loops refer to the same source.
 Owned records and arrays are immutable, including nested image data. Live actor, route-lock and
-clock state belong to Sessions. Object identity is local to a compilation; cross-build identity uses digests.
+clock state belong to runs. Object identity is local to a compilation; cross-build identity uses digests.
 
 `sourceSha256` and `materialsSha256` are the delivered SHA-256 of the course document and the
 surface-material document, the [document identity](#reference-times-and-clock) the catalog supplies.
@@ -722,7 +722,7 @@ and incoming Link distinguish repeated visits and retain the selected predecesso
 extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
-A driving scene requires Session settings and compiled start gates, and checks the rearmost grid
+A driving scene requires run settings and compiled start gates, and checks the rearmost grid
 station against the camera's distance behind the player (`D_cam`, 6 m with the product camera): the rearmost slot
 must be at least that far from the entry. Driving beyond the entry uses the same coordinate-domain recovery rule
 as any other domain exit. Recovery preserves
@@ -772,7 +772,7 @@ that road. A grid rival starts in its
 slot's lane, the lane nearest its slot (`intentLane`), and the player's driver and takeover start in the lane nearest
 the player. The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
-Session seed:
+Run seed:
 
 ```text
 exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
@@ -781,7 +781,7 @@ exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
 `hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
 the same exits. Reference runs intend each planned Link's exit and change no lanes: their target is the racing line toward the
 planned Link at each fork (the reference line). Scenarios drive the player by
-its Session driver and name their exit indices. Unselected roads show saved state-selected signs. At/beyond closure, an
+its run driver and name their exit indices. Unselected roads show saved state-selected signs. At/beyond closure, an
 actor is on a closed road when its l lies within a road there that the selected Link does not leave by (edges
 included). It recovers at the same chainage to the nearest lane centre of the selected road; progress observations
 resynchronize. Geometry stays static.
@@ -837,29 +837,29 @@ event, its last crossing (no crossing follows a finish), recorded once in its cr
 ending time is the race clock's, which stops at the ending: the race publishes it as the ending's race time, which
 at GOAL is the player's finish crossing. RESULT and records read that one value.
 
-The state before GO has one owner, the start phase: WAITING until the Session starts, then READY for the 3-second
+The state before GO has one owner, the start phase: WAITING until the run starts, then READY for the 3-second
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
 GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. At the end of each running step the earliest
 ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending; the race
 publishes the ending's race time. The
 player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
-failure. A run without a finish (a Session with no lap count, TIME ATTACK on a CIRCUIT) has no GOAL: its finish lines
+failure. A run without a finish (a run with no lap count, TIME ATTACK on a CIRCUIT) has no GOAL: its finish lines
 count laps and it runs until the player ends it. The race publishes whether the run can be ended so (`endable`: such a
 run, RUNNING) and ends it between steps (`end`), ENDED at the race time of that moment.
 
 After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
 therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
-their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's Session
-driver at the fixed Session driver utilization (0.75) drives it in the lane nearest the position it finished at
+their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's run
+driver at the fixed run driver utilization (0.75) drives it in the lane nearest the position it finished at
 (on a fork, in the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
 (`speedCap² / (2*a)`, as admitted), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
 
-Rank limits are ARCADE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
+Rank limits are RACE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
 lap's crossing is judged once: the player fails at the race time of the N-th crossing of that gate and lap by
-another competitor before the player's own, read from the ordered event stream. Every competitor in the Session
+another competitor before the player's own, read from the ordered event stream. Every competitor in the run
 counts; an exact tie in event time goes to the player.
 
 The race and clock publish facts only, never display text or display durations. The race exposes one run status
@@ -881,15 +881,15 @@ For records the race also publishes each competitor's race time at every race li
 checkpoint and FINISH line, every lap, in order) and the FINISH gate it finished at, and the route the Route is
 taking, named as reference runs name routes: the Link IDs of the one enumerated course route (`enumerateCourseRoutes`)
 that holds every Link the Route has appended, empty on a CIRCUIT, and null while more than one route still does.
-The run's other identities already exist: the compiled course's build identity and the Session vehicle's identity
-(`sessionVehicleSha256`), which time budgets also carry. The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
+The run's other identities already exist: the compiled course's build identity and the run vehicle's identity
+(`runVehicleSha256`), which time budgets also carry. The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
 base for displays timed across the ending, and stamps each competitor observation's latest shift with it. The shell
 derives the HUD and RESULT from these facts ([Browser](browser.md#hud)).
 
 Stages count race gates: the player's STAGE is one more than the race gates (checkpoints and FINISH lines) the
 player has crossed since GO, continuing across laps and counted by number whichever branch the route takes. STAGE
 k runs from the (k−1)-th gate to the k-th; STAGE 1 runs from GO to the first gate. A competitor whose entry has a
-stage interval is present in the Session until the player has crossed its last stage's closing gate and the
+stage interval is present in the run until the player has crossed its last stage's closing gate and the
 competitor is out of view: behind the camera, or farther from it than the farthest rendered depth, both read from
 the camera window in the Route runtime's loading coverage. Leaving is final. A competitor that is not present is not
 moved, ranked, judged by rank limits, counted for fork arrival, observed, drawn or voiced; the race exposes each
@@ -907,7 +907,7 @@ the gap Δs and the appearing speed `v`,
 `v_b² > v² + 2 × a_b × max(0, Δs − (L₁ + L₂)/2 − terminalClearance − v_b × responseSeconds − v × followSeconds)`,
 the same constraint the drivers plan with. A vehicle behind whose driver passes (a rival, or the player's
 takeover after GOAL) moves aside or matches the new vehicle's speed, and the player avoids it, so neither holds an
-appearance back, however close. Session assembly rejects an ahead distance beyond the Route kept loaded ahead of
+appearance back, however close. Run assembly rejects an ahead distance beyond the Route kept loaded ahead of
 the player (the loading coverage's forward distance less one step).
 
 Ranking is one race-layer function (`rankRaceProgress`). Finished actors rank first by finish time. Unfinished
@@ -917,7 +917,7 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 13) is the one owner of its classes, its ARCADE races. A series
+A series document (`superoutride.series` version 13) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
@@ -956,8 +956,8 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 [screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
 plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
 ([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV; it is
-visibility, not a rule. `classes` lists at least one class in selection order. A class is one ARCADE race: its `id`,
-unique within the series, its display name `title`, a delivered `course`, its `laps` (1 through 99), its ARCADE vehicle
+visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
+unique within the series, its display name `title`, a delivered `course`, its `laps` (1 through 99), its RACE vehicle
 candidates `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`,
 `rankLimits`, `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)),
 `timeMargin`, the clock's margin (positive, finite and at most 10), and `fixedColors`, whether the player drives in
@@ -980,7 +980,7 @@ not all bikes on a course with a bike grid (below, [Measured products](#measured
 fewest lanes of the
 course's Sections, and rank limits naming checkpoint or FINISH gates of that course
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
-Session admits the class it drives.
+Run admits the class it drives.
 
 The delivered series are TSUKUBA CLUBMAN, the first product series, OUTRUN TEST, a working series offered without DEV,
 and TRIAL, a development series; each
@@ -1008,19 +1008,19 @@ FreePlay {
 `rivalPools` are the POOL choices in order: each an uppercase ID and the nonempty, unique vehicle forms (`car`, `bike`)
 it draws from. Each form has a pool of that form alone, the default pool of a vehicle of that form. `traffic` are the
 TRAFFIC levels after OFF, in order: each an uppercase ID other than `OFF` and a density in vehicles per kilometre in
-(0, 40] (`SESSION_RULE_LIMITS.trafficDensity`). `trafficSpeedKilometersPerHour` is the one traffic speed, in
+(0, 40] (`RUN_RULE_LIMITS.trafficDensity`). `trafficSpeedKilometersPerHour` is the one traffic speed, in
 (0, 864]. Admission checks the document once, from the build's file or the delivery manifest alike. The delivered
 document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 vehicles/km) and HIGH (30) and 80 km/h.
 
-## Session and reference timing
+## Run and reference timing
 
-### Resolved Session
+### Run setup
 
-ARCADE resolves its class: one of the class's vehicle candidates, its entries and laps and the
+RACE resolves its class: one of the class's vehicle candidates, its entries and laps and the
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
-vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color, in ARCADE
+vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color, in RACE
 and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
@@ -1028,41 +1028,41 @@ TIME ATTACK resolves one of its class's vehicle candidates on the class's course
 rivals, traffic or clock, and selects fork routes by driving like any first competitor at a lock line. On a LINEAR or
 BRANCH course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
 a finish, whose finish lines count laps and never finish it ([race time and events](#race-time-and-events)). One admission,
-`compileSessionConfiguration`, derives these rules from a request and checks it against the course, its class and
+`compileRunConfiguration`, derives these rules from a request and checks it against the course, its class and
 the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
-ARCADE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
+RACE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
 FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
-vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
-traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once
-(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and compiles its driver once: the rival utilization 0.75 with that speed as its
+vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
+traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Run resolution converts that speed to m/s once
+(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's run vehicle and compiles its driver once: the rival utilization 0.75 with that speed as its
 speed cap, so a vehicle whose own speed cap is lower keeps its own; curve speeds and following are any
-driver's. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
+driver's. On an untimed course, run resolution rejects RACE; a RACE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
-activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
+activation. A run binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot and its Session vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the
+slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the
 player stands in the last slot of the grid its field starts from and the rivals in the slots directly in front of it,
 `RIVAL_01` frontmost.
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
-pool vehicle's sprite set declares) by the Session seed: a seeded shuffle of the pairs other than the player's own,
+pool vehicle's sprite set declares) by the run seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
-holds nothing else. Each rival drives its own vehicle with that vehicle's Session driver. Each entry also carries its color.
-Resolving a Session with rivals requires every rival's Session vehicle and, in FREE PLAY, the pool; a missing one is a
-`RangeError`, never the player's vehicle. What a Session needs is decided with its entries (`sessionDemand`): the
+holds nothing else. Each rival drives its own vehicle with that vehicle's run driver. Each entry also carries its color.
+Resolving a run with rivals requires every rival's run vehicle and, in FREE PLAY, the pool; a missing one is a
+`RangeError`, never the player's vehicle. What a run needs is decided with its entries (`runDemand`): the
 FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, the pool when it has rivals, traffic
-candidates), the clock's time budgets and ARCADE's pace schedule; the browser loads exactly these.
-The start speed is a resolved Session setting: every competitor spawns at its grid slot moving at it along the
-road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
-32-bit unsigned integer that Session resolution takes with the configuration and checks; rival target exits derive from it. The
-browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
-FREE PLAY Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
+candidates), the clock's time budgets and RACE's pace schedule; the browser loads exactly these.
+The start speed is a resolved run setting: every competitor spawns at its grid slot moving at it along the
+road tangent. It is finite and may be negative; product runs and reference runs use 0. The run seed is a
+32-bit unsigned integer that run resolution takes with the configuration and checks; rival target exits derive from it. The
+browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
+FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
 `speedCap² / (2*a)` metres remaining to that Section's end for every entry, the player included. Here `speedCap` is
-the entry vehicle's speed cap and `a` its Session driver's planning braking at the fixed Session driver utilization
+the entry vehicle's speed cap and `a` its run driver's planning braking at the fixed run driver utilization
 (0.75) ([Drivers](#drivers)),
-for ARCADE rivals too, whose own speed plan brakes for that end at their current utilization;
+for RACE rivals too, whose own speed plan brakes for that end at their current utilization;
 the entry needing the longest stop decides the requirement. Admission rejects insufficient runout with a
 RangeError naming the FINISH, that entry's vehicle, available metres and required metres; the browser shows this
 through its loading failure state.
@@ -1071,13 +1071,13 @@ A circuit FINISH and an undecided fork are not terminal stopping points.
 A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL, GAME OVER or ENDED
 stops judging and the race clock, preserving final rank and precise event time; the vehicles and traffic keep moving
 ([race time and events](#race-time-and-events)).
-Recovery consumes simulation time and grants no crossing credit. Results are session-local.
+Recovery consumes simulation time and grants no crossing credit. Results are run-local.
 
 ### Reference times and clock
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
-reads completed racing lines, time budgets and pace schedules and owns live Session driving policy.
-The measurement tool's continuous reference runs are FREE PLAY Sessions without rivals or traffic: product physics, the
+reads completed racing lines, time budgets and pace schedules and owns live run driving policy.
+The measurement tool's continuous reference runs are FREE PLAY runs without rivals or traffic: product physics, the
 configured start from the last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
@@ -1088,19 +1088,19 @@ Maximum-lap runs supply their actual prefixes; starting and later-lap arrival cl
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
 and seed inputs. A document's identity is the SHA-256 of its delivered bytes: its manifest digest in
 delivery, and in the build the digest of the bytes the build delivers (each catalog source carries it).
-The vehicle digest (`sessionVehicleSha256`) is SHA-256 of the JSON
+The vehicle digest (`runVehicleSha256`) is SHA-256 of the JSON
 `{"vehicle":…,"driving":…,"surfaceMaterials":…}` holding the delivered SHA-256 of the vehicle mechanics,
-driving and surface-material documents. Everything a Session drives—compiled mechanics, driving
+driving and surface-material documents. Everything a run drives—compiled mechanics, driving
 settings and material physics—derives from those documents; the vehicle listing is not part of it. Any
 change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
-definition is not delivered and has no identity, so a Session rebuilt by DEV tuning uses no time
+definition is not delivered and has no identity, so a run rebuilt by DEV tuning uses no time
 budgets ([Browser](browser.md#dev-controls)). This digest is saved with each measured product and is independently
 recomputed by build and browser budget and schedule admission; both reject products carrying an old digest.
 Each procedure that produces a measured product has one record, its name, version and the values that decide its
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
 procedure's version. The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 6) records the race's fixed step, the Session seed, the reference driver (the
+`superoutride.reference-driving` version 6) records the race's fixed step, the run seed, the reference driver (the
 driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing; its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
@@ -1117,7 +1117,7 @@ Each delivered reference-times file (`superoutride.course-reference-times` versi
 `vehicleSha256`, `initialSeconds` and `after`, in seconds before any margin) belongs to one course and vehicle
 (`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the longest legal
 upcoming interval from that state over every route the course admits, so it never depends on the route already
-driven. A timed Session admits its course's file for its vehicle (`readCourseTimeBudgets`) and derives each budget
+driven. A timed run admits its course's file for its vehicle (`readCourseTimeBudgets`) and derives each budget
 with its class's margin as above, so every class running that course and vehicle reads the same file.
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
@@ -1133,7 +1133,7 @@ under `content/` in the saved JSON layout; nothing else writes them, and they ho
 `content/reference-times/<course>.json`, and every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
 
 A reference run depends on the course, the vehicle and the procedure alone: it drives the course's `maxLaps` and a
-Session reads the laps it runs, so no series or class value enters it, and classes running the same course and
+Run reads the laps it runs, so no series or class value enters it, and classes running the same course and
 vehicle share one measurement. It starts, alone, from the last slot of the grid its vehicle starts from: a bike's from
 the course's bike grid, when it has one. A class whose player could start from the other grid (a bike candidate in a
 field with a car, on a course with a bike grid) would need a second measurement, so series admission refuses it and the
@@ -1144,10 +1144,10 @@ has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from ST
 each budget landmark in the course's order, `[gate, seconds]` with one longest next interval per lap, as a time
 reference times' `after`) and `schedule` (the pace schedule's `start` and `sections`). The
 times are seconds before any class margin, as the reference runs measured them, and are delivered so; only a
-Session's budget rounds, once, after its margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
+Run's budget rounds, once, after its margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
 identities and the station spacing.
 
-A saved product is current while its identities equal the current course build, Session vehicle and procedure
+A saved product is current while its identities equal the current course build, run vehicle and procedure
 identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
 delivered racing lines, reference times and schedules from them, each once. A saved product that is stale, absent or
 owned by no course, or reference times whose entries are not the vehicles the
@@ -1191,22 +1191,22 @@ stations (every 5 m from its start, then its end), rounded to the millimetre. It
 (`racing-line`, by course ID). Admission (`readRacingLines`) checks the course identity, the spacing and one line of
 the right length for every Section and exit; the build also checks the procedure identity, and a stale or absent
 product fails it as any measured product does. The admitted lines read a Section's lateral toward an exit at a
-native station, interpolated linearly between stations. A Session admits its course's lines with its other measured
-products; rivals, reference runs and the player's Session driver drive them ([Drivers](#drivers)).
+native station, interpolated linearly between stations. A run admits its course's lines with its other measured
+products; rivals, reference runs and the player's run driver drive them ([Drivers](#drivers)).
 
 ### Pace schedules
 
 A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a course a class runs, for
-ARCADE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
+RACE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
 a Section's schedule stations are every 5 m from its start, then its end. `start` gives the race times from GO, in
 integer milliseconds, at the entry Section's stations from the first one the reference reaches. `sections` gives,
 for each Section a reference run passes from its start, the fastest time over all of that course's reference runs
 from the Section's start to each station it reaches, starting at 0; times increase strictly. The build derives
-both by interpolating the run's race time between fixed steps at each station's route station. An ARCADE Session
-admits the player vehicle's schedule once, against the compiled course and the Session vehicle; no other vehicle's
-schedule and no FREE PLAY Session reads one.
+both by interpolating the run's race time between fixed steps at each station's route station. A RACE run
+admits the player vehicle's schedule once, against the compiled course and the run vehicle; no other vehicle's
+schedule and no FREE PLAY run reads one.
 
-An ARCADE rival follows that schedule divided by its entry's pace ratio p. Its target time at a station sums, Section
+A RACE rival follows that schedule divided by its entry's pace ratio p. Its target time at a station sums, Section
 by Section along the Route it runs, the schedule's times divided by p: a grid rival's from GO along the start
 schedule, from the player vehicle's reference start; a rival appearing ahead's from its appearance, on schedule at
 the first station its schedule times. Between stations the times are interpolated linearly. Its difference is race
@@ -1217,21 +1217,21 @@ target as a first-order lag with time constant `responseSeconds`. Its speed cap 
 times a fraction that runs linearly from `minimumSpeedFraction` at the minimum utilization to 1 at the maximum.
 Where its schedule times no station (past the last timed station of a Section, or on a Section no reference run
 passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
-rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed Session
-driver utilization (0.75). Session resolution compiles each entry vehicle's fixed driver (that utilization at the vehicle's speed cap)
-once; the runout check, the race's unpaced rivals and the player's Session driver use that one.
+rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed run
+driver utilization (0.75). Run resolution compiles each entry vehicle's fixed driver (that utilization at the vehicle's speed cap)
+once; the runout check, the race's unpaced rivals and the player's run driver use that one.
 
 ### Drivers
 
-Every driver — rivals, traffic, reference runs, the attract demo and the player's Session driver — is the planned
+Every driver — rivals, traffic, reference runs, the attract demo and the player's run driver — is the planned
 driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's limits
 ([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
 step to the next. It steers by its own steering rule, the centre reference at its utilization. Its path is its lane's
-centre: rivals and the player's Session driver (the attract demo and the takeover after GOAL) drive the racing line,
+centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
 ([Path offsets](#path-offsets)), which starts as its lateral's offset from the line where it takes the line (its grid
-slot, the lane an ahead entry appears in, or where the player's Session driver takes over). Occupancy, the vehicle
+slot, the lane an ahead entry appears in, or where the player's run driver takes over). Occupancy, the vehicle
 ahead and stopping followers read the line plus its offset as they read any lane's centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
 
 The speed plan reads a contiguous 5 m lattice up to 480 m ahead along the path, within the planning domain. Each cell
@@ -1279,12 +1279,12 @@ The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's respo
 2 m terminal clearance (`terminalClearance`, the distance left before a terminal or behind the vehicle ahead). The
 driver holds the brake when its target speed is within the speed deadzone of zero (a stopped vehicle ahead keeps a
 residual speed), using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
-state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the Session
+state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the run
 continues; a finished CIRCUIT rival keeps driving. The player's takeover after GOAL is the same driver with a stop
 station as its terminal.
 
 Drivers keep clear of other vehicles. Each step the race gives every driver (rivals and the player's takeover after
-GOAL) a read-only list of the vehicles present in the Session as they stand at the step's start: route position,
+GOAL) a read-only list of the vehicles present in the run as they stand at the step's start: route position,
 route speed (its velocity along the road's tangent at its station, negative while it moves backward), travel
 direction relative to the road, dimensions, the lateral each is heading for at its station (its driver's
 target lateral; its own lateral while the player drives it) and the driver driving it, the player's vehicle included;
@@ -1328,14 +1328,14 @@ no adjacent lane does. Such a driver stops that far behind a stopped vehicle, at
 when the adjacent lane is free it starts and steers into it past the stopped vehicle; any other driver stops
 `terminalClearance` behind it. The
 plan is computed once per step, with and without this constraint. Whether a driver passes is an attribute its builder
-gives it (`passes`): rivals' drivers and the player's Session driver pass, by their path offsets
-([Path offsets](#path-offsets)); traffic drivers, which Session resolution compiles, do not, and keep their lanes. A
+gives it (`passes`): rivals' drivers and the player's run driver pass, by their path offsets
+([Path offsets](#path-offsets)); traffic drivers, which run resolution compiles, do not, and keep their lanes. A
 lane is free when no vehicle in it lies between the driver's following distance ahead, `(F₁ + F₂)/2 + v × followSeconds`,
 and, behind, half the two footprints plus that vehicle's speed times `followSeconds`. Drivers read each vehicle's
 footprint `F` and each standing object's footprint (its depth along the road, its width across) as contacts do. A
 driver that does not pass follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its planning braking:
 its braking limit at its utilization on level ground of unit grip, over its inertia; the player's, for others' checks,
-is the Session driver's. The reference line plans
+is the run driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle.
 
 #### Path offsets
@@ -1433,10 +1433,10 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
 them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
 mechanics, recovery and the same driver as rivals, except that its driver never changes lanes to pass: behind a slower
-vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the Session is traffic; no vehicle document marks it. Heading for a
+vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it. Heading for a
 fork's exit is merging. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane of the road it drives at that
-station: at a fork the exit's road, else the centre lane's), derive from the Session seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
+station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
 vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a
 closed road recovers like any vehicle.
 
@@ -1444,8 +1444,8 @@ The appearance line is the player's route station plus the farthest rendered dis
 `s − cameraDistance + far` from the loading coverage's view, whose `cameraDistance` is the camera's distance behind
 the player's route position. In each step in which the line reaches a position, a
 traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
-lane, the same appearance as a later stage's entry. Positions at or before the line when the Session starts never appear. A position passes unused,
-never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`SESSION_RULE_LIMITS.traffic`
+lane, the same appearance as a later stage's entry. Positions at or before the line when the run starts never appear. A position passes unused,
+never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`RUN_RULE_LIMITS.traffic`
 and `.vehicles`), when the resident Route does not reach it yet, when its road there has one lane (traffic
 appears only on roads of two or more lanes), when its place overlaps another vehicle's footprint
 ([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes to pass, another traffic
@@ -1457,7 +1457,7 @@ The race publishes traffic observations in their own list. Records do not depend
 ## Body contact
 
 The race computes body contact once per fixed step, from the state at the step's start, over the vehicles present
-in the Session (the competitors in competitor order, then the traffic in order of appearance); the force on each holds through that step and enters its vehicle mechanics as
+in the run (the competitors in competitor order, then the traffic in order of appearance); the force on each holds through that step and enters its vehicle mechanics as
 the external force ([Vehicle physics](vehicle-physics.md#body-contact)). There is no contact during READY. A
 vehicle's contact shape is its footprint, the square of its overall width (`footprint`), laid along the road at its
 route position (s, l): it does not turn with the vehicle's yaw, since a long side would collide unintuitively once the
@@ -1487,12 +1487,12 @@ overlapped. Such a contact's axis is the one with the smaller overlap in the ste
 relative position. The race keeps each pair's face, keyed by the two vehicles' ids, until their footprints separate: until the
 overlap along the face, `(F₁ + F₂)/2 − side × Δs` (or the lateral form), or the other axis's overlap is no longer
 positive. The overlap along the face grows on even if a vehicle passes the other's centre. Pairs no longer in contact,
-and those of vehicles gone from the Session, are forgotten. The height overlap decides only whether the vehicles
+and those of vehicles gone from the run, are forgotten. The height overlap decides only whether the vehicles
 touch: while it is not positive there is no force, and a contact does not begin. The force acts along the
 horizontal world direction of the face's axis, the road's tangent or its right, read at the pair's midpoint, with
 equal magnitude and opposite sign on the two vehicles, on the overlap along the face; its approach speed is their
-relative world velocity along that direction. The spring-damper is the Session's one `bodyContact`, read at Session resolution from the Session's driving definition
-(the player's), for every contact, wall, course limit and object in the Session.
+relative world velocity along that direction. The spring-damper is the run's one `bodyContact`, read at run resolution from the run's driving definition
+(the player's), for every contact, wall, course limit and object in the run.
 
 A standing object meets every vehicle present by the same rule, as a party of its footprint at its route position —
 a movable object's the square of its width, a fixed object's its width with no depth — with its height range, at rest: its position one step earlier is its position. A fixed object never moves, so
@@ -1570,7 +1570,7 @@ rules only, no live state or target resolution:
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
 
 The race reports, for every vehicle present, whether a fixed object pushed it in the step's contacts; the `blocked`
-condition reads that report. Recovery is not a Session rule.
+condition reads that report. Recovery is not a run rule.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
@@ -1698,12 +1698,12 @@ The content build delivers one course index (`superoutride.course-index` version
 without loading them. It lists every compiled course once, in build order (course file name order), as
 `{id, name, type, maxLaps, gridSlots, buildSha256}`: the course ID, the document's display name, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
-that every Session can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), and the compiled
+that every run can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), and the compiled
 course's build identity, against which records are kept. Every value comes from
 the course document and its compilation. Admission requires exactly the delivered course entries of the manifest, each
-once, and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A Session's rivals
-that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which Session
-resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; ARCADE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
+once, and the document rules for names, laps (only `CIRCUIT` has more than one lap) and grid slots. A run's rivals
+that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which run
+resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY OPTIONS offers; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.
 
 ## Course loading
@@ -1711,7 +1711,7 @@ course.
 All selected-course inputs and generated vehicle/timing data are ready before ticks. The shared
 compiler expands saved constructs and builds immutable fields for every reachable Section.
 Aliases share canonical records and each reusable Section's field; repeated circuit occurrences
-reuse the single source. Input or compilation failure publishes no partial reader or Session.
+reuse the single source. Input or compilation failure publishes no partial reader or run.
 
 Replacement suspends input, audio and ticks, shows coherent loading/failure state and supports retry.
 Stale arrivals cannot replace a newer selection. Resume uses a fresh clock and cleared input ownership.

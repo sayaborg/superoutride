@@ -64,7 +64,7 @@ export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, course
   });
 }
 
-/** What the card shows once the run's course is compiled and its Session prepared. */
+/** What the card shows once the run's course is compiled and its run prepared. */
 export interface PreRaceFacts {
   readonly map: CourseMap;
   /** The competitors, the player included, and whether they are all bikes. */
@@ -158,7 +158,7 @@ export function createPreRaceScreen(
     progress(value: number) {
       progress = Math.max(progress, value);
     },
-    /** The run's course and Session facts. */
+    /** The run's course and run facts. */
     facts(value: PreRaceFacts) {
       facts = value;
     },

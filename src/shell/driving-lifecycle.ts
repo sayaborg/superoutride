@@ -20,7 +20,7 @@ export interface DrivingLifecycleOptions {
 
 /**
  * Browser camera following, one camera update per fixed step; the race owns mechanics, recovery and progress.
- * Recovery, a Session rebuild and START reset the camera to its target.
+ * Recovery, a run rebuild and START reset the camera to its target.
  */
 export function createDrivingLifecycle(cameraRig: CameraRig, options: DrivingLifecycleOptions) {
   const follow = () =>

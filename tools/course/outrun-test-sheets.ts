@@ -4,7 +4,7 @@ import { createCourseFrameRenderer } from '../authoring/course-views.js';
 import { blit, createRaster, encodePng, fillRect, writeText, type Raster } from '../graphics/drawn/raster.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
@@ -107,7 +107,7 @@ try {
     const scene = createCourseScene(section, course.gates, content.definitions.vehicles);
     scene.runtime.selectSuccessor(link);
     scene.runtime.refresh(0, end);
-    const model = createVehicleModel(createSessionVehicle(entry, content.definitions.driving), SIM_DT),
+    const model = createVehicleModel(createRunVehicle(entry, content.definitions.driving), SIM_DT),
       sprites = createVehicleSprites(entry),
       rig = createCameraRig(),
       target = createLogicalFrame();

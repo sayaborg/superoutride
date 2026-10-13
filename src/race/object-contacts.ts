@@ -29,7 +29,7 @@ export function firstObjectFrom(objects: readonly CourseObject[], s: number): nu
 /**
  * A knocked movable object as the race publishes it: its Section and placement index (`sprite`), whether it is flying
  * or has landed, and where. While it flies, `s` and `l` are its route position and `y` its height; once landed, `at`
- * holds its place in the Section it landed in (Section station and lateral), where it lies for the rest of the Session.
+ * holds its place in the Section it landed in (Section station and lateral), where it lies for the rest of the run.
  */
 export interface KnockedObjectObservation {
   readonly section: CompiledSection;

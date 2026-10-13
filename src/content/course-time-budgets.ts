@@ -27,7 +27,7 @@ export function courseBudgetLandmarks(course: CompiledCourse) {
   return result;
 }
 
-/** A course's delivered reference times for one Session vehicle, in seconds before any class margin. */
+/** A course's delivered reference times for one run vehicle, in seconds before any class margin. */
 export const COURSE_REFERENCE_TIMES_FORMAT = Object.freeze({
   format: 'superoutride.course-reference-times',
   version: 1,
@@ -40,7 +40,7 @@ export function timeBudgetMilliseconds(timeMargin: number, seconds: number): num
 }
 
 /**
- * Admit a course's delivered reference times for the Session vehicle of `vehicleSha256` and derive the time budgets of
+ * Admit a course's delivered reference times for the run vehicle of `vehicleSha256` and derive the time budgets of
  * a class with `timeMargin` from them. Browser admission consumes only these small build-generated times, never
  * simulation traces.
  */

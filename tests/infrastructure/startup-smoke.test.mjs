@@ -1,5 +1,5 @@
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
@@ -32,9 +32,9 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const entry = definitions.vehicles[0];
     const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
     const sprites = createVehicleSprites(entry);
-    const model = createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT);
+    const model = createVehicleModel(createRunVehicle(entry, definitions.driving), SIM_DT);
     const steering = driverSteering(definitions.driving.compiledDriving.defaultSteering, model);
-    // The player's grid slot, as a product Session places it.
+    // The player's grid slot, as a product run places it.
     const slot = courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1);
     const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
     const rig = createCameraRig(),

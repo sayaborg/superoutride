@@ -2,8 +2,8 @@
 
 ## Current state
 
-- One compiled graph scene serves TSUKUBA and the trial courses OUTRUN TRIAL A and A STEEP with ARCADE/FREE PLAY
-  Sessions.
+- One compiled graph scene serves TSUKUBA and the trial courses OUTRUN TRIAL A and A STEEP with RACE, TIME ATTACK and
+  FREE PLAY runs.
 - TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its PRODUCTION 750,
   GTI CUP and 911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)).
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
@@ -15,23 +15,26 @@
   BG is one infinite tiled plane with a linear vertical row mapping.
 - The measurement tool (`npm run measure`) saves each course's racing lines and, for each course a class runs, its
   vehicles' reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
-  measured for; the build admits and delivers them and runs no driving, and a Session applies its class's margin. Vehicle and course identities derive from delivered
+  measured for; the build admits and delivers them and runs no driving, and a run applies its class's margin. Vehicle and course identities derive from delivered
   document SHA-256, procedure identities from each procedure's record. Tire audio uses UNIFIED.
 - Engine sound load is the powertrain's effective opening.
 - Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
   Route with its fork choices, borrowed competitor observations); drivers intend lanes and target exits, rival exits
-  derive from the Session seed; loading coverage, recovery policy and reference identities each have one owner.
+  derive from the run's seed; loading coverage, recovery policy and reference identities each have one owner.
 - Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
   and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
   exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stages GS and 16. Series documents own ARCADE settings:
-  each class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by
-  several classes and series; measured products belong to course and vehicle, and a Session applies its class's margin;
-  FREE PLAY rivals are drawn from vehicle pools.
-- Stage GS, up to GS-4: there is no MODE. TITLE's line is SERIES / FREE PLAY / SETTINGS; a series holds no rule values
-  (series document version 13), each class is one complete race definition, and SELECT SESSION drives it as RACE (the
-  former ARCADE run) or TIME ATTACK (alone; on a circuit without a finish, ended by PAUSE's QUIT). Records are TIME
-  ATTACK's alone, one table per class (player record version 6). Reference runs are FREE PLAY Sessions alone.
+- The [product specification](product.md) is the target for Stage 16. Series documents hold classes: each class is
+  one complete race definition (course, laps, vehicles, field, traffic, time margin and colors), and a course may be
+  run by several classes and series; measured products belong to course and vehicle, and a run applies its class's
+  margin; FREE PLAY rivals are drawn from vehicle pools.
+- Stage GS is complete: there is no MODE. TITLE's line is SERIES / FREE PLAY / SETTINGS; a series holds no rule values
+  (series document version 13), and SELECT SESSION drives a class as RACE (the former ARCADE run) or TIME ATTACK
+  (alone; on a circuit without a finish, ended by PAUSE's QUIT). Records are TIME ATTACK's alone, one table per class
+  (player record version 6). Reference runs are FREE PLAY runs alone. "Session" is only the product term RACE / TIME
+  ATTACK: one driven attempt is a run (`RunSetup`, `RunConfiguration`, `RunRulesRequest`, `RunVehicle`), whose rules
+  are RACE, TIME ATTACK or FREE PLAY. GS-3 was split into GS-3a (the TIME ATTACK run and the run without a finish) and
+  GS-3b (TIME ATTACK records).
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -96,60 +99,22 @@
 - Stage LD is complete: a course compiles in work slices the browser runs 8 ms at a time, so loading never stops the
   frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
-  the attract demo holds only the shown and the next class's Sessions.
+  the attract demo holds only the shown and the next class's runs.
 - Stage HD is complete: the HUD tiles command writes every text-tile pattern from the HUD design sources and rules
   ([Image assets](image-assets.md#hud-design-sources)): the normal font with ▲ ▼ ◀ ▶, the ornate small and large
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 - Stage AI is complete: every course has measured racing lines; one planned driver, from each vehicle's limits model
   at a utilization, drives rivals, traffic, reference runs, the attract demo and the takeover; rivals and the player's
-  Session driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
+  run driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
   envelopes are gone; BRAKE!! warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
   [BRAKE!!](browser.md#brake)).
 
-Next PR: [GS-5](#gs-5--rename-session--run) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage GS — SERIES, CLASS and SESSION replace MODE
-
-The game has no MODE level ([Product](product.md#2-structure)). A SERIES is a named set of classes and holds no rule
-values; a CLASS is one complete race definition; a SESSION is how a class is driven, RACE or TIME ATTACK, and every
-class offers both; FREE PLAY is not a series but the assembly bench. ARCADE and TIME TRIAL cease to exist: RACE is
-today's ARCADE run of a class, unchanged, and TIME ATTACK replaces TIME TRIAL. Records are TIME ATTACK's, one table
-per class. SETTINGS stays the one owner of steering and camera. Vehicles as compositions of parts and per-vehicle
-tires are not in this stage.
-
-Stage AI (on main) and Stage HD run beside this stage, which must neither block nor rewrite them. GS-1 to GS-4 stay in
-content, the series catalog, run admission, records and the shell's flow; they do not edit drivers, racing lines,
-reference runs, measurement, the text layer's fonts or HUD drawing. The one expected exception is GS-3's run without a
-finish, which may touch how the race owns its end; that change stays with the race's end and lap facts, and the
-takeover driver stays with Stage AI. Rebase on main before each PR and resolve conflicts in favour of the other
-stream's logic. GS-5 waits for both streams, then runs alone.
-
-| PR   | Purpose                                          | Kind        |
-| ---- | ------------------------------------------------ | ----------- |
-| GS-5 | Rename `Session` → Run across code and documents | rename only |
-
-GS-1 to GS-4 are done. GS-3 was split into GS-3a (the TIME ATTACK Session and the run without a finish) and GS-3b
-(TIME ATTACK records); GS-3a offered TIME ATTACK as a TITLE mode beside ARCADE, and GS-4 removed both modes with the
-TITLE line SERIES / FREE PLAY / SETTINGS and SELECT SESSION.
-
-### GS-5 — Rename Session → Run
-
-Rename only, in code, types, files and documents, so that "Session" survives only as the product term RACE / TIME
-ATTACK: today's `Session` (one driven attempt) becomes Run, with one name for its one-record setup that fits the
-existing `RunRequest` and run-assembly vocabulary. The Session rules' `ARCADE`, which a RACE runs by, is renamed to
-`RACE` in the same pass. Runs after Stages AI and HD are on main.
-
-### Stop conditions for GS
-
-Stop and report rather than decide when a class would need a value that differs from its series' others in a way the
-documents cannot express; a delivered behaviour other than records and flow would change; or a rule value is found
-that belongs neither to a class nor to FREE PLAY.
 
 ## Audit 2 leftovers
 
@@ -169,7 +134,7 @@ Requirements left from the second design audit, by when they are taken up:
 Create the selected courses using the Strip schema and file/CLI authoring workflow. Review appearance,
 driving experience and time margins on real devices. The first product series is TSUKUBA CLUBMAN: the TSUKUBA circuit
 and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON and CHASE H.Q. series follow, which
-together use every Session rule component. The following production and authoring goals
+together use every run rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
 - TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved
@@ -380,9 +345,9 @@ Choices made where Stage FE left them open, each recorded in its PR:
   in browsers no longer count (reference times were re-measured, unchanged).
 - TITLE: the mode line starts on the latest mode. Attract demo (FE-8b): the demo picture brightens and darkens over
   the transition's steps while the logo and lines stay; a turn's 30 s include its brightening and darkening; the
-  classes of one course share one compiled course; every class's Session stays alive (about 6 MB of heap for the
+  classes of one course share one compiled course; every class's run stays alive (about 6 MB of heap for the
   three TSUKUBA CLUBMAN classes together, 71 MB with the first alone). Stage LD replaced this: the demo holds only
-  the shown and the next class's Sessions.
+  the shown and the next class's runs.
 
 ### Stage OT decisions for K
 

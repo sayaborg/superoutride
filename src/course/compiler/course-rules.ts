@@ -5,7 +5,7 @@ import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints }
 import { courseBoundaryAt } from '../course-boundaries.js';
 import { courseRoadsAt } from '../course-lanes.js';
 import { stripSupportsInterval } from '../strip-material.js';
-import { SESSION_RULE_LIMITS } from '../session-rules.js';
+import { RUN_RULE_LIMITS } from '../run-rules.js';
 import type { CompiledSection } from './course-graph.js';
 
 /** A grid slot: its Position in the entry Section and its lateral, the lane's centre there. */
@@ -148,9 +148,9 @@ export function compileCourseGates(
   const grid = compileGrid(startGate.grid, `${start.path}/grid`);
   const bikeGrid = startGate.bikeGrid && compileGrid(startGate.bikeGrid, `${start.path}/bikeGrid`);
   return Object.freeze({
-    /** Every Session's grid, front to back. */
+    /** Every run's grid, front to back. */
     grid,
-    /** The grid of a Session whose competitors all ride bikes, front to back; null when `grid` serves it too. */
+    /** The grid of a run whose competitors all ride bikes, front to back; null when `grid` serves it too. */
     bikeGrid,
     intervals: Object.freeze(intervals),
   });
@@ -159,14 +159,14 @@ export function compileCourseGates(
 type CourseGrids = Pick<ReturnType<typeof compileCourseGates>, 'grid' | 'bikeGrid'>;
 
 /**
- * The slots a Session starts from: the course's bike grid when every competitor rides a bike and the course has one,
- * else its grid; of either, only the first `SESSION_RULE_LIMITS.competitors` (16) slots.
+ * The slots a run starts from: the course's bike grid when every competitor rides a bike and the course has one,
+ * else its grid; of either, only the first `RUN_RULE_LIMITS.competitors` (16) slots.
  */
 export function courseStartGrid(gates: CourseGrids, bikesOnly: boolean): readonly CompiledGridSlot[] {
-  return Object.freeze(((bikesOnly && gates.bikeGrid) || gates.grid).slice(0, SESSION_RULE_LIMITS.competitors));
+  return Object.freeze(((bikesOnly && gates.bikeGrid) || gates.grid).slice(0, RUN_RULE_LIMITS.competitors));
 }
 
-/** How many competitors, the player included, every Session of a course can start: the fewer slots its grids use. */
+/** How many competitors, the player included, every run of a course can start: the fewer slots its grids use. */
 export function courseGridCapacity(gates: CourseGrids): number {
   return Math.min(courseStartGrid(gates, false).length, courseStartGrid(gates, true).length);
 }

@@ -23,7 +23,7 @@ import type { CameraState } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the Session's course, the name of its rules and the player vehicle's engine speeds and steering picture from
+ * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's course, the name of its rules and the player vehicle's engine speeds and steering picture from
  * its definitions, and the record the run compares against.
  */
 export interface HudFacts {
@@ -31,9 +31,9 @@ export interface HudFacts {
   readonly player: CompetitorObservation;
   /** Whether the camera is held at its yaw limit, and on which side. */
   readonly camera: Pick<CameraState, 'heldAtLimit'>;
-  readonly session: {
+  readonly run: {
     readonly courseName: string;
-    /** The name of the Session's rules: its session, or FREE PLAY. */
+    /** The name of the run's rules: its session, or FREE PLAY. */
     readonly rules: string;
     /** The tachometer's redline; its full scale is `TACHOMETER.fullScale` times it. */
     readonly redlineRpm: number;
@@ -231,7 +231,7 @@ const beforeGo = ({ outcome }: RaceFacts) => outcome.status === 'WAITING' || out
 const ended = ({ outcome }: RaceFacts) => outcome.status === 'GOAL' || outcome.status === 'GAME_OVER';
 
 /**
- * One HUD element: when it shows, decided from Session rules and race facts, and what it writes. A passing notice in
+ * One HUD element: when it shows, decided from run rules and race facts, and what it writes. A passing notice in
  * the middle rows is not drawn while a menu is over the frame.
  */
 interface HudElement {
@@ -356,13 +356,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
   {
     // The front road wheel's actual angle, as the vehicle's steering picture turns with it.
     when: () => true,
-    write({ player, session }, text) {
-      writePicture(
-        text,
-        'steeringPicture',
-        session.steeringPicture,
-        player.frontSteerAngle * STEERING_RATIOS[player.form],
-      );
+    write({ player, run }, text) {
+      writePicture(text, 'steeringPicture', run.steeringPicture, player.frontSteerAngle * STEERING_RATIOS[player.form]);
     },
   },
   {
@@ -399,9 +394,9 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     // The tachometer to 110 % of redline: a bar is lit once the engine reaches its speed; green, yellow for the bars just
     // before the redline and red from it, and wholly red while the limiter cuts fuel.
     when: () => true,
-    write({ player: { powertrain }, session }, text) {
+    write({ player: { powertrain }, run }, text) {
       const [column, row] = HUD_LAYOUT.tachometer;
-      const lit = tachometerLitBars(powertrain.engineRpm, session.redlineRpm);
+      const lit = tachometerLitBars(powertrain.engineRpm, run.redlineRpm);
       // A tile holds at most two colors, its pattern splitting its bars where they meet.
       for (const tile of tachometerTiles(lit, powertrain.fuelCut))
         text.put(
@@ -432,9 +427,9 @@ const HUD_ELEMENTS: readonly HudElement[] = [
   {
     middle: true,
     when: ({ race }) => beforeGo(race),
-    write({ session }, text) {
-      write(text, 'courseName', session.courseName, small('WHITE'));
-      write(text, 'rules', session.rules, small('WHITE'));
+    write({ run }, text) {
+      write(text, 'courseName', run.courseName, small('WHITE'));
+      write(text, 'rules', run.rules, small('WHITE'));
     },
   },
   {
@@ -464,8 +459,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
   {
     // BRAKE!! while the race shows it and SETTINGS allow, blinking by fixed steps.
     middle: true,
-    when: ({ race, session }) =>
-      session.brakeSign &&
+    when: ({ race, run }) =>
+      run.brakeSign &&
       race.brakeSign &&
       Math.floor(Math.round(race.simulationSeconds / SIM_DT) / HUD_DURATIONS.brakeBlinkSteps) % 2 === 0,
     write: (_facts, text) => write(text, 'brake', 'BRAKE!!', large('RED')),

@@ -31,7 +31,7 @@ import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileId, courseFileSha256 } from '../course/course-file-id.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
+import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
 import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure } from '../course/reference-run.js';
@@ -444,7 +444,7 @@ function namedImages(bytes: Uint8Array): string[] {
 
 /**
  * The measured products: each course's racing lines and, for each course a class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
- * each delivered once. Every saved file must be current and owned. A Session applies its class's margin to the
+ * each delivered once. Every saved file must be current and owned. A run applies its class's margin to the
  * delivered times.
  */
 async function measuredFiles(
@@ -467,7 +467,7 @@ async function measuredFiles(
   for (const entry of definitions.vehicles)
     vehicleSha256.set(
       entry.compiledVehicle.id,
-      await sessionVehicleSha256(createSessionVehicle(entry, definitions.driving), materials),
+      await runVehicleSha256(createRunVehicle(entry, definitions.driving), materials),
     );
   const courses = measuredCourses(
     seriesClasses,
@@ -514,7 +514,7 @@ async function measuredFiles(
       const vehicle = times.get(course.id)!.vehicles.find((candidate) => candidate.vehicleId === id);
       if (!vehicle) continue;
       const product = courseReferenceTimesProduct(course, sha256, referenceTimes(vehicle));
-      // The delivered times admit as a Session admits them, here with no margin.
+      // The delivered times admit as a run admits them, here with no margin.
       requireLoaded(readCourseTimeBudgets(course, sha256, 1, product, `reference-times/${course.id}/${id}.json`));
       add('reference-times', `${course.id}/${id}`, encodeContentJson(product));
       add(

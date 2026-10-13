@@ -3,14 +3,14 @@ import { paceScheduleStations } from '../../src/content/pace-schedule.js';
 type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
-import type { SessionVehicle } from '../../src/content/session-vehicle.js';
+import type { RunVehicle } from '../../src/content/run-vehicle.js';
 import { REFERENCE_DRIVER, referenceLine } from './reference-driving-policy.js';
 import type { RacingLines } from '../../src/content/racing-line.js';
 import type { racingLineProcedure } from './racing-line.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import { resolveCourseSession } from '../../src/race/course-session.js';
-import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
+import { resolveRunSetup } from '../../src/race/run-setup.js';
+import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import {
   compilePlannedDriver,
@@ -26,7 +26,7 @@ import { courseRoadsAt } from '../../src/course/course-lanes.js';
 const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false });
 
 /**
- * The reference run procedure's record ([procedure](./procedure.ts)): the race's fixed step, the Session seed, the
+ * The reference run procedure's record ([procedure](./procedure.ts)): the race's fixed step, the run seed, the
  * reference driver and the pace schedule's station spacing.
  */
 export const REFERENCE_RUN = Object.freeze({
@@ -45,7 +45,7 @@ export function referenceProcedure(racingLine: ReturnType<typeof racingLineProce
 
 export function runCourseReference(
   course: CompiledCourse,
-  vehicleConfiguration: SessionVehicle,
+  vehicleConfiguration: RunVehicle,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   route: readonly CompiledLink[],
   lapCount: number,
@@ -54,9 +54,9 @@ export function runCourseReference(
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
     scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
-  // A reference run is a FREE PLAY Session alone: no rivals, no traffic and no clock, from the last grid slot; the seed
+  // A reference run is a FREE PLAY run alone: no rivals, no traffic and no clock, from the last grid slot; the seed
   // is fixed.
-  const configuration = compileSessionConfiguration(
+  const configuration = compileRunConfiguration(
     {
       mode: 'FREE_PLAY',
       vehicleId: entry.compiledVehicle.id,
@@ -70,10 +70,10 @@ export function runCourseReference(
     null,
     catalog,
   );
-  const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
+  const setup = resolveRunSetup(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
   // The reference driver steers by its own rule, the centre reference at its utilization.
   const race = createCourseRace({
-    session,
+    setup,
     runtime: scene.runtime,
     playerSteering: createSteeringRule('center', REFERENCE_RUN.driver.utilization),
   });
@@ -91,7 +91,7 @@ export function runCourseReference(
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
   const workspace = createPlannedDriverWorkspace();
-  const { model, limits, speedCap } = session.mechanicsOf(vehicleConfiguration);
+  const { model, limits, speedCap } = setup.mechanicsOf(vehicleConfiguration);
   const driver = compilePlannedDriver(model, limits, REFERENCE_RUN.driver.utilization, speedCap, true);
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
   const samples = { seconds: [0], s: [vehicle.course.s] };

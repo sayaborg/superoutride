@@ -19,7 +19,7 @@ import { createMenuMusic } from './menu-music.js';
 import { attractClasses, createAttractDemo } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createCourseMap } from '../view/course-map.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../content/session-vehicle.js';
+import { createRunVehicle, runVehicleSha256 } from '../content/run-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen } from './loading-screen.js';
@@ -152,7 +152,7 @@ async function startPage(): Promise<void> {
     for (const vehicle of vehicles)
       vehicleSha256.set(
         vehicle.compiledVehicle.id,
-        await sessionVehicleSha256(createSessionVehicle(vehicle, driving), materials),
+        await runVehicleSha256(createRunVehicle(vehicle, driving), materials),
       );
     const page: RunPage = {
       content,
@@ -270,7 +270,7 @@ async function startPage(): Promise<void> {
         true,
       );
     }
-    // The attract demo behind TITLE: at most the shown and the next class's Sessions, each holding its course's
+    // The attract demo behind TITLE: at most the shown and the next class's runs, each holding its course's
     // compilation, which the classes of one course share; released with the page.
     const demoCourses = createDemoCourses();
     const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, async (next) => {

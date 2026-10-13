@@ -14,34 +14,34 @@ const vehicles = [
   },
 ];
 
-// A demo whose Sessions count their fixed steps; `endAfter` steps of a class end its Session.
+// A demo whose runs count their fixed steps; `endAfter` steps of a class end its run.
 function demoOf(endAfter = Infinity) {
-  const sessions = [];
+  const runs = [];
   const demo = createAttractDemo(classes, vehicles, async (request) => {
-    const session = { classId: request.classId, steps: 0, disposed: false };
-    sessions.push(session);
+    const run = { classId: request.classId, steps: 0, disposed: false };
+    runs.push(run);
     return {
-      run: { tick: () => session.steps++, draw() {}, dispose: () => (session.disposed = true) },
-      finished: () => session.steps >= endAfter,
+      run: { tick: () => run.steps++, draw() {}, dispose: () => (run.disposed = true) },
+      finished: () => run.steps >= endAfter,
     };
   });
-  return { demo, sessions };
+  return { demo, runs };
 }
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 const steps = (demo, count) => {
   for (let i = 0; i < count; i++) demo.tick();
 };
 
-// The Sessions the demo holds: loaded and not released.
-const held = (sessions) => sessions.filter((s) => !s.disposed).map((s) => s.classId);
+// The runs the demo holds: loaded and not released.
+const held = (runs) => runs.filter((s) => !s.disposed).map((s) => s.classId);
 
-test("the demo holds the shown and the next class's Sessions, and a class shown again starts a new one", async () => {
-  const { demo, sessions } = demoOf();
+test("the demo holds the shown and the next class's runs, and a class shown again starts a new one", async () => {
+  const { demo, runs } = demoOf();
   demo.enter();
   await settle();
   // The first class is shown from its start; the next is loaded meanwhile, not stepped.
   assert.deepEqual(
-    sessions.map((s) => [s.classId, s.steps]),
+    runs.map((s) => [s.classId, s.steps]),
     [
       ['a', 0],
       ['b', 0],
@@ -49,12 +49,12 @@ test("the demo holds the shown and the next class's Sessions, and a class shown 
   );
   steps(demo, TURN);
   await settle();
-  // The first turn's Session is released; the second class is shown and the third loaded.
-  assert.deepEqual(held(sessions), ['b', 'c']);
+  // The first turn's run is released; the second class is shown and the third loaded.
+  assert.deepEqual(held(runs), ['b', 'c']);
   steps(demo, 2 * TURN);
   await settle();
   assert.deepEqual(
-    sessions.map((s) => [s.classId, s.steps]),
+    runs.map((s) => [s.classId, s.steps]),
     [
       ['a', TURN],
       ['b', TURN],
@@ -63,32 +63,32 @@ test("the demo holds the shown and the next class's Sessions, and a class shown 
       ['b', 0],
     ],
   );
-  // The fourth turn shows the first class again from a new Session.
+  // The fourth turn shows the first class again from a new run.
   steps(demo, 10);
-  assert.equal(sessions[3].steps, 10);
-  assert.deepEqual(held(sessions), ['a', 'b']);
-  // Leaving ends the shown turn; returning resumes with the next class, whose Session stood loaded.
+  assert.equal(runs[3].steps, 10);
+  assert.deepEqual(held(runs), ['a', 'b']);
+  // Leaving ends the shown turn; returning resumes with the next class, whose run stood loaded.
   demo.leave();
   steps(demo, 50);
-  assert.deepEqual(held(sessions), ['b']);
+  assert.deepEqual(held(runs), ['b']);
   demo.enter();
   steps(demo, 5);
   await settle();
-  assert.equal(sessions[4].steps, 5);
-  assert.deepEqual(held(sessions), ['b', 'c']);
+  assert.equal(runs[4].steps, 5);
+  assert.deepEqual(held(runs), ['b', 'c']);
 });
 
-test('a Session that ends ends its turn early and is released', async () => {
-  const { demo, sessions } = demoOf(100);
+test('a run that ends ends its turn early and is released', async () => {
+  const { demo, runs } = demoOf(100);
   demo.enter();
   await settle();
-  // The ended Session stops stepping and its turn darkens; the next class follows.
+  // The ended run stops stepping and its turn darkens; the next class follows.
   steps(demo, 100 + 8);
   await settle();
-  assert.equal(sessions[0].steps, 100);
-  assert.ok(sessions[0].disposed);
+  assert.equal(runs[0].steps, 100);
+  assert.ok(runs[0].disposed);
   steps(demo, 1);
-  assert.equal(sessions[1].classId, 'b');
-  assert.equal(sessions[1].steps, 1);
-  assert.deepEqual(held(sessions), ['b', 'c']);
+  assert.equal(runs[1].classId, 'b');
+  assert.equal(runs[1].steps, 1);
+  assert.deepEqual(held(runs), ['b', 'c']);
 });

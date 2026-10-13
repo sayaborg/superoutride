@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import { prepareSession } from '../../src/race/session-preparation.js';
+import { prepareRun } from '../../src/race/run-preparation.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { formPool } from '../../src/race/free-play-field.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
@@ -29,7 +29,7 @@ import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js'
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
-import { SESSION_RULE_LIMITS } from '../../src/course/session-rules.js';
+import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
 import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
@@ -43,18 +43,18 @@ const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 
 const idle = { steering: 0, throttle: false, brake: false };
-// The player's vehicle: an ARCADE class's first vehicle, TESTAROSSA otherwise.
+// The player's vehicle: a RACE class's first vehicle, TESTAROSSA otherwise.
 const playerVehicle = (id) => ({ entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id) });
-// Sessions are prepared from the delivered catalogs as in the browser.
+// Runs are prepared from the delivered catalogs as in the browser.
 const freePlay = await loadFreePlayRules(content);
 const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
 
 const screenPictures = await loadScreenPictures(content);
 const music = await loadMusic(content, TEXT_COLUMNS);
 
-// The test-only series (never delivered) gives TSUKUBA ARCADE settings that exercise Session rules with the build's
+// The test-only series (never delivered) gives TSUKUBA RACE settings that exercise run rules with the build's
 // time budgets and pace schedules.
-const SCENARIO_SERIES_PATH = new URL('./session-rules.series.json', import.meta.url);
+const SCENARIO_SERIES_PATH = new URL('./run-rules.series.json', import.meta.url);
 const scenarioSeries = requireLoaded(
   compileSeriesCatalog(
     [
@@ -72,7 +72,7 @@ const scenarioSeries = requireLoaded(
   ),
 );
 
-// The delivered series, for scenarios that run a course's delivered ARCADE settings (TRIAL's traffic).
+// The delivered series, for scenarios that run a course's delivered RACE settings (TRIAL's traffic).
 const productSeries = await loadSeriesCatalog(content, definitions.vehicles, screenPictures, music);
 
 export async function loadScenarioCourse(stem) {
@@ -93,7 +93,7 @@ export function scenarioTests(courses) {
     });
 }
 
-/** The ARCADE class a scenario names: `class` of the test series, or of the delivered series `series`. */
+/** The RACE class a scenario names: `class` of the test series, or of the delivered series `series`. */
 function scenarioClass(course, { series, class: classId }) {
   const settings = series
     ? productSeries.seriesClass(series, classId)
@@ -195,16 +195,16 @@ function pavementBounds(scene, vehicle) {
 }
 
 /**
- * Fresh product assembly per replay, through the browser's path from a request to a Session (`prepareSession`); only
+ * Fresh product assembly per replay, through the browser's path from a request to a run (`prepareRun`); only
  * the series, initial conditions and input policy differ from the browser.
  */
 export async function runScenario({ course }, scenario) {
-  // ARCADE and TIME ATTACK take their class of the test series, or of the delivered series `scenario.series`.
-  const arcade = scenario.mode === 'ARCADE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
-  const { entry } = playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
+  // RACE and TIME ATTACK take their class of the test series, or of the delivered series `scenario.series`.
+  const runClass = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
+  const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : 'TESTAROSSA');
   const settings = createDisplaySettings();
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
-  // ARCADE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
+  // RACE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
     mode !== 'FREE_PLAY'
@@ -220,15 +220,15 @@ export async function runScenario({ course }, scenario) {
         };
   const initialSpeed =
     scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
-  const prepared = await prepareSession(content, catalog, course, arcade, request, initialSpeed);
-  const session = prepared.resolve(scenario.seed ?? 0);
-  // The player's Session driver, which drives it when the policy scripts its lateral.
-  const driver = session.driverOf(session.entries[0].vehicle);
-  const slot = session.entries[0].slot;
+  const prepared = await prepareRun(content, catalog, course, runClass, request, initialSpeed);
+  const setup = prepared.resolve(scenario.seed ?? 0);
+  // The player's run driver, which drives it when the policy scripts its lateral.
+  const driver = setup.driverOf(setup.entries[0].vehicle);
+  const slot = setup.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
-  // The player's Session driver drives toward the scenario's target exit at every fork.
+  // The player's run driver drives toward the scenario's target exit at every fork.
   const race = createCourseRace({
-    session,
+    setup,
     runtime: scene.runtime,
     playerExit: () => {
       assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
@@ -331,7 +331,7 @@ export async function runScenario({ course }, scenario) {
   const accepted = new Set();
   const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
-  // Session-rule evidence (ARCADE and TIME ATTACK scenarios that run to their ending): the ending, what holds after it,
+  // Run-rule evidence (RACE and TIME ATTACK scenarios that run to their ending): the ending, what holds after it,
   // appearances and departures, and the gate crossings of other competitors. A bounded scenario drives a stretch only.
   const rules = scenario.mode && !scenario.bounded ? { appeared: [], departed: [], crossings: [] } : null;
   // Traffic evidence: each traffic vehicle's appearance and departure ticks, and the most present at once.
@@ -369,7 +369,7 @@ export async function runScenario({ course }, scenario) {
     )
       input = { ...idle, brake: true };
     else {
-      // The player's Session driver drives, unless the policy scripts the lateral here.
+      // The player's run driver drives, unless the policy scripts the lateral here.
       const lateral = scripted(vehicle.course.s);
       input = lateral
         ? samplePlannedDrivingInput(scene.world, vehicle, driver, lateral, workspace, scene.runtime.window)
@@ -453,10 +453,7 @@ export async function runScenario({ course }, scenario) {
     for (const id of trafficIds) if (!presentTraffic.has(id)) traffic.departed++;
     trafficIds = presentTraffic;
     traffic.maxPresent = Math.max(traffic.maxPresent, presentTraffic.size);
-    assert.ok(
-      presentTraffic.size <= SESSION_RULE_LIMITS.traffic,
-      'more traffic vehicles at once than the Session rules allow',
-    );
+    assert.ok(presentTraffic.size <= RUN_RULE_LIMITS.traffic, 'more traffic vehicles at once than the run rules allow');
     // The resident occurrences, as rendered and sampled physically.
     for (const occurrence of scene.runtime.window.occurrences) {
       finiteState(
@@ -521,7 +518,7 @@ export async function runScenario({ course }, scenario) {
           });
         else rules.departed.push({ id: c.id, tick, stage: race.stage });
       }
-      // A competitor out of the Session is neither observed nor counted in the position.
+      // A competitor out of the run is neither observed nor counted in the position.
       const counted = competitors.filter((c) => c.present);
       const observedIds = race.observe().rivals.map((o) => o.id);
       for (const c of race.rivals)
@@ -677,10 +674,10 @@ export async function runScenario({ course }, scenario) {
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     assert.equal(evidence.limitContact, null, 'ordinary driving met a wall or course limit');
   }
-  // A finish policy reaches GOAL unless its Session rules expect another outcome or leave it open.
+  // A finish policy reaches GOAL unless its run rules expect another outcome or leave it open.
   if (scenario.policy === 'finish' && !scenario.bounded && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
     assert.equal(race.outcome.status, 'GOAL');
-    assert.equal(race.player.progress.acceptedFinishCount, session.configuration.lapCount);
+    assert.equal(race.player.progress.acceptedFinishCount, setup.configuration.lapCount);
     if (course.entry.fork)
       assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
   }
@@ -711,18 +708,18 @@ export async function runScenario({ course }, scenario) {
       evidence.bestLapSeconds = race.player.bestLapSeconds;
     }
     if (expect.position) assert.equal(ending.position, expect.position);
-    // An ARCADE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times
+    // A RACE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times
     // on the course and its class's margin.
     if (expect.ownClass) {
-      const { vehicles, laps, timeMargin } = arcade;
+      const { vehicles, laps, timeMargin } = runClass;
       const reference = await content.json('reference-times', `${course.id}/${vehicles[0]}`);
-      assert.equal(session.entries[0].vehicle.vehicleDefinition.compiledVehicle.id, vehicles[0]);
-      assert.equal(session.configuration.lapCount, laps);
+      assert.equal(setup.entries[0].vehicle.vehicleDefinition.compiledVehicle.id, vehicles[0]);
+      assert.equal(setup.configuration.lapCount, laps);
       assert.equal(race.player.progress.acceptedFinishCount, laps);
       assert.equal(initialDeadline, Math.ceil(1000 * timeMargin * reference.initialSeconds) / 1000);
       evidence.ownClass = { vehicle: vehicles[0], laps, initialDeadline };
     }
-    // The takeover stops the finished player on its runout: its speed cap² / (2a) at the Session driver's a.
+    // The takeover stops the finished player on its runout: its speed cap² / (2a) at the run driver's a.
     const runout = driver.speedCap ** 2 / (2 * driver.braking);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
     const playerSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);

@@ -14,19 +14,19 @@ import { runResult } from './run-result.js';
 import { writeHud, type HudFacts } from './run-hud.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
-import { prepareSession } from '../race/session-preparation.js';
+import { prepareRun } from '../race/run-preparation.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
-import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
-import { isFreePlay, RULES_NAMES, sessionRequest, type RunRequest } from './run-request.js';
+import { createRunVehicle, type RunVehicle } from '../content/run-vehicle.js';
+import { isFreePlay, RULES_NAMES, rulesRequest, type RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
 import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
-import { compileSessionConfiguration, type SessionConfiguration } from '../race/session-configuration.js';
+import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
@@ -59,13 +59,13 @@ export interface RunPage {
   readonly dev: boolean;
   /** The player record, which a TIME ATTACK run's records update. */
   readonly player: PlayerRecord;
-  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
+  /** Each catalog vehicle's identity (`runVehicleSha256`), which records are kept against. */
   readonly vehicleSha256: ReadonlyMap<string, string>;
   /** The camera definition in use. */
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
   resultDelaySeconds(): number;
-  /** A new Session seed; only the composition root draws randomness. */
+  /** A new run seed; only the composition root draws randomness. */
   drawSeed(): number;
   /** New slices for a run's loading work, which yield to the page's frame loop between them. */
   workSlices(): WorkSlices;
@@ -75,7 +75,7 @@ export interface RunPage {
 export interface RunAssemblyReport {
   /** The share of the run's loading done, 0 to 1. */
   progress(fraction: number): void;
-  /** The course and Session are known: the course, the player's start slot and field, and READY's record. */
+  /** The course and run are known: the course, the player's start slot and field, and READY's record. */
   prepared(facts: {
     readonly course: CompiledCourse;
     readonly field: number;
@@ -120,16 +120,16 @@ export function createDemoCourses() {
   });
 }
 /**
- * The attract demo's courses, when a run is the demo's: no player input reaches it (the player's Session driver drives)
+ * The attract demo's courses, when a run is the demo's: no player input reaches it (the player's run driver drives)
  * and it sounds and records nothing.
  */
 export type DemoCourses = ReturnType<typeof createDemoCourses>;
 
-/** Shares of a run's loading: its course's files, then the course compiled, then its Session prepared. */
+/** Shares of a run's loading: its course's files, then the course compiled, then its run prepared. */
 const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
 
 /**
- * Assemble a run for `request`, started at once: the run lifetime of the course, its Session settings, field, products
+ * Assemble a run for `request`, started at once: the run lifetime of the course, its run settings, field, products
  * and scene, the player's sprites and camera, and the run's DEV controls. `state` is its run screen's state, which the
  * run's DEV controls and race end change.
  */
@@ -200,14 +200,14 @@ async function assembleCourseRun(
   const { content, materials, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
-  const arcade = named && loadSeriesClass(content, named, course, vehicles);
-  // The one path from a request to a Session: its admission and the products it needs, loaded once.
-  const prepared = await prepareSession(
+  const runClass = named && loadSeriesClass(content, named, course, vehicles);
+  // The one path from a request to a run: its admission and the products it needs, loaded once.
+  const prepared = await prepareRun(
     content,
     { vehicles, driving, materials, freePlay: page.freePlay },
     course,
-    arcade,
-    sessionRequest(request),
+    runClass,
+    rulesRequest(request),
   );
   const settings = prepared.configuration;
   const { vehicle } = prepared;
@@ -216,8 +216,8 @@ async function assembleCourseRun(
   const selection: RecordSelection | null =
     settings.mode === 'TIME_ATTACK' && !demo
       ? {
-          seriesId: arcade!.series.id,
-          classId: arcade!.id,
+          seriesId: runClass!.series.id,
+          classId: runClass!.id,
           courseSha256: course.identity.buildSha256,
           vehicleSha256: page.vehicleSha256,
           goals: course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : [])),
@@ -226,27 +226,27 @@ async function assembleCourseRun(
         }
       : null;
   /**
-   * The one assembly of a Session, its scene (with a new Route runtime) and its race. The run's start and every
+   * The one assembly of a run, its scene (with a new Route runtime) and its race. The run's start and every
    * DEV tuning rebuild pass through it; the page's devices persist.
    */
-  const build = (tuned: { readonly vehicle: SessionVehicle; readonly configuration: SessionConfiguration } | null) => {
+  const build = (tuned: { readonly vehicle: RunVehicle; readonly configuration: RunConfiguration } | null) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
-    const session = prepared.resolve(page.drawSeed(), tuned);
+    const setup = prepared.resolve(page.drawSeed(), tuned);
     const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
     // The player drives by its own steering rule for the vehicle's form, read once as the camera's is.
     const race = createCourseRace({
-      session,
+      setup,
       runtime: scene.runtime,
       playerSteering: page.player.settings.steering[entry.listing.form],
     });
-    // The Session's records; a DEV-tuned Session compares with and records nothing.
+    // The run's records; a DEV-tuned run compares with and records nothing.
     const records = selection && !tuned ? createRunRecords(page.player, selection) : null;
-    return { session, scene, race, records };
+    return { setup, scene, race, records };
   };
   let active = build(null);
   report?.progress(LOADING_SHARES.prepared);
-  // The player's color is resolved with the Session; a DEV rebuild keeps it.
-  const sprites = createVehicleSprites(entry, active.session.entries[0]!.color);
+  // The player's color is resolved with the run; a DEV rebuild keeps it.
+  const sprites = createVehicleSprites(entry, active.setup.entries[0]!.color);
   const lifecycle = createDrivingLifecycle(createCameraRig(), {
     world: () => active.scene.world,
     cameraDefinition: page.cameraDefinition,
@@ -262,25 +262,25 @@ async function assembleCourseRun(
             active.race.recoverPlayer();
             lifecycle.reset();
           },
-          // A tuned driving definition has no delivered identity, so the rebuilt Session has no
+          // A tuned driving definition has no delivered identity, so the rebuilt run has no
           // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-          // product Session and the delivered definition.
-          rebuildSession: (driving) => {
+          // product run and the delivered definition.
+          rebuildRun: (driving) => {
             active = build({
-              vehicle: createSessionVehicle(entry, driving),
-              configuration: compileSessionConfiguration(
+              vehicle: createRunVehicle(entry, driving),
+              configuration: compileRunConfiguration(
                 {
                   mode: 'FREE_PLAY',
                   vehicleId: settings.vehicleId,
                   color: settings.color,
                   // A run without a finish is rebuilt with the course's most laps.
-                  lapCount: active.session.configuration.lapCount ?? course.rules.maxLaps,
+                  lapCount: active.setup.configuration.lapCount ?? course.rules.maxLaps,
                   rivalCount: 0,
                   rivalPool: formPool(page.freePlay, entry).id,
                   traffic: NO_TRAFFIC,
                 },
                 course,
-                arcade,
+                runClass,
                 { vehicles, freePlay: page.freePlay },
               ),
             });
@@ -291,7 +291,7 @@ async function assembleCourseRun(
           },
         })
       : null;
-  // Every Session shares the compiled course's ground, so its maximum is derived once.
+  // Every run shares the compiled course's ground, so its maximum is derived once.
   performanceHud?.setCourse({
     maxActiveStrips: Math.max(...course.sections.map((section) => section.color.metrics.maxActiveStrips)),
   });
@@ -319,7 +319,7 @@ async function assembleCourseRun(
   };
   // The PRE-RACE card's facts: the field, the player's slot on its grid and the record READY shows.
   if (report) {
-    const { entries } = active.session;
+    const { entries } = active.setup;
     const slot = entries[0]!.slot!;
     const grid = course.gates.bikeGrid?.includes(slot) ? course.gates.bikeGrid : course.gates.grid;
     report.prepared({
@@ -335,7 +335,7 @@ async function assembleCourseRun(
   const tick = () => {
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
-    // The attract demo takes no input: the player's Session driver drives, and nothing sounds or is recorded.
+    // The attract demo takes no input: the player's run driver drives, and nothing sounds or is recorded.
     const step = race.advance(demo ? null : shell.inputManager.sample());
     lifecycle.update(step.recovered);
     // The background's transitions run in the screen's fixed steps, from the camera's station.
@@ -356,15 +356,15 @@ async function assembleCourseRun(
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
-  // The Session's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
-  // tachometer scale and steering picture from its definitions; a DEV rebuild's Session gives its own rules and tuned
+  // The run's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
+  // tachometer scale and steering picture from its definitions; a DEV rebuild's run gives its own rules and tuned
   // definition.
-  const hudSession = ({
+  const hudRun = ({
     configuration,
     entries,
   }: {
-    readonly configuration: SessionConfiguration;
-    readonly entries: readonly { readonly vehicle: SessionVehicle }[];
+    readonly configuration: RunConfiguration;
+    readonly entries: readonly { readonly vehicle: RunVehicle }[];
   }) => {
     const { vehicleDefinition } = entries[0]!.vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
@@ -408,7 +408,7 @@ async function assembleCourseRun(
             race,
             player: observations.player,
             camera: lifecycle.camera,
-            session: hudSession(active.session),
+            run: hudRun(active.setup),
             record: readyRecord(),
             split: active.records?.split ?? null,
           },

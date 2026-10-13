@@ -1,5 +1,5 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { createSessionVehicle, sessionVehicleSha256 } from '../../src/content/session-vehicle.js';
+import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
@@ -66,7 +66,7 @@ export function runMeasureJob(
   progress: (phase: string) => void = () => {},
 ): MeasureResult {
   const entry = content.definitions.vehicles.find((vehicle) => vehicle.compiledVehicle.id === job.vehicleId)!;
-  const vehicle = createSessionVehicle(entry, content.definitions.driving);
+  const vehicle = createRunVehicle(entry, content.definitions.driving);
   const catalog = { vehicles: content.definitions.vehicles, freePlay: content.freePlay };
   const runs = job.courses.map((id) => {
     progress(id);
@@ -135,10 +135,7 @@ export async function planMeasurement(
   // Each catalog vehicle's identity.
   const vehicles = new Map<string, { sha256: string }>();
   for (const entry of content.definitions.vehicles) {
-    const sha256 = await sessionVehicleSha256(
-      createSessionVehicle(entry, content.definitions.driving),
-      content.materials,
-    );
+    const sha256 = await runVehicleSha256(createRunVehicle(entry, content.definitions.driving), content.materials);
     vehicles.set(entry.compiledVehicle.id, { sha256 });
   }
   // Each course a class runs, with its saved file and the vehicles the classes run there.

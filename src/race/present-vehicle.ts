@@ -31,7 +31,7 @@ export interface VehicleDriving {
 }
 
 /**
- * A vehicle present in the Session, competitor or traffic, as contacts, placement, drivers and recovery read it: its
+ * A vehicle present in the run, competitor or traffic, as contacts, placement, drivers and recovery read it: its
  * mechanics (`actor`, replaced when a competitor appears ahead), the driver driving it now (a rival's, a traffic
  * vehicle's or the player's takeover after GOAL; null while the player drives), its route position at the start of the
  * previous step, whether that step recovered it, the contact force on it, how drivers see it and its recovery step.

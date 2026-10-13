@@ -41,7 +41,7 @@ const SECONDS = { min: 0, exclusiveMin: true };
 
 /**
  * Admit a saved reference report (`superoutride.course-reference` version 4) for the vehicle `vehicleId`, whose
- * Session vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
+ * Run vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
  * `referenceSha256`, and resolve its runs to the course's canonical landmarks: one run per route, each through the
  * maximum laps, recording exactly the race lines its route crosses.
  */
@@ -174,7 +174,7 @@ export function readCourseReference(
 }
 
 /**
- * The delivered reference times of a course and vehicle, in seconds before any margin: a Session derives its time
+ * The delivered reference times of a course and vehicle, in seconds before any margin: a run derives its time
  * budgets from them with its class's `timeMargin` (`readCourseTimeBudgets`).
  */
 export function courseReferenceTimesProduct(

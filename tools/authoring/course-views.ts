@@ -1,7 +1,7 @@
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
@@ -139,7 +139,7 @@ export function createCourseFrameRenderer(
       if (!(s >= 0 && s <= section.coordinates.domain.end)) throw new RangeError('s is outside the Section');
       if (!(l >= -1000 && l <= 1000)) throw new RangeError('l must be -1000 to 1000 m');
       const vehicle = createVehicle(
-        createVehicleModel(createSessionVehicle(entry, definitions.driving), SIM_DT),
+        createVehicleModel(createRunVehicle(entry, definitions.driving), SIM_DT),
         scene.world,
         { s, l, initialSpeed: 0 },
       );

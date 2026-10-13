@@ -1,4 +1,4 @@
-import { SESSION_RULE_LIMITS } from './session-rules.js';
+import { RUN_RULE_LIMITS } from './run-rules.js';
 
 const graphSections = 128;
 
@@ -33,7 +33,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   coefficientBytes: 1024 * 1024 * 1024,
   boundaryVertices: 65536,
   gates: 2048,
-  startGridSlots: 2 * SESSION_RULE_LIMITS.competitors,
+  startGridSlots: 2 * RUN_RULE_LIMITS.competitors,
   coordinateMeters: 1_000_000,
   lengthMeters: 42000,
   lateralMeters: 1000,

@@ -10,7 +10,7 @@ import {
   type AdmissionResult,
 } from '../core/admission.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course/course-limits.js';
-import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
+import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseGridCapacity } from '../course/compiler/course-rules.js';
 import { TEXT_CHARACTERS } from '../image/text-tiles.js';
@@ -25,7 +25,7 @@ export interface CourseIndexEntry {
   readonly name: string;
   readonly type: CompiledCourse['type'];
   readonly maxLaps: number;
-  /** How many competitors, the player included, every Session of the course can start (`courseGridCapacity`). */
+  /** How many competitors, the player included, every run of the course can start (`courseGridCapacity`). */
   readonly gridSlots: number;
   /** The compiled course's build identity, which records are kept against. */
   readonly buildSha256: string;
@@ -73,7 +73,7 @@ export function readCourseIndex(
       const type = readEnum(entry.type, COURSE_TYPES, `${at}/type`);
       const maxLaps = readNumber(entry.maxLaps, `${at}/maxLaps`, {
         min: 1,
-        max: SESSION_RULE_LIMITS.laps,
+        max: RUN_RULE_LIMITS.laps,
         integer: true,
       });
       requireAdmission(
@@ -89,7 +89,7 @@ export function readCourseIndex(
       });
       const gridSlots = readNumber(entry.gridSlots, `${at}/gridSlots`, {
         min: 1,
-        max: SESSION_RULE_LIMITS.competitors,
+        max: RUN_RULE_LIMITS.competitors,
         integer: true,
       });
       const buildSha256 = readString(entry.buildSha256, `${at}/buildSha256`, SHA256_TEXT);

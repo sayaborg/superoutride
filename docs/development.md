@@ -21,11 +21,11 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ### Driving scenarios
 
-`tests/scenarios/arcade.test.mjs` and `driving.test.mjs` define the scenarios, by course, on the product course
+`tests/scenarios/race.test.mjs` and `driving.test.mjs` define the scenarios, by course, on the product course
 TSUKUBA and the trial course OUTRUN TRIAL A; `driving-harness.mjs` assembles the same scene, race, vehicle physics,
-route readers, camera and rival sprite rendering as the browser, and prepares each Session from a request through the
-browser's path (`prepareSession`: the Session admission, the products it needs from delivery, and resolution).
-The player is driven by the product's driver: an advance without input hands the player to its Session driver (the
+route readers, camera and rival sprite rendering as the browser, and prepares each run from a request through the
+browser's path (`prepareRun`: the run admission, the products it needs from delivery, and resolution).
+The player is driven by the product's driver: an advance without input hands the player to its run driver (the
 driver of the takeover after GOAL), which plans, follows, passes and merges by the drivers' rules toward the
 scenario's target exit at every fork. Policies that need other inputs script them: the course limit and broadside
 policies hold pedals and steering. `npm test` runs them on every CI build. After `npm run build`, use
@@ -51,18 +51,18 @@ ahead entries and movable objects have no driving scenario. Each row checks a si
 | course limit pushes back (TSUKUBA)                 | steering −0.12 for 4 s from 30 m/s on the home straight, then its driver           | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                |
 | stopped broadside against a course limit (TSUKUBA) | stood a quarter turn toward the left course limit, its front contact 0.6 m past it | a course limit pushes the player, both contacts stay loaded on ground behind the limit for every step, and it neither recovers nor leaves the domain |
 
-Three rows cover Session rules. The ARCADE rows name their class: of a test-only series document,
-`tests/scenarios/session-rules.series.json` (never delivered), with the build's delivered reference times and pace
+Three rows cover run rules. The RACE rows name their class: of a test-only series document,
+`tests/scenarios/run-rules.series.json` (never delivered), with the build's delivered reference times and pace
 schedules, or of the delivered TRIAL series. The player drives the class's first vehicle, TESTAROSSA elsewhere. Rows
 that run to their ending add `rules` evidence: outcome, cause, ending time, position, distance past the finish, player
 speed, rival travel after the ending, and appearances and departures. After the ending, race time, progress, events and
 the position hold.
 
-| Row (course)                                                                        | Passes when                                                                                                                                                                                                                           |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ARCADE lap from the grid ahead of rivals, then the takeover stops (TSUKUBA)         | 911 TURBO 3.3 from the pole ahead of two paced GOLF GTI 16V rivals (p = 1) at the back of the grid: one lap to GOAL at P1/3; over the 16 seconds after it the takeover stops the player within its runout and the rivals keep driving |
-| TIME ATTACK lap without a finish from the last slot (TSUKUBA, the quickest lap)     | from the last grid slot, without rivals, traffic or clock; the lap's finish line does not finish the run, which the player ends after one lap: ENDED at P1/1 with that lap as its best                                                |
-| ARCADE with the TRIAL series traffic (OUTRUN TRIAL A, seed 7, 30 s bounded stretch) | traffic appears ahead and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open                                                                                       |
+| Row (course)                                                                      | Passes when                                                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RACE lap from the grid ahead of rivals, then the takeover stops (TSUKUBA)         | 911 TURBO 3.3 from the pole ahead of two paced GOLF GTI 16V rivals (p = 1) at the back of the grid: one lap to GOAL at P1/3; over the 16 seconds after it the takeover stops the player within its runout and the rivals keep driving |
+| TIME ATTACK lap without a finish from the last slot (TSUKUBA, the quickest lap)   | from the last grid slot, without rivals, traffic or clock; the lap's finish line does not finish the run, which the player ends after one lap: ENDED at P1/1 with that lap as its best                                                |
+| RACE with the TRIAL series traffic (OUTRUN TRIAL A, seed 7, 30 s bounded stretch) | traffic appears ahead and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open                                                                                       |
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
@@ -478,27 +478,27 @@ format/version. The delivery layout (`layoutDelivery` in
 [`delivery-layout.ts`](../tools/authoring/delivery-layout.ts)) is the only authority for these kinds, IDs and paths under
 `dist/delivery/`:
 
-| Kind              | ID                                                                                              | Path                                      | Content                                                                                                                             |
-| ----------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `course`          | Course file name stem (the course selection key)                                                | `courses/<id>.course.json`                | Course document                                                                                                                     |
-| `course-index`    | `courses`                                                                                       | `course-index.json`                       | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                                         |
-| `series`          | Series file name stem                                                                           | `series/<id>.series.json`                 | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                                                  |
-| `screen-picture`  | Screen picture name                                                                             | `screen-pictures/<id>.json`               | Screen picture, a tile picture ([Image assets](image-assets.md#screen-pictures))                                                    |
-| `image`           | Course image name, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`                    | Compiled course images, the vehicle sprite library and the text tiles                                                               |
-| `vehicle`         | Vehicle ID                                                                                      | `vehicles/<id>.json`                      | Vehicle mechanics document                                                                                                          |
-| `vehicle-listing` | Vehicle ID                                                                                      | `vehicle-listings/<id>.json`              | Vehicle listing document                                                                                                            |
-| `driving`         | `default`                                                                                       | `driving/<id>.json`                       | Game-wide driving definition                                                                                                        |
-| `material`        | `surface`                                                                                       | `materials/<id>.json`                     | Surface-material document                                                                                                           |
-| `engine-sound`    | Sound ID                                                                                        | `engine-sounds/<id>.json`                 | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                                            |
-| `surface-sound`   | `default`                                                                                       | `surface-sounds/<id>.json`                | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                                                 |
-| `audio`           | `default`                                                                                       | `audio/<id>.json`                         | Game-wide sound settings ([Audio](audio.md#audio-document))                                                                         |
-| `free-play`       | `default`                                                                                       | `free-play/<id>.json`                     | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                                                |
-| `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                            | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                         |
-| `music`           | Track ID                                                                                        | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                                   |
-| `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`                   | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                                       |
-| `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed Session derives its budgets (`superoutride.course-reference-times` v1) |
-| `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | ARCADE pace schedule (`superoutride.pace-schedule` v1)                                                                              |
-| `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v1)                                                                           |
+| Kind              | ID                                                                                              | Path                                      | Content                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `course`          | Course file name stem (the course selection key)                                                | `courses/<id>.course.json`                | Course document                                                                                                                 |
+| `course-index`    | `courses`                                                                                       | `course-index.json`                       | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                                     |
+| `series`          | Series file name stem                                                                           | `series/<id>.series.json`                 | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                                              |
+| `screen-picture`  | Screen picture name                                                                             | `screen-pictures/<id>.json`               | Screen picture, a tile picture ([Image assets](image-assets.md#screen-pictures))                                                |
+| `image`           | Course image name, `vehicles` for the vehicle sprite library or `text-tiles` for the text tiles | `images/<sha256>.json`                    | Compiled course images, the vehicle sprite library and the text tiles                                                           |
+| `vehicle`         | Vehicle ID                                                                                      | `vehicles/<id>.json`                      | Vehicle mechanics document                                                                                                      |
+| `vehicle-listing` | Vehicle ID                                                                                      | `vehicle-listings/<id>.json`              | Vehicle listing document                                                                                                        |
+| `driving`         | `default`                                                                                       | `driving/<id>.json`                       | Game-wide driving definition                                                                                                    |
+| `material`        | `surface`                                                                                       | `materials/<id>.json`                     | Surface-material document                                                                                                       |
+| `engine-sound`    | Sound ID                                                                                        | `engine-sounds/<id>.json`                 | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                                        |
+| `surface-sound`   | `default`                                                                                       | `surface-sounds/<id>.json`                | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                                             |
+| `audio`           | `default`                                                                                       | `audio/<id>.json`                         | Game-wide sound settings ([Audio](audio.md#audio-document))                                                                     |
+| `free-play`       | `default`                                                                                       | `free-play/<id>.json`                     | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                                            |
+| `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                            | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                     |
+| `music`           | Track ID                                                                                        | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                               |
+| `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`                   | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                                   |
+| `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
+| `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | RACE pace schedule (`superoutride.pace-schedule` v1)                                                                            |
+| `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v1)                                                                       |
 
 The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and
@@ -512,7 +512,7 @@ documents, and for an absent manifest entry a `content_missing` diagnostic namin
 `contentKind` and the `id`. Its message is the diagnostics' JSON text. A digest mismatch means the
 transported bytes are not the ones the build indexed, so it is an integrity failure thrown as `Error`;
 transport and file-read failures propagate unchanged. Each composition loads the material catalog once
-and passes it to the course and the Session vehicle. The manifest itself is the bootstrap index inside the commit-versioned
+and passes it to the course and the run vehicle. The manifest itself is the bootstrap index inside the commit-versioned
 build; it cannot contain its own digest. Browser course selection reads the course index.
 
 Only the delivery layout owns output naming. Browsers, Node consumers, startup smoke and public-site
@@ -528,8 +528,8 @@ sounds) and their images, the course index, then series (admitted against those 
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a
-class runs there, its reference times (before any margin; a Session applies its series' margin) and pace schedule; only
-courses a class runs are timed, since only ARCADE has the clock and rival pace. A stale, absent or unowned saved product fails the build
+class runs there, its reference times (before any margin; a run applies its series' margin) and pace schedule; only
+courses a class runs are timed, since only RACE has the clock and rival pace. A stale, absent or unowned saved product fails the build
 ([Measured products](content-and-gameplay.md#measured-products)). A document whose bytes are not UTF-8 JSON is an
 input error of that document (`parse_failure` at its root), as for course documents. The build lays the returned files
 out with the delivery layout and writes them, the manifest last.

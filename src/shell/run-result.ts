@@ -13,7 +13,7 @@ export interface RunResult {
   readonly laps: number | null;
   /** The player's best lap on a CIRCUIT; null elsewhere or before a complete lap. */
   readonly bestLapSeconds: number | null;
-  /** Null when the run was not judged: it is no TIME ATTACK, or its Session records nothing. */
+  /** Null when the run was not judged: it is no TIME ATTACK, or its run records nothing. */
   readonly record: RecordOutcome | null;
 }
 

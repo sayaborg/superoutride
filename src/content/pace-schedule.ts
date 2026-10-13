@@ -46,7 +46,7 @@ export interface PaceSchedule {
 
 const MILLISECONDS = { min: 0, max: Number.MAX_SAFE_INTEGER, integer: true };
 
-/** Browser admission of the build-generated schedule for one course and the Session vehicle of `vehicleSha256`. */
+/** Browser admission of the build-generated schedule for one course and the run vehicle of `vehicleSha256`. */
 export function readPaceSchedule(
   course: CompiledCourse,
   vehicleSha256: string,

@@ -15,7 +15,7 @@ export function createCourseWorld(
   window: CourseLoadingWindow,
 ) {
   if (!gates?.grid.length) throw new RangeError('Driving requires a compiled start gate with a grid');
-  // Every slot of either grid, which a Session may start from.
+  // Every slot of either grid, which a run may start from.
   const stations = [...gates.grid, ...(gates.bikeGrid ?? [])].map((slot) => slot.at.s);
   if (Math.min(...stations) < window.cameraDistance)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');

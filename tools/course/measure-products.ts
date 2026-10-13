@@ -5,7 +5,7 @@ import path from 'node:path';
 import { compileContent, type CompiledContent } from '../authoring/compile-content.js';
 import { createNodeContentStore, CONTENT_ROOT } from '../build/node-content-store.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { createSessionVehicle } from '../../src/content/session-vehicle.js';
+import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
 import { procedureSha256 } from './procedure.js';
@@ -112,7 +112,7 @@ async function trace(args: readonly string[]) {
   const content: CompiledContent = requireCompiled(await compileContent(store, { measured: false }));
   const entry = content.definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
   requireInput(entry, '/vehicle', 'Unknown catalog vehicle');
-  const vehicle = createSessionVehicle(entry, content.definitions.driving);
+  const vehicle = createRunVehicle(entry, content.definitions.driving);
   const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
   requireInput(series, '/course', 'Reference runs need a course a class runs');
   const { course } = series;

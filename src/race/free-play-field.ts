@@ -31,7 +31,7 @@ export function rivalPoolPairs(
 }
 
 /**
- * Draws `count` rival vehicle/color pairs from `pairs` by the Session seed: a seeded shuffle of the pairs other than
+ * Draws `count` rival vehicle/color pairs from `pairs` by the run seed: a seeded shuffle of the pairs other than
  * the player's, repeated in that order only once every pair has been used. The player's pair is drawn only when
  * the pool holds nothing else.
  */

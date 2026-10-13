@@ -218,15 +218,15 @@ timing HUD names it; it is not decoded again, and the game continues.
 
 ## Music
 
-The run request carries its track, as it carries the color; the track is neither a Session rule nor a record
+The run request carries its track, as it carries the color; the track is neither a run rule nor a record
 condition; a run with MUSIC OFF has none and plays no music, while its effects still sound. A run from the selection
 screens plays the track chosen on SELECT MUSIC (MUSIC OFF when the run offers no track); one from the URL plays the player
 record's latest track, else the first, and adds no URL parameter. The [run music](../src/shell/run-music.ts) is the
 one owner of when a run's track plays, and it reads only the race's status and whether the run is live, never a clock
-or a HUD timer. When a Session's race enters READY (its first signal lamp), its track starts from its beginning and
+or a HUD timer. When a run's race enters READY (its first signal lamp), its track starts from its beginning and
 loops. While the run is not live (paused, or the page hidden) the track pauses, and it continues from where it paused
 when the run is live again. At GOAL or GAME OVER it fades out over the TIMING `musicFadeSeconds` and stays silent
-through RESULT. Leaving the run (RETRY, QUIT or a RESULT item) stops it, and a new Session, whether RETRY's or a DEV
+through RESULT. Leaving the run (RETRY, QUIT or a RESULT item) stops it, and a new run, whether RETRY's or a DEV
 rebuild's, starts its track from the beginning at its own READY. Menus, the PRE-RACE card and RESULT play no run track. A run the
 URL started before any gesture has no audio at its READY, so its track does not play. The audition on SETTINGS plays a
 track from its beginning, looped, through the same form; it is not the run's track.
@@ -249,10 +249,10 @@ events one sound: none for the crossing that finishes the run (GOAL's effect sou
 extended the clock, else `final-lap` at a circuit's finish line when the lap it begins is the last, else `lap` at the
 finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER `game-over` (effects of about 1.3 s) play
 once, from that moment, while the track fades beneath them; the outcome effect may sound on into RESULT and stops when
-the run is left or its Session is replaced. When RESULT shows NEW RECORD after a finish, `new-record` plays once as
+the run is left or its run is replaced. When RESULT shows NEW RECORD after a finish, `new-record` plays once as
 RESULT appears, after the outcome effect at the default RESULT delay; a circuit lap that sets a TIME ATTACK record
 plays it as the lap completes. Each happening sounds once: a step's facts are read once, so two
-crossings in one frame both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
+crossings in one frame both sound, a pause runs no steps, and a new run (RETRY or a DEV rebuild) starts afresh. Other competitors'
 crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
 
 ## Contact sound
