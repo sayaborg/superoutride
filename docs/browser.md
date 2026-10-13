@@ -95,8 +95,8 @@ shortening; the title and any information lines keep one row each, and a menu ta
 `RangeError`. Each item carries what CONFIRM and LEFT/RIGHT do on it, so no action depends on its position; BACK
 leaves. Its layout is a carousel or a list:
 
-- **Carousel** (every menu screen but SETTINGS, OPTIONS and LAPS): one item is shown at a time, YELLOW, with WHITE `<`
-  and `>` four columns either side when there are several; LEFT and RIGHT change it, like steering an arcade wheel,
+- **Carousel** (every menu screen but SETTINGS, OPTIONS and LAPS): one item is shown at a time, YELLOW, with WHITE `◀`
+  and `▶` four columns either side when there are several; LEFT and RIGHT change it, like steering an arcade wheel,
   and UP and DOWN act as LEFT and RIGHT; the list wraps at both ends. An item that offers nothing is shown DARK, and
   CONFIRM on it denies (`menu-deny`) and does nothing. An item may carry a DARK note two rows under it (SELECT COURSE's
   series title).
@@ -134,7 +134,7 @@ row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back
 to PRESS START. The mode line is a carousel on row 28 over rows 27–29 at half brightness: the mode (YELLOW, DARK when
-it offers nothing) between WHITE `<` and `>` four columns either side, among ARCADE, FREE PLAY, TIME TRIAL and
+it offers nothing) between WHITE `◀` and `▶` four columns either side, among ARCADE, FREE PLAY, TIME TRIAL and
 SETTINGS; BACK does nothing. Choosing a mode leads to its screens, in order: ARCADE: SELECT SERIES, SELECT
 CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
 TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC
@@ -173,7 +173,7 @@ the first track) plays as an audition, so its volume is set by ear.
   is entered, and a slide crossfades from the old series' title track to the new one over the slide's 16 steps. A
   series that offers nothing (no class) shows its image at half brightness and denies CONFIRM.
 - SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class
-  title (YELLOW) between WHITE `<` and `>` four columns either side; on row 25 `<COURSE>  <n> LAPS  <field> BIKES|CARS`
+  title (YELLOW) between WHITE `◀` and `▶` four columns either side; on row 25 `<COURSE>  <n> LAPS  <field> BIKES|CARS`
   (WHITE; BIKES when the whole field is bikes); on row 26 the vehicle's manufacturer and model in upper case, or
   `<n> BIKES|CARS` when the class lists several vehicles; on row 28 `BEST <time>` (GREEN), the class's best ARCADE
   record over its vehicles at any goal, counted only while its course and vehicle identities are current (the course
@@ -196,7 +196,7 @@ the first track) plays as an audition, so its volume is set by ear.
   change is saved there.
 - LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and NEXT.
 - SELECT MUSIC shows the series image in ARCADE (else the plain background) with text rows 22–29 at half brightness:
-  on row 24 the choice's title (YELLOW) between `<` and `>`, on row 26 `TRACK n / N` (WHITE), counting MUSIC OFF. It
+  on row 24 the choice's title (YELLOW) between `◀` and `▶`, on row 26 `TRACK n / N` (WHITE), counting MUSIC OFF. It
   offers the run's tracks in their selection order, then `MUSIC OFF`: in ARCADE its series' race tracks,
   otherwise every delivered track. It is shown only when there are two or more choices (one or more tracks); otherwise
   the run takes MUSIC OFF. There is no audition: choosing changes only the name. CONFIRM starts the run with it; the
@@ -230,13 +230,13 @@ listing as the simulation holds them:
 | Rows  | Columns | Content                                                                                        |
 | ----- | ------- | ---------------------------------------------------------------------------------------------- |
 | 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                       |
-| 0     | 32–38   | `< n/N >`, the page among the offered vehicles (DARK)                                          |
+| 0     | 32–38   | `◀ n/N ▶`, the page among the offered vehicles (DARK)                                          |
 | 2     | 1–      | manufacturer and model (YELLOW)                                                                |
 | 3     | 1–      | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK) |
 | 3     | 22 / 31 | `TORQUE` (YELLOW) / `POWER` (RED)                                                              |
 | 4–10  | 0–19    | the turning picture                                                                            |
 | 4–11  | 22–39   | the curve graph                                                                                |
-| 11    | 1–21    | the color's display name, `^ GUARDS RED 3/4 v` (WHITE); with fixed colors its name only        |
+| 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE); with fixed colors its name only        |
 | 13–29 | 0–19    | engine and driveline: labels DARK at column 0, values WHITE at column 8                        |
 | 13–29 | 20–39   | body: labels DARK at column 20, values WHITE at column 28                                      |
 

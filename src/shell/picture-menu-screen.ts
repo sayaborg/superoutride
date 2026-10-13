@@ -19,7 +19,7 @@ export interface PictureMenuLayout {
   readonly picture: TilePicture | null;
   /** The first and last text rows drawn at half brightness behind the text. */
   readonly band: readonly [first: number, last: number];
-  /** The row of the current item, YELLOW (DARK when it offers nothing) with WHITE `<` and `>`. */
+  /** The row of the current item, YELLOW (DARK when it offers nothing) with WHITE `◀` and `▶`. */
   readonly choiceRow: number;
   /** The lines shown with the item at `index`. */
   lines(index: number): readonly PictureMenuLine[];

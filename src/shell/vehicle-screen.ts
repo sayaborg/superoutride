@@ -1,4 +1,4 @@
-import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_MARKS, TEXT_PALETTES } from '../image/text-tiles.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -274,7 +274,7 @@ export function createVehicleScreen(
       const { metadata } = vehicle.listing;
       text.clear();
       text.write(13, 0, 'SELECT VEHICLE', TEXT_PALETTES.WHITE);
-      text.write(32, 0, `< ${index + 1}/${candidates.length} >`, TEXT_PALETTES.DARK);
+      text.write(32, 0, `${TEXT_MARKS.left} ${index + 1}/${candidates.length} ${TEXT_MARKS.right}`, TEXT_PALETTES.DARK);
       text.write(1, 2, vehicleName(vehicle), TEXT_PALETTES.YELLOW);
       const label = metadata.identifier ? `  ${metadata.identifier.officialLabel.toUpperCase()}` : '';
       text.write(1, 3, `${metadata.physicsAnchor.modelYear}${label}`, TEXT_PALETTES.DARK);
@@ -284,7 +284,9 @@ export function createVehicleScreen(
       text.write(
         1,
         11,
-        colors.length > 0 ? `^ ${colorName} ${color + 1}/${colors.length} v` : colorName,
+        colors.length > 0
+          ? `${TEXT_MARKS.up} ${colorName} ${color + 1}/${colors.length} ${TEXT_MARKS.down}`
+          : colorName,
         TEXT_PALETTES.WHITE,
       );
       const { engine, body } = vehicleValues(vehicle);

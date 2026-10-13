@@ -1,4 +1,4 @@
-import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_MARKS, TEXT_PALETTES } from '../image/text-tiles.js';
 import { TEXT_COLUMNS, TEXT_ROWS, type TextLayer } from '../view/text-layer.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -191,15 +191,15 @@ export function writeLine(text: TextLayer, row: number, line: MenuLine) {
 }
 
 /**
- * Write one choice centred on `row` in `palette`, with WHITE `<` and `>` four columns either side when there is more
+ * Write one choice centred on `row` in `palette`, with WHITE `◀` and `▶` four columns either side when there is more
  * than one to choose from.
  */
 export function writeChoice(text: TextLayer, row: number, label: string, palette: number, arrows = true) {
   const column = Math.floor((TEXT_COLUMNS - label.length) / 2);
   text.write(column, row, label, palette);
   if (!arrows) return;
-  text.write(column - ARROW_COLUMNS, row, '<', TEXT_PALETTES.WHITE);
-  text.write(column + label.length + ARROW_COLUMNS - 1, row, '>', TEXT_PALETTES.WHITE);
+  text.write(column - ARROW_COLUMNS, row, TEXT_MARKS.left, TEXT_PALETTES.WHITE);
+  text.write(column + label.length + ARROW_COLUMNS - 1, row, TEXT_MARKS.right, TEXT_PALETTES.WHITE);
 }
 
 /** Write `line` centred on `row` of the text grid. */

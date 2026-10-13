@@ -165,8 +165,11 @@ palette fields without a tile arrangement:
 {format: "superoutride.text-tiles", version: 1, name, patterns: [{indices}], palettes}
 ```
 
-Patterns are 8 by 8, and index 0 is transparent as in tile pictures. Patterns 0 through 94 are the
-printable ASCII characters U+0020 through U+007E in code order, so the character mapping needs no saved table.
+Patterns are 8 by 8, and index 0 is transparent as in tile pictures. Patterns 0 through 98 are the characters in
+one fixed order that code names (`TEXT_CHARACTER_ORDER`): the printable ASCII characters U+0020 through U+007E in code
+order, then the marks ▲ ▼ ◀ ▶ (U+25B2, U+25BC, U+25C0, U+25B6), so the character mapping needs no saved table. Text
+encodes exactly these characters; any other is a `RangeError`. Menus show choices above and below with ▲ and ▼ and
+either side with ◀ and ▶.
 The HUD part tiles follow them in one fixed order that code names, the same way, so their mapping needs no saved
 table either, and the HUD pictures follow them; the document must hold at least all of these, and later patterns are
 free. Pattern 0, the space, must
@@ -174,16 +177,18 @@ have only index 0: it is the empty tile.
 
 | Patterns  | Names                           | Content                                                                         |
 | --------- | ------------------------------- | ------------------------------------------------------------------------------- |
-| 95–98     | `LAMP_ON_TL`…`_BR`              | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7              |
-| 99–102    | `LAMP_OFF_TL`…`_BR`             | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5           |
-| 103–147   | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground |
-| 148–154   | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground    |
-| 155–1522  | `TACH_c_r_b_k` (b 1–8, k 0–8)   | Tachometer tile (c, r): bars before b slots 1/8, the rest 9/10; before k lit    |
-| 1523–1588 | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile seven-segment digit: lit segments slot 1, the others 8     |
-| 1589–1604 | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left: slot 1 outlined in slot 2      |
-| 1605–1620 | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                         |
+| 0–98      | the characters                  | The normal font: ink slot 1, its shadow slot 2                                  |
+| 99–102    | `LAMP_ON_TL`…`_BR`              | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7              |
+| 103–106   | `LAMP_OFF_TL`…`_BR`             | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5           |
+| 107–151   | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground |
+| 152–158   | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground    |
+| 159–1526  | `TACH_c_r_b_k` (b 1–8, k 0–8)   | Tachometer tile (c, r): bars before b slots 1/8, the rest 9/10; before k lit    |
+| 1527–1592 | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile seven-segment digit: lit segments slot 1, the others 8     |
+| 1593–1608 | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left: slot 1 outlined in slot 2      |
+| 1609–1624 | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                         |
 
-The signal lamps are authored. The other part tiles are drawn by the HUD tiles command
+The signal lamps are authored. The characters are the [HUD design sources](#hud-design-sources)' normal font, and the
+other part tiles are drawn by the HUD tiles command
 ([Development](development.md#hud-tiles-command)), which writes them in place:
 
 - A meter cell is 4 pixels high with 2 pixels clear above and below; `METER_a_b` serves a meter filled from the left
@@ -201,10 +206,10 @@ palette of its own after the named palettes, in that order:
 
 | Patterns  | Palette | Name         | Picture                                          | Frames                                   |
 | --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
-| 1621–2772 | 9       | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
-| 2773–3924 | 10      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
-| 3925–5076 | 11      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
-| 5077–6264 | 12      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+| 1625–2776 | 9       | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 2777–3928 | 10      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 3929–5080 | 11      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 5081–6268 | 12      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
 
 Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
 row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
@@ -223,7 +228,6 @@ main color unlit, and 9 and 10 the second color lit and unlit (GREEN_YELLOW's ye
 build admits the document and delivers it as authored as the manifest `image` entry `text-tiles`.
 `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which encodes text to patterns
 (a character without a pattern is a `RangeError`) and paints one tile's opaque pixels.
-The original font draws each glyph in slot 1 with a slot 2 shadow one pixel right, down and diagonally down-right.
 
 ## External source normalization
 
@@ -563,6 +567,19 @@ and its width fills the picture.
 box filter over premultiplied color; a pixel covered for at least `alphaThreshold` is opaque. The palette is k-means
 clustering of every opaque pixel of all the picture's frames from deterministic k-means++ seeds, and each pixel takes
 its nearest color.
+
+## HUD design sources
+
+The fonts' and HUD parts' drawn pixels are saved as given under `content/hud-design-sources/`. They are
+production-only data, which the build does not deliver; the [HUD tiles command](development.md#hud-tiles-command)
+admits them and writes them into the [text tiles](#text-tiles) in place. Each JSON source names its characters or
+parts and holds 64 palette slots per 8×8 tile, row by row; a character list must name the text tiles' characters in
+their order, and a slot outside a source's slots does not admit. The PNG files beside them are previews, which nothing
+reads.
+
+| Source                      | Content                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2 |
 
 ## Screen pictures
 

@@ -8,3 +8,6 @@ package-lock.json
 content/images/
 
 .cache/
+
+# Design sources are saved exactly as given.
+content/hud-design-sources/

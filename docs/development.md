@@ -370,7 +370,7 @@ The build admits the saved set and generates nothing.
 
 ### HUD tiles command
 
-The HUD tiles command draws the HUD's drawn part tiles ([Image assets](image-assets.md#text-tiles)) and every HUD
+The HUD tiles command writes the characters, draws the HUD's drawn part tiles ([Image assets](image-assets.md#text-tiles)) and every HUD
 picture by the [HUD picture generator](image-assets.md#hud-picture-generator), printing one JSON result (or the
 diagnostics, exiting 1):
 
@@ -378,8 +378,9 @@ diagnostics, exiting 1):
 npm run hud-tiles
 ```
 
-It reads `content/hud-picture-sources/recipes.json` and the sources beside it, writes the part tiles, the pictures and
-their palettes into `content/text-tiles/default.json`, keeping its characters, signal lamps and named palettes, and
+It reads the [HUD design sources](image-assets.md#hud-design-sources) and `content/hud-picture-sources/recipes.json`
+with the sources beside it, writes the characters, the part tiles, the pictures and their palettes into
+`content/text-tiles/default.json`, keeping its signal lamps and named palettes, and
 writes a check sheet of each
 picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads. The build admits
 the saved text tiles and draws nothing.

@@ -486,21 +486,25 @@ export async function drawHudPictures(store: ContentStore, PNG: typeof PngDecode
 }
 
 /**
- * The text tiles document with these drawn HUD part tiles and pictures in place of those it held: the characters, the
- * signal lamps and the named palettes are kept, and the part tiles, then each picture's frames, tile rows from the top
- * left, and palette follow them.
+ * The text tiles document with these characters and drawn HUD part tiles and pictures in place of those it held: the
+ * signal lamps and the named palettes are kept, and the characters, then the signal lamps, the part tiles, each
+ * picture's frames, tile rows from the top left, and palette follow in the text tiles' order.
  */
 export function withHudTiles(
   document: TextTilesDocument,
+  characters: readonly (readonly number[])[],
   parts: readonly (readonly number[])[],
   drawn: ReadonlyMap<HudPicture, DrawnHudPicture>,
 ): TextTilesDocument {
   const tiles = HUD_PICTURE_TILES,
     size = tiles * TEXT_TILE_SIZE;
+  const lamps = HUD_TILES.LAMP_ON_TL!;
   const patterns = [
-    ...document.patterns.slice(0, HUD_TILES[HUD_DRAWN_TILE_NAMES[0]!]!),
+    ...characters.map((indices) => ({ indices })),
+    ...document.patterns.slice(lamps, HUD_TILES[HUD_DRAWN_TILE_NAMES[0]!]!),
     ...parts.map((indices) => ({ indices })),
   ];
+  if (characters.length !== lamps) throw new Error('The characters differ from the text tiles order');
   const palettes = document.palettes.slice(0, Object.keys(TEXT_PALETTES).length);
   for (const [picture, { frames, palette }] of drawn) {
     if (patterns.length !== picture.first || palettes.length !== picture.palette)

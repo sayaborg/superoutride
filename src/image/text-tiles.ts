@@ -3,11 +3,28 @@ import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexe
 
 /** Text tiles are 8 by 8 pixels. */
 export const TEXT_TILE_SIZE = 8;
-/** Patterns 0 through 94 are the printable ASCII characters U+0020 through U+007E, in code order. */
-const FIRST_CHARACTER = 0x20;
-const CHARACTER_COUNT = 0x7f - FIRST_CHARACTER;
-/** Text the text tiles can draw: printable ASCII only. */
-export const TEXT_CHARACTERS = /^[\x20-\x7e]*$/;
+/**
+ * The marks the text tiles draw besides printable ASCII: solid triangles pointing up, down, left and right, as menus
+ * show choices above and below or either side.
+ */
+export const TEXT_MARKS = Object.freeze({ up: '\u25b2', down: '\u25bc', left: '\u25c0', right: '\u25b6' });
+/**
+ * Every character the text tiles draw, in their patterns' order: the printable ASCII characters U+0020 through U+007E in
+ * code order, then the marks up, down, left and right, so the character mapping needs no saved table.
+ */
+export const TEXT_CHARACTER_ORDER: readonly string[] = Object.freeze([
+  ...Array.from({ length: 0x7f - 0x20 }, (_, i) => String.fromCharCode(0x20 + i)),
+  TEXT_MARKS.up,
+  TEXT_MARKS.down,
+  TEXT_MARKS.left,
+  TEXT_MARKS.right,
+]);
+const CHARACTER_COUNT = TEXT_CHARACTER_ORDER.length;
+const CHARACTER_PATTERNS: ReadonlyMap<string, number> = new Map(
+  TEXT_CHARACTER_ORDER.map((character, i) => [character, i]),
+);
+/** Text the text tiles can draw: printable ASCII and the marks. */
+export const TEXT_CHARACTERS = /^[\x20-\x7e\u25b2\u25bc\u25c0\u25b6]*$/;
 /** The empty tile: pattern 0 (the space) has no opaque pixel and is never painted. */
 export const EMPTY_TEXT_TILE = 0;
 /**
@@ -70,7 +87,7 @@ export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
 ]);
 /**
- * The HUD part tiles follow the characters in this order, as the characters follow code order, so the mapping needs no
+ * The HUD part tiles follow the characters in this order, as the characters follow their order, so the mapping needs no
  * saved table: the signal lamps, 2 by 2 tiles lit or unlit, and then the drawn part tiles.
  */
 const HUD_TILE_NAMES = [
@@ -223,9 +240,9 @@ export class TextTiles {
   encode(text: string): number[] {
     const result: number[] = [];
     for (const character of text) {
-      const code = character.codePointAt(0)! - FIRST_CHARACTER;
-      if (code < 0 || code >= CHARACTER_COUNT) throw new RangeError(`No text tile for ${JSON.stringify(character)}`);
-      result.push(code);
+      const pattern = CHARACTER_PATTERNS.get(character);
+      if (pattern === undefined) throw new RangeError(`No text tile for ${JSON.stringify(character)}`);
+      result.push(pattern);
     }
     return result;
   }

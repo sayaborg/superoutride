@@ -58,8 +58,8 @@ An image's pixels and colors do not change the driving and are not part of cours
 solid sprite's image size its roadside object, so course identity includes them ([identity](#compiled-identity-and-project-publication)).
 [Development](development.md#build-outputs) owns the index and output layout.
 
-`name` is the course's display name: nonblank printable ASCII (the
-[text tiles'](image-assets.md#text-tiles) characters) without surrounding whitespace, at most `nameCodeUnits`
+`name` is the course's display name: nonblank text in the
+[text tiles'](image-assets.md#text-tiles) characters without surrounding whitespace, at most `nameCodeUnits`
 long, so it fits one line of the frame's text grid. It is shown, never used as an identity.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only

@@ -34,7 +34,7 @@ export interface TitleState {
 /**
  * TITLE: the logo centred at y 16 over its background. Before the first gesture PRESS START blinks on row 28; CONFIRM
  * there is the gesture (`start`, which sounds `press-start`) and replaces it with the mode line for the rest of the
- * page: the mode, YELLOW (DARK when it offers nothing), between WHITE `<` and `>` on row 28, rows 27–29 at half
+ * page: the mode, YELLOW (DARK when it offers nothing), between WHITE `◀` and `▶` on row 28, rows 27–29 at half
  * brightness, LEFT and RIGHT changing it like a carousel. BACK does nothing on TITLE.
  */
 export function createTitleScreen(
