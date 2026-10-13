@@ -1,7 +1,12 @@
 import { compileContent, type ContentCompilation } from '../authoring/compile-content.js';
 import { createLayeredStore } from '../authoring/layered-store.js';
 import { planMeasurement } from '../authoring/measure.js';
-import { MEASUREMENT_STALE, measuredEnvelopePath, referenceTimesPath } from '../course/measured-products.js';
+import {
+  MEASUREMENT_STALE,
+  measuredEnvelopePath,
+  racingLinePath,
+  referenceTimesPath,
+} from '../course/measured-products.js';
 import { workerStore } from './worker-store.js';
 import { courseReport, courseSection, createCourseFrameRenderer } from '../authoring/course-views.js';
 import { courseFindings } from '../authoring/course-findings.js';
@@ -120,6 +125,7 @@ scope.addEventListener('message', async ({ data }) => {
         const stale = new Set([
           ...plan.jobs.filter((job) => !job.envelope).map((job) => measuredEnvelopePath(job.vehicleId)),
           ...plan.jobs.flatMap((job) => job.courses.map(referenceTimesPath)),
+          ...plan.racingLines.map(racingLinePath),
         ]);
         current = data.preview.map(([path]) => path).filter((path) => !stale.has(path));
       }

@@ -35,6 +35,7 @@ scope.addEventListener('message', async ({ data }) => {
     scope.postMessage({
       type: 'plan',
       jobs: plan.jobs.map((job) => ({ vehicle: job.vehicleId, envelope: !job.envelope, courses: job.courses })),
+      racingLines: plan.racingLines,
       extra: plan.extra,
     });
     if (!data.run) return;

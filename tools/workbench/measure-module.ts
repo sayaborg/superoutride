@@ -68,6 +68,7 @@ export const measureModule: WorkbenchModule = {
           `${job.vehicle}: ${[job.envelope ? 'envelope' : null, ...job.courses.map((course) => `reference times on ${course}`)].filter(Boolean).join(', ')}`,
         ),
       );
+      for (const course of message.racingLines) items.push(make('li', `${course}: racing lines`));
       for (const path of message.extra) items.push(make('li', `${path}: owned by no vehicle or course a class runs`));
       stale.replaceChildren(...items);
       summary.textContent = items.length ? `${items.length} stale:` : 'Measurements are current.';
@@ -102,7 +103,7 @@ export const measureModule: WorkbenchModule = {
         if (message.type === 'plan') {
           showPlan(message);
           jobs = message.jobs.length;
-          if (!jobs && !message.extra.length) idle('Nothing to measure.');
+          if (!jobs && !message.racingLines.length && !message.extra.length) idle('Nothing to measure.');
         } else if (message.type === 'progress')
           progress.textContent = `Measuring: ${message.done} of ${jobs} vehicles done · ${message.vehicle}: ${message.phase === 'envelope' ? 'envelope' : `reference runs on ${message.phase}`}`;
         else if (message.type === 'done') {

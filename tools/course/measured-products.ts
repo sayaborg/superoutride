@@ -3,6 +3,7 @@ import { courseBudgetLandmarks } from '../../src/content/course-time-budgets.js'
 import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
 import { RIVAL_ENVELOPE_FORMAT, readRivalEnvelope, type RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
+import { RACING_LINE_FORMAT, readRacingLines, type RacingLineDocument } from '../../src/content/racing-line.js';
 import {
   AdmissionError,
   admit,
@@ -34,6 +35,8 @@ export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.refe
 export const measuredEnvelopePath = (vehicleId: string) => `envelopes/${vehicleId}.json`;
 /** The saved reference times of a course a class runs, under `content/`. */
 export const referenceTimesPath = (courseId: string) => `reference-times/${courseId}.json`;
+/** The saved racing lines of a course, under `content/`. */
+export const racingLinePath = (courseId: string) => `racing-lines/${courseId}.json`;
 
 type ReferenceRun = ReturnType<typeof runCourseReference>;
 
@@ -299,5 +302,34 @@ export function readSavedReferenceTimes(
       );
     });
     return input as SavedReferenceTimes;
+  });
+}
+
+/**
+ * Admit a course's saved racing lines against the compiled course and the racing line procedure `procedureSha256`:
+ * both identities current, then the lines as delivery admits them.
+ */
+export function readSavedRacingLines(
+  course: CompiledCourse,
+  procedureSha256: string,
+  input: unknown,
+  document = '',
+): AdmissionResult<RacingLineDocument> {
+  return admit(document, () => {
+    const data = readDocument(
+      input,
+      ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'spacing', 'lines'],
+      RACING_LINE_FORMAT.format,
+      RACING_LINE_FORMAT.version,
+    );
+    if (readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) !== course.identity.buildSha256)
+      staleMeasurement('/courseBuildSha256', 'The course changed since its racing lines were solved');
+    if (readString(data.procedureSha256, '/procedureSha256', SHA256_TEXT) !== procedureSha256)
+      staleMeasurement(
+        '/procedureSha256',
+        'The racing line procedure or the widest vehicle changed since they were solved',
+      );
+    readUnder('', readRacingLines(course, input));
+    return input as RacingLineDocument;
   });
 }

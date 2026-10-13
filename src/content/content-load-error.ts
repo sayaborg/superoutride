@@ -11,6 +11,7 @@ export type ContentKind =
   | 'envelope'
   | 'reference-times'
   | 'schedule'
+  | 'racing-line'
   | 'vehicle'
   | 'vehicle-listing'
   | 'driving'

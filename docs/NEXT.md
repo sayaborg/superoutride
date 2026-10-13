@@ -93,7 +93,7 @@
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
   the attract demo holds only the shown and the next class's Sessions.
 
-Next PR: [AI-1](#ai-1--racing-lines-generated-product) of [Stage AI](#stage-ai--the-model-planned-driver), then
+Next PR: [AI-2](#ai-2--the-model-planned-driver) of [Stage AI](#stage-ai--the-model-planned-driver), then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -112,40 +112,15 @@ traffic, reference runs, the attract demo and the player's takeover after GOAL. 
 Unchanged: rival pace, pace schedules and their formats; the utilization values (reference 0.9, unpaced 0.75, rival
 bounds 0.55–0.95); fork locking and rival exits; traffic's lanes and lane rules. Tests stay lean: the standing checks
 and existing scenarios pass, only the checks named below are added, an existing scenario changes only where this stage
-intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals.
+intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals. Racing lines are a
+measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#racing-lines)).
 
 | PR   | Purpose                                               |
 | ---- | ----------------------------------------------------- |
-| AI-1 | Racing lines: a generated per-course product          |
 | AI-2 | The model-planned driver replaces the envelope driver |
 | AI-3 | Envelopes and their measurement are removed           |
 | AI-4 | Path offsets: passing, giving room and yielding       |
 | AI-5 | BRAKE!! for the player                                |
-
-### AI-1 — Racing lines (generated product)
-
-Owning documents: content-and-gameplay (a new "Racing lines" subsection under Measured products) and development (the
-measure command).
-
-- The racing line is a lateral `l(s)` for each Section, and for a fork Section one per exit, over the whole Section. It
-  depends on the course alone, never on a vehicle.
-- Shape: it minimises total squared path curvature, the road's plan curvature at `l` plus the line's own lateral
-  curvature `l''`.
-- Bounds: inside the road's edges less an edge margin of half the catalog's widest vehicle plus 0.3 m; for a fork
-  Section, toward each exit, the road of the Link that exit leaves by from the lock line onward (before the lock line the
-  whole supported road).
-- Continuity: continuous in value and slope at every seam; the incoming and outgoing Sections share the seam lateral in
-  the Link's lane-to-centre-lane mapping; at a merge all predecessors share the successor's start; a CIRCUIT closes on
-  itself. The lines are solved jointly over the whole course graph, one sparse problem.
-- Solve: repeatedly linearise the curvature and solve the box-constrained quadratic problem (a projected iterative or
-  active-set method, a few outer passes); deterministic in Node.
-- Product: format `superoutride.racing-line` version 1, keyed by the course build identity; laterals every 5 m on the
-  schedule stations plus each Section's end, for each Section and exit; written by `npm run measure -- generate` with
-  the other measured products and admitted like them; stale products fail the same way.
-- Readers: a driver reads its line through the Route like any course read; a rival on a fork Section uses the line of
-  its intended exit (its `rivalExit`); a reference run uses the line of its planned exit.
-
-Evidence: a picture per product course of the line drawn over the plan. No new test.
 
 ### AI-2 — The model-planned driver
 

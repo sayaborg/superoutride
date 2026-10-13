@@ -1128,7 +1128,8 @@ run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and event
 
 The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
 under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each catalog vehicle
-has `content/envelopes/<vehicle>.json` and each course a class runs has `content/reference-times/<course>.json`.
+has `content/envelopes/<vehicle>.json`, each course a class runs has `content/reference-times/<course>.json`, and
+every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
 
 A measured envelope (`superoutride.measured-envelope` version 1) has `vehicleSha256` (the Session vehicle's identity),
 `procedureSha256` (the envelope measurement's identity) and `envelope`, the delivered envelope's `maximumSpeed` and
@@ -1162,6 +1163,38 @@ them (`measured: false`).
 Measurement is reproducible within one JavaScript engine. `Math.sin` and `Math.cos` differ between engines in their
 last bits, so the saved products are written by the Node tool alone; the workbench measures with the same
 implementation for its own build only, and never saves the result.
+
+### Racing lines
+
+A course's racing lines are a lateral `l(s)` for each Section and, on a fork Section, one per exit, over the whole
+Section ([`racing-line.ts`](../tools/course/racing-line.ts)). They depend on the course alone, never on a vehicle.
+
+- **Shape.** They minimise the total squared path curvature: over the path's length, the square of the plan's
+  curvature at `l` (`k/(1 − k l)` for the plan curvature `k`) plus the line's own lateral curvature `l''`.
+- **Bounds.** A line stays inside the road it drives less an edge margin of half the catalog's widest vehicle plus
+  0.3 m. That road is the one the line's lane belongs to: the lane its Link leaves by (the exit's on a fork Section,
+  the centre lane at a terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section
+  before the lock line a line may use the whole supported road: from the leftmost road's left edge to the rightmost
+  one's right edge, within the supported interval around its road. A road narrower than twice the margin bounds the line
+  to its middle.
+- **Continuity.** Every seam has one lateral that the lines ending there and the lines beginning there share, in each
+  Link's frame (its cut lane's centre on the next Section's centreline): at a merge all predecessors share the
+  successor's start, at a fork every exit's line starts from its predecessor's end, and a CIRCUIT closes on itself.
+  Curvature terms span each seam, so the slope carries across it.
+- **Solve.** The lines of the whole course graph are one sparse problem over the laterals at the schedule stations.
+  Each of five passes linearises the plan curvature at the current laterals and solves the resulting box-constrained
+  quadratic by a primal–dual interior-point method; each Newton step eliminates every line's inner laterals, a band of
+  width two, leaving a small dense system over the laterals at and beside seams. The result is deterministic in Node.
+
+The saved product (`superoutride.racing-line` version 1) has `courseBuildSha256`, `procedureSha256` (the racing line
+procedure's identity, whose record holds the edge margin, so a wider catalog vehicle makes it stale), `spacing` (the
+schedule spacing, 5 m) and `lines`: for each Section in course order, and each fork exit in exit order, its `section`,
+its `exit` (the Link ID, null on a Section that does not fork) and `laterals`, one at each of the Section's schedule
+stations (every 5 m from its start, then its end), rounded to the millimetre. It is delivered as saved
+(`racing-line`, by course ID). Admission (`readRacingLines`) checks the course identity, the spacing and one line of
+the right length for every Section and exit; the build also checks the procedure identity, and a stale or absent
+product fails it as any measured product does. The admitted lines read a Section's lateral toward an exit at a
+native station, interpolated linearly between stations.
 
 ### Pace schedules
 

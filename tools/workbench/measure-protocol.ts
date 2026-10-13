@@ -36,6 +36,8 @@ export type MeasureMessage =
         readonly envelope: boolean;
         readonly courses: readonly string[];
       }[];
+      /** The courses whose racing lines are solved. */
+      readonly racingLines: readonly string[];
       readonly extra: readonly string[];
     }
   | { readonly type: 'progress'; readonly vehicle: string; readonly phase: string; readonly done: number }

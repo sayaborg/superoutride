@@ -5,11 +5,14 @@ import type { RivalEnvelope } from '../../src/content/rival-envelope.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { ENVELOPE_MEASUREMENT, measureRivalEnvelope } from '../course/rival-envelope-measurement.js';
 import { REFERENCE_RUN, runCourseReference } from '../course/reference-run.js';
+import { racingLineProcedure, solveRacingLines } from '../course/racing-line.js';
+import { RACING_LINE_FORMAT, racingLineDocument, type RacingLineDocument } from '../../src/content/racing-line.js';
 import {
   MEASURED_ENVELOPE_FORMAT,
   REFERENCE_TIMES_FORMAT,
   measuredCourses,
   measuredEnvelopePath,
+  racingLinePath,
   referenceTimesPath,
   savedEnvelope,
   savedReferenceVehicle,
@@ -50,6 +53,8 @@ export interface MeasuredWrite {
 export interface MeasurementPlan {
   /** The jobs to run: one per vehicle with anything stale (everything when asked). */
   readonly jobs: readonly MeasureJob[];
+  /** The courses whose racing lines are solved: those stale (every course when asked). */
+  readonly racingLines: readonly string[];
   /** Saved measured products no catalog vehicle or course a class runs owns. */
   readonly extra: readonly string[];
   /** The files the results save, with what changed by gate and lap. */
@@ -93,6 +98,7 @@ export async function planMeasurement(
   const savedNames = new Set([
     ...(await store.list('envelopes')).map((name) => `envelopes/${name}`),
     ...(await store.list('reference-times')).map((name) => `reference-times/${name}`),
+    ...(await store.list('racing-lines')).map((name) => `racing-lines/${name}`),
   ]);
   // The saved JSON at a path, or null when it is absent or not JSON.
   const savedJson = async (path: string): Promise<unknown> => {
@@ -106,6 +112,23 @@ export async function planMeasurement(
   };
   const measurementSha256 = await procedureSha256(ENVELOPE_MEASUREMENT),
     referenceSha256 = await procedureSha256(REFERENCE_RUN);
+  // Every course's racing lines, solved again when stale.
+  const lineProcedure = racingLineProcedure(
+    Math.max(...content.definitions.vehicles.map((vehicle) => vehicle.compiledVehicle.footprint)),
+  );
+  const lineSha256 = await procedureSha256(lineProcedure);
+  const lines: { course: CompiledContent['courses'][number]; saved: unknown }[] = [];
+  for (const course of content.courses) lines.push({ course, saved: await savedJson(racingLinePath(course.id)) });
+  const staleLines = lines.filter(({ course, saved }) => {
+    const file = saved as Partial<RacingLineDocument> | null;
+    return (
+      everything ||
+      file?.format !== RACING_LINE_FORMAT.format ||
+      file.version !== RACING_LINE_FORMAT.version ||
+      file.courseBuildSha256 !== course.identity.buildSha256 ||
+      file.procedureSha256 !== lineSha256
+    );
+  });
   // Each catalog vehicle's identity and its saved envelope when that is current.
   const vehicles = new Map<string, { sha256: string; envelope: SavedEnvelope | null; saved: unknown }>();
   for (const entry of content.definitions.vehicles) {
@@ -157,12 +180,19 @@ export async function planMeasurement(
   const owned = new Set([
     ...[...vehicles.keys()].map(measuredEnvelopePath),
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
+    ...content.courses.map((course) => racingLinePath(course.id)),
   ]);
   const extra = [...savedNames].filter((path) => !owned.has(path)).sort();
 
   const assemble = (results: ReadonlyMap<string, MeasureResult>) => {
     const report: unknown[] = [];
     const writes: MeasuredWrite[] = [];
+    // Racing lines, in course order.
+    for (const { course, saved } of staleLines) {
+      const next = racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure));
+      report.push({ racingLines: course.id });
+      writes.push({ path: racingLinePath(course.id), text: formatSavedJson(next), previous: saved });
+    }
     // Envelopes, in catalog order.
     for (const [vehicleId, vehicle] of vehicles) {
       const result = results.get(vehicleId);
@@ -203,7 +233,7 @@ export async function planMeasurement(
     }
     return { writes, report };
   };
-  return { jobs, extra, assemble };
+  return { jobs, racingLines: staleLines.map(({ course }) => course.id), extra, assemble };
 }
 
 /** A saved entry's times after `gate`, read leniently since the saved file may be stale in any way. */

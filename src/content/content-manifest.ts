@@ -36,6 +36,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'envelope',
   'reference-times',
   'schedule',
+  'racing-line',
   'vehicle',
   'vehicle-listing',
   'driving',

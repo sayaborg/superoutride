@@ -36,13 +36,16 @@ import { readCourseTimeBudgets } from '../../src/content/course-time-budgets.js'
 import { procedureSha256 } from '../course/procedure.js';
 import { ENVELOPE_MEASUREMENT } from '../course/rival-envelope-measurement.js';
 import { REFERENCE_RUN } from '../course/reference-run.js';
+import { racingLineProcedure } from '../course/racing-line.js';
 import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
   deliveredEnvelope,
   deliveredSchedule,
   measuredCourses,
   measuredEnvelopePath,
+  racingLinePath,
   readSavedEnvelope,
+  readSavedRacingLines,
   readSavedReferenceTimes,
   referenceTimes,
   referenceTimesPath,
@@ -394,11 +397,27 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   ];
   if (measured) {
     const envelopeFiles = await read('envelopes', ''),
-      timeFiles = await read('reference-times', '');
+      timeFiles = await read('reference-times', ''),
+      lineFiles = await read('racing-lines', '');
     const products = await stage(
       'measured',
-      [definitions.key, materials.key, series.key, ...inputs(envelopeFiles), ...inputs(timeFiles)],
-      () => measuredFiles(store, definitions.value.definitions, materials.value.catalog, series.value.seriesClasses),
+      [
+        definitions.key,
+        materials.key,
+        series.key,
+        ...courses.map((course) => course.key),
+        ...inputs(envelopeFiles),
+        ...inputs(timeFiles),
+        ...inputs(lineFiles),
+      ],
+      () =>
+        measuredFiles(
+          store,
+          definitions.value.definitions,
+          materials.value.catalog,
+          series.value.seriesClasses,
+          compiledCourses,
+        ),
     );
     files.push(...products.value);
   }
@@ -430,15 +449,17 @@ function namedImages(bytes: Uint8Array): string[] {
 }
 
 /**
- * The measured products: each catalog vehicle's delivered envelope and, for each course a class runs, the reference
- * times and pace schedule of each vehicle a class runs there, from the saved measurements, each delivered once. Every
- * saved file must be current and owned. A Session applies its series' margin to the delivered times.
+ * The measured products: each course's racing lines, each catalog vehicle's delivered envelope and, for each course a
+ * class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
+ * each delivered once. Every saved file must be current and owned. A Session applies its series' margin to the
+ * delivered times.
  */
 async function measuredFiles(
   store: ContentStore,
   definitions: VehicleDefinitions,
   materials: SurfaceMaterialCatalog,
   seriesClasses: CompiledContent['seriesClasses'],
+  compiledCourses: readonly CompiledCourse[],
 ): Promise<DeliveredFile[]> {
   const files: DeliveredFile[] = [];
   const add = (kind: ContentKind, id: string, bytes: Uint8Array<ArrayBuffer>) =>
@@ -460,9 +481,10 @@ async function measuredFiles(
   const owned = new Set([
     ...definitions.vehicles.map((entry) => measuredEnvelopePath(entry.compiledVehicle.id)),
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
+    ...compiledCourses.map((course) => racingLinePath(course.id)),
   ]);
   const saved = new Set<string>();
-  for (const directory of ['envelopes', 'reference-times'])
+  for (const directory of ['envelopes', 'reference-times', 'racing-lines'])
     for (const name of await store.list(directory)) saved.add(`${directory}/${name}`);
   for (const path of saved)
     if (!owned.has(path))
@@ -473,6 +495,14 @@ async function measuredFiles(
     if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
     return json(path);
   };
+  const lineSha256 = await procedureSha256(
+    racingLineProcedure(Math.max(...definitions.vehicles.map((entry) => entry.compiledVehicle.footprint))),
+  );
+  for (const course of compiledCourses) {
+    const path = racingLinePath(course.id);
+    const lines = requireLoaded(readSavedRacingLines(course, lineSha256, await savedJson(path), `content/${path}`));
+    add('racing-line', course.id, encodeContentJson(lines));
+  }
   const times = new Map<string, SavedReferenceTimes>();
   for (const { course, vehicles } of courses) {
     const path = referenceTimesPath(course.id);
