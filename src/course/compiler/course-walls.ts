@@ -11,6 +11,7 @@ import type { StripMaterial } from '../strip-material.js';
 import type { StripGround } from '../strip-ground.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 import { compileCourseStrips } from './course-strip-ground.js';
+import type { WorkSlices } from '../../core/work-slices.js';
 
 /**
  * Metres: how close a solid wall's end must lie to a course limit or another solid wall to join it. It absorbs only the
@@ -34,37 +35,39 @@ export interface CompiledWall {
  * Resolve each wall's Boundary and interval (`from < to`, both in the Section, the Boundary covering them) and compile its
  * Strips with the road's Strip compiler over the wall's own interval, so every Strip lies within `[from, to]`.
  */
-export function compileCourseWalls(
+export async function compileCourseWalls(
   walls: readonly WallDocument[],
   lines: CourseLines,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   materials: SurfaceMaterialCatalog,
   budget: StripBudget,
   path: string,
-): readonly CompiledWall[] {
-  return Object.freeze(
-    walls.map((source, index) => {
-      const at = `${path}/${index}`;
-      const boundary = lines.boundaries.get(source.boundary);
-      if (!boundary)
-        throw new CourseInputError(
-          'unresolved_reference',
-          `${at}/boundary`,
-          `Unknown reference ${JSON.stringify(source.boundary)} in this scope`,
-        );
-      const start = resolve(source.start, `${at}/start`).s,
-        end = resolve(source.end, `${at}/end`).s;
-      requireCourse(start < end, `${at}/end`, 'A wall needs start < end', 'invalid_wall');
-      requireCourse(
-        boundary.vertices[0]!.at.s <= start && boundary.vertices.at(-1)!.at.s >= end,
+  slices: WorkSlices,
+): Promise<readonly CompiledWall[]> {
+  const compiled: CompiledWall[] = [];
+  for (const [index, source] of walls.entries()) {
+    const at = `${path}/${index}`;
+    const boundary = lines.boundaries.get(source.boundary);
+    if (!boundary)
+      throw new CourseInputError(
+        'unresolved_reference',
         `${at}/boundary`,
-        'The Boundary must cover the whole wall',
-        'invalid_wall',
+        `Unknown reference ${JSON.stringify(source.boundary)} in this scope`,
       );
-      const color =
-        source.strips.length === 0
-          ? null
-          : compileCourseStrips(
+    const start = resolve(source.start, `${at}/start`).s,
+      end = resolve(source.end, `${at}/end`).s;
+    requireCourse(start < end, `${at}/end`, 'A wall needs start < end', 'invalid_wall');
+    requireCourse(
+      boundary.vertices[0]!.at.s <= start && boundary.vertices.at(-1)!.at.s >= end,
+      `${at}/boundary`,
+      'The Boundary must cover the whole wall',
+      'invalid_wall',
+    );
+    const color =
+      source.strips.length === 0
+        ? null
+        : (
+            await compileCourseStrips(
               source.strips,
               end - start,
               `${at}/strips`,
@@ -81,10 +84,12 @@ export function compileCourseWalls(
               lines,
               materials,
               budget,
-            ).color;
-      return Object.freeze({ source, boundary, start, end, color });
-    }),
-  );
+              slices,
+            )
+          ).color;
+    compiled.push(Object.freeze({ source, boundary, start, end, color }));
+  }
+  return Object.freeze(compiled);
 }
 
 /**

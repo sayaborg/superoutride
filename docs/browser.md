@@ -24,6 +24,11 @@ steps, including callbacks with no simulation step; it reads the race's competit
 hold the values of the latest completed step. There is one frame loop; it runs while the page is visible and
 advances and draws the current screen. Each start begins a fresh clock, so stopped real time never enters the
 simulation. Loading leaves the race clock stopped; an assembled run starts after the PRE-RACE card and the black transition.
+Loading never stops the frame loop: a run's course compiles in [slices](architecture.md#course-loading) of 8 ms of
+work (`LOADING_SLICE_MILLISECONDS`), each followed by a yield to the event loop through a message channel, so the frame
+loop and input run between them and TITLE, the attract demo and the PRE-RACE card keep drawing while a course loads. The
+page's own startup (delivered content and catalogs, before the first screen) is not sliced and happens once, over the
+page's black.
 Every Session assembly, a DEV tuning rebuild included, picks a new Session seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
@@ -67,7 +72,8 @@ the class title (YELLOW; the mode's name outside ARCADE) on row 18, the course's
 on row 21 (the route's length to 0.001 km, laps only on a circuit), `<field> CARS|BIKES  START P<slot>` on row 23 and
 `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (no line in FREE PLAY). On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
-the course's files to 70 %, its compilation to 80 %, the Session to 90 %, the assembled run to 100 %. The title, course
+the course's files to 70 %, its compilation to 80 % (Section by Section), the Session to 90 %, the assembled run
+to 100 %. The title, course
 name and laps show at once; the map and the Session's lines once the course is compiled and the Session prepared. The
 card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to
 READY. After a failed assembly the

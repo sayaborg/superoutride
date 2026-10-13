@@ -7,7 +7,7 @@ import {
   readString,
   requireAdmission,
 } from '../core/admission.js';
-import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
+import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
 import { evaluatePaletteMixture, linearToRgb555, selectImageLodLevel, type PaletteMixture } from './image-filter.js';
 // Dimensionless weight sum: 10^-10 normalization budget for serialized mixture sums.
 // Positive unit-total sums accumulate O(n*eps) error; this allows about 4.5e5 eps.
@@ -110,8 +110,7 @@ export interface SpriteLodAsset extends SpriteAsset {
 
 /** One frame's row-major indices of a declared extent, as a pattern. */
 function readFrameIndices(value: unknown, path: string, width: number, height: number): IndexedPattern {
-  const indices = readArray(value, path, (item, at) => readPatternSymbol(item, at), { length: width * height });
-  return new IndexedPattern(width, height, indices);
+  return new IndexedPattern(width, height, readPatternSymbols(value, path, width * height));
 }
 
 /** Completed-image admission: filtering is never performed by the reader or blitter. */
@@ -175,21 +174,10 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       ),
     );
     const { width: w, height: h } = layout[k]!;
-    const indices = readArray(
-      level.indices,
-      `${path}/indices`,
-      (value, at) => {
-        const index = readPatternSymbol(value, at);
-        requireAdmission(
-          !index || mixtures[index]!.length > 0,
-          'invalid_value',
-          at,
-          'Opaque index requires a palette mixture',
-        );
-        return index;
-      },
-      { length: w * h },
-    );
+    const indices = readPatternSymbols(level.indices, `${path}/indices`, w * h, {
+      test: (index) => !index || mixtures[index]!.length > 0,
+      message: 'Opaque index requires a palette mixture',
+    });
     return Object.freeze({
       width: w,
       height: h,

@@ -89,11 +89,190 @@
   - `wipe`, `rise` and `cut` background transitions owned by the environment.
     Forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision).
 
-Next PR: [Stage 16](#stage-16--produce-product-courses).
+Next PR: [LD-2](#ld-2--the-attract-demo-keeps-two-sessions), then [Stage AI](#stage-ai--the-model-planned-driver) and
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage LD — Startup loading
+
+The product owner's decisions; work through without asking, using [Decision rules](#decision-rules-for-ld-and-ai)
+and stopping only under [Stop conditions](#stop-conditions-for-ld-and-ai). Course loading runs in slices and never
+stops the frame loop (LD-1). One PR remains:
+
+| PR   | Purpose                                                              |
+| ---- | -------------------------------------------------------------------- |
+| LD-2 | The attract demo keeps only the current and the next class's Session |
+
+### LD-2 — The attract demo keeps two Sessions
+
+Owning document: browser (the attract demo paragraph).
+
+- The attract demo holds at most two Sessions: the shown class's and the next class's, loaded and standing in READY.
+- Release a class's Session, and its course compilation unless another held Session shares it, when its turn ends.
+- A class shown again starts a new Session from READY with the next seed. This replaces "each later turn continues
+  from where the last one left it".
+
+Evidence: heap after GC at 1, 3 and 6 minutes on TITLE, which must stay flat.
+
+## Stage AI — The model-planned driver
+
+AI vehicles are opponents whose speed tunes cleanly. They operate throttle, brake and steering smoothly and in analog
+form; they are not bound to the player's digital inputs. Their limits come from the vehicle's own definitions through a
+model, not from a separately measured envelope. Speed is one number, the utilization: the fraction of the tire
+friction ellipse used, and it acts on cornering, braking and acceleration alike. The same driver serves rivals,
+traffic, reference runs, the attract demo and the player's takeover after GOAL. Pedal inputs are already analog
+(`PedalRequest` accepts [0,1]); the player's devices are unchanged.
+
+Unchanged: rival pace, pace schedules and their formats; the utilization values (reference 0.9, unpaced 0.75, rival
+bounds 0.55–0.95); fork locking and rival exits; traffic's lanes and lane rules. Tests stay lean: the standing checks
+and existing scenarios pass, only the checks named below are added, an existing scenario changes only where this stage
+intentionally changes the behaviour it observes (said in the PR), and no unit tests for internals.
+
+| PR   | Purpose                                               |
+| ---- | ----------------------------------------------------- |
+| AI-1 | Racing lines: a generated per-course product          |
+| AI-2 | The model-planned driver replaces the envelope driver |
+| AI-3 | Envelopes and their measurement are removed           |
+| AI-4 | Path offsets: passing, giving room and yielding       |
+| AI-5 | BRAKE!! for the player                                |
+
+### AI-1 — Racing lines (generated product)
+
+Owning documents: content-and-gameplay (a new "Racing lines" subsection under Measured products) and development (the
+measure command).
+
+- The racing line is a lateral `l(s)` for each Section, and for a fork Section one per exit, over the whole Section. It
+  depends on the course alone, never on a vehicle.
+- Shape: it minimises total squared path curvature, the road's plan curvature at `l` plus the line's own lateral
+  curvature `l''`.
+- Bounds: inside the road's edges less an edge margin of half the catalog's widest vehicle plus 0.3 m; for a fork
+  Section, toward each exit, the road of the Link that exit leaves by from the lock line onward (before the lock line the
+  whole supported road).
+- Continuity: continuous in value and slope at every seam; the incoming and outgoing Sections share the seam lateral in
+  the Link's lane-to-centre-lane mapping; at a merge all predecessors share the successor's start; a CIRCUIT closes on
+  itself. The lines are solved jointly over the whole course graph, one sparse problem.
+- Solve: repeatedly linearise the curvature and solve the box-constrained quadratic problem (a projected iterative or
+  active-set method, a few outer passes); deterministic in Node.
+- Product: format `superoutride.racing-line` version 1, keyed by the course build identity; laterals every 5 m on the
+  schedule stations plus each Section's end, for each Section and exit; written by `npm run measure -- generate` with
+  the other measured products and admitted like them; stale products fail the same way.
+- Readers: a driver reads its line through the Route like any course read; a rival on a fork Section uses the line of
+  its intended exit (its `rivalExit`); a reference run uses the line of its planned exit.
+
+Evidence: a picture per product course of the line drawn over the plan. No new test.
+
+### AI-2 — The model-planned driver
+
+Owning documents: content-and-gameplay ("Vehicle envelopes and drivers", renamed "Drivers") and calibration (the
+utilization's meaning). It replaces the envelope driver for every driver.
+
+- Path: a driver follows its line plus its offset (0 until AI-4). Rivals, reference runs, the attract demo and the
+  takeover follow the racing line; traffic its lane's centre under the existing lane rules. The three judgements
+  (occupancy, the vehicle ahead, whether the vehicles behind can stop) read a driver's path lateral where they read its
+  lane's centre today, one implementation each.
+- Speed plan: every step over the same 5 m lattice and 480 m lookahead, cached by unchanged inputs. Per cell the path's
+  curvature (plan and lateral), the profile's vertical curvature `kv` (positive in a sag) and grade `θ`, and the
+  material's grip factor under the path. Load factor `n(v) = cos θ + v²·kv/g`. Friction ellipse at utilization `u`:
+  `Ax = u·μX·n·g·grip`, `Ay = u·μY·n·g·grip`, `μX` and `μY` from the game-wide tire definition at the vehicle's static
+  axle loads scaled by `n` with load sensitivity, read from the same compiled tire model the physics uses.
+- Limits: cornering, the largest `v` with `v²·κ ≤ Ay(v)`, and the speed cap; drive, the smallest of the ellipse's
+  remaining longitudinal capacity at the driven axles' share of load and the powertrain's best wheel force at `v` over
+  the gears (curve torque, efficiency, wheel radius), less drag, grade and rolling resistance; braking, the ellipse's
+  remaining capacity bounded by the brake torques, plus drag and grade.
+- Passes: forward from the current speed with the drive limit, then backward from the plan's end constraints
+  (terminal, vehicle ahead, merging) with the braking limit.
+- Crests and jumps: a cell where `n(v) ≤ 0` at the planned speed is airborne; from take-off trace the ballistic flight
+  over the profile to its landing; flight cells have no grip and carry speed, so the backward pass limits take-off
+  speed to what the landing and the cells after it allow. A driver may jump; it lifts before take-off only when the
+  landing would be too fast for what follows.
+- Speed cap: replaces the envelope's maximum speed; the steady speed where full-throttle drive force in the best gear
+  equals drag plus rolling resistance on level asphalt, computed once per vehicle at Session resolution. The runout
+  check uses it with the braking limit at the Session driver's utilization.
+- Longitudinal control: target acceleration `(v_next² − v²)/(2Δs) + (v_plan − v)/0.5 s`, one pedal opening, never
+  both: throttle by inverting the powertrain's affine opening-to-torque relation at the current gear and RPM, brake as a
+  fraction of the brake force bound; clamped to [0,1]; actuators and rates unchanged.
+- Steering: a yaw rate through the existing steering rule (DR-3), `u = r*/w_max(V)` with `r* = V·κ_path` at a short
+  lookahead plus heading-error and lateral-error feedback; the rule's limiter keeps it from over-steering; the centre
+  reference at its own utilization; neutral in flight.
+- Correction: one capacity scale `c` in [0.85, 1] per driver, starting at 1, multiplying `Ax` and `Ay`; when either
+  axle's tire utilization observation reaches 1 for more than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1
+  at 0.01 per second. It is the only adaptation.
+- Utilization is the friction-ellipse fraction everywhere; calibration states it once; rival pace reads it as before.
+- Reference runs use this driver on the racing line; regenerate reference times and pace schedules.
+- One new check, the model check: for each catalog vehicle on the envelope procedure's flat reference surface, a steady
+  circle at the plan's cornering speed for 100 m radius and a straight full stop from 30 m/s; the observed lateral
+  acceleration and the mean deceleration are each within 5 % of the plan.
+- One new scenario: on a BRANCH course, a rival takes its intended exit's line through a fork and does not recover.
+
+Evidence: reference times old and new per class; the model check table; driver cost per step (mean and maximum over a
+16-rival TSUKUBA race) against the old driver's; the VFR750R TSUKUBA lap before and after.
+
+### AI-3 — Remove envelopes
+
+A deletion PR on its own: remove the envelope product, its format, its measurement and admission, `content/envelopes/`
+and the readers left; update development, calibration and content-and-gameplay; regenerate measured products if their
+identities change.
+
+### AI-4 — Path offsets
+
+Owning document: content-and-gameplay (Drivers). Rivals, reference runs aside, change their offset from the racing line
+by three rules, in this order; the first that applies sets the target offset, otherwise 0:
+
+1. Yielding: a competitor closing from behind that leads the race by a lap or more: move to the side of the path away
+   from that competitor's path, until it has passed.
+2. Giving room: a vehicle alongside, its footprint overlapping the driver's lengthwise, on either side: keep the
+   driver's path at least half the two widths plus 0.5 m from that vehicle's lateral, moving away, never toward it. Of
+   two vehicles alongside, the one that came alongside first keeps its line.
+3. Passing: when the vehicle ahead constrains the plan, evaluate the left and right offsets that clear it by half the
+   two widths plus 0.5 m within the road's edge margin; take the one whose plan is faster by more than
+   `passingMargin`, the left on a tie.
+
+A change of target offset moves the path by a smooth cosine blend over `max(30 m, v × 1.5 s)`; the plan reads the
+blended path's curvature, so a move never asks for more than the plan allows; there is no blocking. These rules
+replace the rivals' lane passing; traffic keeps lanes. Remove [Rival racing line](#rival-racing-line) when AI-4 lands.
+
+Evidence: a short video or frame strip of one pass, one give-room and one yield on TSUKUBA. No new test.
+
+### AI-5 — BRAKE!!
+
+Owning documents: browser (HUD and SETTINGS) and product (one sentence).
+
+- The player's vehicle is planned like a driver at utilization 0.9 along the path that keeps its current lateral; at a
+  fork before the lock line it takes the exit whose fork interval holds its lateral; the plan costs one more driver.
+- `BRAKE!!` shows while the player's speed exceeds the plan's speed at the station `0.5 s × speed` ahead, and hides
+  once the speed falls below 97 % of that; not in flight, before GO, after GOAL or in the attract demo.
+- Text tiles at row 8, columns 16–22, in RED, blinking every 8 fixed steps.
+- `SETTINGS → BRAKE SIGN ON/OFF`, default ON, kept in the player record's settings.
+
+Evidence: frames showing it before a TSUKUBA hairpin. No new test.
+
+### Decision rules for LD and AI
+
+Used instead of asking, each use recorded in its PR:
+
+1. A choice of algorithm inside a stated law (line solver, worker vs slices, root finding) is the implementer's,
+   stated in the owning document.
+2. The model check fails for a vehicle: improve the plan's model (load transfer, an axle's load share, drag) rather
+   than relax the 5 %; if one vehicle still fails, report it, keep the check for the others and continue.
+3. Reference times change by more than 10 % for a class: report it and continue.
+4. Driver cost above 2× the old driver per step: report the profile, optimise the plan's caching, and continue when it
+   is under 3×; at or above 3×, stop.
+5. A scenario's observed behaviour changes by design: update its expectation and say why in the PR; never relax a
+   scenario that checks safety (no recovery, no penetration, no collision).
+6. A name is not given: follow the vocabulary in the documentation index.
+7. A PR grows too large to review: split it within its item (AI-2a, AI-2b …), keep the game playable after each, and
+   report the split.
+
+### Stop conditions for LD and AI
+
+Stop and report, without merging the current PR, only when a product course's reference run recovers or fails to
+finish with the new driver and the cause is not in the plan's model; driver cost per step stays at or above 3× the
+old driver; or CI or Pages fails for a reason outside these stages. When AI-5 lands, report each PR's head commit, the
+LD frame-gap and heap tables, reference times before LD-1 and after AI-4 per class, the model check table, driver cost,
+every use of a decision rule and anything left open.
 
 ## Audit 2 leftovers
 

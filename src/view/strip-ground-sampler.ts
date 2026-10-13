@@ -1,10 +1,4 @@
-import { stripEdgeAt, stripSlabAt } from '../course/strip-slabs.js';
-import {
-  IMAGE_OPAQUE_COVERAGE,
-  linearToRgb555,
-  rgb555LinearChannel,
-  selectImageLodLevel,
-} from '../image/image-filter.js';
+import { IMAGE_OPAQUE_COVERAGE, linearToRgb555, selectImageLodLevel } from '../image/image-filter.js';
 import { halveRgb555 } from '../image/rgb555.js';
 import { STRIP_ACTIVE_LIMIT, STRIP_BASE_STEP, type StripGround, type StripCellTarget } from '../course/strip-ground.js';
 import type { StripRenderMethod } from './display-settings.js';
@@ -72,26 +66,13 @@ interface StripFieldSpan {
 
 /** The instantaneous lateral field follows already resolved span order; no event composition or sorting. */
 function readPointField(
-  field: { base: number[]; data: Float64Array; count: number },
+  field: StripCellTarget,
   ground: StripGround,
   s: number,
   stats: StripRenderMetrics,
 ): StripLateralField {
-  const slab = ground.slabs[stripSlabAt(ground.slabs, s)]!;
-  field.count = slab.spans.length - 1;
-  stats.activeStrips = Math.max(stats.activeStrips, slab.active);
-  for (let i = 0; i < slab.spans.length; i++) {
-    const piece = slab.spans[i]!,
-      color = piece.value;
-    const target = i === 0 ? field.base : field.data;
-    const at = i === 0 ? 0 : (i - 1) * 9 + 1;
-    if (i > 0) field.data[at - 1] = stripEdgeAt(piece, 'left', s);
-    target[at] = color === null ? 0 : rgb555LinearChannel(color >>> 10);
-    target[at + 1] = color === null ? 0 : rgb555LinearChannel((color >>> 5) & 31);
-    target[at + 2] = color === null ? 0 : rgb555LinearChannel(color & 31);
-    target[at + 3] = color === null ? 0 : 1;
-    if (i > 0) field.data.fill(0, at + 4, at + 8);
-  }
+  ground.reader.readInstant(s, field);
+  stats.activeStrips = Math.max(stats.activeStrips, field.active);
   return field;
 }
 

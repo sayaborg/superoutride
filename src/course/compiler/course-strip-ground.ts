@@ -1,5 +1,5 @@
 import type { StripBudget } from '../strip-budget.js';
-import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
+import { courseElementLeaves, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
 import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-material.js';
@@ -9,6 +9,7 @@ import type { CourseLines } from '../course-lanes.js';
 import type { StripElementDocument, CoursePosition, Lateral, WallStripElementDocument } from '../course-document.js';
 import { requireCourse } from '../course-diagnostics.js';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../strip-ground.js';
+import type { WorkSlices } from '../../core/work-slices.js';
 import { stripEdgeAt, type StripPiece, type StripEdgeLine } from '../strip-slabs.js';
 
 /** A small authored 5 by 7 block alphabet; rows expand to runs of Strips. */
@@ -54,8 +55,11 @@ const GLYPHS: Readonly<Record<string, string>> = Object.freeze({
 /** Road Strip constructs, or a wall's Strips, whose knots give bottom and top as the left and right edges. */
 export type CompiledStripElements = readonly StripElementDocument[] | readonly WallStripElementDocument[];
 
-/** Expand saved constructs in list order; output is a disposable compiler product. */
-function expandCourseStrips(
+/**
+ * Expand saved constructs in list order, pausing between expanded elements when `slices` is due; output is a disposable
+ * compiler product.
+ */
+async function expandCourseStrips(
   elements: CompiledStripElements,
   length: number,
   path: string,
@@ -63,6 +67,7 @@ function expandCourseStrips(
   lines: CourseLines,
   materialCatalog: SurfaceMaterialCatalog,
   budget: StripBudget,
+  slices: WorkSlices,
 ) {
   const pieces: StripPiece[] = [];
   const materialPieces: StripPiece<SurfaceMaterial | null>[] = [];
@@ -295,7 +300,14 @@ function expandCourseStrips(
       }
     }
   };
-  expandCourseElements<Parameters<typeof expand>[0]>(elements, path, COURSE_DOCUMENT_LIMITS.stripExpansion, expand);
+  for (const leaf of courseElementLeaves<Parameters<typeof expand>[0]>(
+    elements,
+    path,
+    COURSE_DOCUMENT_LIMITS.stripExpansion,
+  )) {
+    if (slices.due()) await slices.pause();
+    expand(leaf.element, leaf.offset, leaf.path, leaf.repeated);
+  }
   const events = extents
     .flatMap(({ start, end }) => [
       { s: start, delta: 1 },
@@ -315,7 +327,7 @@ function expandCourseStrips(
   return { pieces, materials: materialPieces };
 }
 
-export function compileCourseStrips(
+export async function compileCourseStrips(
   elements: CompiledStripElements,
   length: number,
   path: string,
@@ -323,8 +335,9 @@ export function compileCourseStrips(
   lines: CourseLines,
   materials: SurfaceMaterialCatalog,
   budget: StripBudget,
+  slices: WorkSlices,
 ) {
-  const { pieces, materials: materialPieces } = expandCourseStrips(
+  const { pieces, materials: materialPieces } = await expandCourseStrips(
     elements,
     length,
     path,
@@ -332,9 +345,8 @@ export function compileCourseStrips(
     lines,
     materials,
     budget,
+    slices,
   );
-  return Object.freeze({
-    color: compileStripGround(length, pieces, path, budget),
-    material: compileStripMaterial(length, materialPieces, path, budget),
-  });
+  const color = await compileStripGround(length, pieces, path, budget, slices);
+  return Object.freeze({ color, material: await compileStripMaterial(length, materialPieces, path, budget, slices) });
 }

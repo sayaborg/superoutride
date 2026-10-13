@@ -1,4 +1,5 @@
 import type { StripBudget } from './strip-budget.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
 
 /** Original affine arithmetic retained when a material edge is split at unrelated stations. */
 export interface StripEdgeLine {
@@ -39,20 +40,25 @@ export function stripEdgeAt(piece: StripPiece<unknown>, side: 'left' | 'right', 
   return value + (line.offset ?? 0);
 }
 
-/** Split first at activation/knots, then at every affine edge crossing; declaration order remains authoritative. */
-export function resolveStripSlabs<Value>(
+/**
+ * Split first at activation/knots, then at every affine edge crossing; declaration order remains authoritative. The work
+ * pauses between slabs when `slices` is due.
+ */
+export async function resolveStripSlabs<Value>(
   length: number,
   pieces: readonly StripPiece<Value>[],
   outside: Value,
   path: string,
   budget: StripBudget,
-): readonly StripSlab<Value>[] {
+  slices: WorkSlices = UNSLICED,
+): Promise<readonly StripSlab<Value>[]> {
   const stations = [...new Set([0, length, ...pieces.flatMap((p) => [p.start, p.end])])].sort((a, b) => a - b);
   const starts = pieces.map((piece, order) => ({ piece, order })).sort((a, b) => a.piece.start - b.piece.start);
   let next = 0;
   let active: typeof starts = [];
   const slabs: StripSlab<Value>[] = [];
   for (let i = 0; i + 1 < stations.length; i++) {
+    if (slices.due()) await slices.pause();
     const start = stations[i]!,
       end = stations[i + 1]!;
     active = active.filter((p) => p.piece.end > start);
@@ -75,6 +81,7 @@ export function resolveStripSlabs<Value>(
       }
     const sorted = [...new Set(cuts)].sort((a, b) => a - b);
     for (let j = 0; j + 1 < sorted.length; j++) {
+      if (slices.due()) await slices.pause();
       const a = sorted[j]!,
         b = sorted[j + 1]!,
         middle = a + (b - a) / 2;
@@ -83,6 +90,24 @@ export function resolveStripSlabs<Value>(
         .sort((x, y) => x.x - y.x);
       const distinct = ordered.filter((edge, index) => index === 0 || edge.x !== ordered[index - 1]!.x);
       const spans: StripPiece<Value>[] = [];
+      // Each distinct edge's line over the slab, made once: the right edge of one span is the left edge of the next.
+      const lines: (StripEdgeLine | undefined)[] = [];
+      const edgeLine = (k: number): StripEdgeLine | null => {
+        const edge = distinct[k];
+        if (!edge) return null;
+        if (!lines[k]) {
+          const line = edge.piece[edge.side]!;
+          lines[k] = line.anchored
+            ? Object.freeze({ ...line })
+            : Object.freeze({
+                start: a,
+                end: b,
+                from: stripEdgeAt(edge.piece, edge.side, a),
+                to: stripEdgeAt(edge.piece, edge.side, b),
+              });
+        }
+        return lines[k];
+      };
       for (let k = 0; k <= distinct.length; k++) {
         const le = distinct[k - 1],
           re = distinct[k];
@@ -97,20 +122,8 @@ export function resolveStripSlabs<Value>(
             break;
           }
         }
-        const edgeLine = (edge: typeof le): StripEdgeLine | null => {
-          if (!edge) return null;
-          const line = edge.piece[edge.side]!;
-          return line.anchored
-            ? Object.freeze({ ...line })
-            : Object.freeze({
-                start: a,
-                end: b,
-                from: stripEdgeAt(edge.piece, edge.side, a),
-                to: stripEdgeAt(edge.piece, edge.side, b),
-              });
-        };
-        const left = edgeLine(le),
-          right = edgeLine(re);
+        const left = edgeLine(k - 1),
+          right = edgeLine(k);
         const previous = spans.at(-1);
         if (previous && previous.value === value) spans[spans.length - 1] = { ...previous, right };
         else spans.push({ start: a, end: b, left, right, value });

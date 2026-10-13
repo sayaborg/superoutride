@@ -1,4 +1,5 @@
 import type { StripBudget } from './strip-budget.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
 import {
   stripEdgeAt,
   stripSlabAt,
@@ -18,13 +19,14 @@ export interface StripMaterial {
 }
 
 /** The same resolved cross-section shape as color; point reads return the admitted material or null. */
-export function compileStripMaterial(
+export async function compileStripMaterial(
   length: number,
   pieces: readonly StripPiece<SurfaceMaterial | null>[],
   path: string,
   budget: StripBudget,
-): StripMaterial {
-  const slabs = resolveStripSlabs(length, pieces, null, path, budget);
+  slices: WorkSlices = UNSLICED,
+): Promise<StripMaterial> {
+  const slabs = await resolveStripSlabs(length, pieces, null, path, budget, slices);
   const sampleInChart = (s: number, l: number, lateralOrigin: number) =>
     stripSpanAt(slabs[stripSlabAt(slabs, s)]!, s, l, lateralOrigin).value;
   return Object.freeze({ length, slabs, sample: (s: number, l: number) => sampleInChart(s, l, 0), sampleInChart });

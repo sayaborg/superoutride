@@ -6,7 +6,6 @@ import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import type { CourseAppearance, CourseSpriteResource, CourseWallAppearance } from '../course-appearance.js';
 import type { StripGround } from '../strip-ground.js';
-import { stripEdgeAt } from '../strip-slabs.js';
 import type { CompiledWall } from './course-walls.js';
 import type { CourseSpritePlacement } from './course-objects.js';
 import type { CompiledCourseImageSource } from './course-image-source.js';
@@ -18,15 +17,7 @@ export const COURSE_APPEARANCE_RECIPE = Object.freeze({ id: 'superoutride.course
 
 /** A visible wall's picture: its color ground and the height range its opaque Strips span. */
 function compileWallAppearance(wall: CompiledWall & { readonly color: StripGround }): CourseWallAppearance {
-  let bottom = Infinity,
-    top = -Infinity;
-  for (const slab of wall.color.slabs)
-    for (const span of slab.spans)
-      if (span.value !== null)
-        for (const s of [slab.start, slab.end]) {
-          bottom = Math.min(bottom, stripEdgeAt(span, 'left', s));
-          top = Math.max(top, stripEdgeAt(span, 'right', s));
-        }
+  const { left: bottom, right: top } = wall.color.coverage;
   return Object.freeze({ boundary: wall.boundary, start: wall.start, end: wall.end, bottom, top, color: wall.color });
 }
 

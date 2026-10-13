@@ -5,6 +5,7 @@ import { compileCourseLanes, validateCourseLanes } from './course-lanes.js';
 import type { CourseLines } from '../course-lanes.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
+import { UNSLICED, type WorkSlices } from '../../core/work-slices.js';
 import {
   CourseInputError,
   courseFailure,
@@ -103,28 +104,44 @@ class CourseStageErrors extends Error {
   }
 }
 
-function compileStage<T, U>(values: readonly T[], build: (value: T, index: number) => U): U[] {
+/**
+ * How a compilation runs: the work slices it pauses in (none: it runs through), and what hears its progress, the share of
+ * the course's Sections compiled.
+ */
+export interface CourseCompileWork {
+  readonly slices?: WorkSlices;
+  readonly compiled?: (fraction: number) => void;
+}
+
+/** The stage's values built in order, pausing between them when `slices` is due. */
+async function compileStage<T, U>(
+  values: readonly T[],
+  slices: WorkSlices,
+  build: (value: T, index: number) => U | Promise<U>,
+): Promise<U[]> {
   const result: U[] = [],
     errors: CourseInputError[] = [];
-  values.forEach((value, index) => {
+  for (const [index, value] of values.entries()) {
+    if (slices.due()) await slices.pause();
     try {
-      result.push(build(value, index));
+      result.push(await build(value, index));
     } catch (error) {
       if (error instanceof CourseInputError) errors.push(error);
       else if (error instanceof CourseStageErrors) errors.push(...error.errors);
       else throw error;
     }
-  });
+  }
   if (errors.length) throw new CourseStageErrors(Object.freeze(errors));
   return result;
 }
 
-function compileSection(
+async function compileSection(
   section: SectionDocument,
   assets: ReadonlyMap<string, CompiledCourseImageSource>,
   resources: ReturnType<typeof createCourseSpriteResources>,
   materials: SurfaceMaterialCatalog,
   path: string,
+  slices: WorkSlices,
 ) {
   const { segments, length, joints } = compileCourseGeometry(section, path);
   const resolve = (position: Parameters<typeof resolveCoursePosition>[0], at: string) =>
@@ -135,10 +152,27 @@ function compileSection(
   const lines: CourseLines = Object.freeze({ boundaries: boundaryTable, lanes });
   // The road's and the walls' Strips spend from one Section budget.
   const stripBudget = createStripBudget();
-  const strips = compileCourseStrips(section.strips, length, `${path}/strips`, resolve, lines, materials, stripBudget);
+  const strips = await compileCourseStrips(
+    section.strips,
+    length,
+    `${path}/strips`,
+    resolve,
+    lines,
+    materials,
+    stripBudget,
+    slices,
+  );
   validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseLanes(lanes, strips.material, length, `${path}/lanes`);
-  const walls = compileCourseWalls(section.walls, lines, resolve, materials, stripBudget, `${path}/walls`);
+  const walls = await compileCourseWalls(
+    section.walls,
+    lines,
+    resolve,
+    materials,
+    stripBudget,
+    `${path}/walls`,
+    slices,
+  );
   const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.
@@ -211,7 +245,8 @@ function compileSection(
  * Compile an admitted course document. `readCourseDocument` is the only admission; its deeply frozen
  * value cannot change across awaits. Publish only a fully validated graph, never the construction tables.
  * The catalog supplies the course's identifier (its file name stem and manifest ID) and the SHA-256
- * of its delivered document.
+ * of its delivered document. The work pauses between its units (an image, a Section's stage, an expanded Strip, a
+ * Strip slab or preblend cell) when its slice is due, and reports each compiled Section.
  */
 export async function compileCourseDocument(
   document: CourseDocument,
@@ -220,16 +255,20 @@ export async function compileCourseDocument(
   assetSources: readonly CourseImageBytes[],
   materials: SurfaceMaterialCatalog,
   documentPath = '',
+  work: CourseCompileWork = {},
 ): Promise<CourseResult<CompiledCourse>> {
+  const slices = work.slices ?? UNSLICED;
   try {
     requireCourse(document.sections.length > 0, '/sections', 'A course requires a Section', 'empty_course');
-    const images = await compileCourseImageSources(courseImageNames(document), assetSources);
+    const images = await compileCourseImageSources(courseImageNames(document), assetSources, slices);
     if (!images.ok) return images;
     const assets = new Map(images.value.map((asset) => [asset.id, asset]));
     const resources = createCourseSpriteResources();
-    const drafts = compileStage(document.sections, (section, index) =>
-      compileSection(section, assets, resources, materials, `/sections/${index}`),
-    );
+    const drafts = await compileStage(document.sections, slices, async (section, index) => {
+      const draft = await compileSection(section, assets, resources, materials, `/sections/${index}`, slices);
+      work.compiled?.((index + 1) / document.sections.length);
+      return draft;
+    });
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
     const entry = reference(sectionTable, document.entry, '/entry');
@@ -246,7 +285,7 @@ export async function compileCourseDocument(
           ),
         ]),
     );
-    const links = compileStage(document.links, (source, index) => {
+    const links = await compileStage(document.links, slices, (source, index) => {
       const path = `/links/${index}`;
       const from = reference(sectionTable, source.from.section, `${path}/from/section`);
       const to = reference(sectionTable, source.to, `${path}/to`);
@@ -271,13 +310,13 @@ export async function compileCourseDocument(
         'resource_limit',
       );
     }
-    const forks = compileStage(drafts, (draft, index) =>
+    const forks = await compileStage(drafts, slices, (draft, index) =>
       compileCourseFork(draft.section, draft.controls, `/sections/${index}`),
     );
     drafts.forEach((draft, index) => {
       draft.section.fork = forks[index]!;
     });
-    compileStage(drafts, (draft) => draft.compileAppearance());
+    await compileStage(drafts, slices, (draft) => draft.compileAppearance());
     const gates = compileCourseGates(
       document,
       type,

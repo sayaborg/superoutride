@@ -93,7 +93,13 @@ function readFrame(value: unknown, path: string, extra: readonly string[] = []) 
     },
     { length: height },
   );
-  const indices = Array.from(rows.join(''), (digit) => parseInt(digit, 16));
+  const indices: number[] = [];
+  for (const row of rows)
+    for (let x = 0; x < width; x++) {
+      const code = row.charCodeAt(x);
+      // `0`–`9` and `a`–`f`, which the row's admission established.
+      indices.push(code <= 57 ? code - 48 : code - 87);
+    }
   const read: SpriteFrame = Object.freeze({
     width,
     height,

@@ -1,5 +1,5 @@
 import { readArray, readDocument, readRecord, readString, requireAdmission } from '../core/admission.js';
-import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
+import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
 
 /** Text tiles are 8 by 8 pixels. */
 export const TEXT_TILE_SIZE = 8;
@@ -160,9 +160,11 @@ export function compileTextTiles(value: unknown): TextTiles {
       new IndexedPattern(
         TEXT_TILE_SIZE,
         TEXT_TILE_SIZE,
-        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
-          length: TEXT_TILE_SIZE * TEXT_TILE_SIZE,
-        }),
+        readPatternSymbols(
+          readRecord(value, path, ['indices']).indices,
+          `${path}/indices`,
+          TEXT_TILE_SIZE * TEXT_TILE_SIZE,
+        ),
       ),
     { min: PATTERN_COUNT, max: TEXT_TILE_LIMITS.patterns },
   );

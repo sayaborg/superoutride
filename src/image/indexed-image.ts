@@ -1,4 +1,4 @@
-import { readArray, readNumber } from '../core/admission.js';
+import { AdmissionError, readArray, readNumber } from '../core/admission.js';
 import { readRgb555 } from './rgb555.js';
 
 /** Shared sprite/tile source symbols. The owned runtime pattern packs two symbols per byte. */
@@ -21,14 +21,15 @@ export class IndexedPattern {
       throw new RangeError('indexed pattern symbols must cover its complete lattice');
     this.width = width;
     this.height = height;
-    this.#bytes = new Uint8Array(Math.ceil(indices.length / 2));
+    const bytes = new Uint8Array(Math.ceil(indices.length / 2));
     for (let i = 0; i < indices.length; i++) {
       const index = indices[i]!;
       if (!Number.isInteger(index) || index < 0 || index > 15)
         throw new RangeError('indexed pattern symbols must be in 0..15');
-      this.#bytes[i >>> 1]! |= index << ((1 - (i & 1)) * 4);
+      bytes[i >>> 1]! |= index << ((1 - (i & 1)) * 4);
     }
-    this.byteLength = this.#bytes.byteLength;
+    this.#bytes = bytes;
+    this.byteLength = bytes.byteLength;
     Object.freeze(this);
   }
 
@@ -46,4 +47,26 @@ export function readIndexedPalette(value: unknown, path = ''): readonly number[]
 /** One saved pattern symbol: zero is transparent, 1 through 15 opaque palette slots. */
 export function readPatternSymbol(value: unknown, path: string): number {
   return readNumber(value, path, { min: 0, max: 15, integer: true });
+}
+
+/**
+ * A frame's saved pattern symbols: exactly `length` of them, each read as `readPatternSymbol` reads one, and `accept`ed
+ * (a symbol it refuses fails with its message). A failure is reported at the first failing symbol's path; a valid frame
+ * builds no path.
+ */
+export function readPatternSymbols(
+  value: unknown,
+  path: string,
+  length: number,
+  accept?: { readonly test: (symbol: number) => boolean; readonly message: string },
+): readonly number[] {
+  if (!Array.isArray(value)) throw new AdmissionError('invalid_shape', path, 'Expected an array');
+  if (value.length !== length) throw new AdmissionError('invalid_shape', path, `Expected exactly ${length} entries`);
+  for (let i = 0; i < value.length; i++) {
+    const symbol: unknown = value[i];
+    if (typeof symbol !== 'number' || !Number.isInteger(symbol) || symbol < 0 || symbol > 15)
+      readPatternSymbol(symbol, `${path}/${i}`);
+    else if (accept && !accept.test(symbol)) throw new AdmissionError('invalid_value', `${path}/${i}`, accept.message);
+  }
+  return value as readonly number[];
 }

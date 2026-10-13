@@ -1,5 +1,6 @@
 import { AdmissionError, deepFreeze } from '../../core/admission.js';
 import { contentDigest } from '../../core/content-digest.js';
+import { UNSLICED, type WorkSlices } from '../../core/work-slices.js';
 import { CourseAssetError, courseFailures, courseSuccess, type CourseResult } from '../course-diagnostics.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import {
@@ -43,12 +44,13 @@ export type CompiledCourseImageSource = { readonly id: string; readonly sha256: 
 /** An admitted image with the frozen saved document it was decoded from, for build-time compilers. */
 export type AdmittedCourseImage = { readonly id: string; readonly sha256: string } & AdmittedImage;
 
-/** Compile the images a course names into their decoded readers. */
+/** Compile the images a course names into their decoded readers, pausing between images when `slices` is due. */
 export async function compileCourseImageSources(
   names: readonly string[],
   inputs: readonly CourseImageBytes[],
+  slices: WorkSlices = UNSLICED,
 ): Promise<CourseResult<readonly CompiledCourseImageSource[]>> {
-  const admitted = await readCourseImageSources(names, inputs);
+  const admitted = await admitCourseImageSources(names, inputs, false, slices);
   if (!admitted.ok) return admitted;
   return courseSuccess(
     Object.freeze(
@@ -67,9 +69,22 @@ export async function compileCourseImageSources(
  * Admit the saved bytes of the images a course names, each name once and decoded once. The names have passed
  * document admission; all caller bytes are owned before the first await.
  */
-export async function readCourseImageSources(
+export function readCourseImageSources(
   names: readonly string[],
   inputs: readonly CourseImageBytes[],
+): Promise<CourseResult<readonly AdmittedCourseImage[]>> {
+  return admitCourseImageSources(names, inputs, true, UNSLICED);
+}
+
+/**
+ * The admission of `readCourseImageSources`. The saved documents are frozen and kept only when `documents` asks for
+ * them; otherwise each parsed document is dropped once decoded, and nothing holds it.
+ */
+async function admitCourseImageSources(
+  names: readonly string[],
+  inputs: readonly CourseImageBytes[],
+  documents: boolean,
+  slices: WorkSlices,
 ): Promise<CourseResult<readonly AdmittedCourseImage[]>> {
   if (!Array.isArray(inputs)) throw new TypeError('Image inputs must be an array');
   const required = new Set(names);
@@ -110,6 +125,7 @@ export async function readCourseImageSources(
   const images = new Map<string, AdmittedCourseImage>();
   let levelTexels = 0;
   for (const { name, inputIndex, bytes } of owned) {
+    if (slices.due()) await slices.pause();
     const sha256 = await contentDigest(bytes);
     let value: unknown;
     try {
@@ -168,7 +184,7 @@ export async function readCourseImageSources(
       continue;
     }
     // JSON ownership is established at admission, including nested mixture pairs and tile bindings.
-    deepFreeze(admitted.document);
+    if (documents) deepFreeze(admitted.document);
     images.set(name, Object.freeze({ id: name, sha256, ...admitted }));
   }
   if (errors.length) return courseFailures(errors);

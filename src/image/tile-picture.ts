@@ -1,5 +1,5 @@
 import { readArray, readDocument, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
-import { IndexedPattern, readIndexedPalette, readPatternSymbol } from './indexed-image.js';
+import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
 
 /** A tile's side in pixels. */
 export const TILE_PICTURE_TILE_SIZE = 16;
@@ -51,9 +51,7 @@ export function compileTilePicture(value: unknown): TilePicture {
       new IndexedPattern(
         TILE_PICTURE_TILE_SIZE,
         TILE_PICTURE_TILE_SIZE,
-        readArray(readRecord(value, path, ['indices']).indices, `${path}/indices`, readPatternSymbol, {
-          length: size,
-        }),
+        readPatternSymbols(readRecord(value, path, ['indices']).indices, `${path}/indices`, size),
       ),
     { min: 1 },
   );

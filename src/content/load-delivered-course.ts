@@ -1,18 +1,20 @@
 import type { ContentDelivery } from './content-delivery.js';
 import { courseImageNames, readCourseDocumentBytes } from '../course/course-document.js';
-import { compileCourseDocument } from '../course/compiler/compiled-course.js';
+import { compileCourseDocument, type CourseCompileWork } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
 import { missingContent, requireLoaded } from './content-load-error.js';
 
 /**
  * Resolve a saved course and the delivered images it names through the admitted delivery index. `loaded` hears each
- * fetched file: how many of the course's files have arrived and how many there are, once the course names them.
+ * fetched file: how many of the course's files have arrived and how many there are, once the course names them. The
+ * compilation runs as `work` says.
  */
 export async function loadDeliveredCourse(
   content: ContentDelivery,
   id: string,
   materials: SurfaceMaterialCatalog,
   loaded?: (files: number, total: number) => void,
+  work?: CourseCompileWork,
 ) {
   const file = content.manifest.files.find((entry) => entry.kind === 'course' && entry.id === id);
   if (!file) throw missingContent('course', id);
@@ -30,5 +32,5 @@ export async function loadDeliveredCourse(
       return { name: entry.id, bytes };
     }),
   );
-  return requireLoaded(await compileCourseDocument(source, id, file.sha256, images, materials, file.path));
+  return requireLoaded(await compileCourseDocument(source, id, file.sha256, images, materials, file.path, work));
 }

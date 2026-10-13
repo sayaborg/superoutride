@@ -473,13 +473,21 @@ The aligned phase of level `n` has `ceil(L/2^n)` cells `[i*2^n, (i+1)*2^n)` for 
 ends at `L` and is averaged over its actual length. The top level has one aligned cell spanning the Section. The
 half-shifted phase has cells `[i*2^n - 2^(n-1), (i+1)*2^n - 2^(n-1))` clipped to `[0, L]`: its first cell is
 `[0, 2^(n-1))` and its last ends at `L`, each averaged over its actual length. Both phases count toward the
-`preblendCells` and `coefficientBytes` ceilings.
+`preblendCells` and `coefficientBytes` ceilings. Level 0's cells integrate the resolved slabs; every coarser cell
+averages the aligned cells of the level below that it covers (the aligned cell of level `n` the two of level `n-1`
+below it, the half-shifted cell the two its half-cell offset straddles), weighted by their actual lengths, which
+equals integrating its slabs directly. Contributions to one lateral position that cancel to within 1e-9 of their summed
+magnitudes, such as the two halves of a moving edge's ramp meeting where two slabs or cells meet, are zero, and a
+position where every channel is zero carries no node.
 Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
 functions of fixed source-l coordinates. An edge that moves across an interval becomes a ramp rather
 than a relocated hard edge. Equal lateral fields share private coefficient storage and per-level indices.
-Resolved records and public metadata are deeply immutable. The compiled product supplies a Reader that copies
-base and node coefficients and active count into view-owned reusable scratch without allocating once the scratch
-holds the largest field; compiled numeric buffers stay private.
+The color ground keeps its resolved slabs and every distinct field packed in private typed arrays, never one object
+per span, edge or field. Resolved material records and public metadata are deeply immutable. The compiled product supplies a Reader that copies
+a cached cell's base and node coefficients and active count, or the instantaneous resolved Strips at a station
+(`readInstant`: the first span's color as the base, then a node at each later span's left edge with its color and no
+slope), into view-owned reusable scratch without allocating once the scratch holds the largest field; compiled numeric
+buffers stay private.
 The view layer owns row sampling and display-method selection.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
@@ -665,7 +673,7 @@ belong inside that domain; an upper domain depends only on lower domains, and sa
 
 | Order | Layer   | Responsibility                                                                                                                                                                                                                                                                                                                                           |
 | ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit and content digests                                                                                                                                                                                                                                                               |
+| 1     | core    | General mathematics, vectors, planar transforms, the admission toolkit, content digests and work slices                                                                                                                                                                                                                                                  |
 | 2     | image   | Indexed images, RGB555/RGBA codecs and the RGB555 reader, palettes, sprite/LOD formats, BG tiles and image filters                                                                                                                                                                                                                                       |
 | 3     | audio   | Sound synthesis, voices and the sound graph                                                                                                                                                                                                                                                                                                              |
 | 4     | course  | Course documents and compilation, road geometry, lanes, walls, course limits and roadside objects, materials, the coordinate domain, occurrences, environment timelines and shared Route readers                                                                                                                                                         |
@@ -759,6 +767,17 @@ frame to RGBA through one 32,768-entry table when presenting it. Compiled Strip 
 and their scalar coefficient Reader belong to course. View owns Strip row sampling and the
 three display methods; shell obtains their names from view.
 Environment timelines are course data.
+
+## Course loading
+
+Compiling a course is cooperative work. `compileCourseDocument` takes work slices (`WorkSlices`,
+`core/work-slices.ts`) and, between its units of work (an image, a Section's stage, an expanded Strip element, a
+resolved slab, a preblend cell, a distinct field's coefficients), pauses when its slice is due; a pause yields to the
+caller's event loop, and the compiled product is the same however the work was sliced. It reports the share of its
+Sections compiled as each is. Tools, the build and the
+scenarios pass no slices (`UNSLICED`) and compile through. A course image is admitted from its saved bytes once, in
+one unit: the decoded readers are kept and the parsed document is dropped (build compilers that read the saved
+documents ask for them, frozen). The browser's slices are its own ([Browser](browser.md#display-and-scheduling)).
 
 ## Definition delivery
 

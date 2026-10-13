@@ -18,39 +18,58 @@ export interface CourseRepeatCopy {
   readonly index: number;
 }
 
+/** An expanded element: the leaf, its offset, its JSON Pointer and the repetitions enclosing it, outermost first. */
+export interface CourseElementLeaf<T> {
+  readonly element: T;
+  readonly offset: number;
+  readonly path: string;
+  readonly repeated: boolean;
+  readonly copies: readonly CourseRepeatCopy[];
+}
+
 /**
- * Depth-first authored order; offsets accumulate without changing the leaf's native Position. `visit` also receives the
- * repetitions enclosing the element, outermost first (none when it is not repeated).
+ * The expanded elements in depth-first authored order; offsets accumulate without changing the leaf's native Position.
+ * Each leaf carries the repetitions enclosing it, outermost first (none when it is not repeated).
  */
-export function expandCourseElements<T extends object>(
+export function* courseElementLeaves<T extends object>(
   elements: readonly RepeatElement<T>[],
   path: string,
   workLimit: number,
-  visit: (element: T, offset: number, path: string, repeated: boolean, copies: readonly CourseRepeatCopy[]) => void,
-): void {
+): Generator<CourseElementLeaf<T>, void, undefined> {
   let work = 0;
-  const expand = (
+  function* expand(
     items: readonly RepeatElement<T>[],
     offset: number,
     path: string,
     copies: readonly CourseRepeatCopy[],
-  ) => {
-    items.forEach((element, index) => {
+  ): Generator<CourseElementLeaf<T>, void, undefined> {
+    for (const [index, element] of items.entries()) {
       const at = `${path}/${index}`;
       if (++work > workLimit) throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
       if (isRepeat(element)) {
         for (let i = 0; i < element.count; i++) {
           if (++work > workLimit)
             throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
-          expand(element.elements, offset + i * element.every, `${at}/elements`, [
+          yield* expand(element.elements, offset + i * element.every, `${at}/elements`, [
             ...copies,
             Object.freeze({ path: at, index: i }),
           ]);
         }
-      } else visit(element, offset, at, copies.length > 0, copies);
-    });
-  };
-  expand(elements, 0, path, []);
+      } else yield { element, offset, path: at, repeated: copies.length > 0, copies };
+    }
+  }
+  yield* expand(elements, 0, path, []);
+}
+
+/** `visit` each of `courseElementLeaves`, in order. */
+export function expandCourseElements<T extends object>(
+  elements: readonly RepeatElement<T>[],
+  path: string,
+  workLimit: number,
+  visit: (element: T, offset: number, path: string, repeated: boolean, copies: readonly CourseRepeatCopy[]) => void,
+): void {
+  for (const leaf of courseElementLeaves(elements, path, workLimit))
+    visit(leaf.element, leaf.offset, leaf.path, leaf.repeated, leaf.copies);
 }
 
 export function shiftedCoursePosition<T>(

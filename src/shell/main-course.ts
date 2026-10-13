@@ -39,6 +39,25 @@ import { loadMusic } from '../content/recording-catalog.js';
 import { loadWallSounds } from '../content/wall-sound-catalog.js';
 import { wallSoundRecords } from '../audio/wall-sounds.js';
 import { playTrack } from './run-music.js';
+import { createWorkSlices } from '../core/work-slices.js';
+
+/**
+ * Milliseconds of loading work between yields to the frame loop, so a run loading never stops frames
+ * ([Browser](../../docs/browser.md#display-and-scheduling)).
+ */
+const LOADING_SLICE_MILLISECONDS = 8;
+
+/** Yield to the event loop for one task: the frame loop and input run before the work goes on. */
+function nextTask(): Promise<void> {
+  return new Promise((resolve) => {
+    const { port1, port2 } = new MessageChannel();
+    port1.onmessage = () => {
+      port1.close();
+      resolve();
+    };
+    port2.postMessage(null);
+  });
+}
 
 /**
  * The one composition root: it creates the page lifetime once, then assembles one run at a time in the page. The URL
@@ -146,6 +165,7 @@ async function startPage(): Promise<void> {
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
+      workSlices: () => createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask),
     };
 
     // The page holds one course: a request disposes of the current run before loading the next, which starts at once.

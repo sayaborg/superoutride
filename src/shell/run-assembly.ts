@@ -34,6 +34,7 @@ import { comparedRecord, judgeRun, type RecordJudgement, type RecordSelection } 
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import { createRunMusic } from './run-music.js';
 import { createRunEffects } from './run-effects.js';
+import type { WorkSlices } from '../core/work-slices.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -64,6 +65,8 @@ export interface RunPage {
   resultDelaySeconds(): number;
   /** A new Session seed; only the composition root draws randomness. */
   drawSeed(): number;
+  /** New slices for a run's loading work, which yield to the page's frame loop between them. */
+  workSlices(): WorkSlices;
 }
 
 /** What a run's assembly reports while it loads: the PRE-RACE card's progress and facts. */
@@ -115,8 +118,16 @@ export async function assembleRun(
     courseId = named.course;
   } else courseId = request.courseId;
   const load = () =>
-    loadDeliveredCourse(content, courseId, materials, (files, total) =>
-      report?.progress((LOADING_SHARES.files * files) / total),
+    loadDeliveredCourse(
+      content,
+      courseId,
+      materials,
+      (files, total) => report?.progress((LOADING_SHARES.files * files) / total),
+      {
+        slices: page.workSlices(),
+        compiled: (fraction) =>
+          report?.progress(LOADING_SHARES.files + (LOADING_SHARES.compiled - LOADING_SHARES.files) * fraction),
+      },
     );
   let compiling = demo?.courses.get(courseId);
   if (!compiling) {
