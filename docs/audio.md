@@ -249,8 +249,9 @@ events one sound: none for the crossing that finishes the run (GOAL's effect sou
 extended the clock, else `final-lap` at a circuit's finish line when the lap it begins is the last, else `lap` at the
 finish line and `checkpoint` at a checkpoint. At GOAL `goal` and at GAME OVER `game-over` (effects of about 1.3 s) play
 once, from that moment, while the track fades beneath them; the outcome effect may sound on into RESULT and stops when
-the run is left or its Session is replaced. When RESULT shows NEW RECORD, `new-record` plays once as RESULT appears,
-after the outcome effect at the default RESULT delay. Each happening sounds once: a step's facts are read once, so two
+the run is left or its Session is replaced. When RESULT shows NEW RECORD after a finish, `new-record` plays once as
+RESULT appears, after the outcome effect at the default RESULT delay; a circuit lap that sets a TIME ATTACK record
+plays it as the lap completes. Each happening sounds once: a step's facts are read once, so two
 crossings in one frame both sound, a pause runs no steps, and a new Session (RETRY or a DEV rebuild) starts afresh. Other competitors'
 crossings never sound. Menu commands sound through the screen host ([Browser](browser.md#menu-input)).
 

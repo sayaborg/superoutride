@@ -147,6 +147,13 @@ async function startPage(): Promise<void> {
       mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
     }
 
+    // Each vehicle's identity, which records are kept against.
+    const vehicleSha256 = new Map<string, string>();
+    for (const vehicle of vehicles)
+      vehicleSha256.set(
+        vehicle.compiledVehicle.id,
+        await sessionVehicleSha256(createSessionVehicle(vehicle, driving), materials),
+      );
     const page: RunPage = {
       content,
       materials,
@@ -161,6 +168,7 @@ async function startPage(): Promise<void> {
       performanceHud,
       dev,
       player,
+      vehicleSha256,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
@@ -272,13 +280,6 @@ async function startPage(): Promise<void> {
     });
     window.addEventListener('pagehide', () => attractDemo.dispose());
     // The selection screens request runs that start at once; LOAD FAILED's BACK returns to the last of them.
-    // Each vehicle's identity, which records are kept against, for the records SELECT CLASS shows.
-    const vehicleSha256 = new Map<string, string>();
-    for (const vehicle of vehicles)
-      vehicleSha256.set(
-        vehicle.compiledVehicle.id,
-        await sessionVehicleSha256(createSessionVehicle(vehicle, driving), materials),
-      );
     const flow = createSelectionFlow(
       {
         courses: courseIndex,
@@ -289,7 +290,6 @@ async function startPage(): Promise<void> {
         music,
         player,
         dev,
-        vehicleSha256,
         logo: screenPictures.get(TITLE_LOGO.id)!,
       },
       {

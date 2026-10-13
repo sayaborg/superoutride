@@ -70,7 +70,8 @@ core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (
 GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
 the class title (YELLOW; the mode's name in FREE PLAY) on row 18, the course's name on row 20, `<length>KM  <n> LAPS`
 on row 21 (the route's length to 0.001 km, laps only on a circuit with a lap count), `<field> CARS|BIKES  START P<slot>`
-on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (ARCADE only).
+on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (TIME ATTACK
+only).
 On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
 the course's files to 70 %, its compilation to 80 % (Section by Section), the Session to 90 %, the assembled run
@@ -177,9 +178,8 @@ the first track) plays as an audition, so its volume is set by ear.
 - SELECT CLASS shows the series image with text rows 22–29 at half brightness and no heading: on row 23 the class
   title (YELLOW) between WHITE `◀` and `▶` four columns either side; on row 25 `<COURSE>  <n> LAPS  <field> BIKES|CARS`
   (WHITE; BIKES when the whole field is bikes); on row 26 the vehicle's manufacturer and model in upper case, or
-  `<n> BIKES|CARS` when the class lists several vehicles; on row 28 `BEST <time>` (GREEN), the class's best ARCADE
-  record over its vehicles at any goal, counted only while its course and vehicle identities are current (the course
-  index's `buildSha256` and each vehicle's `sessionVehicleSha256`), else `--'--"--`. LEFT and RIGHT change the class;
+  `<n> BIKES|CARS` when the class lists several vehicles. A class's record is shown only inside the class, not here.
+  LEFT and RIGHT change the class;
   choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY) lists course display
   names from the course index, grouped by series. Each course is listed once, under the first offered series in
   series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
@@ -216,7 +216,8 @@ the field, rendering and sound continue and PAUSE stays available; a pause stops
 At RESULT the run finishes: the race stops and the RESULT menu
 is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome in the ornate large font, GOAL in
 SUNSET or GAME OVER in RED; its lines are RANK n/m (ornate large, SUNSET) when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
-the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP.
+a TIME ATTACK run was judged and one existed, NEW RECORD in yellow when the run (on a circuit, one of its laps) beat it
+or set the first, and, on a circuit, BEST LAP.
 A run without a finish, which QUIT ended, has RESULT (SUNSET) as its title and `LAPS <n>`, its completed laps, instead of
 TIME, and BEST LAP once it completed one. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
@@ -451,19 +452,20 @@ Session's rules (the clock, the course type) and race facts (two or more competi
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
-| Rows  | Elements                                                                                                                                                |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                        |
-| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM |
-| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                      |
-| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                                              |
-| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                         |
-| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                   |
-| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                   |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                              |
-| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                         |
-| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                 |
-| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                                        |
+| Rows  | Elements                                                                                                                                                  |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                          |
+| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM   |
+| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                        |
+| 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                          |
+| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, in TIME ATTACK when one exists, `RECORD 1'23"456 <VEHICLE>` (its vehicle's model) |
+| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                           |
+| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                     |
+| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                     |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                                |
+| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                           |
+| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                   |
+| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                                          |
 
 Rows 1–2 hold each label with its value beside it: TIME in columns 1–4 with the seconds right-aligned to column 8,
 race time from column 11, POS from column 21 with its value from column 25, and STAGE from column 31 with its number
@@ -545,7 +547,7 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 5, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 6, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
@@ -557,35 +559,36 @@ through the record.
 | `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
 | `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
 
-`records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
-a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
-order (empty on a circuit), as reference runs name routes; an ARCADE key is `[series ID, class ID, goal, vehicle ID]`,
-the goal being the FINISH gate the run reached. JSON array keys cannot collide however IDs are spelled. No run records
-into `timeTrial` since TIME TRIAL was removed; its records are kept as loaded until the TIME ATTACK records replace them
-([NEXT](NEXT.md#gs-3b--time-attack-records)).
-
-| Record     | Value                                                                                                                                                        |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| TIME TRIAL | `timeMs`, `splitsMs` (the record run's race time at each gate and lap crossing, in order), `bestLapMs` (null off a circuit), `courseSha256`, `vehicleSha256` |
-| ARCADE     | `timeMs`, `courseSha256`, `vehicleSha256`                                                                                                                    |
+`records` holds `timeAttack`, an object of TIME ATTACK records by key, one table per class. A key is the JSON array
+`[series ID, class ID, goal]`, made in one place, the goal being the FINISH gate the run reached (a circuit has one);
+JSON array keys cannot collide however IDs are spelled. A record's value is `timeMs` (on a CIRCUIT the fastest lap,
+else the fastest completion time), `splitsMs` (the record run's times at its gates in crossing order: from GO, or on a
+CIRCUIT from the start of the record lap, its last the lap's own time), `vehicleId` (the vehicle it was set with),
+`courseSha256` and `vehicleSha256`.
 
 Times are whole milliseconds by the one rule displays use (`raceMilliseconds`: floored after the display tolerance).
-`courseSha256` is the course's build identity and `vehicleSha256` the Session vehicle's delivered-definition identity,
-the identities time budgets carry. The player record publishes its records read-only down to every record and its
-splits, loaded or set at GOAL alike.
+`courseSha256` is the course's build identity and `vehicleSha256` the identity of the record's vehicle's delivered
+definitions (`sessionVehicleSha256`), the identities time budgets carry; a record counts only while both are current,
+the latter checked against the identity of `vehicleId` whichever vehicle the run drives. The player record publishes
+its records read-only down to every record and its splits, loaded or set alike.
 
-[`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records, from
-ARCADE's records in its class: it judges a run once, when its product Session first reaches GOAL; RESULT and saving use
-that one judgement. GAME OVER, QUIT, RETRY, TIME ATTACK, FREE PLAY and a DEV-tuned rebuilt Session record nothing; a
-run requested by URL records as one requested from the menus. The HUD compares with the records as they stood before
-the run: RECORD at READY needs the record's key decided before driving (an ARCADE class whose course has one FINISH).
-The judgement and the HUD's record belong to the Session they were made for: a DEV-tuned Session shows no record, on
-the HUD or on RESULT. A stored record whose identities differ from the run's counts as none and is replaced. ARCADE
-records against the goal reached: a faster time replaces the record. An equal time replaces nothing.
+[`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records. Only a
+TIME ATTACK run records (`createRunRecords`); RACE (ARCADE), FREE PLAY, the attract demo and a DEV-tuned rebuilt
+Session record and compare nothing, and a run requested by URL records as one requested from the menus. On a CIRCUIT
+each completed lap is judged against the class's record when it completes: a faster lap is saved at once, with its
+gate times within the lap, and `new-record` sounds then, so ending the run, or leaving it any other way, never loses
+it. On a LINEAR or BRANCH course the run is judged once, at its finish, against the record of the goal reached, and a
+faster time is saved with its gate times. An equal time keeps the earlier record; a stored record whose identities are
+not current counts as none and is replaced. While driven, each of the player's crossings is compared with the record
+run's crossing of the same index (within the lap on a CIRCUIT) against the record as it stands, once the goal the run
+can reach is known: from the start on a course with one goal, else once the race has decided the route
+(`routeLinks`), whose last FINISH is the goal. READY, the PRE-RACE card and RESULT show the record as it stood before
+the run: READY and the PRE-RACE card on a course with one goal (`shownRecord`), RESULT at the goal the run was judged
+at. The judgement and the HUD's record belong to the Session they were made for.
 
-Loading admits version 5 with exactly these keys and value types; version 4 (no `steering`) and version 3 (no `steering`
-or `cameras`), whose settings and records carry over; version 2 (ARCADE records keyed by course), whose settings and TIME TRIAL records carry over and whose ARCADE
-records are dropped; and version 1 (settings only), whose settings carry over with no records. Settings before
+Loading admits version 6 with exactly these keys and value types, and versions 1 to 5, whose settings carry over with
+no records: version 1 had none, and versions 2 to 5 kept TIME TRIAL and ARCADE records, whose keys name no class.
+Settings before
 version 5 take the default steering, and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at

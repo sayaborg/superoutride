@@ -17,9 +17,9 @@ import type { GameOverCause } from '../race/run-outcome.js';
 import { MODE_NAMES, type RunRequest } from './run-request.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
-import { formatMilliseconds, formatRaceTime, formatTimeDifference, raceMilliseconds } from './race-time.js';
+import { formatMilliseconds, formatRaceTime, formatTimeDifference } from './race-time.js';
 import { shownStanding } from './run-result.js';
-import type { ComparedRecord } from './run-records.js';
+import type { RecordSplit } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
 
 /**
@@ -40,10 +40,12 @@ export interface HudFacts {
     readonly steeringPicture: HudPicture;
   };
   /**
-   * The stored record for the selection, from the records before the run, on a course with one goal (ARCADE). Null
-   * without one.
+   * The TIME ATTACK record READY shows, from the records before the run: its time and the display name of the vehicle it
+   * was set with. Null without one.
    */
-  readonly record: ComparedRecord | null;
+  readonly record: { readonly timeMs: number; readonly vehicle: string } | null;
+  /** The difference from the record at the latest compared crossing (`createRunRecords`); null before one. */
+  readonly split: RecordSplit | null;
 }
 
 /** Seconds a passing display lasts, in the time base its fact is stamped in. */
@@ -432,27 +434,16 @@ const HUD_ELEMENTS: readonly HudElement[] = [
   {
     middle: true,
     when: ({ race, record }) => beforeGo(race) && record !== null,
-    write: ({ record }, text) => write(text, 'record', `RECORD ${formatMilliseconds(record!.timeMs)}`, small('WHITE')),
+    write: ({ record }, text) =>
+      write(text, 'record', `RECORD ${formatMilliseconds(record!.timeMs)} ${record!.vehicle}`, small('WHITE')),
   },
   {
-    // The difference from the record run at the latest gate or lap crossing: green when faster, red otherwise.
+    // The difference from the record run at the latest compared crossing: green when faster, red otherwise.
     middle: true,
-    when: ({ race, record }) => {
-      const crossings = race.player.crossingSeconds,
-        latest = crossings.length - 1,
-        splits = record?.splitsMs;
-      return (
-        !!splits &&
-        latest >= 0 &&
-        latest < splits.length &&
-        race.clock.elapsedSeconds - crossings[latest]! < HUD_DURATIONS.split
-      );
-    },
-    write({ race, record }, text) {
-      const crossings = race.player.crossingSeconds,
-        latest = crossings.length - 1;
-      const difference = raceMilliseconds(crossings[latest]!) - record!.splitsMs![latest]!;
-      write(text, 'split', formatTimeDifference(difference), small(difference < 0 ? 'GREEN' : 'RED'));
+    when: ({ race, split }) => split !== null && race.clock.elapsedSeconds - split.atSeconds < HUD_DURATIONS.split,
+    write({ split }, text) {
+      const { differenceMs } = split!;
+      write(text, 'split', formatTimeDifference(differenceMs), small(differenceMs < 0 ? 'GREEN' : 'RED'));
     },
   },
   {

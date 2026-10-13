@@ -100,7 +100,7 @@
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
 Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver) and, beside it,
-[GS-3b](#gs-3b--time-attack-records) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
+[GS-4](#gs-4--mode-removed) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -204,29 +204,19 @@ finish, which may touch how the race owns its end; that change stays with the ra
 takeover driver stays with Stage AI. Rebase on main before each PR and resolve conflicts in favour of the other
 stream's logic. GS-5 waits for both streams, then runs alone.
 
-| PR    | Purpose                                                        | Kind             |
-| ----- | -------------------------------------------------------------- | ---------------- |
-| GS-3b | Records become TIME ATTACK per class                           | logic + deletion |
-| GS-4  | MODE is removed from the flow: TITLE line, SELECT SESSION, URL | logic + deletion |
-| GS-5  | Rename `Session` → Run across code and documents               | rename only      |
+| PR   | Purpose                                                        | Kind             |
+| ---- | -------------------------------------------------------------- | ---------------- |
+| GS-4 | MODE is removed from the flow: TITLE line, SELECT SESSION, URL | logic + deletion |
+| GS-5 | Rename `Session` → Run across code and documents               | rename only      |
 
 Split any PR that exceeds one review and report the split. If GS-3 and GS-4 need old and new paths side by side, GS-4
 removes the old one and says so here.
 
-### GS-3b — TIME ATTACK records
-
-GS-3 was split: GS-3a added the TIME ATTACK Session (alone on its class's course, with no finish on a CIRCUIT, which
-PAUSE's QUIT ends into RESULT) and deleted TIME TRIAL's request and LAPS screen; TIME ATTACK records nothing until
-GS-3b. GS-3b replaces the player record's TIME TRIAL and ARCADE records with TIME ATTACK records
-([Product](product.md#10-records-and-settings)): bump the record version and discard old records. RESULT, READY, the
-PRE-RACE card and the in-drive comparison read the one TIME ATTACK record; on a CIRCUIT the record is judged and saved
-at each completed lap, NEW RECORD sounding then, and each lap is compared with the record lap. SELECT CLASS shows no
-record.
-
 ### GS-4 — MODE removed
 
 TITLE's line becomes SERIES / FREE PLAY / SETTINGS and SELECT SESSION is added. Until then TIME ATTACK is a TITLE
-mode beside ARCADE (GS-3a's side-by-side path); GS-4 removes both as modes. `MODE_NAMES` and every mode branch in
+mode beside ARCADE (GS-3a's side-by-side path); GS-4 removes both as modes. SELECT SESSION shows the class's TIME
+ATTACK record (`shownRecord`), which SELECT CLASS no longer shows. `MODE_NAMES` and every mode branch in
 the shell are removed; FREE PLAY is identified as FREE PLAY, not as a mode. URL parameters become `series` + `class`
 (+ `session=race|attack`) and `course`; `mode` disappears. The screens smoke saves the new screen.
 

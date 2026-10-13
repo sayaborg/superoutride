@@ -21,8 +21,6 @@ import { createSeriesScreen, SERIES_SLIDE_STEPS } from './series-screen.js';
 import { createTitleScreen, type TitleBackground, type TitleState } from './title-screen.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import { createPictureMenuScreen, type PictureMenuLine } from './picture-menu-screen.js';
-import { classBestMilliseconds } from './run-records.js';
-import { formatMilliseconds, NO_TIME } from './race-time.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { SIM_DT } from '../race/fixed-step.js';
 
@@ -55,8 +53,6 @@ export interface SelectionCatalog {
   readonly dev: boolean;
   /** The title logo, which TITLE shows. */
   readonly logo: TilePicture;
-  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
-  readonly vehicleSha256: ReadonlyMap<string, string>;
 }
 
 /** Where the selection draws and what its screens lead to. */
@@ -161,8 +157,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       return Object.freeze({ ...choice, mode, seriesId: seriesChoice!.id, classId: classChoice!.id });
     return Object.freeze({ ...choice, mode, courseId: courseId!, lapCount, rivalCount, rivalPool, traffic });
   };
-  // SELECT CLASS's lines: the course, laps and field; the vehicle, or how many vehicles; the class's best ARCADE time
-  // over its vehicles.
+  // SELECT CLASS's lines: the course, laps and field; the vehicle, or how many vehicles. A class's record is shown only
+  // inside the class.
   const classLines = (c: SeriesClass): readonly PictureMenuLine[] => {
     const listed = c.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!);
     const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
@@ -173,13 +169,6 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       listed.length === 1
         ? `${listed[0]!.listing.metadata.manufacturer} ${listed[0]!.listing.metadata.model}`.toUpperCase()
         : `${listed.length} ${form(listed.every((v) => v.listing.form === 'bike'))}`;
-    const best = classBestMilliseconds(
-      player.records,
-      c.series.id,
-      c.id,
-      courseOf(c.course).buildSha256,
-      catalog.vehicleSha256,
-    );
     return [
       {
         row: 25,
@@ -187,7 +176,6 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         palette: TEXT_PALETTES.WHITE,
       },
       { row: 26, text: vehicle, palette: TEXT_PALETTES.WHITE },
-      { row: 28, text: `BEST ${best === null ? NO_TIME : formatMilliseconds(best)}`, palette: TEXT_PALETTES.GREEN },
     ];
   };
   // A number item LEFT/RIGHT changes within [min, max].

@@ -1,5 +1,11 @@
 import type { MenuDefinition, MenuItem } from './menu.js';
-import { STEERING_UTILIZATIONS, VOLUME_NAMES, type PlayerRecord, type VolumeName } from './player-record.js';
+import {
+  NO_RECORDS,
+  STEERING_UTILIZATIONS,
+  VOLUME_NAMES,
+  type PlayerRecord,
+  type VolumeName,
+} from './player-record.js';
 import type { VehicleForm } from '../vehicle/definition-document.js';
 import { STEERING_REFERENCES, type SteeringRule } from '../vehicle/steering-rule.js';
 
@@ -120,7 +126,7 @@ export function showSettings(
       {
         label: 'YES',
         confirm: () => {
-          player.updateRecords({ timeTrial: {}, arcade: {} });
+          player.updateRecords(NO_RECORDS);
           back();
         },
       },

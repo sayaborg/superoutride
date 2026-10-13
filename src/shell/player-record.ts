@@ -4,14 +4,12 @@ import { createSteeringRule, STEERING_REFERENCES, type SteeringRule } from '../v
 
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 5;
-/** The version before, whose settings and records a version 5 record keeps; it had no steering settings. */
+const PLAYER_RECORD_VERSION = 6;
+/** The version before, whose settings are kept; its TIME TRIAL and ARCADE records, which name no class, are dropped. */
+const MODE_RECORDS_VERSION = 5;
+/** The version before that, which had no steering settings either. */
 const STEERINGLESS_VERSION = 4;
-/** The version before that, whose settings and records are kept; it had no camera settings either. */
-const CAMERALESS_VERSION = 3;
-/** The version before those, whose settings and TIME TRIAL records are kept; its ARCADE records are dropped. */
-const COURSE_ARCADE_VERSION = 2;
-/** The first version, whose settings are kept. */
+/** The first version, whose settings are kept; it had no records. */
 const SETTINGS_ONLY_VERSION = 1;
 
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
@@ -47,41 +45,27 @@ export interface PlayerSettings {
   readonly steering: Readonly<Record<VehicleForm, SteeringRule>>;
 }
 
-/** The identities a record was set against: the course build and the Session vehicle's delivered definitions. */
-interface RecordIdentity {
+/**
+ * A TIME ATTACK record of a class at one goal, in milliseconds: on a CIRCUIT the fastest lap with its gate crossings
+ * within that lap, else the fastest completion time with its race times at every gate. It keeps the vehicle it was set
+ * with and the identities it was set against: the course build and that vehicle's delivered definitions.
+ */
+export interface TimeAttackRecord {
+  readonly timeMs: number;
+  /** The record run's times at its gates in crossing order, from GO, or on a CIRCUIT from the lap's start. */
+  readonly splitsMs: readonly number[];
+  readonly vehicleId: string;
   readonly courseSha256: string;
   readonly vehicleSha256: string;
 }
-/** A TIME TRIAL record: the fastest run's time and its gate and lap crossings, and the fastest lap, in milliseconds. */
-export interface TimeTrialRecord extends RecordIdentity {
-  readonly timeMs: number;
-  /** The record run's race times at its gates and laps, in crossing order. */
-  readonly splitsMs: readonly number[];
-  /** The fastest lap on a CIRCUIT; null elsewhere. */
-  readonly bestLapMs: number | null;
-}
-/** An ARCADE record: the fastest time to the goal reached, in milliseconds. */
-export interface ArcadeRecord extends RecordIdentity {
-  readonly timeMs: number;
-}
-/** Records by key; keys come only from {@link timeTrialRecordKey} and {@link arcadeRecordKey}. */
+/** Records by key; keys come only from {@link timeAttackRecordKey}. */
 export interface PlayerRecords {
-  readonly timeTrial: Readonly<Record<string, TimeTrialRecord>>;
-  readonly arcade: Readonly<Record<string, ArcadeRecord>>;
+  readonly timeAttack: Readonly<Record<string, TimeAttackRecord>>;
 }
 
-/** A TIME TRIAL record's key: the course, the route (its Link IDs, empty on a circuit), the laps and the vehicle. */
-export function timeTrialRecordKey(
-  courseId: string,
-  route: readonly string[],
-  laps: number,
-  vehicleId: string,
-): string {
-  return JSON.stringify([courseId, route, laps, vehicleId]);
-}
-/** An ARCADE record's key: the series, the class, the goal reached (its FINISH gate ID) and the vehicle. */
-export function arcadeRecordKey(seriesId: string, classId: string, goal: string, vehicleId: string): string {
-  return JSON.stringify([seriesId, classId, goal, vehicleId]);
+/** A TIME ATTACK record's key: the series, the class and the goal reached (its FINISH gate ID; a circuit has one). */
+export function timeAttackRecordKey(seriesId: string, classId: string, goal: string): string {
+  return JSON.stringify([seriesId, classId, goal]);
 }
 
 export interface PlayerRecord {
@@ -100,13 +84,13 @@ const DEFAULT_SETTINGS = freezeSettings({
   cameras: DEFAULT_CAMERAS,
   steering: DEFAULT_STEERING,
 });
-const NO_RECORDS = freezeRecords({ timeTrial: {}, arcade: {} });
+/** No records: what an older record or CLEAR RECORDS leaves. */
+export const NO_RECORDS = freezeRecords({ timeAttack: {} });
 
 /**
- * Opens the player record in `storage`. A version 4 or 3 record keeps its settings and records; a version 2 record keeps
- * its settings and TIME TRIAL records and drops its ARCADE records; a version 1 record keeps its settings and starts
- * with no records. Records before version 5 take the default steering, and those before version 4 the default cameras.
- * An absent,
+ * Opens the player record in `storage`. A version 1 to 5 record keeps its settings and starts with no records: their
+ * keys name no class. Records before version 5 take the default steering, and those before version 4 the default
+ * cameras. An absent,
  * unreadable, corrupt or other-version record starts from the defaults; a malformed record entry alone is dropped.
  * Storage failures leave the record in memory; none of these stops the game.
  */
@@ -166,10 +150,9 @@ function readRecord(storage: Storage | null): { settings: PlayerSettings; record
 }
 
 /**
- * The settings and records of a record with exactly the declared shape, or null: version 5; version 4 or 3, whose
- * settings and records carry over; version 2, whose settings and TIME TRIAL records carry over without its ARCADE
- * records; or version 1, whose settings carry over with no records. Settings before version 5 take the default
- * steering, and those before version 4 the default cameras.
+ * The settings and records of a record with exactly the declared shape, or null: version 6; or version 1 to 5, whose
+ * settings carry over with no records (version 1 had none; versions 2 to 5 kept TIME TRIAL and ARCADE records, which
+ * name no class). Settings before version 5 take the default steering, and those before version 4 the default cameras.
  */
 function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records: PlayerRecords } | null {
   if (!isObject(value)) return null;
@@ -179,21 +162,20 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
     return settings && { settings, records: NO_RECORDS };
   }
   if (
-    (version !== PLAYER_RECORD_VERSION &&
-      version !== STEERINGLESS_VERSION &&
-      version !== CAMERALESS_VERSION &&
-      version !== COURSE_ARCADE_VERSION) ||
+    !Number.isInteger(version) ||
+    (version as number) <= SETTINGS_ONLY_VERSION ||
+    (version as number) > PLAYER_RECORD_VERSION ||
     !hasExactKeys(value, ['version', 'settings', 'records'])
   )
     return null;
-  const settings = admitSettings(value.settings, version);
-  if (!settings || !hasExactKeys(value.records, ['timeTrial', 'arcade'])) return null;
+  const settings = admitSettings(value.settings, version as number);
+  if (!settings) return null;
+  if (version !== PLAYER_RECORD_VERSION) return { settings, records: NO_RECORDS };
+  if (!hasExactKeys(value.records, ['timeAttack'])) return null;
   return {
     settings,
     records: freezeRecords({
-      timeTrial: admitEntries(value.records.timeTrial, isTimeTrialKey, admitTimeTrialRecord),
-      arcade:
-        version === COURSE_ARCADE_VERSION ? {} : admitEntries(value.records.arcade, isArcadeKey, admitArcadeRecord),
+      timeAttack: admitEntries(value.records.timeAttack, isTimeAttackKey, admitTimeAttackRecord),
     }),
   };
 }
@@ -204,7 +186,7 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
  */
 function admitSettings(settings: unknown, version: number): PlayerSettings | null {
   const withCameras = version >= STEERINGLESS_VERSION,
-    withSteering = version >= PLAYER_RECORD_VERSION;
+    withSteering = version >= MODE_RECORDS_VERSION;
   const keys = [
     'vehicleColors',
     'volumes',
@@ -264,46 +246,22 @@ function parseKey(key: string): unknown[] | null {
     return null;
   }
 }
-function isTimeTrialKey(key: string): boolean {
-  const parts = parseKey(key);
-  if (!parts || parts.length !== 4) return false;
-  const [courseId, route, laps, vehicleId] = parts;
-  return (
-    typeof courseId === 'string' &&
-    Array.isArray(route) &&
-    route.every((link) => typeof link === 'string') &&
-    Number.isInteger(laps) &&
-    (laps as number) >= 1 &&
-    typeof vehicleId === 'string' &&
-    timeTrialRecordKey(courseId, route as string[], laps as number, vehicleId) === key
-  );
-}
-function isArcadeKey(key: string): boolean {
+function isTimeAttackKey(key: string): boolean {
   const parts = parseKey(key);
   return (
     parts !== null &&
-    parts.length === 4 &&
+    parts.length === 3 &&
     parts.every((part) => typeof part === 'string') &&
-    arcadeRecordKey(...(parts as [string, string, string, string])) === key
+    timeAttackRecordKey(...(parts as [string, string, string])) === key
   );
 }
 
-function admitIdentity(value: Record<string, unknown>): RecordIdentity | null {
-  const { courseSha256, vehicleSha256 } = value;
-  return isSha256(courseSha256) && isSha256(vehicleSha256) ? { courseSha256, vehicleSha256 } : null;
-}
-function admitTimeTrialRecord(value: unknown): TimeTrialRecord | null {
-  if (!hasExactKeys(value, ['timeMs', 'splitsMs', 'bestLapMs', 'courseSha256', 'vehicleSha256'])) return null;
-  const identity = admitIdentity(value);
-  const { timeMs, splitsMs, bestLapMs } = value;
-  if (!identity || !isMilliseconds(timeMs) || !Array.isArray(splitsMs) || !splitsMs.every(isMilliseconds)) return null;
-  if (bestLapMs !== null && !isMilliseconds(bestLapMs)) return null;
-  return { ...identity, timeMs, splitsMs, bestLapMs };
-}
-function admitArcadeRecord(value: unknown): ArcadeRecord | null {
-  if (!hasExactKeys(value, ['timeMs', 'courseSha256', 'vehicleSha256'])) return null;
-  const identity = admitIdentity(value);
-  return identity && isMilliseconds(value.timeMs) ? { ...identity, timeMs: value.timeMs } : null;
+function admitTimeAttackRecord(value: unknown): TimeAttackRecord | null {
+  if (!hasExactKeys(value, ['timeMs', 'splitsMs', 'vehicleId', 'courseSha256', 'vehicleSha256'])) return null;
+  const { timeMs, splitsMs, vehicleId, courseSha256, vehicleSha256 } = value;
+  if (!isMilliseconds(timeMs) || !Array.isArray(splitsMs) || !splitsMs.every(isMilliseconds)) return null;
+  if (typeof vehicleId !== 'string' || !isSha256(courseSha256) || !isSha256(vehicleSha256)) return null;
+  return { timeMs, splitsMs, vehicleId, courseSha256, vehicleSha256 };
 }
 
 function freezeSettings(settings: PlayerSettings): PlayerSettings {
@@ -323,10 +281,9 @@ function freezeRecords(records: PlayerRecords): PlayerRecords {
   const freezeEach = <T>(table: Readonly<Record<string, T>>, freeze: (record: T) => T) =>
     Object.freeze(Object.fromEntries(Object.entries(table).map(([key, record]) => [key, freeze(record)])));
   return Object.freeze({
-    timeTrial: freezeEach(records.timeTrial, (record) =>
+    timeAttack: freezeEach(records.timeAttack, (record) =>
       Object.freeze({ ...record, splitsMs: Object.freeze([...record.splitsMs]) }),
     ),
-    arcade: freezeEach(records.arcade, (record) => Object.freeze({ ...record })),
   });
 }
 

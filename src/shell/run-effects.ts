@@ -16,7 +16,7 @@ function crossingEffect(event: RaceFacts['events'][number], race: RaceFacts): Ef
 
 /**
  * The one owner of a run's race effects, read from race facts after every fixed step: a signal lamp lighting, GO, the
- * player's crossings and the GOAL or GAME OVER effect, and NEW RECORD once RESULT shows it. Each happening sounds once:
+ * player's crossings and the GOAL or GAME OVER effect, and NEW RECORD once RESULT shows it or a lap sets it. Each happening sounds once:
  * a Session's step is read once, and a new Session (a DEV rebuild) starts afresh. The outcome effect sounds on into
  * RESULT and stops when the run is left or its Session is replaced.
  */
@@ -51,6 +51,10 @@ export function createRunEffects(play: (effect: EffectRecording) => RecordingHan
     /** RESULT shows the Session's outcome: `new-record` sounds once when it shows NEW RECORD. */
     result(newRecord: boolean): void {
       if (newRecord) play('new-record');
+    },
+    /** A circuit lap just set a record: `new-record` sounds as it completes. */
+    newRecord(): void {
+      play('new-record');
     },
     /** The run is left: its outcome effect stops. */
     stop(): void {

@@ -30,7 +30,7 @@ import { compileSessionConfiguration, type SessionConfiguration } from '../race/
 import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
-import { comparedRecord, judgeRun, type RecordJudgement, type RecordSelection } from './run-records.js';
+import { createRunRecords, type RecordSelection } from './run-records.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import { createRunMusic } from './run-music.js';
 import { createRunEffects } from './run-effects.js';
@@ -57,8 +57,10 @@ export interface RunPage {
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
   /** `dev=1`: the run builds its DEV controls and draws the bike lean indicator. */
   readonly dev: boolean;
-  /** The player record, which a run reaching GOAL updates. */
+  /** The player record, which a TIME ATTACK run's records update. */
   readonly player: PlayerRecord;
+  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
+  readonly vehicleSha256: ReadonlyMap<string, string>;
   /** The camera definition in use. */
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
@@ -79,7 +81,7 @@ export interface RunAssemblyReport {
     readonly field: number;
     readonly bikes: boolean;
     readonly slot: number;
-    /** READY's record in milliseconds; null when none yet, undefined when the mode keeps none (FREE PLAY). */
+    /** READY's record in milliseconds; null when none yet, undefined when the run keeps none (all but TIME ATTACK). */
     readonly best: number | null | undefined;
   }): void;
 }
@@ -208,9 +210,21 @@ async function assembleCourseRun(
     request,
   );
   const settings = prepared.configuration;
-  const { vehicle, vehicleSha256 } = prepared;
-  const vehicleId = settings.vehicleId;
+  const { vehicle } = prepared;
   const entry = vehicle.vehicleDefinition;
+  // What a TIME ATTACK run records against: its class on its course; other runs record nothing.
+  const selection: RecordSelection | null =
+    settings.mode === 'TIME_ATTACK' && !demo
+      ? {
+          seriesId: arcade!.series.id,
+          classId: arcade!.id,
+          courseSha256: course.identity.buildSha256,
+          vehicleSha256: page.vehicleSha256,
+          goals: course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : [])),
+          vehicleId: settings.vehicleId,
+          circuit: course.type === 'CIRCUIT',
+        }
+      : null;
   /**
    * The one assembly of a Session, its scene (with a new Route runtime) and its race. The run's start and every
    * DEV tuning rebuild pass through it; the page's devices persist.
@@ -225,14 +239,9 @@ async function assembleCourseRun(
       runtime: scene.runtime,
       playerSteering: page.player.settings.steering[entry.listing.form],
     });
-    // The Session's records: the HUD's record, resolved once, and the judgement made when the product Session reaches
-    // GOAL. A DEV-tuned Session compares with and records nothing.
-    const records = {
-      hud: undefined as HudFacts['record'] | undefined,
-      judgement: null as RecordJudgement | null,
-      recorded: false,
-    };
-    return { session, scene, race, tuned: tuned !== null, records };
+    // The Session's records; a DEV-tuned Session compares with and records nothing.
+    const records = selection && !tuned ? createRunRecords(page.player, selection) : null;
+    return { session, scene, race, records };
   };
   let active = build(null);
   report?.progress(LOADING_SHARES.prepared);
@@ -292,50 +301,35 @@ async function assembleCourseRun(
   if (track === undefined) throw new RangeError(`Unknown track ${request.track}`);
   const music = createRunMusic(shell, track);
   const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
-  // What the run records against, and the records before it, which the HUD compares with.
-  const selection: RecordSelection = {
-    rules:
-      settings.mode === 'ARCADE'
-        ? { mode: settings.mode, seriesId: arcade!.series.id, classId: arcade!.id }
-        : { mode: settings.mode },
-    vehicleId,
-    courseSha256: course.identity.buildSha256,
-    vehicleSha256,
-    goals: course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : [])),
+  // The goal a run's Route reaches once the race has decided it (`race.routeLinks`): the last FINISH along it.
+  const finishes = new Map(
+    course.gates.intervals.flatMap((interval) => (interval.finish ? [[interval.section, interval.finish.id]] : [])),
+  );
+  const routeGoal = (links: readonly string[] | null) => {
+    if (links === null) return null;
+    const sections = [course.entry, ...links.map((id) => course.links.find((link) => link.id === id)!.to.section)];
+    return sections.reduce<string | null>((goal, section) => finishes.get(section) ?? goal, null);
   };
-  const recordsBefore = page.player.records;
-  // The active Session's HUD record.
-  const runRecord = (): HudFacts['record'] => {
-    if (active.tuned) return null;
-    const { records } = active;
-    if (records.hud === undefined) records.hud = comparedRecord(recordsBefore, selection);
-    return records.hud;
+  // The record READY shows, with the name of the vehicle it was set with.
+  const readyRecord = (): HudFacts['record'] => {
+    const shown = active.records?.shown;
+    if (!shown) return null;
+    const listing = vehicles.find((v) => v.compiledVehicle.id === shown.vehicleId)?.listing;
+    return { timeMs: shown.timeMs, vehicle: listing ? listing.metadata.model.toUpperCase() : shown.vehicleId };
   };
   // The PRE-RACE card's facts: the field, the player's slot on its grid and the record READY shows.
   if (report) {
     const { entries } = active.session;
     const slot = entries[0]!.slot!;
     const grid = course.gates.bikeGrid?.includes(slot) ? course.gates.bikeGrid : course.gates.grid;
-    const best = comparedRecord(recordsBefore, selection);
     report.prepared({
       course,
       field: entries.length,
       bikes: entries.every((e) => e.vehicle.vehicleDefinition.listing.form === 'bike'),
       slot: grid.indexOf(slot) + 1,
-      best: settings.mode === 'ARCADE' ? (best?.timeMs ?? null) : undefined,
+      best: active.records ? (active.records.shown?.timeMs ?? null) : undefined,
     });
   }
-  // The product Session's judgement against the records, made once when it reaches GOAL.
-  const record = () => {
-    const { race, records } = active;
-    records.recorded = true;
-    records.judgement = judgeRun(page.player.records, {
-      ...selection,
-      goal: race.player.finishGateId!,
-      finishSeconds: race.outcome.endSeconds!,
-    });
-    if (records.judgement?.records) page.player.updateRecords(records.judgement.records);
-  };
   // DEV only: the frame's render measurements and the performance HUD's timings; the product path takes neither.
   const measurements = page.dev ? createRenderMeasurements() : null;
   const tick = () => {
@@ -346,6 +340,8 @@ async function assembleCourseRun(
     lifecycle.update(step.recovered);
     // The background's transitions run in the screen's fixed steps, from the camera's station.
     active.scene.advance(lifecycle.camera);
+    // A lap that set a record sounds NEW RECORD as it completes.
+    if (active.records?.step(race.events, race.player.id, routeGoal(race.routeLinks))) effects.newRecord();
     if (!demo) {
       effects.step(race, race);
       // Each contact of the player's that began in the step sounds once, as it begins.
@@ -353,10 +349,9 @@ async function assembleCourseRun(
       performanceHud?.step(performance.now() - started);
     }
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
-      if (race.outcome.status === 'GOAL' && !active.records.recorded && !active.tuned && !demo) record();
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) {
         state.finish();
-        if (!demo) effects.result(active.records.judgement?.newRecord ?? false);
+        if (!demo) effects.result(active.records?.outcome().newRecord ?? false);
       } else afterEndingSeconds += SIM_DT;
     }
   };
@@ -412,7 +407,8 @@ async function assembleCourseRun(
             player: observations.player,
             camera: lifecycle.camera,
             session: hudSession(active.session),
-            record: runRecord(),
+            record: readyRecord(),
+            split: active.records?.split ?? null,
           },
           text,
           menu,
@@ -442,7 +438,7 @@ async function assembleCourseRun(
   return {
     tick,
     draw,
-    result: () => runResult(active.race, active.records.judgement),
+    result: () => runResult(active.race, active.records?.outcome() ?? null),
     end() {
       // The attract demo is never ended so; it takes no menu commands.
       if (demo || !active.race.endable) return false;
