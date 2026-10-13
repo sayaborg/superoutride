@@ -139,10 +139,10 @@ export async function assembleRun(
   demo?: DemoCourses,
 ): Promise<Run> {
   const { content, materials, series } = page;
-  // ARCADE drives its class on the class's course; the other modes drive the course they name.
+  // ARCADE and TIME ATTACK drive their class on the class's course; FREE PLAY drives the course it names.
   let named: SeriesClass | null = null,
     courseId: string;
-  if (request.mode === 'ARCADE') {
+  if (request.mode !== 'FREE_PLAY') {
     named = series.seriesClass(request.seriesId, request.classId);
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
     courseId = named.course;
@@ -196,8 +196,7 @@ async function assembleCourseRun(
   demo: boolean,
 ): Promise<Run> {
   const { content, materials, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
-  const course = await compiling,
-    courseId = course.id;
+  const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
   const arcade = named && loadSeriesClass(content, named, course, vehicles);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
@@ -226,8 +225,8 @@ async function assembleCourseRun(
       runtime: scene.runtime,
       playerSteering: page.player.settings.steering[entry.listing.form],
     });
-    // The Session's records: the HUD's record, resolved once the TIME TRIAL route is decided, and the judgement made
-    // when the product Session reaches GOAL. A DEV-tuned Session compares with and records nothing.
+    // The Session's records: the HUD's record, resolved once, and the judgement made when the product Session reaches
+    // GOAL. A DEV-tuned Session compares with and records nothing.
     const records = {
       hud: undefined as HudFacts['record'] | undefined,
       judgement: null as RecordJudgement | null,
@@ -265,7 +264,8 @@ async function assembleCourseRun(
                   mode: 'FREE_PLAY',
                   vehicleId: settings.vehicleId,
                   color: settings.color,
-                  lapCount: active.session.configuration.lapCount,
+                  // A run without a finish is rebuilt with the course's most laps.
+                  lapCount: active.session.configuration.lapCount ?? course.rules.maxLaps,
                   rivalCount: 0,
                   rivalPool: formPool(page.freePlay, entry).id,
                   traffic: NO_TRAFFIC,
@@ -298,9 +298,7 @@ async function assembleCourseRun(
       settings.mode === 'ARCADE'
         ? { mode: settings.mode, seriesId: arcade!.series.id, classId: arcade!.id }
         : { mode: settings.mode },
-    courseId,
     vehicleId,
-    lapCount: settings.lapCount,
     courseSha256: course.identity.buildSha256,
     vehicleSha256,
     goals: course.gates.intervals.flatMap((interval) => (interval.finish ? [interval.finish.id] : [])),
@@ -310,35 +308,31 @@ async function assembleCourseRun(
   const runRecord = (): HudFacts['record'] => {
     if (active.tuned) return null;
     const { records } = active;
-    if (records.hud === undefined) records.hud = comparedRecord(recordsBefore, selection, active.race.routeLinks);
-    return records.hud ?? null;
+    if (records.hud === undefined) records.hud = comparedRecord(recordsBefore, selection);
+    return records.hud;
   };
   // The PRE-RACE card's facts: the field, the player's slot on its grid and the record READY shows.
   if (report) {
     const { entries } = active.session;
     const slot = entries[0]!.slot!;
     const grid = course.gates.bikeGrid?.includes(slot) ? course.gates.bikeGrid : course.gates.grid;
-    const best = comparedRecord(recordsBefore, selection, active.race.routeLinks);
+    const best = comparedRecord(recordsBefore, selection);
     report.prepared({
       course,
       field: entries.length,
       bikes: entries.every((e) => e.vehicle.vehicleDefinition.listing.form === 'bike'),
       slot: grid.indexOf(slot) + 1,
-      best: settings.mode === 'FREE_PLAY' ? undefined : best === undefined ? null : (best?.timeMs ?? null),
+      best: settings.mode === 'ARCADE' ? (best?.timeMs ?? null) : undefined,
     });
   }
   // The product Session's judgement against the records, made once when it reaches GOAL.
   const record = () => {
     const { race, records } = active;
     records.recorded = true;
-    const { player, routeLinks } = race;
     records.judgement = judgeRun(page.player.records, {
       ...selection,
-      routeLinks,
-      goal: player.finishGateId!,
+      goal: race.player.finishGateId!,
       finishSeconds: race.outcome.endSeconds!,
-      crossingSeconds: player.crossingSeconds,
-      bestLapSeconds: player.bestLapSeconds,
     });
     if (records.judgement?.records) page.player.updateRecords(records.judgement.records);
   };
@@ -449,6 +443,12 @@ async function assembleCourseRun(
     tick,
     draw,
     result: () => runResult(active.race, active.records.judgement),
+    end() {
+      // The attract demo is never ended so; it takes no menu commands.
+      if (demo || !active.race.endable) return false;
+      active.race.end();
+      return true;
+    },
     dispose() {
       music.stop();
       effects.stop();

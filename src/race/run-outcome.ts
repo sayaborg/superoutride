@@ -1,12 +1,14 @@
 import type { RaceEvent } from './course-race.js';
 
-export type RunStatus = 'RUNNING' | 'GOAL' | 'GAME_OVER';
+/** ENDED: the player ended a run without a finish. */
+export type RunStatus = 'RUNNING' | 'GOAL' | 'GAME_OVER' | 'ENDED';
 /** Why a run ended in GAME OVER: the clock expired, or a rank limit failed the player. */
 export type GameOverCause = 'TIME' | 'RANK';
 
 /**
- * The one owner of the run outcome from GO: RUNNING, then GOAL or GAME OVER with its cause. The state before GO belongs
- * to the start phase; the ending's race time is the race clock's, which stops there.
+ * The one owner of the run outcome from GO: RUNNING, then GOAL or GAME OVER with its cause, or ENDED by the player in
+ * a run without a finish. The state before GO belongs to the start phase; the ending's race time is the race clock's,
+ * which stops there.
  */
 export function createRunOutcome() {
   let status: RunStatus = 'RUNNING';
@@ -19,8 +21,10 @@ export function createRunOutcome() {
     get cause() {
       return cause;
     },
-    /** Ends a running run once: GOAL, or GAME OVER with its cause. */
-    end(ending: { readonly status: 'GOAL' } | { readonly status: 'GAME_OVER'; readonly cause: GameOverCause }) {
+    /** Ends a running run once: GOAL, GAME OVER with its cause, or ENDED. */
+    end(
+      ending: { readonly status: 'GOAL' | 'ENDED' } | { readonly status: 'GAME_OVER'; readonly cause: GameOverCause },
+    ) {
       if (status !== 'RUNNING') throw new Error('Only a running run ends');
       status = ending.status;
       cause = ending.status === 'GAME_OVER' ? ending.cause : null;

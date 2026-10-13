@@ -625,9 +625,9 @@ export function createCourseRace(options: {
     get stage() {
       return playerGates + 1;
     },
-    /** The player's LAP on a CIRCUIT: one more than its accepted finishes, at most the Session's lap count. */
+    /** The player's LAP on a CIRCUIT: one more than its accepted finishes, at most the Session's lap count if any. */
     get lap() {
-      return Math.min(configuration.lapCount, player.progress.acceptedFinishCount + 1);
+      return Math.min(configuration.lapCount ?? Infinity, player.progress.acceptedFinishCount + 1);
     },
     /**
      * The player's rank among the competitors present in the Session (`rankRaceProgress`) and their count: the one
@@ -674,7 +674,9 @@ export function createCourseRace(options: {
       if (rival!.stages === null || stage < rival!.stages.first || stage > rival!.stages.last) return null;
       return rival!.progress.s - player.progress.s;
     },
-    /** The run's one status (WAITING and READY before GO, then RUNNING, GOAL or GAME_OVER) and GAME OVER cause. */
+    /**
+     * The run's one status (WAITING and READY before GO, then RUNNING, GOAL, GAME_OVER or ENDED) and GAME OVER cause.
+     */
     outcome: Object.freeze({
       get status(): RaceStatus {
         return startPhase.status === 'GO' ? outcome.status : startPhase.status;
@@ -683,8 +685,8 @@ export function createCourseRace(options: {
         return outcome.cause;
       },
       /**
-       * The race time of the GOAL or GAME OVER, where the race clock stopped; null before. At GOAL it is the player's
-       * finish crossing. The field keeps driving after it.
+       * The race time of the GOAL, GAME OVER or ENDED, where the race clock stopped; null before. At GOAL it is the
+       * player's finish crossing. The field keeps driving after it.
        */
       get endSeconds(): number | null {
         return startPhase.status !== 'GO' || outcome.status === 'RUNNING' ? null : clock.elapsedSeconds;
@@ -702,6 +704,18 @@ export function createCourseRace(options: {
       return playerContacts;
     },
     start: () => startPhase.begin(),
+    /**
+     * Whether the player can end the run now: a running run without a finish (its Session has no lap count), which
+     * ends only so.
+     */
+    get endable(): boolean {
+      return configuration.lapCount === null && startPhase.status === 'GO' && outcome.status === 'RUNNING';
+    },
+    /** The player ends a run without a finish, between steps: ENDED, its race time the clock's now. */
+    end() {
+      if (!this.endable) throw new Error('Only a running run without a finish is ended by the player');
+      outcome.end({ status: 'ENDED' });
+    },
     forks,
     /**
      * One fixed step of SIM_DT; the race takes no step length. `input` is the player's; null hands the player to its
@@ -749,6 +763,7 @@ export function createCourseRace(options: {
     /** The read-only Route, whose entry occurrence carries the entry fork's choice. */
     route: runtime.route,
     courseType: course.type,
+    /** The laps to the finish; null for a run without a finish. */
     lapCount: configuration.lapCount,
     /** A competitor's clock: its finish time, else race time. */
     competitorSeconds: (c: typeof player) => c.finishSeconds ?? clock.elapsedSeconds,

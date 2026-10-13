@@ -59,6 +59,8 @@ export interface RunFrame {
   draw(): { writeHud(text: TextLayer, menu: boolean): void; present(): void };
   /** The ended run's result. */
   result(): RunResult;
+  /** QUIT ends a running run without a finish, which RESULT then shows: false when the run cannot end so. */
+  end(): boolean;
 }
 
 /** What the PAUSE menu and RESULT lead to; RESUME and BACK on the PAUSE menu resume the run. */
@@ -74,7 +76,8 @@ export interface RunScreenActions {
 
 /**
  * RESULT's lines: the outcome as its title, the rank when there were rivals, race time, the record before the run and
- * NEW RECORD when it was beaten, and a circuit's best lap with NEW when it beat the recorded one.
+ * NEW RECORD when it was beaten, and a circuit's best lap. A run without a finish has RESULT as its title and its
+ * completed laps instead of a time.
  */
 function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinition {
   const { record } = result;
@@ -85,8 +88,8 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
     { label: 'TITLE', confirm: () => actions.title() },
   ]);
   return {
-    title: result.outcome,
-    titlePalette: ornatePalette('ornateLarge', result.outcome === 'GOAL' ? 'SUNSET' : 'RED'),
+    title: result.outcome ?? 'RESULT',
+    titlePalette: ornatePalette('ornateLarge', result.outcome === 'GAME OVER' ? 'RED' : 'SUNSET'),
     titleFont: 'ornateLarge',
     lines: [
       ...(result.standing
@@ -100,17 +103,12 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
             ],
           ]
         : []),
-      `TIME ${formatRaceTime(result.raceSeconds)}`,
+      result.raceSeconds === null ? `LAPS ${result.laps}` : `TIME ${formatRaceTime(result.raceSeconds)}`,
       ...(record?.previous ? [`RECORD ${formatMilliseconds(record.previous.timeMs)}`] : []),
       ...(record?.newRecord ? [[{ text: 'NEW RECORD', palette: TEXT_PALETTES.YELLOW }]] : []),
       ...(result.bestLapSeconds === null
         ? []
-        : [
-            [
-              { text: `BEST LAP ${formatRaceTime(result.bestLapSeconds)}`, palette: TEXT_PALETTES.WHITE },
-              ...(record?.newBestLap ? [{ text: ' NEW', palette: TEXT_PALETTES.YELLOW }] : []),
-            ],
-          ]),
+        : [[{ text: `BEST LAP ${formatRaceTime(result.bestLapSeconds)}`, palette: TEXT_PALETTES.WHITE }]]),
     ],
     items: () => items,
   };
@@ -119,7 +117,7 @@ function resultMenu(result: RunResult, actions: RunScreenActions): MenuDefinitio
 /**
  * The run screen: the race advances only while running, and every frame draws the scene. While paused, the PAUSE menu
  * (RESUME / RETRY / QUIT) is drawn over the stopped frame, dimmed to half brightness, and takes the menu commands;
- * PAUSE and BACK resume, and QUIT goes to TITLE. Once finished, RESULT is drawn over the dimmed stopped frame and takes
+ * PAUSE and BACK resume, and QUIT ends a run without a finish into RESULT and leaves any other run for TITLE. Once finished, RESULT is drawn over the dimmed stopped frame and takes
  * the menu commands.
  */
 export function createRunScreen(
@@ -133,7 +131,7 @@ export function createRunScreen(
   const pauseItems = Object.freeze([
     { label: 'RESUME', confirm: resume },
     { label: 'RETRY', confirm: () => actions.retry() },
-    { label: 'QUIT', confirm: () => actions.title() },
+    { label: 'QUIT', confirm: () => (run.end() ? state.finish() : actions.title()) },
   ]);
   const pauseMenu = () => createMenu({ title: 'PAUSED', items: () => pauseItems, back: resume });
   // The menu over the stopped frame: PAUSE's while paused, RESULT's once finished.

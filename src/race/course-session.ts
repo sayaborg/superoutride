@@ -104,8 +104,8 @@ const ownEntry = (arcade: SeriesClass, vehicleId: string) =>
   arcade.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
 
 /**
- * The player's color in a Session: with ARCADE settings whose class fixes colors, its own entry's; else the chosen
- * color, else the vehicle's default color. Selection screens show the same color.
+ * The player's color in a Session: in a class whose colors are fixed (ARCADE and TIME ATTACK alike), its own entry's;
+ * else the chosen color, else the vehicle's default color. Selection screens show the same color.
  */
 export function sessionPlayerColor(
   arcade: SeriesClass | null,
@@ -124,7 +124,7 @@ export function sessionPlayerColor(
  * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
  * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY stands the player in the grid's last slot and the
  * rivals in the slots in front, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the
- * Session seed; TIME TRIAL stands the player alone in the grid's last slot, without traffic. The grid is the slots
+ * Session seed; TIME ATTACK stands the player alone in the grid's last slot, without traffic. The grid is the slots
  * the field's vehicles start from (`courseStartGrid`), whose last is the sixteenth or a shorter grid's last. Traffic
  * candidates come from `field.vehicleOf` with their drivers, compiled once. The player's color is
  * `sessionPlayerColor`'s.
@@ -156,7 +156,7 @@ export function resolveCourseSession(
   if (vehicle.vehicleDefinition.compiledVehicle.id !== configuration.vehicleId)
     throw new Error("The Session vehicle is not the configuration's vehicle");
   const playerColor = sessionPlayerColor(
-    configuration.mode === 'ARCADE' ? arcade : null,
+    configuration.mode === 'FREE_PLAY' ? null : arcade,
     vehicle.vehicleDefinition,
     configuration.color,
   );
@@ -311,7 +311,7 @@ function arcadeEntries(
 }
 
 /**
- * FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it; TIME TRIAL,
+ * FREE PLAY: the player in the grid's last slot and the drawn rivals in the slots directly in front of it; TIME ATTACK,
  * which has no rivals, is the player alone there.
  */
 function freePlayEntries(

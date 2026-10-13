@@ -355,8 +355,8 @@ the entry Section's origin, degrees clockwise from north in `[0, 360)`: presenta
 straight toward turn 1, from Drogger's detection point list; provisional); the other courses' are 0.
 
 A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
-and time budgets for those courses only, and only a class offers ARCADE and the checkpoint clock. An untimed course runs
-FREE PLAY and TIME TRIAL Sessions. Compilation requires the start, grid and finish coverage described
+and time budgets for those courses only, and only a class offers ARCADE, TIME ATTACK and the checkpoint clock. An
+untimed course runs FREE PLAY Sessions only. Compilation requires the start, grid and finish coverage described
 above for every course; each grid holds at least the player. Compiled `rules` retain `maxLaps`;
 compiled `gates` provide the resolved grids (`grid`, and `bikeGrid` or null) and per-Section landmark intervals to race
 and tools.
@@ -840,11 +840,13 @@ at GOAL is the player's finish crossing. RESULT and records read that one value.
 The state before GO has one owner, the start phase: WAITING until the Session starts, then READY for the 3-second
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
 GOAL or GAME_OVER with its cause, `TIME`
-(the deadline expired) or `RANK` (a rank limit failed the player). At the end of each running step the earliest
+(the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. At the end of each running step the earliest
 ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending; the race
 publishes the ending's race time. The
 player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
-failure.
+failure. A run without a finish (a Session with no lap count, TIME ATTACK on a CIRCUIT) has no GOAL: its finish lines
+count laps and it runs until the player ends it. The race publishes whether the run can be ended so (`endable`: such a
+run, RUNNING) and ends it between steps (`end`), ENDED at the race time of that moment.
 
 After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
@@ -861,7 +863,7 @@ another competitor before the player's own, read from the ordered event stream. 
 counts; an exact tie in event time goes to the player.
 
 The race and clock publish facts only, never display text or display durations. The race exposes one run status
-(WAITING and READY from the start phase, then RUNNING, GOAL or GAME_OVER from the run outcome) and the GAME OVER
+(WAITING and READY from the start phase, then RUNNING, GOAL, GAME_OVER or ENDED from the run outcome) and the GAME OVER
 cause, and the countdown to GO: the seconds until GO (3 while WAITING, 0 from GO) and the signal lamps lit: one as
 READY begins and one more each second (1, 2, 3), none while WAITING or from GO, which the product HUD draws; the clock exposes race time, the deadline in race time
 (null without a time limit) and the last extension: its awarded amount and the race time of the checkpoint that
@@ -1017,11 +1019,14 @@ ARCADE resolves its class: one of the class's vehicle candidates, its entries an
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
-vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color is its entry's when the series fixes colors, otherwise the player's chosen color (the
+vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color, in ARCADE
+and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
-TIME TRIAL resolves a catalog vehicle and permitted laps on any course; the player runs alone, without
-rivals or clock, and selects fork routes by driving like any first competitor at a lock line. One admission,
+TIME ATTACK resolves one of its class's vehicle candidates on the class's course; the player runs alone, without
+rivals, traffic or clock, and selects fork routes by driving like any first competitor at a lock line. On a LINEAR or
+BRANCH course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
+a finish, whose finish lines count laps and never finish it ([race time and events](#race-time-and-events)). One admission,
 `compileSessionConfiguration`, derives these rules from a request and checks it against the course, its class and
 the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
 ARCADE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
@@ -1035,7 +1040,7 @@ driver's. On an untimed course, Session resolution rejects ARCADE; an ARCADE clo
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
 list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot and its Session vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME TRIAL the
+slot and its Session vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the
 player stands in the last slot of the grid its field starts from and the rivals in the slots directly in front of it,
 `RIVAL_01` frontmost.
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
@@ -1050,7 +1055,7 @@ The start speed is a resolved Session setting: every competitor spawns at its gr
 road tangent. It is finite and may be negative; product Sessions and reference runs use 0. The Session seed is a
 32-bit unsigned integer that Session resolution takes with the configuration and checks; rival target exits derive from it. The
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
-TIME TRIAL Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
+FREE PLAY Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
 `speedCap² / (2*a)` metres remaining to that Section's end for every entry, the player included. Here `speedCap` is
@@ -1062,7 +1067,7 @@ RangeError naming the FINISH, that entry's vehicle, available metres and require
 through its loading failure state.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
-A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL or GAME OVER
+A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL, GAME OVER or ENDED
 stops judging and the race clock, preserving final rank and precise event time; the vehicles and traffic keep moving
 ([race time and events](#race-time-and-events)).
 Recovery consumes simulation time and grants no crossing credit. Results are session-local.
@@ -1071,8 +1076,8 @@ Recovery consumes simulation time and grants no crossing credit. Results are ses
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed racing lines, time budgets and pace schedules and owns live Session driving policy.
-The measurement tool's continuous reference runs are TIME TRIAL Sessions: product physics, the configured start from the
-last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
+The measurement tool's continuous reference runs are FREE PLAY Sessions without rivals or traffic: product physics, the
+configured start from the last grid slot and finite routes/laps, with the reference driver alone and no clock. Each successful run records the race's event stream for the player
 ([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
 fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
 planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Wrong-route choice, timeout or incomplete FINISH invalidates a timing product. A recovery does not: the run goes on,

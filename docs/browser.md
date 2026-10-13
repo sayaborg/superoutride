@@ -62,15 +62,16 @@ visible and the current screen is live, and the host runs one symmetric procedur
 menu or off while hidden): driving clears input suspension; otherwise input is suspended (which resets it). The same
 procedure tells audio whether the page is visible and whether a run is driven ([Audio](audio.md#mix-and-lifetime)).
 
-The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. In
-ARCADE it shows the series image with rows 17–29 (y 136–240) at quarter brightness; other modes show it on black.
+The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. For
+a class (ARCADE and TIME ATTACK) it shows the series image with rows 17–29 (y 136–240) at quarter brightness; other modes show it on black.
 Inside x 8–136, y 136–232 it draws the course map, north up by the course's bearing: the route's centreline (one lap of
 a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
 core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
 GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
-the class title (YELLOW; the mode's name outside ARCADE) on row 18, the course's name on row 20, `<length>KM  <n> LAPS`
-on row 21 (the route's length to 0.001 km, laps only on a circuit), `<field> CARS|BIKES  START P<slot>` on row 23 and
-`BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (no line in FREE PLAY). On
+the class title (YELLOW; the mode's name in FREE PLAY) on row 18, the course's name on row 20, `<length>KM  <n> LAPS`
+on row 21 (the route's length to 0.001 km, laps only on a circuit with a lap count), `<field> CARS|BIKES  START P<slot>`
+on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (ARCADE only).
+On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
 the course's files to 70 %, its compilation to 80 % (Section by Section), the Session to 90 %, the assembled run
 to 100 %. The title, course
@@ -88,7 +89,8 @@ and driving input and sound stop, so no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
 half brightness while the text layer, the HUD included, stays at full brightness: the title `PAUSED` and
 RESUME, RETRY and QUIT. RESUME, BACK and PAUSE resume; RETRY requests the same run again, which passes the PRE-RACE card with a
-new seed; QUIT ends the run and shows TITLE.
+new seed; QUIT ends a running run without a finish (the race's `endable`), which shows RESULT at once, and otherwise
+ends the run and shows TITLE.
 
 Every menu screen uses one menu part: a title, information lines and items, centred in the text grid without
 shortening; the title and any information lines keep one row each, and a menu taller than the 30 rows is a
@@ -134,10 +136,10 @@ row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back
 to PRESS START. The mode line is a carousel on row 28 over rows 27–29 at half brightness: the mode (YELLOW, DARK when
-it offers nothing) between WHITE `◀` and `▶` four columns either side, among ARCADE, FREE PLAY, TIME TRIAL and
-SETTINGS; BACK does nothing. Choosing a mode leads to its screens, in order: ARCADE: SELECT SERIES, SELECT
-CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE, OPTIONS;
-TIME TRIAL: SELECT COURSE, SELECT VEHICLE, LAPS (only on a course with several laps); every mode then SELECT MUSIC
+it offers nothing) between WHITE `◀` and `▶` four columns either side, among ARCADE, FREE PLAY, TIME ATTACK and
+SETTINGS; BACK does nothing. Choosing a mode leads to its screens, in order: ARCADE and TIME ATTACK: SELECT SERIES,
+SELECT CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE,
+OPTIONS; every mode then SELECT MUSIC
 (only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
 last screen shown requests the run (`menu-entry`), which shows
 the PRE-RACE card and then starts. Each screen starts from the current selection, else the player record's latest
@@ -178,11 +180,11 @@ the first track) plays as an audition, so its volume is set by ear.
   `<n> BIKES|CARS` when the class lists several vehicles; on row 28 `BEST <time>` (GREEN), the class's best ARCADE
   record over its vehicles at any goal, counted only while its course and vehicle identities are current (the course
   index's `buildSha256` and each vehicle's `sessionVehicleSha256`), else `--'--"--`. LEFT and RIGHT change the class;
-  choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY and TIME TRIAL) lists course display
+  choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY) lists course display
   names from the course index, grouped by series. Each course is listed once, under the first offered series in
   series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
-- SELECT VEHICLE offers the class's vehicles in ARCADE and every catalog vehicle otherwise, one catalog page per
-  vehicle ([SELECT VEHICLE](#select-vehicle)), drawn in ARCADE over the series image at quarter brightness and
+- SELECT VEHICLE offers the class's vehicles for a class and every catalog vehicle in FREE PLAY, one catalog page per
+  vehicle ([SELECT VEHICLE](#select-vehicle)), drawn for a class over the series image at quarter brightness and
   otherwise on the plain background. LEFT and RIGHT change the vehicle and UP and DOWN its
   color, both wrapping around. Each vehicle shows the color its Session would give the player (one rule with the
   race): the player record's color for the vehicle, else the vehicle's default color; in a series with fixed colors,
@@ -190,18 +192,17 @@ the first track) plays as an audition, so its volume is set by ear.
 - OPTIONS: RIVALS (0 to the smaller of 15 and the rivals the course's grid holds, from the course index; a course
   change lowers a larger count), POOL (ALL, CARS or BIKES; set to the vehicle's form when a vehicle other than the
   current or latest one is chosen), TRAFFIC (OFF, LOW or HIGH) and, on a course with several laps, LAPS (1 to the
-  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. TIME
-  TRIAL has no TRAFFIC choice, and ARCADE takes its class's traffic. Every option starts from the player
+  course's maximum; a course change lowers a larger count); LEFT and RIGHT change the value, and NEXT confirms. ARCADE
+  takes its class's traffic, and TIME ATTACK has none. Every option starts from the player
   record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0, the first pool, OFF and 1, and each
   change is saved there.
-- LAPS: LAPS (1 to the course's maximum, the same `laps` latest choice) and NEXT.
-- SELECT MUSIC shows the series image in ARCADE (else the plain background) with text rows 22–29 at half brightness:
+- SELECT MUSIC shows the series image for a class (else the plain background) with text rows 22–29 at half brightness:
   on row 24 the choice's title (YELLOW) between `◀` and `▶`, on row 26 `TRACK n / N` (WHITE), counting MUSIC OFF. It
-  offers the run's tracks in their selection order, then `MUSIC OFF`: in ARCADE its series' race tracks,
+  offers the run's tracks in their selection order, then `MUSIC OFF`: for a class its series' race tracks,
   otherwise every delivered track. It is shown only when there are two or more choices (one or more tracks); otherwise
   the run takes MUSIC OFF. There is no audition: choosing changes only the name. CONFIRM starts the run with it; the
   player record keeps MUSIC OFF as the latest choice `off`.
-- Music on the selection screens: in ARCADE the series' title track plays, from its start and looped, from SELECT
+- Music on the selection screens: in a series the series' title track plays, from its start and looped, from SELECT
   SERIES (the series under the cursor) through SELECT CLASS, SELECT VEHICLE, SELECT MUSIC and the run's loading, and
   fades out over the black transition into READY; the run's track then starts at READY. Every other menu screen, and
   RESULT, is silent. Leaving a run for a series screen plays the title track from its start again.
@@ -215,8 +216,9 @@ the field, rendering and sound continue and PAUSE stays available; a pause stops
 At RESULT the run finishes: the race stops and the RESULT menu
 is drawn over the stopped frame at half brightness and takes the menu commands. Its title is the outcome in the ornate large font, GOAL in
 SUNSET or GAME OVER in RED; its lines are RANK n/m (ornate large, SUNSET) when two or more competitors are ranked (the POS rule), TIME (race time), RECORD (the record before the run) when
-the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP with NEW in yellow
-when it beat the recorded best lap. The race facts give the rank (by the race's standing) and times; the run's one
+the run was judged at GOAL and one existed, NEW RECORD in yellow when the run beat it or set the first, and, on a circuit, BEST LAP.
+A run without a finish, which QUIT ended, has RESULT (SUNSET) as its title and `LAPS <n>`, its completed laps, instead of
+TIME, and BEST LAP once it completed one. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
@@ -288,9 +290,8 @@ The composition root reads the delivered [course index](content-and-gameplay.md#
 the selection screens, in its order and with its display names.
 
 A run is requested as a typed run request: the mode, where it is driven, the vehicle and the player's color, plus the
-rival count, rival pool, traffic and laps in FREE PLAY and the laps in TIME TRIAL. ARCADE names a series and one of
-its classes, and the class names the course and gives the laps, field and traffic; FREE PLAY and TIME TRIAL name the
-course. No ARCADE setting is looked up from a course. The run's assembly admits the request against the course, its
+rival count, rival pool, traffic and laps in FREE PLAY. ARCADE and TIME ATTACK name a series and one of its classes,
+and the class names the course and gives the laps, field and traffic; FREE PLAY names the course. No ARCADE setting is looked up from a course. The run's assembly admits the request against the course, its
 class and the vehicle catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
@@ -301,26 +302,25 @@ like an assembly.
 
 Session parameters are case-sensitive:
 
-| Parameter | Meaning                                                                                                               |
-| --------- | --------------------------------------------------------------------------------------------------------------------- |
-| `series`  | Series ID; with `class`, names an ARCADE run of that class                                                            |
-| `class`   | Class ID within `series`                                                                                              |
-| `course`  | Lowercase delivered course ID; names a FREE PLAY or TIME TRIAL run on it                                              |
-| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_TRIAL`; default `ARCADE` with a class and `FREE_PLAY` with a course; other values fail |
-| `vehicle` | Exact catalog vehicle ID for FREE PLAY and TIME TRIAL, such as `TESTAROSSA`; absent uses preset                       |
-| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                           |
-| `laps`    | FREE PLAY and TIME TRIAL count parsed with `Number`; positive integer within course limit                             |
-| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail              |
-| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                         |
+| Parameter | Meaning                                                                                                                |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `series`  | Series ID; with `class`, names an ARCADE or TIME ATTACK run of that class                                              |
+| `class`   | Class ID within `series`                                                                                               |
+| `course`  | Lowercase delivered course ID; names a FREE PLAY run on it                                                             |
+| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_ATTACK`; default `ARCADE` with a class and `FREE_PLAY` with a course; other values fail |
+| `vehicle` | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                                       |
+| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                            |
+| `laps`    | FREE PLAY count parsed with `Number`; positive integer within course limit                                             |
+| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail               |
+| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                          |
 
 ARCADE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle, its entries and
-laps and its course, with the checkpoint clock, ignoring individual query overrides. A URL naming a course alone is
-never ARCADE: `mode=ARCADE` with `course` is an error, as are `course` together with `series` or `class`, `series`
-without `class` or the reverse, an unknown class or course, and a mode other than ARCADE with a class. FREE PLAY exposes
-those settings and has no clock; there is no `clock` parameter, so an old `clock` value is other URL data and ignored.
-Invalid vehicle, numeric or course/Session combinations produce an error. TIME TRIAL exposes the vehicle and laps, runs
-alone and has no clock; a `rivals`, `pool` or `traffic` parameter is an error there. Their defaults are the first
-vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
+laps and its course, with the checkpoint clock, ignoring individual query overrides; TIME ATTACK runs the class's first
+vehicle alone on its course. A URL naming a course alone runs neither: `mode=ARCADE` or `mode=TIME_ATTACK` with
+`course` is an error, as are `course` together with `series` or `class`, `series` without `class` or the reverse, an
+unknown class or course, and FREE PLAY with a class. FREE PLAY exposes those settings and has no clock; there is no
+`clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session
+combinations produce an error. FREE PLAY's defaults are the first vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
 fails to load.
 
 ```text
@@ -451,20 +451,19 @@ Session's rules (the clock, the course type) and race facts (two or more competi
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
-| Rows  | Elements                                                                                                                        |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                |
-| 4–5   | Ornate small: LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM     |
-| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                              |
-| 7     | Ornate small: TIME TRIAL with a record, the difference from the record run for 2 s after each gate and lap crossing             |
-| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                      |
-| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO |
-| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it           |
-| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39           |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                      |
-| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                 |
-| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                         |
-| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                |
+| Rows  | Elements                                                                                                                                                |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                        |
+| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM |
+| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                      |
+| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                                              |
+| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                         |
+| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                   |
+| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                   |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                              |
+| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                         |
+| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                 |
+| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                                        |
 
 Rows 1–2 hold each label with its value beside it: TIME in columns 1–4 with the seconds right-aligned to column 8,
 race time from column 11, POS from column 21 with its value from column 25, and STAGE from column 31 with its number
@@ -561,7 +560,9 @@ through the record.
 `records` holds `timeTrial` and `arcade`, each an object of records by key. Keys are JSON arrays made in one place:
 a TIME TRIAL key is `[course ID, route, laps, vehicle ID]`, the route being the Link IDs the run took in canonical
 order (empty on a circuit), as reference runs name routes; an ARCADE key is `[series ID, class ID, goal, vehicle ID]`,
-the goal being the FINISH gate the run reached. JSON array keys cannot collide however IDs are spelled.
+the goal being the FINISH gate the run reached. JSON array keys cannot collide however IDs are spelled. No run records
+into `timeTrial` since TIME TRIAL was removed; its records are kept as loaded until the TIME ATTACK records replace them
+([NEXT](NEXT.md#gs-3b--time-attack-records)).
 
 | Record     | Value                                                                                                                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -574,17 +575,13 @@ the identities time budgets carry. The player record publishes its records read-
 splits, loaded or set at GOAL alike.
 
 [`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records, from
-its mode's records (ARCADE's in its class): it judges a run once, when its product Session first reaches GOAL; RESULT
-and saving use that one judgement. GAME OVER, QUIT, RETRY, FREE PLAY and a DEV-tuned rebuilt Session
-record nothing; a run requested by URL records as one requested from the menus. The HUD compares with the records as
-they stood before the run: RECORD at READY needs the record's key decided before driving (a TIME TRIAL on a course
-with one route, an ARCADE class whose course has one FINISH), and TIME TRIAL crossing differences start once the route is
-decided, each against the record run's crossing of the same index. The judgement and the HUD's record belong to the
-Session they were made for: a DEV-tuned Session shows no record, on the HUD or on RESULT. A stored record whose identities differ
-from the run's counts as none and is replaced. TIME TRIAL records against the route the race reports
-(`routeLinks`) and records nothing while it is undecided: a faster time replaces the time and splits, and a faster lap
-replaces the best lap alone. ARCADE records against the goal reached: a faster time replaces the record. An equal
-time replaces nothing.
+ARCADE's records in its class: it judges a run once, when its product Session first reaches GOAL; RESULT and saving use
+that one judgement. GAME OVER, QUIT, RETRY, TIME ATTACK, FREE PLAY and a DEV-tuned rebuilt Session record nothing; a
+run requested by URL records as one requested from the menus. The HUD compares with the records as they stood before
+the run: RECORD at READY needs the record's key decided before driving (an ARCADE class whose course has one FINISH).
+The judgement and the HUD's record belong to the Session they were made for: a DEV-tuned Session shows no record, on
+the HUD or on RESULT. A stored record whose identities differ from the run's counts as none and is replaced. ARCADE
+records against the goal reached: a faster time replaces the record. An equal time replaces nothing.
 
 Loading admits version 5 with exactly these keys and value types; version 4 (no `steering`) and version 3 (no `steering`
 or `cameras`), whose settings and records carry over; version 2 (ARCADE records keyed by course), whose settings and TIME TRIAL records carry over and whose ARCADE

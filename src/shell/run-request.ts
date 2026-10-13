@@ -9,20 +9,23 @@ import type { PlayerRecord } from './player-record.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 
 /**
- * A requested run: where it is driven, its Session request, which the run's assembly admits, and its track. ARCADE names
- * a series and one of its classes, and the class names the course; FREE PLAY and TIME TRIAL name the course. The track,
- * like the color, is neither a Session rule nor a record condition; null is MUSIC OFF, a race without music.
+ * A requested run: where it is driven, its Session request, which the run's assembly admits, and its track. ARCADE and
+ * TIME ATTACK name a series and one of its classes, and the class names the course; FREE PLAY names the course. The
+ * track, like the color, is neither a Session rule nor a record condition; null is MUSIC OFF, a race without music.
  */
 export type RunRequest = SessionRequest &
   (
-    | { readonly mode: 'ARCADE'; readonly seriesId: string; readonly classId: string }
-    | { readonly mode: Exclude<SessionRequest['mode'], 'ARCADE'>; readonly courseId: string }
+    | { readonly mode: ClassMode; readonly seriesId: string; readonly classId: string }
+    | { readonly mode: 'FREE_PLAY'; readonly courseId: string }
   ) & { readonly track: string | null };
+
+/** The modes that run a class of a series. */
+export type ClassMode = Exclude<SessionRequest['mode'], 'FREE_PLAY'>;
 
 /** The latest SELECT MUSIC choice MUSIC OFF, as the player record keeps it among its latest selections. */
 export const MUSIC_OFF = 'off';
 
-/** The tracks a run offers besides MUSIC OFF: its ARCADE series' race tracks, else every delivered track. */
+/** The tracks a run offers besides MUSIC OFF: its series' race tracks, else (FREE PLAY) every delivered track. */
 export function offeredTracks(series: CompiledSeries | null, music: MusicCatalog): readonly MusicTrack[] {
   return series ? series.music.race : music;
 }
@@ -41,7 +44,7 @@ export function latestTrack(player: PlayerRecord, offered: readonly MusicTrack[]
 export const MODE_NAMES: Readonly<Record<RunRequest['mode'], string>> = Object.freeze({
   ARCADE: 'ARCADE',
   FREE_PLAY: 'FREE PLAY',
-  TIME_TRIAL: 'TIME TRIAL',
+  TIME_ATTACK: 'TIME ATTACK',
 });
 
 /** The player record's color for `vehicle` when its sprite set has it, else null. */
@@ -51,13 +54,12 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
 }
 
 /**
- * The run a URL names, or null when it names none. `series` and `class` name an ARCADE run of that class; `course`
- * names a FREE PLAY or TIME TRIAL run on that course. A URL naming both, a class without its series (or the reverse),
+ * The run a URL names, or null when it names none. `series` and `class` name an ARCADE or TIME ATTACK run of that
+ * class; `course` names a FREE PLAY run on that course. A URL naming both, a class without its series (or the reverse),
  * or a mode its place does not offer is an error. Absent parameters take the defaults: ARCADE for a class, FREE PLAY on
- * a course; the class's first vehicle in ARCADE, else the parameter's or the first catalog vehicle; one lap, no rivals,
- * the pool of the player's vehicle form and no traffic; the player record's color and latest track. A `rivals`, `pool`
- * or `traffic` parameter is an error in TIME TRIAL. Every value is admitted with the run
- * (`compileSessionConfiguration`), like a request from the selection screens.
+ * a course; the class's first vehicle for a class, else the parameter's or the first catalog vehicle; one lap, no
+ * rivals, the pool of the player's vehicle form and no traffic; the player record's color and latest track. Every value
+ * is admitted with the run (`compileSessionConfiguration`), like a request from the selection screens.
  */
 export function readUrlRunRequest(
   params: URLSearchParams,
@@ -77,11 +79,9 @@ export function readUrlRunRequest(
   const arcade = seriesId !== null ? series.seriesClass(seriesId, classId!) : null;
   if (seriesId !== null && !arcade) throw new RangeError(`Unknown class ${classId} of series ${seriesId}`);
   const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
-  if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_TRIAL') throw new RangeError('Unknown Session mode');
-  if ((mode === 'ARCADE') !== (arcade !== null))
-    throw new RangeError(arcade ? `A class runs ARCADE alone` : 'ARCADE names a series and a class');
-  if (mode === 'TIME_TRIAL' && (params.has('rivals') || params.has('pool') || params.has('traffic')))
-    throw new RangeError('TIME TRIAL has no rivals and no traffic');
+  if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_ATTACK') throw new RangeError('Unknown Session mode');
+  if ((mode === 'FREE_PLAY') !== (arcade === null))
+    throw new RangeError(arcade ? 'A class runs ARCADE or TIME ATTACK' : `${mode} names a series and a class`);
   const vehicleId = arcade ? arcade.vehicles[0]! : (params.get('vehicle') ?? vehicles[0]!.compiledVehicle.id);
   // An unknown vehicle has no defaults of its own; the run's admission rejects it.
   const vehicle = vehicles.find((v) => v.compiledVehicle.id === vehicleId);
@@ -90,14 +90,12 @@ export function readUrlRunRequest(
     color: vehicle ? recordedColor(player, vehicle) : null,
     track: latestTrack(player, offeredTracks(arcade?.series ?? null, music)),
   };
-  if (arcade) return Object.freeze({ ...choice, mode: 'ARCADE', seriesId: arcade.series.id, classId: arcade.id });
-  const lapCount = Number(params.get('laps') ?? 1);
-  if (mode === 'TIME_TRIAL') return Object.freeze({ ...choice, mode, courseId: courseId!, lapCount });
+  if (mode !== 'FREE_PLAY') return Object.freeze({ ...choice, mode, seriesId: arcade!.series.id, classId: arcade!.id });
   return Object.freeze({
     ...choice,
-    mode: 'FREE_PLAY',
+    mode,
     courseId: courseId!,
-    lapCount,
+    lapCount: Number(params.get('laps') ?? 1),
     rivalCount: Number(params.get('rivals') ?? 0),
     rivalPool: params.get('pool') ?? (vehicle ? formPool(freePlay, vehicle) : freePlay.rivalPools[0]!).id,
     traffic: params.get('traffic') ?? NO_TRAFFIC,

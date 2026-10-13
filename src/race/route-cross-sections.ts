@@ -33,8 +33,12 @@ export function routeCrossingFraction(
   return l >= line.left && l <= line.right ? u : null;
 }
 
-/** One shared index over the append-only Route. Stable route stations survive list replacement. */
-export function createRouteCrossSections(route: CourseRoute, course: CompiledCourse, lapCount: number) {
+/**
+ * One shared index over the append-only Route. Stable route stations survive list replacement. A circuit's race lines
+ * run to the finish of lap `lapCount`, and without end when it is null: a run without a finish, whose finish lines
+ * count laps and never finish it.
+ */
+export function createRouteCrossSections(route: CourseRoute, course: CompiledCourse, lapCount: number | null) {
   const rules = new Map(course.gates.intervals.map((interval) => [interval.section, interval]));
   let indexed: readonly RouteOccurrence[] = [];
   let race: readonly RouteRaceLine[] = [];
@@ -76,7 +80,7 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
     for (const occurrence of indexed) {
       const interval = rules.get(occurrence.section)!;
       const lap = occurrenceLap(occurrence);
-      if (lap <= lapCount) {
+      if (lapCount === null || lap <= lapCount) {
         for (const landmark of interval.checkpoints)
           nextRace.push(
             Object.freeze({ ...line(occurrence, landmark.at.s), landmark, kind: 'checkpoint', lap, finish: false }),

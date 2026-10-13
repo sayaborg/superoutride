@@ -8,8 +8,8 @@ type Layout = ReadonlyMap<string, Uint8Array<ArrayBuffer>>;
 /**
  * Run the game on this compile: a new tab of the game page with `dev=1` and `workbench=<commit>`, which imports this
  * build's modules and takes the delivery laid out from the compile's products when it opened, through the game's own
- * manifest and digest checks. Later edits do not reach an open game. ARCADE runs a class (`<series>/<class>`), the
- * other modes a course. While measurements are stale, the game opens in FREE PLAY without rivals, traffic or a time
+ * manifest and digest checks. Later edits do not reach an open game. ARCADE and TIME ATTACK run a class
+ * (`<series>/<class>`), FREE PLAY a course. While measurements are stale, the game opens in FREE PLAY without rivals, traffic or a time
  * limit, which need none.
  */
 export const runModule: WorkbenchModule = {
@@ -20,7 +20,7 @@ export const runModule: WorkbenchModule = {
     const seriesClass = make('select');
     const vehicle = make('select');
     const mode = make('select');
-    for (const name of ['ARCADE', 'FREE_PLAY', 'TIME_TRIAL']) mode.append(make('option', name, { value: name }));
+    for (const name of ['ARCADE', 'FREE_PLAY', 'TIME_ATTACK']) mode.append(make('option', name, { value: name }));
     const run = make('button', 'Run', { type: 'button' });
     const note = make('p', '', { role: 'status' });
     const label = (text: string, control: HTMLElement) => {
@@ -104,11 +104,11 @@ export const runModule: WorkbenchModule = {
       if (!current) return;
       const chosenMode = current.measured ? mode.value : 'FREE_PLAY';
       const [seriesId = '', classId = ''] = seriesClass.value.split('/');
-      // ARCADE names a class, whose first vehicle it drives; the other modes name a course and a vehicle.
+      // ARCADE and TIME ATTACK name a class, whose first vehicle they drive; FREE PLAY names a course and a vehicle.
       const place: Record<string, string> =
-        chosenMode === 'ARCADE'
-          ? { series: seriesId, class: classId }
-          : { course: course.value, vehicle: vehicle.value, mode: chosenMode };
+        chosenMode === 'FREE_PLAY'
+          ? { course: course.value, vehicle: vehicle.value, mode: chosenMode }
+          : { series: seriesId, class: classId, mode: chosenMode };
       const parameters = new URLSearchParams({ dev: '1', workbench: context.commit, ...place });
       // The window opens within the click, so the browser allows it; the delivery is laid out meanwhile.
       const game = open(new URL(`index.html?${parameters}`, siteRoot()));

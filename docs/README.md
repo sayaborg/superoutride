@@ -30,7 +30,7 @@ explicitly scheduled in [NEXT](NEXT.md) are replaced with their owning concepts.
 
 | Term                  | Meaning                                                                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mode`                | Session rules selection only: ARCADE, FREE PLAY or TIME TRIAL.                                                                                                           |
+| `mode`                | Session rules selection only: ARCADE, FREE PLAY or TIME ATTACK.                                                                                                          |
 | `Series`              | A product grouping of classes; it holds no rule values. The one owner of ARCADE settings through its classes.                                                            |
 | `Class`               | One ARCADE race of a series: a course, laps, vehicle candidates, rivals, traffic, time margin and color rule; not a TypeScript class.                                    |
 | `Stage`               | The route interval between consecutive race gates; a rule and display term, never a course `Section`.                                                                    |

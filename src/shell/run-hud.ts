@@ -40,8 +40,8 @@ export interface HudFacts {
     readonly steeringPicture: HudPicture;
   };
   /**
-   * The stored record for the selection, from the records before the run, once its route (TIME TRIAL) or goal (ARCADE)
-   * is decided; `splitsMs` are a TIME TRIAL record run's gate and lap crossings. Null without one.
+   * The stored record for the selection, from the records before the run, on a course with one goal (ARCADE). Null
+   * without one.
    */
   readonly record: ComparedRecord | null;
 }
@@ -288,7 +288,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: ({ race }) => race.courseType === 'CIRCUIT',
     write({ race }, text) {
       const { player, clock, lap, lapCount } = race;
-      write(text, 'lapLabel', `LAP ${lap}/${lapCount}`, small('SUNSET'));
+      write(text, 'lapLabel', lapCount === null ? `LAP ${lap}` : `LAP ${lap}/${lapCount}`, small('SUNSET'));
       const lapStart = player.lapStartSeconds ?? 0;
       const held = player.lastLapSeconds !== null && clock.elapsedSeconds - lapStart < HUD_DURATIONS.lapHold;
       write(

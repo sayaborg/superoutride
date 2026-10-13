@@ -19,10 +19,11 @@ interface SessionChoice {
 
 /**
  * A requested Session: what the player chose, and nothing else. ARCADE takes its laps, field and traffic from its
- * class; FREE PLAY chooses rivals, their pool, traffic and laps; TIME TRIAL runs alone and chooses laps.
+ * class; TIME ATTACK runs its class's course alone; FREE PLAY chooses rivals, their pool, traffic and laps.
  */
 export type SessionRequest =
   | (SessionChoice & { readonly mode: 'ARCADE' })
+  | (SessionChoice & { readonly mode: 'TIME_ATTACK' })
   | (SessionChoice & {
       readonly mode: 'FREE_PLAY';
       readonly lapCount: number;
@@ -31,37 +32,38 @@ export type SessionRequest =
       readonly rivalPool: string;
       /** OFF, or a TRAFFIC level ID of the FREE PLAY rules. */
       readonly traffic: string;
-    })
-  | (SessionChoice & { readonly mode: 'TIME_TRIAL'; readonly lapCount: number });
+    });
 
 /** A Session's admitted rules: what it runs, before its seed is drawn. */
 export interface SessionConfiguration extends SessionChoice {
-  /** TIME TRIAL runs alone: no rivals and no clock. */
+  /** TIME ATTACK runs alone: no rivals, no traffic and no clock. */
   readonly mode: SessionRequest['mode'];
   /** Opponents only; the player is not included. */
   readonly rivalCount: number;
-  /** The FREE PLAY rival pool; null in ARCADE and TIME TRIAL. */
+  /** The FREE PLAY rival pool; null in ARCADE and TIME ATTACK. */
   readonly rivalPool: RivalPoolRule | null;
-  readonly lapCount: number;
-  /** The checkpoint clock; ARCADE only, FREE PLAY and TIME TRIAL have none. */
+  /** The laps to the finish; null for a run without a finish, TIME ATTACK on a CIRCUIT, which the player ends. */
+  readonly lapCount: number | null;
+  /** The checkpoint clock; ARCADE only, FREE PLAY and TIME ATTACK have none. */
   readonly timeLimit: boolean;
   /** m/s along the grid slot's road tangent for every competitor at spawn; finite, negative allowed. The product uses 0. */
   readonly initialSpeed: number;
-  /** Traffic, or null for none; TIME TRIAL has none. ARCADE takes its class's. */
+  /** Traffic, or null for none; TIME ATTACK has none. ARCADE takes its class's. */
   readonly traffic: TrafficSettings | null;
 }
 
 /**
  * Admit a requested Session against its course, its class (`arcade`, null on an untimed course), the vehicle
  * catalog and FREE PLAY's rules, and derive its rules: the one admission and derivation of every request. The vehicle must be a
- * catalog vehicle and the color one of its sprite set. ARCADE needs a class and one of the class's vehicles
- * and takes the class's field, laps and traffic with the checkpoint clock. FREE PLAY and TIME TRIAL take up to the
- * course's `maxLaps`; FREE PLAY's rivals fit the grid, its pool and traffic level are its rules', and its traffic
+ * catalog vehicle and the color one of its sprite set. ARCADE and TIME ATTACK need a class and one of the class's
+ * vehicles. ARCADE takes the class's field, laps and traffic with the checkpoint clock; TIME ATTACK runs alone, without
+ * traffic or clock, the class's laps to a finish on a LINEAR or BRANCH course and without a finish on a CIRCUIT.
+ * FREE PLAY takes up to the course's `maxLaps`; its rivals fit the grid, its pool and traffic level are its rules', and its traffic
  * draws from every catalog vehicle at their traffic speed. `initialSpeed` is the start speed (the product's is 0).
  */
 export function compileSessionConfiguration(
   request: SessionRequest,
-  course: Pick<CompiledCourse, 'rules' | 'gates'>,
+  course: Pick<CompiledCourse, 'type' | 'rules' | 'gates'>,
   arcade: SeriesClass | null,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   initialSpeed = 0,
@@ -74,47 +76,54 @@ export function compileSessionConfiguration(
   if (!Number.isFinite(initialSpeed)) throw new RangeError('Session initialSpeed must be finite');
   const choice = { vehicleId: request.vehicleId, color: request.color, initialSpeed };
   let rules: Pick<SessionConfiguration, 'mode' | 'rivalCount' | 'rivalPool' | 'lapCount' | 'timeLimit' | 'traffic'>;
-  if (request.mode === 'ARCADE') {
-    if (!arcade) throw new RangeError('An untimed course has no ARCADE Session');
-    if (!arcade.vehicles.includes(request.vehicleId)) throw new RangeError('ARCADE requires a vehicle of its class');
-    rules = {
-      mode: 'ARCADE',
-      rivalCount: arcade.entries.length - 1,
-      rivalPool: null,
-      lapCount: arcade.laps,
-      timeLimit: true,
-      traffic: arcade.traffic,
-    };
+  if (request.mode === 'ARCADE' || request.mode === 'TIME_ATTACK') {
+    if (!arcade) throw new RangeError('A course no class runs has no ARCADE or TIME ATTACK Session');
+    if (!arcade.vehicles.includes(request.vehicleId))
+      throw new RangeError('A class Session requires a vehicle of its class');
+    rules =
+      request.mode === 'ARCADE'
+        ? {
+            mode: 'ARCADE',
+            rivalCount: arcade.entries.length - 1,
+            rivalPool: null,
+            lapCount: arcade.laps,
+            timeLimit: true,
+            traffic: arcade.traffic,
+          }
+        : {
+            mode: 'TIME_ATTACK',
+            rivalCount: 0,
+            rivalPool: null,
+            lapCount: course.type === 'CIRCUIT' ? null : arcade.laps,
+            timeLimit: false,
+            traffic: null,
+          };
   } else {
     const { lapCount } = request;
     if (!Number.isInteger(lapCount) || lapCount < 1 || lapCount > course.rules.maxLaps)
       throw new RangeError(`Session lapCount must be an integer within 1..${course.rules.maxLaps}`);
-    if (request.mode === 'TIME_TRIAL')
-      rules = { mode: 'TIME_TRIAL', rivalCount: 0, rivalPool: null, lapCount, timeLimit: false, traffic: null };
-    else {
-      const { rivalCount, rivalPool, traffic } = request;
-      if (!Number.isInteger(rivalCount) || rivalCount < 0 || rivalCount > SESSION_RULE_LIMITS.rivals)
-        throw new RangeError(`Session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
-      const pool = freePlay.rivalPools.find((candidate) => candidate.id === rivalPool);
-      if (!pool) throw new RangeError('Unknown rival pool');
-      const level = freePlay.traffic.find((candidate) => candidate.id === traffic);
-      if (!level && traffic !== NO_TRAFFIC) throw new RangeError('Unknown traffic level');
-      rules = {
-        mode: 'FREE_PLAY',
-        rivalCount,
-        rivalPool: pool,
-        lapCount,
-        timeLimit: false,
-        // FREE PLAY traffic is its level's, drawn from every vehicle.
-        traffic: level
-          ? Object.freeze({
-              density: level.density,
-              vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
-              speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,
-            })
-          : null,
-      };
-    }
+    const { rivalCount, rivalPool, traffic } = request;
+    if (!Number.isInteger(rivalCount) || rivalCount < 0 || rivalCount > SESSION_RULE_LIMITS.rivals)
+      throw new RangeError(`Session rivalCount must be an integer within 0..${SESSION_RULE_LIMITS.rivals}`);
+    const pool = freePlay.rivalPools.find((candidate) => candidate.id === rivalPool);
+    if (!pool) throw new RangeError('Unknown rival pool');
+    const level = freePlay.traffic.find((candidate) => candidate.id === traffic);
+    if (!level && traffic !== NO_TRAFFIC) throw new RangeError('Unknown traffic level');
+    rules = {
+      mode: 'FREE_PLAY',
+      rivalCount,
+      rivalPool: pool,
+      lapCount,
+      timeLimit: false,
+      // FREE PLAY traffic is its level's, drawn from every vehicle.
+      traffic: level
+        ? Object.freeze({
+            density: level.density,
+            vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
+            speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,
+          })
+        : null,
+    };
   }
   // The grid holds the rivals that start from it: in ARCADE the entries with a slot, not those appearing ahead, on the
   // grid of the class's field; FREE PLAY's rivals, drawn later, on either grid.

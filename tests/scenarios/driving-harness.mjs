@@ -199,27 +199,25 @@ function pavementBounds(scene, vehicle) {
  * the series, initial conditions and input policy differ from the browser.
  */
 export async function runScenario({ course }, scenario) {
-  // ARCADE takes its class of the test series, or of the delivered series `scenario.series`.
-  const arcade = scenario.mode === 'ARCADE' ? scenarioClass(course, scenario) : null;
+  // ARCADE and TIME ATTACK take their class of the test series, or of the delivered series `scenario.series`.
+  const arcade = scenario.mode === 'ARCADE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
   const { entry } = playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
   const settings = createDisplaySettings();
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
-  // ARCADE takes its class's settings; TIME TRIAL and FREE PLAY take the scenario's.
+  // ARCADE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
-    mode === 'ARCADE'
+    mode !== 'FREE_PLAY'
       ? { mode, vehicleId: entry.compiledVehicle.id, color: null }
-      : mode === 'TIME_TRIAL'
-        ? { mode, vehicleId: entry.compiledVehicle.id, color: null, lapCount: scenario.laps ?? 1 }
-        : {
-            mode,
-            vehicleId: entry.compiledVehicle.id,
-            color: null,
-            lapCount: scenario.laps ?? 1,
-            rivalCount: scenario.rivals ?? 0,
-            rivalPool: formPool(freePlay, entry).id,
-            traffic: 'OFF',
-          };
+      : {
+          mode,
+          vehicleId: entry.compiledVehicle.id,
+          color: null,
+          lapCount: scenario.laps ?? 1,
+          rivalCount: scenario.rivals ?? 0,
+          rivalPool: formPool(freePlay, entry).id,
+          traffic: 'OFF',
+        };
   const initialSpeed =
     scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
   const prepared = await prepareSession(content, catalog, course, arcade, request, initialSpeed);
@@ -333,7 +331,7 @@ export async function runScenario({ course }, scenario) {
   const accepted = new Set();
   const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
-  // Session-rule evidence (ARCADE and TIME TRIAL scenarios that run to their ending): the ending, what holds after it,
+  // Session-rule evidence (ARCADE and TIME ATTACK scenarios that run to their ending): the ending, what holds after it,
   // appearances and departures, and the gate crossings of other competitors. A bounded scenario drives a stretch only.
   const rules = scenario.mode && !scenario.bounded ? { appeared: [], departed: [], crossings: [] } : null;
   // Traffic evidence: each traffic vehicle's appearance and departure ticks, and the most present at once.
@@ -378,6 +376,9 @@ export async function runScenario({ course }, scenario) {
         : null;
     }
     const step = race.advance(input);
+    // A run without a finish ends when the player ends it: here once it has completed its laps.
+    if (scenario.endAfterLaps && race.player.progress.acceptedFinishCount >= scenario.endAfterLaps && race.endable)
+      race.end();
     if (step.recovered) {
       resetCameraRig(rig);
       assert.ok(
@@ -502,7 +503,7 @@ export async function runScenario({ course }, scenario) {
       evidence.leftRoad ||= vehicle.course.l < bounds.left;
       evidence.rightRoad ||= vehicle.course.l > bounds.right;
     }
-    const ended = race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER';
+    const ended = ['GOAL', 'GAME_OVER', 'ENDED'].includes(race.outcome.status);
     if (rules) {
       for (const event of race.events)
         if (event.competitorId !== race.player.id)
@@ -690,14 +691,24 @@ export async function runScenario({ course }, scenario) {
       assert.equal(race.outcome.cause, expect.cause ?? null);
     }
     assert.ok(ending, `${scenario.name}: never ended`);
-    if (scenario.mode === 'TIME_TRIAL') {
-      assert.equal(race.rivals.length, 0, 'TIME TRIAL has rivals');
+    if (scenario.mode === 'TIME_ATTACK') {
+      assert.equal(race.rivals.length, 0, 'TIME ATTACK has rivals');
+      assert.equal(race.traffic.length, 0, 'TIME ATTACK has traffic');
       assert.equal(
         slot,
         courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1),
-        'TIME TRIAL does not start from the last grid slot',
+        'TIME ATTACK does not start from the last grid slot',
       );
-      assert.equal(race.clock.deadlineSeconds, null, 'TIME TRIAL has a clock');
+      assert.equal(race.clock.deadlineSeconds, null, 'TIME ATTACK has a clock');
+    }
+    // A run without a finish laps on: its laps' finish lines never finished it, and its best lap is its completed laps'.
+    if (scenario.endAfterLaps) {
+      assert.equal(race.lapCount, null, 'a run without a finish has a lap count');
+      assert.equal(race.player.finishGateId, null, 'a run without a finish finished');
+      assert.equal(race.player.progress.acceptedFinishCount, scenario.endAfterLaps);
+      assert.equal(race.lap, scenario.endAfterLaps + 1);
+      assert.ok(race.player.bestLapSeconds !== null && race.player.bestLapSeconds <= race.player.lastLapSeconds);
+      evidence.bestLapSeconds = race.player.bestLapSeconds;
     }
     if (expect.position) assert.equal(ending.position, expect.position);
     // An ARCADE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times

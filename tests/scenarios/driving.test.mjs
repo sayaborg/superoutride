@@ -8,13 +8,16 @@ scenarioTests({
     // Stopped a quarter turn toward the left course limit with its front contact past the limit, the player keeps
     // both contacts on ground and does not recover.
     { name: 'stopped broadside against a course limit', policy: 'broadside', ahead: 60, reach: 0.6, seconds: 4 },
-    // TSUKUBA's one lap is the quickest course to finish.
+    // A TIME ATTACK on a circuit has no finish: the player laps alone from the last slot until ending the run, here
+    // after one lap of TSUKUBA, the quickest lap to drive.
     {
-      name: 'TIME TRIAL finish from the last slot',
-      mode: 'TIME_TRIAL',
+      name: 'TIME ATTACK lap without a finish from the last slot',
+      mode: 'TIME_ATTACK',
+      class: 'tsukuba',
       policy: 'finish',
+      endAfterLaps: 1,
       seconds: 120,
-      expect: { outcome: 'GOAL', position: 'P1/1' },
+      expect: { outcome: 'ENDED', position: 'P1/1' },
     },
   ],
   // A BRANCH course: the rival, driving from the grid while the player waits there, takes its intended exit's racing line

@@ -11,7 +11,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
-import type { FreePlayRules } from '../../src/content/free-play-rules.js';
+import { NO_TRAFFIC, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import {
   compilePlannedDriver,
   createPlannedDriverWorkspace,
@@ -54,9 +54,18 @@ export function runCourseReference(
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
     scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
-  // A reference run is a TIME TRIAL Session: alone from the last grid slot, without a clock; the seed is fixed.
+  // A reference run is a FREE PLAY Session alone: no rivals, no traffic and no clock, from the last grid slot; the seed
+  // is fixed.
   const configuration = compileSessionConfiguration(
-    { mode: 'TIME_TRIAL', vehicleId: entry.compiledVehicle.id, color: null, lapCount },
+    {
+      mode: 'FREE_PLAY',
+      vehicleId: entry.compiledVehicle.id,
+      color: null,
+      lapCount,
+      rivalCount: 0,
+      rivalPool: catalog.freePlay.rivalPools[0]!.id,
+      traffic: NO_TRAFFIC,
+    },
     course,
     null,
     catalog,

@@ -28,27 +28,28 @@ const DARK_GRAY = (6 << 10) | (6 << 5) | 6;
 
 /** What the card shows from the run's request, before anything loads. */
 export interface PreRaceCard {
-  /** In ARCADE the series image, darkened from row 17; otherwise none, on black. */
+  /** For a class its series image, darkened from row 17; otherwise none, on black. */
   readonly background: TilePicture | null;
-  /** The class title in ARCADE, else the mode's name. */
+  /** The class title for a class, else the mode's name. */
   readonly title: string;
   readonly courseName: string;
-  /** The laps of a circuit's run; null on other courses. */
+  /** The laps of a circuit's run; null on other courses and for a run without a finish. */
   readonly laps: number | null;
 }
 
 /**
- * The card a request shows: in ARCADE its series image and class title, else the mode's name on black; its course's
- * display name from the course index, and its laps on a circuit. An unknown class or course is a `RangeError`.
+ * The card a request shows: for a class its series image and class title, else the mode's name on black; its course's
+ * display name from the course index, and its laps on a circuit (TIME ATTACK has none there). An unknown class or
+ * course is a `RangeError`.
  */
 export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, courses: CourseIndex): PreRaceCard {
   let arcade = null,
     courseId: string,
-    laps: number;
-  if (request.mode === 'ARCADE') {
+    laps: number | null;
+  if (request.mode !== 'FREE_PLAY') {
     arcade = series.seriesClass(request.seriesId, request.classId);
     if (!arcade) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    [courseId, laps] = [arcade.course, arcade.laps];
+    [courseId, laps] = [arcade.course, request.mode === 'ARCADE' ? arcade.laps : null];
   } else [courseId, laps] = [request.courseId, request.lapCount];
   const course = courses.find((c) => c.id === courseId);
   if (!course) throw new RangeError(`Unknown course ${courseId}`);
