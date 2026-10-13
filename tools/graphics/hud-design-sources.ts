@@ -56,13 +56,6 @@ function readCharacters<T>(
   );
 }
 
-/**
- * A source palette: 16 colors with blue in the high five bits and red in the low five, as the sources' previews show
- * them, saved as the text tiles' RGB555 with red high.
- */
-const readSourcePalette = (value: unknown, path: string) =>
-  readIndexedPalette(value, path).map((color) => ((color & 0x1f) << 10) | (color & 0x3e0) | (color >> 10));
-
 /** A record of source palettes with exactly these names. */
 function readSourcePalettes(
   value: unknown,
@@ -71,7 +64,7 @@ function readSourcePalettes(
 ): Readonly<Record<string, readonly number[]>> {
   const record = readRecord(value, path, names);
   return Object.freeze(
-    Object.fromEntries(names.map((name) => [name, readSourcePalette(record[name], `${path}/${name}`)])),
+    Object.fromEntries(names.map((name) => [name, readIndexedPalette(record[name], `${path}/${name}`)])),
   );
 }
 
@@ -248,7 +241,7 @@ export async function readArrow(store: ContentStore): Promise<ArrowSource> {
       return Object.freeze({
         left: side('left'),
         right: side('right'),
-        palette: readSourcePalette(document.palette, '/palette'),
+        palette: readIndexedPalette(document.palette, '/palette'),
       });
     }),
   );

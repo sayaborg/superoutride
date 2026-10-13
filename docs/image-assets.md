@@ -604,9 +604,8 @@ The fonts' and HUD parts' drawn pixels are saved as given under `content/hud-des
 production-only data, which the build does not deliver; the [HUD tiles command](development.md#hud-tiles-command)
 admits them and writes them into the [text tiles](#text-tiles) in place. Each JSON source names its characters or
 parts and holds 64 palette slots per 8×8 tile, row by row; a character list must name the text tiles' characters in
-their order, and a slot outside a source's slots does not admit. A source palette holds 16 colors with blue in the high five bits
-and red in the low five, as its previews show it; the command saves it as RGB555 with red high. The PNG files beside
-them are previews, which nothing reads.
+their order, and a slot outside a source's slots does not admit. A source palette holds 16 RGB555 colors, as the text tiles save them. The
+PNG files beside them are previews, which nothing reads.
 
 | Source                      | Content                                                                                                                       |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
