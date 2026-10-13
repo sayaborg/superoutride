@@ -4,6 +4,7 @@ import {
   HUD_PICTURE_TILES,
   HUD_TILES,
   hudPictureFrame,
+  LAMP_TILES,
   TEXT_PALETTES,
   type HudPicture,
 } from '../image/text-tiles.js';
@@ -108,12 +109,12 @@ const write = (text: TextLayer, place: Place, line: string, palette: number = TE
 /** Right-aligned: the line's last character at the place's column. */
 const writeRight = (text: TextLayer, place: Place, line: string, palette: number = TEXT_PALETTES.WHITE) =>
   text.write(columnOf(place, 1) - line.length + 1, HUD_LAYOUT[place][1], line, palette);
-/** A 2×2 signal lamp, lit or unlit, in a palette. */
-const writeLamp = (text: TextLayer, place: Place, lit: boolean, palette: number) => {
-  const column = columnOf(place, 2),
+/** A 2×2 signal lamp, its palette giving its state. */
+const writeLamp = (text: TextLayer, place: Place, palette: number) => {
+  const column = columnOf(place, LAMP_TILES),
     row = HUD_LAYOUT[place][1];
   (['TL', 'TR', 'BL', 'BR'] as const).forEach((part, i) =>
-    text.put(column + (i & 1), row + (i >> 1), HUD_TILES[`LAMP_${lit ? 'ON' : 'OFF'}_${part}`]!, palette),
+    text.put(column + (i & 1), row + (i >> 1), HUD_TILES[`LAMP_${part}`]!, palette),
   );
 };
 /** A meter is 6 cells of 8 pixels. */
@@ -182,7 +183,7 @@ const writeArrow = (text: TextLayer, place: Place, side: 'LEFT' | 'RIGHT') => {
       column + (k % ARROW_TILES),
       row + Math.floor(k / ARROW_TILES),
       HUD_TILES[`ARROW_${side}_${k}`]!,
-      TEXT_PALETTES.YELLOW,
+      TEXT_PALETTES.ARROW,
     );
 };
 
@@ -400,8 +401,11 @@ const HUD_ELEMENTS: readonly HudElement[] = [
       const go = !beforeGo(race),
         lit = race.countdown.signalLamps;
       (['lamp1', 'lamp2', 'lamp3'] as const).forEach((place, i) => {
-        const on = go || i < lit;
-        writeLamp(text, place, on, on ? (go ? TEXT_PALETTES.GREEN : TEXT_PALETTES.RED) : TEXT_PALETTES.BAR);
+        writeLamp(
+          text,
+          place,
+          go ? TEXT_PALETTES.LAMP_GREEN : i < lit ? TEXT_PALETTES.LAMP_RED : TEXT_PALETTES.LAMP_OFF,
+        );
       });
     },
   },

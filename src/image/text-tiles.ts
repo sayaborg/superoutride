@@ -49,18 +49,18 @@ export type OrnateStyle = (typeof ORNATE_STYLES)[number];
 const named = <const Names extends readonly string[]>(names: Names) =>
   Object.freeze(Object.fromEntries(names.map((name, i) => [name, i]))) as { readonly [K in Names[number]]: number };
 /**
- * The authored named palettes: the text colors, GREEN (signal lamps and normal) and BAR (unlit and empty HUD parts).
- * They use the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's
- * gloss, 6 its rim and 7 its shaded body.
+ * The authored named palettes: the text colors, and GREEN. They use the same slots: 1 the main color, 2 the glyph
+ * shadow, 3 a meter's ground and 4 a meter's cut part (red).
  */
-const AUTHORED_PALETTE_NAMES = ['WHITE', 'YELLOW', 'RED', 'DARK', 'GREEN', 'BAR'] as const;
+const AUTHORED_PALETTE_NAMES = ['WHITE', 'YELLOW', 'RED', 'DARK', 'GREEN'] as const;
 /**
  * The named palettes the HUD tiles command draws, after the authored ones, in this order: the ornate small font's
  * styles, slots 1 to 7 its ink by row from the top and 8 its shadow, and the ornate large font's, each a top and a
  * bottom palette (`_BOTTOM`), slots 1 to 8 the ink by row within the tile and 9 the shadow; and the segment digits'
  * colors, slots 1 and 2 the lit core and edge and 3 and 4 the unlit core and edge: SEG_VFD, the instruments' color,
  * SEG_YELLOW and SEG_RED, state colors; and the tachometer's colors, slots 1 to 7 a tile's first color (its lit ramp
- * `L0..L4` and its unlit `U0` and `U1`) and 8 to 14 its second, where green meets yellow or yellow meets red.
+ * `L0..L4` and its unlit `U0` and `U1`) and 8 to 14 its second, where green meets yellow or yellow meets red; the signal
+ * lamp's states, unlit, red and green, with the source's slots; and the road arrow's.
  */
 export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_SMALL_SUNSET',
@@ -83,6 +83,10 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'TACH_RED',
   'TACH_GREEN_YELLOW',
   'TACH_YELLOW_RED',
+  'LAMP_OFF',
+  'LAMP_RED',
+  'LAMP_GREEN',
+  'ARROW',
 ] as const;
 /**
  * The named palettes: the authored ones, then the drawn ones. The HUD pictures' palettes follow them; later palettes
@@ -91,20 +95,27 @@ export const HUD_DRAWN_PALETTE_NAMES = [
 export const TEXT_PALETTES = named([...AUTHORED_PALETTE_NAMES, ...HUD_DRAWN_PALETTE_NAMES] as const);
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
+/** The signal lamp is 2 by 2 tiles, its patterns row by row from the top left. */
+export const LAMP_TILES = 2;
 /** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */
 export const ARROW_TILES = 4;
 const tiles = (prefix: string, count: number) => Array.from({ length: count }, (_, k) => `${prefix}_${k}`);
 /**
- * The HUD part tiles the HUD tiles command writes, after the signal lamps, in this order:
+ * The HUD part tiles follow the fonts in this order, as the characters follow their order, so the mapping needs no
+ * saved table; the HUD tiles command writes them all:
+ * - `LAMP_TL`, `_TR`, `_BL` and `_BR`: the 16-by-16-pixel signal lamp from the design sources, one set whose palette
+ *   gives its state.
  * - `METER_a_b` (0 <= a <= b <= 8): a meter cell, 4 pixels high in rows 2 to 5, slot 1 in columns before a, slot 4 (the
  *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
  * - `TACH_n`: the tachometer's patterns ([tachometer](./tachometer.ts)), every state its tiles can reach without
  *   duplicates.
  * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel italic segment digit from the design sources, lit
  *   segments in slots 1 and 2 and the others in 3 and 4.
- * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow, slot 1 outlined in slot 2.
+ * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow from the design sources, a triple
+ *   chevron.
  */
-export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
+export const HUD_TILE_NAMES: readonly string[] = Object.freeze([
+  ...['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${part}`),
   ...Array.from({ length: 9 }, (_, a) => Array.from({ length: 9 - a }, (_, k) => `METER_${a}_${a + k}`)).flat(),
   ...Array.from({ length: 7 }, (_, k) => `METER_RIGHT_${k + 1}`),
   ...tiles('TACH', TACHOMETER_PATTERNS.length),
@@ -112,14 +123,6 @@ export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
   ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
 ]);
-/**
- * The HUD part tiles follow the fonts in this order, as the characters follow their order, so the mapping needs no
- * saved table: the signal lamps, 2 by 2 tiles lit or unlit, and then the drawn part tiles.
- */
-const HUD_TILE_NAMES = [
-  ...['ON', 'OFF'].flatMap((state) => ['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${state}_${part}`)),
-  ...HUD_DRAWN_TILE_NAMES,
-];
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(
   Object.fromEntries(HUD_TILE_NAMES.map((name, i) => [name, FONT_PATTERNS + i])),

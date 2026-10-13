@@ -176,22 +176,21 @@ tiles follow them in one fixed order that code names, the same way, so their map
 the HUD pictures follow them; the document must hold at least all of these, and later patterns are free. Pattern 0,
 the space, must have only index 0: it is the empty tile.
 
-| Patterns | Names                           | Content                                                                                           |
-| -------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 0–98     | `normal`                        | The normal 8×8 font: ink slot 1, its shadow slot 2                                                |
-| 99–197   | `ornateSmall`                   | The ornate small 8×8 font: ink slots 1–7 by row from the top, its shadow 8                        |
-| 198–296  | `ornateLarge`, top              | The ornate large 8×16 font's top tiles: ink slots 1–8 by row, its shadow 9                        |
-| 297–395  | `ornateLarge`, bottom           | Its bottom tiles, with the same slots                                                             |
-| 396–399  | `LAMP_ON_TL`…`_BR`              | A lit signal lamp, 2×2 tiles: body slot 1, gloss 5, rim 6, shade 7                                |
-| 400–403  | `LAMP_OFF_TL`…`_BR`             | An unlit signal lamp: rim 6 over a shaded body 7 with a faint gloss 5                             |
-| 404–448  | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground                   |
-| 449–455  | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground                      |
-| 456–535  | `TACH_0`…`_79`                  | The tachometer's tiles in every state they reach: a tile's first color slots 1–7, its second 8–14 |
-| 536–601  | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile italic segment digit: lit core 1, edge 2; unlit 3, 4                         |
-| 602–617  | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left: slot 1 outlined in slot 2                        |
-| 618–633  | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                                           |
+| Patterns | Names                           | Content                                                                                                                      |
+| -------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 0–98     | `normal`                        | The normal 8×8 font: ink slot 1, its shadow slot 2                                                                           |
+| 99–197   | `ornateSmall`                   | The ornate small 8×8 font: ink slots 1–7 by row from the top, its shadow 8                                                   |
+| 198–296  | `ornateLarge`, top              | The ornate large 8×16 font's top tiles: ink slots 1–8 by row, its shadow 9                                                   |
+| 297–395  | `ornateLarge`, bottom           | Its bottom tiles, with the same slots                                                                                        |
+| 396–399  | `LAMP_TL`…`_BR`                 | The signal lamp, 2×2 tiles, one set whose palette gives its state: outline 1, bezel 4–6, lens 7–12, specular 13, glow rim 15 |
+| 400–444  | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground                                              |
+| 445–451  | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground                                                 |
+| 452–531  | `TACH_0`…`_79`                  | The tachometer's tiles in every state they reach: a tile's first color slots 1–7, its second 8–14                            |
+| 532–597  | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile italic segment digit: lit core 1, edge 2; unlit 3, 4                                                    |
+| 598–613  | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left, a triple chevron: outline 1, shadow 2, gradient 3–10 from the top           |
+| 614–629  | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                                                                      |
 
-The fonts and the segment digits are the [HUD design sources](#hud-design-sources)' and the signal lamps are authored. The other part tiles
+The fonts, the signal lamp, the segment digits and the road arrow are the [HUD design sources](#hud-design-sources)'. The other part tiles
 are drawn by the HUD tiles command ([Development](development.md#hud-tiles-command)), which writes them in place:
 
 - A meter cell is 4 pixels high with 2 pixels clear above and below; `METER_a_b` serves a meter filled from the left
@@ -206,17 +205,16 @@ are drawn by the HUD tiles command ([Development](development.md#hud-tiles-comma
   the 30 tiles that hold part of a bar have patterns: one for each state they reach (the number of their bars lit and
   where the color split falls among them, with fuel cut latched or not), identical patterns saved once, tile by tile
   in order of first use, so the HUD finds a state's pattern by the same rule.
-- The road arrow is 32×32 pixels: a head over a shaft, outlined by a pixel.
 
 The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`), each with a
 palette of its own after the named palettes, in that order:
 
 | Patterns  | Palette | Name         | Picture                                          | Frames                                   |
 | --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
-| 634–1785  | 26      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
-| 1786–2937 | 27      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
-| 2938–4089 | 28      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
-| 4090–5277 | 29      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+| 630–1781  | 29      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 1782–2933 | 30      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 2934–4085 | 31      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 4086–5273 | 32      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
 
 Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
 row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
@@ -227,19 +225,20 @@ The named palettes (`TEXT_PALETTES`) come first, the authored ones and then thos
 HUD pictures' palettes follow; later palettes are free. A document holds at most 65536 patterns and 256
 palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
 text grid cell keeps any admitted pair. A tile's palette chooses its color, so one glyph, lamp, meter, bar or digit
-tile serves every color.
+tile serves every color and the lamp every state.
 
 | Palettes | Names                                                                 | Use                                                                    |
 | -------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 0–5      | WHITE, YELLOW, RED, DARK, GREEN, BAR                                  | Authored: the normal font's colors and the HUD parts'                  |
-| 6–9      | `ORNATE_SMALL_<style>`                                                | The ornate small font's styles SUNSET, WHITE, RED and GREEN            |
-| 10–17    | `ORNATE_LARGE_<style>`, `…_BOTTOM`                                    | The ornate large font's styles, each a top palette and then its bottom |
-| 18–20    | SEG_VFD, SEG_YELLOW, SEG_RED                                          | The segment digits: the instruments' color, and state colors           |
-| 21–25    | TACH_GREEN, TACH_YELLOW, TACH_RED, TACH_GREEN_YELLOW, TACH_YELLOW_RED | The tachometer's colors, one or where two meet                         |
+| 0–4      | WHITE, YELLOW, RED, DARK, GREEN                                       | Authored: the normal font's colors and the meters'                     |
+| 5–8      | `ORNATE_SMALL_<style>`                                                | The ornate small font's styles SUNSET, WHITE, RED and GREEN            |
+| 9–16     | `ORNATE_LARGE_<style>`, `…_BOTTOM`                                    | The ornate large font's styles, each a top palette and then its bottom |
+| 17–19    | SEG_VFD, SEG_YELLOW, SEG_RED                                          | The segment digits: the instruments' color, and state colors           |
+| 20–24    | TACH_GREEN, TACH_YELLOW, TACH_RED, TACH_GREEN_YELLOW, TACH_YELLOW_RED | The tachometer's colors, one or where two meet                         |
+| 25–27    | LAMP_OFF, LAMP_RED, LAMP_GREEN                                        | The signal lamp unlit, lit red and lit green                           |
+| 28       | ARROW                                                                 | The road arrow                                                         |
 
-The authored palettes are WHITE, YELLOW, RED, DARK (unselectable items), GREEN (signal lamps and normal) and BAR
-(unlit lamps and empty HUD parts). They use the same slots: 1 the main color, 2 the glyph shadow, 3 a meter's ground,
-4 a meter's cut part (red in every authored palette), 5 a lamp's gloss, 6 its rim and 7 its shaded body.
+The authored palettes are WHITE, YELLOW, RED, DARK (unselectable items) and GREEN. They use the same slots: 1 the
+main color, 2 the glyph shadow, 3 a meter's ground and 4 a meter's cut part (red in every authored palette).
 
 An ornate style keeps the source's slot meanings: a ramp down the glyph from a light top through a strong middle to a
 dark bottom, and a black shadow. SUNSET's palettes are the source's; WHITE runs from white through a light blue-grey
@@ -614,6 +613,8 @@ them are previews, which nothing reads.
 | `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2                             |
 | `font-ornate-patterns.json` | The ornate fonts, every character: `small` (slots 1–8), `large` with `top` and `bottom` (slots 1–9) and the SUNSET `palettes` |
 | `seg-digits.json`           | The italic segment digits 0–9 and OFF, each 2×3 tiles row by row (slots 1–4), and the VFD, YELLOW and RED `palettes`          |
+| `lamp.json`                 | The signal lamp, 2×2 tiles row by row (slots 1–15), and its OFF, RED_ON and GREEN_ON `palettes`                               |
+| `arrow.json`                | The road arrow, 4×4 tiles row by row `left` and `right` (slots 1–10), and its `palette`                                       |
 
 ## Screen pictures
 

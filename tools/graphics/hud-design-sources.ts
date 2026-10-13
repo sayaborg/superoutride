@@ -1,7 +1,13 @@
 import { admit, readArray, readRecord, requireAdmission } from '../../src/core/admission.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { readIndexedPalette, readPatternSymbols } from '../../src/image/indexed-image.js';
-import { DIGIT_TILES, TEXT_CHARACTER_ORDER, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
+import {
+  ARROW_TILES,
+  DIGIT_TILES,
+  LAMP_TILES,
+  TEXT_CHARACTER_ORDER,
+  TEXT_TILE_SIZE,
+} from '../../src/image/text-tiles.js';
 import type { ContentStore } from '../authoring/content-store.js';
 
 /**
@@ -187,6 +193,62 @@ export async function readSegmentDigits(store: ContentStore): Promise<SegmentDig
       return Object.freeze({
         digits: Object.freeze(digits),
         palettes: Object.freeze({ VFD: read.VFD!, YELLOW: read.YELLOW!, RED: read.RED! }),
+      });
+    }),
+  );
+}
+
+/** The signal lamp: one pattern set, 2 by 2 tiles row by row, whose palette gives its state. */
+export interface LampSource {
+  /** Slot 1 the outline, 4 to 6 the bezel dark to light, 7 to 12 the lens dark edge to hot centre, 13 the specular and
+   * 15 the inner glow rim. */
+  readonly tiles: readonly (readonly number[])[];
+  readonly palettes: {
+    readonly OFF: readonly number[];
+    readonly RED_ON: readonly number[];
+    readonly GREEN_ON: readonly number[];
+  };
+}
+
+/** The signal lamp and its OFF, RED_ON and GREEN_ON palettes. */
+export async function readLamp(store: ContentStore): Promise<LampSource> {
+  const { path, value } = await readSource(store, 'lamp.json');
+  return requireLoaded(
+    admit(path, () => {
+      const document = readRecord(value, '', ['note', 'tiles', 'palettes']);
+      const read = readSourcePalettes(document.palettes, '/palettes', ['RED_ON', 'GREEN_ON', 'OFF']);
+      return Object.freeze({
+        tiles: readArray(document.tiles, '/tiles', (tile, at) => readTile(tile, at, 15), {
+          length: LAMP_TILES * LAMP_TILES,
+        }),
+        palettes: Object.freeze({ OFF: read.OFF!, RED_ON: read.RED_ON!, GREEN_ON: read.GREEN_ON! }),
+      });
+    }),
+  );
+}
+
+/** The road arrow, 4 by 4 tiles row by row pointing left and right, and its palette. */
+export interface ArrowSource {
+  /** Slot 1 the outline, 2 the shadow and 3 to 10 the gradient from the top. */
+  readonly left: readonly (readonly number[])[];
+  readonly right: readonly (readonly number[])[];
+  readonly palette: readonly number[];
+}
+
+/** The road arrow, a triple chevron pointing left and right, and its palette. */
+export async function readArrow(store: ContentStore): Promise<ArrowSource> {
+  const { path, value } = await readSource(store, 'arrow.json');
+  return requireLoaded(
+    admit(path, () => {
+      const document = readRecord(value, '', ['note', 'left', 'right', 'palette']);
+      const side = (key: 'left' | 'right') =>
+        readArray(document[key], `/${key}`, (tile, at) => readTile(tile, at, 10), {
+          length: ARROW_TILES * ARROW_TILES,
+        });
+      return Object.freeze({
+        left: side('left'),
+        right: side('right'),
+        palette: readSourcePalette(document.palette, '/palette'),
       });
     }),
   );

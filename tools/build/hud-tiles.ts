@@ -14,13 +14,19 @@ import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
 import { drawHudParts, drawTachometerPalettes } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
-import { readNormalFont, readOrnateFonts, readSegmentDigits } from '../graphics/hud-design-sources.js';
+import {
+  readArrow,
+  readLamp,
+  readNormalFont,
+  readOrnateFonts,
+  readSegmentDigits,
+} from '../graphics/hud-design-sources.js';
 import { drawOrnateFonts } from '../graphics/hud-fonts.js';
 
 /**
- * The HUD tiles command: read the fonts from their design sources (`content/hud-design-sources/`), draw the HUD
- * part tiles and every HUD picture from its source and recipe (`content/hud-picture-sources/`) and write them into the
- * text tiles, `content/text-tiles/default.json`, with a check
+ * The HUD tiles command: read the fonts and HUD parts from their design sources (`content/hud-design-sources/`), draw
+ * the tachometer, the meters and every HUD picture from its source and recipe (`content/hud-picture-sources/`) and write
+ * them into the text tiles, `content/text-tiles/default.json`, with a check
  * sheet of each picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
  */
 const USAGE = 'Usage: npm run hud-tiles';
@@ -32,17 +38,27 @@ try {
   const drawn = await drawHudPictures(store, PNG);
   const saved = JSON.parse(new TextDecoder().decode(await store.read(TEXT_TILES))) as TextTilesDocument;
   const ornate = drawOrnateFonts(await readOrnateFonts(store)),
-    digits = await readSegmentDigits(store);
+    digits = await readSegmentDigits(store),
+    lamp = await readLamp(store),
+    arrow = await readArrow(store);
   const palettes = new Map([
     ...ornate.palettes,
     ['SEG_VFD', digits.palettes.VFD],
     ['SEG_YELLOW', digits.palettes.YELLOW],
     ['SEG_RED', digits.palettes.RED],
     ...drawTachometerPalettes(),
+    ['LAMP_OFF', lamp.palettes.OFF],
+    ['LAMP_RED', lamp.palettes.RED_ON],
+    ['LAMP_GREEN', lamp.palettes.GREEN_ON],
+    ['ARROW', arrow.palette],
   ]);
   const document = withHudTiles(
     saved,
-    { fonts: [...(await readNormalFont(store)), ...ornate.patterns], parts: drawHudParts(digits), palettes },
+    {
+      fonts: [...(await readNormalFont(store)), ...ornate.patterns],
+      parts: drawHudParts(lamp, digits, arrow),
+      palettes,
+    },
     drawn,
   );
   requireLoaded(admit(`content/${TEXT_TILES}`, () => compileTextTiles(document)));

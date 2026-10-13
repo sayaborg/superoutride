@@ -51,7 +51,7 @@ export function createSeriesScreen(
         column + (k % ARROW_TILES),
         ARROW_ROW + Math.floor(k / ARROW_TILES),
         HUD_TILES[`ARROW_${side}_${k}`]!,
-        TEXT_PALETTES.YELLOW,
+        TEXT_PALETTES.ARROW,
       );
   };
   return {

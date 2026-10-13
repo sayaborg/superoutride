@@ -380,7 +380,7 @@ npm run hud-tiles
 
 It reads the [HUD design sources](image-assets.md#hud-design-sources) and `content/hud-picture-sources/recipes.json`
 with the sources beside it, writes the fonts, the part tiles (the tachometer's by its rule), the drawn named palettes, the pictures and their
-palettes into `content/text-tiles/default.json`, keeping its signal lamps and authored named palettes, and
+palettes into `content/text-tiles/default.json`, keeping its authored named palettes, and
 writes a check sheet of each
 picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads. The build admits
 the saved text tiles and draws nothing.

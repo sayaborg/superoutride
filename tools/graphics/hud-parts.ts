@@ -1,7 +1,7 @@
-import type { SegmentDigitsSource } from './hud-design-sources.js';
+import type { ArrowSource, LampSource, SegmentDigitsSource } from './hud-design-sources.js';
 import { rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
 import { TACHOMETER_COLORS, TACHOMETER_PATTERNS, type TachometerColor } from '../../src/image/tachometer.js';
-import { ARROW_TILES, HUD_DRAWN_TILE_NAMES, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
+import { HUD_TILE_NAMES, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
 
 /** A meter cell's rows: 4 pixels high, 2 pixels clear above and below. */
 const METER_ROWS = [2, 3, 4, 5];
@@ -12,34 +12,20 @@ const pattern = (pixel: Pixels) =>
   Array.from({ length: TEXT_TILE_SIZE * TEXT_TILE_SIZE }, (_, i) =>
     pixel(i % TEXT_TILE_SIZE, Math.floor(i / TEXT_TILE_SIZE)),
   );
-/** Tile k of a picture `columns` tiles wide, row by row from the top left. */
-const tileOf = (picture: Pixels, columns: number, k: number) =>
-  pattern((x, y) => picture((k % columns) * TEXT_TILE_SIZE + x, Math.floor(k / columns) * TEXT_TILE_SIZE + y));
 
 const meter = (filled: (x: number) => number) => pattern((x, y) => (METER_ROWS.includes(y) ? filled(x) : 0));
 
-/** The left road arrow, 32 pixels square: a head pointing left over a shaft, slot 1 outlined in slot 2. */
-const ARROW_SIZE = ARROW_TILES * TEXT_TILE_SIZE;
-const inArrow = (x: number, y: number) => {
-  const px = x + 0.5,
-    py = y + 0.5,
-    middle = ARROW_SIZE / 2;
-  const head = px >= 2 && px <= 15 && Math.abs(py - middle) <= ((px - 2) * 13) / 13;
-  const shaft = px > 15 && px <= 30 && Math.abs(py - middle) <= 6;
-  return head || shaft;
-};
-const arrowLeft: Pixels = (x, y) => {
-  if (inArrow(x, y)) return 1;
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (inArrow(x + dx, y + dy)) return 2;
-  return 0;
-};
-
 /**
- * Every drawn HUD part tile's 64 palette indices, in the text tiles' order of `HUD_DRAWN_TILE_NAMES`: the segment digits
- * as their source gives them, the tachometer's by its rule and the rest drawn.
+ * Every HUD part tile's 64 palette indices, in the text tiles' order of `HUD_TILE_NAMES`: the signal lamp, the segment
+ * digits and the road arrow as their sources give them, the tachometer's by its rule and the meters drawn.
  */
-export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly number[])[] {
+export function drawHudParts(
+  lamp: LampSource,
+  segmentDigits: SegmentDigitsSource,
+  arrow: ArrowSource,
+): (readonly number[])[] {
   const drawn = new Map<string, readonly number[]>();
+  ['TL', 'TR', 'BL', 'BR'].forEach((part, k) => drawn.set(`LAMP_${part}`, lamp.tiles[k]!));
   for (let a = 0; a <= TEXT_TILE_SIZE; a++)
     for (let b = a; b <= TEXT_TILE_SIZE; b++)
       drawn.set(
@@ -55,16 +41,11 @@ export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly numb
   segmentDigits.digits.forEach((tiles, d) =>
     tiles.forEach((tile, k) => drawn.set(`DIGIT_${d < 10 ? d : 'OFF'}_${k}`, tile)),
   );
-  for (let k = 0; k < ARROW_TILES * ARROW_TILES; k++) {
-    drawn.set(`ARROW_LEFT_${k}`, tileOf(arrowLeft, ARROW_TILES, k));
-    drawn.set(
-      `ARROW_RIGHT_${k}`,
-      tileOf((x, y) => arrowLeft(ARROW_SIZE - 1 - x, y), ARROW_TILES, k),
-    );
-  }
-  if (drawn.size !== HUD_DRAWN_TILE_NAMES.length || HUD_DRAWN_TILE_NAMES.some((name) => !drawn.has(name)))
-    throw new Error('The drawn HUD part tiles differ from the text tiles order');
-  return HUD_DRAWN_TILE_NAMES.map((name) => drawn.get(name)!);
+  arrow.left.forEach((tile, k) => drawn.set(`ARROW_LEFT_${k}`, tile));
+  arrow.right.forEach((tile, k) => drawn.set(`ARROW_RIGHT_${k}`, tile));
+  if (drawn.size !== HUD_TILE_NAMES.length || HUD_TILE_NAMES.some((name) => !drawn.has(name)))
+    throw new Error('The HUD part tiles differ from the text tiles order');
+  return HUD_TILE_NAMES.map((name) => drawn.get(name)!);
 }
 
 type Rgb = readonly [number, number, number];

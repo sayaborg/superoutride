@@ -165,7 +165,7 @@ once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is it
 the first track) plays as an audition, so its volume is set by ear.
 
 - TITLE: a mode with no selectable course is DARK.
-- SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (YELLOW) at columns 0–3
+- SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (ARROW) at columns 0–3
   pointing left and 36–39 pointing right on rows 13–16, and `PRESS START` (YELLOW, meaning CONFIRM) centred on row
   27; the arrows are drawn when there are several series. LEFT and RIGHT (and UP and DOWN) slide the next image in
   horizontally over 16 fixed steps in whole pixels, the arrows and text staying put, wrapping at both ends, and sound
@@ -451,20 +451,20 @@ Session's rules (the clock, the course type) and race facts (two or more competi
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
-| Rows  | Elements                                                                                                           |
-| ----- | ------------------------------------------------------------------------------------------------------------------ |
-| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                           |
-| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM      |
-| 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                               |
-| 7     | TIME TRIAL with a record: the difference from the record run for 2 s after each gate and lap crossing              |
-| 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                             |
-| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are red and the rest unlit; all green for 1 s after GO |
-| 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                           |
-| 13–16 | While the camera is held at its yaw limit: a yellow 4×4-tile arrow, steady, in columns 0–3 or 36–39                |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h`                       |
-| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                    |
-| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                            |
-| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                   |
+| Rows  | Elements                                                                                                                        |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2   | TIME and the remaining seconds (rounded up), race time, POS n/m, STAGE n                                                        |
+| 4–5   | LAP x/y and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                   |
+| 7     | `EXTEND +12"0` (seconds and tenths), yellow, while TIME is yellow after an extension                                            |
+| 7     | TIME TRIAL with a record: the difference from the record run for 2 s after each gate and lap crossing                           |
+| 10–12 | Before GO: the course's display name, the mode and, when one exists, `RECORD 1'23"456`                                          |
+| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO |
+| 16–17 | From the ending until RESULT: GOAL (yellow), or GAME OVER (red) with TIME UP or RANK OUT                                        |
+| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39           |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h`                                    |
+| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                 |
+| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                         |
+| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                |
 
 The steering picture, in the middle of the frame's width, is the one the player vehicle's listing names
 ([Image assets](image-assets.md#text-tiles)) and shows where the front wheel actually points: the player
