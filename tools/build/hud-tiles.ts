@@ -12,7 +12,7 @@ import {
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
-import { drawHudParts } from '../graphics/hud-parts.js';
+import { drawHudParts, drawTachometerPalettes } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
 import { readNormalFont, readOrnateFonts, readSegmentDigits } from '../graphics/hud-design-sources.js';
 import { drawOrnateFonts } from '../graphics/hud-fonts.js';
@@ -38,6 +38,7 @@ try {
     ['SEG_VFD', digits.palettes.VFD],
     ['SEG_YELLOW', digits.palettes.YELLOW],
     ['SEG_RED', digits.palettes.RED],
+    ...drawTachometerPalettes(),
   ]);
   const document = withHudTiles(
     saved,

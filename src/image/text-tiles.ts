@@ -1,5 +1,6 @@
 import { readArray, readDocument, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
+import { TACHOMETER_PATTERNS } from './tachometer.js';
 
 /** Text tiles are 8 by 8 pixels. */
 export const TEXT_TILE_SIZE = 8;
@@ -48,27 +49,18 @@ export type OrnateStyle = (typeof ORNATE_STYLES)[number];
 const named = <const Names extends readonly string[]>(names: Names) =>
   Object.freeze(Object.fromEntries(names.map((name, i) => [name, i]))) as { readonly [K in Names[number]]: number };
 /**
- * The authored named palettes: the text colors, GREEN (signal lamps and normal), BAR (unlit and empty HUD parts) and
- * GREEN_YELLOW and YELLOW_RED (a tachometer tile where two of its colors meet). They use the
- * same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's gloss, 6 its
- * rim, 7 its shaded body, 8 the main color unlit, and 9 and 10 the second color, lit and unlit.
+ * The authored named palettes: the text colors, GREEN (signal lamps and normal) and BAR (unlit and empty HUD parts).
+ * They use the same slots: 1 the main color, 2 the glyph shadow, 3 a bar's ground, 4 a bar's cut part (red), 5 a lamp's
+ * gloss, 6 its rim and 7 its shaded body.
  */
-const AUTHORED_PALETTE_NAMES = [
-  'WHITE',
-  'YELLOW',
-  'RED',
-  'DARK',
-  'GREEN',
-  'BAR',
-  'GREEN_YELLOW',
-  'YELLOW_RED',
-] as const;
+const AUTHORED_PALETTE_NAMES = ['WHITE', 'YELLOW', 'RED', 'DARK', 'GREEN', 'BAR'] as const;
 /**
  * The named palettes the HUD tiles command draws, after the authored ones, in this order: the ornate small font's
  * styles, slots 1 to 7 its ink by row from the top and 8 its shadow, and the ornate large font's, each a top and a
  * bottom palette (`_BOTTOM`), slots 1 to 8 the ink by row within the tile and 9 the shadow; and the segment digits'
  * colors, slots 1 and 2 the lit core and edge and 3 and 4 the unlit core and edge: SEG_VFD, the instruments' color,
- * SEG_YELLOW and SEG_RED, state colors.
+ * SEG_YELLOW and SEG_RED, state colors; and the tachometer's colors, slots 1 to 7 a tile's first color (its lit ramp
+ * `L0..L4` and its unlit `U0` and `U1`) and 8 to 14 its second, where green meets yellow or yellow meets red.
  */
 export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_SMALL_SUNSET',
@@ -86,27 +78,17 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'SEG_VFD',
   'SEG_YELLOW',
   'SEG_RED',
+  'TACH_GREEN',
+  'TACH_YELLOW',
+  'TACH_RED',
+  'TACH_GREEN_YELLOW',
+  'TACH_YELLOW_RED',
 ] as const;
 /**
  * The named palettes: the authored ones, then the drawn ones. The HUD pictures' palettes follow them; later palettes
  * are free.
  */
 export const TEXT_PALETTES = named([...AUTHORED_PALETTE_NAMES, ...HUD_DRAWN_PALETTE_NAMES] as const);
-/** The tachometer's bars, a pixel wide and eight to a tile, from the left. */
-export const TACHOMETER_BARS = 80;
-/** Tachometer bar i's height in pixels: a quadratic curve from 4 at the left to 24, three tiles, at the right. */
-export const tachometerBarHeight = (i: number) => 4 + Math.round(20 * (i / (TACHOMETER_BARS - 1)) ** 2);
-/**
- * The tachometer's tiles that hold part of a bar, as [column, row] within its 10-by-3 tiles, the bars standing on the
- * bottom row.
- */
-export const TACHOMETER_TILES: readonly (readonly [number, number])[] = Object.freeze(
-  Array.from({ length: TACHOMETER_BARS / 8 }, (_, column) => [0, 1, 2].map((row) => [column, row] as const))
-    .flat()
-    .filter(([column, row]) =>
-      Array.from({ length: 8 }, (_, x) => tachometerBarHeight(column * 8 + x)).some((h) => h > (2 - row) * 8),
-    ),
-);
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 /** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */
@@ -116,9 +98,8 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
  * The HUD part tiles the HUD tiles command writes, after the signal lamps, in this order:
  * - `METER_a_b` (0 <= a <= b <= 8): a meter cell, 4 pixels high in rows 2 to 5, slot 1 in columns before a, slot 4 (the
  *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
- * - `TACH_c_r_b_k` (b 1 to 8, k 0 to 8): the tachometer tile at column c and row r of `TACHOMETER_TILES`, its eight
- *   bars' parts in that row; bars before b take the first color and the rest the second, and bars before k are lit:
- *   slot 1 or 9 lit, 8 or 10 unlit.
+ * - `TACH_n`: the tachometer's patterns ([tachometer](./tachometer.ts)), every state its tiles can reach without
+ *   duplicates.
  * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel italic segment digit from the design sources, lit
  *   segments in slots 1 and 2 and the others in 3 and 4.
  * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow, slot 1 outlined in slot 2.
@@ -126,9 +107,7 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
 export const HUD_DRAWN_TILE_NAMES: readonly string[] = Object.freeze([
   ...Array.from({ length: 9 }, (_, a) => Array.from({ length: 9 - a }, (_, k) => `METER_${a}_${a + k}`)).flat(),
   ...Array.from({ length: 7 }, (_, k) => `METER_RIGHT_${k + 1}`),
-  ...TACHOMETER_TILES.flatMap(([c, r]) =>
-    Array.from({ length: 8 }, (_, b) => Array.from({ length: 9 }, (_, k) => `TACH_${c}_${r}_${b + 1}_${k}`)).flat(),
-  ),
+  ...tiles('TACH', TACHOMETER_PATTERNS.length),
   ...[...'0123456789'.split(''), 'OFF'].flatMap((d) => tiles(`DIGIT_${d}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
   ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),

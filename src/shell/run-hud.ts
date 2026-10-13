@@ -4,11 +4,10 @@ import {
   HUD_PICTURE_TILES,
   HUD_TILES,
   hudPictureFrame,
-  TACHOMETER_BARS,
-  TACHOMETER_TILES,
   TEXT_PALETTES,
   type HudPicture,
 } from '../image/text-tiles.js';
+import { tachometerLitBars, tachometerTiles } from '../image/tachometer.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
 import { MODE_NAMES, type RunRequest } from './run-request.js';
@@ -31,7 +30,7 @@ export interface HudFacts {
   readonly session: {
     readonly courseName: string;
     readonly mode: RunRequest['mode'];
-    /** The tachometer's redline; its full scale is `TACHOMETER_FULL_SCALE` times it. */
+    /** The tachometer's redline; its full scale is `TACHOMETER.fullScale` times it. */
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
@@ -167,17 +166,13 @@ const writeDigit = (text: TextLayer, column: number, row: number, digit: number 
 };
 /** The speed's digits, right-aligned; the speed is held at 999 km/h. */
 const SPEED_DIGITS = 3;
-/** The tachometer's full scale as a multiple of redline. */
-const TACHOMETER_FULL_SCALE = 1.1;
-/** The tachometer bars before the first red bar that are yellow: 3/20 of the scale. */
-const TACHOMETER_YELLOW_BARS = 12;
-/** A tachometer tile's palette by the colors of its first and last bars: green, yellow or red, or where two meet. */
+/** A tachometer tile's palette by its first and second colors. */
 const TACHOMETER_PALETTES: Readonly<Record<string, number>> = Object.freeze({
-  '0-0': TEXT_PALETTES.GREEN,
-  '1-1': TEXT_PALETTES.YELLOW,
-  '2-2': TEXT_PALETTES.RED,
-  '0-1': TEXT_PALETTES.GREEN_YELLOW,
-  '1-2': TEXT_PALETTES.YELLOW_RED,
+  GREEN: TEXT_PALETTES.TACH_GREEN,
+  YELLOW: TEXT_PALETTES.TACH_YELLOW,
+  RED: TEXT_PALETTES.TACH_RED,
+  GREEN_YELLOW: TEXT_PALETTES.TACH_GREEN_YELLOW,
+  YELLOW_RED: TEXT_PALETTES.TACH_YELLOW_RED,
 });
 /** The road arrow, 4×4 tiles. */
 const writeArrow = (text: TextLayer, place: Place, side: 'LEFT' | 'RIGHT') => {
@@ -384,27 +379,16 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     // before the redline and red from it, and wholly red while the limiter cuts fuel.
     when: () => true,
     write({ player: { powertrain }, session }, text) {
-      const [column, row] = HUD_LAYOUT.tachometer,
-        barRpm = (bar: number) => ((bar + 1) * TACHOMETER_FULL_SCALE * session.redlineRpm) / TACHOMETER_BARS;
-      let firstRed = 0,
-        lit = 0;
-      while (firstRed < TACHOMETER_BARS && barRpm(firstRed) < session.redlineRpm) firstRed++;
-      while (lit < TACHOMETER_BARS && powertrain.engineRpm >= barRpm(lit)) lit++;
-      // 0 green, 1 yellow, 2 red.
-      const color = (bar: number) =>
-        powertrain.fuelCut || bar >= firstRed ? 2 : bar >= firstRed - TACHOMETER_YELLOW_BARS ? 1 : 0;
-      // A tile holds eight bars: at most two colors, which meet at its split, and its lit bars from the left.
-      for (const [c, r] of TACHOMETER_TILES) {
-        const first = c * 8,
-          left = color(first),
-          right = color(first + 7);
-        let split = 1;
-        while (split < 8 && color(first + split) === left) split++;
-        const palette = TACHOMETER_PALETTES[`${left}-${right}`];
-        if (palette === undefined) throw new Error(`A tachometer tile cannot hold colors ${left} and ${right}`);
-        const k = Math.min(8, Math.max(0, lit - first));
-        text.put(column + c, row + r, HUD_TILES[`TACH_${c}_${r}_${split}_${k}`]!, palette);
-      }
+      const [column, row] = HUD_LAYOUT.tachometer;
+      const lit = tachometerLitBars(powertrain.engineRpm, session.redlineRpm);
+      // A tile holds at most two colors, its pattern splitting its bars where they meet.
+      for (const tile of tachometerTiles(lit, powertrain.fuelCut))
+        text.put(
+          column + tile.column,
+          row + tile.row,
+          HUD_TILES.TACH_0! + tile.pattern,
+          TACHOMETER_PALETTES[tile.second ? `${tile.first}_${tile.second}` : tile.first]!,
+        );
     },
   },
   {

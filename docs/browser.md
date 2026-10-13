@@ -484,13 +484,13 @@ share applied at the station whose share is smaller (`frontBrakeApplied`, `rearB
 
 The speed shows `round(speed*3.6)` km/h, held at 999, in three italic segment digits right-aligned in SEG_VFD; a
 leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in SEG_VFD, and in
-SEG_YELLOW after a shift; unlit segments are a dark trace of the lit color. The tachometer's 80 bars, a pixel wide and
-eight to a tile, stand on row 28's bottom, `4 + round(20*(i/79)^2)` pixels high for bar `i` (from 0); bar `i` lights once
-the engine speed reaches `(i+1)/80 * 1.10 * redlineRpm`, the full scale being 110 % of the player vehicle's redline,
-and is unlit (its palette's unlit color) otherwise. A bar whose speed reaches the redline is red,
-the 12 before the first red bar (3/20 of the scale) are yellow and the rest green; every bar is red while the limiter
-cuts fuel. A tile's bars take at most two colors, so a tile where green meets yellow or yellow meets red takes the
-GREEN_YELLOW or YELLOW_RED palette and the pattern that splits its bars there.
+SEG_YELLOW after a shift; unlit segments are a dark trace of the lit color. The tachometer's 26 italic bars, 2 pixels wide
+with a pixel's gap, stand on row 28's bottom ([Image assets](image-assets.md#text-tiles)); bar `i` (from 0) lights once
+the engine speed reaches `(i+1)/26 * 1.10 * redlineRpm`, the full scale being 110 % of the player vehicle's redline,
+and is unlit (its color's unlit shades) otherwise. Every bar from the first at or above redline is red, the 4 before
+it yellow and the rest green; every bar is red while the limiter cuts fuel. A tile's bars take at most two colors, so a
+tile where green meets yellow or yellow meets red takes the TACH_GREEN_YELLOW or TACH_YELLOW_RED palette and the
+pattern that splits its bars there; the others take TACH_GREEN, TACH_YELLOW or TACH_RED.
 
 Rows 8 to 22, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
 reads only the camera's `heldAtLimit` (1 when its yaw source has turned right beyond the limit, -1 left, 0 within

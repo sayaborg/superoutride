@@ -1,12 +1,7 @@
 import type { SegmentDigitsSource } from './hud-design-sources.js';
-import {
-  ARROW_TILES,
-  DIGIT_TILES,
-  HUD_DRAWN_TILE_NAMES,
-  TACHOMETER_TILES,
-  tachometerBarHeight,
-  TEXT_TILE_SIZE,
-} from '../../src/image/text-tiles.js';
+import { rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
+import { TACHOMETER_COLORS, TACHOMETER_PATTERNS, type TachometerColor } from '../../src/image/tachometer.js';
+import { ARROW_TILES, HUD_DRAWN_TILE_NAMES, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
 
 /** A meter cell's rows: 4 pixels high, 2 pixels clear above and below. */
 const METER_ROWS = [2, 3, 4, 5];
@@ -22,17 +17,6 @@ const tileOf = (picture: Pixels, columns: number, k: number) =>
   pattern((x, y) => picture((k % columns) * TEXT_TILE_SIZE + x, Math.floor(k / columns) * TEXT_TILE_SIZE + y));
 
 const meter = (filled: (x: number) => number) => pattern((x, y) => (METER_ROWS.includes(y) ? filled(x) : 0));
-
-/**
- * The tachometer tile at `column` and `row`: each pixel-wide bar's part in that row, standing on the bottom row; bars
- * before `split` in slot 1 lit or 8 unlit, the rest in 9 lit or 10 unlit, and bars before `lit` lit.
- */
-const tachometer = (column: number, row: number, split: number, lit: number) =>
-  pattern((x, y) => {
-    const top = DIGIT_TILES.rows * TEXT_TILE_SIZE - tachometerBarHeight(column * TEXT_TILE_SIZE + x);
-    if (row * TEXT_TILE_SIZE + y < top) return 0;
-    return x < split ? (x < lit ? 1 : 8) : x < lit ? 9 : 10;
-  });
 
 /** The left road arrow, 32 pixels square: a head pointing left over a shaft, slot 1 outlined in slot 2. */
 const ARROW_SIZE = ARROW_TILES * TEXT_TILE_SIZE;
@@ -52,7 +36,7 @@ const arrowLeft: Pixels = (x, y) => {
 
 /**
  * Every drawn HUD part tile's 64 palette indices, in the text tiles' order of `HUD_DRAWN_TILE_NAMES`: the segment digits
- * as their source gives them and the rest drawn.
+ * as their source gives them, the tachometer's by its rule and the rest drawn.
  */
 export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly number[])[] {
   const drawn = new Map<string, readonly number[]>();
@@ -67,10 +51,7 @@ export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly numb
       `METER_RIGHT_${k}`,
       meter((x) => (x >= TEXT_TILE_SIZE - k ? 1 : 3)),
     );
-  for (const [column, row] of TACHOMETER_TILES)
-    for (let split = 1; split <= TEXT_TILE_SIZE; split++)
-      for (let lit = 0; lit <= TEXT_TILE_SIZE; lit++)
-        drawn.set(`TACH_${column}_${row}_${split}_${lit}`, tachometer(column, row, split, lit));
+  TACHOMETER_PATTERNS.forEach((pattern, n) => drawn.set(`TACH_${n}`, pattern));
   segmentDigits.digits.forEach((tiles, d) =>
     tiles.forEach((tile, k) => drawn.set(`DIGIT_${d < 10 ? d : 'OFF'}_${k}`, tile)),
   );
@@ -84,4 +65,54 @@ export function drawHudParts(segmentDigits: SegmentDigitsSource): (readonly numb
   if (drawn.size !== HUD_DRAWN_TILE_NAMES.length || HUD_DRAWN_TILE_NAMES.some((name) => !drawn.has(name)))
     throw new Error('The drawn HUD part tiles differ from the text tiles order');
   return HUD_DRAWN_TILE_NAMES.map((name) => drawn.get(name)!);
+}
+
+type Rgb = readonly [number, number, number];
+/** Each tachometer color's lit ramp `L0..L4`, dark to light, and its unlit `U0` and `U1`, as 8-bit channels. */
+const TACHOMETER_RAMPS: Readonly<Record<TachometerColor, readonly Rgb[]>> = Object.freeze({
+  GREEN: [
+    [16, 112, 40],
+    [32, 168, 56],
+    [64, 216, 80],
+    [136, 244, 136],
+    [200, 255, 200],
+    [36, 68, 44],
+    [28, 56, 36],
+  ],
+  YELLOW: [
+    [160, 104, 0],
+    [216, 160, 0],
+    [248, 208, 16],
+    [255, 240, 112],
+    [255, 255, 200],
+    [76, 68, 28],
+    [64, 56, 20],
+  ],
+  RED: [
+    [128, 16, 8],
+    [192, 28, 16],
+    [240, 56, 32],
+    [255, 136, 112],
+    [255, 208, 192],
+    [76, 32, 28],
+    [64, 24, 20],
+  ],
+});
+const ramp = (color: TachometerColor) => TACHOMETER_RAMPS[color].map(([r, g, b]) => rgbaToRgb555(rgba(r, g, b)));
+
+/**
+ * The tachometer's palettes by name: one color in slots 1 to 7 (`L0..L4`, `U0`, `U1`), and where two meet the second
+ * in slots 8 to 14.
+ */
+export function drawTachometerPalettes(): Map<string, readonly number[]> {
+  const palette = (first: TachometerColor, second?: TachometerColor) => {
+    const colors = [...ramp(first), ...(second ? ramp(second) : [])];
+    return [0, ...colors, ...Array<number>(15 - colors.length).fill(0)];
+  };
+  const [green, yellow, red] = TACHOMETER_COLORS;
+  return new Map([
+    ...TACHOMETER_COLORS.map((color) => [`TACH_${color}`, palette(color)] as const),
+    [`TACH_${green}_${yellow}`, palette(green, yellow)],
+    [`TACH_${yellow}_${red}`, palette(yellow, red)],
+  ]);
 }
