@@ -39,7 +39,7 @@ interface Turn {
 }
 
 /**
- * The attract demo behind TITLE, the one owner of the demo Sessions and their turns: the product ARCADE classes, in
+ * The attract demo behind TITLE, the one owner of the demo Sessions and their turns: the product classes' RACEs, in
  * series and class order, looping. It holds at most two Sessions, the shown class's and the next class's, each a run
  * with no player input in which the class's first vehicle in its first color drives by its Session driver, stepped in
  * the race's fixed step only while its turn is shown. A turn lasts `ATTRACT_SECONDS`, with no HUD and no sound,
@@ -61,9 +61,9 @@ export function createAttractDemo(
     const { manufacturer, model } = vehicle.listing.metadata;
     return {
       request: Object.freeze({
-        mode: 'ARCADE',
         seriesId: chosen.series.id,
         classId: chosen.id,
+        session: 'RACE',
         vehicleId: vehicle.compiledVehicle.id,
         color,
         track: null,
@@ -173,7 +173,7 @@ export function createAttractDemo(
   };
 }
 
-/** The product ARCADE classes the attract demo runs, in series and class order. */
+/** The product classes whose RACEs the attract demo runs, in series and class order. */
 export function attractClasses(series: readonly { readonly dev: boolean; readonly classes: readonly SeriesClass[] }[]) {
   return series.filter((s) => !s.dev).flatMap((s) => s.classes);
 }

@@ -63,12 +63,14 @@ menu or off while hidden): driving clears input suspension; otherwise input is s
 procedure tells audio whether the page is visible and whether a run is driven ([Audio](audio.md#mix-and-lifetime)).
 
 The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. For
-a class (ARCADE and TIME ATTACK) it shows the series image with rows 17–29 (y 136–240) at quarter brightness; other modes show it on black.
+a class (RACE and TIME ATTACK) it shows the series image with rows 17–29 (y 136–240) at quarter brightness; FREE PLAY
+shows it on black.
 Inside x 8–136, y 136–232 it draws the course map, north up by the course's bearing: the route's centreline (one lap of
 a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
 core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
 GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
-the class title (YELLOW; the mode's name in FREE PLAY) on row 18, the course's name on row 20, `<length>KM  <n> LAPS`
+the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, a class run's session (WHITE) on row 19, the course's
+name on row 20, `<length>KM  <n> LAPS`
 on row 21 (the route's length to 0.001 km, laps only on a circuit with a lap count), `<field> CARS|BIKES  START P<slot>`
 on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (TIME ATTACK
 only).
@@ -111,14 +113,16 @@ A change of screen goes through black: the frame darkens to black over 8 fixed s
 by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from black. During a
 transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host owns the
 transition and the shell presents each frame at the host's brightness. A screen declares the wallpaper it stands on
-(ARCADE's series image: SELECT SERIES, SELECT CLASS, SELECT VEHICLE, SELECT MUSIC and the PRE-RACE card); a change
+(a series' image: SELECT SERIES, SELECT CLASS, SELECT SESSION, SELECT VEHICLE, SELECT MUSIC and the PRE-RACE card); a
+change
 between two screens standing on the same wallpaper, asked for while no transition runs, is immediate, and the next
 frame draws the next screen at full brightness. So inside a series only what is drawn over the image changes, in
 either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and every other change go through black.
 
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
 (18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
-the demo Sessions and their turns. It runs the product ARCADE classes (never DEV ones) in series and class order,
+the demo Sessions and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
+class order,
 looping, one 30 s turn each. It holds at most two Sessions, the shown class's and the next class's, each assembled as a
 run with no player input (the player's Session driver drives the class's first vehicle in its first color at the
 default steering), with no HUD, no sound and no record. Each holds its course's compilation, which held Sessions of one
@@ -135,19 +139,20 @@ TITLE stays over black. Leaving TITLE ends the shown turn and releases its Sessi
 class's turn. The Sessions are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
 row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
-accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back
-to PRESS START. The mode line is a carousel on row 28 over rows 27–29 at half brightness: the mode (YELLOW, DARK when
-it offers nothing) between WHITE `◀` and `▶` four columns either side, among ARCADE, FREE PLAY, TIME ATTACK and
-SETTINGS; BACK does nothing. Choosing a mode leads to its screens, in order: ARCADE and TIME ATTACK: SELECT SERIES,
-SELECT CLASS (only for a series with several classes), SELECT VEHICLE; FREE PLAY: SELECT COURSE, SELECT VEHICLE,
-OPTIONS; every mode then SELECT MUSIC
+accepts); it sounds `press-start` and replaces the line with TITLE's line for the rest of the page, with no way back
+to PRESS START. TITLE's line is a carousel on row 28 over rows 27–29 at half brightness: its item (YELLOW, DARK when
+it offers nothing) between WHITE `◀` and `▶` four columns either side, among SERIES, FREE PLAY and SETTINGS; BACK does
+nothing. There is no mode: SERIES leads to SELECT SERIES, SELECT CLASS (only for a series with several classes),
+SELECT SESSION and SELECT VEHICLE; FREE PLAY, the assembly bench, to SELECT COURSE, SELECT VEHICLE and OPTIONS; both
+then to SELECT MUSIC
 (only when the run offers a track). BACK returns to the previous screen and does nothing on TITLE; the CONFIRM on the
 last screen shown requests the run (`menu-entry`), which shows
 the PRE-RACE card and then starts. Each screen starts from the current selection, else the player record's latest
-selection for that screen (TITLE's mode, SELECT SERIES, SELECT CLASS, SELECT COURSE, SELECT VEHICLE and SELECT MUSIC
-under the keys `mode`, `series`, `class`, `course`, `vehicle` and `music`), else its first selectable item; each CONFIRM on those screens saves
-its choice as the latest. RETRY keeps the run's request; CHANGE VEHICLE goes to SELECT VEHICLE and SELECT to the mode's
-first screen, and both pass the rest of the mode's screens and SELECT MUSIC again.
+selection for that screen (TITLE's line, SELECT SERIES, SELECT CLASS, SELECT SESSION, SELECT COURSE, SELECT VEHICLE and
+SELECT MUSIC under the keys `title`, `series`, `class`, `session`, `course`, `vehicle` and `music`), else its first
+selectable item; each CONFIRM on those screens saves its choice as the latest. RETRY keeps the run's request; CHANGE
+VEHICLE goes to SELECT VEHICLE and SELECT to the first screen after TITLE (SELECT SERIES or SELECT COURSE), and both
+pass the rest of the screens and SELECT MUSIC again.
 
 A menu item can say what happens while the cursor is on it (`focus`): the menu calls it when the cursor comes to the
 item and its returned function once when the cursor leaves it or the screen host makes another screen current.
@@ -167,7 +172,7 @@ the audio lifetime's one path (`setVolume`): the record keeps it, the stepper sh
 once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume, which is its audition. While the cursor is on MUSIC, the player record's latest track (else, and after MUSIC OFF,
 the first track) plays as an audition, so its volume is set by ear.
 
-- TITLE: a mode with no selectable course is DARK.
+- TITLE: SERIES with no offered series, or FREE PLAY with no selectable course, is DARK.
 - SELECT SERIES shows the series image filling the frame, the HUD's 4×4-tile road arrow (ARROW) at columns 0–3
   pointing left and 36–39 pointing right on rows 13–16, and `PRESS START` (YELLOW, meaning CONFIRM) centred on row
   27; the arrows are drawn when there are several series. LEFT and RIGHT (and UP and DOWN) slide the next image in
@@ -183,6 +188,12 @@ the first track) plays as an audition, so its volume is set by ear.
   choosing another class clears the chosen vehicle. SELECT COURSE (FREE PLAY) lists course display
   names from the course index, grouped by series. Each course is listed once, under the first offered series in
   series order whose classes run it, in its classes' order; courses in no series follow last, with no note.
+- SELECT SESSION stands over the series image like SELECT CLASS: on row 23 the session, RACE or TIME ATTACK (YELLOW),
+  between WHITE `◀` and `▶`; for RACE on row 25 `<n> LAPS  <field> BIKES|CARS` (WHITE); for TIME ATTACK on row 25
+  `BEST LAP <time>` on a circuit, else `RECORD <time>` (GREEN; `--'--"--` without one), and on row 26 the manufacturer
+  and model of the vehicle it was set with (WHITE). The record is the class's fastest current TIME ATTACK record at any
+  goal (`shownRecord`), counted only while its course and vehicle identities are current (the course index's
+  `buildSha256` and the record vehicle's `sessionVehicleSha256`). Every class offers both sessions.
 - SELECT VEHICLE offers the class's vehicles for a class and every catalog vehicle in FREE PLAY, one catalog page per
   vehicle ([SELECT VEHICLE](#select-vehicle)), drawn for a class over the series image at quarter brightness and
   otherwise on the plain background. LEFT and RIGHT change the vehicle and UP and DOWN its
@@ -208,7 +219,7 @@ the first track) plays as an audition, so its volume is set by ear.
   RESULT, is silent. Leaving a run for a series screen plays the title track from its start again.
 
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
-every delivered course is a DEV one today, so every mode is DARK.
+every delivered course is a DEV one today, so SERIES and FREE PLAY are DARK.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,
@@ -221,7 +232,7 @@ or set the first, and, on a circuit, BEST LAP.
 A run without a finish, which QUIT ended, has RESULT (SUNSET) as its title and `LAPS <n>`, its completed laps, instead of
 TIME, and BEST LAP once it completed one. The race facts give the rank (by the race's standing) and times; the run's one
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
-a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the run mode's first selection screen
+a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the first selection screen after TITLE
 with the run's selection) and TITLE; leaving the run ends it. A Session rebuilt by DEV tuning restarts
 the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
 
@@ -290,10 +301,13 @@ value is longer than 12 characters, and a six-speed vehicle's engine column ends
 The composition root reads the delivered [course index](content-and-gameplay.md#course-index) once and passes it to
 the selection screens, in its order and with its display names.
 
-A run is requested as a typed run request: the mode, where it is driven, the vehicle and the player's color, plus the
-rival count, rival pool, traffic and laps in FREE PLAY. ARCADE and TIME ATTACK name a series and one of its classes,
-and the class names the course and gives the laps, field and traffic; FREE PLAY names the course. No ARCADE setting is looked up from a course. The run's assembly admits the request against the course, its
-class and the vehicle catalog and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
+A run is requested as a typed run request ([`run-request.ts`](../src/shell/run-request.ts)): a class run names a series,
+one of its classes and its session (RACE or TIME ATTACK), and the class names the course and gives the laps, field and
+traffic; a FREE PLAY run names the course and its rival count, rival pool, traffic and laps. Both carry the vehicle,
+the player's color and the track. There is no mode: the one translation of a run request into its Session request
+(`sessionRequest`) gives RACE the ARCADE rules, TIME ATTACK its own and FREE PLAY its options. No class setting is looked
+up from a course. The run's assembly admits that Session request against the course, its class and the vehicle catalog
+and derives its Session configuration (`compileSessionConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
@@ -303,30 +317,31 @@ like an assembly.
 
 Session parameters are case-sensitive:
 
-| Parameter | Meaning                                                                                                                |
-| --------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `series`  | Series ID; with `class`, names an ARCADE or TIME ATTACK run of that class                                              |
-| `class`   | Class ID within `series`                                                                                               |
-| `course`  | Lowercase delivered course ID; names a FREE PLAY run on it                                                             |
-| `mode`    | `ARCADE`, `FREE_PLAY` or `TIME_ATTACK`; default `ARCADE` with a class and `FREE_PLAY` with a course; other values fail |
-| `vehicle` | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                                       |
-| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                            |
-| `laps`    | FREE PLAY count parsed with `Number`; positive integer within course limit                                             |
-| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail               |
-| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                          |
+| Parameter | Meaning                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------- |
+| `series`  | Series ID; with `class`, names a run of that class                                                                    |
+| `class`   | Class ID within `series`                                                                                              |
+| `session` | A class run's session: `race` (RACE, the default) or `attack` (TIME ATTACK); other values, or one with `course`, fail |
+| `course`  | Lowercase delivered course ID; names a FREE PLAY run on it                                                            |
+| `vehicle` | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                                      |
+| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                           |
+| `laps`    | FREE PLAY count parsed with `Number`; positive integer within course limit                                            |
+| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail              |
+| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                         |
 
-ARCADE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle, its entries and
+RACE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle, its entries and
 laps and its course, with the checkpoint clock, ignoring individual query overrides; TIME ATTACK runs the class's first
-vehicle alone on its course. A URL naming a course alone runs neither: `mode=ARCADE` or `mode=TIME_ATTACK` with
-`course` is an error, as are `course` together with `series` or `class`, `series` without `class` or the reverse, an
-unknown class or course, and FREE PLAY with a class. FREE PLAY exposes those settings and has no clock; there is no
-`clock` parameter, so an old `clock` value is other URL data and ignored. Invalid vehicle, numeric or course/Session
+vehicle alone on its course. A URL naming a course runs FREE PLAY: `session` with `course` is an error, as are
+`course` together with `series` or `class`, `series` without `class` or the reverse, and an unknown class, course or
+session. FREE PLAY exposes those settings and has no clock. There is no `mode` or `clock` parameter, so an old value
+of either is other URL data and ignored. Invalid vehicle, numeric or course/Session
 combinations produce an error. FREE PLAY's defaults are the first vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
 fails to load.
 
 ```text
 ?series=trial&class=a
-?course=tsukuba&mode=FREE_PLAY&vehicle=TESTAROSSA&rivals=15&laps=1
+?series=tsukuba-clubman&class=911-cup&session=attack
+?course=tsukuba&vehicle=TESTAROSSA&rivals=15&laps=1
 ```
 
 A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.
@@ -452,20 +467,20 @@ Session's rules (the clock, the course type) and race facts (two or more competi
 rival ahead). Traffic is not counted: POS and every other count read the competitors only. The run's sound effects read
 the same race facts, their crossing events included ([Audio](audio.md#sound-effects)), and nothing else of the race. Another table holds every element's place in the 40×30 grid, so moving one changes only its numbers.
 
-| Rows  | Elements                                                                                                                                                  |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                          |
-| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM   |
-| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                        |
-| 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                          |
-| 10–12 | Ornate small WHITE, before GO: the course's display name, the mode and, in TIME ATTACK when one exists, `RECORD 1'23"456 <VEHICLE>` (its vehicle's model) |
-| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                           |
-| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                     |
-| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                     |
-| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                                |
-| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                           |
-| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                   |
-| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                                          |
+| Rows  | Elements                                                                                                                                                                    |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                                            |
+| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                     |
+| 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                                          |
+| 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                                            |
+| 10–12 | Ornate small WHITE, before GO: the course's display name, the session (or FREE PLAY) and, in TIME ATTACK when one exists, `RECORD 1'23"456 <VEHICLE>` (its vehicle's model) |
+| 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                                             |
+| 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                                       |
+| 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                                       |
+| 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                                                  |
+| 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                                             |
+| 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                                     |
+| 29    | Meters 6 tiles (48 pixels) long: steering in columns 17–22, throttle in 26–31 and brake in 33–38                                                                            |
 
 Rows 1–2 hold each label with its value beside it: TIME in columns 1–4 with the seconds right-aligned to column 8,
 race time from column 11, POS from column 21 with its value from column 25, and STAGE from column 31 with its number
@@ -573,7 +588,7 @@ the latter checked against the identity of `vehicleId` whichever vehicle the run
 its records read-only down to every record and its splits, loaded or set alike.
 
 [`src/shell/run-records.ts`](../src/shell/run-records.ts) alone decides what a run compares with and records. Only a
-TIME ATTACK run records (`createRunRecords`); RACE (ARCADE), FREE PLAY, the attract demo and a DEV-tuned rebuilt
+TIME ATTACK run records (`createRunRecords`); RACE, FREE PLAY, the attract demo and a DEV-tuned rebuilt
 Session record and compare nothing, and a run requested by URL records as one requested from the menus. On a CIRCUIT
 each completed lap is judged against the class's record when it completes: a faster lap is saved at once, with its
 gate times within the lap, and `new-record` sounds then, so ending the run, or leaving it any other way, never loses
@@ -583,8 +598,8 @@ not current counts as none and is replaced. While driven, each of the player's c
 run's crossing of the same index (within the lap on a CIRCUIT) against the record as it stands, once the goal the run
 can reach is known: from the start on a course with one goal, else once the race has decided the route
 (`routeLinks`), whose last FINISH is the goal. READY, the PRE-RACE card and RESULT show the record as it stood before
-the run: READY and the PRE-RACE card on a course with one goal (`shownRecord`), RESULT at the goal the run was judged
-at. The judgement and the HUD's record belong to the Session they were made for.
+the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
+of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the Session they were made for.
 
 Loading admits version 6 with exactly these keys and value types, and versions 1 to 5, whose settings carry over with
 no records: version 1 had none, and versions 2 to 5 kept TIME TRIAL and ARCADE records, whose keys name no class.
@@ -630,7 +645,7 @@ is adopted as content. BODY CONTACT is the rebuilt Session's own: its walls, cou
 tuned values at once. An admitted adjustment rebuilds the
 Session through the same assembly as startup: a new Session vehicle with the same vehicle definition and materials
 drives the tuned definition, in a FREE PLAY Session with no rivals, the current lap count, no time limit, start speed 0
-and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own mode (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own rules (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definition for further adjustments and export. Reloading the page restores the product Session. EXPORT saves the tuned
 driving definition (`default.json`) and the Session vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the

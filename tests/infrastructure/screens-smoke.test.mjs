@@ -98,7 +98,7 @@ test('the front end screens render from the delivered content', async () => {
       for (let i = 0; i < SERIES_SLIDE_STEPS; i++) screen.tick();
     });
 
-  // TITLE: PRESS START, then the mode line for the rest of the page.
+  // TITLE: PRESS START, then its line (SERIES, FREE PLAY, SETTINGS) for the rest of the page.
   flow.title();
   await capture('title-press-start');
   send('CONFIRM');
@@ -118,6 +118,11 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM');
   await capture('select-class');
   send('CONFIRM');
+  // SELECT SESSION: RACE, then TIME ATTACK with the class's record (none yet), and back to RACE.
+  await capture('select-session');
+  send('RIGHT');
+  await capture('select-session-attack');
+  send('LEFT', 'CONFIRM');
   await capture('select-vehicle');
   send('CONFIRM');
   await capture('select-music');
@@ -125,6 +130,7 @@ test('the front end screens render from the delivered content', async () => {
   await capture('select-music-off');
   send('CONFIRM');
   assert.equal(requested?.seriesId, 'trial');
+  assert.equal(requested.session, 'RACE');
   assert.equal(requested.track, null);
   // TSUKUBA CLUBMAN has no race tracks: the run starts from SELECT VEHICLE with MUSIC OFF, for each of its classes.
   // Each class screen starts from the class chosen last, so one RIGHT reaches the next class.
@@ -136,15 +142,18 @@ test('the front end screens render from the delivered content', async () => {
     send('CONFIRM');
     if (i === 0) await capture('select-class-tsukuba');
     send(...(i > 0 ? ['RIGHT'] : []), 'CONFIRM');
+    // TIME ATTACK for 911 CUP, RACE for the others.
+    send(...(i === 2 ? ['RIGHT'] : []), 'CONFIRM');
     if (i === 2) await capture('select-vehicle-tsukuba');
     requested = null;
     send('CONFIRM');
     assert.equal(requested?.classId, classId);
+    assert.equal(requested.session, i === 2 ? 'TIME_ATTACK' : 'RACE');
     assert.equal(requested.track, null);
     assert.equal(titleTrack, 'placeholder-one');
   }
 
-  // The PRE-RACE card of the last request, 911 CUP: its course map from the compiled course, halfway loaded.
+  // The PRE-RACE card of the last request, 911 CUP's TIME ATTACK: its course map from the compiled course, halfway loaded.
   const course = await loadDeliveredCourse(content, 'tsukuba', await loadSurfaceMaterials(content));
   const card = createPreRaceScreen(
     frame,
@@ -153,7 +162,7 @@ test('the front end screens render from the delivered content', async () => {
     preRaceCardOf(requested, series, courses),
     () => {},
   );
-  card.facts({ map: createCourseMap(course), field: 16, bikes: false, slot: 16, best: null });
+  card.facts({ map: createCourseMap(course), field: 1, bikes: false, slot: 16, best: null });
   card.progress(0.6);
   screen = card.screen;
   await capture('prerace');
@@ -161,7 +170,7 @@ test('the front end screens render from the delivered content', async () => {
   assert.ok(Math.abs(map.lengthMeters - 2045) < 100, `TSUKUBA's lap is ${map.lengthMeters} m`);
   assert.ok(map.checkpoints.length > 0);
 
-  // Inside a series the wallpaper stays: through the screen host, CONFIRM on SELECT CLASS draws SELECT VEHICLE on the
+  // Inside a series the wallpaper stays: through the screen host, CONFIRM on SELECT CLASS draws SELECT SESSION on the
   // next frame, at full brightness.
   let now = 0;
   const pending = [],
@@ -199,7 +208,7 @@ test('the front end screens render from the delivered content', async () => {
   frames(1);
   assert.notEqual(host.screen, classScreen);
   assert.deepEqual(brightness, [TRANSITION_STEPS]);
-  await save('wallpaper-vehicle');
+  await save('wallpaper-session');
   // BACK returns to SELECT CLASS on the next frame too.
   commands.push('BACK');
   frames(1);

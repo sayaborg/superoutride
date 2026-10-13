@@ -14,7 +14,6 @@ import {
 import { tachometerLitBars, tachometerTiles } from '../image/tachometer.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
-import { MODE_NAMES, type RunRequest } from './run-request.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { TEXT_COLUMNS, type TextLayer } from '../view/text-layer.js';
 import { formatMilliseconds, formatRaceTime, formatTimeDifference } from './race-time.js';
@@ -23,7 +22,7 @@ import type { RecordSplit } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the Session's course, mode and the player vehicle's engine speeds and steering picture from
+ * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the Session's course, the name of its rules and the player vehicle's engine speeds and steering picture from
  * its definitions, and the record the run compares against.
  */
 export interface HudFacts {
@@ -33,7 +32,8 @@ export interface HudFacts {
   readonly camera: Pick<CameraState, 'heldAtLimit'>;
   readonly session: {
     readonly courseName: string;
-    readonly mode: RunRequest['mode'];
+    /** The name of the Session's rules: its session, or FREE PLAY. */
+    readonly rules: string;
     /** The tachometer's redline; its full scale is `TACHOMETER.fullScale` times it. */
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
@@ -87,7 +87,7 @@ export const HUD_LAYOUT = Object.freeze({
   roadLeft: [0, 13],
   roadRight: [36, 13],
   courseName: ['center', 10],
-  mode: ['center', 11],
+  rules: ['center', 11],
   record: ['center', 12],
   lamp1: [15, 13],
   lamp2: [19, 13],
@@ -428,7 +428,7 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: ({ race }) => beforeGo(race),
     write({ session }, text) {
       write(text, 'courseName', session.courseName, small('WHITE'));
-      write(text, 'mode', MODE_NAMES[session.mode], small('WHITE'));
+      write(text, 'rules', session.rules, small('WHITE'));
     },
   },
   {

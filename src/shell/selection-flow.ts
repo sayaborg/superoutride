@@ -11,7 +11,16 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { createMenuScreen, type MenuDefinition, type MenuItem } from './menu.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
-import { MODE_NAMES, MUSIC_OFF, latestTrack, offeredTracks, recordedColor, type RunRequest } from './run-request.js';
+import {
+  isFreePlay,
+  MUSIC_OFF,
+  latestTrack,
+  offeredTracks,
+  recordedColor,
+  SESSION_NAMES,
+  type RunRequest,
+  type SessionName,
+} from './run-request.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { Screen } from './screen-host.js';
@@ -23,17 +32,23 @@ import type { TilePicture } from '../image/tile-picture.js';
 import { createPictureMenuScreen, type PictureMenuLine } from './picture-menu-screen.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { SIM_DT } from '../race/fixed-step.js';
+import { shownRecord } from './run-records.js';
+import { formatMilliseconds, NO_TIME } from './race-time.js';
 
-type Mode = RunRequest['mode'];
-type Step = 'SERIES' | 'CLASS' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'MUSIC';
+/** Where TITLE's line leads: the series, or FREE PLAY, the assembly bench. */
+type Place = 'SERIES' | 'FREE_PLAY';
+type Step = 'SERIES' | 'CLASS' | 'SESSION' | 'COURSE' | 'VEHICLE' | 'OPTIONS' | 'MUSIC';
 
-/** The selection screens after SELECT MODE, by mode; SELECT MUSIC is last, and its confirm requests the run. */
-const FLOW: Readonly<Record<Mode, readonly Step[]>> = Object.freeze({
-  ARCADE: ['SERIES', 'CLASS', 'VEHICLE', 'MUSIC'],
+/** The selection screens after TITLE, by place; SELECT MUSIC is last, and its confirm requests the run. */
+const FLOW: Readonly<Record<Place, readonly Step[]>> = Object.freeze({
+  SERIES: ['SERIES', 'CLASS', 'SESSION', 'VEHICLE', 'MUSIC'],
   FREE_PLAY: ['COURSE', 'VEHICLE', 'OPTIONS', 'MUSIC'],
-  TIME_ATTACK: ['SERIES', 'CLASS', 'VEHICLE', 'MUSIC'],
 });
-const MODES = (Object.keys(MODE_NAMES) as Mode[]).map((mode) => ({ mode, label: MODE_NAMES[mode] }));
+const PLACES: readonly { readonly place: Place; readonly label: string }[] = Object.freeze([
+  { place: 'SERIES', label: 'SERIES' },
+  { place: 'FREE_PLAY', label: 'FREE PLAY' },
+]);
+const SESSIONS = Object.keys(SESSION_NAMES) as SessionName[];
 
 /**
  * What the selection offers: delivered courses, series and vehicles, FREE PLAY's rules, and whether DEV content is
@@ -53,6 +68,8 @@ export interface SelectionCatalog {
   readonly dev: boolean;
   /** The title logo, which TITLE shows. */
   readonly logo: TilePicture;
+  /** Each catalog vehicle's identity (`sessionVehicleSha256`), which records are kept against. */
+  readonly vehicleSha256: ReadonlyMap<string, string>;
 }
 
 /** Where the selection draws and what its screens lead to. */
@@ -79,10 +96,10 @@ export interface SelectionDevices {
 }
 
 /**
- * The selection flow from TITLE to a run request. TITLE leads to SELECT MODE, and each mode's screens follow the flow
- * table; SELECT CLASS appears only for a series with several classes. ARCADE and TIME ATTACK run a class of a series;
- * FREE PLAY runs a course. BACK returns to the previous screen. A mode, series or course that offers nothing to select
- * is DARK.
+ * The selection flow from TITLE to a run request. TITLE's line leads to the series or to FREE PLAY, whose screens
+ * follow the flow table; SELECT CLASS appears only for a series with several classes, and SELECT SESSION chooses how the
+ * class is driven, RACE or TIME ATTACK. FREE PLAY runs a course. BACK returns to the previous screen. A line item,
+ * series or course that offers nothing to select is DARK.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, driving, player, dev, freePlay, music } = catalog;
@@ -101,7 +118,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     })),
     ...(dev ? [{ title: '', ids: courses.filter((c) => !inSeries.has(c.id)).map((c) => c.id) }] : []),
   ].filter((group) => group.ids.length > 0);
-  const offered = (mode: Mode) => (mode === 'FREE_PLAY' ? groups.length > 0 : series.length > 0);
+  const offered = (at: Place) => (at === 'FREE_PLAY' ? groups.length > 0 : series.length > 0);
   const courseOf = (id: string) => courses.find((c) => c.id === id)!;
 
   // The latest choice on each selection screen, kept in the player record; a screen starts from the current
@@ -115,10 +132,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     return Number.isInteger(value) && value >= min && value <= max ? value : null;
   };
   // The current selection.
-  let mode: Mode = MODES.find((m) => m.mode === latest('mode'))?.mode ?? 'ARCADE',
+  let place: Place = PLACES.find((p) => p.place === latest('title'))?.place ?? 'SERIES',
     step = -1,
     seriesChoice: CompiledSeries | null = null,
     classChoice: SeriesClass | null = null,
+    session: SessionName = SESSIONS.find((s) => s === latest('session')) ?? 'RACE',
     courseId: string | null = null,
     vehicleId: string | null = null,
     color: string | null = null,
@@ -131,40 +149,75 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // The most rivals a course's grid holds within the Session rules: the RIVALS range, which a course change keeps to.
   const maxRivals = (id: string) => Math.min(SESSION_RULE_LIMITS.rivals, gridRivalCapacity(courseOf(id).gridSlots));
   // The tracks the run offers besides MUSIC OFF: SELECT MUSIC is shown only when there are two or more choices.
-  const tracks = () => offeredTracks(mode === 'FREE_PLAY' ? null : seriesChoice, music);
+  const tracks = () => offeredTracks(place === 'FREE_PLAY' ? null : seriesChoice, music);
   const needed = (at: Step) =>
     at === 'CLASS' ? seriesChoice!.classes.length > 1 : at === 'MUSIC' ? tracks().length > 0 : true;
   // Whether the current screen is the last one shown, whose CONFIRM starts the run.
-  const last = () => FLOW[mode].slice(step + 1).every((at) => !needed(at));
+  const last = () => FLOW[place].slice(step + 1).every((at) => !needed(at));
   const menu = (definition: MenuDefinition, initial = 0) =>
     devices.show(createMenuScreen(devices.frame, devices.text, devices.present, definition, initial));
   const back = () => {
     do step--;
-    while (step >= 0 && !needed(FLOW[mode][step]!));
+    while (step >= 0 && !needed(FLOW[place][step]!));
     if (step < 0) title();
     else showStep();
   };
   const forward = () => {
     do step++;
-    while (step < FLOW[mode].length && !needed(FLOW[mode][step]!));
-    if (step < FLOW[mode].length) showStep();
+    while (step < FLOW[place].length && !needed(FLOW[place][step]!));
+    if (step < FLOW[place].length) showStep();
     else devices.run(request(), back);
   };
   const request = (): RunRequest => {
     // Without SELECT MUSIC the run takes its only choice, MUSIC OFF.
     const choice = { vehicleId: vehicleId!, color, track: needed('MUSIC') ? track : null };
-    if (mode !== 'FREE_PLAY')
-      return Object.freeze({ ...choice, mode, seriesId: seriesChoice!.id, classId: classChoice!.id });
-    return Object.freeze({ ...choice, mode, courseId: courseId!, lapCount, rivalCount, rivalPool, traffic });
+    if (place === 'SERIES')
+      return Object.freeze({ ...choice, seriesId: seriesChoice!.id, classId: classChoice!.id, session });
+    return Object.freeze({ ...choice, courseId: courseId!, lapCount, rivalCount, rivalPool, traffic });
+  };
+  // SELECT SESSION's lines: RACE's laps and field; TIME ATTACK's record, its time (a lap on a circuit) and the vehicle
+  // it was set with.
+  const sessionLines = (c: SeriesClass, at: SessionName): readonly PictureMenuLine[] => {
+    const course = courseOf(c.course);
+    if (at === 'RACE') return [{ row: 25, text: raceText(c), palette: TEXT_PALETTES.WHITE }];
+    const record = shownRecord(player.records, {
+      seriesId: c.series.id,
+      classId: c.id,
+      courseSha256: course.buildSha256,
+      vehicleSha256: catalog.vehicleSha256,
+    });
+    const listing = record && vehicles.find((v) => v.compiledVehicle.id === record.vehicleId)?.listing;
+    return [
+      {
+        row: 25,
+        text: `${course.type === 'CIRCUIT' ? 'BEST LAP' : 'RECORD'} ${record ? formatMilliseconds(record.timeMs) : NO_TIME}`,
+        palette: TEXT_PALETTES.GREEN,
+      },
+      ...(record
+        ? [
+            {
+              row: 26,
+              text: listing
+                ? `${listing.metadata.manufacturer} ${listing.metadata.model}`.toUpperCase()
+                : record.vehicleId,
+              palette: TEXT_PALETTES.WHITE,
+            },
+          ]
+        : []),
+    ];
   };
   // SELECT CLASS's lines: the course, laps and field; the vehicle, or how many vehicles. A class's record is shown only
   // inside the class.
-  const classLines = (c: SeriesClass): readonly PictureMenuLine[] => {
-    const listed = c.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!);
-    const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
-    const fieldBikes = c.entries.every(
+  const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
+  // A class's race: its laps and its field, BIKES when the whole field is bikes.
+  const raceText = (c: SeriesClass) => {
+    const bikes = c.entries.every(
       (e) => vehicles.find((v) => v.compiledVehicle.id === e.vehicle)!.listing.form === 'bike',
     );
+    return `${c.laps} LAPS  ${c.entries.length} ${form(bikes)}`;
+  };
+  const classLines = (c: SeriesClass): readonly PictureMenuLine[] => {
+    const listed = c.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!);
     const vehicle =
       listed.length === 1
         ? `${listed[0]!.listing.metadata.manufacturer} ${listed[0]!.listing.metadata.model}`.toUpperCase()
@@ -172,7 +225,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     return [
       {
         row: 25,
-        text: `${courseOf(c.course).name}  ${c.laps} LAPS  ${c.entries.length} ${form(fieldBikes)}`,
+        text: `${courseOf(c.course).name}  ${raceText(c)}`,
         palette: TEXT_PALETTES.WHITE,
       },
       { row: 26, text: vehicle, palette: TEXT_PALETTES.WHITE },
@@ -187,9 +240,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // OPTIONS leads on to SELECT MUSIC.
   const next = (): MenuItem => ({ label: 'NEXT', entry: last(), confirm: forward });
 
-  // TITLE's PRESS START is confirmed once for the page; afterwards TITLE shows the mode line.
+  // TITLE's PRESS START is confirmed once for the page; afterwards TITLE shows its line.
   const titleState: TitleState = { pressed: false };
-  // TITLE's mode line: the modes, then SETTINGS. A mode that offers nothing is DARK.
+  // TITLE's line: SERIES, FREE PLAY, then SETTINGS. One that offers nothing is DARK.
   const settings = () =>
     showSettings(
       player,
@@ -202,13 +255,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       title,
     );
   const titleItems: readonly MenuItem[] = [
-    ...MODES.map((m): MenuItem => ({
-      label: m.label,
-      disabled: !offered(m.mode),
+    ...PLACES.map((p): MenuItem => ({
+      label: p.label,
+      disabled: !offered(p.place),
       confirm: () => {
-        if (m.mode !== mode) [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
-        mode = m.mode;
-        remember('mode', mode);
+        if (p.place !== place) [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
+        place = p.place;
+        remember('title', place);
         forward();
       },
     })),
@@ -229,7 +282,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         titleItems,
         Math.max(
           0,
-          MODES.findIndex((m) => m.mode === mode),
+          PLACES.findIndex((p) => p.place === place),
         ),
         // CONFIRM on PRESS START is the user gesture that enables sound and fullscreen.
         { press: () => devices.activate() },
@@ -238,8 +291,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   }
   function showStep() {
     // A series' title track plays on its screens; FREE PLAY's screens are silent.
-    devices.titleMusic(mode !== 'FREE_PLAY' && seriesChoice ? seriesChoice.music.title : null);
-    switch (FLOW[mode][step]!) {
+    devices.titleMusic(place === 'SERIES' && seriesChoice ? seriesChoice.music.title : null);
+    switch (FLOW[place][step]!) {
       case 'SERIES': {
         // The shown series plays its title track from its start; a slide crossfades to the next one's.
         const current = Math.max(
@@ -291,6 +344,33 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           ),
         );
       }
+      case 'SESSION': {
+        // RACE and TIME ATTACK, over the series image like SELECT CLASS.
+        const chosen = classChoice!;
+        const items = SESSIONS.map((s): MenuItem => ({
+          label: SESSION_NAMES[s],
+          confirm: () => {
+            session = s;
+            remember('session', s);
+            forward();
+          },
+        }));
+        return devices.show(
+          createPictureMenuScreen(
+            devices.frame,
+            devices.text,
+            devices.present,
+            { title: 'SELECT SESSION', items: () => items, back },
+            {
+              picture: seriesChoice!.image,
+              band: [22, 29],
+              choiceRow: 23,
+              lines: (index) => sessionLines(chosen, SESSIONS[index]!),
+            },
+            SESSIONS.indexOf(session),
+          ),
+        );
+      }
       case 'COURSE': {
         // Each course carries its group's series title under it.
         const rows = groups.flatMap((group) =>
@@ -312,7 +392,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       }
       case 'VEHICLE': {
         const candidates =
-          mode !== 'FREE_PLAY'
+          place === 'SERIES'
             ? classChoice!.vehicles.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!)
             : vehicles;
         return devices.show(
@@ -324,13 +404,12 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio,
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
-              fixedColors: mode !== 'FREE_PLAY' && classChoice!.fixedColors,
+              fixedColors: place === 'SERIES' && classChoice!.fixedColors,
               // The color the Session gives the player: with fixed colors its class entry's.
-              colorOf: (v) =>
-                sessionPlayerColor(mode === 'FREE_PLAY' ? null : classChoice, v, recordedColor(player, v)),
+              colorOf: (v) => sessionPlayerColor(place === 'SERIES' ? classChoice : null, v, recordedColor(player, v)),
               entry: last(),
               // In a series the page stands over the series image at quarter brightness.
-              background: mode === 'FREE_PLAY' ? null : seriesChoice!.image,
+              background: place === 'SERIES' ? seriesChoice!.image : null,
             },
             {
               confirm: (vehicle, chosen) => {
@@ -412,7 +491,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             devices.present,
             { title: 'SELECT MUSIC', items: () => items, back },
             {
-              picture: mode === 'FREE_PLAY' ? null : seriesChoice!.image,
+              picture: place === 'SERIES' ? seriesChoice!.image : null,
               band: [22, 29],
               choiceRow: 24,
               lines: (index) => [
@@ -427,12 +506,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   }
   // A run's request becomes the current selection.
   const adopt = (run: RunRequest) => {
-    mode = run.mode;
     [vehicleId, color, track] = [run.vehicleId, run.color, run.track];
-    if (run.mode !== 'FREE_PLAY') {
+    if (!isFreePlay(run)) {
+      place = 'SERIES';
       classChoice = catalog.series.seriesClass(run.seriesId, run.classId);
-      [seriesChoice, courseId] = [classChoice?.series ?? null, null];
-    } else
+      [seriesChoice, courseId, session] = [classChoice?.series ?? null, null, run.session];
+    } else {
+      place = 'FREE_PLAY';
       [seriesChoice, classChoice, courseId, lapCount, rivalCount, rivalPool, traffic] = [
         null,
         null,
@@ -442,16 +522,17 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         run.rivalPool,
         run.traffic,
       ];
+    }
   };
   return Object.freeze({
     title,
     /** SELECT VEHICLE with `run`'s selection. */
     vehicle(run: RunRequest) {
       adopt(run);
-      step = FLOW[mode].indexOf('VEHICLE');
+      step = FLOW[place].indexOf('VEHICLE');
       showStep();
     },
-    /** The first selection screen of `run`'s mode, with its selection. */
+    /** The first selection screen of `run`'s place, with its selection. */
     select(run: RunRequest) {
       adopt(run);
       step = -1;

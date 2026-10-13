@@ -7,7 +7,7 @@ import type { MenuResponse, Screen } from './screen-host.js';
 import { createMenu, SCREEN_BACKGROUND, writeCentred, writeChoice, type MenuItem } from './menu.js';
 import { halveTextRows } from './picture-menu-screen.js';
 
-/** The logo's top text row (y 16) and the PRESS START and mode row, with the band darkened behind the mode. */
+/** The logo's top text row (y 16) and the PRESS START and line row, with the band darkened behind the line. */
 const LOGO_Y = 16;
 const LINE_ROW = 28;
 const BAND: readonly [number, number] = [27, 29];
@@ -33,9 +33,9 @@ export interface TitleState {
 
 /**
  * TITLE: the logo centred at y 16 over its background. Before the first gesture PRESS START blinks on row 28; CONFIRM
- * there is the gesture (`start`, which sounds `press-start`) and replaces it with the mode line for the rest of the
- * page: the mode, YELLOW (DARK when it offers nothing), between WHITE `◀` and `▶` on row 28, rows 27–29 at half
- * brightness, LEFT and RIGHT changing it like a carousel. BACK does nothing on TITLE.
+ * there is the gesture (`start`, which sounds `press-start`) and replaces it with its line for the rest of the page:
+ * SERIES, FREE PLAY or SETTINGS, YELLOW (DARK when it offers nothing), between WHITE `◀` and `▶` on row 28, rows 27–29
+ * at half brightness, LEFT and RIGHT changing it like a carousel. BACK does nothing on TITLE.
  */
 export function createTitleScreen(
   frame: SoftwareSurface,

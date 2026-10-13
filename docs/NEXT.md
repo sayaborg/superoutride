@@ -27,8 +27,11 @@
 - The [product specification](product.md) is the target for Stages GS and 16. Series documents own ARCADE settings:
   each class of a series is one ARCADE race (course, laps, vehicles, field and traffic), and a course may be run by
   several classes and series; measured products belong to course and vehicle, and a Session applies its class's margin;
-  FREE PLAY rivals are drawn from vehicle pools; TIME TRIAL runs alone. Stage GS replaces MODE with SERIES, CLASS and
-  SESSION (RACE / TIME ATTACK).
+  FREE PLAY rivals are drawn from vehicle pools.
+- Stage GS, up to GS-4: there is no MODE. TITLE's line is SERIES / FREE PLAY / SETTINGS; a series holds no rule values
+  (series document version 13), each class is one complete race definition, and SELECT SESSION drives it as RACE (the
+  former ARCADE run) or TIME ATTACK (alone; on a circuit without a finish, ended by PAUSE's QUIT). Records are TIME
+  ATTACK's alone, one table per class (player record version 6). Reference runs are FREE PLAY Sessions alone.
 - Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
@@ -99,9 +102,9 @@
   fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 
-Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver) and, beside it,
-[GS-4](#gs-4--mode-removed) of [Stage GS](#stage-gs--series-class-and-session-replace-mode); then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: [AI-4](#ai-4--path-offsets) of [Stage AI](#stage-ai--the-model-planned-driver); then
+[GS-5](#gs-5--rename-session--run) of [Stage GS](#stage-gs--series-class-and-session-replace-mode) once Stages AI and HD
+are on main; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -204,27 +207,20 @@ finish, which may touch how the race owns its end; that change stays with the ra
 takeover driver stays with Stage AI. Rebase on main before each PR and resolve conflicts in favour of the other
 stream's logic. GS-5 waits for both streams, then runs alone.
 
-| PR   | Purpose                                                        | Kind             |
-| ---- | -------------------------------------------------------------- | ---------------- |
-| GS-4 | MODE is removed from the flow: TITLE line, SELECT SESSION, URL | logic + deletion |
-| GS-5 | Rename `Session` → Run across code and documents               | rename only      |
+| PR   | Purpose                                          | Kind        |
+| ---- | ------------------------------------------------ | ----------- |
+| GS-5 | Rename `Session` → Run across code and documents | rename only |
 
-Split any PR that exceeds one review and report the split. If GS-3 and GS-4 need old and new paths side by side, GS-4
-removes the old one and says so here.
-
-### GS-4 — MODE removed
-
-TITLE's line becomes SERIES / FREE PLAY / SETTINGS and SELECT SESSION is added. Until then TIME ATTACK is a TITLE
-mode beside ARCADE (GS-3a's side-by-side path); GS-4 removes both as modes. SELECT SESSION shows the class's TIME
-ATTACK record (`shownRecord`), which SELECT CLASS no longer shows. `MODE_NAMES` and every mode branch in
-the shell are removed; FREE PLAY is identified as FREE PLAY, not as a mode. URL parameters become `series` + `class`
-(+ `session=race|attack`) and `course`; `mode` disappears. The screens smoke saves the new screen.
+GS-1 to GS-4 are done. GS-3 was split into GS-3a (the TIME ATTACK Session and the run without a finish) and GS-3b
+(TIME ATTACK records); GS-3a offered TIME ATTACK as a TITLE mode beside ARCADE, and GS-4 removed both modes with the
+TITLE line SERIES / FREE PLAY / SETTINGS and SELECT SESSION.
 
 ### GS-5 — Rename Session → Run
 
 Rename only, in code, types, files and documents, so that "Session" survives only as the product term RACE / TIME
 ATTACK: today's `Session` (one driven attempt) becomes Run, with one name for its one-record setup that fits the
-existing `RunRequest` and run-assembly vocabulary. Runs after Stages AI and HD are on main.
+existing `RunRequest` and run-assembly vocabulary. The Session rules' `ARCADE`, which a RACE runs by, is renamed to
+`RACE` in the same pass. Runs after Stages AI and HD are on main.
 
 ### Stop conditions for GS
 

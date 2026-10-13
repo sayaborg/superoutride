@@ -10,12 +10,12 @@ export interface RecordClass {
   readonly courseSha256: string;
   /** The current identity of each catalog vehicle (`sessionVehicleSha256`); a record counts while its vehicle's does. */
   readonly vehicleSha256: ReadonlyMap<string, string>;
-  /** The course's FINISH gates: a class's record is known before driving only on a course with one. */
-  readonly goals: readonly string[];
 }
 
-/** What a run records against: the TIME ATTACK class, and whether its record is a lap (on a CIRCUIT). */
+/** What a run records against: the TIME ATTACK class, its course's goals and whether its record is a lap. */
 export interface RecordSelection extends RecordClass {
+  /** The course's FINISH gates; a CIRCUIT has one. */
+  readonly goals: readonly string[];
   readonly vehicleId: string;
   readonly circuit: boolean;
 }
@@ -51,13 +51,19 @@ function currentRecord(records: PlayerRecords, at: RecordClass, goal: string): T
 }
 
 /**
- * The class's record the screens show (SELECT SESSION, the PRE-RACE card and READY): on a course with one goal (a
- * circuit has one), its current record there; null without one, and on a course with several goals.
+ * The class's record the screens show (SELECT SESSION, the PRE-RACE card and READY): its fastest current record at any
+ * goal, the one record of a course with one goal (a circuit has one); null without one.
  */
 export function shownRecord(records: PlayerRecords, at: RecordClass): ShownRecord | null {
-  if (at.goals.length !== 1) return null;
-  const stored = currentRecord(records, at, at.goals[0]!);
-  return stored && { timeMs: stored.timeMs, vehicleId: stored.vehicleId };
+  let shown: ShownRecord | null = null;
+  for (const key of Object.keys(records.timeAttack)) {
+    const [seriesId, classId, goal] = JSON.parse(key) as [string, string, string];
+    if (seriesId !== at.seriesId || classId !== at.classId) continue;
+    const stored = currentRecord(records, at, goal);
+    if (stored && (shown === null || stored.timeMs < shown.timeMs))
+      shown = { timeMs: stored.timeMs, vehicleId: stored.vehicleId };
+  }
+  return shown;
 }
 
 /**

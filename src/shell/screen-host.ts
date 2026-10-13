@@ -20,7 +20,7 @@ export interface Screen {
   /** The host made another screen current. */
   leave?(): void;
   /**
-   * The picture the screen stands on, drawn under everything else it draws: ARCADE's series image. Screens that stand
+   * The picture the screen stands on, drawn under everything else it draws: a series' image. Screens that stand
    * on the same picture are one place, between which the host changes at once.
    */
   readonly wallpaper?: TilePicture | null;

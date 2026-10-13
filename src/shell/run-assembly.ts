@@ -19,7 +19,7 @@ import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
 import { createSessionVehicle, type SessionVehicle } from '../content/session-vehicle.js';
-import type { RunRequest } from './run-request.js';
+import { isFreePlay, RULES_NAMES, sessionRequest, type RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
@@ -141,10 +141,10 @@ export async function assembleRun(
   demo?: DemoCourses,
 ): Promise<Run> {
   const { content, materials, series } = page;
-  // ARCADE and TIME ATTACK drive their class on the class's course; FREE PLAY drives the course it names.
+  // A class run drives its class on the class's course; FREE PLAY drives the course it names.
   let named: SeriesClass | null = null,
     courseId: string;
-  if (request.mode !== 'FREE_PLAY') {
+  if (!isFreePlay(request)) {
     named = series.seriesClass(request.seriesId, request.classId);
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
     courseId = named.course;
@@ -207,7 +207,7 @@ async function assembleCourseRun(
     { vehicles, driving, materials, freePlay: page.freePlay },
     course,
     arcade,
-    request,
+    sessionRequest(request),
   );
   const settings = prepared.configuration;
   const { vehicle } = prepared;
@@ -356,8 +356,9 @@ async function assembleCourseRun(
     }
   };
   // The scene is drawn first; presenting follows the run screen's text.
-  // The Session's course and mode, which the HUD shows during READY, and the player vehicle's tachometer scale and
-  // steering picture from its definitions; a DEV rebuild's Session gives its own mode and tuned definition.
+  // The Session's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
+  // tachometer scale and steering picture from its definitions; a DEV rebuild's Session gives its own rules and tuned
+  // definition.
   const hudSession = ({
     configuration,
     entries,
@@ -369,7 +370,7 @@ async function assembleCourseRun(
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: course.name,
-      mode: configuration.mode,
+      rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
     };

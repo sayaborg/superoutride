@@ -290,6 +290,7 @@ async function startPage(): Promise<void> {
         music,
         player,
         dev,
+        vehicleSha256,
         logo: screenPictures.get(TITLE_LOGO.id)!,
       },
       {

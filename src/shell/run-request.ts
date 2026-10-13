@@ -8,19 +8,60 @@ import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { PlayerRecord } from './player-record.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 
-/**
- * A requested run: where it is driven, its Session request, which the run's assembly admits, and its track. ARCADE and
- * TIME ATTACK name a series and one of its classes, and the class names the course; FREE PLAY names the course. The
- * track, like the color, is neither a Session rule nor a record condition; null is MUSIC OFF, a race without music.
- */
-export type RunRequest = SessionRequest &
-  (
-    | { readonly mode: ClassMode; readonly seriesId: string; readonly classId: string }
-    | { readonly mode: 'FREE_PLAY'; readonly courseId: string }
-  ) & { readonly track: string | null };
+/** What every run request chooses: the vehicle, the player's color (null for the Session's own) and the track. */
+interface RunChoice {
+  readonly vehicleId: string;
+  readonly color: string | null;
+  /** The run's track; null is MUSIC OFF, a race without music. Like the color, neither a rule nor a record condition. */
+  readonly track: string | null;
+}
 
-/** The modes that run a class of a series. */
-export type ClassMode = Exclude<SessionRequest['mode'], 'FREE_PLAY'>;
+/** How a class is driven: RACE or TIME ATTACK. Every class offers both. */
+export type SessionName = 'RACE' | 'TIME_ATTACK';
+/** The sessions in the order SELECT SESSION lists them, with their display names: the one source of session names. */
+export const SESSION_NAMES: Readonly<Record<SessionName, string>> = Object.freeze({
+  RACE: 'RACE',
+  TIME_ATTACK: 'TIME ATTACK',
+});
+
+/** A run of a class: its series and class, which names the course, and its session. */
+export interface ClassRunRequest extends RunChoice {
+  readonly seriesId: string;
+  readonly classId: string;
+  readonly session: SessionName;
+}
+/** A FREE PLAY run: the course it names and its options. */
+export interface FreePlayRunRequest extends RunChoice {
+  readonly courseId: string;
+  readonly lapCount: number;
+  readonly rivalCount: number;
+  /** A rival pool ID of the FREE PLAY rules. */
+  readonly rivalPool: string;
+  /** OFF, or a TRAFFIC level ID of the FREE PLAY rules. */
+  readonly traffic: string;
+}
+/** A requested run: a class's session or FREE PLAY. The run's assembly admits its Session request. */
+export type RunRequest = ClassRunRequest | FreePlayRunRequest;
+
+/** The name a Session's rules are shown by (READY): its session, or FREE PLAY. */
+export const RULES_NAMES: Readonly<Record<SessionRequest['mode'], string>> = Object.freeze({
+  ARCADE: SESSION_NAMES.RACE,
+  TIME_ATTACK: SESSION_NAMES.TIME_ATTACK,
+  FREE_PLAY: 'FREE PLAY',
+});
+
+/** Whether `request` is a FREE PLAY run, which names a course rather than a class. */
+export function isFreePlay(request: RunRequest): request is FreePlayRunRequest {
+  return 'courseId' in request;
+}
+
+/** The Session request a run makes: RACE drives its class by the ARCADE rules, TIME ATTACK alone, FREE PLAY its options. */
+export function sessionRequest(request: RunRequest): SessionRequest {
+  const { vehicleId, color } = request;
+  if (!isFreePlay(request)) return { mode: request.session === 'RACE' ? 'ARCADE' : 'TIME_ATTACK', vehicleId, color };
+  const { lapCount, rivalCount, rivalPool, traffic } = request;
+  return { mode: 'FREE_PLAY', vehicleId, color, lapCount, rivalCount, rivalPool, traffic };
+}
 
 /** The latest SELECT MUSIC choice MUSIC OFF, as the player record keeps it among its latest selections. */
 export const MUSIC_OFF = 'off';
@@ -40,13 +81,6 @@ export function latestTrack(player: PlayerRecord, offered: readonly MusicTrack[]
   return offered.find((track) => track.id === latest)?.id ?? offered[0]?.id ?? null;
 }
 
-/** Every mode's display name, in the order SELECT MODE lists them: the one source of mode names. */
-export const MODE_NAMES: Readonly<Record<RunRequest['mode'], string>> = Object.freeze({
-  ARCADE: 'ARCADE',
-  FREE_PLAY: 'FREE PLAY',
-  TIME_ATTACK: 'TIME ATTACK',
-});
-
 /** The player record's color for `vehicle` when its sprite set has it, else null. */
 export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefinition): string | null {
   const color = player.settings.vehicleColors[vehicle.compiledVehicle.id];
@@ -54,12 +88,13 @@ export function recordedColor(player: PlayerRecord, vehicle: CompiledVehicleDefi
 }
 
 /**
- * The run a URL names, or null when it names none. `series` and `class` name an ARCADE or TIME ATTACK run of that
- * class; `course` names a FREE PLAY run on that course. A URL naming both, a class without its series (or the reverse),
- * or a mode its place does not offer is an error. Absent parameters take the defaults: ARCADE for a class, FREE PLAY on
- * a course; the class's first vehicle for a class, else the parameter's or the first catalog vehicle; one lap, no
- * rivals, the pool of the player's vehicle form and no traffic; the player record's color and latest track. Every value
- * is admitted with the run (`compileSessionConfiguration`), like a request from the selection screens.
+ * The run a URL names, or null when it names none. `series` and `class` name a run of that class, in the session
+ * `session` names (`race` or `attack`; RACE when absent); `course` names a FREE PLAY run on that course. A URL naming
+ * both, a class without its series (or the reverse), a session with a course or an unknown session is an error; an old
+ * `mode` parameter is other URL data and ignored. Absent parameters take the defaults: the class's first vehicle for a
+ * class, else the parameter's or the first catalog vehicle; one lap, no rivals, the pool of the player's vehicle form
+ * and no traffic; the player record's color and latest track. Every value is admitted with the run
+ * (`compileSessionConfiguration`), like a request from the selection screens.
  */
 export function readUrlRunRequest(
   params: URLSearchParams,
@@ -71,29 +106,33 @@ export function readUrlRunRequest(
 ): RunRequest | null {
   const courseId = params.get('course'),
     seriesId = params.get('series'),
-    classId = params.get('class');
+    classId = params.get('class'),
+    session = params.get('session');
   if (courseId === null && seriesId === null && classId === null) return null;
   if (courseId !== null && (seriesId !== null || classId !== null))
     throw new RangeError('A run names a course, or a series and class, not both');
-  if ((seriesId === null) !== (classId === null)) throw new RangeError('An ARCADE run names a series and a class');
-  const arcade = seriesId !== null ? series.seriesClass(seriesId, classId!) : null;
-  if (seriesId !== null && !arcade) throw new RangeError(`Unknown class ${classId} of series ${seriesId}`);
-  const mode = params.get('mode') ?? (arcade ? 'ARCADE' : 'FREE_PLAY');
-  if (mode !== 'ARCADE' && mode !== 'FREE_PLAY' && mode !== 'TIME_ATTACK') throw new RangeError('Unknown Session mode');
-  if ((mode === 'FREE_PLAY') !== (arcade === null))
-    throw new RangeError(arcade ? 'A class runs ARCADE or TIME ATTACK' : `${mode} names a series and a class`);
-  const vehicleId = arcade ? arcade.vehicles[0]! : (params.get('vehicle') ?? vehicles[0]!.compiledVehicle.id);
+  if ((seriesId === null) !== (classId === null)) throw new RangeError('A class run names a series and a class');
+  const named = seriesId !== null ? series.seriesClass(seriesId, classId!) : null;
+  if (seriesId !== null && !named) throw new RangeError(`Unknown class ${classId} of series ${seriesId}`);
+  if (!named && session !== null) throw new RangeError("A session is a class run's; FREE PLAY names a course");
+  if (session !== null && session !== 'race' && session !== 'attack') throw new RangeError('Unknown session');
+  const vehicleId = named ? named.vehicles[0]! : (params.get('vehicle') ?? vehicles[0]!.compiledVehicle.id);
   // An unknown vehicle has no defaults of its own; the run's admission rejects it.
   const vehicle = vehicles.find((v) => v.compiledVehicle.id === vehicleId);
   const choice = {
     vehicleId,
     color: vehicle ? recordedColor(player, vehicle) : null,
-    track: latestTrack(player, offeredTracks(arcade?.series ?? null, music)),
+    track: latestTrack(player, offeredTracks(named?.series ?? null, music)),
   };
-  if (mode !== 'FREE_PLAY') return Object.freeze({ ...choice, mode, seriesId: arcade!.series.id, classId: arcade!.id });
+  if (named)
+    return Object.freeze({
+      ...choice,
+      seriesId: named.series.id,
+      classId: named.id,
+      session: session === 'attack' ? 'TIME_ATTACK' : 'RACE',
+    });
   return Object.freeze({
     ...choice,
-    mode,
     courseId: courseId!,
     lapCount: Number(params.get('laps') ?? 1),
     rivalCount: Number(params.get('rivals') ?? 0),

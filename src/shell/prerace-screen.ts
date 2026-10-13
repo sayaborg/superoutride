@@ -8,7 +8,7 @@ import type { TextLayer } from '../view/text-layer.js';
 import type { Screen } from './screen-host.js';
 import { SCREEN_BACKGROUND } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
-import { MODE_NAMES, type RunRequest } from './run-request.js';
+import { isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
 import type { CourseIndex } from '../content/course-index.js';
 
@@ -30,32 +30,35 @@ const DARK_GRAY = (6 << 10) | (6 << 5) | 6;
 export interface PreRaceCard {
   /** For a class its series image, darkened from row 17; otherwise none, on black. */
   readonly background: TilePicture | null;
-  /** The class title for a class, else the mode's name. */
+  /** The class title for a class, else FREE PLAY. */
   readonly title: string;
+  /** A class run's session name; null in FREE PLAY. */
+  readonly session: string | null;
   readonly courseName: string;
   /** The laps of a circuit's run; null on other courses and for a run without a finish. */
   readonly laps: number | null;
 }
 
 /**
- * The card a request shows: for a class its series image and class title, else the mode's name on black; its course's
- * display name from the course index, and its laps on a circuit (TIME ATTACK has none there). An unknown class or
- * course is a `RangeError`.
+ * The card a request shows: for a class its series image, class title and session, else FREE PLAY on black; its
+ * course's display name from the course index, and its laps on a circuit (TIME ATTACK has none there). An unknown class
+ * or course is a `RangeError`.
  */
 export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, courses: CourseIndex): PreRaceCard {
-  let arcade = null,
+  let named = null,
     courseId: string,
     laps: number | null;
-  if (request.mode !== 'FREE_PLAY') {
-    arcade = series.seriesClass(request.seriesId, request.classId);
-    if (!arcade) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    [courseId, laps] = [arcade.course, request.mode === 'ARCADE' ? arcade.laps : null];
+  if (!isFreePlay(request)) {
+    named = series.seriesClass(request.seriesId, request.classId);
+    if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
+    [courseId, laps] = [named.course, request.session === 'RACE' ? named.laps : null];
   } else [courseId, laps] = [request.courseId, request.lapCount];
   const course = courses.find((c) => c.id === courseId);
   if (!course) throw new RangeError(`Unknown course ${courseId}`);
   return Object.freeze({
-    background: arcade ? arcade.series.image : null,
-    title: arcade ? arcade.title : MODE_NAMES[request.mode],
+    background: named ? named.series.image : null,
+    title: named ? named.title : 'FREE PLAY',
+    session: isFreePlay(request) ? null : SESSION_NAMES[request.session],
     courseName: course.name,
     laps: course.type === 'CIRCUIT' ? laps : null,
   });
@@ -69,13 +72,13 @@ export interface PreRaceFacts {
   readonly bikes: boolean;
   /** The player's grid slot, 1 at the front. */
   readonly slot: number;
-  /** The record READY shows, in milliseconds; null when there is none yet, undefined when the mode keeps none. */
+  /** The record READY shows, in milliseconds; null when there is none yet, undefined when the run keeps none. */
   readonly best: number | null | undefined;
 }
 
 /**
- * The PRE-RACE card, which stands while a run loads: its class or mode, course, laps, field and start slot, the record
- * READY will show and the course map, with a progress bar of the run's loading. It stays at least `PRE_RACE_SECONDS`
+ * The PRE-RACE card, which stands while a run loads: its class and session or FREE PLAY, course, laps, field and start
+ * slot, the record READY will show and the course map, with a progress bar of the run's loading. It stays at least `PRE_RACE_SECONDS`
  * (counted in fixed steps) and until the run is loaded; then `ready` is called once.
  */
 export function createPreRaceScreen(
@@ -112,6 +115,7 @@ export function createPreRaceScreen(
       } else frame.clear(SCREEN_BACKGROUND);
       text.clear();
       text.write(COLUMN, 18, card.title, TEXT_PALETTES.YELLOW);
+      if (card.session) text.write(COLUMN, 19, card.session, TEXT_PALETTES.WHITE);
       text.write(COLUMN, 20, card.courseName, TEXT_PALETTES.WHITE);
       if (facts) {
         drawCourseMap(frame, facts.map, MAP_BOX, {
