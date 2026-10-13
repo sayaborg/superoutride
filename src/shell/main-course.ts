@@ -16,7 +16,6 @@ import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalo
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
-import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { attractClasses, createAttractDemo } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createCourseMap } from '../view/course-map.js';
@@ -25,7 +24,7 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
-import { assembleRun, type Run, type RunPage } from './run-assembly.js';
+import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
@@ -263,12 +262,12 @@ async function startPage(): Promise<void> {
         true,
       );
     }
-    // The attract demo behind TITLE: one live Session per product ARCADE class, its courses compiled once, released
-    // with the page.
-    const demoCourses = new Map<string, Promise<CompiledCourse>>();
+    // The attract demo behind TITLE: at most the shown and the next class's Sessions, each holding its course's
+    // compilation, which the classes of one course share; released with the page.
+    const demoCourses = createDemoCourses();
     const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, async (next) => {
       const state = createRunScreenState(() => {});
-      const run = await assembleRun(page, next, state, undefined, { courses: demoCourses });
+      const run = await assembleRun(page, next, state, undefined, demoCourses);
       return { run, finished: () => state.finished };
     });
     window.addEventListener('pagehide', () => attractDemo.dispose());

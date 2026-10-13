@@ -32,7 +32,10 @@ const steps = (demo, count) => {
   for (let i = 0; i < count; i++) demo.tick();
 };
 
-test('each class keeps one Session, stepped only on its turn, which the next turn continues', async () => {
+// The Sessions the demo holds: loaded and not released.
+const held = (sessions) => sessions.filter((s) => !s.disposed).map((s) => s.classId);
+
+test("the demo holds the shown and the next class's Sessions, and a class shown again starts a new one", async () => {
   const { demo, sessions } = demoOf();
   demo.enter();
   await settle();
@@ -46,6 +49,8 @@ test('each class keeps one Session, stepped only on its turn, which the next tur
   );
   steps(demo, TURN);
   await settle();
+  // The first turn's Session is released; the second class is shown and the third loaded.
+  assert.deepEqual(held(sessions), ['b', 'c']);
   steps(demo, 2 * TURN);
   await settle();
   assert.deepEqual(
@@ -54,24 +59,26 @@ test('each class keeps one Session, stepped only on its turn, which the next tur
       ['a', TURN],
       ['b', TURN],
       ['c', TURN],
+      ['a', 0],
+      ['b', 0],
     ],
   );
-  // The fourth turn continues the first class's Session from where its first turn left it.
+  // The fourth turn shows the first class again from a new Session.
   steps(demo, 10);
-  assert.equal(sessions.length, 3);
-  assert.equal(sessions[0].steps, TURN + 10);
-  // Leaving pauses the Session as it is; returning resumes with the next class.
+  assert.equal(sessions[3].steps, 10);
+  assert.deepEqual(held(sessions), ['a', 'b']);
+  // Leaving ends the shown turn; returning resumes with the next class, whose Session stood loaded.
   demo.leave();
   steps(demo, 50);
+  assert.deepEqual(held(sessions), ['b']);
   demo.enter();
   steps(demo, 5);
-  assert.deepEqual(
-    sessions.map((s) => s.steps),
-    [TURN + 10, TURN + 5, TURN],
-  );
+  await settle();
+  assert.equal(sessions[4].steps, 5);
+  assert.deepEqual(held(sessions), ['b', 'c']);
 });
 
-test('a Session that ends ends its turn early and gives its class a new Session', async () => {
+test('a Session that ends ends its turn early and is released', async () => {
   const { demo, sessions } = demoOf(100);
   demo.enter();
   await settle();
@@ -80,8 +87,8 @@ test('a Session that ends ends its turn early and gives its class a new Session'
   await settle();
   assert.equal(sessions[0].steps, 100);
   assert.ok(sessions[0].disposed);
-  assert.equal(sessions.filter((s) => s.classId === 'a').length, 2, 'a new Session of the ended class is loaded');
   steps(demo, 1);
   assert.equal(sessions[1].classId, 'b');
   assert.equal(sessions[1].steps, 1);
+  assert.deepEqual(held(sessions), ['b', 'c']);
 });

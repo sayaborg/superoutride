@@ -22,7 +22,7 @@ export interface DemoSession {
   finished(): boolean;
 }
 
-/** One class of the demo: its request, its overlay and its live Session, if loaded. */
+/** One class of the demo: its request, its overlay and its live Session, while it holds one. */
 interface DemoClass {
   readonly request: RunRequest;
   readonly lines: readonly (readonly [row: number, text: string])[];
@@ -40,15 +40,15 @@ interface Turn {
 
 /**
  * The attract demo behind TITLE, the one owner of the demo Sessions and their turns: the product ARCADE classes, in
- * series and class order, looping. Each class keeps one live Session, a run with no player input in which the
- * class's first vehicle in its first color drives by its Session driver, loaded on its first turn's approach and
- * stepped in the race's fixed step only while its turn is shown; the next turn of the class continues from where the
- * last one left it, its whole state kept as it is. A turn lasts `ATTRACT_SECONDS`, with no HUD and no sound, brightening
- * from black and darkening to black over the transition's steps, its series, class, vehicle and color written at the
- * right. A Session that ends (GOAL or GAME OVER) is shown to the end of its RESULT delay, its turn ends there, and the
- * class's next turn has a new Session. Each turn has the next class loaded, so only the first turn waits on a load,
- * over black; a class that cannot load is passed over. `leave` pauses the demo; the next `enter` resumes with the next
- * class's turn. `dispose` releases every Session.
+ * series and class order, looping. It holds at most two Sessions, the shown class's and the next class's, each a run
+ * with no player input in which the class's first vehicle in its first color drives by its Session driver, stepped in
+ * the race's fixed step only while its turn is shown. A turn lasts `ATTRACT_SECONDS`, with no HUD and no sound,
+ * brightening from black and darkening to black over the transition's steps, its series, class, vehicle and color
+ * written at the right. A Session that ends (GOAL or GAME OVER) is shown to the end of its RESULT delay and its turn
+ * ends there. When a turn ends its Session is released; each turn has the next class's Session loaded, standing in
+ * READY, so only the first turn waits on a load, over black, and a class shown again starts a new Session. A class
+ * that cannot load is passed over. `leave` ends the shown turn; the next `enter` resumes with the next class's turn.
+ * `dispose` releases every Session.
  */
 export function createAttractDemo(
   classes: readonly SeriesClass[],
@@ -117,15 +117,16 @@ export function createAttractDemo(
     turn = { shown: entry, steps: 0, darkening: null };
     ensure(index + 1);
   };
-  // The turn has darkened: an ended Session gives way to a new one for the class's next turn, loaded now.
+  // A turn has ended: its Session is released, and a class shown again starts a new one.
+  const release = (ended: DemoClass) => {
+    ended.session?.run.dispose();
+    ended.session = null;
+  };
+  // The turn has darkened: the next class's turn begins.
   const end = () => {
     const ended = turn!.shown;
     turn = null;
-    if (ended.session?.finished()) {
-      ended.session.run.dispose();
-      ended.session = null;
-      ensure(index);
-    }
+    release(ended);
     index = (index + 1) % demo.length;
     begin();
   };
@@ -136,8 +137,10 @@ export function createAttractDemo(
     },
     leave() {
       entered = false;
-      // A paused Session keeps its state; returning resumes with the next class's turn.
-      if (turn) [turn, index] = [null, (index + 1) % demo.length];
+      // Leaving ends the shown turn; returning resumes with the next class's turn, whose Session stands loaded.
+      if (!turn) return;
+      release(turn.shown);
+      [turn, index] = [null, (index + 1) % demo.length];
     },
     tick() {
       if (!turn) return;

@@ -73,9 +73,9 @@
   DARK items that deny, and a black transition between screens; ARCADE's screens stand over the series image, SELECT
   SERIES slides between them and the series' title track plays until READY; SELECT MUSIC offers a series' race tracks
   and MUSIC OFF; the PRE-RACE card, with the course map north up by the course's bearing, is every run's loading
-  screen; 17 effects sound, `final-lap` and `new-record` among them. Behind TITLE the attract demo keeps one race per
-  product ARCADE class and resumes it on the class's next turn (K's decision replacing a fast-forward to mid-race,
-  which cost tens of seconds behind black). The screens smoke saves every screen to
+  screen; 17 effects sound, `final-lap` and `new-record` among them. Behind TITLE the attract demo shows each
+  product ARCADE class's race from READY (K's decision replacing a fast-forward to mid-race, which cost tens of seconds
+  behind black). The screens smoke saves every screen to
   `dist/screens/`. FE-1, FE-6, FE-8 and FE-9 were split (FE-1a rename / FE-1b format; FE-6a color names / FE-6b SELECT
   SERIES / FE-6c CLASS, VEHICLE, MUSIC; FE-8a TITLE / FE-8b attract demo; FE-9a LOADING removed / FE-9b
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
@@ -88,34 +88,17 @@
   - `WET_ASPHALT`, `DIRT` and `SAND` on the carriageway.
   - `wipe`, `rise` and `cut` background transitions owned by the environment.
     Forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision).
+- Stage LD is complete: a course compiles in work slices the browser runs 8 ms at a time, so loading never stops the
+  frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
+  preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
+  the attract demo holds only the shown and the next class's Sessions.
 
-Next PR: [LD-2](#ld-2--the-attract-demo-keeps-two-sessions), then [Stage AI](#stage-ai--the-model-planned-driver) and
+Next PR: [AI-1](#ai-1--racing-lines-generated-product) of [Stage AI](#stage-ai--the-model-planned-driver), then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage LD — Startup loading
-
-The product owner's decisions; work through without asking, using [Decision rules](#decision-rules-for-ld-and-ai)
-and stopping only under [Stop conditions](#stop-conditions-for-ld-and-ai). Course loading runs in slices and never
-stops the frame loop (LD-1). One PR remains:
-
-| PR   | Purpose                                                              |
-| ---- | -------------------------------------------------------------------- |
-| LD-2 | The attract demo keeps only the current and the next class's Session |
-
-### LD-2 — The attract demo keeps two Sessions
-
-Owning document: browser (the attract demo paragraph).
-
-- The attract demo holds at most two Sessions: the shown class's and the next class's, loaded and standing in READY.
-- Release a class's Session, and its course compilation unless another held Session shares it, when its turn ends.
-- A class shown again starts a new Session from READY with the next seed. This replaces "each later turn continues
-  from where the last one left it".
-
-Evidence: heap after GC at 1, 3 and 6 minutes on TITLE, which must stay flat.
 
 ## Stage AI — The model-planned driver
 
@@ -515,7 +498,8 @@ Choices made where Stage FE left them open, each recorded in its PR:
 - TITLE: the mode line starts on the latest mode. Attract demo (FE-8b): the demo picture brightens and darkens over
   the transition's steps while the logo and lines stay; a turn's 30 s include its brightening and darkening; the
   classes of one course share one compiled course; every class's Session stays alive (about 6 MB of heap for the
-  three TSUKUBA CLUBMAN classes together, 71 MB with the first alone).
+  three TSUKUBA CLUBMAN classes together, 71 MB with the first alone). Stage LD replaced this: the demo holds only
+  the shown and the next class's Sessions.
 
 ### Stage OT decisions for K
 

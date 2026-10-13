@@ -116,19 +116,20 @@ either direction, while TITLE ↔ SELECT SERIES, the PRE-RACE card → READY and
 The selection screens follow one flow table ([product](product.md#6-flow-and-screens)). TITLE draws the title logo
 (18×7 tiles) centred at y 16 over the attract demo. The [attract demo](../src/shell/attract-demo.ts) is the one owner of
 the demo Sessions and their turns. It runs the product ARCADE classes (never DEV ones) in series and class order,
-looping, one 30 s turn each. Each class keeps one live Session, assembled as a run with no player input (the player's
-Session driver drives the class's first vehicle in its first color at the default steering), with no HUD, no sound and
-no record; the classes of one course share its compilation. A Session is stepped in the race's fixed step, through the
-frame loop as a run is, only while its turn is shown; between turns it keeps its whole state as it is, so a class's
-first turn shows its race from READY and each later turn continues from where the last one left it. Each turn brightens
+looping, one 30 s turn each. It holds at most two Sessions, the shown class's and the next class's, each assembled as a
+run with no player input (the player's Session driver drives the class's first vehicle in its first color at the
+default steering), with no HUD, no sound and no record. Each holds its course's compilation, which held Sessions of one
+course share; a compilation no held Session uses is released. A Session is stepped in the race's fixed step, through
+the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its Session is released, so a
+class shown again starts a new Session from READY with the next seed. Each turn brightens
 from black over the transition's 8 steps and darkens over 8 more; the logo and lines stay bright, and while it is fully
 shown its series title, class title, vehicle (manufacturer and model) and color display name are written in WHITE on
 rows 21, 22, 24 and 25, right-aligned to column 38. When a Session ends (the player's GOAL or GAME OVER) it is shown to
-the end of its RESULT delay without RESULT and its turn darkens early; the class's next turn starts a new Session with
-the next seed. The first class loads behind the logo and PRESS START over black and its turn begins once it is loaded;
-each turn has the next class's Session loaded (loading only, standing in READY), so no later turn waits on a load. A
-class that cannot load is passed over; with no product class TITLE stays over black. Leaving TITLE pauses the demo;
-returning resumes with the next class's turn. The Sessions are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
+the end of its RESULT delay without RESULT and its turn darkens early. The first class loads behind the logo and PRESS
+START over black and its turn begins once it is loaded; each turn has the next class's Session loaded (loading only,
+standing in READY), so no later turn waits on a load. A class that cannot load is passed over; with no product class
+TITLE stays over black. Leaving TITLE ends the shown turn and releases its Session; returning resumes with the next
+class's turn. The Sessions are released when the page is left. Before the first gesture `PRESS START` blinks in YELLOW, centred on
 row 28 (shown 32 fixed steps, hidden 16). CONFIRM there is the user gesture that enables sound and requests fullscreen
 of the page where the browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser
 accepts); it sounds `press-start` and replaces the line with the mode line for the rest of the page, with no way back

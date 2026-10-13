@@ -85,13 +85,43 @@ export interface RunAssemblyReport {
 }
 
 /**
- * The attract demo's run: no player input reaches it (the player's Session driver drives) and it sounds and records
- * nothing. Its course comes from `courses`, the demo's compiled courses by ID, so the classes of one course compile
- * it once.
+ * The attract demo's compiled courses: a demo run holds its course's compilation while it lives, so the classes of one
+ * course compile it once, and a course no held run uses is released. A course that failed to load is loaded again by
+ * the next run that asks for it.
  */
-export interface DemoRun {
-  readonly courses: Map<string, Promise<CompiledCourse>>;
+export function createDemoCourses() {
+  const courses = new Map<string, { readonly compiling: Promise<CompiledCourse>; holders: number }>();
+  return Object.freeze({
+    /** Hold the course `id`, compiled by `load` unless a held run's compilation is shared; release it once. */
+    hold(id: string, load: () => Promise<CompiledCourse>) {
+      let entry = courses.get(id);
+      if (!entry) {
+        const created = { compiling: load(), holders: 0 };
+        courses.set(id, created);
+        created.compiling.catch(() => {
+          if (courses.get(id) === created) courses.delete(id);
+        });
+        entry = created;
+      }
+      entry.holders++;
+      let released = false;
+      const held = entry;
+      return Object.freeze({
+        compiling: held.compiling,
+        release() {
+          if (released) return;
+          released = true;
+          if (--held.holders === 0 && courses.get(id) === held) courses.delete(id);
+        },
+      });
+    },
+  });
 }
+/**
+ * The attract demo's courses, when a run is the demo's: no player input reaches it (the player's Session driver drives)
+ * and it sounds and records nothing.
+ */
+export type DemoCourses = ReturnType<typeof createDemoCourses>;
 
 /** Shares of a run's loading: its course's files, then the course compiled, then its Session prepared. */
 const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
@@ -106,9 +136,9 @@ export async function assembleRun(
   request: RunRequest,
   state: RunScreenState,
   report?: RunAssemblyReport,
-  demo?: DemoRun,
+  demo?: DemoCourses,
 ): Promise<Run> {
-  const { content, materials, series, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
+  const { content, materials, series } = page;
   // ARCADE drives its class on the class's course; the other modes drive the course they name.
   let named: SeriesClass | null = null,
     courseId: string;
@@ -129,16 +159,45 @@ export async function assembleRun(
           report?.progress(LOADING_SHARES.files + (LOADING_SHARES.compiled - LOADING_SHARES.files) * fraction),
       },
     );
-  let compiling = demo?.courses.get(courseId);
-  if (!compiling) {
-    compiling = load();
-    if (demo) {
-      demo.courses.set(courseId, compiling);
-      // A course that failed to load is loaded again by the next demo run that asks for it.
-      compiling.catch(() => demo.courses.delete(courseId));
-    }
+  // A demo run holds its course while it lives.
+  const held = demo?.hold(courseId, load) ?? null;
+  try {
+    const run = await assembleCourseRun(
+      page,
+      request,
+      state,
+      report,
+      held?.compiling ?? load(),
+      named,
+      demo !== undefined,
+    );
+    if (!held) return run;
+    return Object.freeze({
+      ...run,
+      dispose() {
+        run.dispose();
+        held.release();
+      },
+    });
+  } catch (error) {
+    held?.release();
+    throw error;
   }
-  const course = await compiling;
+}
+
+/** The rest of `assembleRun` once its course is compiling: the run on that course. */
+async function assembleCourseRun(
+  page: RunPage,
+  request: RunRequest,
+  state: RunScreenState,
+  report: RunAssemblyReport | undefined,
+  compiling: Promise<CompiledCourse>,
+  named: SeriesClass | null,
+  demo: boolean,
+): Promise<Run> {
+  const { content, materials, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
+  const course = await compiling,
+    courseId = course.id;
   report?.progress(LOADING_SHARES.compiled);
   const arcade = named && loadSeriesClass(content, named, course, vehicles);
   // The one path from a request to a Session: its admission and the products it needs, loaded once.
