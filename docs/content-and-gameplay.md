@@ -1324,6 +1324,44 @@ driver keeps its escape gap behind it, passing or not, so it can still merge fro
 lookahead. Where a lane begins, widening from zero, only a driver that passes moves into it, by the passing rule. Lanes
 begin and end only inside a Section: across a seam every lane continues with its width.
 
+#### Vehicle limits and planned control
+
+The planned driver (Stage AI in [NEXT](NEXT.md); not yet driving) plans with one model of its vehicle's limits,
+`createVehicleLimits` in `src/vehicle/vehicle-limits.ts`, built from the vehicle model alone: a point mass on two axles,
+per unit mass. Each axle's tire is a friction ellipse with semi-axes `muX·g` and `muY·g` times the surface grip, the
+axle's static share of the weight and its effective load factor: the axle's load over its static load read through the
+tire's load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
+`n = cos θ + v²·kv/g`, which the tires' longitudinal force moves between them by its moment at the centre of mass's
+height, amplified by the suspension's pitch compliance (the pitch the moved load sets moves the contacts under the
+centre of mass). From it:
+
+- Lateral limit: the steering axle's lateral ellipse at utilization `u` under the longitudinal force the tires carry.
+- Drive: the best full-throttle wheel force over the gears at the speed (a gear whose engine speed would pass redline
+  is unavailable but the top gear's, up to fuel cut; below the clutch lock first gear's slipping clutch holds the
+  engine at its maximum-torque speed), bounded by the driven axles' longitudinal ellipses under the drive split, of
+  which the lateral demand leaves `sqrt(1 − (ay/Ay)²)`.
+- Braking: each axle's brake torque at `u` at its rolling radius, bounded by its ellipse alike.
+- Resistances: drag `quadraticDrag·v²`, grade `g·sin θ`, rolling `Cr·g·n`, and the cornering drag of the tires'
+  lateral slip, the lateral acceleration times the pure-lateral slip the tire law needs for it.
+- Inertia: the wheels' rotational inertia at their rolling radii adds to the mass along the travel.
+- Steady speed: the fastest speed whose lateral demand on a path of curvature `κ` lies within the lateral limit and
+  whose drive covers drag, grade, rolling and cornering drag; the speed cap is its value on a level straight at full
+  utilization. Where `n` reaches 0 the vehicle is airborne and any speed holds.
+
+The control inverts the mechanics' own relations. The pedals ask a target acceleration of one pedal, never both: the
+throttle opening that delivers the force for it, drag and the resistances by inverting the affine opening-to-wheel-torque
+map at the current gear and engine speed; below a closed opening's engine braking, the brake as a part of the full brake
+force. The steering asks the yaw rate `r* = a*/V` of the lateral acceleration
+`a* = V²·κ − ω²·e − 2ζω·V·sin ψ` (`κ` the path's signed curvature, `e` and `ψ` the lateral and heading errors to it,
+`ω` 1.2 rad/s and `ζ` 0.8, `PLANNED_DRIVER`), as the part `r*/w` of the yaw rate `w` full input asks under the driver's
+steering rule ([Vehicle physics](vehicle-physics.md#actuators-and-steering)).
+
+The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
+surface of unit grip and no rolling resistance: driven by this control at utilization 0.9 on a 100 m circle at the
+model's steady speed, the vehicle's mean radius and lateral acceleration lie within 5 % of the circle's and the model's;
+from 30 m/s at full brake, its stopping distance from full application lies within 5 % of the model's at full
+utilization.
+
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated envelopes and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.

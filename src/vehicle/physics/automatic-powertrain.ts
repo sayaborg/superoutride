@@ -329,6 +329,26 @@ export function completeAutomaticPowertrain(
   return clutchTorque * step.wheelPerEngineTorque;
 }
 
+/**
+ * The affine opening-to-wheel-torque map of a locked engine at the state's gear and engine speed, inverted at
+ * `wheelTorque` (N m at the driven wheels): the unclamped opening that delivers it (below 0, more than a closed opening's
+ * engine braking is asked), and the wheel torque per unit opening. Written to `out`.
+ */
+export function openingForDriveTorque(
+  definition: CompiledAutomaticPowertrainDefinition,
+  constants: PowertrainConstants,
+  state: Readonly<Pick<AutomaticPowertrainState, 'gear' | 'engineRpm'>>,
+  wheelTorque: number,
+  out: { opening: number; wheelTorquePerOpening: number },
+): { opening: number; wheelTorquePerOpening: number } {
+  const ratio = definition.gearRatios[state.gear - 1]! * definition.finalDriveRatio * constants.drivelineEfficiency;
+  const friction = engineFrictionTorque(definition, constants, state.engineRpm);
+  const span = sampleEngineTorque(definition, state.engineRpm) + friction;
+  out.wheelTorquePerOpening = span * ratio;
+  out.opening = (wheelTorque / ratio + friction) / span;
+  return out;
+}
+
 /** Five points: A idle, B the knee, C maximum torque, D maximum power, E redline. */
 const TORQUE_CURVE_POINTS = 5;
 const MAXIMUM_TORQUE_POINT = 2;

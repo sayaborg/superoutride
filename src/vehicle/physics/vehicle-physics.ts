@@ -192,7 +192,7 @@ export function updateVehicle(
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
   const { maxRoadWheelSteer } = model.steering;
-  const { lever, utilization, limitDemand } = steering;
+  const { lever, utilization } = steering;
   let shiftAvailable = true;
 
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
@@ -214,16 +214,16 @@ export function updateVehicle(
     // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for, a part of the
     // tightest one the vehicle holds within its grip and its rack.
     const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
-    const limit = Math.min(maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, limitDemand)));
+    const limit = steeringSlipLimit(model, steering, grip);
     const automaticMax = maxRoadWheelSteer - limit;
     const askedYawRate =
       vehicle.actuator.steering *
       tightestSteadyYawRate(
-        body,
+        dot3(body.velocity, body.forward),
+        dot3(body.velocity, body.right),
         utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
         automaticMax,
         compiledVehicle.frontAxle + compiledVehicle.rearAxle,
-        STEERING_LOW_SPEED_REGULARIZATION,
       );
     const travelDirection = vehicleTravelDirection(
       body,
@@ -368,24 +368,51 @@ function appliedShare(applied: number, requested: number): number {
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
+/** The front tire's pure-lateral slip angle at full steering input on `grip` under `steering`, within the rack. */
+function steeringSlipLimit(model: VehicleModel, steering: DriverSteering, grip: number): number {
+  return Math.min(
+    model.steering.maxRoadWheelSteer,
+    Math.atan(lateralSlipAtDemand(model.tire, grip, steering.limitDemand)),
+  );
+}
+
 /**
- * The yaw rate of the tightest steady turn on flat ground at the body's speed: the looser of the grip's turn, at the
- * lateral acceleration `lateralAcceleration`, and the rack's, in which the front wheel's travel direction with the rear
- * wheel rolling stands at `rackAngle` (`tan(rackAngle) = wheelbase*w/forwardSpeed`). Speeds are regularized at
- * standstill.
+ * The yaw rate of the tightest steady turn on flat ground at forward speed `forward` and lateral speed `lateral`: the
+ * looser of the grip's turn, at the lateral acceleration `lateralAcceleration`, and the rack's, in which the front
+ * wheel's travel direction with the rear wheel rolling stands at `rackAngle` (`tan(rackAngle) = wheelbase*w/forward`).
+ * Speeds are regularized at standstill.
  */
 function tightestSteadyYawRate(
-  body: BodyKinematics,
+  forward: number,
+  lateral: number,
   lateralAcceleration: number,
   rackAngle: number,
   wheelbase: number,
-  lowSpeedRegularization: number,
 ): number {
-  const forward = dot3(body.velocity, body.forward),
-    lateral = dot3(body.velocity, body.right);
-  const grip = lateralAcceleration / Math.hypot(forward, lateral, lowSpeedRegularization);
-  const rack = (Math.hypot(forward, lowSpeedRegularization) * Math.tan(rackAngle)) / wheelbase;
+  const grip = lateralAcceleration / Math.hypot(forward, lateral, STEERING_LOW_SPEED_REGULARIZATION);
+  const rack = (Math.hypot(forward, STEERING_LOW_SPEED_REGULARIZATION) * Math.tan(rackAngle)) / wheelbase;
   return Math.min(grip, rack);
+}
+
+/**
+ * The yaw rate full steering input asks of `model`'s vehicle under `steering` at forward speed `forward` and lateral
+ * speed `lateral` (m/s) on a front surface of `grip`: the step reads an input as that part of it. A driver inverts it.
+ */
+export function fullSteeringYawRate(
+  model: VehicleModel,
+  steering: DriverSteering,
+  grip: number,
+  forward: number,
+  lateral: number,
+): number {
+  const { compiledVehicle } = model;
+  return tightestSteadyYawRate(
+    forward,
+    lateral,
+    steering.utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
+    model.steering.maxRoadWheelSteer - steeringSlipLimit(model, steering, grip),
+    compiledVehicle.frontAxle + compiledVehicle.rearAxle,
+  );
 }
 
 /**

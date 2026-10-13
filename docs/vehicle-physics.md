@@ -580,7 +580,8 @@ are chosen by the body's yaw as seen along the direction of view ([Architecture]
 
 Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
 substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and
-lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power and the surface
+lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power, the utilization (the
+tire force's fraction of its friction ellipse, `hypot(fx/capacityX, fy/capacityY)`, 1 on the plateau) and the surface
 material ID, all zero (surface null) when the contact transmits no force or has no valid tire frame, and the
 contact normal load in every case. Spawn starts every value at zero; recovery initializes the loads to the
 static axle loads and every other value to zero. Graphics, HUD and sound consume

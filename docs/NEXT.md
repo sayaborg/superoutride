@@ -125,7 +125,12 @@ measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#r
 ### AI-2 — The model-planned driver
 
 Owning documents: content-and-gameplay ("Vehicle envelopes and drivers", renamed "Drivers") and calibration (the
-utilization's meaning). It replaces the envelope driver for every driver.
+utilization's meaning). It replaces the envelope driver for every driver. It lands in three PRs: AI-2a, the vehicle
+limits model, the planned control and the model check
+([Vehicle limits and planned control](content-and-gameplay.md#vehicle-limits-and-planned-control)); AI-2b, the speed
+plan and the driver replacing the envelope driver everywhere on today's lines (lane centres, the centre line for
+reference runs); AI-2c, rivals, reference runs, the attract demo and the takeover on the racing line, the BRANCH
+scenario and regenerated measured products.
 
 - Path: a driver follows its line plus its offset (0 until AI-4). Rivals, reference runs, the attract demo and the
   takeover follow the racing line; traffic its lane's centre under the existing lane rules. The three judgements
