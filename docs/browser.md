@@ -587,7 +587,7 @@ once. Where localStorage is missing or reading or writing it throws, the record 
 game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SETTINGS saves
 the cameras and steering, and a run reads its vehicle form's camera and steering rule when it is assembled. The race
 applies the player's steering rule only while the player's own input reaches the player's vehicle; whenever a driver
-drives it (the Session driver on request, the takeover after GOAL) it drives by the default rule, switching at once.
+drives it (the Session driver on request, the takeover after GOAL) it drives by that driver's rule, switching at once.
 Steering is no record condition: it changes no record key or identity, and a run with any steering choice is a
 product Session that records; SELECT VEHICLE
 saves colors, the selection screens save their latest selections, a run reaching GOAL saves records and CLEAR RECORDS

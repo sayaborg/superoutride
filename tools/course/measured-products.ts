@@ -114,7 +114,7 @@ export function savedReferenceVehicle(
 ): SavedReferenceVehicle {
   const report = {
     format: 'superoutride.course-reference',
-    version: 3,
+    version: 4,
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256,
     vehicles: [{ vehicleId, vehicleSha256, runs }],

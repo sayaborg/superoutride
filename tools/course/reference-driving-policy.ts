@@ -1,10 +1,10 @@
-import { ENVELOPE_DRIVER } from '../../src/race/envelope-driver.js';
+import { PLANNED_DRIVER } from '../../src/race/planned-driver.js';
 import type { DriverIntent } from '../../src/race/course-fork-field.js';
 import { routeSectionS, selectedSuccessor, type CourseRoute } from '../../src/course/course-route.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 
 /** The reference driver: the driver policy at the reference utilization, part of the reference run's record. */
-export const REFERENCE_DRIVER = Object.freeze({ ...ENVELOPE_DRIVER, utilization: 0.9 });
+export const REFERENCE_DRIVER = Object.freeze({ ...PLANNED_DRIVER, utilization: 0.9 });
 
 /**
  * The reference driver's lateral target: the centre lane's centre and, at a fork, the centre of the lane the Link its

@@ -104,7 +104,7 @@ for (const entry of definitions.vehicles) {
     let plan = 0;
     const dv = 0.01;
     for (let v = from; v > 0; v -= dv)
-      plan += (v * dv * limits.inertia) / (limits.brakeLimit(1, 1, 1, 1) + limits.drag(v));
+      plan += (v * dv * limits.inertia) / (limits.brakeLimit(1, 1, 1, 0) + limits.drag(v));
     assert.ok(
       Math.abs(distance / plan - 1) <= TOLERANCE,
       `${id}: stopped in ${distance.toFixed(2)} m against the plan's ${plan.toFixed(2)} m`,

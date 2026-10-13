@@ -4,7 +4,7 @@ import type { createCourseForkField } from './course-fork-field.js';
 import type { LaneIntent } from './lane-following.js';
 import type { createLaneDriving } from './lane-driving.js';
 import type { createVehiclePlacement } from './vehicle-placement.js';
-import { createEnvelopeDriverWorkspace } from './envelope-driver.js';
+import { createPlannedDriverWorkspace } from './planned-driver.js';
 import { createRecoveryState } from './recovery.js';
 import {
   advancePresentVehicle,
@@ -18,7 +18,6 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { createVehicle } from '../vehicle/physics/vehicle-physics.js';
-import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
@@ -88,14 +87,12 @@ export function createTrafficField(options: {
   };
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
-  /** The default steering rule on a model's vehicle, which traffic drivers drive by. */
-  readonly defaultSteering: (model: VehicleModel) => DriverSteering;
   readonly placement: ReturnType<typeof createVehiclePlacement>;
   readonly laneDriving: ReturnType<typeof createLaneDriving>;
   readonly view: { readonly appearanceLine: () => number; readonly outOfView: (s: number) => boolean };
   readonly simulationSeconds: () => number;
 }) {
-  const { runtime, forks, modelOf, defaultSteering, placement, laneDriving, seed } = options;
+  const { runtime, forks, modelOf, placement, laneDriving, seed } = options;
   const { appearanceLine, outOfView } = options.view;
   const vehicles: TrafficMotion[] = [];
   const positions = options.traffic && createTrafficPositions(options.traffic, seed, appearanceLine());
@@ -105,7 +102,7 @@ export function createTrafficField(options: {
     /** One step of every traffic vehicle: its driver's input, ordinary mechanics with recovery, then the legal road. */
     advance() {
       for (const motion of vehicles) {
-        advancePresentVehicle(runtime.readers, motion, laneDriving.drive(motion), defaultSteering(motion.model));
+        advancePresentVehicle(runtime.readers, motion, laneDriving.drive(motion), motion.driving.driver.steering);
         placement.legalRecovery(motion);
       }
     },
@@ -144,7 +141,7 @@ export function createTrafficField(options: {
         const driving = {
           driver: candidate.driver,
           intent,
-          workspace: createEnvelopeDriverWorkspace(),
+          workspace: createPlannedDriverWorkspace(),
           target: lane,
         };
         const motion: TrafficMotion = Object.assign(
@@ -152,7 +149,7 @@ export function createTrafficField(options: {
             id,
             { vehicle, model, recovery: createRecoveryState(vehicle) },
             driving,
-            defaultSteering(model),
+            candidate.driver.steering,
             (self, station) => placement.vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
           ),
           {

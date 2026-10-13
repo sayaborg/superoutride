@@ -4,7 +4,7 @@ import type { DrivingInput } from '../vehicle/driving-input.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
-import type { createEnvelopeDriverWorkspace, EnvelopeDriver } from './envelope-driver.js';
+import type { createPlannedDriverWorkspace, PlannedDriver } from './planned-driver.js';
 import type { LaneIntent, VehicleSighting } from './lane-following.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import { advanceVehicleWithRecovery, type RecoveryState, type RecoveryTarget } from './recovery.js';
@@ -17,13 +17,13 @@ export interface VehicleActor {
 }
 
 /**
- * A driver driving a present vehicle: its envelope driver, the lane intent it changes, its plan workspace and its target
+ * A driver driving a present vehicle: its planned driver, the lane intent it changes, its plan workspace and its target
  * lateral along the Route (`target`), a new function whenever its lane changes, since the driver caches by lane.
  */
 export interface VehicleDriving {
-  readonly driver: EnvelopeDriver;
+  readonly driver: PlannedDriver;
   readonly intent: LaneIntent;
-  readonly workspace: ReturnType<typeof createEnvelopeDriverWorkspace>;
+  readonly workspace: ReturnType<typeof createPlannedDriverWorkspace>;
   target: (s: number) => number;
 }
 

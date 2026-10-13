@@ -11,11 +11,7 @@ import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { formPool } from '../../src/race/free-play-field.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import {
-  compileEnvelopeDriver,
-  createEnvelopeDriverWorkspace,
-  sampleEnvelopeDrivingInput,
-} from '../../src/race/envelope-driver.js';
+import { createPlannedDriverWorkspace, samplePlannedDrivingInput } from '../../src/race/planned-driver.js';
 import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
@@ -46,16 +42,8 @@ const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 
 const idle = { steering: 0, throttle: false, brake: false };
-// The player's vehicle, its delivered envelope and the Session driver that drives it: an ARCADE class's first vehicle,
-// TESTAROSSA otherwise.
-const playerVehicle = async (id) => {
-  const { envelope } = await content.json('envelope', id);
-  return {
-    entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id),
-    envelope,
-    driver: compileEnvelopeDriver(envelope, 0.75, envelope.maximumSpeed, true),
-  };
-};
+// The player's vehicle: an ARCADE class's first vehicle, TESTAROSSA otherwise.
+const playerVehicle = (id) => ({ entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id) });
 // Sessions are prepared from the delivered catalogs as in the browser.
 const freePlay = await loadFreePlayRules(content);
 const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
@@ -212,7 +200,7 @@ function pavementBounds(scene, vehicle) {
 export async function runScenario({ course }, scenario) {
   // ARCADE takes its class of the test series, or of the delivered series `scenario.series`.
   const arcade = scenario.mode === 'ARCADE' ? scenarioClass(course, scenario) : null;
-  const { entry, envelope, driver } = await playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
+  const { entry } = playerVehicle(arcade ? arcade.vehicles[0] : 'TESTAROSSA');
   const settings = createDisplaySettings();
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
   // ARCADE takes its class's settings; TIME TRIAL and FREE PLAY take the scenario's.
@@ -235,6 +223,8 @@ export async function runScenario({ course }, scenario) {
     scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
   const prepared = await prepareSession(content, catalog, course, arcade, request, initialSpeed);
   const session = prepared.resolve(scenario.seed ?? 0);
+  // The player's Session driver, which drives it when the policy scripts its lateral.
+  const driver = session.driverOf(session.entries[0].vehicle);
   const slot = session.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
   // The player's Session driver drives toward the scenario's target exit at every fork.
@@ -253,7 +243,7 @@ export async function runScenario({ course }, scenario) {
   const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
   const sprites = createRaceSprites(definitions.vehicles);
-  const workspace = createEnvelopeDriverWorkspace();
+  const workspace = createPlannedDriverWorkspace();
   const digest = createHash('sha256');
   const evidence = {
     outsideEntry: false,
@@ -381,7 +371,7 @@ export async function runScenario({ course }, scenario) {
       // The player's Session driver drives, unless the policy scripts the lateral here.
       const lateral = scripted(vehicle.course.s);
       input = lateral
-        ? sampleEnvelopeDrivingInput(scene.world, vehicle, driver, lateral, workspace, scene.runtime.window)
+        ? samplePlannedDrivingInput(scene.world, vehicle, driver, lateral, workspace, scene.runtime.window)
         : null;
     }
     const step = race.advance(input);
@@ -687,8 +677,8 @@ export async function runScenario({ course }, scenario) {
       assert.equal(initialDeadline, Math.ceil(1000 * series.timeMargin * reference.initialSeconds) / 1000);
       evidence.ownClass = { vehicle: vehicles[0], laps, initialDeadline };
     }
-    // The takeover stops the finished player on its runout: the admitted maximumSpeed² / (2a) at the Session driver's a.
-    const runout = envelope.maximumSpeed ** 2 / (2 * Math.min(...envelope.rows.map((row) => row.braking)) * 0.75);
+    // The takeover stops the finished player on its runout: its speed cap² / (2a) at the Session driver's a.
+    const runout = driver.speedCap ** 2 / (2 * driver.braking);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
     const playerSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
     if (expect.stop) {

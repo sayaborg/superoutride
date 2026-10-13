@@ -23,11 +23,11 @@ import {
 } from './present-vehicle.js';
 import { SESSION_RULE_LIMITS } from '../course/session-rules.js';
 import { createRivalPace } from './rival-pace.js';
-import { createEnvelopeDriverWorkspace, createVariableEnvelopeDriver, drivingDomainBefore } from './envelope-driver.js';
+import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
-import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import { driverSteering, type SteeringRule } from '../vehicle/steering-rule.js';
 import {
@@ -61,16 +61,16 @@ export interface RaceEvent {
   readonly extensionMs: number | null;
 }
 
-/** A paced rival's pace and the utilization/speed-cap setter of its driver. */
+/** A paced rival's pace and the setter of its driver's utilization and speed cap, a fraction of its vehicle's. */
 interface RivalPacing {
   readonly pace: ReturnType<typeof createRivalPace>;
-  readonly set: (utilization: number, speedCap: number) => void;
+  readonly set: (utilization: number, speedFraction: number) => void;
 }
 
 /**
  * Field composition over shared course readers, ordinary mechanics and ordered physical gates. The race
  * builds every competitor's mechanics, the player's included, from its Session entry's vehicle and each
- * rival's driver from its entry's envelope; callers supply the player's input only.
+ * rival's driver from its entry's vehicle; callers supply the player's input only.
  */
 export function createCourseRace(options: {
   readonly session: ResolvedCourseSession;
@@ -79,33 +79,29 @@ export function createCourseRace(options: {
   readonly playerExit?: (occurrence: RouteOccurrence) => number;
   /**
    * The steering rule the player drives by while the player's own input reaches its vehicle; the default rule when
-   * absent. Every driver, the player's included, drives by the default rule.
+   * absent. A driver, the player's Session driver included, drives by its own rule.
    */
   readonly playerSteering?: SteeringRule;
 }) {
   const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.session;
   const { initialSpeed } = configuration;
   const { runtime } = options;
-  // Entries sharing a vehicle share its model, and unpaced entries sharing an envelope share its fixed driver.
-  // Every driver but the player drives by the default steering rule, resolved once on each model's vehicle.
-  const models = new Map<SessionEntry['vehicle'], VehicleModel>();
+  // Entries sharing a vehicle share its model, which the Session built, and unpaced entries sharing a vehicle share its
+  // fixed driver. A driver drives by its own steering rule; a vehicle no driver drives, by the default rule, resolved
+  // once on each model's vehicle.
   const defaultSteerings = new Map<VehicleModel, Readonly<DriverSteering>>();
   const modelOf = (vehicle: SessionEntry['vehicle']) => {
-    let model = models.get(vehicle);
-    if (!model) {
-      models.set(vehicle, (model = createVehicleModel(vehicle, SIM_DT)));
+    const { model } = options.session.mechanicsOf(vehicle);
+    if (!defaultSteerings.has(model))
       defaultSteerings.set(model, driverSteering(vehicle.drivingDefinition.compiledDriving.defaultSteering, model));
-    }
     return model;
   };
   const defaultSteering = (model: VehicleModel) => defaultSteerings.get(model)!;
-  // Rival driving exists only with an envelope; Session resolution admits no rivals without one. An entry with a pace
-  // ratio drives its own driver at the utilization and speed cap its pace sets; the others share their envelope's
-  // fixed driver, which the Session compiled.
+  const steeringOf = (body: PresentVehicle) => body.driving?.driver.steering ?? defaultSteering(body.model);
+  // An entry with a pace ratio drives its own driver at the utilization and speed cap its pace sets; the others share
+  // their vehicle's fixed driver, which the Session compiled.
   const drivingOf = (entry: SessionEntry) => {
-    const { envelope } = entry;
-    if (!envelope) throw new Error('rivals require an envelope driver');
-    if (entry.pace === null) return { driver: options.session.driverOf(envelope), pace: null, set: null };
+    if (entry.pace === null) return { driver: options.session.driverOf(entry.vehicle), pace: null, set: null };
     if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
     const pace = createRivalPace(
       runtime.route,
@@ -114,13 +110,10 @@ export function createCourseRace(options: {
       entry.vehicle.drivingDefinition.compiledDriving.rivalPace,
       SIM_DT,
     );
-    const variable = createVariableEnvelopeDriver(
-      envelope,
-      pace.utilization,
-      pace.speedFraction * envelope.maximumSpeed,
-      true,
-    );
-    return { driver: variable.driver, pace, set: variable.set };
+    const { model, limits, speedCap } = options.session.mechanicsOf(entry.vehicle);
+    const variable = createVariablePlannedDriver(model, limits, pace.utilization, pace.speedFraction * speedCap, true);
+    const set = (utilization: number, speedFraction: number) => variable.set(utilization, speedFraction * speedCap);
+    return { driver: variable.driver, pace, set };
   };
   const clock = createCheckpointClock(budgets);
   const outcome = createRunOutcome();
@@ -198,7 +191,7 @@ export function createCourseRace(options: {
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
-  // The player's own steering rule on its vehicle, resolved once; the default rule while a driver drives it.
+  // The player's own steering rule on its vehicle, resolved once; its driver's rule while a driver drives it.
   const playerOwnSteering = options.playerSteering
     ? driverSteering(options.playerSteering, playerActor.model)
     : defaultSteering(playerActor.model);
@@ -227,7 +220,7 @@ export function createCourseRace(options: {
       {
         driver,
         intent,
-        workspace: createEnvelopeDriverWorkspace(),
+        workspace: createPlannedDriverWorkspace(),
         target: (s: number) => forks.targetL(s, intent),
       },
       pace ? { pace, set: set! } : null,
@@ -344,12 +337,12 @@ export function createCourseRace(options: {
   const holdReady = (input: DrivingInput) => {
     for (const body of activeBodies) {
       body.step.input = body === activeBodies[0] ? input : idle;
-      body.step.steering = body === activeBodies[0] ? playerOwnSteering : defaultSteering(body.model);
+      body.step.steering = body === activeBodies[0] ? playerOwnSteering : steeringOf(body);
       updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, body.step.steering, true);
     }
     startPhase.advance();
   };
-  const move = (body: PresentVehicle, input: DrivingInput, steering = defaultSteering(body.model)) =>
+  const move = (body: PresentVehicle, input: DrivingInput, steering = steeringOf(body)) =>
     advancePresentVehicle(runtime.readers, body, input, steering);
   const { legalRecovery } = placement;
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
@@ -361,7 +354,6 @@ export function createCourseRace(options: {
     runtime,
     forks,
     modelOf,
-    defaultSteering,
     placement,
     laneDriving,
     view: { appearanceLine, outOfView },
@@ -426,11 +418,10 @@ export function createCourseRace(options: {
   let events = noEvents;
   const stepEvents: RaceEvent[] = [];
 
-  // The player's driving after its finish: the envelope driver at the Session driver utilization, in the lane nearest
-  // the position it finished at, planning a stop at its runout distance past the finish, within any Route terminal. A
-  // Session without an envelope holds the brake instead.
-  const takeoverDriver = playerEntry!.envelope ? options.session.driverOf(playerEntry!.envelope) : null;
-  const takeoverWorkspace = createEnvelopeDriverWorkspace();
+  // The player's driving after its finish: its vehicle's Session driver, in the lane nearest the position it finished
+  // at, planning a stop at its runout distance past the finish, within any Route terminal.
+  const takeoverDriver = options.session.driverOf(playerEntry!.vehicle);
+  const takeoverWorkspace = createPlannedDriverWorkspace();
   const takeoverIntent: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
@@ -438,8 +429,7 @@ export function createCourseRace(options: {
     const { s, l } = player.actor.vehicle.course;
     takeoverIntent.lane = forks.intentLane(s, l, takeoverIntent.exit);
     takeoverIntent.at = s;
-    if (!takeoverDriver) return;
-    stopS = s + takeoverDriver.envelope.maximumSpeed ** 2 / (2 * takeoverDriver.braking);
+    stopS = s + takeoverDriver.speedCap ** 2 / (2 * takeoverDriver.braking);
     // The takeover drives the player's vehicle as a driver does, seen through the player's sighting.
     player.body.driving = {
       driver: takeoverDriver,
@@ -451,14 +441,13 @@ export function createCourseRace(options: {
   // Before GOAL the player's Session driver drives the player when the composition asks (an advance without input), as
   // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
   const playerIntent: LaneIntent = { lane: 0, at: 0, exit: options.playerExit ?? (() => 0) };
-  const playerWorkspace = createEnvelopeDriverWorkspace();
+  const playerWorkspace = createPlannedDriverWorkspace();
   const handOver = (driven: boolean) => {
     if (outcome.status === 'GOAL') return;
     if (!driven) {
       player.body.driving = null;
       return;
     }
-    if (!takeoverDriver) throw new RangeError('A Session without an envelope has no player driver');
     if (player.body.driving) return;
     const { s, l } = player.actor.vehicle.course;
     playerIntent.lane = forks.intentLane(s, l, playerIntent.exit);
@@ -470,19 +459,15 @@ export function createCourseRace(options: {
       target: (station: number) => forks.targetL(station, playerIntent),
     };
   };
-  const holdBrake: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: true });
   // The player's input this step: its own, or its driver's. After GOAL the takeover drives the player and its input no
   // longer reaches the vehicle; after GAME OVER the throttle is released and the steering and brake still apply.
   // The player's steering rule this step: its own while its own input reaches the vehicle (running, or after GAME OVER),
-  // else the default rule its driver drives by.
+  // else its driver's rule.
   const playerSteeringOf = (input: DrivingInput | null, running: boolean) =>
-    input !== null && (running || outcome.status === 'GAME_OVER')
-      ? playerOwnSteering
-      : defaultSteering(player.actor.model);
+    input !== null && (running || outcome.status === 'GAME_OVER') ? playerOwnSteering : takeoverDriver.steering;
   const playerInputOf = (input: DrivingInput | null, running: boolean): DrivingInput => {
     if (running) return input ?? laneDriving.drive(player.body);
     if (outcome.status === 'GAME_OVER') return { ...(input ?? laneDriving.drive(player.body)), throttle: false };
-    if (!takeoverDriver) return holdBrake;
     return laneDriving.drive(player.body, drivingDomainBefore(runtime.window, stopS, takeoverDomain));
   };
   /**
@@ -514,7 +499,7 @@ export function createCourseRace(options: {
       const { body, pacing } = active[i]!;
       if (pacing && stepStart !== null) {
         pacing.pace.update(body.vehicle.course.s, stepStart);
-        pacing.set(pacing.pace.utilization, pacing.pace.speedFraction * body.driving!.driver.envelope.maximumSpeed);
+        pacing.set(pacing.pace.utilization, pacing.pace.speedFraction);
       }
       move(body, laneDriving.drive(body));
     }

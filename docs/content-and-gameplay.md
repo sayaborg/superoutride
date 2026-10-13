@@ -846,11 +846,10 @@ failure.
 After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
 therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
-their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: the envelope
+their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's Session
 driver at the fixed Session driver utilization (0.75) drives it in the lane nearest the position it finished at
 (on a fork, in the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
-(`maximumSpeed² / (2*a)`, as admitted), within any Route terminal; a Session without an envelope (a DEV-tuned
-vehicle) holds the brake instead. After GAME OVER the player's throttle is released: its steering and brake still
+(`speedCap² / (2*a)`, as admitted), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
 
 Rank limits are ARCADE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
@@ -894,7 +893,7 @@ player enters that stage: at the player's route station plus its ahead distance,
 driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
 ahead in that lane as its constraint, a standing object in that lane counting as a stopped vehicle), and awaits only
 the race gates after that station. An appearance reads the drivers' sightings, refreshed as the vehicles stand when it
-is decided, and the drivers' rules ([Vehicle envelopes and drivers](#vehicle-envelopes-and-drivers)): the appearing
+is decided, and the drivers' rules ([Drivers](#drivers)): the appearing
 vehicle, at its lane's centre, in line with the road and at its planned speed, is a vehicle ahead to those behind it. It waits for a
 later step while its place overlaps another vehicle's footprint or while a driven vehicle behind in its lane, whose
 driver never changes lanes to pass, could not stop for it (one moving backward can): for that vehicle's route speed `v_b` and its driver's braking `a_b`,
@@ -1028,7 +1027,7 @@ vehicles per kilometre in (0, 40] (`SESSION_RULE_LIMITS.trafficDensity`), at lea
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Session resolution converts that speed to m/s once
 (÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's Session vehicle and envelope (a
 missing envelope is a `RangeError`) and compiles its driver once: the rival utilization 0.75 with that speed as its
-speed cap, so a vehicle whose envelope maximum is lower keeps its own maximum; curve speeds and following are any
+speed cap, so a vehicle whose own speed cap is lower keeps its own; curve speeds and following are any
 driver's. On an untimed course, Session resolution rejects ARCADE; an ARCADE clock without its delivered time
 budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
 activation. A Session binds immutable course, entries, lap target, start speed and timing references. Its entries
@@ -1039,7 +1038,7 @@ player stands in the last slot of the grid its field starts from and the rivals 
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
 pool vehicle's sprite set declares) by the Session seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
-holds nothing else. Each rival drives its own vehicle with that vehicle's envelope. Each entry also carries its color.
+holds nothing else. Each rival drives its own vehicle with that vehicle's Session driver. Each entry also carries its color.
 Resolving a Session with rivals requires every rival's Session vehicle and, in FREE PLAY, the pool; a missing one is a
 `RangeError`, never the player's vehicle. What a Session needs is decided with its entries (`sessionDemand`): the
 FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, the pool when it has rivals, traffic
@@ -1049,14 +1048,13 @@ road tangent. It is finite and may be negative; product Sessions and reference r
 32-bit unsigned integer that Session resolution takes with the configuration and checks; rival target exits derive from it. The
 browser picks a new seed for every Session assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 TIME TRIAL Sessions without rivals, use 0, and scenarios and tests fix theirs. The race builds each
-competitor's mechanics from its entry's vehicle and each rival's driver from its entry's envelope; the player's
-composition supplies input only.
+competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 The player's envelope is optional. A Session without one—a DEV-tuned vehicle, whose driving definition has no delivered
-identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError,
-and the race builds a rival driver only from an envelope.
+identity—must have no rivals and no time limit; Session resolution rejects any other combination with a RangeError.
 Before activation, every FINISH in a Section with no outgoing Link must have at least
-`maximumSpeed² / (2*a)` metres remaining to that Section's end for every entry with an envelope, the player
-included. Here `a` is the minimum measured envelope braking multiplied by the fixed Session driver utilization (0.75),
+`speedCap² / (2*a)` metres remaining to that Section's end for every entry, the player included. Here `speedCap` is
+the entry vehicle's speed cap and `a` its Session driver's planning braking at the fixed Session driver utilization
+(0.75) ([Drivers](#drivers)),
 for ARCADE rivals too, whose own speed plan brakes for that end at their current utilization;
 the entry needing the longest stop decides the requirement. Admission rejects insufficient runout with a
 RangeError naming the FINISH, that entry's vehicle, available metres and required metres; the browser shows this
@@ -1097,11 +1095,10 @@ compiler's record is part of a course build identity. A code change that changes
 procedure's version. Envelope measurement (`ENVELOPE_MEASUREMENT`, `superoutride.envelope-measurement` version 2)
 records its fixed step, reference surface and the values deciding convergence and its trials; it measures on the unit
 reference surface ([Calibration](calibration.md#vehicle-settings)). The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 4) records the race's fixed step, the Session seed, the reference driver (the
-driver policy `ENVELOPE_DRIVER` at utilization 0.9), the envelope measurement's record and the pace schedule's station
-spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
+`superoutride.reference-driving` version 5) records the race's fixed step, the Session seed, the reference driver (the
+driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
-version 3 and `superoutride.vehicle-envelope` version 2) record these identities as `procedureSha256`. The delivered
+version 4 and `superoutride.vehicle-envelope` version 2) record these identities as `procedureSha256`. The delivered
 envelope carries only its rows and maximum speed; the measurement record is in the measurement trace
 (`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
@@ -1215,28 +1212,58 @@ the first station its schedule times. Between stations the times are interpolate
 time minus target time, positive when behind. Its target utilization is proportional to the difference: the driving
 definition's `rivalPace.minimumUtilization` at `-bandSeconds` or below, `maximumUtilization` at `+bandSeconds` or
 above, linear between. The rival's utilization starts at the middle of the bounds and, each fixed step, follows the
-target as a first-order lag with time constant `responseSeconds`. Its speed cap is its own vehicle's envelope maximum
-speed times a fraction that runs linearly from `minimumSpeedFraction` at the minimum utilization to 1 at the maximum.
+target as a first-order lag with time constant `responseSeconds`. Its speed cap is its own vehicle's speed cap
+times a fraction that runs linearly from `minimumSpeedFraction` at the minimum utilization to 1 at the maximum.
 Where its schedule times no station (past the last timed station of a Section, or on a Section no reference run
 passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
 rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed Session
-driver utilization (0.75). Session resolution compiles each entry envelope's fixed driver (that utilization at the envelope's
-maximum speed) once; the runout check, the race's unpaced rivals and the player's post-finish driver use that one.
+driver utilization (0.75). Session resolution compiles each entry vehicle's fixed driver (that utilization at the vehicle's speed cap)
+once; the runout check, the race's unpaced rivals and the player's Session driver use that one.
 
-### Vehicle envelopes and drivers
+### Drivers
 
-Generated envelopes contain maximum speed and speed-indexed acceleration, braking and lateral-response
-observations for each vehicle configuration. The driver consumes an envelope, utilization, speed cap
-and lane; the utilization may change from one step to the next. Its workspace caches each 5 m cell's curvature and grip by
-road, lane and the cell's interval within the planning domain, and its curve speed also by envelope, utilization and
-speed cap, so a steady utilization reuses both and a cell the domain cut short is read again once the domain grows; it reads a contiguous 5 m lattice up to 480 m ahead and publishes canonical steering,
-throttle and brake. [Calibration](calibration.md) lists utilization values.
+Every driver — rivals, traffic, reference runs, the attract demo and the player's Session driver — is the planned
+driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's limits
+([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
+is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
+step to the next. It steers by its own steering rule, the centre reference at its utilization. Its path is its lane's
+centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
 
-Drivers read the surface ahead. Each cell reads the grip factor of the material under its lane at the cell's start (no
-material: no grip): its curve speed uses the envelope's lateral limit times that grip, and braking toward a cell, the
-terminal or the vehicle ahead uses the planning braking times the least grip on the lane from the driver's first cell
-through the cell where that braking ends. On asphalt (grip 1) the plan is the envelope's own. Steering does not read
-grip.
+The speed plan reads a contiguous 5 m lattice up to 480 m ahead along the path, within the planning domain. Each cell
+reads the path's signed curvature (the road's heading change along the cell over the path's chord, so a path at a
+steady lateral turns with the road and a change of lane adds none), the profile's grade angle `θ` and vertical curvature
+`kv` (positive in a sag) over the cell, and the grip factor and rolling resistance of the material under the path at
+the cell's start (no material: no grip). While the vehicle is more than `offPathMetres` (1 m) off its path, the cells
+within `offPathSeconds` (3 s) of its speed, at least `offPathLeast` (30 m), are planned on the lesser grip of that
+surface and the surface at the path plus its offset, where it actually drives. Its cornering speed is the fastest speed
+whose lateral demand lies within `lateralMargin` (0.95) of the lateral limit at the planned utilization (the driver's
+utilization times its correction) and below the speed cap; the drive and braking limits keep the same margin of each
+axle's lateral. The steering rule's full input reaches the whole limit, so the margin is left for closing the
+path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
+by road, path and interval and its cornering speed also by limits, planned utilization, speed cap, curvature and grip. Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
+
+- Forward, from the vehicle's speed: each node the previous node's speed driven over the segment at the drive limit
+  less drag, grade, rolling resistance and cornering drag, within the cell's cornering speed. Where the load factor at
+  the speed reached falls to 0 the vehicle leaves the ground: the plan traces its ballistic flight over the profile from
+  take-off, along the cell's grade, to its landing, and the segments crossed in flight carry speed.
+- Backward, from the plan's end constraints: each node the next node's speed braked back over the segment at the
+  braking limit plus drag, grade, rolling and cornering drag, within the forward speeds; flight segments carry speed
+  back, so a take-off is no faster than the landing and what follows allow. The terminal is a stop
+  `terminalClearance` plus the response distance (`responseSeconds` times the speed) before it; the vehicle ahead is an
+  end at its speed (below). An end inside a segment brakes from its own station.
+
+The plan's speed now is the backward bound at the vehicle's station, with the terminal only (free) and also behind the
+vehicle ahead (target). The pedals ask the acceleration `(v_next² − v²)/(2Δs) + (v_plan − v)/speedSeconds` toward the
+plan's node at least half a cell ahead, `speedSeconds` 0.5 s; a plan within the speed deadzone of standstill is a stop
+and the brake holds. The steering follows the path: its curvature read `curvatureSeconds` (0.2 s) of the speed ahead,
+its lateral error (read at most `pathErrorLimit`, 2 m, so a larger step closes at a bounded rate) and heading error at
+the vehicle's station; neutral while neither tire is loaded. Since the input sets the front tire's slip, the full input's
+yaw rate it inverts through is scaled by the front tire's effective load factor, read from its observed load (at least
+`leastFrontLoadFactor`, 0.25).
+
+The capacity correction `c`, one per driven vehicle in [0.85, 1], starts at 1 and multiplies the utilization the plan
+uses: when either axle's tire utilization observation stays at 1 (within `saturation`, 1e-6, of rounding) for longer
+than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1 at 0.01 per second. The plan reads it in steps of 0.01. It is the only adaptation.
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
 The Route exposes that terminal station only when its tail is such a Section; loaded tails
@@ -1256,7 +1283,7 @@ direction relative to the road, dimensions, the lateral each is heading for at i
 target lateral; its own lateral while the player drives it) and the driver driving it, the player's vehicle included;
 drivers write no vehicle state. The list also holds the standing
 roadside objects ([Roadside objects](#roadside-objects)), fixed and movable, wall ends included, from the rearmost
-present vehicle's station to the foremost one's plus the driver lookahead (`ENVELOPE_DRIVER.lookahead`), each read
+present vehicle's station to the foremost one's plus the driver lookahead (`PLANNED_DRIVER.lookahead`), each read
 from its Section's station-ordered list: an object is a stopped vehicle of zero length and its width, heading for its
 own lateral, at rest in line with the road. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
 vehicle ahead to it, and one outside every lane occupies none. A vehicle occupies both the
@@ -1304,8 +1331,9 @@ in its lane until another lane is faster by that margin. A lane is free when no
 vehicle in it lies between the driver's following distance ahead, `(F₁ + F₂)/2 + v × followSeconds`, and, behind,
 half the two footprints plus that vehicle's speed times `followSeconds`. Drivers read each vehicle's footprint `F` and
 each standing object's footprint (its depth along the road, its width across) as contacts do. With no faster free lane, or when it does not
-pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its envelope's minimum
-braking times its utilization; the player's, for others' checks, is the Session driver's. The reference line plans
+pass, the driver follows on the constrained plan; its inputs stay throttle, brake and steering. Every driver's `a` is its planning braking:
+its braking limit at its utilization on level ground of unit grip, over its inertia; the player's, for others' checks,
+is the Session driver's. The reference line plans
 without a vehicle ahead and meets no other vehicle, so reference runs are unchanged.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
@@ -1326,7 +1354,7 @@ begin and end only inside a Section: across a seam every lane continues with its
 
 #### Vehicle limits and planned control
 
-The planned driver (Stage AI in [NEXT](NEXT.md); not yet driving) plans with one model of its vehicle's limits,
+Every driver plans with one model of its vehicle's limits,
 `createVehicleLimits` in `src/vehicle/vehicle-limits.ts`, built from the vehicle model alone: a point mass on two axles,
 per unit mass. Each axle's tire is a friction ellipse with semi-axes `muX·g` and `muY·g` times the surface grip, the
 axle's static share of the weight and its effective load factor: the axle's load over its static load read through the
@@ -1335,11 +1363,13 @@ tire's load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both ax
 height, amplified by the suspension's pitch compliance (the pitch the moved load sets moves the contacts under the
 centre of mass). From it:
 
-- Lateral limit: the steering axle's lateral ellipse at utilization `u` under the longitudinal force the tires carry.
+- Lateral limit: each axle carries the lateral acceleration in proportion to its static share, so the lateral limit is
+  the lesser axle's lateral semi-axis at utilization `u` under the longitudinal force the tires carry.
 - Drive: the best full-throttle wheel force over the gears at the speed (a gear whose engine speed would pass redline
   is unavailable but the top gear's, up to fuel cut; below the clutch lock first gear's slipping clutch holds the
   engine at its maximum-torque speed), bounded by the driven axles' longitudinal ellipses under the drive split, of
-  which the lateral demand leaves `sqrt(1 − (ay/Ay)²)`.
+  which each axle's lateral fraction `f` leaves `sqrt(1 − f²)`; a force whose load transfer leaves either axle less
+  than the lateral is not available.
 - Braking: each axle's brake torque at `u` at its rolling radius, bounded by its ellipse alike.
 - Resistances: drag `quadraticDrag·v²`, grade `g·sin θ`, rolling `Cr·g·n`, and the cornering drag of the tires'
   lateral slip, the lateral acceleration times the pure-lateral slip the tire law needs for it.
@@ -1353,8 +1383,9 @@ throttle opening that delivers the force for it, drag and the resistances by inv
 map at the current gear and engine speed; below a closed opening's engine braking, the brake as a part of the full brake
 force. The steering asks the yaw rate `r* = a*/V` of the lateral acceleration
 `a* = V²·κ − ω²·e − 2ζω·V·sin ψ` (`κ` the path's signed curvature, `e` and `ψ` the lateral and heading errors to it,
-`ω` 1.2 rad/s and `ζ` 0.8, `PLANNED_DRIVER`), as the part `r*/w` of the yaw rate `w` full input asks under the driver's
-steering rule ([Vehicle physics](vehicle-physics.md#actuators-and-steering)).
+`ω` 1.2 rad/s and `ζ` 0.8, `PLANNED_DRIVER`; `e` read within ±2 m), as the part `r*/w` of the yaw rate `w` full input
+asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actuators-and-steering)) times the front
+tire's effective load factor.
 
 The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
 surface of unit grip and no rolling resistance: driven by this control at utilization 0.9 on a 100 m circle at the

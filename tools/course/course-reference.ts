@@ -40,7 +40,7 @@ export interface CourseReferenceTimes {
 const SECONDS = { min: 0, exclusiveMin: true };
 
 /**
- * Admit a saved reference report (`superoutride.course-reference` version 3) for the vehicle `vehicleId`, whose
+ * Admit a saved reference report (`superoutride.course-reference` version 4) for the vehicle `vehicleId`, whose
  * Session vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
  * `referenceSha256`, and resolve its runs to the course's canonical landmarks: one run per route, each through the
  * maximum laps, recording exactly the race lines its route crosses.
@@ -60,7 +60,7 @@ export function readCourseReference(
       input,
       ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'vehicles'],
       'superoutride.course-reference',
-      3,
+      4,
     );
     requireAdmission(
       readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) === course.identity.buildSha256,
@@ -110,7 +110,7 @@ export function readCourseReference(
         );
         const metrics = readRecord(run.metrics, `${runAt}/metrics`, [
           'maximumSpeed',
-          'maximumLateralUtilization',
+          'maximumUtilization',
           'distance',
           'recoveries',
         ]);

@@ -124,58 +124,22 @@ measured product of every course (AI-1, [Racing lines](content-and-gameplay.md#r
 
 ### AI-2 — The model-planned driver
 
-Owning documents: content-and-gameplay ("Vehicle envelopes and drivers", renamed "Drivers") and calibration (the
-utilization's meaning). It replaces the envelope driver for every driver. It lands in three PRs: AI-2a, the vehicle
-limits model, the planned control and the model check
-([Vehicle limits and planned control](content-and-gameplay.md#vehicle-limits-and-planned-control)); AI-2b, the speed
-plan and the driver replacing the envelope driver everywhere on today's lines (lane centres, the centre line for
-reference runs); AI-2c, rivals, reference runs, the attract demo and the takeover on the racing line, the BRANCH
-scenario and regenerated measured products.
+Owning document: content-and-gameplay ([Drivers](content-and-gameplay.md#drivers)). The planned driver drives every
+driver on today's lines (AI-2a and AI-2b landed). The last part, AI-2c:
 
 - Path: a driver follows its line plus its offset (0 until AI-4). Rivals, reference runs, the attract demo and the
   takeover follow the racing line; traffic its lane's centre under the existing lane rules. The three judgements
   (occupancy, the vehicle ahead, whether the vehicles behind can stop) read a driver's path lateral where they read its
   lane's centre today, one implementation each.
-- Speed plan: every step over the same 5 m lattice and 480 m lookahead, cached by unchanged inputs. Per cell the path's
-  curvature (plan and lateral), the profile's vertical curvature `kv` (positive in a sag) and grade `θ`, and the
-  material's grip factor under the path. Load factor `n(v) = cos θ + v²·kv/g`. Friction ellipse at utilization `u`:
-  `Ax = u·μX·n·g·grip`, `Ay = u·μY·n·g·grip`, `μX` and `μY` from the game-wide tire definition at the vehicle's static
-  axle loads scaled by `n` with load sensitivity, read from the same compiled tire model the physics uses.
-- Limits: cornering, the largest `v` with `v²·κ ≤ Ay(v)`, and the speed cap; drive, the smallest of the ellipse's
-  remaining longitudinal capacity at the driven axles' share of load and the powertrain's best wheel force at `v` over
-  the gears (curve torque, efficiency, wheel radius), less drag, grade and rolling resistance; braking, the ellipse's
-  remaining capacity bounded by the brake torques, plus drag and grade.
-- Passes: forward from the current speed with the drive limit, then backward from the plan's end constraints
-  (terminal, vehicle ahead, merging) with the braking limit.
-- Crests and jumps: a cell where `n(v) ≤ 0` at the planned speed is airborne; from take-off trace the ballistic flight
-  over the profile to its landing; flight cells have no grip and carry speed, so the backward pass limits take-off
-  speed to what the landing and the cells after it allow. A driver may jump; it lifts before take-off only when the
-  landing would be too fast for what follows.
-- Speed cap: replaces the envelope's maximum speed; the steady speed where full-throttle drive force in the best gear
-  equals drag plus rolling resistance on level asphalt, computed once per vehicle at Session resolution. The runout
-  check uses it with the braking limit at the Session driver's utilization.
-- Longitudinal control: target acceleration `(v_next² − v²)/(2Δs) + (v_plan − v)/0.5 s`, one pedal opening, never
-  both: throttle by inverting the powertrain's affine opening-to-torque relation at the current gear and RPM, brake as a
-  fraction of the brake force bound; clamped to [0,1]; actuators and rates unchanged.
-- Steering: a yaw rate through the existing steering rule (DR-3), `u = r*/w_max(V)` with `r* = V·κ_path` at a short
-  lookahead plus heading-error and lateral-error feedback; the rule's limiter keeps it from over-steering; the centre
-  reference at its own utilization; neutral in flight.
-- Correction: one capacity scale `c` in [0.85, 1] per driver, starting at 1, multiplying `Ax` and `Ay`; when either
-  axle's tire utilization observation reaches 1 for more than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1
-  at 0.01 per second. It is the only adaptation.
-- Utilization is the friction-ellipse fraction everywhere; calibration states it once; rival pace reads it as before.
 - Reference runs use this driver on the racing line; regenerate reference times and pace schedules.
-- One new check, the model check: for each catalog vehicle on the envelope procedure's flat reference surface, a steady
-  circle at the plan's cornering speed for 100 m radius and a straight full stop from 30 m/s; the observed lateral
-  acceleration and the mean deceleration are each within 5 % of the plan.
 - One new scenario: on a BRANCH course, a rival takes its intended exit's line through a fork and does not recover.
 
-Evidence: reference times old and new per class; the model check table; driver cost per step (mean and maximum over a
-16-rival TSUKUBA race) against the old driver's; the VFR750R TSUKUBA lap before and after.
+Evidence: reference times before and after per class.
 
 ### AI-3 — Remove envelopes
 
-A deletion PR on its own: remove the envelope product, its format, its measurement and admission, `content/envelopes/`
+A deletion PR on its own: remove the envelope driver (`src/race/envelope-driver.ts`, unused since AI-2b), the envelope
+product, its format, its measurement and admission, `content/envelopes/`
 and the readers left; update development, calibration and content-and-gameplay; regenerate measured products if their
 identities change.
 

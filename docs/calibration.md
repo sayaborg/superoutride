@@ -119,25 +119,26 @@ in `tools/course/rival-envelope-measurement.ts`: grip factor 1 and rolling resis
 catalog material, so material IDs and values do not move the envelope; the reference is the vehicle's
 capability on unit grip without surface drag.
 
-| Setting               | Value | Meaning                                                                                              |
-| --------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
-| Rival utilization     | 0.75  | Fixed fraction of the measured envelope for unpaced rivals, traffic and the takeover after GOAL      |
-| Reference utilization | 0.9   | Offline reference driver's fraction of the measured envelope                                         |
-| Following time        | 1.5 s | Drivers' following time (`ENVELOPE_DRIVER.followSeconds`)                                            |
-| Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`ENVELOPE_DRIVER.terminalClearance`) |
+A driver's utilization is the fraction of its tires' friction ellipses it plans to use: it scales the lateral and
+longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and acceleration
+alike; its steering rule uses the same fraction of the front tire. Rival pace reads it as before. A vehicle's speed cap
+is its steady speed on a level straight of unit grip without rolling resistance, at full utilization.
+
+| Setting               | Value | Meaning                                                                                             |
+| --------------------- | ----- | --------------------------------------------------------------------------------------------------- |
+| Rival utilization     | 0.75  | Utilization of unpaced rivals, traffic and the player's Session driver (the takeover after GOAL)    |
+| Reference utilization | 0.9   | Offline reference driver's utilization                                                              |
+| Following time        | 1.5 s | Drivers' following time (`PLANNED_DRIVER.followSeconds`)                                            |
+| Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`PLANNED_DRIVER.terminalClearance`) |
 
 Drivers' rules read the following time and the terminal clearance
-([Content and gameplay](content-and-gameplay.md#vehicle-envelopes-and-drivers)).
+([Content and gameplay](content-and-gameplay.md#drivers)).
 
-`ENVELOPE_DRIVER.version` identifies the driver policy: the record's values and the driving law that reads them —
+`PLANNED_DRIVER.version` identifies the driver policy: the record's values and the driving law that reads them —
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 14: since version 8, one implementation of the vehicle ahead,
-lane occupancy and stopping followers, the steering path that decides the vehicle ahead, the escape gap (9), the
-surface grip drivers plan with (10), standing objects that end a lane (11), other
-vehicles' route speeds (12), lanes carried across every seam as the lanes continue (13), and cells the planning
-domain cut short read again once it grows (14).
+driver's record, part of the reference run's procedure record, contains it. It is 1: the planned driver.
 
 ## Camera settings
 

@@ -6,7 +6,7 @@ import type { VehicleModel } from './physics/vehicle-model.js';
 /** Bisection steps of a steady speed; the bracket runs to the top gear's fuel-cut speed. */
 const STEADY_SPEED_ITERATIONS = 40;
 /** Bisection steps of a longitudinal limit, whose axle loads move with the force itself. */
-const LOAD_TRANSFER_ITERATIONS = 24;
+const LOAD_TRANSFER_ITERATIONS = 12;
 
 /**
  * A vehicle's limits as a point mass on two axles, per unit mass (m/s²), the one model a planned driver plans with.
@@ -35,16 +35,18 @@ export interface VehicleLimits {
   drive(v: number): number;
   /**
    * m/s²: the lateral limit at utilization `utilization` on `grip` at load factor `n` while the tires' longitudinal force
-   * is `longitudinal` (m/s², drive positive): the steering axle's lateral ellipse.
+   * is `longitudinal` (m/s², drive positive): the lesser axle's lateral semi-axis, each axle carrying the lateral in
+   * proportion to its static share.
    */
   lateralLimit(utilization: number, grip: number, n: number, longitudinal: number): number;
   /**
-   * m/s²: the drive force at speed `v` within the driven axles' ellipses at `utilization` on `grip` at load factor `n`,
-   * of which the lateral demand leaves `share` of each longitudinal semi-axis.
+   * m/s²: the drive force at speed `v` within the driven axles' ellipses at `utilization` on `grip` at load factor `n`
+   * while they carry lateral acceleration `lateral`, each axle its static share of it; a force whose load transfer
+   * leaves either axle less than that lateral is not available.
    */
-  driveLimit(v: number, utilization: number, grip: number, n: number, share: number): number;
+  driveLimit(v: number, utilization: number, grip: number, n: number, lateral: number): number;
   /** m/s²: the brake force at `utilization` of the brake torques within the axles' ellipses, as `driveLimit`. */
-  brakeLimit(utilization: number, grip: number, n: number, share: number): number;
+  brakeLimit(utilization: number, grip: number, n: number, lateral: number): number;
   /**
    * m/s²: the drag of the tires' slip when they carry lateral acceleration `lateral` at load factor `n` on `grip`: the
    * lateral times the pure-lateral slip the tire law needs for it.
@@ -57,6 +59,18 @@ export interface VehicleLimits {
    * ellipses leave the driven axles. Where the load factor reaches 0 the vehicle leaves the ground: any speed holds.
    */
   steadySpeed(
+    curvature: number,
+    grade: number,
+    vertical: number,
+    grip: number,
+    rolling: number,
+    utilization: number,
+  ): number;
+  /**
+   * m/s: the fastest speed on a path of curvature `curvature` whose lateral demand lies within the lateral limit, as
+   * `steadySpeed` without its drive; the top gear's fuel-cut speed on a straight.
+   */
+  corneringSpeed(
     curvature: number,
     grade: number,
     vertical: number,
@@ -97,9 +111,17 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
   const fuelCut = powertrain.redlineRpm * constants.fuelCutEnterRedlineRatio;
   const upper = fuelCut / (rpmPerSpeed * powertrain.gearRatios[top - 1]!);
   const friction = (mu: number, n: number) => mu * VEHICLE_GRAVITY * effectiveLoadFactor(tire.loadSensitivity, n);
-  // Each axle's longitudinal ellipse per unit vehicle mass while the tires' longitudinal force is `force`.
-  const front = (n: number, force: number) => frontShare * friction(tire.muX, n - force * frontTransfer);
-  const rear = (n: number, force: number) => rearShare * friction(tire.muX, n + force * rearTransfer);
+  // Each axle carries the lateral acceleration in proportion to its static share, so its lateral fraction is the
+  // lateral over its own lateral semi-axis; what that leaves of its longitudinal semi-axis, per unit vehicle mass, while
+  // the tires' longitudinal force is `force`. An axle the lateral overloads leaves nothing: -Infinity.
+  const remaining = (share: number, axleN: number, scale: number, lateral: number) => {
+    const fraction = lateral / (scale * friction(tire.muY, axleN));
+    return fraction < 1 ? share * scale * friction(tire.muX, axleN) * Math.sqrt(1 - fraction * fraction) : -Infinity;
+  };
+  const front = (n: number, force: number, scale: number, lateral: number) =>
+    remaining(frontShare, n - force * frontTransfer, scale, lateral);
+  const rear = (n: number, force: number, scale: number, lateral: number) =>
+    remaining(rearShare, n + force * rearTransfer, scale, lateral);
 
   const drag = (v: number) => (vehicle.quadraticDrag * v * v) / mass;
   const drive = (v: number) => {
@@ -114,7 +136,9 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     return (best * wheelPerSpeed) / mass;
   };
   const lateralLimit = (utilization: number, grip: number, n: number, longitudinal: number) =>
-    utilization * grip * friction(tire.muY, n - longitudinal * frontTransfer);
+    utilization *
+    grip *
+    Math.min(friction(tire.muY, n - longitudinal * frontTransfer), friction(tire.muY, n + longitudinal * rearTransfer));
   // A longitudinal force within the axles' ellipses whose own load transfer bounds it: the largest `force` at or below
   // `bound(force)`, by bisection from `most`.
   const transferred = (most: number, bound: (force: number) => number) => {
@@ -128,37 +152,40 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     }
     return low;
   };
-  const driveLimit = (v: number, utilization: number, grip: number, n: number, share: number) => {
-    const scale = utilization * grip * share;
-    return transferred(drive(v), (force) =>
-      Math.min(
-        split > 0 ? (scale * front(n, force)) / split : Infinity,
-        split < 1 ? (scale * rear(n, force)) / (1 - split) : Infinity,
-      ),
-    );
+  const driveLimit = (v: number, utilization: number, grip: number, n: number, lateral: number) => {
+    const scale = utilization * grip;
+    return transferred(drive(v), (force) => {
+      const f = front(n, force, scale, lateral),
+        r = rear(n, force, scale, lateral);
+      return Math.min(split > 0 ? f / split : f * Infinity, split < 1 ? r / (1 - split) : r * Infinity);
+    });
   };
-  const brakeLimit = (utilization: number, grip: number, n: number, share: number) => {
-    const scale = utilization * grip * share;
+  const brakeLimit = (utilization: number, grip: number, n: number, lateral: number) => {
+    const scale = utilization * grip;
     return transferred(
       utilization * (frontBrake + rearBrake),
       (force) =>
-        Math.min(utilization * frontBrake, scale * front(n, -force)) +
-        Math.min(utilization * rearBrake, scale * rear(n, -force)),
+        Math.min(utilization * frontBrake, front(n, -force, scale, lateral)) +
+        Math.min(utilization * rearBrake, rear(n, -force, scale, lateral)),
     );
   };
   const corneringDrag = (lateral: number, n: number, grip: number) => {
+    if (lateral === 0) return 0;
     const capacity = grip * friction(tire.muY, n);
     if (!(capacity > 0)) return 0;
     const demand = radialKneeInverse(tire.rhoKnee, Math.min(1, Math.abs(lateral) / capacity));
     return (Math.abs(lateral) * grip * demand * tire.muY) / tire.kY;
   };
-  const steadySpeed = (
+  // The fastest speed on a path of curvature `curvature` whose lateral demand lies within the lateral limit under the
+  // longitudinal force a steady speed needs there, and, when `steady`, whose drive covers that force.
+  const fastest = (
     curvature: number,
     grade: number,
     vertical: number,
     grip: number,
     rolling: number,
     utilization: number,
+    steady: boolean,
   ) => {
     const k = Math.abs(curvature);
     const feasible = (v: number) => {
@@ -167,10 +194,10 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
       const lateral = v * v * k;
       const longitudinal =
         drag(v) + corneringDrag(lateral, n, grip) + VEHICLE_GRAVITY * (Math.sin(grade) + rolling * n);
-      const capacity = lateralLimit(utilization, grip, n, Math.max(0, longitudinal));
-      if (!(lateral <= capacity)) return false;
-      return driveLimit(v, utilization, grip, n, Math.sqrt(1 - (lateral / capacity) ** 2)) >= longitudinal;
+      if (!(lateral <= lateralLimit(utilization, grip, n, Math.max(0, longitudinal)))) return false;
+      return !steady || driveLimit(v, utilization, grip, n, lateral) >= longitudinal;
     };
+    if (!steady && k === 0) return upper;
     let low = 0,
       high = upper;
     for (let i = 0; i < STEADY_SPEED_ITERATIONS; i++) {
@@ -180,6 +207,14 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     }
     return low;
   };
+  const steadySpeed = (
+    curvature: number,
+    grade: number,
+    vertical: number,
+    grip: number,
+    rolling: number,
+    utilization: number,
+  ) => fastest(curvature, grade, vertical, grip, rolling, utilization, true);
   return Object.freeze({
     mass,
     inertia:
@@ -194,6 +229,14 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     driveLimit,
     brakeLimit,
     corneringDrag,
+    corneringSpeed: (
+      curvature: number,
+      grade: number,
+      vertical: number,
+      grip: number,
+      rolling: number,
+      utilization: number,
+    ) => fastest(curvature, grade, vertical, grip, rolling, utilization, false),
     steadySpeed,
     speedCap: (rolling: number) => steadySpeed(0, 0, 0, 1, rolling, 1),
   });

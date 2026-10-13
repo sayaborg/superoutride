@@ -5,17 +5,17 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import {
   drivingDomainBefore,
-  ENVELOPE_DRIVER,
-  envelopeDrivingInput,
-  envelopeSpeedBehind,
-  planEnvelopeDriving,
-  plannedEnvelopeSpeed,
+  PLANNED_DRIVER,
+  planDriving,
+  plannedDrivingInput,
+  plannedSpeed,
   routeSpeed,
+  speedBehind,
   travelYaw,
   type DriverRoad,
   type DrivingDomain,
-  type EnvelopeDriver,
-} from './envelope-driver.js';
+  type PlannedDriver,
+} from './planned-driver.js';
 import { createLaneFollowing, type LaneIntent, type VehicleSighting } from './lane-following.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import { presentTarget, type PresentVehicle } from './present-vehicle.js';
@@ -71,7 +71,7 @@ export function createLaneDriving(options: {
       frontS = Math.max(frontS, body.vehicle.course.s);
     }
     let sighted = 0;
-    roadsideObjects.sight(rearS, frontS + ENVELOPE_DRIVER.lookahead, (s, l, width, depth) => {
+    roadsideObjects.sight(rearS, frontS + PLANNED_DRIVER.lookahead, (s, l, width, depth) => {
       if (sighted === objectSightings.length)
         objectSightings.push({
           s: 0,
@@ -107,7 +107,7 @@ export function createLaneDriving(options: {
     speed: 0,
     heading: 0,
     target: 0,
-    driver: null as EnvelopeDriver | null,
+    driver: null as PlannedDriver | null,
     standing: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
@@ -132,7 +132,7 @@ export function createLaneDriving(options: {
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
       forks.carry(intent, s);
-      const ahead = s + ENVELOPE_DRIVER.lookahead;
+      const ahead = s + PLANNED_DRIVER.lookahead;
       // Where `lane` ends within the lookahead: at a seam across which it does not continue, or at a standing object in
       // it, whichever comes first.
       const seamEnd = (lane: number) => {
@@ -164,7 +164,7 @@ export function createLaneDriving(options: {
       }
       // A seam where the lane ends is a terminal of the plan; a standing object is the vehicle ahead in the lane.
       const planned = end?.seam ? drivingDomainBefore(domain, end.s, laneDomain) : domain;
-      const plan = planEnvelopeDriving(
+      const plan = planDriving(
         road,
         driven.vehicle,
         driver,
@@ -180,7 +180,7 @@ export function createLaneDriving(options: {
           driven.sighting,
           sightings,
           plan.target,
-          (leader) => envelopeSpeedBehind(driven.vehicle, driver, driving.workspace, plan.free, leader),
+          (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
           ends,
         );
         if (moved !== null) {
@@ -189,15 +189,7 @@ export function createLaneDriving(options: {
           targetSpeed = moved;
         }
       }
-      return envelopeDrivingInput(
-        road,
-        driven.vehicle,
-        driver,
-        driving.target,
-        driving.workspace,
-        planned,
-        targetSpeed,
-      );
+      return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, targetSpeed);
     },
     /**
      * How fast a vehicle of `model` appears at (s, its intent's lane centre) under `driver`, seeing the present vehicles
@@ -206,10 +198,10 @@ export function createLaneDriving(options: {
      * not pass could not stop for it at that speed, so the appearance waits or passes like an occupied one. Drivers that
      * pass move over or match its speed; the player avoids it.
      */
-    appearanceSpeed(model: VehicleModel, s: number, intent: LaneIntent, driver: EnvelopeDriver): number | null {
+    appearanceSpeed(model: VehicleModel, s: number, intent: LaneIntent, driver: PlannedDriver): number | null {
       observe(s);
       const lane = (station: number) => forks.targetL(station, intent);
-      const laneEnd = forks.laneEnd(s, s + ENVELOPE_DRIVER.lookahead, intent)?.s ?? null;
+      const laneEnd = forks.laneEnd(s, s + PLANNED_DRIVER.lookahead, intent)?.s ?? null;
       const domain = laneEnd === null ? window : drivingDomainBefore(window, laneEnd, appearanceDomain);
       Object.assign(appearing, {
         s,
@@ -220,14 +212,7 @@ export function createLaneDriving(options: {
         target: lane(s),
         driver,
       });
-      appearing.speed = plannedEnvelopeSpeed(
-        road,
-        s,
-        driver,
-        lane,
-        domain,
-        following.leader(intent, appearing, sightings),
-      );
+      appearing.speed = plannedSpeed(road, s, driver, lane, domain, following.leader(intent, appearing, sightings));
       return following.followersCanStop(appearing, intent, intent.lane, sightings, (other) => !other.passes)
         ? appearing.speed
         : null;

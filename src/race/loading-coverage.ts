@@ -1,7 +1,7 @@
 import { PLAN_PROJECTION_WINDOW_METERS } from '../course/geometry/plan-coordinate.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { MAXIMUM_VEHICLE_SPEED } from '../vehicle/physics/vehicle-definitions.js';
-import { ENVELOPE_DRIVER } from './envelope-driver.js';
+import { PLANNED_DRIVER } from './planned-driver.js';
 import { SIM_DT } from './fixed-step.js';
 import { RECOVERY_POLICY } from './recovery.js';
 
@@ -45,7 +45,7 @@ export function resolveLoadingCoverage(
     view: window,
     maximumStepMeters,
     forwardMeters:
-      Math.max(window.cameraDistance + window.far, ENVELOPE_DRIVER.lookahead, PLAN_PROJECTION_WINDOW_METERS) +
+      Math.max(window.cameraDistance + window.far, PLANNED_DRIVER.lookahead, PLAN_PROJECTION_WINDOW_METERS) +
       maximumStepMeters,
     rearMeters:
       Math.max(

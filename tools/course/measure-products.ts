@@ -138,7 +138,7 @@ async function trace(args: readonly string[]) {
     const envelope: RivalEnvelope = { maximumSpeed: measured.maximumSpeed, rows: measured.rows };
     result = {
       format: 'superoutride.reference-run',
-      version: 3,
+      version: 4,
       courseBuildSha256: course.identity.buildSha256,
       procedureSha256: await procedureSha256(REFERENCE_RUN),
       vehicle,

@@ -12,14 +12,13 @@ import { resolveCourseSession } from '../../src/race/course-session.js';
 import { compileSessionConfiguration } from '../../src/race/session-configuration.js';
 import type { FreePlayRules } from '../../src/content/free-play-rules.js';
 import {
-  createEnvelopeDriverWorkspace,
-  sampleEnvelopeDrivingInput,
-  envelopeAt,
-  compileEnvelopeDriver,
-} from '../../src/race/envelope-driver.js';
+  compilePlannedDriver,
+  createPlannedDriverWorkspace,
+  samplePlannedDrivingInput,
+} from '../../src/race/planned-driver.js';
+import { createSteeringRule } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
-import { ENVELOPE_MEASUREMENT } from './rival-envelope-measurement.js';
 import { PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
 
@@ -27,15 +26,14 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
 
 /**
  * The reference run procedure's record ([procedure](./procedure.ts)): the race's fixed step, the Session seed, the
- * reference driver, the measurement of the envelope it drives with and the pace schedule's station spacing.
+ * reference driver and the pace schedule's station spacing.
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 4,
+  version: 5,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
-  envelope: ENVELOPE_MEASUREMENT,
   scheduleSpacing: PACE_SCHEDULE_SPACING,
 });
 
@@ -58,7 +56,12 @@ export function runCourseReference(
     catalog,
   );
   const session = resolveCourseSession(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration, envelope);
-  const race = createCourseRace({ session, runtime: scene.runtime });
+  // The reference driver steers by its own rule, the centre reference at its utilization.
+  const race = createCourseRace({
+    session,
+    runtime: scene.runtime,
+    playerSteering: createSteeringRule('center', REFERENCE_RUN.driver.utilization),
+  });
   const { actor } = race.player;
   const { vehicle } = actor;
   const events = [],
@@ -66,14 +69,15 @@ export function runCourseReference(
   let previousTime = 0,
     distance = 0,
     maximumSpeed = 0,
-    maximumLateralUtilization = 0;
+    maximumUtilization = 0;
   const planned = new Map(route.map((link) => [link.from.section, link]));
   // The reference line: the centre lane; the planned Link at each fork is the intended exit.
   const lane = referenceLine(scene.runtime.route, (occurrence) =>
     occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
   );
-  const workspace = createEnvelopeDriverWorkspace();
-  const driver = compileEnvelopeDriver(envelope, REFERENCE_RUN.driver.utilization, envelope.maximumSpeed, true);
+  const workspace = createPlannedDriverWorkspace();
+  const { model, limits, speedCap } = session.mechanicsOf(vehicleConfiguration);
+  const driver = compilePlannedDriver(model, limits, REFERENCE_RUN.driver.utilization, speedCap, true);
   // Race time and route station after every step from GO: the pass times at schedule stations interpolate them.
   const samples = { seconds: [0], s: [vehicle.course.s] };
   race.start();
@@ -87,7 +91,7 @@ export function runCourseReference(
     const input =
       race.outcome.status === 'READY'
         ? IDLE_INPUT
-        : sampleEnvelopeDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window);
+        : samplePlannedDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window);
     race.advance(input);
     if (race.outcome.status !== 'READY') {
       samples.seconds.push(race.clock.elapsedSeconds);
@@ -95,10 +99,9 @@ export function runCourseReference(
     }
     distance += vehicle.speed * SIM_DT;
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
-    const utilization =
-      Math.abs(vehicle.yawRate * vehicle.longitudinalSpeed) /
-      envelopeAt(envelope, vehicle.speed, workspace.row).lateral;
-    maximumLateralUtilization = Math.max(maximumLateralUtilization, utilization);
+    // The friction-ellipse fraction of the more used tire.
+    const utilization = Math.max(vehicle.tires.front.utilization, vehicle.tires.rear.utilization);
+    maximumUtilization = Math.max(maximumUtilization, utilization);
     for (const event of race.events) {
       if (event.competitorId !== race.player.id) continue;
       const { timeSeconds } = event;
@@ -118,7 +121,7 @@ export function runCourseReference(
         s: vehicle.course.s,
         l: vehicle.course.l,
         speed: vehicle.speed,
-        lateralUtilization: utilization,
+        utilization,
       });
     if (race.outcome.status === 'GOAL') break;
     if (tick === maxTicks - 1)
@@ -141,7 +144,7 @@ export function runCourseReference(
     elapsedSeconds: race.clock.elapsedSeconds,
     events,
     passes: passTimes(scene.runtime.route.occurrences, samples),
-    metrics: { maximumSpeed, maximumLateralUtilization, distance, recoveries: actor.recovery.recoveries },
+    metrics: { maximumSpeed, maximumUtilization, distance, recoveries: actor.recovery.recoveries },
     ...(capture ? { trace } : {}),
   };
 }

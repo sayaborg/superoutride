@@ -1,7 +1,8 @@
-import { compileEnvelopeDriver, type EnvelopeDriver } from './envelope-driver.js';
+import { compilePlannedDriver, type PlannedDriver } from './planned-driver.js';
 import { SIM_DT } from './fixed-step.js';
 import { assertBodyContactStability } from '../vehicle/physics/body-contact.js';
-import { VEHICLE_SUBSTEPS } from '../vehicle/physics/vehicle-model.js';
+import { createVehicleModel, VEHICLE_SUBSTEPS, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import { createVehicleLimits, type VehicleLimits } from '../vehicle/vehicle-limits.js';
 import type { RivalEnvelope } from '../content/rival-envelope.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
 import type { PaceSchedule } from '../content/pace-schedule.js';
@@ -47,7 +48,17 @@ export interface SessionEntry extends EntryVehicle {
 export interface TrafficCandidate extends EntryVehicle {
   readonly envelope: RivalEnvelope;
   readonly colors: readonly string[];
-  readonly driver: EnvelopeDriver;
+  readonly driver: PlannedDriver;
+}
+
+/**
+ * A Session vehicle's mechanics model at the race's fixed step, the limits its drivers plan with, and its speed cap: the
+ * steady speed on a level straight of the planning reference (unit grip, no rolling resistance).
+ */
+export interface SessionMechanics {
+  readonly model: VehicleModel;
+  readonly limits: VehicleLimits;
+  readonly speedCap: number;
 }
 
 /** The Session's resolved traffic: metres between traffic positions and the candidates drawn for them. */
@@ -163,10 +174,29 @@ export function resolveCourseSession(
     throw new RangeError('A Session with rivals requires their Session vehicles');
   if (configuration.traffic && !field.vehicleOf)
     throw new RangeError('A Session with traffic requires its Session vehicles');
-  // Each envelope's fixed driver, compiled once at the rival utilization: the runout check below, the race's unpaced
-  // rivals and the takeover after GOAL use the same one; traffic drivers use the same utilization.
+  // Each Session vehicle's model and limits, built once; entries and traffic sharing a vehicle share them.
+  const mechanics = new Map<SessionVehicle, SessionMechanics>();
+  const mechanicsOf = (sessionVehicle: SessionVehicle) => {
+    let resolved = mechanics.get(sessionVehicle);
+    if (!resolved) {
+      const model = createVehicleModel(sessionVehicle, SIM_DT);
+      const limits = createVehicleLimits(model);
+      mechanics.set(sessionVehicle, (resolved = Object.freeze({ model, limits, speedCap: limits.speedCap(0) })));
+    }
+    return resolved;
+  };
+  // Each vehicle's fixed driver, compiled once at the rival utilization and its speed cap: the runout check below, the
+  // race's unpaced rivals and the player's Session driver use the same one; traffic drivers use the same utilization.
   const rivalUtilization = 0.75;
-  const drivers = new Map<RivalEnvelope, EnvelopeDriver>();
+  const drivers = new Map<SessionVehicle, PlannedDriver>();
+  const driverOf = (sessionVehicle: SessionVehicle) => {
+    let driver = drivers.get(sessionVehicle);
+    if (!driver) {
+      const { model, limits, speedCap } = mechanicsOf(sessionVehicle);
+      drivers.set(sessionVehicle, (driver = compilePlannedDriver(model, limits, rivalUtilization, speedCap, true)));
+    }
+    return driver;
+  };
   const entries =
     configuration.mode === 'ARCADE'
       ? arcadeEntries(course, arcade!, { vehicle, envelope }, playerColor, field.vehicleOf!)
@@ -182,14 +212,8 @@ export function resolveCourseSession(
   // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
   let longest: { readonly entry: SessionEntry; readonly distance: number } | null = null;
   for (const entry of entries) {
-    if (!entry.envelope) continue;
-    let driver = drivers.get(entry.envelope);
-    if (!driver)
-      drivers.set(
-        entry.envelope,
-        (driver = compileEnvelopeDriver(entry.envelope, rivalUtilization, entry.envelope.maximumSpeed, true)),
-      );
-    const distance = entry.envelope.maximumSpeed ** 2 / (2 * driver.braking);
+    const driver = driverOf(entry.vehicle);
+    const distance = driver.speedCap ** 2 / (2 * driver.braking);
     if (!longest || distance > longest.distance) longest = { entry, distance };
   }
   if (longest)
@@ -213,12 +237,13 @@ export function resolveCourseSession(
           configuration.traffic.vehicles.map((id) => {
             const candidate = field.vehicleOf!(id);
             if (!candidate.envelope) throw new RangeError(`Traffic vehicle ${id} has no envelope`);
+            const { model, limits, speedCap } = mechanicsOf(candidate.vehicle);
             return Object.freeze({
               ...candidate,
               envelope: candidate.envelope,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
               // Traffic never changes lanes to pass; it follows a slower vehicle in its lane and merges where its lane ends.
-              driver: compileEnvelopeDriver(candidate.envelope, rivalUtilization, trafficSpeed, false),
+              driver: compilePlannedDriver(model, limits, rivalUtilization, Math.min(trafficSpeed, speedCap), false),
             });
           }),
         ),
@@ -231,12 +256,10 @@ export function resolveCourseSession(
     seed,
     entries,
     traffic,
-    /** The fixed driver of an entry's envelope, at the rival utilization and the envelope's maximum speed. */
-    driverOf(envelope: RivalEnvelope): EnvelopeDriver {
-      const driver = drivers.get(envelope);
-      if (!driver) throw new Error('The envelope belongs to no Session entry');
-      return driver;
-    },
+    /** A Session vehicle's model, limits and speed cap. */
+    mechanicsOf,
+    /** The fixed driver of a Session vehicle, at the rival utilization and its speed cap. */
+    driverOf,
     budgets: configuration.timeLimit ? budgets : null,
     /** The player vehicle's pace schedule; ARCADE only. */
     paceSchedule: configuration.mode === 'ARCADE' ? field.paceSchedule! : null,

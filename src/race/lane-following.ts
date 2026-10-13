@@ -1,16 +1,16 @@
 import type { DriverIntent } from './course-fork-field.js';
 import type { RouteFootprint } from './body-contacts.js';
 import {
+  canFollow,
   createSteeringPath,
-  ENVELOPE_DRIVER,
-  envelopeCanFollow,
+  PLANNED_DRIVER,
   steeringLookahead,
   steeringPathLateral,
   traceSteeringPath,
+  type DriverLeader,
   type DrivingDomain,
-  type EnvelopeDriver,
-  type EnvelopeLeader,
-} from './envelope-driver.js';
+  type PlannedDriver,
+} from './planned-driver.js';
 
 /**
  * A present vehicle as drivers see it: its route footprint, speed (m/s), travel direction, the lateral it is heading
@@ -23,7 +23,7 @@ export interface VehicleSighting extends RouteFootprint {
   /** The direction it travels in relative to the road (rad, positive toward greater lateral). */
   readonly heading: number;
   readonly target: number;
-  readonly driver: EnvelopeDriver | null;
+  readonly driver: PlannedDriver | null;
   /** Whether it is a standing roadside object. */
   readonly standing: boolean;
 }
@@ -56,7 +56,7 @@ export function createLaneFollowing(
   },
   window: Pick<DrivingDomain, 'end'>,
 ) {
-  const { followSeconds } = ENVELOPE_DRIVER;
+  const { followSeconds } = PLANNED_DRIVER;
   const probe = { lane: 0, at: 0, exit: (() => 0) as DriverIntent['exit'] };
   // The centre of `lane` of the driver's intent at station s.
   const centre = (intent: DriverIntent, lane: number, s: number) => {
@@ -144,7 +144,7 @@ export function createLaneFollowing(
     intent: DriverIntent,
     lane: number,
     sightings: readonly VehicleSighting[],
-  ): EnvelopeLeader | null => {
+  ): DriverLeader | null => {
     trace(path, self, intent, lane, false);
     let nearest: VehicleSighting | null = null;
     for (const other of sightings) {
@@ -168,7 +168,7 @@ export function createLaneFollowing(
     intent: DriverIntent,
     lane: number,
     sightings: readonly VehicleSighting[],
-    counts: (driver: EnvelopeDriver) => boolean,
+    counts: (driver: PlannedDriver) => boolean,
   ) => {
     for (const other of sightings)
       if (
@@ -181,7 +181,7 @@ export function createLaneFollowing(
         stopping.s = self.s;
         stopping.speed = self.speed;
         stopping.clearance = (self.length + other.length) / 2;
-        if (!envelopeCanFollow(other.s, other.speed, other.driver.braking, stopping)) return false;
+        if (!canFollow(other.s, other.speed, other.driver.braking, stopping)) return false;
       }
     return true;
   };
@@ -240,11 +240,11 @@ export function createLaneFollowing(
       self: VehicleSighting,
       sightings: readonly VehicleSighting[],
       target: number,
-      speedBehind: (leader: EnvelopeLeader | null) => number,
+      speedBehind: (leader: DriverLeader | null) => number,
       ends: (lane: number) => boolean,
     ): number | null {
       let best = -1,
-        bestSpeed = target + ENVELOPE_DRIVER.passingMargin;
+        bestSpeed = target + PLANNED_DRIVER.passingMargin;
       for (const candidate of forks.adjacentLanes(self.s, intent.lane)) {
         if (ends(candidate) || !free(self, intent, candidate, sightings)) continue;
         const speed = speedBehind(ahead(self, intent, candidate, sightings));
