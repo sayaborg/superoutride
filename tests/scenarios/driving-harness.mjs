@@ -11,7 +11,6 @@ import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { formPool } from '../../src/race/free-play-field.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { createPlannedDriverWorkspace, samplePlannedDrivingInput } from '../../src/race/planned-driver.js';
 import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
@@ -20,7 +19,7 @@ import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
-import { routeS, routeSectionS } from '../../src/course/course-route.js';
+import { routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
 import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
@@ -211,16 +210,15 @@ export async function runScenario({ course }, scenario) {
           mode,
           vehicleId: entry.compiledVehicle.id,
           color: null,
-          lapCount: scenario.laps ?? 1,
+          lapCount: 1,
           rivalCount: scenario.rivals ?? 0,
           rivalPool: formPool(freePlay, entry).id,
           traffic: 'OFF',
         };
-  const initialSpeed =
-    scenario.policy === 'reverse' ? -20 : scenario.policy === 'departure' || scenario.policy === 'limit' ? 30 : 0;
+  const initialSpeed = scenario.policy === 'limit' ? 30 : 0;
   const prepared = await prepareRun(content, catalog, course, runClass, request, initialSpeed);
   const setup = prepared.resolve(scenario.seed ?? 0);
-  // The player's run driver, which drives it when the policy scripts its lateral.
+  // The player's run driver, whose speed cap and braking give the takeover's runout.
   const driver = setup.driverOf(setup.entries[0].vehicle);
   const slot = setup.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
@@ -240,13 +238,9 @@ export async function runScenario({ course }, scenario) {
   const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
   const sprites = createRaceSprites(definitions.vehicles);
-  const workspace = createPlannedDriverWorkspace();
   const digest = createHash('sha256');
   const evidence = {
-    outsideEntry: false,
     outsideDomain: false,
-    leftRoad: false,
-    rightRoad: false,
     /** The first tick a wall or course limit pushed the player, and its farthest lateral from the road centre line. */
     limitContact: null,
     /** The first tick a wall or course limit pushed each rival or traffic vehicle that it pushed. */
@@ -257,48 +251,7 @@ export async function runScenario({ course }, scenario) {
     recoveries: [],
     choices: [],
     frames: 0,
-    stoppedRivals: [],
   };
-  // Scripted laterals leave the player's driver: the closed policy keeps approaching the opposite road at the fork
-  // after a rival locks its choice, until it recovers; the cones policy keeps to its row of objects.
-  const closedRoad = (s) => {
-    const occurrence = scene.runtime.route.at(s);
-    const fork = occurrence?.section.fork;
-    if (scenario.policy !== 'closed' || !fork || actor.recovery.recoveries !== 0) return null;
-    const lane = fork.exits.at(-1).link.from.lane;
-    const nativeS = routeSectionS(occurrence, s);
-    const road = courseRoadsAt(occurrence.section.lanes, nativeS).find((r) => r.lanes.includes(lane));
-    if (!road) return null;
-    return (road.left + road.right) / 2 - occurrence.lateralOrigin;
-  };
-  // The cones policy's row, from the course's authored objects: the movable objects of the first Section on the Route
-  // that has any, at the lateral of its first one, as route stations and a route lateral.
-  let coneRow = null;
-  const findConeRow = (s) => {
-    const occurrence = scene.runtime.route.at(s);
-    const first = occurrence?.section.objects.find((object) => object.movable);
-    if (!first) return;
-    const row = occurrence.section.objects.filter((object) => object.movable && object.l === first.l);
-    coneRow = {
-      start: routeS(occurrence, row[0].s),
-      end: routeS(occurrence, row.at(-1).s),
-      l: first.l - occurrence.lateralOrigin,
-      count: row.length,
-    };
-  };
-  // From its approach distance before the row until the player has passed every object it knocked, landed.
-  const CONE_APPROACH = 160;
-  const inConeStretch = (s) =>
-    s >= coneRow.start - CONE_APPROACH &&
-    (s <= coneRow.end || race.observe().knocked.some((k) => k.state !== 'landed' || k.s >= s));
-  const scripted = (s) => {
-    if (scenario.policy === 'cones') {
-      if (!coneRow) findConeRow(s);
-      return coneRow && inConeStretch(s) ? () => coneRow.l : null;
-    }
-    return closedRoad(s) === null ? null : (station) => closedRoad(station) ?? closedRoad(s);
-  };
-  const entryPose = scene.world.coordinates.toWorld(0, 0, { x: 0, z: 0, s: 0, l: 0, heading: 0 });
   let camera;
   // Display and camera read only the race's borrowed competitor observations, as the browser does.
   const render = () => {
@@ -320,17 +273,14 @@ export async function runScenario({ course }, scenario) {
   // The broadside policy stands the player against the course limit before READY, which holds it there until GO.
   if (scenario.policy === 'broadside')
     placeBroadside(scene, vehicle, actor.model, vehicle.course.s + scenario.ahead, scenario.reach);
-  // The clock's first deadline: the initial time budget, in seconds from GO.
-  const initialDeadline = race.clock.deadlineSeconds;
   let tick = 0;
   // Scenario seconds count from GO; READY runs through the same product start first.
   const maxTicks = Math.ceil((READY_SECONDS + scenario.seconds) / SIM_DT);
   const accepted = new Set();
-  const stoppedTicks = competitors.map(() => 0);
   const progress = competitors.map(() => ({ next: -Infinity, finishes: 0 }));
   // Run-rule evidence (RACE and TIME ATTACK scenarios that run to their ending): the ending, what holds after it,
-  // appearances and departures, and the gate crossings of other competitors. A bounded scenario drives a stretch only.
-  const rules = scenario.mode && !scenario.bounded ? { appeared: [], departed: [], crossings: [] } : null;
+  // appearances and departures. A bounded scenario drives a stretch only.
+  const rules = scenario.mode && !scenario.bounded ? { appeared: [], departed: [] } : null;
   // Traffic evidence: each traffic vehicle's appearance and departure ticks, and the most present at once.
   const traffic = { appeared: [], departed: 0, maxPresent: 0 };
   let trafficIds = new Set();
@@ -346,32 +296,14 @@ export async function runScenario({ course }, scenario) {
     const heldStep = race.outcome.status === 'READY';
     let input;
     if (race.outcome.status === 'READY') input = idle;
-    else if (scenario.policy === 'reverse') input = idle;
-    else if (scenario.policy === 'departure') input = { ...idle, steering: scenario.steering, throttle: true };
     else if (scenario.policy === 'broadside') input = { ...idle, brake: true };
     // Toward a course limit for a while, then back to the reference line.
     else if (scenario.policy === 'limit' && race.clock.elapsedSeconds < scenario.steerSeconds)
       input = { ...idle, steering: scenario.steering, throttle: true };
-    else if (scenario.waitForStop && evidence.recoveries.length && evidence.stoppedRivals.length < race.rivals.length)
-      input = { ...idle, brake: true };
-    else if (scenario.policy === 'closed' && race.clock.elapsedSeconds < 3) input = idle;
     // The player waits on the grid while the rival drives to the first fork.
     else if (scenario.policy === 'branch') input = idle;
-    // After the appeared entry's last stage, the player brakes until the entry has left the view.
-    else if (
-      scenario.policy === 'appearance' &&
-      race.stage > scenario.expect.appearance.last &&
-      rules.appeared.length &&
-      !rules.departed.length
-    )
-      input = { ...idle, brake: true };
-    else {
-      // The player's run driver drives, unless the policy scripts the lateral here.
-      const lateral = scripted(vehicle.course.s);
-      input = lateral
-        ? samplePlannedDrivingInput(scene.world, vehicle, driver, lateral, workspace, scene.runtime.window)
-        : null;
-    }
+    // The player's run driver drives.
+    else input = null;
     const step = race.advance(input);
     // A run without a finish ends when the player ends it: here once it has completed its laps.
     if (scenario.endAfterLaps && race.player.progress.acceptedFinishCount >= scenario.endAfterLaps && race.endable)
@@ -419,10 +351,6 @@ export async function runScenario({ course }, scenario) {
         assert.ok(v.course.s < scene.runtime.route.terminal, `${c.id}: passed the terminal`);
         assert.ok(v.course.inDomain, `${c.id}: finished rival left the domain`);
         assert.ok(!recovered, `${c.id}: finished rival recovered`);
-        const speed = Math.hypot(v.longitudinalSpeed, v.lateralSpeed);
-        stoppedTicks[index] = speed < 0.05 ? stoppedTicks[index] + 1 : 0;
-        if (stoppedTicks[index] >= 2 / SIM_DT && !evidence.stoppedRivals.some((r) => r.id === c.id))
-          evidence.stoppedRivals.push({ id: c.id, s: v.course.s, terminal: scene.runtime.route.terminal, speed });
       }
       const next = c.progress.next?.s ?? (c.progress.status === 'FINISHED' ? Infinity : progress[index].next);
       assert.ok(next >= progress[index].next, `${c.id}: accepted crossing regressed at tick ${tick}`);
@@ -468,10 +396,6 @@ export async function runScenario({ course }, scenario) {
         evidence.choices.push(occurrence.incoming.id);
     }
     digest.update(JSON.stringify(camera));
-    evidence.outsideEntry ||=
-      (vehicle.x - entryPose.x) * Math.sin(entryPose.heading) +
-        (vehicle.z - entryPose.z) * Math.cos(entryPose.heading) <
-      0;
     evidence.outsideDomain ||= !vehicle.course.inDomain;
     evidence.farthestL = Math.max(evidence.farthestL, Math.abs(vehicle.course.l));
     for (const id of step.barriers)
@@ -484,24 +408,15 @@ export async function runScenario({ course }, scenario) {
       if (v.recovery.recoveries > 0) evidence.otherRecoveries[v.id] = v.recovery.recoveries;
     // How far the player's contacts reach past a closed course limit, at the farthest, and the support they read there;
     // a broadside stand keeps both contacts loaded on ground from its first step on.
-    if ((scenario.policy === 'departure' || scenario.policy === 'broadside') && !heldStep) {
+    if (scenario.policy === 'broadside' && !heldStep) {
       const reach = limitReach(scene, vehicle, actor.model.compiledVehicle);
       if (reach.past > (evidence.limitReach?.past ?? -Infinity)) evidence.limitReach = { tick, ...reach };
-      if (scenario.policy === 'broadside')
-        evidence.unsupportedTicks =
-          (evidence.unsupportedTicks ?? 0) +
-          (reach.front.load > 0 && reach.rear.load > 0 && reach.front.surface && reach.rear.surface ? 0 : 1);
-    }
-    const bounds = pavementBounds(scene, vehicle);
-    if (bounds) {
-      evidence.leftRoad ||= vehicle.course.l < bounds.left;
-      evidence.rightRoad ||= vehicle.course.l > bounds.right;
+      evidence.unsupportedTicks =
+        (evidence.unsupportedTicks ?? 0) +
+        (reach.front.load > 0 && reach.rear.load > 0 && reach.front.surface && reach.rear.surface ? 0 : 1);
     }
     const ended = ['GOAL', 'GAME_OVER', 'ENDED'].includes(race.outcome.status);
     if (rules) {
-      for (const event of race.events)
-        if (event.competitorId !== race.player.id)
-          rules.crossings.push({ id: event.competitorId, gate: event.landmark.id, seconds: event.timeSeconds });
       for (const [index, c] of competitors.entries()) {
         if (c.present === present[index]) continue;
         present[index] = c.present;
@@ -552,11 +467,6 @@ export async function runScenario({ course }, scenario) {
     )
       render();
     if (ending && tick - ending.tick < (scenario.afterEndingSeconds ?? 0) / SIM_DT) continue;
-    if (coneRow && inConeStretch(vehicle.course.s) && vehicle.course.s > coneRow.start)
-      evidence.coneSpeed = Math.min(
-        evidence.coneSpeed ?? Infinity,
-        Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed),
-      );
     if (scenario.policy === 'branch') {
       // The rival's farthest departure from its line from the fork's lock line to its closure, then the run ends.
       const rival = race.rivals[0];
@@ -568,39 +478,12 @@ export async function runScenario({ course }, scenario) {
       }
       if (fork && s > fork.start + fork.section.fork.closure.s) break;
     }
-    if (
-      ended ||
-      ((scenario.policy === 'reverse' ||
-        scenario.policy === 'departure' ||
-        (scenario.policy === 'closed' && !scenario.finish)) &&
-        evidence.recoveries.length)
-    )
-      break;
+    if (ended) break;
   }
-  // A departure or a run into a course limit succeeds by lasting its time on the course.
-  const held = scenario.policy === 'departure' || scenario.policy === 'limit' || scenario.policy === 'broadside';
+  // A run into a course limit succeeds by lasting its time on the course.
+  const held = scenario.policy === 'limit' || scenario.policy === 'broadside';
   if (!held && !scenario.bounded)
     assert.ok(tick < maxTicks, `${scenario.name}: did not reach its outcome: ${JSON.stringify(evidence)}`);
-  if (scenario.policy === 'reverse') assert.ok(evidence.outsideEntry, 'never backed beyond the entry');
-  if (scenario.policy === 'cones') {
-    // The player knocked every object of the row, kept to it over the landed ones without being held or recovered,
-    // and finished. Evidence: how many it knocked, where they landed (Section stations and laterals) and its least
-    // speed from the row's first object on.
-    const knocked = race.observe().knocked;
-    assert.ok(coneRow, 'the course has no movable object');
-    assert.equal(knocked.length, coneRow.count, 'did not knock every object of the row');
-    assert.ok(
-      knocked.every((k) => k.state === 'landed'),
-      'an object never landed',
-    );
-    assert.equal(race.outcome.status, 'GOAL');
-    const range = (values) => [Math.min(...values), Math.max(...values)].map((v) => Math.round(v * 100) / 100);
-    evidence.knocked = {
-      count: knocked.length,
-      landedS: range(knocked.map((k) => k.at.s)),
-      landedL: range(knocked.map((k) => k.at.l)),
-    };
-  }
   if (held) {
     assert.equal(evidence.recoveries.length, 0, 'a course limit let the player leave the course');
     assert.ok(!evidence.outsideDomain, 'left the coordinate domain');
@@ -611,28 +494,9 @@ export async function runScenario({ course }, scenario) {
     assert.ok(vehicle.course.l > bounds.left && vehicle.course.l < bounds.right, 'did not return to the road');
     assert.ok(Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) > 20, 'did not drive on after the limit');
   }
-  if (scenario.policy === 'reverse') {
-    assert.ok(evidence.outsideDomain, 'never left the coordinate domain');
-    assert.equal(evidence.recoveries.at(-1)?.reason, 'outside-domain');
-    assert.ok(vehicle.course.inDomain, 'recovery did not restore domain membership');
-  }
   if (scenario.policy === 'broadside') {
     assert.ok(evidence.limitReach.past > 0, 'no contact reached past the course limit');
     assert.equal(evidence.unsupportedTicks, 0, 'a contact lost its support behind the course limit');
-  }
-  if (scenario.policy === 'departure')
-    assert.ok(scenario.steering < 0 ? evidence.leftRoad : evidence.rightRoad, 'never departed the requested side');
-  if (scenario.policy === 'closed') {
-    assert.ok(
-      evidence.recoveries.some((r) => r.reason === 'wrong-course'),
-      'never entered the closed road',
-    );
-    // The premise: with this seed the rival locks the opposite exit first; a hash change must not void it silently.
-    assert.equal(
-      race.forks.choice(scene.runtime.route.occurrences[0]),
-      course.entry.fork.exits[scenario.rivalExit].link,
-      `${scenario.name}: seed ${scenario.seed} no longer sends the rival to exit ${scenario.rivalExit}`,
-    );
   }
   if (scenario.policy === 'branch') {
     // The rival reached the first fork first and took its intended exit, holding its line through it.
@@ -654,35 +518,24 @@ export async function runScenario({ course }, scenario) {
     assert.ok(evidence.branchDeparture < scenario.lineTolerance, 'the rival left its line through the fork');
     evidence.branch = { exit: intended.id, departure: Math.round(evidence.branchDeparture * 100) / 100 };
   }
-  if (scenario.finish) {
-    assert.equal(race.outcome.status, 'GOAL');
-    if (scenario.waitForStop)
-      assert.equal(
-        evidence.stoppedRivals.length,
-        race.rivals.length,
-        'finished rivals did not stop before player finish',
-      );
-  }
   // Rivals and traffic, which only their drivers drive, never recover and no wall or course limit pushes them.
   assert.deepEqual(evidence.otherRecoveries, {}, 'a rival or traffic vehicle recovered');
   assert.deepEqual(evidence.otherContacts, {}, 'a wall or course limit pushed a rival or traffic vehicle');
   // Unless its policy sends it off the road, the player neither recovers nor meets a wall or course limit.
-  if (!['reverse', 'departure', 'limit', 'closed', 'broadside'].includes(scenario.policy)) {
+  if (!['limit', 'broadside'].includes(scenario.policy)) {
     assert.equal(evidence.recoveries.length, 0, 'ordinary driving recovered');
     assert.equal(evidence.limitContact, null, 'ordinary driving met a wall or course limit');
   }
   // A finish policy reaches GOAL unless its run rules expect another outcome or leave it open.
-  if (scenario.policy === 'finish' && !scenario.bounded && (!scenario.expect || scenario.expect.outcome === 'GOAL')) {
+  if (scenario.policy === 'finish' && !scenario.bounded && scenario.expect.outcome === 'GOAL') {
     assert.equal(race.outcome.status, 'GOAL');
     assert.equal(race.player.progress.acceptedFinishCount, setup.configuration.lapCount);
-    if (course.entry.fork)
-      assert.equal(race.forks.choice(scene.runtime.route.occurrences[0]), course.entry.fork.exits[scenario.exit].link);
   }
   if (rules) {
     const { expect } = scenario;
     if (expect.outcome) {
       assert.equal(race.outcome.status, expect.outcome);
-      assert.equal(race.outcome.cause, expect.cause ?? null);
+      assert.equal(race.outcome.cause, null);
     }
     assert.ok(ending, `${scenario.name}: never ended`);
     if (scenario.mode === 'TIME_ATTACK') {
@@ -705,17 +558,6 @@ export async function runScenario({ course }, scenario) {
       evidence.bestLapSeconds = race.player.bestLapSeconds;
     }
     if (expect.position) assert.equal(ending.position, expect.position);
-    // A RACE class runs its own vehicle and laps, with the time limit from that vehicle's delivered reference times
-    // on the course and its class's margin.
-    if (expect.ownClass) {
-      const { vehicles, laps, timeMargin } = runClass;
-      const reference = await content.json('reference-times', `${course.id}/${vehicles[0]}`);
-      assert.equal(setup.entries[0].vehicle.vehicleDefinition.compiledVehicle.id, vehicles[0]);
-      assert.equal(setup.configuration.lapCount, laps);
-      assert.equal(race.player.progress.acceptedFinishCount, laps);
-      assert.equal(initialDeadline, Math.ceil(1000 * timeMargin * reference.initialSeconds) / 1000);
-      evidence.ownClass = { vehicle: vehicles[0], laps, initialDeadline };
-    }
     // The takeover stops the finished player on its runout: its speed cap² / (2a) at the run driver's a.
     const runout = driver.speedCap ** 2 / (2 * driver.braking);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
@@ -730,20 +572,6 @@ export async function runScenario({ course }, scenario) {
         rivalTravel.every((d) => d > 0),
         'the field stopped at the ending',
       );
-    if (expect.rankGate) {
-      const first = rules.crossings.find((c) => c.gate === expect.rankGate);
-      assert.ok(first, 'no rival crossed the limited gate');
-      assert.equal(race.outcome.endSeconds, first.seconds, 'race time did not stop at the failing crossing');
-    }
-    if (expect.appearance) {
-      const { stage, distance, last } = expect.appearance;
-      assert.equal(rules.appeared.length, 1, 'expected one appearance');
-      const [appeared] = rules.appeared;
-      assert.equal(appeared.stage, stage, 'appeared outside its first stage');
-      assert.ok(Math.abs(appeared.s - (appeared.playerS + distance)) < 1e-6, 'appeared away from its ahead distance');
-      assert.equal(rules.departed.length, 1, 'the appeared entry never left');
-      assert.ok(rules.departed[0].stage > last, 'left before its last stage ended');
-    }
     evidence.rules = {
       outcome: race.outcome.status,
       cause: race.outcome.cause,

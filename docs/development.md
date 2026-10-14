@@ -21,21 +21,22 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ### Driving scenarios
 
-`tests/scenarios/race.test.mjs` and `driving.test.mjs` define the scenarios, by course, on the product course
-TSUKUBA and the trial course OUTRUN TRIAL A; `driving-harness.mjs` assembles the same scene, race, vehicle physics,
-route readers, camera and rival sprite rendering as the browser, and prepares each run from a request through the
-browser's path (`prepareRun`: the run admission, the products it needs from delivery, and resolution).
+`tests/scenarios/race.test.mjs` and `driving.test.mjs` define the scenarios, by course, on the product courses
+TSUKUBA and OUTRUN TEST and the trial course OUTRUN TRIAL A; `driving-harness.mjs` assembles the same scene, race,
+vehicle physics, route readers, camera and rival sprite rendering as the browser, and prepares each run from a request
+through the browser's path (`prepareRun`: the run admission, the products it needs from delivery, and resolution).
 The player is driven by the product's driver: an advance without input hands the player to its run driver (the
 driver of the takeover after GOAL), which plans, follows, passes and merges by the drivers' rules toward the
 scenario's target exit at every fork. Policies that need other inputs script them: the course limit and broadside
-policies hold pedals and steering. `npm test` runs them on every CI build. After `npm run build`, use
-`npm run test:scenarios` alone. The Node test runner reports total wall time and per-scenario times; these are
-observations, not timing gates.
+policies hold pedals and steering, and the fork policy holds the player on the grid. `npm test` runs them on every
+CI build. After `npm run build`, use `npm run test:scenarios` alone. The Node test runner reports total wall time and
+per-scenario times; these are observations, not timing gates.
 
 Each scenario runs twice at the browser's fixed 1/60-second step and compares a digest of every
 step's vehicle, recovery, progress and camera states plus outcome evidence. No pixel baselines or
 wall-clock metrics enter the comparison. Rendering runs every simulated second, on recovery and finish,
-and every tenth of a second outside the coordinate domain; it cycles through all three Strip methods.
+and every tenth of a second outside the coordinate domain, through the browser's scene, which draws ground and walls
+by LEVEL-POINT alone.
 All live vehicle numeric leaves, camera values and route occurrence coordinates/transforms must remain
 finite. Each actor's s may move at most the loading coverage record's one-step allowance per step unless recovered.
 The next pending crossing cannot move backward, and accepted finish counts cannot decrease. The course limit policy
@@ -43,13 +44,14 @@ starts at 30 m/s: initial conditions through the ordinary vehicle constructor, w
 run (the broadside policy places the player once, before READY). In every row, rivals and traffic neither recover nor
 meet a wall or course limit (the race's step observation names each vehicle a wall or course limit pushes); outside the
 course limit and broadside policies, the player neither recovers nor meets one either. Leaving the pavement is not
-checked: a lane change at speed can overshoot its lane a few centimetres off the pavement. Forks, merges, rank limits,
-ahead entries and movable objects have no driving scenario. Each row checks a situation no other row does:
+checked: a lane change at speed can overshoot its lane a few centimetres off the pavement. Merges, rank limits, ahead
+entries and movable objects have no driving scenario. Each of the six rows checks a situation no other row does:
 
-| Row (course)                                       | Policy                                                                             | Passes when                                                                                                                                          |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| course limit pushes back (TSUKUBA)                 | steering −0.12 for 4 s from 30 m/s on the home straight, then its driver           | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                |
-| stopped broadside against a course limit (TSUKUBA) | stood a quarter turn toward the left course limit, its front contact 0.6 m past it | a course limit pushes the player, both contacts stay loaded on ground behind the limit for every step, and it neither recovers nor leaves the domain |
+| Row (course)                                                        | Policy                                                                               | Passes when                                                                                                                                                                             |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| course limit pushes back (TSUKUBA)                                  | steering −0.12 for 4 s from 30 m/s on the home straight, then its driver             | the left course limit pushes the player, which neither recovers nor leaves the domain, returns to the road and drives on above 20 m/s                                                   |
+| stopped broadside against a course limit (TSUKUBA)                  | stood a quarter turn toward the left course limit, its front contact 0.6 m past it   | a course limit pushes the player, both contacts stay loaded on ground behind the limit for every step, and it neither recovers nor leaves the domain                                    |
+| a rival takes its intended exit's line through a fork (OUTRUN TEST) | one rival (seed 2) drives from the grid while the player, toward exit 0, waits there | the rival passes the first fork on its intended exit, the opposite exit to the player's, on the racing line and within 2 m of its line from the lock to the closure (`branch` evidence) |
 
 Three rows cover run rules. The RACE rows name their class: of a test-only series document,
 `tests/scenarios/run-rules.series.json` (never delivered), with the build's delivered reference times and pace

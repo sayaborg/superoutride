@@ -1620,7 +1620,7 @@ provisional; the videos and their pixels are not in the repository. The developm
 ## Test course
 
 `outrun-test` (OUTRUN TEST) is a BRANCH course in OutRun's structure that exercises every kind of road the engine can
-draw and drive; no test drives it. Its document is written by a production-only generator,
+draw and drive; the fork driving scenario drives it. Its document is written by a production-only generator,
 [`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) (`npm run outrun-test`), from a table of stages; edit the
 table and run the generator rather than the document. The generator writes nothing the shared course reader does not
 read (the build compiles it in full). Each stage is one Section, in five rows of 1 to 5 stages, left

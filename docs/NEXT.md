@@ -89,13 +89,13 @@
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
   card → READY go through black.
-- Stage OT is complete. RIBBON is deleted and `npm test` (Node 24) takes about 2.5 minutes. OUTRUN TEST
+- Stage OT is complete. RIBBON is deleted and `npm test` (Node 24) takes about 2 minutes. OUTRUN TEST
   ([Test course](content-and-gameplay.md#test-course)) is offered without DEV in every mode and the attract demo:
   - 15 generated stages over 16 routes, each measured at 80–100 s for TESTAROSSA.
   - Drawn pictures and skies.
   - `WET_ASPHALT`, `DIRT` and `SAND` on the carriageway.
   - `wipe`, `rise` and `cut` background transitions owned by the environment.
-    Forks, merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision).
+    Merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision); of the six scenarios, one drives a rival through an OUTRUN TEST fork.
 - Stage LD is complete: a course compiles in work slices the browser runs 8 ms at a time, so loading never stops the
   frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
@@ -367,7 +367,7 @@ Choices made where Stage OT left them open, each recorded in its PR:
   - The fork's lock is 600 m before the stage end, because route loading needs 484 m past it. The two roads run side
     by side with a 4 m median before they part.
   - The checkpoint is the seam.
-  - The startup smoke compiles OUTRUN TEST (about 5 s), and no test drives it.
+  - The startup smoke compiles OUTRUN TEST (about 5 s), and a driving scenario drives a rival through its first fork.
   - Traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3.
 - Reference driving (OT-3b): no scenario was added for the right-exit defect. The measured report shows that class of
   defect, a right exit far slower than its left.
