@@ -15,8 +15,6 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
-import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
-import { createDisplaySettings } from '../../src/view/display-settings.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 
@@ -28,9 +26,8 @@ const materials = await loadSurfaceMaterials(content);
 for (const { id: stem } of content.manifest.files.filter((file) => file.kind === 'course'))
   test(`${stem} compiles and starts through the shared driving scene`, async () => {
     const course = await loadDeliveredCourse(content, stem, materials);
-    const settings = createDisplaySettings();
     const entry = definitions.vehicles[0];
-    const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
+    const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
     const sprites = createVehicleSprites(entry);
     const model = createVehicleModel(createRunVehicle(entry, definitions.driving), SIM_DT);
     const steering = driverSteering(definitions.driving.compiledDriving.defaultSteering, model);
@@ -50,14 +47,11 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
-      for (const method of STRIP_RENDER_METHODS) {
-        settings.setStripMethod(method);
-        scene.render(target, player, camera, [], [], result);
-        assert.equal(result.stripGround.method, method);
-        assert.equal(JSON.stringify(vehicle), before);
-        assert.equal(scene.runtime.window.occurrences, occurrences);
-        assert.equal(scene.runtime.readers, view);
-      }
+      // Rendering again changes neither the vehicle nor the Route's window and readers.
+      scene.render(target, player, camera, [], [], result);
+      assert.equal(JSON.stringify(vehicle), before);
+      assert.equal(scene.runtime.window.occurrences, occurrences);
+      assert.equal(scene.runtime.readers, view);
       assert.ok([vehicle.x, vehicle.y, vehicle.z, camera.s].every(Number.isFinite));
       assert.ok(
         target.pixels.some((pixel) => pixel !== 0),

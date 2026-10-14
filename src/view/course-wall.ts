@@ -1,7 +1,6 @@
 import type { PseudoCamera } from './projection.js';
 import type { SoftwareSurface } from './software-surface.js';
 import type { StripGroundReader, StripRenderMetrics } from './strip-ground-sampler.js';
-import type { StripRenderMethod } from './display-settings.js';
 
 /**
  * A visible wall on the Route: its route stations, its lateral on the route ruler, the heights `bottom` to `top` its
@@ -40,7 +39,7 @@ const UNWRITTEN = 0xffff;
  * Paint one wall's column for a terrain row, right after the row's ground, at the same depth. Its screen x comes from the
  * row's own affine lateral mapping; it spans the wall's height range at the depth's scale and fills across to the x of the
  * previous (farther) row this frame, `previousX`, so a surface joins the columns. Each pixel row reads the wall's Strips
- * at its height, with the road's Strip sampler, `method` and the row's station footprint. Returns the column's x.
+ * at its height, with the road's Strip sampler and the row's station footprint. Returns the column's x.
  */
 export function drawWallColumn(
   target: SoftwareSurface,
@@ -48,7 +47,6 @@ export function drawWallColumn(
   row: WallRow,
   camera: PseudoCamera,
   previousX: number,
-  method: StripRenderMethod,
   workspace: WallWorkspace,
 ): number {
   const x = row.xGroundL + (wall.lateralAt(row.s) + 1) * 0.5 * (row.xGroundR - row.xGroundL);
@@ -73,7 +71,6 @@ export function drawWallColumn(
     (ground - (y1 + 0.5)) / scale,
     1 / scale,
     row.deltaS,
-    method,
     workspace.strips,
   );
   for (let i = 0; i < count; i++) {

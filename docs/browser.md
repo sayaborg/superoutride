@@ -34,9 +34,9 @@ the composition root is the only place that draws randomness.
 
 The driving composition root owns two lifetimes. The page lifetime is created once: delivered content and
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
-player record, display settings, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
+player record, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
-controls (sound, ground display, camera, RESULT delay). The run lifetime holds the selected course, its run
+controls (sound, camera, RESULT delay). The run lifetime holds the selected course, its run
 settings, the field's run vehicles, racing lines, time budgets and pace schedule, the run, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
@@ -47,7 +47,7 @@ passes the one assembly, after which the run starts once the PRE-RACE card leave
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
-Sound, input, fullscreen, the DEV sound settings, the ground display method, the DEV camera adjustment and the
+Sound, input, fullscreen, the DEV sound settings, the DEV camera adjustment and the
 RESULT delay belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED; its reason goes to
 the console and, with `dev=1`, outside the frame with Retry.
 
@@ -635,11 +635,10 @@ shown for 8 fixed steps and hidden for 8 (`floor(step / 8)` even), while BRAKE S
 The DEV performance HUD (with `dev=1`), a line at the top of the page, displays FPS, maximum CPU frame time, maximum fixed-step time and maximum frame interval.
 The first frame reports immediately, then approximately every half second.
 
-The ground detail shows the selected method, the reporting window's maximum visible active Strip count,
+The ground detail shows the reporting window's maximum visible active Strip count,
 the compiled course maximum and active limit, the latest frame's scene-render CPU milliseconds,
 and the maximum over the most recent 120 rendered frames (`max120`), then the pixels the latest frame's walls painted. The renderer reads no clock: its
-caller times the scene render. Changing method clears this render-timing history and reports immediately,
-including while paused. The active count includes
+caller times the scene render. The active count includes
 hidden declarations in each contributing source slab; it is a maximum, not a sum over pixels or
 Sections. These observations are measurements, not device-capacity verdicts.
 
@@ -723,7 +722,7 @@ stored.
 ## DEV controls
 
 Only a URL with `dev=1` builds DEV: the composition root reads it once and then builds the DEV panel from its
-template in the page, its controls (sound, ground display, camera, RESULT delay and each run's
+template in the page, its controls (sound, camera, RESULT delay and each run's
 driving tuning, export and RECOVER), the performance and audio timing HUDs, and the bike lean indicator drawn
 over the frame. Without it
 none of these exist, in the DOM or as listeners, and DEV series and courses in no series are not offered. The touch
@@ -754,18 +753,6 @@ its `audio/default.json` button (titled Export sound settings) saves the DEV sou
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera; what its yaw
 follows is the player's setting, not a DEV selection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
-
-### Ground display setting
-
-`src/view/display-settings.ts` owns the typed product display setting and its LEVEL-POINT default.
-The driving composition root creates one settings object; the shared scene reads it when rendering.
-The browser control is only an adapter and does not own the value or its lifetime.
-
-DEV's **Ground display** group exposes every method defined in
-[Architecture](architecture.md#strip-rendering), marking the selected button pressed. A click updates
-the single setting and redraws immediately, including while paused. Camera, vehicle,
-Run and occurrence history are preserved, with no restart or course recompilation. The setting
-lasts for the loaded page and every run; a page reload restores the default. The controls use DEV input isolation.
 
 ### Sound controls
 

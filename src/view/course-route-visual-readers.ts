@@ -70,10 +70,10 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       })),
     );
     const ground: StripGroundReader = {
-      sampleSpan(pixels, offset, count, s, l, stepL, deltaS, method, stats, shade) {
+      sampleSpan(pixels, offset, count, s, l, stepL, deltaS, stats, shade) {
         // Outside the Route there is no ground: the row keeps the Painter image beneath it.
         if (!route.at(s)) return;
-        sampler.sampleSpan(pixels, offset, count, s, l, stepL, deltaS, method, stats, shade);
+        sampler.sampleSpan(pixels, offset, count, s, l, stepL, deltaS, stats, shade);
       },
     };
     Object.freeze(ground);

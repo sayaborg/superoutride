@@ -1,6 +1,5 @@
 export { STRIP_ACTIVE_LIMIT } from '../course/strip-ground.js';
 import { createStripRenderMetrics, type StripGroundReader, type StripRenderMetrics } from './strip-ground-sampler.js';
-import type { StripRenderMethod } from './display-settings.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
@@ -25,7 +24,7 @@ import type { BasePoint } from './base-point.js';
 
 /** DEV and tool measurements of one rendered frame; the product render takes none. */
 export interface RenderMeasurements {
-  stripGround: StripRenderMetrics & { method: StripRenderMethod };
+  stripGround: StripRenderMetrics;
   terrainLineCount: number;
   terrainOutputPixels: number;
   /** Pixels the visible walls painted. */
@@ -48,7 +47,7 @@ export interface RenderMeasurements {
 /** A measurement sink to pass to every measured render. */
 export function createRenderMeasurements(): RenderMeasurements {
   return {
-    stripGround: { ...createStripRenderMetrics(), method: 'LEVEL-POINT' },
+    stripGround: createStripRenderMetrics(),
     terrainLineCount: 0,
     terrainOutputPixels: 0,
     wallPixels: 0,
@@ -106,7 +105,6 @@ interface RenderOptions {
   readonly workspace: ReturnType<typeof createRenderWorkspace>;
   /** Final compiled color field in scene-local coordinates; never source-rebased or repainted. */
   readonly ground: StripGroundReader;
-  readonly stripMethod: StripRenderMethod;
 }
 
 export function renderDriving(
@@ -123,7 +121,7 @@ export function renderDriving(
     walls,
     playerSet,
   }: RenderScene,
-  { ground, workspace, stripMethod }: RenderOptions,
+  { ground, workspace }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
   const renderCamera = camera;
@@ -186,7 +184,6 @@ export function renderDriving(
         lateral,
         step,
         line.deltaS,
-        stripMethod,
         stripStats,
         // Shadows darken the row's own ground as it is written, before any wall or sprite at its depth.
         shadowRowSpans(line, shadows, target.width, workspace.shade),
@@ -196,7 +193,7 @@ export function renderDriving(
       for (let i = 0; i < shownWalls.length; i++) {
         const wall = shownWalls[i]!;
         if (line.s >= wall.start && line.s <= wall.end)
-          wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, stripMethod, wallWorkspace);
+          wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallWorkspace);
       }
     },
     (sprite) => {
@@ -217,7 +214,6 @@ export function renderDriving(
   // Only a measured render keeps the frame's measurements; the product render leaves them.
   if (!measurements) return;
   Object.assign(measurements.stripGround, stripStats);
-  measurements.stripGround.method = stripMethod;
   measurements.terrainLineCount = terrain.length;
   measurements.terrainOutputPixels = terrainOutputPixels;
   measurements.wallPixels = wallWorkspace.wallPixels;

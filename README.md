@@ -19,8 +19,7 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/`. Build stages saved content, completed sprites and run data under
 `dist/delivery/`. Strip constructs compile to immutable color and material fields before driving starts.
-The product display setting defaults to LEVEL-POINT; DEV provides its live selector.
-[Architecture](docs/architecture.md#strip-rendering) defines the three available methods.
+Ground and walls are drawn by one method, LEVEL-POINT, defined in [Architecture](docs/architecture.md#strip-rendering).
 
 ## Controls and authoring
 

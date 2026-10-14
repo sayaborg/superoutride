@@ -27,7 +27,6 @@ import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
-import type { DisplaySettings } from '../view/display-settings.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
 import { createRunRecords, type RecordSelection } from './run-records.js';
@@ -50,7 +49,6 @@ export interface RunPage {
   readonly music: MusicCatalog;
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
   readonly driving: Awaited<ReturnType<typeof loadVehicleDefinitions>>['driving'];
-  readonly displaySettings: DisplaySettings;
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   /** The DEV performance HUD; null without DEV. */
@@ -197,7 +195,7 @@ async function assembleCourseRun(
   named: SeriesClass | null,
   demo: boolean,
 ): Promise<Run> {
-  const { content, materials, vehicles, driving, displaySettings, raceSprites, shell, performanceHud } = page;
+  const { content, materials, vehicles, driving, raceSprites, shell, performanceHud } = page;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
   const runClass = named && loadSeriesClass(content, named, course, vehicles);
@@ -232,7 +230,7 @@ async function assembleCourseRun(
   const build = (tuned: { readonly vehicle: RunVehicle; readonly configuration: RunConfiguration } | null) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const setup = prepared.resolve(page.drawSeed(), tuned);
-    const scene = createCourseScene(course.entry, course.gates, vehicles, displaySettings);
+    const scene = createCourseScene(course.entry, course.gates, vehicles);
     // The player drives by its own steering rule for the vehicle's form, read once as the camera's is.
     const race = createCourseRace({
       setup,

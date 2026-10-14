@@ -1,7 +1,6 @@
 import { createCourseRouteVisualReaders } from './course-route-visual-readers.js';
 import { selectedSuccessor } from '../course/course-route.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { createDisplaySettings, type DisplaySettings } from './display-settings.js';
 import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
 import type { CompiledSection } from '../course/compiler/course-graph.js';
@@ -35,7 +34,6 @@ export function createCourseScene(
   section: CompiledSection,
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
-  displaySettings: DisplaySettings = createDisplaySettings(),
 ) {
   const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
   const rendering = createCourseRouteVisualReaders(runtime.window);
@@ -163,7 +161,7 @@ export function createCourseScene(
           walls: renderData.walls,
           playerSet: player.set,
         },
-        { ground: renderData.ground, workspace: renderWorkspace, stripMethod: displaySettings.stripMethod },
+        { ground: renderData.ground, workspace: renderWorkspace },
         measurements,
       );
     },

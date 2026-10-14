@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { STRIP_ACTIVE_LIMIT, compileStripGround } from '../../src/course/strip-ground.js';
 import { createStripBudget } from '../../src/course/strip-budget.js';
-import { STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { createStripGroundSampler, createStripRenderMetrics } from '../../src/view/strip-ground-sampler.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import { selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
@@ -27,19 +26,9 @@ const mean = (colors) =>
     ),
   );
 const whole = (ground) => [{ ground, start: 0, end: ground.length, lateralOrigin: 0 }];
-function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32, method = 'LEVEL-POINT' } = {}) {
+function row(intervals, { s = 4, l = -4, stepL = 0.25, deltaS = 0, count = 32 } = {}) {
   const pixels = new Uint16Array(count).fill(BG);
-  createStripGroundSampler(intervals).sampleSpan(
-    pixels,
-    0,
-    count,
-    s,
-    l,
-    stepL,
-    deltaS,
-    method,
-    createStripRenderMetrics(),
-  );
+  createStripGroundSampler(intervals).sampleSpan(pixels, 0, count, s, l, stepL, deltaS, createStripRenderMetrics());
   return pixels;
 }
 
@@ -52,7 +41,7 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
     piece(0, 16, 1, 2, 0),
   ];
   const ground = await compileStripGround(16, pieces, '', createStripBudget());
-  const options = { s: 9, l: -3, stepL: 1, count: 8, method: 'POINT-POINT' };
+  const options = { s: 9, l: -3, stepL: 1, count: 8 };
   const expected = [WHITE, BLUE, BLUE, null, 0, WHITE, WHITE, RED].map((c) => (c === null ? BG : c));
   assert.deepEqual(Array.from(row(whole(ground), options)), expected);
   pieces[0].value = BLUE;
@@ -68,7 +57,7 @@ test('ordered Strips preserve transparency, black, half-open edges, open sides a
   );
 });
 
-test('POINT always reads s; LEVEL shares sprite octave selection and reads instantaneous Strips below one metre', async () => {
+test('the ground read shares sprite octave selection and reads instantaneous Strips below one metre', async () => {
   const ground = await compileStripGround(
     16,
     Array.from({ length: 16 }, (_, i) => piece(i, i + 1, null, null, [RED, BLUE, WHITE][i % 3])),
@@ -79,9 +68,9 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
   const sprite = { levels: new Array(5) };
   for (const deltaS of [0.5, 1, Math.SQRT2 * (1 - 1e-10), Math.SQRT2, 2, 2 * Math.SQRT2, 4 * Math.SQRT2, 64])
     for (const s of [0.2, 4.6, 12.25]) {
-      const direct = row(whole(ground), { s, deltaS, method: 'POINT-POINT' });
+      const direct = row(whole(ground), { s });
       assert.ok(direct.every((p) => p === [RED, BLUE, WHITE][Math.floor(s) % 3]));
-      const level = row(whole(ground), { s, deltaS, method: 'LEVEL-POINT' });
+      const level = row(whole(ground), { s, deltaS });
       const step = 2 ** selectSpriteLevel(sprite, SPRITE_SOURCE_TEXELS_PER_METER / deltaS),
         first = Math.floor(s / step) * step;
       const cell = Array.from(
@@ -97,58 +86,48 @@ test('POINT always reads s; LEVEL shares sprite octave selection and reads insta
     createStripBudget(),
   );
   for (const s of [0.6, 4.2, 6.25, 6.5]) {
-    const direct = row(whole(moving), { s, method: 'POINT-POINT' });
-    assert.deepEqual(row(whole(moving), { s, deltaS: 0.99, method: 'LEVEL-POINT' }), direct);
+    const direct = row(whole(moving), { s });
+    assert.deepEqual(row(whole(moving), { s, deltaS: 0.99 }), direct);
     // The truncated last 4 m cell [4, 6.5) averages over its 2.5 m: BLUE covers l = 2 for s <= 5.5.
     if (s >= 6.25)
-      assert.equal(
-        row(whole(moving), { s, deltaS: 4, method: 'LEVEL-POINT', l: 2, stepL: 0, count: 1 })[0],
-        linearToRgb555(0.4, 0, 0.6),
-      );
+      assert.equal(row(whole(moving), { s, deltaS: 4, l: 2, stepL: 0, count: 1 })[0], linearToRgb555(0.4, 0, 0.6));
   }
-  assert.deepEqual(
-    row(whole(moving), { s: 4.2, deltaS: 4, method: 'LEVEL-POINT' }),
-    row(whole(moving), { s: 6.25, deltaS: 4, method: 'LEVEL-POINT' }),
-  );
+  assert.deepEqual(row(whole(moving), { s: 4.2, deltaS: 4 }), row(whole(moving), { s: 6.25, deltaS: 4 }));
 });
 
-test('LEVEL methods threshold s-averaged coverage at half, read a lateral point and only the occurrence owning s', async () => {
+test('the ground read thresholds s-averaged coverage at half, reads a lateral point and only the occurrence owning s', async () => {
   // Over the 4 m cell [4, 8) the edge moves from 4 to 8, so coverage at l = 6 is exactly one half.
   const diagonal = await compileStripGround(16, [piece(0, 16, 0, null, WHITE, 16, null)], '', createStripBudget());
-  for (const method of ['LEVEL-POINT', 'LEVEL2-POINT']) {
-    assert.equal(row(whole(diagonal), { s: 6, l: 6, stepL: 1, deltaS: 4, count: 1, method })[0], WHITE);
-    assert.equal(row(whole(diagonal), { s: 6, l: 6 - 1e-6, stepL: 1, deltaS: 4, count: 1, method })[0], BG);
-  }
+  assert.equal(row(whole(diagonal), { s: 6, l: 6, stepL: 1, deltaS: 4, count: 1 })[0], WHITE);
+  assert.equal(row(whole(diagonal), { s: 6, l: 6 - 1e-6, stepL: 1, deltaS: 4, count: 1 })[0], BG);
   const split = await compileStripGround(
     8,
     [piece(0, 8, null, 0, RED), piece(0, 8, 0, null, BLUE)],
     '',
     createStripBudget(),
   );
-  for (const method of STRIP_RENDER_METHODS)
-    assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, deltaS: 4, count: 1, method })[0], BLUE);
+  for (const deltaS of [0, 4]) assert.equal(row(whole(split), { s: 4, l: 0, stepL: 2, deltaS, count: 1 })[0], BLUE);
   const red = await compileStripGround(8, [piece(0, 8, null, null, RED)], '', createStripBudget());
   const blue = await compileStripGround(8, [piece(0, 8, null, null, BLUE)], '', createStripBudget());
   const intervals = [
     { ground: red, start: 0, end: 8, lateralOrigin: 100 },
     { ground: blue, start: 8, end: 16, lateralOrigin: -20 },
   ];
-  assert.ok(row(intervals, { s: 8, deltaS: 6, method: 'POINT-POINT' }).every((p) => p === BLUE));
-  for (const method of ['LEVEL-POINT', 'LEVEL2-POINT'])
-    assert.deepEqual(row(intervals, { s: 8, deltaS: 6, method }), row(whole(blue), { s: 0, deltaS: 6, method }));
+  assert.ok(row(intervals, { s: 8 }).every((p) => p === BLUE));
+  assert.deepEqual(row(intervals, { s: 8, deltaS: 6 }), row(whole(blue), { s: 0, deltaS: 6 }));
 });
 
-test('row batching and lateral rebasing match individual pixels in either scan direction for all three methods', async () => {
+test('row batching and lateral rebasing match individual pixels in either scan direction, near and far', async () => {
   const ground = await compileStripGround(
     16,
     [piece(0, 16, null, null, RED), piece(0, 16, -2, 2, null), piece(0, 16, 3, 6, BLUE, -5, -2)],
     '',
     createStripBudget(),
   );
-  for (const method of STRIP_RENDER_METHODS)
+  for (const deltaS of [0, 3.72])
     for (const stepL of [0.5, -0.5]) {
       const l = stepL > 0 ? -12 : 12;
-      const args = { s: 7.37, deltaS: 3.72, l, stepL, count: 48, method };
+      const args = { s: 7.37, deltaS, l, stepL, count: 48 };
       const batch = row(whole(ground), args);
       assert.deepEqual(
         batch,
@@ -178,14 +157,11 @@ test('interleaved cached and instantaneous rows do not inherit lateral slopes', 
   }
   const intervals = whole(await compileStripGround(128, pieces, '', createStripBudget()));
   const sampler = createStripGroundSampler(intervals);
-  const draw = (reader, s, deltaS, method) => {
+  const draw = (reader, s, deltaS) => {
     const pixels = new Uint16Array(320);
-    reader.sampleSpan(pixels, 0, 320, s, -40, 0.25, deltaS, method, createStripRenderMetrics());
+    reader.sampleSpan(pixels, 0, 320, s, -40, 0.25, deltaS, createStripRenderMetrics());
     return pixels;
   };
-  draw(sampler, 4, 20, 'LEVEL-POINT');
-  assert.deepEqual(
-    draw(sampler, 5, 0.3, 'POINT-POINT'),
-    draw(createStripGroundSampler(intervals), 5, 0.3, 'POINT-POINT'),
-  );
+  draw(sampler, 4, 20);
+  assert.deepEqual(draw(sampler, 5, 0.3), draw(createStripGroundSampler(intervals), 5, 0.3));
 });

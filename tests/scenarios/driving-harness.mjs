@@ -17,7 +17,6 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
-import { createDisplaySettings, STRIP_RENDER_METHODS } from '../../src/view/display-settings.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
@@ -202,8 +201,7 @@ export async function runScenario({ course }, scenario) {
   // RACE and TIME ATTACK take their class of the test series, or of the delivered series `scenario.series`.
   const runClass = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
   const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : 'TESTAROSSA');
-  const settings = createDisplaySettings();
-  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles, settings);
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   // RACE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';
   const request =
@@ -304,7 +302,6 @@ export async function runScenario({ course }, scenario) {
   let camera;
   // Display and camera read only the race's borrowed competitor observations, as the browser does.
   const render = () => {
-    settings.setStripMethod(STRIP_RENDER_METHODS[evidence.frames % STRIP_RENDER_METHODS.length]);
     const observed = race.observe();
     scene.render(
       target,

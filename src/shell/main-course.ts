@@ -1,8 +1,6 @@
 import { createAudioTimingHud } from './audio-timing-hud.js';
 import { browserContent, isWorkbenchRun } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
-import { createDisplaySettings } from '../view/display-settings.js';
-import { mountStripControls } from './strip-controls.js';
 import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
@@ -103,7 +101,6 @@ async function startPage(): Promise<void> {
     const series = await loadSeriesCatalog(content, vehicles, screenPictures, music);
     const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
-    const displaySettings = createDisplaySettings();
     const textLayer = createTextLayer(await loadTextTiles(content));
     const raceSprites = createRaceSprites(vehicles);
     // The one run, which the current run screen shows.
@@ -143,8 +140,6 @@ async function startPage(): Promise<void> {
     if (dev) {
       mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
       mountCameraControls((definition) => (cameraDefinition = definition));
-      // The frame loop redraws the current screen with the new method at the next frame, paused or not.
-      mountStripControls(displaySettings.stripMethod, (value) => displaySettings.setStripMethod(value));
     }
 
     // Each vehicle's identity, which records are kept against.
@@ -162,7 +157,6 @@ async function startPage(): Promise<void> {
       music,
       vehicles,
       driving,
-      displaySettings,
       raceSprites,
       shell,
       performanceHud,

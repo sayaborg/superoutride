@@ -453,8 +453,6 @@ including open outer sides. Later Strips replace earlier colors or erase them to
 areas reveal the background below as well as above the horizon. Material and color can be authored independently on the same Strip. [Content and gameplay](content-and-gameplay.md#strips)
 owns authoring; [Architecture](architecture.md#strip-rendering) owns preblending and pixel filtering.
 
-The product ground-display setting defaults to LEVEL-POINT. DEV provides its control, and
-switching redraws the current scene without changing vehicle state, camera or run progress.
-[Browser](browser.md#ground-display-setting) owns operation and setting lifetime. The three rendering
-modes are defined only in the rendering contract linked above. Ground contains no image assets;
+Ground and walls are drawn by one method, LEVEL-POINT, defined only in the rendering contract linked above; there is
+no display setting for it. Ground contains no image assets;
 lettering, arrows, curbs and cliff edges expand from saved Strip constructs.

@@ -11,7 +11,7 @@
   Circuits are closed cycles of two or more Sections.
 - One manifest verifies all delivered content, including vehicle and game-wide driving definitions and surface materials.
   The content build compiles every delivered file from authored documents in one pass.
-- Surface color and material are authored with Strips, with LEVEL-POINT as the default of three display methods; sprites are indexed.
+- Surface color and material are authored with Strips, and ground and walls are drawn by LEVEL-POINT alone; sprites are indexed.
   BG is one infinite tiled plane with a linear vertical row mapping.
 - The measurement tool (`npm run measure`) saves each course's racing lines and, for each course a class runs, its
   vehicles' reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
@@ -314,7 +314,6 @@ and switching is a cut.
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                 |
 | Vehicle art      | VFR750R's four colors once its pictures are generated: the real tricolour and three fictional racing schemes                                                                                                 |
 | Weather          | Falling rain over wet sections (WET_ASPHALT lies under an overcast sky without rain today)                                                                                                                   |
-| Ground           | Which of LEVEL-POINT and LEVEL2-POINT is the product default (real devices); the other and its cells are then removed                                                                                        |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
 | Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                     |

@@ -1,7 +1,6 @@
 import { IMAGE_OPAQUE_COVERAGE, linearToRgb555, selectImageLodLevel } from '../image/image-filter.js';
 import { halveRgb555 } from '../image/rgb555.js';
 import { STRIP_ACTIVE_LIMIT, STRIP_BASE_STEP, type StripGround, type StripCellTarget } from '../course/strip-ground.js';
-import type { StripRenderMethod } from './display-settings.js';
 
 // Dimensionless coverage fraction: 64 eps (~1.42e-14) budgets rounding in the affine
 // point evaluation at the half-coverage tie.
@@ -28,7 +27,6 @@ export interface StripGroundReader {
     l: number,
     stepL: number,
     deltaS: number,
-    method: StripRenderMethod,
     stats: StripRenderMetrics,
     shade?: readonly number[],
   ): void;
@@ -76,7 +74,11 @@ function readPointField(
   return field;
 }
 
-/** Each product method selects its complete longitudinal/lateral read, never independent kernels. */
+/**
+ * The one ground read, LEVEL-POINT: a row whose footprint reaches one metre reads one cached dyadic cell by the shared
+ * image level selection, a nearer row the instantaneous Strips at s; either way the lateral read is a point at each
+ * pixel centre.
+ */
 export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
   const spans = intervals;
   const pointField: StripCellTarget = {
@@ -106,18 +108,15 @@ export function createStripGroundSampler(intervals: readonly StripFieldSpan[]) {
       l: number,
       stepL: number,
       deltaS: number,
-      method: StripRenderMethod,
       stats: StripRenderMetrics,
       shade: readonly number[] = NO_SHADE,
     ) {
       let field: StripLateralField;
       const span = spanAt(s);
       const at = Math.max(0, Math.min(span.ground.length, s - span.start));
-      if ((method === 'LEVEL-POINT' || method === 'LEVEL2-POINT') && deltaS >= STRIP_BASE_STEP) {
+      if (deltaS >= STRIP_BASE_STEP) {
         const level = selectImageLodLevel(STRIP_BASE_STEP / deltaS, span.ground.reader.levelCount - 1);
-        // LEVEL2-POINT reads, from the level's aligned and half-shifted cells, the one centered nearest the row.
-        if (method === 'LEVEL2-POINT') span.ground.reader.readCentered(level, at, pointField);
-        else span.ground.reader.read(level, at, pointField);
+        span.ground.reader.read(level, at, pointField);
         stats.activeStrips = Math.max(stats.activeStrips, pointField.active);
         field = pointField;
       } else field = readPointField(pointField, span.ground, at, stats);

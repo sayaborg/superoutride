@@ -488,39 +488,29 @@ a cached cell's base and node coefficients and active count, or the instantaneou
 (`readInstant`: the first span's color as the base, then a node at each later span's left edge with its color and no
 slope), into view-owned reusable scratch without allocating once the scratch holds the largest field; compiled numeric
 buffers stay private.
-The view layer owns row sampling and display-method selection.
+The view layer owns row sampling.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
-The product has one complete method, not independently configurable s/l kernels:
-
-| Method       | Longitudinal read                                                                                  | Lateral read at pixel center x |
-| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------ |
-| POINT-POINT  | Instantaneous resolved Strips at the row's s for every footprint                                   | Value at x                     |
-| LEVEL-POINT  | One cached dyadic cell, or instantaneous Strips when `rho < 1`                                     | Value at x                     |
-| LEVEL2-POINT | One cached dyadic cell of either phase, centered nearest s, or instantaneous Strips when `rho < 1` | Value at x                     |
-
-Every method uses the source owning s and its lateral origin; a seam belongs to its
-successor. The instantaneous read follows the ordered resolved slab without preblending or sorting.
-LEVEL-POINT and LEVEL2-POINT use `rho = deltaS / 1 m` with the [shared image selector](#shared-image-level-selection).
-LEVEL-POINT reads only the containing aligned cell, without cell/level interpolation or mixing neighboring occurrences.
-LEVEL2-POINT reads, of that level's aligned cell and half-shifted cell containing s, the one whose center (the
-midpoint of its actual, possibly clipped, extent) is nearest s; at an equal distance it reads the aligned cell. Like
-LEVEL-POINT it neither interpolates nor mixes occurrences. Its cell centers lie every half cell, so its read moves to
-a new cell twice as often and its center lies at most a quarter cell from s, against half a cell for LEVEL-POINT.
+The ground and every wall have one read, LEVEL-POINT, not independently configurable s/l kernels. Longitudinally, with
+`rho = deltaS / 1 m` and the [shared image selector](#shared-image-level-selection), a row reads one cached dyadic
+cell, the aligned cell containing s at the selected level, without cell/level interpolation or mixing neighboring
+occurrences; a row whose footprint is under one metre (`rho < 1`) reads the instantaneous resolved Strips at s instead,
+which follows the ordered resolved slab without preblending or sorting. Laterally it reads the field's value at each
+pixel centre x. It uses the source owning s and its lateral origin; a seam belongs to its successor.
 A footprint-centred dyadic box with lateral pixel integration (LEVEL-BOX) was designed and not adopted: it needs
 per-pixel blending beyond period road hardware.
 Every level covers the Section through its truncated last cell. The final closed endpoint uses
 that last cell.
 
-Every method reads its native lateral field directly and batches constant spans with fills or transparent skips;
+The read takes its native lateral field directly and batches constant spans with fills or transparent skips;
 only varying lateral fields need individual evaluation. No pixel loops over authored Strips.
 
 RGB555 decodes through the common linear-sRGB channel table. Contributions stay premultiplied until
 final coverage is known. Coverage at least the shared 0.5 threshold is opaque, allowing 64 machine
 epsilons of roundoff at equality. Opaque RGB divides by coverage once, encodes
 sRGB and rounds to RGB555; transparent pixels leave the existing image unchanged. Hidden colors and
-BG do not enter the average. [Browser](browser.md#ground-display-setting) owns live selection and HUD observations.
+BG do not enter the average. [Browser](browser.md#performance-hud) owns the HUD's observations.
 
 ## Sprites and Painter
 
@@ -582,8 +572,8 @@ of the previous, farther row on the same wall this frame, so consecutive columns
 side alike. Nearer ground rows drawn later cover what lies behind a hill; transparent ground beyond an open edge keeps a
 falling cliff and the BG below it. The column's colors come from the wall's color table through the road's
 [Strip sampler](#strip-rendering), unchanged, with height as lateral: one height per pixel row at the pixel's centre,
-the row's station and station footprint, so the same preblend along s keeps a pattern finer than a pixel from flickering,
-and the DEV Strip render method selects the wall's read as it does the ground's. Transparent heights write nothing.
+the row's station and station footprint, so the same preblend along s keeps a pattern finer than a pixel from flickering.
+Transparent heights write nothing.
 Columns clip to the frame; a wall beside
 the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
 measured render counts the painted wall pixels.
