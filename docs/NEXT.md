@@ -89,7 +89,7 @@
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
   card → READY go through black.
-- Stage OT is complete. RIBBON is deleted and `npm test` (Node 24) takes about 2 minutes. OUTRUN TEST
+- Stage OT is complete. RIBBON is deleted. OUTRUN TEST
   ([Test course](content-and-gameplay.md#test-course)) is offered without DEV in every mode and the attract demo:
   - 15 generated stages over 16 routes, each measured at 80–100 s for TESTAROSSA.
   - Drawn pictures and skies.

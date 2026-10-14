@@ -21,12 +21,10 @@ interface MixtureBin {
 
 /**
  * Direct-master box filtering, with one shared pattern for every declared color, and the shadow's levels, as many as
- * the image's. A caller that already admitted the master supplies it instead of decoding again.
+ * the image's.
  */
-export function compileSpriteLod(
-  source: SpriteLodDocument,
-  master: SpriteLodAsset = readSpriteLodAsset(source),
-): SpriteLodDocument {
+export function compileSpriteLod(source: SpriteLodDocument): SpriteLodDocument {
+  const master: SpriteLodAsset = readSpriteLodAsset(source);
   requireAdmission(
     master.levels.length === 1,
     'invalid_value',

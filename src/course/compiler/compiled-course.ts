@@ -77,7 +77,6 @@ export interface CompiledCourse {
   readonly sections: readonly CompiledSection[];
   readonly entry: CompiledSection;
   readonly links: readonly CompiledLink[];
-  readonly assets: readonly CompiledCourseImageSource[];
 }
 
 const COURSE_COMPILER = Object.freeze({
@@ -358,7 +357,6 @@ export async function compileCourseDocument(
         sections: Object.freeze(sections),
         entry,
         links: Object.freeze(links),
-        assets: images.value,
       }),
     );
   } catch (error) {

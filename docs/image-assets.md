@@ -362,8 +362,8 @@ for the image count, per-image bytes/texels and aggregate bytes/texels. Missing,
 malformed inputs fail. Asset diagnostics contain `kind:"asset"`, code, the image's name and the supplied input
 index where applicable; an invalid image also carries the JSON
 Pointer `path` of its failure inside that image; independent failures follow declaration order.
-Failure publishes no graph. The compiled course holds only the readers; build tools that compile a
-master read the admitted, frozen saved document alongside its reader instead of admitting it again.
+Failure publishes no graph. The compiled course holds only the readers; build tools that read a saved image read the
+admitted, frozen saved document alongside its reader instead of admitting it again.
 
 ## Saved course appearance
 
@@ -404,8 +404,8 @@ Vehicle pictures and their generator follow this contract; this section is its o
   slot-15 texel for each of the left and right lamps; size 5 need not. This is the generator's rule; drawing does
   nothing special for lamps.
 
-Course images are masters with build-generated pyramids ([Completed sprite images](#completed-sprite-images)): a
-level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
+Course images are saved with their pyramids, compiled from the master when written ([Completed sprite
+images](#completed-sprite-images)): a level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
 
 ## Vehicle sprite library
 

@@ -206,7 +206,7 @@ implementer's initial value, not a value the owner chose by listening; the defau
 [audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
 supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
 
-| Key                        | Meaning                                      | Default | UI range / step    |
+| Key                        | Meaning                                      | Default | Accepted / step    |
 | -------------------------- | -------------------------------------------- | ------- | ------------------ |
 | `closedExcitation`         | Closed-throttle excitation                   | 0.22    | 0.01–1 / 0.01      |
 | `pulseVariation`           | Absolute event-strength variation            | 0.20    | 0–0.40 / 0.01      |
@@ -224,7 +224,7 @@ supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute ti
 | `dcHz`                     | Output DC-removal corner                     | 18 Hz   | 5–60 Hz / 1        |
 | `clipCeiling`              | Soft-clip bound and small-signal gain        | 0.65    | 0.2–1 / 0.01       |
 
-These ranges are the accepted domains: an engine-sound document or DEV value outside them is refused. The excitations'
+These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
 least value is one step, 0.01, since excitation divides the pulse rise time.
 
 ## UNIFIED tire settings

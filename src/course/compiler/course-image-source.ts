@@ -41,7 +41,7 @@ export type CompiledCourseImageSource = { readonly id: string; readonly sha256: 
   | { readonly kind: 'background'; readonly image: TilePicture }
 );
 
-/** An admitted image with the frozen saved document it was decoded from, for build-time compilers. */
+/** An admitted image with the frozen saved document it was decoded from, which the build delivers as saved. */
 export type AdmittedCourseImage = { readonly id: string; readonly sha256: string } & AdmittedImage;
 
 /** Compile the images a course names into their decoded readers, pausing between images when `slices` is due. */

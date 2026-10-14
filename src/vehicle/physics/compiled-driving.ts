@@ -19,7 +19,10 @@ export interface CompiledDriving {
   readonly actuator: Readonly<CompiledDrivingActuators>;
   /** The steering rack. */
   readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
-  /** The default steering rule: every driver but the player drives by it, and the player starts from it. */
+  /**
+   * The default steering rule: the player's until it chooses its own, and the rule of a vehicle no driver drives.
+   * Planned drivers steer by their own rule (`PLANNED_DRIVER.steering`).
+   */
   readonly defaultSteering: Readonly<SteeringRule>;
   /** The game-wide tire, shared by both stations. */
   readonly tire: Readonly<CompiledTireCharacteristics>;

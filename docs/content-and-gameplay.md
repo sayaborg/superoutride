@@ -711,7 +711,7 @@ Draft saving is independent of image-byte availability.
 content build, authoring tools) supplies its document path once, and receives a detached, deeply frozen
 `CourseDocument`. `compileCourseDocument` receives that admitted value and does not admit it again.
 Build image compilation delivers, under each name, every sprite master the course names (a placement's image or a
-movable body's knocked image) compiled to its LOD and each background as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
+movable body's knocked image) as saved, with every level of its LOD, and each background as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
@@ -792,8 +792,8 @@ fork field's target (`targetL`) is the centre of the intent's lane, carried to t
 lane of every road it lies on (`LINE`): its target is the course's racing line toward the Link the intent follows at each
 fork (the intended exit's, or the selected one once decided), or the centre lane's centre without delivered racing
 lines; it never ends and is not carried across seams, and the lanes beside it are the nearest lane on each side of it in
-that road. A grid rival starts in its
-slot's lane, the lane nearest its slot (`intentLane`); the player's run driver (the attract demo and the takeover)
+that road. A grid rival takes the racing line from its slot, its path offset starting as its slot's offset from the
+line ([Path offsets](#path-offsets)); the player's run driver (the attract demo and the takeover)
 takes the racing line from where the player is. The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
 Run seed:

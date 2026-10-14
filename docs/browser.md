@@ -237,7 +237,9 @@ TIME, and BEST LAP once it completed one. The race facts give the rank (by the r
 record judgement ([Player record](#player-record)) gives the record lines. Its items are RETRY (the same run again, through the PRE-RACE card with
 a new seed), CHANGE VEHICLE (SELECT VEHICLE with the run's selection), SELECT (the first selection screen after TITLE
 with the run's selection) and TITLE; leaving the run ends it. A run rebuilt by DEV tuning restarts
-the run, clearing `paused` and `finished`, so it drives at once. A run's start resets driving input once.
+the run, clearing `paused` and `finished`, so it drives at once. Neither a run's start nor a DEV rebuild resets driving
+input: it is the page's, neutral until the run screen is live (the screen host suspends it on every other route), and a
+rebuilt run, live at once, reads it as it stands, so a key held through the rebuild stays held.
 
 ### SELECT VEHICLE
 

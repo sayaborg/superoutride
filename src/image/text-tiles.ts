@@ -261,8 +261,8 @@ export class TextTiles {
   readonly #palettes: Uint16Array;
 
   /**
-   * Admitted 8x8 patterns, at least the fonts', HUD part and HUD picture patterns with an empty space, and the named and
-   * HUD picture 16-color palettes.
+   * Admitted 8x8 patterns, exactly the fonts', HUD part and HUD picture patterns with an empty space, and exactly the
+   * named and HUD picture 16-color palettes.
    */
   constructor(
     readonly name: string,

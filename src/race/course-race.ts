@@ -90,8 +90,8 @@ export function createCourseRace(options: {
   const { initialSpeed } = configuration;
   const { runtime } = options;
   // Entries sharing a vehicle share its model, which the run built, and unpaced entries sharing a vehicle share its
-  // fixed driver. A driver drives by its own steering rule; a vehicle no driver drives, by the default rule, resolved
-  // once on each model's vehicle.
+  // fixed driver. Every planned driver steers by `PLANNED_DRIVER.steering`; the player's own input by its own rule
+  // (`playerSteering`), else by the default rule, resolved once on each model's vehicle.
   const defaultSteerings = new Map<VehicleModel, Readonly<DriverSteering>>();
   const modelOf = (vehicle: RunEntry['vehicle']) => {
     const { model } = options.setup.mechanicsOf(vehicle);
@@ -251,7 +251,7 @@ export function createCourseRace(options: {
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    // A grid rival starts in the lane nearest its slot; an ahead entry names its lane.
+    // A grid rival takes the racing line from its slot; an ahead entry names its lane.
     // The race assigns each rival's target exits from the run seed; its grid side implies none.
     const exit = (occurrence: RouteOccurrence) =>
       rivalExit(options.setup.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);

@@ -273,11 +273,6 @@ export function createCourseForkField(
       const lanes = lanesOf(occurrence.section);
       return road.lanes.map((lane) => lanes.indexOf(lane));
     },
-    /** The lane nearest route lateral `l` at route station `s`, in the road an intent following `exit` drives. */
-    intentLane(s: number, l: number, exit: DriverIntent['exit']) {
-      const { occurrence, at } = place(s);
-      return nearestLane(occurrence, at, l, forkField.roadLanes(s, exit));
-    },
     /**
      * The recovery l at route station `s`: a driven competitor's target l for its intent; the player, which has no
      * driver intent, recovers to the centre of the lane nearest route lateral `l` of the roads it may drive (at a

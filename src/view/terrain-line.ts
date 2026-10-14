@@ -4,7 +4,9 @@ import { stationIndexAt } from '../course/geometry/station-sequence.js';
 import { horizonY, pseudoProject, type PseudoCamera } from './projection.js';
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 
-// Metres: chainage subtraction budget, ~eight ulps at 10^6 m; rejects numerically empty intervals.
+// Metres: chainage subtraction budget; rejects numerically empty intervals. An author value: about one ulp at the
+// 5.4·10^6 m of one pass over the checked domain (128 Sections of 42,000 m); a circuit's later laps, farther along the
+// Route, round more coarsely.
 const VISIBLE_INTERVAL_TOLERANCE_METERS = 1e-9;
 // Pixels: row inversion conditioning floor; ~1,760 ulps at 320 px.
 // Avoids amplifying screen-coordinate cancellation by more than 10^10 /px.

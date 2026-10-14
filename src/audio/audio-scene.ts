@@ -173,8 +173,9 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     /**
-     * Whether a vehicle is driven. The live buses' gate closes, and their voices' worklets rest once the transition has
-     * passed; they wake at once and are heard after the transition, from the observations of the updates since.
+     * Whether a vehicle is driven. The live buses' gate closes, and their voices' worklets rest when its silence fade
+     * (`fadeToSilence`) is silent; they wake at once, follow the observations for `transitionSeconds`, and are heard when
+     * the gate opens.
      */
     setLive(value: boolean): void {
       if (value === live) return;

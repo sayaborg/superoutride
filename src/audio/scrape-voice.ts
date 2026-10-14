@@ -18,7 +18,7 @@ export interface WallRubObservation {
 /**
  * The walls' scraping voice: one worklet, sounding the rub of the line with the most friction power (one voice).
  * Without a rub its excitation stops and the stored vibration decays, as a released tire's does. Settings and wall
- * record changes fade out and replace the kernel after the transition, as the tire voice's do; admitted values are used
+ * record changes replace the kernel when the silence fade (`fadeToSilence`) is silent, as the tire voice's do; admitted values are used
  * as given.
  */
 export function createScrapeVoice(context: BaseAudioContext, destination: AudioNode, walls: WallSoundRecords) {
