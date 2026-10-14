@@ -1551,9 +1551,10 @@ objects. It changes no mechanics; it reports quantities the contacts already com
   contact is the step it is pushed and knocked.
 
 Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
-the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free (or
-the resident Route begins); wrong-course recovery does the same on the selected road. An appearance whose place is
-occupied waits for a later step. These choose where a vehicle is placed; they move no vehicle.
+the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free;
+wrong-course recovery does the same on the selected road. A recovery that reaches the start of the resident Route
+without a free place, like an appearance whose place is occupied, waits: the vehicle does not recover that step, and
+the next step judges it again. A manual recovery without a free place does nothing. These choose where a vehicle is placed; they move no vehicle.
 
 ## Recovery
 

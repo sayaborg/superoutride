@@ -64,10 +64,10 @@ export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
 });
 
 /**
- * The race's recovery place for a route station: the target it chooses there or behind it. Target resolution belongs
- * to the race, not the policy.
+ * The race's recovery place for a route station: the target it chooses there or behind it, or null when it has no
+ * free place, and the vehicle does not recover that step. Target resolution belongs to the race, not the policy.
  */
-export type RecoveryPlacement = (s: number) => RecoveryTarget;
+export type RecoveryPlacement = (s: number) => RecoveryTarget | null;
 
 export interface RecoveryState {
   lastSafeS: number;
@@ -145,17 +145,14 @@ function updateRecovery(
   if (!vehicle.course.inDomain) {
     state.outsideDomainSteps += 1;
     if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
-    recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place });
-    return 'outside-domain';
+    return recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place }) ? 'outside-domain' : null;
   }
   state.outsideDomainSteps = 0;
   // Held against a fixed object it cannot leave, with no reverse gear: as long as outside the domain, then recovery.
   if (blocked && Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < RECOVERY_POLICY.blockedSpeed) {
     state.blockedSteps += 1;
-    if (state.blockedSteps >= RECOVERY_POLICY.holdSteps) {
-      recoverVehicle(world, vehicle, model, { state, reason: 'blocked', place });
-      return 'blocked';
-    }
+    if (state.blockedSteps >= RECOVERY_POLICY.holdSteps)
+      return recoverVehicle(world, vehicle, model, { state, reason: 'blocked', place }) ? 'blocked' : null;
   } else state.blockedSteps = 0;
   const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
@@ -184,21 +181,23 @@ function updateRecovery(
   // A CG below the heightfield has fallen into a hole or through material-free ground.
   else if (surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS) reason = 'surface-penetration';
 
-  if (reason !== null) recoverVehicle(world, vehicle, model, { state, reason, place });
-  return reason;
+  return reason !== null && recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
 }
 
+/**
+ * Recover the vehicle at its placement's target; false, leaving it as it is, when the placement has no free place,
+ * so its condition is judged again on a later step.
+ */
 export function recoverVehicle(
   world: VehicleWorld,
   vehicle: VehicleState,
   model: VehicleModel,
   { state, reason = 'manual', place }: RecoveryOptions & { reason?: RecoveryReason },
-): void {
-  recoverVehicleToPlanCoordinate(world, vehicle, model, {
-    state,
-    target: routeRecoveryTarget(world, vehicle, state, place),
-    reason,
-  });
+): boolean {
+  const target = routeRecoveryTarget(world, vehicle, state, place);
+  if (target === null) return false;
+  recoverVehicleToPlanCoordinate(world, vehicle, model, { state, target, reason });
+  return true;
 }
 
 function routeRecoveryTarget(
@@ -206,7 +205,7 @@ function routeRecoveryTarget(
   vehicle: VehicleState,
   state: RecoveryState,
   place: RecoveryPlacement,
-): RecoveryTarget {
+): RecoveryTarget | null {
   // Airborne world motion can advance well beyond the last loaded station. Recovering only from
   // lastSafeS can place the vehicle back on the same launch face forever. Preserve the farther
   // causal plan coordinate observation, then backtrack once into the ordinary supported reconstruction.

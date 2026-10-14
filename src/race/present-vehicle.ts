@@ -52,7 +52,7 @@ export interface PresentVehicle {
     input: DrivingInput;
     /** The steering rule of whoever drives the vehicle this step. */
     steering: DriverSteering;
-    readonly place: (s: number) => RecoveryTarget;
+    readonly place: (s: number) => RecoveryTarget | null;
     readonly externalForce: Readonly<Vec3>;
     /** Whether a fixed object holds the vehicle this step; the race writes it for recovery. */
     blocked: boolean;
@@ -70,7 +70,7 @@ export function createPresentVehicle(
   actor: VehicleActor,
   driving: VehicleDriving | null,
   steering: DriverSteering,
-  place: (self: PresentVehicle, s: number) => RecoveryTarget,
+  place: (self: PresentVehicle, s: number) => RecoveryTarget | null,
 ): PresentVehicle {
   const contactForce = { x: 0, y: 0, z: 0 };
   const present: PresentVehicle = {

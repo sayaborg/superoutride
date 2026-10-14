@@ -52,13 +52,20 @@ export function createVehiclePlacement(options: {
     return object;
   };
   // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each vehicle in
-  // the way, by the policy's clearance, until the place in its lane there is free (or the resident Route begins).
-  const vacantPlace = (self: PresentVehicle, s: number, lane: (s: number) => number, l = lane(s)): RecoveryTarget => {
+  // the way, by the policy's clearance, until the place in its lane there is free; null when the resident Route begins
+  // first, and the place is not free there.
+  const vacantPlace = (
+    self: PresentVehicle,
+    s: number,
+    lane: (s: number) => number,
+    l = lane(s),
+  ): RecoveryTarget | null => {
     for (
       let other = occupant(self.model, s, l, self.vehicle);
-      other && s > window.start;
+      other;
       other = occupant(self.model, s, l, self.vehicle)
     ) {
+      if (s <= window.start) return null;
       const behind =
         other.s - (self.model.compiledVehicle.footprint + other.length) / 2 - RECOVERY_POLICY.placementClearance;
       s = Math.max(window.start, behind);
@@ -72,15 +79,17 @@ export function createVehiclePlacement(options: {
     vacantPlace,
     /**
      * Return `body` to the selected road when it has left the route its locked fork allows: behind a vehicle in the
-     * way, the selected road's centre. A return marks the body recovered.
+     * way, the selected road's centre. A return marks the body recovered; with no free place it waits for a later step.
      */
     legalRecovery(body: PresentVehicle): void {
       const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
       if (!target) return;
+      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l);
+      if (!place) return;
       recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
         state: body.step.state,
         reason: 'wrong-course',
-        target: vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l),
+        target: place,
       });
       body.recovered = true;
     },

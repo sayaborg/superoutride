@@ -781,11 +781,13 @@ export function createCourseRace(options: {
      * progress baseline reset that award no progress, then a fresh observation.
      */
     recoverPlayer() {
-      recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
+      // With no free place behind it, the request does nothing.
+      const recovered = recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
         state: playerActor.recovery,
         reason: 'manual',
         place: player.body.step.place,
       });
+      if (!recovered) return;
       player.body.recovered = true;
       legalRecovery(player.body);
       resync(player);
