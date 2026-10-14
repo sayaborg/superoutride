@@ -239,8 +239,8 @@ the run, clearing `paused` and `finished`, so it drives at once. A run's start r
 ### SELECT VEHICLE
 
 SELECT VEHICLE is a catalog page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its
-listing as the simulation holds them. Rows 0–11 stand on every page; below them two pages, ENGINE and CHASSIS,
-take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
+listing as the simulation holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
+CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
 | Rows  | Columns | Content                                                                                        |
 | ----- | ------- | ---------------------------------------------------------------------------------------------- |
@@ -253,16 +253,16 @@ take turns. `src/shell/vehicle-page.ts` holds every position, scale and time nam
 | 4–11  | 22–39   | the page's diagram                                                                             |
 | 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE); with fixed colors its name only        |
 | 12    | 1–      | the page tabs                                                                                  |
-| 12    | 30–37   | `PAGE n/2` (DARK)                                                                              |
+| 12    | 30–37   | `PAGE n/3` (DARK)                                                                              |
 | 14–29 | 0–39    | the page's values                                                                              |
 
 The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns
 0–19 by rows 4–10 (160×56 pixels), and that anchor centres the images in the box.
 
-Each page stays 480 fixed steps (8 s), then the next follows, ENGINE after CHASSIS; no key turns the pages and no
+Each page stays 360 fixed steps (6 s), then the next follows, ENGINE after CHASSIS; no key turns the pages and no
 black stands between them. A change of vehicle keeps the page and starts its time again; a change of color does not.
-The tabs on row 12 name the pages from column 1, two columns apart, the shown page WHITE and the other DARK. Under the
+The tabs on row 12 name the pages from column 1, two columns apart, the shown page WHITE and the others DARK. Under the
 shown page's name, on y 103, its time line runs DIM across the name's width, YELLOW from the left over the share of
 the page's time gone; a DIM rule crosses the frame on y 106. Over a wallpaper the frame stands at quarter brightness,
 the graph's box (x 172–319, y 22–97) and the tabs (y 96–111) at an eighth and the values (y 112–239) at a sixteenth, so
@@ -335,6 +335,29 @@ The exhaust is drawn at the player depth's 40 px/m, true to its lengths
 - Each firing sends a pulse, a WHITE dot with a grey trail, from the primary's start along every way to an open end,
   splitting at each branch, never through a junction twice. It is gone past the end.
 
+#### DRIVETRAIN
+
+Row 3 heads the graph with `GEARS` (YELLOW) at column 22. The graph stands where ENGINE's does, on its grid and axes,
+and shows each gear's engine speed against road speed: its horizontal axis runs from 0 at x 176 to the top gear's
+road speed at redline at x 319, and its vertical axis from 0 on row 95 to redline on the top grid line, where the
+redline is a RED line dashed every second pixel. Each gear is a straight line, a pixel wide and joined vertically
+between columns, from the origin to its road speed at redline: DIM up to the previous gear's speed at redline and
+YELLOW from there. At each gear's speed at redline a YELLOW upright line drops from redline to the next gear's engine
+speed, so the gears draw a saw tooth. The graph has no axis numbers.
+
+The left column starts with `GEAR` at column 0, `RATIO` at column 5 and `KMH` at column 16 on row 14, then one row per
+gear: its label (`1ST` …) at column 0, its ratio at column 4, a bar and its road speed at redline in km/h right-aligned
+in columns 16–18. The road speed is `redlineRpm` turning the driven wheels' rolling radius through the gear and the final
+drive; the driven wheels are the front if `frontDriveTorqueFraction` exceeds one half, otherwise the rear. The bars share
+one scale for every vehicle, 0 to 320 km/h across x 72–127, on y 2–5 of the gear's row: DIM up to the previous gear's
+speed and YELLOW from there to the gear's own, a saw tooth over the gears; a speed beyond 320 km/h stops at x 127. `FINAL` (`finalDriveRatio`) and `DRIVE` (`RWD`, `FWD`, or `AWD 47/53`
+from `frontDriveTorqueFraction` 0, 1 or otherwise its front/rear percent) follow as values.
+
+| Rows 14–15, right | Example       | Source                            |
+| ----------------- | ------------- | --------------------------------- |
+| `TIRE`            | `632/662mm`   | twice the front/rear wheel radius |
+| `WHL I`           | `2.7/3.4kgm2` | front/rear wheel inertia          |
+
 #### CHASSIS
 
 Row 3 heads the side view with `SIDE` (WHITE) at column 22, and `CG` and `W/BASE` (YELLOW) at columns 27 and 30. The
@@ -353,32 +376,23 @@ Under each wheel on row 11 its static load share is written, `R60%` and `F40%` (
 `rearAxle / wheelbase`), each label's four columns centred under its wheel, moved apart evenly to keep a column between
 them, and kept within columns 22–39.
 
-The left column starts with `GEAR` at column 0, `RATIO` at column 5 and `KMH` at column 16 on row 14, then one row per
-gear: its label (`1ST` …) at column 0, its ratio at column 4, a bar and its road speed at redline in km/h right-aligned
-in columns 16–18. The road speed is `redlineRpm` turning the driven wheels' rolling radius through the gear and the final
-drive; the driven wheels are the front if `frontDriveTorqueFraction` exceeds one half, otherwise the rear. The bars share
-one scale for every vehicle, 0 to 320 km/h across x 72–127, on y 2–5 of the gear's row: DIM up to the previous gear's
-speed and YELLOW from there to the gear's own, a saw tooth over the gears; a speed beyond 320 km/h stops at x 127. `FINAL` (`finalDriveRatio`) and `DRIVE` (`RWD`, `FWD`, or `AWD 47/53`
-from `frontDriveTorqueFraction` 0, 1 or otherwise its front/rear percent) follow as values, then one empty row and the
-listing's `ERA` (`period`), `MKT` (`physicsAnchor.market`) and `SPEC` (each `selectedSpecification` entry in turn), with
+The left column has the listing's `ERA` (`period`), `MKT` (`physicsAnchor.market`) and `SPEC` (each `selectedSpecification` entry in turn), with
 labels at column 0 and values at column 5, in upper case. Each is wrapped to lines of at most 14 characters by words:
 the text breaks at spaces and after each slash, a line takes words while they fit, a space between them except after a
 slash, and further lines have no label. Lines past row 29 are not shown.
 
-| Rows 14–28, right           | Example       | Source                            |
-| --------------------------- | ------------- | --------------------------------- |
-| `LENGTH`, `WIDTH`, `HEIGHT` | `4485mm`      | overall dimensions                |
-| `W/BASE`                    | `2550mm`      | `frontAxle + rearAxle`            |
-| `MASS`                      | `1625kg`      | `mass`                            |
-| `CG HT`                     | `478mm`       | `desiredCgHeight`                 |
-| `YAW I`, `PITCH I`          | `3100kgm2`    | inertias                          |
-| `TIRE`                      | `632/662mm`   | twice the front/rear wheel radius |
-| `WHL I`                     | `2.7/3.4kgm2` | front/rear wheel inertia          |
-| `RIDE`                      | `1.75/1.85Hz` | front/rear ride frequency         |
-| `DAMPING`                   | `0.38/0.40`   | front/rear damping ratio          |
-| `TRAVEL`                    | `290/290mm`   | front/rear `qTravel`              |
-| `BRAKE`                     | `4800/3000Nm` | front/rear brake torque maxima    |
-| `DRAG`                      | `0.44kg/m`    | `quadraticDrag`                   |
+| Rows 14–26, right           | Example       | Source                         |
+| --------------------------- | ------------- | ------------------------------ |
+| `LENGTH`, `WIDTH`, `HEIGHT` | `4485mm`      | overall dimensions             |
+| `W/BASE`                    | `2550mm`      | `frontAxle + rearAxle`         |
+| `MASS`                      | `1625kg`      | `mass`                         |
+| `CG HT`                     | `478mm`       | `desiredCgHeight`              |
+| `YAW I`, `PITCH I`          | `3100kgm2`    | inertias                       |
+| `RIDE`                      | `1.75/1.85Hz` | front/rear ride frequency      |
+| `DAMPING`                   | `0.38/0.40`   | front/rear damping ratio       |
+| `TRAVEL`                    | `290/290mm`   | front/rear `qTravel`           |
+| `BRAKE`                     | `4800/3000Nm` | front/rear brake torque maxima |
+| `DRAG`                      | `0.44kg/m`    | `quadraticDrag`                |
 
 ## Selection and URL parameters
 

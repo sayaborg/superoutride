@@ -24,6 +24,8 @@ import {
   GREY,
   SLOW_MOTION,
   VALUE_COLUMNS,
+  drawGraphGrid,
+  drawGraphLine,
   integer,
   quantity,
   writeValues,
@@ -48,37 +50,22 @@ function enginePeaks(vehicle: CompiledVehicleDefinition) {
  * touches the top grid line and joined vertically between columns, from the larger of idle and 20 % of redline to the
  * fuel-cut entry.
  */
-function drawGraph({ frame, text, vehicle, fuelCutEnterRedlineRatio }: VehiclePageScene) {
+function drawGraph(scene: VehiclePageScene) {
+  const { frame, text, vehicle, fuelCutEnterRedlineRatio } = scene;
   const powertrain = vehicle.compiledVehicle.powertrain;
   const redline = powertrain.redlineRpm;
   const height = GRAPH.bottom - GRAPH.top;
   const xOf = (rpm: number) => GRAPH.left + (rpm / redline - GRAPH.firstRedline) * GRAPH.pixelsPerRedline;
   const rpmOf = (x: number) => (GRAPH.firstRedline + (x - GRAPH.left) / GRAPH.pixelsPerRedline) * redline;
-  const grid = text.mainColor(TEXT_PALETTES.DARK);
-  for (let k = 1; k <= GRAPH.gridLevels; k++)
-    frame.fillSpan(GRAPH.bottom - (k * height) / GRAPH.gridLevels, GRAPH.left, GRAPH.right, grid);
-  const gridLines = Math.round((GRAPH.lastRedline - GRAPH.firstRedline) / GRAPH.gridRedline);
-  for (let k = 1; k <= gridLines; k++) {
-    const x = Math.min(GRAPH.right, GRAPH.left + k * GRAPH.gridRedline * GRAPH.pixelsPerRedline);
-    for (let y = GRAPH.top; y < GRAPH.bottom; y++) frame.setPixel(x, y, grid);
-  }
-  frame.fillSpan(GRAPH.bottom, GRAPH.left, GRAPH.right, GREY);
-  for (let y = GRAPH.top; y <= GRAPH.bottom; y++) frame.setPixel(GRAPH.left, y, GREY);
+  drawGraphGrid(scene);
   const redlineX = Math.round(xOf(redline));
   for (let y = GRAPH.top; y < GRAPH.bottom; y += 2) frame.setPixel(redlineX, y, text.mainColor(TEXT_PALETTES.RED));
 
   const peaks = enginePeaks(vehicle);
   const first = Math.ceil(xOf(Math.max(powertrain.idleRpm, GRAPH.firstRedline * redline)));
   const last = Math.min(GRAPH.right, Math.floor(xOf(fuelCutRpm(redline, fuelCutEnterRedlineRatio))));
-  const curve = (share: (rpm: number) => number, color: number) => {
-    let previous: number | null = null;
-    for (let x = first; x <= last; x++) {
-      const y = GRAPH.bottom - Math.round(share(rpmOf(x)) * height);
-      const from = previous ?? y;
-      for (let row = Math.min(from, y); row <= Math.max(from, y); row++) frame.setPixel(x, row, color);
-      previous = y;
-    }
-  };
+  const curve = (share: (rpm: number) => number, color: number) =>
+    drawGraphLine(frame, first, last, (x) => GRAPH.bottom - Math.round(share(rpmOf(x)) * height), color);
   const peakPower = peaks.power * 1000;
   curve(
     (rpm) => (sampleEngineTorque(powertrain, rpm) * rpm * 2 * Math.PI) / 60 / peakPower,

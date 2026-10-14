@@ -8,8 +8,8 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 
 /** Fixed steps each yaw image stays. */
 export const YAW_IMAGE_STEPS = 6;
-/** Fixed steps each page stays before the next (8 s). */
-export const VEHICLE_PAGE_STEPS = 480;
+/** Fixed steps each page stays before the next (6 s). */
+export const VEHICLE_PAGE_STEPS = 360;
 /** The picture's box in pixels: text columns 0-19 by rows 4-10. */
 export const PICTURE_BOX = Object.freeze({ x: 0, y: 32, width: 160, height: 56 });
 /** The factor by which a picture too large for its box shrinks from the player depth until it fits. */
@@ -35,9 +35,10 @@ export const WALLPAPER_SHADE = Object.freeze({
 /** A page's value columns: labels at a column, values `valueOffset` columns on, from `firstRow`. */
 export const VALUE_COLUMNS = Object.freeze({ left: 0, right: 20, valueOffset: 8, firstRow: 14 });
 /**
- * The curve graph in pixels, under text columns 22-39 and rows 4-11: its horizontal axis runs from 20 % of redline at
- * the left edge, 16 pixels for each 10 %, to 110 % beyond the right edge; its vertical axis from 0 on the bottom row to
- * 100 % on the top grid line, with grid lines every 25 % (15 pixels).
+ * The graph in pixels, under text columns 22-39 and rows 4-11: ENGINE's horizontal axis runs from 20 % of redline at
+ * the left edge, 16 pixels for each 10 %, to 110 % beyond the right edge; the vertical axis from 0 on the bottom row to
+ * 100 % on the top grid line, with grid lines every 25 % (15 pixels). DRIVETRAIN's horizontal axis runs from 0 at the
+ * left edge to the top gear's speed at redline on the right edge, under the same grid.
  */
 export const GRAPH = Object.freeze({
   left: 176,
@@ -148,6 +149,41 @@ export interface VehiclePageScene {
 export interface VehiclePage {
   readonly name: string;
   draw(scene: VehiclePageScene): void;
+}
+
+/**
+ * The graph's grid: DARK lines every 25 % of its height and every 10 % of redline on ENGINE's axis (the last clipped at
+ * its right edge), and the lighter axes on its left edge and bottom row.
+ */
+export function drawGraphGrid({ frame, text }: VehiclePageScene) {
+  const height = GRAPH.bottom - GRAPH.top;
+  const grid = text.mainColor(TEXT_PALETTES.DARK);
+  for (let k = 1; k <= GRAPH.gridLevels; k++)
+    frame.fillSpan(GRAPH.bottom - (k * height) / GRAPH.gridLevels, GRAPH.left, GRAPH.right, grid);
+  const gridLines = Math.round((GRAPH.lastRedline - GRAPH.firstRedline) / GRAPH.gridRedline);
+  for (let k = 1; k <= gridLines; k++) {
+    const x = Math.min(GRAPH.right, GRAPH.left + k * GRAPH.gridRedline * GRAPH.pixelsPerRedline);
+    for (let y = GRAPH.top; y < GRAPH.bottom; y++) frame.setPixel(x, y, grid);
+  }
+  frame.fillSpan(GRAPH.bottom, GRAPH.left, GRAPH.right, GREY);
+  for (let y = GRAPH.top; y <= GRAPH.bottom; y++) frame.setPixel(GRAPH.left, y, GREY);
+}
+
+/** A line in the graph, a pixel wide and joined vertically between columns, through `rowOf` each column `x`. */
+export function drawGraphLine(
+  frame: SoftwareSurface,
+  first: number,
+  last: number,
+  rowOf: (x: number) => number,
+  color: number,
+) {
+  let previous: number | null = null;
+  for (let x = first; x <= last; x++) {
+    const y = Math.round(rowOf(x));
+    const from = previous ?? y;
+    for (let row = Math.min(from, y); row <= Math.max(from, y); row++) frame.setPixel(x, row, color);
+    previous = y;
+  }
 }
 
 export const integer = (value: number) => Math.round(value).toString();

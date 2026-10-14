@@ -4,22 +4,17 @@ import { TEXT_ROWS } from '../view/text-layer.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import {
   DIM,
-  GEAR_BARS,
-  GEAR_COLUMNS,
   GREY,
   SIDE_VIEW,
   LISTING_COLUMNS,
   VALUE_COLUMNS,
   integer,
   millimetres,
-  ratio,
   twoDecimals,
   writeValues,
   type VehiclePage,
   type VehiclePageScene,
 } from './vehicle-page.js';
-
-const GEAR_LABELS = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 
 /** A disc of `radius` about (`x`, `y`): a ring a pixel wide in `ring`, filled with `fill`. */
 function disc(frame: SoftwareSurface, x: number, y: number, radius: number, ring: number, fill: number) {
@@ -93,25 +88,6 @@ function drawSideView({ frame, text, vehicle }: VehiclePageScene) {
   text.write(frontColumn, SIDE_VIEW.loadRow, `F${front}%`, TEXT_PALETTES.WHITE);
 }
 
-/** Each gear's road speed at redline (km/h), at the rolling radius of the wheels taking more than half the drive. */
-function gearSpeeds(vehicle: VehiclePageScene['vehicle']) {
-  const v = vehicle.compiledVehicle;
-  const p = v.powertrain;
-  const radius = (v.frontDriveTorqueFraction > 0.5 ? v.frontStation : v.rearStation).rollingRadius;
-  const metresPerSecond = (p.redlineRpm / 60) * 2 * Math.PI * radius;
-  return p.gearRatios.map((gear) => (metresPerSecond * 3.6) / (gear * p.finalDriveRatio));
-}
-
-/** A gear's bar on text row `row`: DIM to the previous gear's speed at redline, YELLOW on to its own. */
-function drawGearBar({ frame, text }: VehiclePageScene, row: number, from: number, to: number) {
-  const scale = (GEAR_BARS.right - GEAR_BARS.left) / GEAR_BARS.kmh;
-  const x = (kmh: number) => GEAR_BARS.left + Math.min(GEAR_BARS.kmh, kmh) * scale;
-  for (let y = row * TEXT_TILE_SIZE + GEAR_BARS.top; y <= row * TEXT_TILE_SIZE + GEAR_BARS.bottom; y++) {
-    frame.fillSpan(y, GEAR_BARS.left, x(from), DIM);
-    frame.fillSpan(y, x(from), x(to), text.mainColor(TEXT_PALETTES.YELLOW));
-  }
-}
-
 /** A listed text in upper case as lines of at most the listing line length, joined word by word. */
 function wrap(value: string): string[] {
   const lines: string[] = [];
@@ -124,31 +100,8 @@ function wrap(value: string): string[] {
   return lines;
 }
 
-/** The driveline: each gear's ratio and road speed at redline with its bar, the final drive and the drive, then the listing's era, market and specification. */
-function writeDriveline(scene: VehiclePageScene) {
-  const { text, vehicle } = scene;
-  const v = vehicle.compiledVehicle;
-  const p = v.powertrain;
-  const f = v.frontDriveTorqueFraction;
-  const front = Math.round(f * 100);
-  let row = VALUE_COLUMNS.firstRow;
-  text.write(GEAR_COLUMNS.label, row, 'GEAR', TEXT_PALETTES.DARK);
-  text.write(GEAR_COLUMNS.ratioHeading, row, 'RATIO', TEXT_PALETTES.DARK);
-  text.write(GEAR_COLUMNS.kmh, row, 'KMH', TEXT_PALETTES.DARK);
-  row++;
-  const speeds = gearSpeeds(vehicle);
-  p.gearRatios.forEach((gear, i) => {
-    text.write(GEAR_COLUMNS.label, row + i, GEAR_LABELS[i]!, TEXT_PALETTES.DARK);
-    text.write(GEAR_COLUMNS.ratio, row + i, ratio(gear), TEXT_PALETTES.WHITE);
-    drawGearBar(scene, row + i, i === 0 ? 0 : speeds[i - 1]!, speeds[i]!);
-    text.write(GEAR_COLUMNS.kmh, row + i, integer(speeds[i]!).padStart(3), TEXT_PALETTES.WHITE);
-  });
-  row += p.gearRatios.length;
-  writeValues(text, VALUE_COLUMNS.left, row, [
-    ['FINAL', ratio(p.finalDriveRatio)],
-    ['DRIVE', f === 0 ? 'RWD' : f === 1 ? 'FWD' : `AWD ${front}/${100 - front}`],
-  ]);
-  row += 3;
+/** The listing's era, market and specification in the left column. */
+function writeListing({ text, vehicle }: VehiclePageScene) {
   const { metadata } = vehicle.listing;
   const listed: [string, string][] = [];
   const list = (label: string, value: string) =>
@@ -156,6 +109,7 @@ function writeDriveline(scene: VehiclePageScene) {
   list('ERA', metadata.period);
   list('MKT', metadata.physicsAnchor.market);
   metadata.selectedSpecification.forEach((line, k) => list(k === 0 ? 'SPEC' : '', line));
+  const row = VALUE_COLUMNS.firstRow;
   writeValues(text, LISTING_COLUMNS.label, row, listed.slice(0, TEXT_ROWS - row), LISTING_COLUMNS.value);
 }
 
@@ -171,8 +125,6 @@ function writeBody({ text, vehicle }: VehiclePageScene) {
     ['CG HT', millimetres(v.desiredCgHeight)],
     ['YAW I', `${integer(v.yawInertia)}kgm2`],
     ['PITCH I', `${integer(v.pitchInertia)}kgm2`],
-    ['TIRE', `${integer(2000 * m.frontWheelRadius)}/${integer(2000 * m.rearWheelRadius)}mm`],
-    ['WHL I', `${m.frontWheelInertia.toFixed(1)}/${m.rearWheelInertia.toFixed(1)}kgm2`],
     ['RIDE', `${twoDecimals(m.frontRideFrequency)}/${twoDecimals(m.rearRideFrequency)}Hz`],
     ['DAMPING', `${twoDecimals(m.frontDampingRatio)}/${twoDecimals(m.rearDampingRatio)}`],
     ['TRAVEL', `${integer(m.frontQTravel * 1000)}/${integer(m.rearQTravel * 1000)}mm`],
@@ -181,12 +133,12 @@ function writeBody({ text, vehicle }: VehiclePageScene) {
   ]);
 }
 
-/** CHASSIS: the side view, the driveline, the listing's era, market and specification, and the body. */
+/** CHASSIS: the side view, the listing's era, market and specification, and the body. */
 export const CHASSIS_PAGE: VehiclePage = Object.freeze({
   name: 'CHASSIS',
   draw(scene: VehiclePageScene) {
     drawSideView(scene);
-    writeDriveline(scene);
+    writeListing(scene);
     writeBody(scene);
   },
 });

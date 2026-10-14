@@ -26,9 +26,10 @@ import {
   type VehiclePage,
 } from './vehicle-page.js';
 import { ENGINE_PAGE } from './vehicle-engine-page.js';
+import { DRIVETRAIN_PAGE } from './vehicle-drivetrain-page.js';
 import { CHASSIS_PAGE } from './vehicle-chassis-page.js';
 
-const PAGES: readonly VehiclePage[] = Object.freeze([ENGINE_PAGE, CHASSIS_PAGE]);
+const PAGES: readonly VehiclePage[] = Object.freeze([ENGINE_PAGE, DRIVETRAIN_PAGE, CHASSIS_PAGE]);
 
 /** A vehicle's display name: its manufacturer and model. */
 export function vehicleName(vehicle: CompiledVehicleDefinition): string {
@@ -108,7 +109,7 @@ function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSte
 
 /**
  * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, and
- * its pages (ENGINE, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the fuel-cut entry at
+ * its pages (ENGINE, DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the fuel-cut entry at
  * `fuelCutEnterRedlineRatio` times redline and the physical values as the simulation holds them. LEFT and RIGHT change
  * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
  * `colorOf` its color. A change of vehicle keeps the page and restarts its time. With fixed colors it has no color
