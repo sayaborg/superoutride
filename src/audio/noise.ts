@@ -1,7 +1,19 @@
-/** Numerical support, not listening controls; expanding it needs domain/aliasing validation. */
+/**
+ * The output sample rates the synthesis accepts, its one owner: author values, the range its numerics are checked over
+ * (44.1 kHz, the CD rate, to 192 kHz). A context outside it has no sound: the audio lifetime refuses it once, before
+ * building any voice.
+ */
+export const SYNTHESIS_RATE_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
+
+/** Whether the synthesis accepts an output sample rate. */
+export const supportsSynthesisRate = (rate: number) =>
+  Number.isInteger(rate) && rate >= SYNTHESIS_RATE_DOMAIN.minRate && rate <= SYNTHESIS_RATE_DOMAIN.maxRate;
+
+/**
+ * Numerical support, not listening controls; expanding it needs domain/aliasing validation. All three are author
+ * values; the centre's fraction keeps it below Nyquist (0.5 × rate).
+ */
 export const NOISE_BAND_DOMAIN = Object.freeze({
-  minRate: 44100,
-  maxRate: 192000,
   minimumBandwidthHz: 50,
   maximumBandwidthHz: 6000,
   maximumFrequencyRateFraction: 0.4,
@@ -33,8 +45,7 @@ export class NoiseBand {
     private readonly rate: number,
     seed: number,
   ) {
-    if (!Number.isInteger(rate) || rate < NOISE_BAND_DOMAIN.minRate || rate > NOISE_BAND_DOMAIN.maxRate)
-      throw new RangeError('unsupported noise rate');
+    if (!supportsSynthesisRate(rate)) throw new RangeError('unsupported noise rate');
     this.random = new RandomStream(seed);
     this.configure(1000, NOISE_BAND_DOMAIN.minimumBandwidthHz);
   }

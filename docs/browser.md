@@ -756,7 +756,8 @@ A mouse press, touch/pen release, touchend or eligible keyboard gesture resumes 
 URL started ([Audio](audio.md#mix-and-lifetime)).
 Touch pointerdown alone does not activate it. SOUND START starts or resumes; SOUND ON/OFF then mutes
 or unmutes. SOUND RETRY offers a new initialization after failure. SOUND UNAVAILABLE indicates that
-the browser lacks the required audio support while gameplay remains usable.
+the browser lacks the required audio support, or its output rate is outside the synthesis's, while gameplay remains
+usable.
 
 MASTER, ENG and TIRE independently control the complete output, engine output and tire output.
 MASTER is the player record's MASTER volume, which the stepper shows and changes through the one volume path;

@@ -1,6 +1,4 @@
-import { RandomStream } from './noise.js';
-// Numerical support of the friction solver, independent of listening coefficients.
-const RATE_DOMAIN = Object.freeze({ minRate: 44100, maxRate: 192000 });
+import { RandomStream, supportsSynthesisRate } from './noise.js';
 
 interface Resonance {
   readonly frequencyHz: number;
@@ -36,8 +34,7 @@ export class FrictionResonator {
   private readonly parameters: Parameters;
 
   constructor(rate: number, parameters: Parameters, seed: number) {
-    if (!Number.isInteger(rate) || rate < RATE_DOMAIN.minRate || rate > RATE_DOMAIN.maxRate)
-      throw new RangeError('unsupported unified rate');
+    if (!supportsSynthesisRate(rate)) throw new RangeError('unsupported unified rate');
     if (
       !Number.isFinite(parameters.feedbackMaximumPerSecond) ||
       parameters.feedbackMaximumPerSecond <= 0 ||

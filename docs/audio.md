@@ -27,7 +27,11 @@ rival sound uses the rival's observed powertrain values and its own vehicle's en
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
 cycle, ordered firing phases, each cylinder's junction (`banks`), primary lengths and the collector graph
 (`pipes`). Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
-combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. `compileEngineSound` validates an
+combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. The resource limits are author values bounding the kernel's work and delay
+storage, not claims about real engines: 1 to 16 firing phases, primaries of 0.1 to 3 m, and 1 to 8 pipes of 0.1 to
+4 m. Each primary and pipe is a delay pair of `length × rate / waveSpeed` samples (`waveSpeed` 480 m/s), so the
+longest sound stores at most 2 × (16 × 3 + 8 × 4) m × 192000 / 480 = 64000 samples, and the shortest pipe is
+at least 9 samples at 44100 Hz. `compileEngineSound` validates an
 `EngineSoundDefinition` into an `EngineSound`. Firing rows identify events and collector groups.
 
 Engine sound definitions are content: `content/engine-sounds/<id>.json` stores one
@@ -47,7 +51,8 @@ same sample-free engine kernel plays every sound.
 ## Engine synthesis
 
 The voice reads engine RPM exactly as simulated; physics keeps it at or above idle, and the exhaust
-processor's own `rpm` parameter range (1 to 24000) is the only bound. Excitation follows the
+processor's own `rpm` parameter range (1 to 24000) is the only bound: 1 keeps the crank's samples per degree,
+`rate / (6 × rpm)`, finite, and 24000 is an author value above every catalog redline. Excitation follows the
 powertrain's effective opening, so it includes the idle-holding opening. Closed throttle has a positive
 excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. While the observation reports
 fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
@@ -347,5 +352,8 @@ which the playing music starts again from its beginning ([recording player](#rec
 one: every voice (tire, engine and scraping) watches its worklets' `processorerror`
 ([`processor-failure.ts`](../src/audio/processor-failure.ts)) and its next update throws, which fails the graph. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements
-produce silence. Browsers without AudioWorklet support remain playable with unavailable sound.
+produce silence. Browsers without AudioWorklet support remain playable with unavailable sound, and so does a device
+whose output rate lies outside the synthesis's sample rates (`SYNTHESIS_RATE_DOMAIN`,
+[Tire audio](tire-audio.md#numerical-domain)): its first context is closed before any voice is built, one console
+error names the rate, and the sound stays unavailable, with no retry.
 The browser's normal audio session and device output controls determine audible output.

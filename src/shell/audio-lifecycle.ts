@@ -12,6 +12,7 @@ import type { PlayerRecord, VolumeName } from './player-record.js';
 import { createRecordingPlayer } from './recording-player.js';
 import { EFFECT_RECORDINGS, IMPACT_RECORDINGS, recordingId, type ImpactRecording } from '../audio/recordings.js';
 import { impactVolume } from '../audio/impact-acoustics.js';
+import { SYNTHESIS_RATE_DOMAIN, supportsSynthesisRate } from '../audio/noise.js';
 import type { ProcessingReport } from '../audio/processing-meter.js';
 import type { InputRoute } from '../input/menu-input.js';
 
@@ -70,7 +71,8 @@ export function createAudioLifecycle(
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
-  const supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
+  // A device whose output rate the synthesis does not accept stops being supported at its first context.
+  let supported = typeof AudioContext !== 'undefined' && typeof AudioWorkletNode !== 'undefined';
   const recordingFailures: string[] = [];
   const recordings = createRecordingPlayer(recordingBytes, (id, error) => {
     recordingFailures.push(id);
@@ -176,6 +178,15 @@ export function createAudioLifecycle(
       failed = false;
       recordings.begin();
       created = new AudioContext();
+      if (!supportsSynthesisRate(created.sampleRate)) {
+        const { minRate, maxRate } = SYNTHESIS_RATE_DOMAIN;
+        console.error(`Audio output at ${created.sampleRate} Hz is outside the synthesis's ${minRate}–${maxRate} Hz`);
+        supported = false;
+        controls.setEnabled(false);
+        closeGraph(null, created);
+        showSoundState();
+        return;
+      }
       context = created;
       created.onstatechange = showSoundState;
       // Resume may remain pending for permission; own the graph independently of that promise.

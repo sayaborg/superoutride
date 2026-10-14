@@ -37,7 +37,8 @@ is the one value check (every number finite and at least 0, `textureLengthMeters
 excitation stays within the noise band's [0, 1] for every admitted rolling setting); [`compileSurfaceSoundDocument`](../src/audio/surface-sound-document.ts) checks format, version and shapes and
 calls it. `resolveSurfaceSoundRecords` numbers the records in material catalog order and rejects, with
 `RangeError` and no fallback, a catalog material without a surface sound, a surface sound for an unknown
-material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport range) materials; the content
+material and more than `SURFACE_SOUND_LIMIT` (256, the `surfaceIndex` transport range; an author value, since the
+float32 parameter carries every integer to 2²⁴) materials; the content
 build applies it before delivery and the game at startup. The voice looks up each observed material's number in
 the catalog order; the worklet receives the records at construction and in every settings message
 (`{ settings, rolling, control, surfaces }`), uses them as given ([admitted once](audio.md#audio-document)) and
@@ -53,7 +54,7 @@ both within [0, 1]). Each check fails as an `invalid_value` diagnostic at the fi
 `/walls/limit/friction/roughness` or `/surfaces/ASPHALT/rolling/textureDepth`, through the shared relative domain
 path ([Architecture](architecture.md)). `courseLimit` names the record every course limit uses; it must
 name a record (`unresolved_reference`). At most `WALL_SOUND_LIMIT` (256, the scraping worklet's `wall` transport
-range) records are admitted (`resource_limit`), so every record keeps its number in transport. [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
+range, an author value as for surfaces) records are admitted (`resource_limit`), so every record keeps its number in transport. [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
 content build admits each course's solid walls against it ([Content and gameplay](content-and-gameplay.md#walls)).
 
 ## Rolling synthesis
@@ -121,8 +122,9 @@ colored-noise history continues. R follows its separate rotation/support inputs.
 
 ### Numerical domain
 
-The [friction resonator](../src/audio/friction-resonator.ts) accepts integer sample rates from 44100
-through 192000 Hz. Resonances have positive frequency below one quarter of the rate and positive
+The [friction resonator](../src/audio/friction-resonator.ts) and the noise bands accept the synthesis's sample rates,
+`SYNTHESIS_RATE_DOMAIN` ([noise](../src/audio/noise.ts)): integers from 44100 through 192000 Hz, author values (the
+range the numerics are checked over), whose one owner the audio lifetime also reads ([Audio](audio.md#mix-and-lifetime)). Resonances have positive frequency below one quarter of the rate and positive
 underdamped loss: `0 < d_i/2 < omega_i`. Participation has positive squared norm.
 Feedback maximum and saturation are positive; `feedbackMaximumPerSecond/rate < 1`.
 Noise bandwidth is positive and below Nyquist. Invalid parameters throw `RangeError`.
