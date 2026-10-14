@@ -122,8 +122,22 @@ export function createCourseRace(options: {
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
   const routes = enumerateCourseRoutes(course.entry, course.type);
-  // The fork field is the fork decider: the only holder of the Route's selection authority.
-  const forks = createCourseForkField(runtime.route, lines, runtime.selectSuccessor, options.setup.racingLines);
+  // The fork field is the fork decider: the only holder of the Route's selection authority. A choice changes what every
+  // driver's path returns beyond the fork, so each present driver takes a new path function, as on a change of lane:
+  // its plan caches by path.
+  const forks = createCourseForkField(
+    runtime.route,
+    lines,
+    (link) => {
+      runtime.selectSuccessor(link);
+      for (const { driving } of bodies)
+        if (driving) {
+          const { intent } = driving;
+          driving.target = (station: number) => forks.targetL(station, intent);
+        }
+    },
+    options.setup.racingLines,
+  );
   // A circuit's lap: its Sections around the cycle from the entry.
   let lapLength: number | null = null;
   if (course.type === 'CIRCUIT') {

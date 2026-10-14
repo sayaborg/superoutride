@@ -1258,7 +1258,8 @@ whose lateral demand lies within `lateralMargin` (0.95) of the lateral limit at 
 utilization times its correction) and below the speed cap; the drive and braking limits keep the same margin of each
 axle's lateral. The steering rule's full input reaches the front tire's whole bound (100 %), so the margin, and the
 utilization's share of the limit, is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
-by road, path and interval and its cornering speed also by limits, planned utilization, speed cap, curvature and grip. Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
+by road, path and interval (a path whose content changes is a new path: a change of lane or offset, and every present
+driver's path when a fork's choice is made, since the choice changes the line or lane the path follows beyond the fork) and its cornering speed also by limits, planned utilization, speed cap, curvature and grip. Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
 
 - Forward, from the vehicle's speed: each node the previous node's speed driven over the segment at the drive limit
   less drag, grade, rolling resistance and cornering drag, within the cell's cornering speed. Where the load factor at

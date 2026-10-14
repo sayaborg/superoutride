@@ -134,7 +134,7 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 2: the planned drivers' one steering rule.
+driver's record, part of the reference run's procedure record, contains it. It is 3: a fork's choice gives every driver a new path function.
 
 ## Camera settings
 
