@@ -47,9 +47,9 @@ export interface CleaningResult {
 }
 
 /** The elements a scope covers: authored, each record once. */
-function scoped(document: Json, scope: CleaningScope) {
+function scoped(document: Json, scope: CleaningScope, structure = readCourseStructure(document)) {
   const seen = new Set<string>();
-  return readCourseStructure(document).sections.flatMap((section, index) =>
+  return structure.sections.flatMap((section, index) =>
     scope.section !== undefined && section.id !== scope.section
       ? []
       : section.elements.flatMap((element) => {
@@ -107,11 +107,20 @@ function samePlan(a: SectionPlan | null, b: SectionPlan | null) {
   );
 }
 
-/** The greatest height difference of two profiles, sampled every 2 m over both. */
-function profileShift(a: ProfileReader | null, b: ProfileReader | null, length: number) {
+/**
+ * The stations a change can move anything at, as `[from, to]`: a candidate that changes the plan or whose reach is not
+ * one interval has none (null), and is compared over its whole Section.
+ */
+type Reach = readonly [number, number];
+
+/** The greatest height difference of two profiles, sampled every 2 m over both, or those samples within `reach`. */
+function profileShift(a: ProfileReader | null, b: ProfileReader | null, length: number, reach: Reach | null = null) {
   if (!a || !b) return a === b ? 0 : Infinity;
+  const [from, to] = reach ?? [0, length];
   let shift = 0;
-  for (let s = 0; s <= length; s += 2) shift = Math.max(shift, Math.abs(a.sample(s) - b.sample(s)));
+  // The same 2 m samples, those within the reach.
+  for (let s = Math.max(0, Math.ceil(from / 2) * 2); s <= Math.min(length, to); s += 2)
+    shift = Math.max(shift, Math.abs(a.sample(s) - b.sample(s)));
   return shift;
 }
 
@@ -142,7 +151,7 @@ function wallHeights(reading: Reading) {
  * The greatest lateral (or height) difference of two lines along the same ruler, at either's vertices; a line that
  * starts or ends elsewhere moves by at least that distance.
  */
-function lineShift(a: ResolvedLine, b: ResolvedLine) {
+function lineShift(a: ResolvedLine, b: ResolvedLine, reach: Reach | null = null) {
   if (!a.length || !b.length) return a.length === b.length ? 0 : Infinity;
   let shift = Math.max(Math.abs(a[0]!.s - b[0]!.s), Math.abs(a.at(-1)!.s - b.at(-1)!.s));
   for (const [from, to] of [
@@ -150,6 +159,7 @@ function lineShift(a: ResolvedLine, b: ResolvedLine) {
     [b, a],
   ] as const)
     for (const vertex of from) {
+      if (reach && (vertex.s < reach[0] || vertex.s > reach[1])) continue;
       const l = lineAt(to, vertex.s);
       if (l !== null) shift = Math.max(shift, Math.abs(l - vertex.l));
     }
@@ -161,13 +171,14 @@ function lineShift(a: ResolvedLine, b: ResolvedLine) {
  * else vertex by vertex in the plan), single elements paired by Pointer in the plan, and the road height. Infinity
  * when a reading fails or the elements no longer pair.
  */
-function readingShift(before: Reading, after: Reading): number {
+function readingShift(before: Reading, after: Reading, reach: Reach | null = null): number {
   if (!before.plan || !after.plan) return before.plan === after.plan ? 0 : Infinity;
-  const same = samePlan(before.plan, after.plan);
+  // A change with a reach leaves the plan as it is.
+  const same = reach !== null || samePlan(before.plan, after.plan);
   const key = (e: CourseElement) => `${e.kind} ${e.pointer} ${e.copies.map((c) => c.index).join(',')}`;
   const later = new Map<string, CourseElement[]>();
   for (const e of after.structure.elements) later.set(key(e), [...(later.get(key(e)) ?? []), e]);
-  let shift = profileShift(before.profile, after.profile, Math.min(before.plan.length, after.plan.length));
+  let shift = profileShift(before.profile, after.profile, Math.min(before.plan.length, after.plan.length), reach);
   const counts = new Map<string, number>();
   for (const e of before.structure.elements) {
     const n = counts.get(key(e)) ?? 0;
@@ -186,7 +197,7 @@ function readingShift(before: Reading, after: Reading): number {
     for (const [name, line] of Object.entries(e.lines)) {
       const other = f.lines[name];
       if (!other) return Infinity;
-      if (same) shift = Math.max(shift, lineShift(line, other));
+      if (same) shift = Math.max(shift, lineShift(line, other, reach));
       else if (line.length === other.length)
         line.forEach((v, i) => {
           const a = before.plan!.toWorld(v.s, v.l),
@@ -202,7 +213,7 @@ function readingShift(before: Reading, after: Reading): number {
     const other = walls.get(strip);
     if (!other) return Infinity;
     for (const key of ['bottom', 'top'] as const)
-      if (same) shift = Math.max(shift, lineShift(heights[key], other[key]));
+      if (same) shift = Math.max(shift, lineShift(heights[key], other[key], reach));
       else if (heights[key].length === other[key].length)
         heights[key].forEach((v, i) => (shift = Math.max(shift, Math.abs(v.l - other[key][i]!.l))));
       else return Infinity;
@@ -211,8 +222,8 @@ function readingShift(before: Reading, after: Reading): number {
 }
 
 /** A Section's move between readings: paired by element, else (when elements were renumbered) in order. */
-function shiftBetween(before: Reading, after: Reading) {
-  const paired = readingShift(before, after);
+function shiftBetween(before: Reading, after: Reading, reach: Reach | null = null) {
+  const paired = readingShift(before, after, reach);
   if (Number.isFinite(paired) || !samePlan(before.plan, after.plan)) return readShift(paired);
   return readShift(sectionShift(before.structure, after.structure) ?? Infinity);
 }
@@ -231,17 +242,24 @@ function centrelineShift(before: SectionPlan | null, after: SectionPlan | null) 
 /** The Section index a Pointer is in. */
 const sectionIndexOf = (pointer: string) => Number(/^\/sections\/(\d+)/.exec(pointer)?.[1] ?? -1);
 
-/** Candidates with their shift: each applied alone to the document and its Section read again. */
-function withShifts(document: Json, proposals: readonly Omit<CleaningCandidate, 'shift'>[]): CleaningCandidate[] {
+/**
+ * Candidates with their shift: each applied alone to the document and its Section read again, and compared over its
+ * reach when it has one. A Section compiles as one unit (its plan, joints, Positions measured from joints and Strip
+ * slabs), so it is read again whole.
+ */
+function withShifts(
+  document: Json,
+  proposals: readonly (Omit<CleaningCandidate, 'shift'> & { readonly reach?: Reach | null })[],
+): CleaningCandidate[] {
   const readings = new Map<number, Reading>();
   const before = (index: number) => {
     if (!readings.has(index)) readings.set(index, readCourseSection(document, index));
     return readings.get(index)!;
   };
-  return proposals.map((proposal) => {
+  return proposals.map(({ reach, ...proposal }) => {
     const index = sectionIndexOf(proposal.pointer);
     const after = readCourseSection(applyCourseChanges(document, proposal.changes), index);
-    return { ...proposal, shift: shiftBetween(before(index), after) };
+    return { ...proposal, shift: shiftBetween(before(index), after, reach ?? null) };
   });
 }
 
@@ -354,7 +372,13 @@ export function unneededKnotCandidates(
   document: Json,
   options: { readonly tolerance: number; readonly scope?: CleaningScope },
 ): CleaningCandidate[] {
-  const proposals = scoped(document, options.scope ?? {}).flatMap(({ element }) => {
+  const structure = readCourseStructure(document);
+  const resolved = new Map(
+    structure.sections.flatMap((section) =>
+      section.elements.filter((e) => e.copies.length === 0).map((e) => [e.pointer, e] as const),
+    ),
+  );
+  const proposals = scoped(document, options.scope ?? {}, structure).flatMap(({ element }) => {
     if (!KNOTS.includes(element.kind) || element.copies.some((copy) => copy.index > 0)) return [];
     const at = element.pointer.lastIndexOf('/');
     const list = valueAt(document, element.pointer.slice(0, at));
@@ -369,10 +393,25 @@ export function unneededKnotCandidates(
         pointer: element.pointer,
         description: `${element.pointer}: ${element.kind} not needed`,
         changes: [{ pointer: element.pointer, before, after: undefined }],
+        reach: knotReach(resolved, element, index),
       },
     ];
   });
   return withShifts(document, proposals).filter((candidate) => candidate.shift <= options.tolerance);
+}
+
+/**
+ * The stations removing knot or PVI `index` can move anything at: between its neighbours (a line runs straight between
+ * knots), and for a PVI out to its neighbours' vertical curves, whose grades it sets. None when the knot is repeated or a
+ * neighbour does not resolve.
+ */
+function knotReach(resolved: ReadonlyMap<string, CourseElement>, element: CourseElement, index: number): Reach | null {
+  if (element.copies.length) return null;
+  const parent = element.pointer.slice(0, element.pointer.lastIndexOf('/'));
+  const [previous, next] = [index - 1, index + 1].map((i) => resolved.get(`${parent}/${i}`));
+  if (typeof previous?.s !== 'number' || typeof next?.s !== 'number') return null;
+  const half = (e: CourseElement) => (element.kind === 'pvi' ? Number(e.values.curveLength ?? 0) / 2 : 0);
+  return [previous.s - half(previous), next.s + half(next)];
 }
 
 /** Kinds whose Positions join with near ones: knots, Strip, wall and curb ends, open limits and gates. */

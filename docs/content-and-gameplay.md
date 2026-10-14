@@ -634,7 +634,8 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
 the same way and changes nothing outside it: a run combines only list items in scope, never a sibling outside it, and
 colours merge only among those written in the scope (a Section's: every colour written in it; elements' or kinds':
 those written in those elements). The first proposes candidates, each with
-the element it concerns, its changes and its own shift: the change applied alone and the Section read again, comparing
+the element it concerns, its changes and its own shift: the change applied alone and the Section read again (whole: a
+Section compiles as one unit, its plan, joints, Positions measured from joints and Strip slabs together), comparing
 lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler or the
 centreline changes), other elements by plan point, and the road height. Pairing written elements by their number and
 measuring the resolved form are separate: points written in sequences (knots, vertices, PVIs) are measured through what
@@ -651,7 +652,11 @@ stale; the driving changes only when the shift is not 0.
 - `roundCandidates` rounds written numbers of chosen kinds (plan lengths, radii, Position offsets, laterals, lane and
   median widths, PVI heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
 - `unneededKnotCandidates` proposes each middle knot of a Boundary or wall Strip, and each middle PVI, whose
-  removal moves nothing beyond a tolerance (0: the same lines and heights). The first and last knots bound a
+  removal moves nothing beyond a tolerance (0: the same lines and heights). A removal leaves the plan as it is and
+  moves nothing outside its reach, between its neighbours (a line runs straight between knots) and for a PVI out to
+  its neighbours' vertical curves, so it is compared there alone, at the same samples; a knot in a repeat, whose copies
+  each move, is compared over the whole Section, as every other operation's candidates are, whose changes reach the
+  plan or the element's whole extent. The first and last knots bound a
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary or lane line at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
