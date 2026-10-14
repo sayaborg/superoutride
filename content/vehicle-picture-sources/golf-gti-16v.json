@@ -14,45 +14,20 @@
     "frontOverhangShare": 0.51
   },
   "top": {
-    "centre": 541.0,
+    "centre": 541,
     "width": 610,
     "frontEnd": 46.5,
     "rearEnd": 1400.5,
     "ties": [
       [290.5, 293.5],
-      [1152.5, 1150.0]
+      [1152.5, 1150]
     ]
   },
-  "front": {
-    "centre": 723.0,
-    "width": 1169,
-    "road": 1034.5,
-    "roof": 191.5
-  },
-  "rear": {
-    "centre": 719.5,
-    "width": 1200,
-    "road": 1043.5,
-    "roof": 179.5,
-    "undersideFromFront": 0.2
-  },
-  "outlines": {
-    "rearUntil": -0.5,
-    "frontFrom": 0.5
-  },
-  "mirrors": {
-    "from": 0.05,
-    "to": 0.45,
-    "low": 0.88,
-    "high": 1.15,
-    "outside": 0.68
-  },
-  "glass": {
-    "above": 0.86,
-    "from": -2.3,
-    "to": 0.6,
-    "glint": 235
-  },
+  "front": { "centre": 723, "width": 1169, "road": 1034.5, "roof": 191.5 },
+  "rear": { "centre": 719.5, "width": 1200, "road": 1043.5, "roof": 179.5, "undersideFromFront": 0.2 },
+  "outlines": { "rearUntil": -0.5, "frontFrom": 0.5 },
+  "mirrors": { "from": 0.05, "to": 0.45, "low": 0.88, "high": 1.15, "outside": 0.68 },
+  "glass": { "above": 0.86, "from": -2.3, "to": 0.6, "glint": 235 },
   "marks": [
     {
       "view": "rear",
@@ -295,12 +270,7 @@
     "exposure": 1,
     "shade": 1
   },
-  "slots": {
-    "body": 7,
-    "neutral": 3,
-    "glass": 2,
-    "accent": 2
-  },
+  "slots": { "body": 7, "neutral": 3, "glass": 2, "accent": 2 },
   "bodyKeys": [255, 240, 200, 145, 110, 86, 62],
   "palettes": {
     "red": [

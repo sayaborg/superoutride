@@ -4,7 +4,10 @@
   "id": "trial",
   "title": "TRIAL",
   "image": "trial",
-  "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
+  "music": {
+    "title": "placeholder-two",
+    "race": ["placeholder-one", "placeholder-two"]
+  },
   "dev": true,
   "classes": [
     {

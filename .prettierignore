@@ -7,6 +7,9 @@ package-lock.json
 # Exact saved bytes are addressed by SHA-256.
 content/images/
 
+# Saved JSON has one layout owner, formatSavedJson, which writes what Prettier would.
+content/**/*.json
+
 .cache/
 
 # Design sources are saved exactly as given.

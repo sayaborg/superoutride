@@ -4,7 +4,10 @@
   "id": "outrun-test",
   "title": "OUTRUN TEST",
   "image": "outrun-test",
-  "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
+  "music": {
+    "title": "placeholder-two",
+    "race": ["placeholder-one", "placeholder-two"]
+  },
   "dev": false,
   "classes": [
     {

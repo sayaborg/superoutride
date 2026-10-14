@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
-import { format, resolveConfig } from 'prettier';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { encodePng, type Raster } from '../graphics/drawn/raster.js';
 import { drawSeriesPicture } from '../graphics/drawn/series-picture.js';
@@ -33,12 +33,7 @@ async function setRecipe(path: string, name: string, recipe: unknown) {
     recipes = { format: 'superoutride.screen-picture-recipes', version: 1, pictures: {} } as never;
   }
   recipes.pictures[name] = recipe;
-  const lines = Object.entries(recipes.pictures).map(([n, r]) => `    ${JSON.stringify(n)}: ${JSON.stringify(r)}`);
-  const text = `${JSON.stringify({ ...recipes, pictures: {} }, null, 2).replace('"pictures": {}', `"pictures": {\n${lines.join(',\n')}\n  }`)}\n`;
-  await atomicWrite(
-    new URL(path, content).pathname,
-    await format(text, { ...(await resolveConfig(new URL(path, content).pathname)), parser: 'json' }),
-  );
+  await atomicWrite(new URL(path, content).pathname, formatSavedJson(recipes));
 }
 
 try {
@@ -68,7 +63,7 @@ try {
       mask: [],
       palette: null,
     };
-    await atomicWrite(new URL(`sprite-sources/${name}.json`, content).pathname, await formatJson(recipe));
+    await atomicWrite(new URL(`sprite-sources/${name}.json`, content).pathname, formatSavedJson(recipe));
     const { master } = await importSpriteSource(store, name, PNG);
     const file = courseImageFile(master);
     await store.write(file.path, file.bytes);
@@ -93,9 +88,4 @@ try {
   console.log(JSON.stringify({ ok: true, written }));
 } catch (error) {
   reportError(error);
-}
-
-async function formatJson(value: unknown) {
-  const file = new URL('screen-pictures/x.json', content).pathname;
-  return format(JSON.stringify(value), { ...(await resolveConfig(file)), parser: 'json' });
 }

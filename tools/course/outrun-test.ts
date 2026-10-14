@@ -5,7 +5,7 @@
  * next position, and five goals in the last row. Every stage is one Section; the generator owns its plan, profile,
  * lanes, fork, gates and surfaces, from the stage table below.
  */
-import { format, resolveConfig } from 'prettier';
+import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite, reportError } from './authoring-io.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import {
@@ -1013,7 +1013,7 @@ try {
   if (!read.ok) throw Object.assign(new Error('OUTRUN TEST does not read'), { diagnostics: read.diagnostics });
   // Written as the repository formats its JSON.
   const file = new URL('../../content/courses/outrun-test.course.json', import.meta.url).pathname;
-  await atomicWrite(file, await format(JSON.stringify(course), { ...(await resolveConfig(file)), parser: 'json' }));
+  await atomicWrite(file, formatSavedJson(course));
   console.log(
     JSON.stringify({
       ok: true,

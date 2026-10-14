@@ -4,20 +4,21 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ## Commands
 
-| Command                       | Purpose                                                             |
-| ----------------------------- | ------------------------------------------------------------------- |
-| `npm ci`                      | Install locked dependencies                                         |
-| `npm run check`               | Lint, format, strict product/tool type checks and dependency checks |
-| `npm run lint`                | Lint source, tests and tools                                        |
-| `npm run format`              | Format maintained files                                             |
-| `npm run format:check`        | Check formatting                                                    |
-| `npm run build`               | Clear dist, compile TypeScript, build tools and generate content    |
-| `npm test`                    | All checks, build, startup and screens smoke and driving scenarios  |
-| `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe             |
-| `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles            |
-| `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator            |
-| `npm run skies`               | Draw the course skies that have sources into course images          |
-| `python3 -m http.server 8000` | Serve the checkout, game and tools                                  |
+| Command                       | Purpose                                                               |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `npm ci`                      | Install locked dependencies                                           |
+| `npm run check`               | Lint, format, strict product/tool type checks and dependency checks   |
+| `npm run check:static`        | `check` without the product type check, which `npm test`'s build does |
+| `npm run lint`                | Lint source, tests and tools                                          |
+| `npm run format`              | Format maintained files                                               |
+| `npm run format:check`        | Check formatting; `content/` JSON has its own layout owner            |
+| `npm run build`               | Clear dist, compile TypeScript, build tools and generate content      |
+| `npm test`                    | All checks, build, startup and screens smoke and driving scenarios    |
+| `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe               |
+| `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles              |
+| `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator              |
+| `npm run skies`               | Draw the course skies that have sources into course images            |
+| `python3 -m http.server 8000` | Serve the checkout, game and tools                                    |
 
 ### Driving scenarios
 
@@ -80,7 +81,10 @@ Visual correctness remains a manual check.
 Product and tool checking share `tsconfig.base.json`; `tsconfig.json` checks the browser product without
 Node globals, and `tsconfig.tools.json` checks TypeScript tools with Node types and no emitted files.
 Both roots use the same lint rules. `npm run check:dependencies` checks the boundaries described in
-[Architecture](architecture.md#layer-boundaries); `check`, and so CI's `npm test`, runs it once.
+[Architecture](architecture.md#layer-boundaries); `check` and `npm test` run it once. `npm test` type checks the product
+once, in the build's compile, and runs every other check of `check` (`check:static`) before it. Saved JSON under
+`content/` has one layout owner, [`formatSavedJson`](../src/content/saved-json.ts), through which every tool writes
+it, so Prettier does not check it again; `npm run format` leaves it alone too.
 
 Run a TypeScript tool with `node --import tsx tools/<domain>/<name>.ts`. The pinned loader resolves the
 product's `.js` module specifiers to TypeScript source without a tool compilation directory; it does
