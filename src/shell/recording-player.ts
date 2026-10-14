@@ -24,11 +24,15 @@ interface Request {
   readonly options: Omit<PlaybackOptions, 'from'> | undefined;
   state: 'playing' | 'paused' | 'ended';
   playback: RecordingPlayback | null;
+  /** Its latest binding to a scene: only that binding's decode makes its playback. */
+  binding: number;
 }
 
 /**
- * Recordings for the current audio scene, decoded from their delivered bytes off the frame and menu path. Decoded
- * effects and impacts are kept; one music track is kept at a time (a request for another releases the previous).
+ * Recordings for the current audio scene, decoded from their delivered bytes off the frame and menu path. Decodes
+ * belong to the scene they were made on and a new scene starts without them; decoded effects and impacts are kept; one
+ * music track is kept at a time (a request for another releases the previous). A request bound again (to a new scene)
+ * takes only its latest binding's decode, so an earlier one finishing later makes nothing.
  * A recording that cannot be decoded reports once through `onFailure` and stays silent; it is not decoded again.
  * Once the page's audio has begun (`begin`), the player owns every looped request until it is stopped: a request made
  * without a scene, or whose scene was replaced, sounds from its start on the next scene. Before that a request is
@@ -41,8 +45,13 @@ export function createRecordingPlayer(
   const decoded = new Map<string, Promise<AudioBuffer | null>>();
   const looped = new Set<Request>();
   let scene: AudioScene | null = null,
+    decodedOn: AudioScene | null = null,
     begun = false;
   const decode = (id: string, owner: AudioScene): Promise<AudioBuffer | null> => {
+    if (decodedOn !== owner) {
+      decoded.clear();
+      decodedOn = owner;
+    }
     const known = decoded.get(id);
     if (known) return known;
     if (id.startsWith('music/'))
@@ -61,8 +70,9 @@ export function createRecordingPlayer(
   // A request's playback on `owner`, from the recording's start, once it is decoded.
   const bind = (request: Request, owner: AudioScene) => {
     request.playback = null;
+    const binding = ++request.binding;
     void decode(request.id, owner).then((buffer) => {
-      if (!buffer || request.state === 'ended' || scene !== owner) return;
+      if (!buffer || request.state === 'ended' || scene !== owner || request.binding !== binding) return;
       request.playback = owner.createPlayback(buffer, request.bus, request.options);
       if (request.state === 'playing') request.playback.play();
     });
@@ -91,7 +101,7 @@ export function createRecordingPlayer(
     play(id: string, bus: SoundBus, options?: Omit<PlaybackOptions, 'from'>): RecordingHandle {
       const loop = (options?.loop ?? null) !== null;
       if (!scene && !(loop && begun)) return SILENT;
-      const request: Request = { id, bus, options, state: 'playing', playback: null };
+      const request: Request = { id, bus, options, state: 'playing', playback: null, binding: 0 };
       if (loop) looped.add(request);
       if (scene) bind(request, scene);
       return {

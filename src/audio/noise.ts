@@ -11,7 +11,8 @@ export const supportsSynthesisRate = (rate: number) =>
 
 /**
  * Numerical support, not listening controls; expanding it needs domain/aliasing validation. All three are author
- * values; the centre's fraction keeps it below Nyquist (0.5 × rate).
+ * values; the centre's fraction keeps it below Nyquist (0.5 × rate). Each bound is itself inside that support, so the
+ * domain includes it: a band clamped to a bound, as the tire's rolling bands are, is accepted.
  */
 export const NOISE_BAND_DOMAIN = Object.freeze({
   minimumBandwidthHz: 50,

@@ -38,32 +38,39 @@ export interface CompiledEngineSound extends EngineSound {
 }
 
 /**
- * Junction numbers are contiguous from 0 and cover every bank and pipe end; 1 to 8 pipes of 0.1 to 4 m, at least
- * one open; every junction reaches an open end through pipes (either direction). Loops are allowed.
+ * Check the exhaust's pipes against its banks, refusing at the field each rule reads: 1 to 8 pipes
+ * (`exhaust/pipes`) of 0.1 to 4 m (`exhaust/pipes/2/length`) between junctions numbered from 0 (`exhaust/banks/1`,
+ * `exhaust/pipes/2/from`, `exhaust/pipes/2/to`), contiguous; at least one open; every junction reaching an open end
+ * through pipes (either direction). The last two are rules over the pipes together and refuse at `exhaust/pipes`.
+ * Loops are allowed.
  */
-function validPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): boolean {
+function checkPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): void {
   const junction = (value: unknown): value is number => Number.isInteger(value) && (value as number) >= 0;
-  if (pipes.length < 1 || pipes.length > 8 || !banks.every(junction)) return false;
-  for (const pipe of pipes)
-    if (
-      !pipe ||
-      !Number.isFinite(pipe.length) ||
-      pipe.length < 0.1 ||
-      pipe.length > 4 ||
-      !junction(pipe.from) ||
-      (pipe.to !== null && !junction(pipe.to))
-    )
-      return false;
+  if (pipes.length < 1 || pipes.length > 8) throw new DefinitionDomainError('exhaust/pipes', 'Expected 1 to 8 pipes');
+  banks.forEach((bank, i) => {
+    if (!junction(bank)) throw new DefinitionDomainError(`exhaust/banks/${i}`, 'A bank is a junction number from 0');
+  });
+  pipes.forEach((pipe, i) => {
+    if (!pipe) throw new DefinitionDomainError(`exhaust/pipes/${i}`, 'Expected a pipe');
+    if (!Number.isFinite(pipe.length) || pipe.length < 0.1 || pipe.length > 4)
+      throw new DefinitionDomainError(`exhaust/pipes/${i}/length`, 'A pipe length lies within [0.1, 4] m');
+    if (!junction(pipe.from))
+      throw new DefinitionDomainError(`exhaust/pipes/${i}/from`, 'A pipe end is a junction number from 0');
+    if (pipe.to !== null && !junction(pipe.to))
+      throw new DefinitionDomainError(`exhaust/pipes/${i}/to`, 'A pipe end is a junction number from 0, or null');
+  });
   const used = new Set<number>(banks);
   for (const pipe of pipes) {
     used.add(pipe.from);
     if (pipe.to !== null) used.add(pipe.to);
   }
   const count = used.size;
-  for (let k = 0; k < count; k++) if (!used.has(k)) return false;
+  for (let k = 0; k < count; k++)
+    if (!used.has(k))
+      throw new DefinitionDomainError('exhaust/pipes', `Junctions are numbered from 0; ${k} is missing`);
   // Junctions touching an open pipe reach the open end; spread that across pipes until nothing changes.
   const reaches = new Set<number>(pipes.filter((pipe) => pipe.to === null).map((pipe) => pipe.from));
-  if (reaches.size === 0) return false;
+  if (reaches.size === 0) throw new DefinitionDomainError('exhaust/pipes', 'At least one pipe is open (to: null)');
   for (let grown = true; grown;) {
     grown = false;
     for (const { from, to } of pipes)
@@ -72,12 +79,13 @@ function validPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): bo
         grown = true;
       }
   }
-  return reaches.size === count;
+  for (let k = 0; k < count; k++)
+    if (!reaches.has(k)) throw new DefinitionDomainError('exhaust/pipes', `Junction ${k} reaches no open end`);
 }
 
 /**
  * The one value check of an engine sound. Each rule refuses at the field it reads (`firingPhases/2`,
- * `exhaust/lengths/0`); the exhaust's topology, a rule over its banks and pipes together, refuses at `exhaust`.
+ * `exhaust/lengths/0`, `exhaust/pipes/1/length`); the pipes' topology, a rule over them together, at `exhaust/pipes`.
  */
 export function compileEngineSound(definition: EngineSoundDefinition): EngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
@@ -100,7 +108,7 @@ export function compileEngineSound(definition: EngineSoundDefinition): EngineSou
     if (!Number.isFinite(length) || length < 0.1 || length > 3)
       throw new DefinitionDomainError(`exhaust/lengths/${i}`, 'A main pipe length lies within [0.1, 3] m');
   });
-  if (!validPipes(exhaust.banks, exhaust.pipes)) throw new DefinitionDomainError('exhaust', 'invalid exhaust topology');
+  checkPipes(exhaust.banks, exhaust.pipes);
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),

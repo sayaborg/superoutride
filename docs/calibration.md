@@ -339,7 +339,8 @@ implementer's values, not chosen by listening, and DEV's WALLS panel changes the
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), the noise band's numerical domain
-(`NOISE_BAND_DOMAIN`: bandwidths 50 to 6000 Hz and a centre below 0.4 × the rate, author values under Nyquist) and the
+(`NOISE_BAND_DOMAIN`: bandwidths 50 to 6000 Hz and a centre up to 0.4 × the rate, author values under Nyquist, each
+bound included) and the
 synthesis's sample rates (`SYNTHESIS_RATE_DOMAIN`, 44100 to 192000 Hz, author values).
 
 ## Surface materials

@@ -16,6 +16,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   private readonly rest = new WorkletRest();
   static get parameterDescriptors() {
     return [
+      // An author value above every catalog redline; the parameter's range is the only bound on rpm ([Audio](audio.md)).
       { name: 'rpm', defaultValue: 1000, minValue: 1, maxValue: 24000, automationRate: 'k-rate' },
       { name: 'load', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
       { name: 'fuelCut', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },

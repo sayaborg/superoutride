@@ -41,8 +41,9 @@ manifest ID; the documents carry none. The fields are `format`, `version`, `cycl
 (authoring notes such as the collector `topology`; not read, and kept as written only for the DEV export). The audio layer compiles a document:
 [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
 with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
-diagnostic at the field the rule reads (`/exhaust/lengths/0`), or at `/exhaust` for the exhaust's topology, a rule over
-its banks and pipes together; the `CompiledEngineSound` adds
+diagnostic at the field the rule reads (`/exhaust/lengths/0`, `/exhaust/pipes/1/length`, `/exhaust/banks/2`), or at
+`/exhaust/pipes` for the pipes' count and topology (junctions numbered from 0, one open end reached from every
+junction), rules over the pipes together; the `CompiledEngineSound` adds
 the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
@@ -225,7 +226,9 @@ started, the player owns every looped request until it is stopped: one made whil
 audio initializes, or after a failure), or whose scene a retry replaced, sounds from its recording's beginning on the
 next scene, paused if it is paused. A request made before the audio was ever started is silent, and a recording played
 once belongs to the scene it was asked of and is dropped with it. Decoded effects and impacts are kept;
-one music track is kept at a time, and a request for another releases the previous. A decoded stereo track takes
+one music track is kept at a time, and a request for another releases the previous. Decodes belong to the scene they
+were made on: a new scene starts without them, and a request bound again takes only its latest binding's decode, so a
+decode that finishes after a newer request or scene makes nothing. A decoded stereo track takes
 `duration × sampleRate × 2 × 4` bytes (about 63 MB for three minutes at 44.1 kHz, 3.9 MB for an 11-second placeholder).
 A recording the browser cannot decode stays silent: the reason goes to the console once and, with `dev=1`, the audio
 timing HUD names it; it is not decoded again, and the game continues.
