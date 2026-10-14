@@ -321,7 +321,8 @@ returning to active values cancels pending replacement. Tire replacement is spec
 Construction leaves the AudioContext unopened. The first eligible gesture creates it: the CONFIRM on TITLE, or any
 gesture during a run the URL started. From then on the context runs while the page is visible; only a hidden page
 suspends it, and becoming visible resumes it (an eligible gesture resumes it where the browser requires one). Pause,
-menus, the PRE-RACE card and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero. The screen host's route
+menus, the PRE-RACE card and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero: whether the clock
+runs depends on visibility alone, so nothing is scheduled on a stopped clock while the sound is off. The screen host's route
 is the one procedure that tells audio both facts, whether the page is visible and whether a run is driven
 (`setRoute`); audio never reads document visibility itself. While no run is driven, the live gate closes with the
 silence fade (`fadeSeconds`), the worklets of the voices on live buses rest from the transition time

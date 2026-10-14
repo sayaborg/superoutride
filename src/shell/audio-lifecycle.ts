@@ -107,8 +107,12 @@ export function createAudioLifecycle(
               : 'SOUND…';
     controls.showSoundState(text, enabled && supported);
   }
+  // Whether the page shows: the one condition the clock runs on. SOUND OFF only silences the output.
+  function shown(): boolean {
+    return visible && !disposed;
+  }
   function audible(): boolean {
-    return enabled && visible && !disposed;
+    return enabled && shown();
   }
   function closeGraph(retired: typeof scene, closing: AudioContext | null): void {
     try {
@@ -160,7 +164,7 @@ export function createAudioLifecycle(
       scene.setMasterGain(audible() ? volumes.master / 100 : 0);
       scene.setLive(live);
       // Only a hidden page suspends the context; SOUND OFF only silences the output.
-      if (!visible || disposed) void context.suspend().catch(() => {});
+      if (!shown()) void context.suspend().catch(() => {});
     } catch {
       fail();
     }
@@ -200,9 +204,10 @@ export function createAudioLifecycle(
   }
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
-    if (controls.isSoundToggle(event?.target ?? null) || !supported || !audible()) return;
-    // Outside driving only `enable` creates the audio; any gesture resumes it.
-    if (context || live) start();
+    if (controls.isSoundToggle(event?.target ?? null) || !supported || !shown()) return;
+    // Any gesture resumes the clock while the page shows; outside driving only `enable` creates the audio, and SOUND OFF
+    // creates none.
+    if (context || (live && enabled)) start();
   }
   /** Create the audio, or resume it; within a user gesture the browser lets it run. */
   function start(): void {
@@ -291,7 +296,7 @@ export function createAudioLifecycle(
       visible = route !== 'off';
       live = route === 'driving';
       sync();
-      if (audible() && context)
+      if (shown() && context)
         void context
           .resume()
           .then(sync)
