@@ -534,6 +534,12 @@ camera pixels per texel side at full size and twice as many at each smaller size
 half of it is covered, and paint, glass or lamp when at least half of its covered part is. The shadow is the solid's
 outline seen from above, on the road, drawn the same way.
 
+The generator's fixed values are author values, neither derived from a model nor recipe fields: a mirror part covers
+more than 40 cells (40 cm²) of a facing outline; the wheels are the solid within 0.37 m of the body's side and within 1.05
+tyre radii of a hub; the underside faces the road with a normal
+below −0.55 in height; a lamp shows when it fills at least 2 % of a texel (`LAMP_SHOWS`); and the light's sun
+direction, gloss and sky values ([`vehicle-pictures.ts`](../tools/graphics/vehicle-pictures.ts)).
+
 **Palette.** The 14 slots are, in order, `slots.body` body colors from the highlight to the darkest, `slots.neutral`
 neutrals from dark to light, the dark and the light glass color, and `slots.accent` accents. A paint texel takes the
 body slot whose `bodyKeys` brightness (`0.45 r + 0.35 g + 0.20 b` of its lit color) is nearest; a glass texel takes

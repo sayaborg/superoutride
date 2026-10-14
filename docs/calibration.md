@@ -136,6 +136,14 @@ driver's input for the same vehicle state and observations, whether the change i
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
 driver's record, part of the reference run's procedure record, contains it. It is 3: a fork's choice gives every driver a new path function.
 
+The planned driver's other values ([`PLANNED_DRIVER`](../src/race/planned-driver.ts) and the path offset rules'
+[`PATH_OFFSET`](../src/race/lane-following.ts)) are author values: chosen by the implementer, neither derived from a
+model nor DEV settings; each one's meaning is written beside it. Among them are the path-following error's natural
+frequency, 1.2 rad/s, and damping ratio, 0.8; the pedals' speed-closing time, 0.5 s, and the stopping response time,
+0.45 s; an offset change's least blend distance, 30 m, and the offset's resolution, 0.25 m; and the capacity
+correction's least value, 0.85, its drop, 0.02, after 0.3 s at saturation, and its recovery, 0.01 per second. Changing
+any of them changes drivers' inputs, so `PLANNED_DRIVER.version` rises with it.
+
 ## Camera settings
 
 The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace

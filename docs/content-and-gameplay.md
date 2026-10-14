@@ -639,7 +639,9 @@ lines and wall heights laterally along an unchanged ruler (and vertex by vertex 
 centreline changes), other elements by plan point, and the road height. Pairing written elements by their number and
 measuring the resolved form are separate: points written in sequences (knots, vertices, PVIs) are measured through what
 they resolve to, the lines and the profile, never against a renumbered neighbour; and a plan is the same only when its
-centreline, sampled every 2 m, is (a radius or a turn changes it while keeping every length). The second, `applyCleaning`, applies the chosen candidates as one
+centreline, sampled every 2 m, is (a radius or a turn changes it while keeping every length). The centreline and the road height are compared at
+samples 2 m apart, an author value: their shift is the largest difference at the samples, an approximation that a
+difference between samples can exceed, not a bound. The second, `applyCleaning`, applies the chosen candidates as one
 edit, returning the shift and each changed Section's centreline shift (the old centreline's largest distance from the
 new one) and length change. Every applied candidate changes the course's identity, so the measured products become
 stale; the driving changes only when the shift is not 0.
@@ -1590,6 +1592,9 @@ rules only, no live state or target resolution:
 | `maxRecoverySpeed`   | 32 m/s   | Upper bound of the recovery speed                                                 |
 | `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
+
+The policy values are author values, neither derived from a model nor DEV settings: the wait (`holdSteps`), the speed
+bounds and the retention among them.
 
 The race reports, for every vehicle present, whether a fixed object pushed it in the step's contacts; the `blocked`
 condition reads that report. Recovery is not a run rule.

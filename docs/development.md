@@ -308,7 +308,7 @@ step (off, 0.01 to 10 m). A plan element's `length` and `radius` are also fields
 at cursor" splits the element where the cursor is, the two halves held until one changes. "Add plan element at cursor" inserts a straight, or an arc of the chosen radius and turn, of
 the chosen length after the element the cursor is on, and "Remove selected plan element" removes one no Position
 measures from. A selected lane or median moves along the order, is removed (a lane only when nothing names it), adds a
-lane or median after it, and tapers its width between two stations to a chosen width; its width, or each value of a
+lane or median after it (3.5 m and 1 m wide, author values the author then edits), and tapers its width between two stations to a chosen width; its width, or each value of a
 width written at Positions, is a field, and such a value moves on the plan and is removed by its own button. A lane that
 is not the centre lane is made the centre lane by one button, with a note, before it is pressed, of how far the lanes
 then move against the absolute laterals and how many those are. An edit is committed even when the course then fails

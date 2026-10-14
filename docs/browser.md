@@ -17,7 +17,8 @@ The page is laid out by CSS alone. The frame keeps 4:3 without interpolation: in
 safe area and is centered; in portrait it spans the width at the top. The touch area is the whole viewport wherever
 the frame is.
 
-The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback. Simulation
+The browser accumulates nonnegative elapsed time capped at 0.25 s per animation callback (an author value bounding the
+catch-up after a suspended tab to 15 steps). Simulation
 uses fixed 1/60 s steps (`SIM_DT`): the frame loop runs one race `advance(input)` per whole step in the accumulated
 time, passing no step length, and the fractional remainder carries forward. One render follows the completed
 steps, including callbacks with no simulation step; it reads the race's competitor observations, which
@@ -490,6 +491,8 @@ untracked pointers and a second finger on a role already held are ignored, as be
 
 Horizontal displacement maps steering to `[-1,1]`. Upward displacement supplies throttle and downward
 displacement supplies brake. Full scale is 64 CSS pixels, with larger displacement saturated.
+This and the other input thresholds below (the gamepad's rest 0.15, the stick's menu direction at half deflection,
+the 24 CSS px flick) are author values, neither derived nor DEV settings.
 Touching the origin owns neutral input. Held touch supplies direct analog displacement; release uses
 the ordinary actuator release behavior.
 
