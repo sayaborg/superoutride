@@ -124,8 +124,7 @@ The selection screens follow one flow table ([product](product.md#6-flow-and-scr
 the demo runs and their turns. It runs the RACE sessions of the product classes (never DEV ones) in series and
 class order,
 looping, one 30 s turn each. It holds at most two runs, the shown class's and the next class's, each assembled as a
-run with no player input (the player's run driver drives the class's first vehicle in its first color at the
-default steering), with no HUD, no sound and no record, and touches no page state (driving input, DEV displays). Each holds its course's compilation, which held runs of one
+run with no player input (the player's run driver drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page state (driving input, DEV displays). Each holds its course's compilation, which held runs of one
 course share; a compilation no held run uses is released. A run is stepped in the race's fixed step, through
 the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its run is released, so a
 class shown again starts a new run from READY with the next seed. Each turn brightens

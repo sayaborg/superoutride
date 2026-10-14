@@ -17,7 +17,6 @@ import {
   createPlannedDriverWorkspace,
   samplePlannedDrivingInput,
 } from '../../src/race/planned-driver.js';
-import { createSteeringRule } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
@@ -31,7 +30,7 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 6,
+  version: 7,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
@@ -71,12 +70,8 @@ export function runCourseReference(
     catalog,
   );
   const setup = resolveRunSetup(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
-  // The reference driver steers by its own rule, the centre reference at its utilization.
-  const race = createCourseRace({
-    setup,
-    runtime: scene.runtime,
-    playerSteering: createSteeringRule('center', REFERENCE_RUN.driver.utilization),
-  });
+  // The reference driver steers by the planned drivers' one rule.
+  const race = createCourseRace({ setup, runtime: scene.runtime, playerSteering: REFERENCE_DRIVER.steering });
   const { actor } = race.player;
   const { vehicle } = actor;
   const events = [],

@@ -19,15 +19,21 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 1,
+  version: 2,
+  /**
+   * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
+   * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
+   * plans speed alone.
+   */
+  steering: createSteeringRule('center', 1),
   /** Metres: how far ahead the speed plan reaches, over cells of `spacing` metres. */
   lookahead: 480,
   spacing: 5,
   /** Seconds: the time in which the pedals close a speed error to the plan. */
   speedSeconds: 0.5,
   /**
-   * The part of the lateral limit the plan corners at; the steering rule's full input reaches the whole limit, so the
-   * rest is left for closing the path-following error.
+   * The part of the lateral limit at the planned utilization the plan corners at; the steering rule's full input
+   * reaches the front tire's whole bound (100 %), so the rest is left for closing the path-following error.
    */
   lateralMargin: 0.95,
   /** Seconds: how far ahead of the vehicle, at its speed, steering reads the path's curvature. */
@@ -88,8 +94,8 @@ export const PLANNED_DRIVER = Object.freeze({
  * A planned driver: its vehicle's model and limits, its utilization, speed cap, planning braking (the braking limit at
  * its utilization on level ground of unit grip, which other drivers' judgements read), whether it passes slower
  * vehicles (`passes`, by its path offsets; a driver that does not only follows them, though it still merges where its
- * lane ends), and the steering rule it drives by: the centre reference at its own utilization. Its builder decides
- * each.
+ * lane ends), and the planned drivers' one steering rule (`PLANNED_DRIVER.steering`) on its vehicle. Its builder
+ * decides the rest.
  */
 export interface PlannedDriver {
   readonly model: VehicleModel;
@@ -103,8 +109,6 @@ export interface PlannedDriver {
 
 const planningBraking = (limits: VehicleLimits, utilization: number) =>
   limits.brakeLimit(utilization, 1, 1, 0) / limits.inertia;
-const centreSteering = (model: VehicleModel, utilization: number) =>
-  driverSteering(createSteeringRule('center', utilization), model);
 
 export function compilePlannedDriver(
   model: VehicleModel,
@@ -120,13 +124,13 @@ export function compilePlannedDriver(
     speedCap,
     braking: planningBraking(limits, utilization),
     passes,
-    steering: centreSteering(model, utilization),
+    steering: driverSteering(PLANNED_DRIVER.steering, model),
   });
 }
 
 /**
- * A driver whose owner changes its utilization and speed cap between steps; its planning braking and steering rule
- * follow the utilization.
+ * A driver whose owner changes its utilization and speed cap between steps; its planning braking follows the
+ * utilization.
  */
 export function createVariablePlannedDriver(
   model: VehicleModel,
@@ -142,7 +146,6 @@ export function createVariablePlannedDriver(
       if (nextUtilization !== driver.utilization) {
         driver.utilization = nextUtilization;
         driver.braking = planningBraking(limits, nextUtilization);
-        driver.steering = centreSteering(model, nextUtilization);
       }
       driver.speedCap = nextSpeedCap;
     },

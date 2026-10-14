@@ -335,10 +335,12 @@ RECORD when it is beaten. While a run is driven, each gate shows the difference 
 green when faster and red when slower; on a CIRCUIT each lap is compared with the record lap, and on a course with
 several goals the record is compared only once the run can reach one goal. SETTINGS can clear all records.
 
-Steering is a rule of the driver, not a mechanism of the vehicle. The player chooses it for cars and for bikes: the
-reference (FRONT, the front wheel, or CENTER, the centre of mass) and the front tire's use at full steering (100%, 95% or
-90%), CENTER and 95% until chosen. It applies only while the player drives; rivals, traffic, reference driving and the
-driver who takes over after GOAL drive by the game's default, CENTER and 95%, whatever the player chose.
+Steering is a rule of the driver, an aid and not a mechanism of the vehicle: the player and the AI drivers share the
+same physics (tires, suspension, and the steering rack's limit and speed). The player chooses the rule on SETTINGS for
+cars and for bikes: the reference (FRONT, the front wheel, or CENTER, the centre of mass) and the front tire's use at
+full steering (100%, 95% or 90%), CENTER and 95% until chosen. It applies only while the player drives. Every AI
+driver (rivals, traffic, reference driving, the attract demo and the driver who takes over after GOAL) steers by one
+rule, CENTER and 100%, whatever the player chose and whatever pace it drives at.
 
 An equal time keeps the earlier record. Color, music, camera and steering are not record conditions. Runs rebuilt by
 DEV tuning record nothing. There is no name entry, ghost or online ranking.

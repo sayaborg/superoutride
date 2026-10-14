@@ -507,8 +507,8 @@ Steering is a rule of whoever drives the vehicle at the time, not a mechanism of
 is the vehicle's, and the driver's rule says how input moves it. A rule is a reference position and a utilization `X`
 (`0 < X <= 1`). The game-wide driving definition's `steeringReference` and `steeringUtilization` are the default rule, the
 player's until it chooses its own ([Browser](browser.md#player-record)); the player drives by its rule only while its
-own input reaches its vehicle. A driver drives by its own rule, the centre reference at its utilization
-([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
+own input reaches its vehicle. Every planned driver drives by one rule, the centre reference at 100 %, independent of
+its utilization ([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
 reference time or pace schedule.
 The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`; the
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is

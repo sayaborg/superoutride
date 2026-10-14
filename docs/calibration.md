@@ -115,7 +115,8 @@ The full driving source document participates in vehicle identity for reference 
 
 A driver's utilization is the fraction of its tires' friction ellipses it plans to use: it scales the lateral and
 longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and acceleration
-alike; its steering rule uses the same fraction of the front tire. Rival pace reads it as before. A vehicle's speed cap
+alike. It plans speed alone: every planned driver steers by one rule, CENTER at 100 %
+([Drivers](content-and-gameplay.md#drivers)). Rival pace reads it as before. A vehicle's speed cap
 is its steady speed on a level straight of unit grip without rolling resistance, at full utilization.
 
 | Setting               | Value | Meaning                                                                                             |
@@ -132,7 +133,7 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 1: the planned driver.
+driver's record, part of the reference run's procedure record, contains it. It is 2: the planned drivers' one steering rule.
 
 ## Camera settings
 

@@ -1110,8 +1110,8 @@ Each procedure that produces a measured product has one record, its name, versio
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
 procedure's version. The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 6) records the race's fixed step, the run seed, the reference driver (the
-driver policy `PLANNED_DRIVER` at utilization 0.9) and the pace schedule's station spacing; its identity is that of the
+`superoutride.reference-driving` version 7) records the race's fixed step, the run seed, the reference driver (the
+driver policy `PLANNED_DRIVER` at utilization 0.9, steering by its rule) and the pace schedule's station spacing; its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
 version 4) record these identities as `procedureSha256`; the reference run's record is in its trace
@@ -1237,7 +1237,9 @@ Every driver — rivals, traffic, reference runs, the attract demo and the playe
 driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's limits
 ([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
-step to the next. It steers by its own steering rule, the centre reference at its utilization. Its path is its lane's
+step to the next. Every planned driver steers by one rule, `PLANNED_DRIVER.steering`: the centre reference with full
+input reaching the front tire's whole lateral force bound (CENTER, 100 %). A steering rule is a driver's aid, not
+physics; the player and the planned drivers share the physics, and the utilization plans speed alone. Its path is its lane's
 centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
 ([Path offsets](#path-offsets)), which starts as its lateral's offset from the line where it takes the line (its grid
@@ -1254,8 +1256,8 @@ within `offPathSeconds` (3 s) of its speed, at least `offPathLeast` (30 m), are 
 surface and the surface at the path plus its offset, where it actually drives. Its cornering speed is the fastest speed
 whose lateral demand lies within `lateralMargin` (0.95) of the lateral limit at the planned utilization (the driver's
 utilization times its correction) and below the speed cap; the drive and braking limits keep the same margin of each
-axle's lateral. The steering rule's full input reaches the whole limit, so the margin is left for closing the
-path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
+axle's lateral. The steering rule's full input reaches the front tire's whole bound (100 %), so the margin, and the
+utilization's share of the limit, is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
 by road, path and interval and its cornering speed also by limits, planned utilization, speed cap, curvature and grip. Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
 
 - Forward, from the vehicle's speed: each node the previous node's speed driven over the segment at the drive limit
