@@ -16,7 +16,13 @@ import { TIRE_COMPONENTS, type TireComponent, type TireComponents } from '../../
 import { audioSettingsDocument, type AudioSettings } from '../../audio/audio-document.js';
 import type { SoundBus } from '../../audio/sound-graph.js';
 import { downloadDefinition } from '../definition-export.js';
-import { mountSurfaceSoundSettings, mountWallSoundSettings } from './record-sound-settings-controls.js';
+import {
+  mountEngineSoundRecords,
+  mountSurfaceSoundSettings,
+  mountWallSoundSettings,
+} from './record-sound-settings-controls.js';
+import type { CompiledEngineSound } from '../../audio/engine-sound.js';
+import { engineSoundDocument } from '../../audio/engine-sound-document.js';
 import type { CompiledSurfaceSounds, SurfaceSound } from '../../audio/surface-sounds.js';
 import { surfaceSoundDocument } from '../../audio/surface-sound-document.js';
 import { wallSoundDocument, type CompiledWallSounds, type WallSound } from '../../audio/wall-sounds.js';
@@ -34,28 +40,33 @@ type MixBus = keyof typeof MIX_BUSES;
 
 /**
  * What the DEV sound controls currently hold: the eight settings records, the surface and wall sounds by ID (the same
- * objects until a value changes), the mix volumes and R/Q components.
+ * objects until a value changes), the engine sounds by ID (likewise), the mix volumes and R/Q components.
  */
 export interface SoundControlValues {
   readonly settings: AudioSettings;
   readonly surfaces: Readonly<Record<string, SurfaceSound>>;
   readonly walls: Readonly<Record<string, WallSound>>;
+  readonly engines: Readonly<Record<string, CompiledEngineSound>>;
   readonly busVolumes: Readonly<Partial<Record<SoundBus, number>>>;
   readonly components: TireComponents;
 }
 
 /**
  * The DEV sound controls found by their ids in `root`: the sound toggle, MASTER volume stepper, ENG/TIRE volumes,
- * R/Q buttons, the eight settings panels, the surface and wall sound panels and the three exports. The settings panels
- * start from, and reset to, `initial`, and the sound panels the delivered `sounds`; each export saves its panels'
- * current values in its document. The stepper shows the MASTER volume, starting at `initialVolume` percent, and
+ * R/Q buttons, the eight settings panels, the surface, wall and engine sound panels and the four exports. The settings
+ * panels start from, and reset to, `initial`, and the sound panels the delivered `sounds`; each export saves its panels'
+ * current values in its document (the engine sound export, the chosen engine sound's). The stepper shows the MASTER volume, starting at `initialVolume` percent, and
  * passes each press to `onVolume`; the player record keeps the volume. A missing host leaves its control out and its
  * value at its initial value.
  */
 export function mountSoundControls(
   root: Document,
   initial: AudioSettings,
-  sounds: { readonly surfaces: CompiledSurfaceSounds; readonly walls: CompiledWallSounds },
+  sounds: {
+    readonly surfaces: CompiledSurfaceSounds;
+    readonly walls: CompiledWallSounds;
+    readonly engines: Readonly<Record<string, CompiledEngineSound>>;
+  },
   initialVolume: number,
   callbacks: {
     readonly onChange: () => void;
@@ -140,6 +151,7 @@ export function mountSoundControls(
   const wallSettings = mountHost('wall-sound-settings', sounds.walls.walls, mountWallSoundSettings);
   const surfaces = () => surfaceSettings?.read() ?? sounds.surfaces.surfaces;
   const walls = () => wallSettings?.read() ?? sounds.walls.walls;
+  const engineRecords = mountHost('engine-sound-records', sounds.engines, mountEngineSoundRecords);
   // The current values of every panel; a missing panel keeps the document's record.
   const currentSettings = (): AudioSettings => ({
     exhaust: engineSoundSettings?.read() ?? initial.exhaust,
@@ -161,6 +173,13 @@ export function mountSoundControls(
   const exportWalls = (): void =>
     downloadDefinition('default.json', wallSoundDocument({ courseLimit: sounds.walls.courseLimit, walls: walls() }));
   exportWallsButton?.addEventListener('click', exportWalls);
+  const exportEngineButton = root.getElementById('export-engine-sound-button');
+  const exportEngine = (): void => {
+    if (!engineRecords) return;
+    const id = engineRecords.chosen();
+    downloadDefinition(`${id}.json`, engineSoundDocument(engineRecords.read()[id]!));
+  };
+  exportEngineButton?.addEventListener('click', exportEngine);
   function showComponents(): void {
     componentHost?.setAttribute(
       'aria-label',
@@ -185,6 +204,7 @@ export function mountSoundControls(
       settings: currentSettings(),
       surfaces: surfaces(),
       walls: walls(),
+      engines: engineRecords?.read() ?? sounds.engines,
       busVolumes,
       components: componentState,
     }),
@@ -215,6 +235,7 @@ export function mountSoundControls(
         impactSettings,
         surfaceSettings,
         wallSettings,
+        engineRecords,
       ])
         panel?.setEnabled(value);
     },
@@ -223,6 +244,7 @@ export function mountSoundControls(
       exportButton?.removeEventListener('click', exportAudio);
       exportSurfacesButton?.removeEventListener('click', exportSurfaces);
       exportWallsButton?.removeEventListener('click', exportWalls);
+      exportEngineButton?.removeEventListener('click', exportEngine);
       for (const { button, toggle } of componentButtons) {
         button.removeEventListener('click', toggle);
         button.removeEventListener('keydown', tireKey);
@@ -240,6 +262,7 @@ export function mountSoundControls(
       impactSettings?.dispose();
       surfaceSettings?.dispose();
       wallSettings?.dispose();
+      engineRecords?.dispose();
       for (const { host, control } of mixControls) {
         control.dispose();
         host.replaceChildren();

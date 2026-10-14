@@ -38,7 +38,7 @@ Engine sound definitions are content: `content/engine-sounds/<id>.json` stores o
 `superoutride.engine-sound` version 1 document per sound ID, its file name without `.json`, which is also its
 manifest ID; the documents carry none. The fields are `format`, `version`, `cycleRevolutions`, `firingPhases`,
 `exhaust` (`banks`, `lengths`, `pipes` of `{length, from, to}` with `to: null` for an open end) and `metadata`
-(authoring notes such as the collector `topology`; not read). The audio layer compiles a document:
+(authoring notes such as the collector `topology`; not read, and kept as written only for the DEV export). The audio layer compiles a document:
 [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
 with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
 diagnostic at the field the rule reads (`/exhaust/lengths/0`), or at `/exhaust` for the exhaust's topology, a rule over
@@ -46,7 +46,9 @@ its banks and pipes together; the `CompiledEngineSound` adds
 the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
-same sample-free engine kernel plays every sound.
+same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
+changes a sound's primary and pipe lengths, each change through `compileEngineSound`; every voice whose competitor's
+vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
 ## Engine synthesis
 

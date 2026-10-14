@@ -33,6 +33,8 @@ export type EngineSound = Readonly<EngineSoundDefinition>;
 export interface CompiledEngineSound extends EngineSound {
   readonly id: string;
   readonly sha256: string;
+  /** The document's authoring notes as written: never read, kept for the DEV export. */
+  readonly metadata: unknown;
 }
 
 /**

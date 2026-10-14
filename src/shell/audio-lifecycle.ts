@@ -1,5 +1,6 @@
 import { mountSoundControls } from './controls/sound-controls.js';
 import { createAudioScene } from '../audio/audio-scene.js';
+import type { CompiledEngineSound } from '../audio/engine-sound.js';
 import { resolveSurfaceSoundRecords, type CompiledSurfaceSounds, type SurfaceSound } from '../audio/surface-sounds.js';
 import { wallSoundRecords, type CompiledWallSounds, type WallSound } from '../audio/wall-sounds.js';
 import type { WallRubObservation } from '../audio/scrape-voice.js';
@@ -66,9 +67,13 @@ export function createAudioLifecycle(
   let failed = false;
   // DEV: the processing listener, applied to every scene built while it is set.
   let processingListener: ((report: ProcessingReport) => void) | null = null;
-  const engineSounds = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.sound]));
+  // Each vehicle's engine sound ID; the sounds it names are the DEV panel's, taken at each sync.
+  const engineSoundIds = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.sound.id]));
+  let engineSounds: Readonly<Record<string, CompiledEngineSound>> = Object.freeze(
+    Object.fromEntries(vehicles.map((vehicle) => [vehicle.sound.id, vehicle.sound])),
+  );
   const soundOf = (vehicleId: string) => {
-    const sound = engineSounds.get(vehicleId);
+    const sound = engineSounds[engineSoundIds.get(vehicleId) ?? ''];
     if (!sound) throw new Error(`No engine sound for vehicle ${vehicleId}`);
     return sound;
   };
@@ -95,14 +100,20 @@ export function createAudioLifecycle(
   );
   // Numbered at once, so a material without a surface sound, or one without a material, fails the page at startup.
   surfaceRecords(sounds.surfaces.surfaces);
-  const controls = mountSoundControls(document, settings, sounds, player.settings.volumes.master, {
-    onChange() {
-      unlock();
-      sync();
+  const controls = mountSoundControls(
+    document,
+    settings,
+    { ...sounds, engines: engineSounds },
+    player.settings.volumes.master,
+    {
+      onChange() {
+        unlock();
+        sync();
+      },
+      onVolume: (percent) => setVolume('master', percent),
+      onToggle: toggle,
     },
-    onVolume: (percent) => setVolume('master', percent),
-    onToggle: toggle,
-  });
+  );
   /** The one way a volume changes: the player record keeps it and the scene follows. */
   function setVolume(name: VolumeName, percent: number): void {
     player.updateSettings({ volumes: { ...player.settings.volumes, [name]: percent } });
@@ -166,7 +177,8 @@ export function createAudioLifecycle(
     showSoundState();
     if (!context || !scene) return;
     try {
-      const { settings: current, surfaces, walls, busVolumes, components } = controls.read();
+      const { settings: current, surfaces, walls, engines, busVolumes, components } = controls.read();
+      engineSounds = engines;
       const { volumes } = player.settings;
       scene.setControlSettings(current.control);
       scene.setMixSettings(current.mix);

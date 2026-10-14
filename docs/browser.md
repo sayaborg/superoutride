@@ -749,7 +749,9 @@ tuned definition for further adjustments and export. Reloading the page restores
 driving definition (`default.json`) and the run vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`), and its `surface-sounds/default.json` and
-`wall-sounds/default.json` buttons save the SURFACES and WALLS panels' records as those documents, in the saved layout;
+`wall-sounds/default.json` buttons save the SURFACES and WALLS panels' records as those documents, and its
+`engine-sounds/…json` button the ENGINE SOUNDS panel's chosen sound as its document (`<sound id>.json`, its `metadata`
+as written), in the saved layout;
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera; what its yaw
 follows is the player's setting, not a DEV selection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
@@ -773,7 +775,7 @@ disables them. [Tire audio](tire-audio.md#settings-replacement) owns faded outpu
 The shell's reusable DOM controls ([`src/shell/controls/`](../src/shell/controls/)) build these sound controls
 (`mountSoundControls`); the audio lifecycle only syncs their values to the scene and owns the AudioContext.
 DEV sound settings come in groups, each with its own reset to the delivered document's values (the audio document's,
-or for SURFACES and WALLS the surface-sound and wall-sound documents'); a page reload restores those values and new
+or for SURFACES, WALLS and ENGINE SOUNDS the surface-sound, wall-sound and engine-sound documents'); a page reload restores those values and new
 runs preserve them:
 
 - **ENGINE** (`engine-sound-settings`): fifteen minus/plus controls for the exhaust settings; buttons stop at limits.
@@ -786,9 +788,10 @@ runs preserve them:
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 - **SURFACES** (`surface-sound-settings`): a chosen material's surface sound, its rolling palette and friction input.
 - **WALLS** (`wall-sound-settings`): a chosen wall sound's friction input.
+- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's primary and collector pipe lengths.
 
-MIX, TIMING, RIVAL, UNIFIED, SCRAPE, IMPACT and ROLLING use sliders with the acoustic ranges. SURFACES and WALLS
-use number fields: each value is the record's one value check's ([Tire audio](tire-audio.md#surface-sounds)), and a
-value it refuses leaves the previous one. A changed record fades and replaces the tire or scraping kernels, as a
-settings change does. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
+MIX, TIMING, RIVAL, UNIFIED, SCRAPE, IMPACT and ROLLING use sliders with the acoustic ranges. SURFACES, WALLS and
+ENGINE SOUNDS use number fields: each value is the record's one value check's ([Tire audio](tire-audio.md#surface-sounds),
+[Audio](audio.md#observations-and-engine-sounds)), and a value it refuses leaves the previous one. A changed record fades
+and replaces the tire, scraping or engine kernels, as a settings change does. Engine sound rows show cycle, cylinder count, idle/redline, firing phases,
 collector grouping and path lengths. [Calibration](calibration.md) lists the numeric settings.

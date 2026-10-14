@@ -1,3 +1,4 @@
+import { compileEngineSound, type CompiledEngineSound } from '../../audio/engine-sound.js';
 import { compileFrictionInput, compileSurfaceSound, type SurfaceSound } from '../../audio/surface-sounds.js';
 import type { WallSound } from '../../audio/wall-sounds.js';
 
@@ -160,5 +161,30 @@ export function mountWallSoundSettings(
     (record) => Object.freeze({ friction: compileFrictionInput(record.friction) }),
     onChange,
     'Reset WALLS to defaults',
+  );
+}
+
+/** The engine sounds by ID: each cylinder's primary length and each collector pipe's length. */
+export function mountEngineSoundRecords(
+  host: HTMLElement,
+  initial: Readonly<Record<string, CompiledEngineSound>>,
+  onChange: () => void,
+) {
+  return createRecordSoundSettings(
+    host,
+    'ENGINE SOUNDS · exhaust pipe lengths',
+    initial,
+    ({ exhaust }) => [
+      ...exhaust.lengths.map((_, i): Field => [`Cylinder ${i + 1} primary`, ['exhaust', 'lengths', i], 'm']),
+      ...exhaust.pipes.map(({ from, to }, i): Field => [
+        `Pipe ${from} → ${to ?? 'open end'}`,
+        ['exhaust', 'pipes', i, 'length'],
+        'm',
+      ]),
+    ],
+    ({ id, sha256, metadata, ...definition }) =>
+      Object.freeze({ ...compileEngineSound(definition), id, sha256, metadata }),
+    onChange,
+    'Reset ENGINE SOUNDS to defaults',
   );
 }

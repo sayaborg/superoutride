@@ -184,7 +184,7 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 ## Exhaust topologies
 
 [Engine-sound documents](../content/engine-sounds/) declare typical collector topologies; pipe lengths are rough
-real-vehicle guides revised by listening. Junctions 0 and 1 are the cylinders' collectors unless noted.
+real-vehicle guides revised by listening, which DEV's ENGINE SOUNDS panel changes ([Browser](browser.md#sound-controls)). Junctions 0 and 1 are the cylinders' collectors unless noted.
 
 | Vehicle            | Topology | Pipes (from → to, length)                                  |
 | ------------------ | -------- | ---------------------------------------------------------- |
