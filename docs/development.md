@@ -559,7 +559,8 @@ version, verifies every indexed payload through the manifest and starts the serv
 naming the course index's first course, so its run starts directly, and `dev=1`, whose performance HUD only rendered
 frames fill: the check passes once it has text, read over the DevTools protocol within 60 s of real time. It waits in
 real time, not on a virtual-time budget: Chrome advances virtual time to the next timer whenever the page waits on real
-I/O, so a budget's reach depends on the machine. It then follows the workbench's address to that build's workbench
+I/O, so a budget's reach depends on the machine. The 60 s deadline ends every wait of the attempt: a protocol call
+Chrome does not answer fails it, and Chrome, asked to exit, is killed if it has not exited by then. It then follows the workbench's address to that build's workbench
 page and script, and compiles the build's published authored files over HTTP with the authoring core and the
 workbench's own store: the compile must succeed and every product must equal the published delivery (this part runs
 the core in Node). `CHROME_BIN` selects a local Chromium executable.

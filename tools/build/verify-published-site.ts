@@ -22,7 +22,8 @@ const STARTUP_MILLISECONDS = 60000;
  * Open `page` in headless Chrome and return the course performance HUD's text once a rendered frame fills it, polled
  * over the DevTools protocol (on Chrome's pipe) in real time, or null if none has after `STARTUP_MILLISECONDS`. Real
  * time, not a virtual-time budget: Chrome advances virtual time to the next timer whenever the page waits on real I/O,
- * so a budget's reach would depend on the machine.
+ * so a budget's reach would depend on the machine. The deadline ends every wait: a call Chrome does not answer, and
+ * Chrome's exit, which is forced once the deadline has passed.
  */
 async function startedStatus(page: URL, userDataDirectory: string): Promise<string | null> {
   const chrome = spawn(
@@ -53,6 +54,15 @@ async function startedStatus(page: URL, userDataDirectory: string): Promise<stri
     chrome.once('error', (error) => (fail(error), resolve()));
     chrome.once('close', () => (fail(new Error('Chrome exited')), resolve()));
   });
+  // The one deadline: when it passes, every call still waiting fails and every wait below ends.
+  let expired = false;
+  let expire!: () => void;
+  const deadline = new Promise<void>((resolve) => (expire = resolve));
+  const timer = setTimeout(() => {
+    expired = true;
+    fail(new Error(`No rendered frame within ${STARTUP_MILLISECONDS} ms`));
+    expire();
+  }, STARTUP_MILLISECONDS);
   // Messages are JSON, each ended by a NUL byte.
   let buffered = '',
     next = 0;
@@ -80,7 +90,7 @@ async function startedStatus(page: URL, userDataDirectory: string): Promise<stri
     const { targetId } = await send<{ targetId: string }>('Target.createTarget', { url: page.href });
     const { sessionId } = await send<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true });
     const expression = `document.querySelector('output[aria-label="Course performance"]')?.textContent ?? ''`;
-    for (const deadline = Date.now() + STARTUP_MILLISECONDS; Date.now() < deadline;) {
+    while (!expired) {
       const { result } = await send<{ result: { value: string } }>(
         'Runtime.evaluate',
         { expression, returnByValue: true },
@@ -88,12 +98,17 @@ async function startedStatus(page: URL, userDataDirectory: string): Promise<stri
       );
       if (result.value.trim()) return result.value.trim();
       // Read again after the HUD's reporting period, about half a second.
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await Promise.race([new Promise((resolve) => setTimeout(resolve, 500)), deadline]);
     }
     return null;
+  } catch (error) {
+    if (expired) return null;
+    throw error;
   } finally {
     chrome.kill();
-    await exited;
+    await Promise.race([exited, deadline]);
+    if (chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGKILL');
+    clearTimeout(timer);
   }
 }
 let failure: unknown;
