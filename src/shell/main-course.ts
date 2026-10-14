@@ -2,6 +2,8 @@ import { createAudioTimingHud } from './audio-timing-hud.js';
 import { browserContent, isWorkbenchRun } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
+import { mountSlowDownControls } from './slow-down-controls.js';
+import { SLOW_DOWN } from '../race/slow-down.js';
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDrivingShell } from './driving-shell.js';
@@ -130,8 +132,11 @@ async function startPage(): Promise<void> {
     // RESULT follows GOAL or GAME OVER after the DEV delay, counted in fixed steps while the loop, the field,
     // rendering and sound continue.
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
+    // The player's SLOW DOWN stages: the owner's utilizations until DEV changes them for the next runs.
+    let slowDownUtilizations = SLOW_DOWN.utilizations;
     if (dev) {
       mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
+      mountSlowDownControls((utilizations) => (slowDownUtilizations = utilizations));
       mountCameraControls((definition) => (cameraDefinition = definition));
     }
 
@@ -158,6 +163,7 @@ async function startPage(): Promise<void> {
       vehicleSha256,
       cameraDefinition: () => cameraDefinition,
       resultDelaySeconds: () => resultDelaySeconds,
+      slowDownUtilizations: () => slowDownUtilizations,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
       workSlices: () => createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask),
     };

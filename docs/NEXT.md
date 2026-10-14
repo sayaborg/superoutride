@@ -102,7 +102,7 @@
   the attract demo holds only the shown and the next class's runs.
 - Stage HD is complete: the HUD tiles command writes every text-tile pattern from the HUD design sources and rules
   ([Image assets](image-assets.md#hud-design-sources)): the normal font with ▲ ▼ ◀ ▶, the ornate small and large
-  fonts in four styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
+  fonts in six styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
   arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
 - Stage AI is complete: every course has measured racing lines; one planned driver, from each vehicle's limits model
   at a utilization, drives rivals, traffic, reference runs, the attract demo and the takeover; rivals and the player's

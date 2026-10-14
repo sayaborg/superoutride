@@ -23,6 +23,16 @@ const STYLE_RAMPS: Readonly<Record<Exclude<OrnateStyle, 'SUNSET'>, readonly [Rgb
     [40, 200, 56],
     [8, 96, 24],
   ],
+  YELLOW: [
+    [255, 255, 200],
+    [248, 208, 16],
+    [136, 88, 0],
+  ],
+  ORANGE: [
+    [255, 224, 184],
+    [248, 128, 16],
+    [128, 48, 0],
+  ],
 });
 /** The glyph shadow of every style: black. */
 const SHADOW = 0;

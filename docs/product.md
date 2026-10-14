@@ -289,8 +289,8 @@ elements, each reading one observation; the active run rules determine which app
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME
 turns red under ten seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
-lap's time holds for two seconds. SLOW DOWN blinks in red while the player drives faster than the vehicle could slow for
-the road just ahead, unless SETTINGS turns it off. Three signal lamps light red one per second and turn green at GO. The upper rows'
+lap's time holds for two seconds. SLOW DOWN shows while the player drives faster than the vehicle could slow for
+the road just ahead, unless SETTINGS turns it off: yellow, then orange, then blinking red as the excess grows. Three signal lamps light red one per second and turn green at GO. The upper rows'
 race rules and the passing notices are drawn in ornate fonts, a light-topped ramp of color down each glyph: the
 upper row and GOAL or GAME OVER large, the rest small; menus and screens keep the plain font.
 

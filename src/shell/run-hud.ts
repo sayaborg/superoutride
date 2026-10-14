@@ -21,6 +21,7 @@ import { shownStanding } from './run-result.js';
 import type { RecordSplit } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
+import { SLOW_DOWN, type SlowDownStage } from '../race/slow-down.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's course, the name of its rules and the player vehicle's engine speeds and steering picture from
@@ -63,10 +64,14 @@ export const HUD_DURATIONS = Object.freeze({
   go: 1,
   /** The difference from the record run shows after each gate and lap crossing (race time). */
   split: 2,
-  /** SLOW DOWN blinks, shown and hidden for this many fixed steps each. */
-  slowDownBlinkSteps: 8,
 });
 const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', RANK: 'RANK OUT' };
+/** The style of each SLOW DOWN stage that shows. */
+const SLOW_DOWN_STYLES: Readonly<Record<Exclude<SlowDownStage, 0>, OrnateStyle>> = {
+  1: 'YELLOW',
+  2: 'ORANGE',
+  3: 'RED',
+};
 
 /**
  * Where every HUD element sits in the 40×30 text grid, as [column, row]; a value written right-aligned ends at its
@@ -457,13 +462,15 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // SLOW DOWN while the race shows it and SETTINGS allow, blinking by fixed steps.
+    // SLOW DOWN while the race shows a stage and SETTINGS allow, in the stage's color; the red stage blinks by fixed
+    // steps.
     middle: true,
     when: ({ race, run }) =>
       run.slowDown &&
-      race.slowDown &&
-      Math.floor(Math.round(race.simulationSeconds / SIM_DT) / HUD_DURATIONS.slowDownBlinkSteps) % 2 === 0,
-    write: (_facts, text) => write(text, 'slowDown', 'SLOW DOWN', large('RED')),
+      race.slowDown > 0 &&
+      (race.slowDown < 3 || Math.floor(Math.round(race.simulationSeconds / SIM_DT) / SLOW_DOWN.blinkSteps) % 2 === 0),
+    write: ({ race }, text) =>
+      write(text, 'slowDown', 'SLOW DOWN', large(SLOW_DOWN_STYLES[race.slowDown as Exclude<SlowDownStage, 0>])),
   },
   {
     // From the ending until RESULT: GOAL, or GAME OVER and its cause.

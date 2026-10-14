@@ -231,22 +231,23 @@ counts stay within 65536 patterns and 256 palettes (`TEXT_TILE_LIMITS`), so ever
 palette ID an 8-bit unsigned integer and a text grid cell keeps any admitted pair. A tile's palette chooses its color, so one glyph, lamp, meter, bar or digit
 tile serves every color and the lamp every state.
 
-| Palettes | Names                                                                 | Use                                                                    |
-| -------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 0–4      | WHITE, YELLOW, RED, DARK, GREEN                                       | Authored: the normal font's colors and the meters'                     |
-| 5–8      | `ORNATE_SMALL_<style>`                                                | The ornate small font's styles SUNSET, WHITE, RED and GREEN            |
-| 9–16     | `ORNATE_LARGE_<style>`, `…_BOTTOM`                                    | The ornate large font's styles, each a top palette and then its bottom |
-| 17–19    | SEG_VFD, SEG_YELLOW, SEG_RED                                          | The segment digits: the instruments' color, and state colors           |
-| 20–24    | TACH_GREEN, TACH_YELLOW, TACH_RED, TACH_GREEN_YELLOW, TACH_YELLOW_RED | The tachometer's colors, one or where two meet                         |
-| 25–27    | LAMP_OFF, LAMP_RED, LAMP_GREEN                                        | The signal lamp unlit, lit red and lit green                           |
-| 28       | ARROW                                                                 | The road arrow                                                         |
+| Palettes | Names                                                                 | Use                                                                         |
+| -------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 0–4      | WHITE, YELLOW, RED, DARK, GREEN                                       | Authored: the normal font's colors and the meters'                          |
+| 5–10     | `ORNATE_SMALL_<style>`                                                | The ornate small font's styles SUNSET, WHITE, RED, GREEN, YELLOW and ORANGE |
+| 11–22    | `ORNATE_LARGE_<style>`, `…_BOTTOM`                                    | The ornate large font's styles, each a top palette and then its bottom      |
+| 23–25    | SEG_VFD, SEG_YELLOW, SEG_RED                                          | The segment digits: the instruments' color, and state colors                |
+| 26–30    | TACH_GREEN, TACH_YELLOW, TACH_RED, TACH_GREEN_YELLOW, TACH_YELLOW_RED | The tachometer's colors, one or where two meet                              |
+| 31–33    | LAMP_OFF, LAMP_RED, LAMP_GREEN                                        | The signal lamp unlit, lit red and lit green                                |
+| 34       | ARROW                                                                 | The road arrow                                                              |
 
 The authored palettes are WHITE, YELLOW, RED, DARK (unselectable items) and GREEN. They use the same slots: 1 the
 main color, 2 the glyph shadow, 3 a meter's ground and 4 a meter's cut part (red in every authored palette).
 
 An ornate style keeps the source's slot meanings: a ramp down the glyph from a light top through a strong middle to a
 dark bottom, and a black shadow. SUNSET's palettes are the source's; WHITE runs from white through a light blue-grey
-to a cool grey, RED from pale pink through red to dark red and GREEN from pale green through green to dark green, over
+to a cool grey, RED from pale pink through red to dark red, GREEN from pale green through green to dark green, YELLOW from
+pale yellow through yellow to dark amber and ORANGE from pale peach through orange to dark brown, over
 the small font's 7 ink rows and the large font's 14 (its top tile's 8 and its bottom tile's first 6; the bottom
 palette's last two slots repeat the darkest). The segment digits' palettes are the source's: SEG_VFD the
 instruments' blue-green, SEG_YELLOW the gear's color after a shift, and SEG_RED a spare state color. The

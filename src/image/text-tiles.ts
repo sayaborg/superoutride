@@ -43,7 +43,7 @@ export type TextFont = keyof typeof TEXT_FONTS;
 /** The fonts' patterns: the characters' patterns come first, and the HUD part tiles follow. */
 const FONT_PATTERNS = 4 * CHARACTER_COUNT;
 /** The ornate fonts' styles, each a palette (the large font's a top and a bottom palette) per font. */
-export const ORNATE_STYLES = Object.freeze(['SUNSET', 'WHITE', 'RED', 'GREEN'] as const);
+export const ORNATE_STYLES = Object.freeze(['SUNSET', 'WHITE', 'RED', 'GREEN', 'YELLOW', 'ORANGE'] as const);
 export type OrnateStyle = (typeof ORNATE_STYLES)[number];
 
 const named = <const Names extends readonly string[]>(names: Names) =>
@@ -67,6 +67,8 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_SMALL_WHITE',
   'ORNATE_SMALL_RED',
   'ORNATE_SMALL_GREEN',
+  'ORNATE_SMALL_YELLOW',
+  'ORNATE_SMALL_ORANGE',
   'ORNATE_LARGE_SUNSET',
   'ORNATE_LARGE_SUNSET_BOTTOM',
   'ORNATE_LARGE_WHITE',
@@ -75,6 +77,10 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_LARGE_RED_BOTTOM',
   'ORNATE_LARGE_GREEN',
   'ORNATE_LARGE_GREEN_BOTTOM',
+  'ORNATE_LARGE_YELLOW',
+  'ORNATE_LARGE_YELLOW_BOTTOM',
+  'ORNATE_LARGE_ORANGE',
+  'ORNATE_LARGE_ORANGE_BOTTOM',
   'SEG_VFD',
   'SEG_YELLOW',
   'SEG_RED',

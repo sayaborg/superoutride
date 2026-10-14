@@ -37,7 +37,7 @@ The driving composition root owns two lifetimes. The page lifetime is created on
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
-controls (sound, camera, RESULT delay). The run lifetime holds the selected course, its run
+controls (sound, camera, RESULT delay, SLOW DOWN). The run lifetime holds the selected course, its run
 settings, the field's run vehicles, racing lines, time budgets and pace schedule, the run, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
@@ -48,8 +48,8 @@ passes the one assembly, after which the run starts once the PRE-RACE card leave
 asynchronous and one runs at a time: a request made during an assembly is ignored. The page holds one course: a
 request first disposes of the current run, removing the listeners and DOM it added, then loads the next. A new run
 starts from delivered content, so DEV driving tuning and its displayed values return to the delivered definition.
-Sound, input, fullscreen, the DEV sound settings, the DEV camera adjustment and the
-RESULT delay belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED; its reason goes to
+Sound, input, fullscreen, the DEV sound settings, the DEV camera adjustment, the
+RESULT delay and the SLOW DOWN utilizations belong to the page and persist. A failed assembly leaves no run and shows LOAD FAILED; its reason goes to
 the console and, with `dev=1`, outside the frame with Retry.
 
 ## Screens
@@ -559,7 +559,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                     |
 | 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                                          |
 | 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                                            |
-| 8–9   | Ornate large RED, columns 15–23: `SLOW DOWN` while the race shows it and SLOW DOWN is ON, blinking ([SLOW DOWN](#slow-down))                                                |
+| 8–9   | Ornate large, columns 15–23: `SLOW DOWN` while the race shows a stage and SLOW DOWN is ON: YELLOW, ORANGE, or RED blinking ([SLOW DOWN](#slow-down))                        |
 | 10–12 | Ornate small WHITE, before GO: the course's display name, the session (or FREE PLAY) and, in TIME ATTACK when one exists, `RECORD 1'23"456 <VEHICLE>` (its vehicle's model) |
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                                             |
 | 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                                       |
@@ -621,15 +621,30 @@ These lengths sit in one constant.
 
 ### SLOW DOWN
 
-The race publishes `slowDown` ([`src/race/slow-down.ts`](../src/race/slow-down.ts)): the player's vehicle planned
-as a driver ([Drivers](content-and-gameplay.md#drivers)) at utilization 0.9 with its own mechanics, without a vehicle
-ahead or a capacity correction, along the path that keeps its route lateral (read in steps of 0.25 m; at a fork before
-the lock, that lateral lies in the exit interval holding it, whose road the plan reads). After each step the warning shows
-once the player's speed exceeds the plan's speed at the station `0.5 s × speed` ahead, and hides once the speed falls
-below 97 % of that. It is off unless the player's own input drives the vehicle while the run is RUNNING (so never
-before GO, after the ending or in the attract demo) and off while neither tire is loaded (in flight). The plan costs one
-more driver per step. The HUD writes `SLOW DOWN` centred on rows 8–9 (columns 15–23) in the ornate large font, RED,
-shown for 8 fixed steps and hidden for 8 (`floor(step / 8)` even), while the SLOW DOWN setting is ON.
+The race publishes `slowDown`, a stage from 0 to 3 ([`src/race/slow-down.ts`](../src/race/slow-down.ts)): the
+player's vehicle planned as a driver ([Drivers](content-and-gameplay.md#drivers)) at three utilizations, 0.85, 0.90
+and 0.95 (`SLOW_DOWN.utilizations`), with its own mechanics, without a vehicle ahead or a capacity correction, along the
+path that keeps its route lateral (at a fork before the lock, that lateral lies in the exit interval holding it, whose
+road the plan reads). After each step its raw stage is the highest whose plan's speed at the station `0.5 s × speed`
+ahead the player's speed exceeds (1 for 0.85, 2 for 0.90, 3 for 0.95), or 0 when it exceeds none. A higher raw stage
+shows at once; a lower one, 0 included, shows only once the shown stage has held for one blink period, 16 fixed steps.
+The stage is 0 unless the player's own input drives the vehicle while the run is RUNNING (so never before GO, after
+the ending or in the attract demo) and 0 while neither tire is loaded (in flight).
+
+The three plans read the road once: they share one workspace's cells (the path's geometry, curvature and grip) and
+keep their own cornering speeds, and a plan is read only while no higher stage is exceeded. The lateral is read in
+steps of 0.25 m (`lateralResolution`) so that the cells are reused while it holds; it is an author value, and reading
+the road up to 0.125 m from the vehicle's lateral moves a cornering speed by about `0.125 / (2 R)`, 0.3 % in TSUKUBA's
+24 m hairpin, well within the about 3 % between two stages' speeds.
+
+The HUD writes `SLOW DOWN` centred on rows 8–9 (columns 15–23) in the ornate large font while the SLOW DOWN setting is
+ON: stage 1 YELLOW and stage 2 ORANGE, steady, and stage 3 RED, shown for 8 fixed steps and hidden for 8
+(`floor(step / 8)` even; `SLOW_DOWN.blinkSteps`). The blink period is the hold's.
+
+The three utilizations are the owner's values, decided on real devices. With `dev=1` the SLOW DOWN panel changes them
+in hundredths, keeping them ascending (a change that would break the order is refused); they apply from the next run,
+are not saved, and a reload restores 0.85, 0.90 and 0.95. They belong to the page, not to any document, so changing
+them changes no measured product's identity.
 
 ## Performance HUD
 

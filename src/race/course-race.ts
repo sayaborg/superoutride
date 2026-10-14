@@ -14,7 +14,7 @@ import type { LaneIntent, PathOffset } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
 import { createLaneDriving } from './lane-driving.js';
-import { createSlowDown } from './slow-down.js';
+import { createSlowDown, type SlowDownUtilizations } from './slow-down.js';
 import {
   advancePresentVehicle,
   createPresentVehicle,
@@ -83,6 +83,8 @@ export function createCourseRace(options: {
    * absent. A driver, the player's run driver included, drives by its own rule.
    */
   readonly playerSteering?: SteeringRule;
+  /** The player's SLOW DOWN stages' utilizations; the owner's (`SLOW_DOWN.utilizations`) when absent. */
+  readonly slowDownUtilizations?: SlowDownUtilizations;
 }) {
   const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.setup;
   const { initialSpeed } = configuration;
@@ -231,7 +233,12 @@ export function createCourseRace(options: {
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
   // SLOW DOWN for the player, planned with its vehicle's mechanics.
-  const slowDown = createSlowDown(runtime.readers, runtime.window, options.setup.mechanicsOf(playerEntry!.vehicle));
+  const slowDown = createSlowDown(
+    runtime.readers,
+    runtime.window,
+    options.setup.mechanicsOf(playerEntry!.vehicle),
+    options.slowDownUtilizations,
+  );
   // The player's own steering rule on its vehicle, resolved once; its driver's rule while a driver drives it.
   const playerOwnSteering = options.playerSteering
     ? driverSteering(options.playerSteering, playerActor.model)
@@ -669,12 +676,12 @@ export function createCourseRace(options: {
       return simulationSeconds;
     },
     /**
-     * Whether SLOW DOWN shows: the player's own input drives it while the run is running, it is not in flight, and its
-     * speed exceeds what a driver's plan at the reference utilization along its lateral allows half a second ahead
-     * ([SLOW DOWN](../../docs/browser.md#slow-down)).
+     * The SLOW DOWN stage (0 when it does not show): while the player's own input drives it in a running run and it is
+     * not in flight, the highest stage whose plan along its lateral its speed exceeds half a second ahead, held for a
+     * blink period before it falls ([SLOW DOWN](../../docs/browser.md#slow-down)).
      */
     get slowDown() {
-      return slowDown.shown;
+      return slowDown.stage;
     },
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {

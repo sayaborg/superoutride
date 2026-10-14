@@ -198,14 +198,32 @@ export function drivingDomainBefore(
 }
 
 const CELLS = Math.ceil(PLANNED_DRIVER.lookahead / PLANNED_DRIVER.spacing) + 2;
+const cells = () => new Float64Array(CELLS);
 
-/** A driver's plan workspace: its cell cache, its passes, its correction and its input, all reused. */
+/**
+ * A plan's cornering speeds, cached by cell: each depends on the cell's geometry and also on the limits, the planned
+ * utilization, the speed cap (together its key) and the curvature and grip it reads. Plans of several utilizations over
+ * one workspace's cells each keep their own.
+ */
+export function createPlannedCornering() {
+  return {
+    limits: null as VehicleLimits | null,
+    planned: NaN,
+    speedCap: NaN,
+    key: 0,
+    squared: cells(),
+    curvatures: cells().fill(NaN),
+    grips: cells().fill(NaN),
+    keys: cells().fill(NaN),
+  };
+}
+type Cornering = ReturnType<typeof createPlannedCornering>;
+
+/** A driver's plan workspace: its cell cache, its cornering speeds, its passes, its correction and its input, all reused. */
 export function createPlannedDriverWorkspace() {
-  const cells = () => new Float64Array(CELLS);
   const nodes = () => new Float64Array(CELLS + 1);
   return {
-    // A cell's geometry depends on the road, the path and its interval (its 5 m cell within the planning domain); its
-    // cornering speed also on the limits, the planned utilization, the speed cap and the curvature it reads.
+    // A cell's geometry depends on the road, the path and its interval (its 5 m cell within the planning domain).
     road: null as DriverRoad | null,
     lane: null as Lane | null,
     cellStarts: cells().fill(NaN),
@@ -225,19 +243,12 @@ export function createPlannedDriverWorkspace() {
     rollings: cells(),
     /** The grip each cell is planned on: its own, or less while the vehicle is off its path. */
     planGrips: cells(),
-    corneringGrips: cells().fill(NaN),
     /**
      * Each cell's signed path curvature: on a smooth path its chord's heading change from the cell before over their
      * mean length; else the road's heading change along it over the chord, which a change of lane does not add to.
      */
     curvatures: cells(),
-    corneringSquared: cells(),
-    corneringCurvatures: cells().fill(NaN),
-    corneringKeys: cells().fill(NaN),
-    limits: null as VehicleLimits | null,
-    planned: NaN,
-    speedCap: NaN,
-    key: 0,
+    cornering: createPlannedCornering(),
     /** The plan's nodes: the vehicle's station, then each planned cell's end; the cell index each segment crosses,
      * the path distance to it, whether it is crossed in flight, and the forward, free and constrained speeds squared. */
     count: 0,
@@ -265,14 +276,13 @@ type Workspace = ReturnType<typeof createPlannedDriverWorkspace>;
 
 /**
  * Write the cells from the one holding station `s` through the lookahead, within `domain`: geometry where the cache
- * misses, then curvatures and cornering speeds. Returns the planned utilization.
+ * misses, then curvatures, the grips planned on and the plan's segments.
  */
 function readCells(
   road: DriverRoad,
   s: number,
   speed: number,
   offset: number,
-  driver: PlannedDriver,
   lane: Lane,
   smooth: boolean,
   ws: Workspace,
@@ -284,14 +294,6 @@ function readCells(
     ws.cellStarts.fill(NaN);
     ws.road = road;
     ws.lane = lane;
-  }
-  const { resolution } = PLANNED_DRIVER.correction;
-  const planned = driver.utilization * Math.round(ws.correction / resolution) * resolution;
-  if (ws.limits !== driver.limits || ws.planned !== planned || ws.speedCap !== driver.speedCap) {
-    ws.limits = driver.limits;
-    ws.planned = planned;
-    ws.speedCap = driver.speedCap;
-    ws.key++;
   }
   const first = Math.floor(s / spacing);
   const offPath = Math.abs(offset) > PLANNED_DRIVER.offPathMetres;
@@ -363,20 +365,6 @@ function readCells(
     if (offPath && aS < horizon)
       grip = Math.min(grip, surfaces.sample(aS, lateralOf(lane, aS) + offset)?.gripFactor ?? 0);
     ws.planGrips[i] = grip;
-    if (ws.corneringKeys[i] !== ws.key || ws.corneringCurvatures[i] !== curvature || ws.corneringGrips[i] !== grip) {
-      const cornering = driver.limits.corneringSpeed(
-        curvature,
-        ws.grades[i]!,
-        ws.verticals[i]!,
-        grip,
-        ws.rollings[i]!,
-        planned * PLANNED_DRIVER.lateralMargin,
-      );
-      ws.corneringSquared[i] = Math.min(driver.speedCap, cornering) ** 2;
-      ws.corneringKeys[i] = ws.key;
-      ws.corneringCurvatures[i] = curvature;
-      ws.corneringGrips[i] = grip;
-    }
     // A segment from the previous node to this cell's end.
     count++;
     ws.segmentCells[count] = i;
@@ -387,7 +375,38 @@ function readCells(
   ws.stations[0] = s;
   ws.distances[0] = 0;
   ws.count = count;
-  return planned;
+}
+
+/**
+ * Write the cornering speeds of the cells read into `ws` for `driver` at `utilization` (its own, corrected), where
+ * `cornering`'s cache misses.
+ */
+function readCornering(driver: PlannedDriver, planned: number, ws: Workspace, cornering: Cornering) {
+  if (cornering.limits !== driver.limits || cornering.planned !== planned || cornering.speedCap !== driver.speedCap) {
+    cornering.limits = driver.limits;
+    cornering.planned = planned;
+    cornering.speedCap = driver.speedCap;
+    cornering.key++;
+  }
+  for (let j = 1; j <= ws.count; j++) {
+    const i = ws.segmentCells[j]!,
+      curvature = ws.curvatures[i]!,
+      grip = ws.planGrips[i]!;
+    if (cornering.keys[i] === cornering.key && cornering.curvatures[i] === curvature && cornering.grips[i] === grip)
+      continue;
+    const speed = driver.limits.corneringSpeed(
+      curvature,
+      ws.grades[i]!,
+      ws.verticals[i]!,
+      grip,
+      ws.rollings[i]!,
+      planned * PLANNED_DRIVER.lateralMargin,
+    );
+    cornering.squared[i] = Math.min(driver.speedCap, speed) ** 2;
+    cornering.keys[i] = cornering.key;
+    cornering.curvatures[i] = curvature;
+    cornering.grips[i] = grip;
+  }
 }
 
 /** m/s²: the cell's load factor at speed `v`. */
@@ -414,7 +433,7 @@ function cellAcceleration(limits: VehicleLimits, ws: Workspace, i: number, v: nu
  * speed driven over the segment, within the cell's cornering speed. Where the load factor reaches 0 the vehicle takes
  * off, and the profile is traced under its ballistic flight to its landing: the segments crossed in flight carry speed.
  */
-function forwardPass(limits: VehicleLimits, ws: Workspace, speed: number, u: number) {
+function forwardPass(limits: VehicleLimits, ws: Workspace, cornering: Cornering, speed: number, u: number) {
   ws.forward[0] = speed * speed;
   let flightFrom = -1,
     takeOffS = 0,
@@ -442,7 +461,7 @@ function forwardPass(limits: VehicleLimits, ws: Workspace, speed: number, u: num
     ws.flight[j] = 0;
     const a = cellAcceleration(limits, ws, i, v, u, true);
     const segment = ws.distances[j]! - ws.distances[j - 1]!;
-    ws.forward[j] = Math.max(0, Math.min(ws.corneringSquared[i]!, ws.forward[j - 1]! + 2 * segment * a));
+    ws.forward[j] = Math.max(0, Math.min(cornering.squared[i]!, ws.forward[j - 1]! + 2 * segment * a));
   }
 }
 
@@ -545,8 +564,11 @@ function plan(
   smooth: boolean,
 ) {
   const { limits } = driver;
-  const u = readCells(road, s, speed, offset, driver, lane, smooth, ws, domain);
-  forwardPass(limits, ws, speed, u);
+  readCells(road, s, speed, offset, lane, smooth, ws, domain);
+  const { resolution } = PLANNED_DRIVER.correction;
+  const u = driver.utilization * Math.round(ws.correction / resolution) * resolution;
+  readCornering(driver, u, ws, ws.cornering);
+  forwardPass(limits, ws, ws.cornering, speed, u);
   const { terminalClearance, responseSeconds, followSeconds } = PLANNED_DRIVER;
   const response = speed * responseSeconds;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - response;
@@ -586,22 +608,40 @@ export function planDriving(
 }
 
 /**
- * The speed the driver's plan from the vehicle's station and speed along `lane`, without a vehicle ahead or a capacity
- * correction, allows `distance` metres ahead (within the planned cells; beyond them, at the last node).
+ * Read the road ahead of the vehicle along `lane` within `domain` into `ws`, for plans from its station and speed
+ * without a vehicle ahead or a capacity correction (`plannedSpeedAhead`), which share these cells.
  */
-export function plannedSpeedAhead(
+export function readRoadAhead(
   road: DriverRoad,
   car: VehicleDrivingRead,
-  driver: PlannedDriver,
   lane: Lane,
   ws: Workspace,
   domain: DrivingDomain,
-  distance: number,
-): number {
+): void {
   const { s, l } = car.course;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  plan(road, s, speed, driver, lane, ws, domain, null, l - lateralOf(lane, s), false);
-  const at = s + distance;
+  readCells(road, s, speed, l - lateralOf(lane, s), lane, false, ws, domain);
+}
+
+/**
+ * The speed `driver`'s plan over the road last read into `ws` (`readRoadAhead`) allows `distance` metres ahead of the
+ * vehicle moving at `speed` (within the planned cells; beyond them, at the last node), its cornering speeds cached in
+ * `cornering`.
+ */
+export function plannedSpeedAhead(
+  driver: PlannedDriver,
+  ws: Workspace,
+  cornering: Cornering,
+  domain: DrivingDomain,
+  speed: number,
+  distance: number,
+): number {
+  readCornering(driver, driver.utilization, ws, cornering);
+  forwardPass(driver.limits, ws, cornering, speed, driver.utilization);
+  const { terminalClearance, responseSeconds } = PLANNED_DRIVER;
+  const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - speed * responseSeconds;
+  backwardPass(driver.limits, ws, driver.utilization, ws.free, terminal, 0, Infinity, Infinity);
+  const at = ws.stations[0]! + distance;
   for (let j = 1; j <= ws.count; j++)
     if (ws.stations[j]! >= at) {
       const a = ws.stations[j - 1]!,

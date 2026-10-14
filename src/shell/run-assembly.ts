@@ -1,6 +1,7 @@
 import type { ContentDelivery } from '../content/content-delivery.js';
 import type { CameraDefinition } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
+import type { SlowDownUtilizations } from '../race/slow-down.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
 import type { createBrowserDrivingShell } from './driving-shell.js';
 import { mountRunDevControls } from './run-controls.js';
@@ -63,6 +64,8 @@ export interface RunPage {
   cameraDefinition(): CameraDefinition;
   /** The DEV RESULT delay in use. */
   resultDelaySeconds(): number;
+  /** The SLOW DOWN stages' utilizations in use: the owner's until DEV changes them. */
+  slowDownUtilizations(): SlowDownUtilizations;
   /** A new run seed; only the composition root draws randomness. */
   drawSeed(): number;
   /** New slices for a run's loading work, which yield to the page's frame loop between them. */
@@ -238,6 +241,7 @@ async function assembleCourseRun(
       setup,
       runtime: scene.runtime,
       playerSteering: page.player.settings.steering[entry.listing.form],
+      slowDownUtilizations: page.slowDownUtilizations(),
     });
     // The run's records; a DEV-tuned run compares with and records nothing.
     const records = selection && !tuned ? createRunRecords(page.player, selection) : null;
