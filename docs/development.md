@@ -332,7 +332,8 @@ selects its element and opens its cleaning operation's candidates for that eleme
 
 "Underlay" lays a PNG or JPEG opened in the browser under the open Section's plan, to trace a course from; the image
 is never saved, in the store or an archive. It is scaled by picking two points on it and giving their distance in
-metres (the first point stays where it lies), moved by dragging (with "Move by dragging") or by number, turned by
+metres (the first point stays where it lies), moved by dragging (with "Move by dragging"; Escape or a lost pointer
+puts it back where the drag began) or by number, turned by
 number and shown at a chosen opacity. "Save alignment" saves the numbers, one step, as the course's
 [underlay alignments](content-and-gameplay.md#course-authoring-operations); opening the same image again lays it
 where it was saved, and an image whose SHA-256 differs from the saved one is named as different and laid with the

@@ -200,7 +200,12 @@ export function createUnderlayControls(host: UnderlayHost) {
         placement = { ...start, x: start.x + p.x - at.x, z: start.z + p.z - at.z };
         show();
       },
-      end() {},
+      // A drag cancelled (Escape or a lost pointer) puts the underlay back where it was.
+      end(commit) {
+        if (commit) return;
+        placement = start;
+        show();
+      },
     };
   };
   return { element: panel, grab, place };
