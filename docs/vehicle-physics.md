@@ -18,7 +18,7 @@ M=65 degrees, ACT=0.3 seconds, throttle/brake traversal times,
 Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
 traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
 converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
-single traversal time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics, `suspensionProgression` and the
+single traversal time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics and the
 torque-protection policy `{wheelSlip, pitchLimit}`.
 [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
 from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
@@ -104,45 +104,38 @@ resistance zero) and an upright body permit unilateral contact:
 ```text
 q = max(-gap,0)
 qDot = -reachVelocity dot surfaceNormal
-N = max(0,springForce(q)+damping*sqrt(stiffness(q)/springRate)*qDot)
+N = max(0,springRate*q+damping*qDot)
 ```
 
 ### Suspension
 
 Each station's suspension is set by three vehicle values, `rideFrequency`, `dampingRatio` and
-`qTravel`, and one game-wide driving value, `suspensionProgression` (P). With the station's static load
-`W` and `m = W/g`, `springRate = (2*pi*rideFrequency)^2*m`, `qStatic = W/springRate` and
-`damping = 2*dampingRatio*sqrt(springRate*m)`; compilation requires `0 < qStatic < qTravel`.
+`qTravel`. With the station's static load `W` and `m = W/g`, `springRate = (2*pi*rideFrequency)^2*m`,
+`qStatic = W/springRate` and `damping = 2*dampingRatio*sqrt(springRate*m)`; compilation requires
+`0 < qStatic < qTravel`.
 
-The spring is one progressive spring. Its stiffness is `springRate` up to `qStatic`, then rises
-linearly to `P*springRate` at `qTravel`, continuing the same line beyond it. The force is the
-stiffness integral, continuous everywhere:
+The spring is linear and the damper too: `springRate*q + damping*qDot`. Both terms depend only on the
+contact's own compression and rate; the spring is conservative and the damper dissipative. A large
+landing ends at the bump stop below, which has no restitution.
 
-```text
-x = max(0,q-qStatic)
-stiffness(q) = springRate*(1+(P-1)*x/(qTravel-qStatic))
-springForce(q) = springRate*(q+(P-1)*x^2/(2*(qTravel-qStatic)))
-```
-
-Damping keeps the station's damping ratio at the local stiffness, so it equals `damping` at and
-below `qStatic` and grows with `sqrt(stiffness/springRate)` above it. Both terms depend only on the
-contact's own compression and rate; the spring is conservative and the damper dissipative.
+The three values are author values. While the game is being tuned every vehicle has the same ones, front and
+rear: `rideFrequency` 1.5 Hz, `dampingRatio` 0.4 and `qTravel` 0.3 m, so vehicles differ by their engines and centres
+of mass alone. Pitch is how the player controls the body's attitude, so the values are soft and lightly damped to make
+its motion visible. Each vehicle keeps its own fields, so vehicles may differ again later.
 
 ### Suspension stability
 
 A vehicle model admits explicit integration of each station's suspension at its substep `h`. For each
-front and rear station, evaluated at full-travel stiffness `P*springRate` with the matching damping
-`sqrt(P)*damping` and the static-load mass `m = W/g`, all derived from the compiled station:
+front and rear station, with the static-load mass `m = W/g`, all derived from the compiled station:
 
 ```text
-h^2*P*springRate/m + 2*h*sqrt(P)*damping/m < 4
+h^2*springRate/m + 2*h*damping/m < 4
 ```
 
-This equals `(omega*sqrt(P)*h)^2 + 4*dampingRatio*omega*sqrt(P)*h < 4` with `omega = 2*pi*rideFrequency`.
-It is a per-station approximation: each station is treated as an isolated oscillator on its static-load mass,
-coupling through body pitch is not included, and the stiffness is the full-travel value, the stiffest point the
-spring reaches before the bump stop. A violation is a `RangeError` naming the vehicle ID and station. DEV tuning
-changes neither P nor vehicle values, so it cannot fail this check.
+This equals `(omega*h)^2 + 4*dampingRatio*omega*h < 4` with `omega = 2*pi*rideFrequency`. The spring is linear, so
+one stiffness holds over the whole travel. It is a per-station approximation: each station is treated as an isolated
+oscillator on its static-load mass, and coupling through body pitch is not included. A violation is a `RangeError`
+naming the vehicle ID and station. DEV tuning changes no vehicle value, so it cannot fail this check.
 
 `qTravel` is a bump stop that cannot be passed. After each substep's force and velocity update, and
 before the position update, every supported contact with an upright body limits its compression
@@ -630,7 +623,7 @@ vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 19.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 20.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -682,7 +675,7 @@ fields: `maxRoadWheelSteerDegrees`,
 1 < clear < enter, positive
 `idleFrictionMeanEffectivePressureBar` and `redlineFrictionMeanEffectivePressureBar`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
-`clutchLockIdleMargin`, `clutchCapacityFactor` above 1, finite `suspensionProgression` of at least 1,
+`clutchLockIdleMargin`, `clutchCapacityFactor` above 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds), boolean
 `wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity), `rivalPace`

@@ -23,8 +23,6 @@ export interface CompiledDriving {
   readonly defaultSteering: Readonly<SteeringRule>;
   /** The game-wide tire, shared by both stations. */
   readonly tire: Readonly<CompiledTireCharacteristics>;
-  /** Suspension stiffness at full travel as a multiple of each ride spring rate. */
-  readonly suspensionProgression: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /**
    * RACE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1; the speed cap's fraction of maximum speed at
@@ -64,8 +62,6 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     redlineFrictionMeanEffectivePressure = pascals('redlineFrictionMeanEffectivePressureBar');
   if (!(definition.clutchCapacityFactor > 1) || !Number.isFinite(definition.clutchCapacityFactor))
     throw new DefinitionDomainError('clutchCapacityFactor', 'clutchCapacityFactor must be finite and > 1');
-  if (!(definition.suspensionProgression >= 1) || !Number.isFinite(definition.suspensionProgression))
-    throw new DefinitionDomainError('suspensionProgression', 'suspensionProgression must be finite and >= 1');
   if (
     !(definition.pitchLimitDegrees > 0 && definition.pitchLimitDegrees <= PITCH_LIMIT_MAX_DEGREES) ||
     !Number.isFinite(definition.pitchLimitDegrees)
@@ -139,7 +135,6 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       { reference: 'steeringReference', utilization: 'steeringUtilization' },
     ),
     tire,
-    suspensionProgression: definition.suspensionProgression,
     torqueProtection: Object.freeze({
       wheelSlip: definition.wheelSlip,
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,

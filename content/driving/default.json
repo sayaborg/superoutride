@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 19,
+  "version": 20,
   "maxRoadWheelSteerDegrees": 65,
   "steeringTraversalSeconds": 0.3,
   "steeringReference": "center",
@@ -13,7 +13,6 @@
   "engineInertiaKilogramSquareMetersPerLitre": 0.04,
   "clutchLockIdleMargin": 0.02,
   "clutchCapacityFactor": 1.5,
-  "suspensionProgression": 9.8,
   "pitchLimitDegrees": 15,
   "throttle": { "applySeconds": 0.25, "releaseSeconds": 0.125 },
   "brake": { "applySeconds": 0.15, "releaseSeconds": 0.1 },
