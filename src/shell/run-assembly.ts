@@ -195,7 +195,9 @@ async function assembleCourseRun(
   named: SeriesClass | null,
   demo: boolean,
 ): Promise<Run> {
-  const { content, materials, vehicles, driving, raceSprites, shell, performanceHud } = page;
+  const { content, materials, vehicles, driving, raceSprites, shell } = page;
+  // The attract demo touches no page state: it reads no driving input and reports to no DEV display.
+  const performanceHud = demo ? null : page.performanceHud;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
   const runClass = named && loadSeriesClass(content, named, course, vehicles);
@@ -430,9 +432,9 @@ async function assembleCourseRun(
       },
     };
   };
-  // A run starts at once: driving input and the camera are reset and the race enters READY.
+  // A run starts at once: the camera is reset and the race enters READY. Driving input is the page's: it is neutral
+  // until the run screen is live, as the screen host suspends it on every other route.
   const start = () => {
-    shell.inputManager.reset();
     lifecycle.reset();
     active.race.start();
   };

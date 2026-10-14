@@ -125,7 +125,7 @@ the demo runs and their turns. It runs the RACE sessions of the product classes 
 class order,
 looping, one 30 s turn each. It holds at most two runs, the shown class's and the next class's, each assembled as a
 run with no player input (the player's run driver drives the class's first vehicle in its first color at the
-default steering), with no HUD, no sound and no record. Each holds its course's compilation, which held runs of one
+default steering), with no HUD, no sound and no record, and touches no page state (driving input, DEV displays). Each holds its course's compilation, which held runs of one
 course share; a compilation no held run uses is released. A run is stepped in the race's fixed step, through
 the frame loop as a run is, only while its turn is shown, from READY. When a turn ends its run is released, so a
 class shown again starts a new run from READY with the next seed. Each turn brightens
@@ -465,7 +465,7 @@ Each fixed step, `sample()` takes the step's gamepad reading and then builds one
 arbiters: each apply method is the winning owner's, or `RATE_LIMITED` without an owner. The latest final
 sample is a published read-only observation (`lastSample`). The screen host
 suspends input whenever driving stops; suspension resets the arbiters, the adapters' held state and the final
-sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it. A run's start resets input once.
+sample to neutral, and while suspended the manager accepts no publication. Window blur, which stops no screen, resets input the same way without suspending it.
 
 The page reads each device once and shares the reading: one touch-pointer reader listens to the window's pointer
 events and passes touch pointers to its consumers, and one gamepad reader (`GamepadReading`) reads the connected
