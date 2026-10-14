@@ -6,6 +6,9 @@ import { stripSupportedIntervals } from '../../src/course/strip-material.js';
 import { stripSlabAt } from '../../src/course/strip-slabs.js';
 import { paceScheduleStations } from '../../src/content/pace-schedule.js';
 import { racingLineExits, type RacingLineLaterals } from '../../src/content/racing-line.js';
+import { wrapAngle } from '../../src/core/math.js';
+import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../src/course/geometry/plan-coordinate.js';
+import { invertPlanarTransform, type PlanarTransform } from '../../src/core/planar-transform.js';
 
 /**
  * The racing line procedure: its name, version and the values deciding its lines. The edge margin derives from the
@@ -14,11 +17,16 @@ import { racingLineExits, type RacingLineLaterals } from '../../src/content/raci
 export function racingLineProcedure(widestVehicle: number) {
   return Object.freeze({
     name: 'superoutride.racing-line',
-    version: 1,
+    version: 2,
     /** Metres kept inside the road's edges: half the catalog's widest vehicle plus 0.3 m. */
     edgeMargin: Math.round((widestVehicle / 2 + 0.3) * 1e6) / 1e6,
-    /** Linearisations of the path curvature, each solved to completion. */
-    passes: 5,
+    /**
+     * Linearisations of the path curvature at most, each solved to completion; the laterals move toward each solution
+     * by the longest step of 1, 1/2, 1/4, … (at most `halvings` halvings) that lowers the summed squared curvature, and
+     * the passes stop once one moves no lateral by more than the saved `resolution`, or no step lowers it.
+     */
+    passes: 50,
+    halvings: 20,
     /** Interior-point iterations at most per linearisation, and the complementarity they stop below. */
     iterations: 200,
     complementarity: 1e-14,
@@ -44,35 +52,35 @@ interface Line {
 }
 
 /**
- * One curvature term, `weight × κ²` over three consecutive laterals `l_j = x[variables[j]] + offsets[j]` in one frame:
- * the plan curvature at the middle lateral plus the laterals' second difference `Σ stencil_j l_j`, over the path's
- * length there. Linearised, the plan curvature is `κ₀ + gain (l₁ − l₀)`, so
- * `κ = constant + Σ (stencil_j + [j = 1] gain) x[variables[j]]`.
+ * One curvature term, `m κ²` at the middle of three consecutive samples, each the point of lateral
+ * `l_j = x[variables[j]] + offsets[j]` at station `stations[j]` of its Section's plan coordinates: `κ` the path's
+ * curvature as the planned driver reads it, the heading change of the chord to the third point from the chord from the
+ * first over the chords' mean length `m`. The term is the square of its residual `√m κ`, linearised at the current
+ * laterals as `constant + Σ coefficients_j x[variables[j]]`.
  */
 interface Term {
-  /** The stations the term spans: half the samples' spacings either side. */
-  readonly span: number;
-  /** The path's length over the span at the linearised lateral: the span times the plan's metric `1 − k l₀`. */
-  weight: number;
+  readonly coordinates: readonly [PlanCoordinateReader, PlanCoordinateReader, PlanCoordinateReader];
+  readonly stations: readonly [number, number, number];
   readonly variables: readonly [number, number, number];
   readonly offsets: readonly [number, number, number];
-  readonly stencil: readonly [number, number, number];
-  /** The line and sample whose plan curvature the term reads. */
-  readonly line: Line;
-  readonly sample: number;
-  gain: number;
+  /**
+   * A term across a seam, whose points lie on two lines, places its beginning line's points in the ending line's frame
+   * by the Link's rigid motion, since each Section's plan coordinates are its own frame; null within one line.
+   */
+  readonly frame: PlanarTransform | null;
+  readonly coefficients: Float64Array;
   constant: number;
 }
 
 /**
  * The racing lines of `course`: for each Section a lateral at each schedule station (its 5 m stations and its end), and
- * for a fork Section one per exit. They minimise the summed squared path curvature (the plan curvature at the lateral
- * plus the line's own second derivative), kept within the road each line drives less the edge margin, solved jointly
+ * for a fork Section one per exit. They minimise the summed squared path curvature, measured on the chords between
+ * the stations' points as the planned driver reads it, kept within the road each line drives less the edge margin, solved jointly
  * over the course graph as one sparse problem: every seam shares one lateral among the lines ending and beginning
  * there, and curvature terms span each seam, so the slope carries across it.
  *
- * Each pass linearises the plan curvature at the current laterals and solves the box-constrained quadratic by a
- * primal–dual interior-point method; each Newton step eliminates every line's inner samples, a banded system per line,
+ * Each pass linearises the path curvature at the current laterals, solves the box-constrained quadratic by a
+ * primal–dual interior-point method and steps toward its solution as far as lowers the summed squared curvature; each Newton step eliminates every line's inner samples, a banded system per line,
  * leaving a small dense system over the samples at and beside seams.
  */
 export function solveRacingLines(course: CompiledCourse, procedure: RacingLineProcedure): RacingLineLaterals {
@@ -117,11 +125,29 @@ export function solveRacingLines(course: CompiledCourse, procedure: RacingLinePr
     }
   const terms = curvatureTerms(lines);
   const system = createSystem(lines, terms, count);
-  const x = new Float64Array(count);
+  const x = new Float64Array(count),
+    solution = new Float64Array(count),
+    trial = new Float64Array(count);
   for (let v = 0; v < count; v++) x[v] = (lower[v]! + upper[v]!) / 2;
+  let total = linearise(terms, x);
   for (let pass = 0; pass < procedure.passes; pass++) {
-    linearise(terms, x);
-    interiorPoint(system, terms, x, lower, upper, procedure);
+    solution.set(x);
+    interiorPoint(system, terms, solution, lower, upper, procedure);
+    // The longest step toward the solution that lowers the total; the bounds are a box, so every step keeps them.
+    let next = Infinity;
+    for (let halving = 0, step = 1; halving <= procedure.halvings && !(next < total); halving++, step /= 2) {
+      for (let v = 0; v < count; v++) trial[v] = x[v]! + step * (solution[v]! - x[v]!);
+      next = linearise(terms, trial);
+    }
+    if (!(next < total)) {
+      linearise(terms, x);
+      break;
+    }
+    let moved = 0;
+    for (let v = 0; v < count; v++) moved = Math.max(moved, Math.abs(trial[v]! - x[v]!));
+    x.set(trial);
+    total = next;
+    if (moved <= procedure.resolution) break;
   }
   const scale = 1 / procedure.resolution;
   const sections = new Map<string, Map<string | null, readonly number[]>>();
@@ -172,47 +198,42 @@ function roadBounds(line: Line, s: number, margin: number): [number, number] {
  */
 function curvatureTerms(lines: readonly Line[]): Term[] {
   const terms: Term[] = [];
-  const add = (
-    line: Line,
-    sample: number,
-    variables: [number, number, number],
-    offsets: [number, number, number],
-    h1: number,
-    h2: number,
-  ) => {
-    const scale = 2 / (h1 + h2);
+  const add = (points: readonly (readonly [Line, number])[], frame: PlanarTransform | null) =>
     terms.push({
-      span: (h1 + h2) / 2,
-      weight: (h1 + h2) / 2,
-      variables,
-      offsets,
-      stencil: [scale / h1, -scale * (1 / h1 + 1 / h2), scale / h2],
-      line,
-      sample,
-      gain: 0,
+      coordinates: points.map(([line]) => line.section.coordinates) as unknown as Term['coordinates'],
+      stations: points.map(([line, i]) => line.stations[i]!) as unknown as Term['stations'],
+      variables: points.map(([line, i]) => line.variables[i]!) as unknown as Term['variables'],
+      offsets: points.map(([line, i]) => line.offsets[i]!) as unknown as Term['offsets'],
+      frame,
+      coefficients: new Float64Array(3),
       constant: 0,
     });
-  };
-  for (const line of lines) {
-    const { stations: s, variables: v, offsets: o } = line;
-    for (let i = 1; i + 1 < s.length; i++)
-      add(line, i, [v[i - 1]!, v[i]!, v[i + 1]!], [o[i - 1]!, o[i]!, o[i + 1]!], s[i]! - s[i - 1]!, s[i + 1]! - s[i]!);
-  }
+  for (const line of lines)
+    for (let i = 1; i + 1 < line.stations.length; i++)
+      add(
+        [
+          [line, i - 1],
+          [line, i],
+          [line, i + 1],
+        ],
+        null,
+      );
   // Across each seam: the second-to-last sample of a line ending there, the seam and the second sample of a line
-  // beginning there, in the beginning line's frame (the ending line's laterals less its seam offset).
+  // beginning there, each in its own line's frame.
   for (const ending of lines) {
     const n = ending.stations.length;
     if (!ending.link || n < 2) continue;
-    const shift = ending.offsets[n - 1]!;
+    // The ending Section's frame from its successor's, the inverse of the Link's.
+    const frame = invertPlanarTransform(ending.link.toFromFrom);
     for (const beginning of lines) {
       if (beginning.section !== ending.link.to.section || beginning.stations.length < 2) continue;
       add(
-        beginning,
-        0,
-        [ending.variables[n - 2]!, beginning.variables[0]!, beginning.variables[1]!],
-        [ending.offsets[n - 2]! - shift, beginning.offsets[0]!, beginning.offsets[1]!],
-        ending.stations[n - 1]! - ending.stations[n - 2]!,
-        beginning.stations[1]! - beginning.stations[0]!,
+        [
+          [ending, n - 2],
+          [beginning, 0],
+          [beginning, 1],
+        ],
+        frame,
       );
     }
   }
@@ -220,30 +241,69 @@ function curvatureTerms(lines: readonly Line[]): Term[] {
 }
 
 /**
- * Linearise each term at the current laterals: the plan curvature at lateral l is `k/(1 − k l)` for the plan's curvature
- * k at the middle sample, so near `l₀` it is `κ₀ + g (l − l₀)` with `g = k²/(1 − k l₀)²`, and the path's length over the
- * term's span is the span times `1 − k l₀`.
+ * Linearise each term's residual `√m κ = Δφ/√m` at the laterals `x` and return the summed squared curvature there,
+ * `Σ m κ²`. A point moves with its lateral along its plan normal `N`, so each chord `d` turns by `(d × N)/|d|²` and
+ * lengthens by `(d · N)/|d|` per metre of either end's lateral, and the residual by `(Δφ' − κ m'/2)/√m`.
  */
-function linearise(terms: readonly Term[], x: Float64Array) {
-  const metrics = { curvature: 0, offsetMetric: 1 };
+function linearise(terms: readonly Term[], x: Float64Array): number {
+  const sample = createPlanCoordinateSample();
+  const px = [0, 0, 0],
+    pz = [0, 0, 0],
+    nx = [0, 0, 0],
+    nz = [0, 0, 0];
+  let total = 0;
   for (const term of terms) {
-    const { line, sample, variables, offsets, stencil } = term;
-    const l0 = x[variables[1]]! + offsets[1];
-    const k = line.section.coordinates.metricsAt(line.stations[sample]!, l0, metrics).curvature;
-    const metric = 1 - k * l0;
-    term.weight = term.span * metric;
-    term.gain = (k * k) / (metric * metric);
-    term.constant =
-      k / metric -
-      term.gain * x[variables[1]]! +
-      stencil[0] * offsets[0] +
-      stencil[1] * offsets[1] +
-      stencil[2] * offsets[2];
+    for (let j = 0; j < 3; j++) {
+      const point = term.coordinates[j]!.toWorld(term.stations[j]!, x[term.variables[j]!]! + term.offsets[j]!, sample);
+      px[j] = point.x;
+      pz[j] = point.z;
+      nx[j] = Math.cos(point.heading);
+      nz[j] = -Math.sin(point.heading);
+      // A seam term's beginning points, in the ending line's frame.
+      const frame = j > 0 ? term.frame : null;
+      if (frame) {
+        const { cosine, sine, translation } = frame;
+        [px[j], pz[j]] = [
+          translation.x + px[j]! * cosine + pz[j]! * sine,
+          translation.z - px[j]! * sine + pz[j]! * cosine,
+        ];
+        [nx[j], nz[j]] = [nx[j]! * cosine + nz[j]! * sine, -nx[j]! * sine + nz[j]! * cosine];
+      }
+    }
+    const ax = px[1]! - px[0]!,
+      az = pz[1]! - pz[0]!,
+      bx = px[2]! - px[1]!,
+      bz = pz[2]! - pz[1]!;
+    const a2 = ax * ax + az * az,
+      b2 = bx * bx + bz * bz,
+      a = Math.sqrt(a2),
+      b = Math.sqrt(b2);
+    const m = (a + b) / 2;
+    const kappa = wrapAngle(Math.atan2(bx, bz) - Math.atan2(ax, az)) / m;
+    // Each chord's turn and lengthening per metre of an end's lateral along `(vx, vz)`.
+    const turnA = (vx: number, vz: number) => (az * vx - ax * vz) / a2,
+      turnB = (vx: number, vz: number) => (bz * vx - bx * vz) / b2,
+      lengthA = (vx: number, vz: number) => (ax * vx + az * vz) / a,
+      lengthB = (vx: number, vz: number) => (bx * vx + bz * vz) / b;
+    const turns = [turnA(nx[0]!, nz[0]!), -turnA(nx[1]!, nz[1]!) - turnB(nx[1]!, nz[1]!), turnB(nx[2]!, nz[2]!)];
+    const lengths = [
+      -lengthA(nx[0]!, nz[0]!) / 2,
+      (lengthA(nx[1]!, nz[1]!) - lengthB(nx[1]!, nz[1]!)) / 2,
+      lengthB(nx[2]!, nz[2]!) / 2,
+    ];
+    const root = Math.sqrt(m);
+    term.constant = root * kappa;
+    for (let j = 0; j < 3; j++) {
+      term.coefficients[j] = (turns[j]! - (kappa * lengths[j]!) / 2) / root;
+      term.constant -= term.coefficients[j]! * x[term.variables[j]!]!;
+    }
+    total += m * kappa * kappa;
   }
+  return total;
 }
 
 /** A term's coefficient of its `j`th variable. */
-const coefficient = (term: Term, j: number) => term.stencil[j]! + (j === 1 ? term.gain : 0);
+const coefficient = (term: Term, j: number) => term.coefficients[j]!;
 
 /**
  * The sparse structure of the problem's Hessian: each line's inner variables (its own samples not at or beside a seam,
@@ -259,7 +319,7 @@ function createSystem(lines: readonly Line[], terms: readonly Term[], count: num
     if (borderOf[v]! < 0) borderOf[v] = border.push(v) - 1;
   };
   // Every variable of a term reaching across a seam, and every seam, is a border variable.
-  for (const term of terms) if (term.sample === 0) term.variables.forEach(addBorder);
+  for (const term of terms) if (term.frame) term.variables.forEach(addBorder);
   for (const line of lines) {
     if (line.section.incoming.length) addBorder(line.variables[0]!);
     if (line.link) addBorder(line.variables[line.variables.length - 1]!);
@@ -300,7 +360,7 @@ function createSystem(lines: readonly Line[], terms: readonly Term[], count: num
 type RacingLineSystem = ReturnType<typeof createSystem>;
 
 /**
- * Minimise `Σ weight κ²` within `lower ≤ x ≤ upper` from `x`, writing the minimiser to `x`: a primal–dual
+ * Minimise the linearised `Σ (√m κ)²` within `lower ≤ x ≤ upper` from `x`, writing the minimiser to `x`: a primal–dual
  * interior-point method on the bound slacks, with a fixed centring.
  */
 function interiorPoint(
@@ -330,7 +390,7 @@ function interiorPoint(
     for (const term of terms) {
       let residual = term.constant;
       for (let j = 0; j < 3; j++) residual += coefficient(term, j) * x[term.variables[j]!]!;
-      for (let j = 0; j < 3; j++) gradient[term.variables[j]!]! += 2 * term.weight * coefficient(term, j) * residual;
+      for (let j = 0; j < 3; j++) gradient[term.variables[j]!]! += 2 * coefficient(term, j) * residual;
     }
     let gap = 0;
     for (let v = 0; v < n; v++) gap += (x[v]! - lower[v]!) * zLower[v]! + (upper[v]! - x[v]!) * zUpper[v]!;
@@ -393,7 +453,7 @@ function solveNewton(
       if (p < 0) continue;
       for (let k = 0; k < 3; k++) {
         const q = borderOf[term.variables[k]!]!;
-        if (q >= 0) schur[p * size + q]! += 2 * term.weight * coefficient(term, j) * coefficient(term, k);
+        if (q >= 0) schur[p * size + q]! += 2 * coefficient(term, j) * coefficient(term, k);
       }
     }
   const eliminated = blocks.map((block) => {
@@ -410,7 +470,7 @@ function solveNewton(
         const i = innerOf[vj]!;
         for (let k = 0; k < 3; k++) {
           const vk = term.variables[k]!,
-            value = 2 * term.weight * coefficient(term, j) * coefficient(term, k);
+            value = 2 * coefficient(term, j) * coefficient(term, k);
           if (borderOf[vk]! >= 0) columns.get(borderOf[vk]!)![i]! += value;
           else {
             const q = innerOf[vk]!;

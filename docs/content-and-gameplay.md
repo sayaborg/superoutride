@@ -1186,8 +1186,9 @@ implementation for its own build only, and never saves the result.
 A course's racing lines are a lateral `l(s)` for each Section and, on a fork Section, one per exit, over the whole
 Section ([`racing-line.ts`](../tools/course/racing-line.ts)). They depend on the course alone, never on a vehicle.
 
-- **Shape.** They minimise the total squared path curvature: over the path's length, the square of the plan's
-  curvature at `l` (`k/(1 − k l)` for the plan curvature `k`) plus the line's own lateral curvature `l''`.
+- **Shape.** They minimise the total squared path curvature `Σ m κ²`, measured as the planned driver reads a smooth
+  path's curvature ([Drivers](#drivers)): at each station the heading change from the chord before it to the chord after
+  it, between the world points of the line's laterals, over the two chords' mean length `m`, which also weights it.
 - **Bounds.** A line stays inside the road it drives less an edge margin of half the catalog's widest vehicle plus
   0.3 m. That road is the one the line's lane belongs to: the lane its Link leaves by (the exit's on a fork Section,
   the centre lane at a terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section
@@ -1197,11 +1198,15 @@ Section ([`racing-line.ts`](../tools/course/racing-line.ts)). They depend on the
 - **Continuity.** Every seam has one lateral that the lines ending there and the lines beginning there share, in each
   Link's frame (its cut lane's centre on the next Section's centreline): at a merge all predecessors share the
   successor's start, at a fork every exit's line starts from its predecessor's end, and a CIRCUIT closes on itself.
-  Curvature terms span each seam, so the slope carries across it.
+  Curvature terms span each seam, so the slope carries across it; each Section's plan coordinates are its own frame,
+  so a seam's term reads the next Section's points through the Link's rigid motion.
 - **Solve.** The lines of the whole course graph are one sparse problem over the laterals at the schedule stations.
-  Each of five passes linearises the plan curvature at the current laterals and solves the resulting box-constrained
-  quadratic by a primal–dual interior-point method; each Newton step eliminates every line's inner laterals, a band of
-  width two, leaving a small dense system over the laterals at and beside seams. The result is deterministic in Node.
+  Each pass linearises every term's residual `√m κ` at the current laterals (a point moves along its plan normal as its
+  lateral changes) and solves the resulting box-constrained quadratic by a primal–dual interior-point method; each
+  Newton step eliminates every line's inner laterals, a band of width two, leaving a small dense system over the laterals
+  at and beside seams. The laterals then move toward that solution by the longest step of 1, 1/2, 1/4, … (at most 20
+  halvings) that lowers `Σ m κ²`. The passes, at most 50, stop once one moves no lateral by more than the saved
+  resolution (1 mm), or once no step lowers the total. The result is deterministic in Node.
 
 The saved product (`superoutride.racing-line` version 1) has `courseBuildSha256`, `procedureSha256` (the racing line
 procedure's identity, whose record holds the edge margin, so a wider catalog vehicle makes it stale), `spacing` (the
