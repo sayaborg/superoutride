@@ -5,15 +5,23 @@
 import { SURFACE_SOUND_LIMIT } from './surface-sounds.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
-/** Bounded read-only acoustic transport. Bounds are numerical transport choices, not tire physics. */
+/** The largest finite float32, the most an AudioParam carries. */
+export const AUDIO_PARAM_MAXIMUM = 3.4028234663852886e38;
+const signed = Object.freeze({ min: -AUDIO_PARAM_MAXIMUM, max: AUDIO_PARAM_MAXIMUM });
+const nonnegative = Object.freeze({ min: 0, max: AUDIO_PARAM_MAXIMUM });
+
+/**
+ * The acoustic transport: each observation as the AudioParam carries it, any finite float32 value, signed or
+ * nonnegative. The synthesis saturates every one of them (`x / (x + reference)`), so none is bounded in transport.
+ */
 export const TIRE_SOUND_INPUTS = Object.freeze({
-  longitudinalVelocity: Object.freeze({ min: -100, max: 100 }),
-  lateralVelocity: Object.freeze({ min: -100, max: 100 }),
-  wheelAngularSpeed: Object.freeze({ min: -1000, max: 1000 }),
-  wheelSpeed: Object.freeze({ min: -200, max: 200 }),
-  load: Object.freeze({ min: 0, max: 30000 }),
-  longitudinalPower: Object.freeze({ min: 0, max: 1000000 }),
-  lateralPower: Object.freeze({ min: 0, max: 1000000 }),
+  longitudinalVelocity: signed,
+  lateralVelocity: signed,
+  wheelAngularSpeed: signed,
+  wheelSpeed: signed,
+  load: nonnegative,
+  longitudinalPower: nonnegative,
+  lateralPower: nonnegative,
 });
 export type TireSoundObservation = { readonly [K in keyof typeof TIRE_SOUND_INPUTS]: number };
 export const TIRE_SOUND_INPUT_KEYS = Object.freeze(Object.keys(TIRE_SOUND_INPUTS) as (keyof TireSoundObservation)[]);
@@ -38,9 +46,9 @@ export const TIRE_CONTROL_RANGES = Object.freeze({
 });
 
 /**
- * The only validation and bound of tire sound values; the worklet and kernels read the result as trusted.
- * Bound only the acoustic transport, never vehicle state; signed kinematics keep their meaning. The surface number
- * is the material's position in `materialIds`, the material catalog order.
+ * The only validation of tire sound values; the worklet and kernels read the result as trusted. Each value must be
+ * finite as the transport's float32 carries it, and the nonnegative ones at least 0; none is bounded further. The
+ * surface number is the material's position in `materialIds`, the material catalog order.
  */
 export function tireSoundParameters(tire: TireAudioObservation, materialIds: readonly string[]) {
   const silent = {
@@ -69,9 +77,8 @@ export function tireSoundParameters(tire: TireAudioObservation, materialIds: rea
   for (const key of Object.keys(values) as (keyof TireSoundObservation)[]) {
     const range = TIRE_SOUND_INPUTS[key],
       value = values[key];
-    if (!Number.isFinite(value) || (range.min === 0 && value < 0))
+    if (!Number.isFinite(Math.fround(value)) || value < range.min)
       throw new RangeError(`invalid tire sound observation: ${key}`);
-    values[key] = Math.max(range.min, Math.min(range.max, value));
   }
   return { ...values, surfaceIndex };
 }

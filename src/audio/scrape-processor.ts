@@ -5,14 +5,18 @@ import { ProcessingMeter } from './processing-meter.js';
 import { SCRAPE_SEED, type ScrapeSettings } from './wall-scrape-acoustics.js';
 import { WALL_SOUND_LIMIT, type WallSound } from './wall-sounds.js';
 import { WorkletRest } from './worklet-rest.js';
+import { AUDIO_PARAM_MAXIMUM } from './tire-sound-transport.js';
 declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-/** The scraping worklet's inputs: the rubbing line's friction power (W), speed along it (m/s) and wall number. */
+/**
+ * The scraping worklet's inputs: the rubbing line's friction power (W) and speed along it (m/s), any nonnegative
+ * float32 the synthesis saturates, and wall number.
+ */
 export const SCRAPE_PARAMETERS = Object.freeze({
-  power: Object.freeze({ minValue: 0, maxValue: 1e8, defaultValue: 0 }),
-  speed: Object.freeze({ minValue: 0, maxValue: 200, defaultValue: 0 }),
+  power: Object.freeze({ minValue: 0, maxValue: AUDIO_PARAM_MAXIMUM, defaultValue: 0 }),
+  speed: Object.freeze({ minValue: 0, maxValue: AUDIO_PARAM_MAXIMUM, defaultValue: 0 }),
   wall: Object.freeze({ minValue: -1, maxValue: WALL_SOUND_LIMIT - 1, defaultValue: -1 }),
 });
 

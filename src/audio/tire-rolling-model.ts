@@ -92,7 +92,11 @@ export class TireRollingSynthesis {
       Math.max(this.material.textureDepth, settings.textureMinimumDepth) *
         this.texture.step(this.wheelAngularSpeed === 0 ? 0 : textureRate / S.controlHz);
     for (let i = 0; i < this.bands.length; i++) {
-      const hz = Math.max(settings.minimumHz, this.orders[i]! * this.wheelFrequency);
+      // The band's centre stays inside the noise band's numerical domain at any wheel speed.
+      const hz = Math.min(
+        NOISE_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate,
+        Math.max(settings.minimumHz, this.orders[i]! * this.wheelFrequency),
+      );
       // The bandwidth stays inside the noise band's numerical domain for every setting.
       const bandwidth = Math.min(
         NOISE_BAND_DOMAIN.maximumBandwidthHz,

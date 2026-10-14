@@ -42,7 +42,7 @@ export class NoiseBand {
     if (
       !Number.isFinite(frequency) ||
       frequency <= 0 ||
-      frequency >= NOISE_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate ||
+      frequency > NOISE_BAND_DOMAIN.maximumFrequencyRateFraction * this.rate ||
       !Number.isFinite(bandwidth) ||
       bandwidth < NOISE_BAND_DOMAIN.minimumBandwidthHz ||
       bandwidth > NOISE_BAND_DOMAIN.maximumBandwidthHz

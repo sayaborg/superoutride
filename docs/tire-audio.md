@@ -16,9 +16,12 @@ wheel peripheral/angular velocity, normal load, longitudinal/lateral dissipated 
 One tire worklet receives independent k-rate parameter sets and seeded histories for both axles.
 
 The voice's `tireSoundParameters` ([observation domains](../src/audio/tire-sound-transport.ts)) is the one
-validation: it rejects non-finite values, negative load or power and unknown surfaces with `RangeError`, then
-bounds the acoustic transport. Zero load or no material yields a silent contact observation. The worklet and kernels read
-the transported values as trusted; the AudioParam ranges only clamp automation.
+validation: it rejects values the transport's float32 cannot carry finitely, negative load or power and unknown
+surfaces with `RangeError`, and bounds nothing else: every synthesis input saturates (`x / (x + reference)`), so any
+finite value is heard as its own. Zero load or no material yields a silent contact observation. The worklet and kernels
+read the transported values as trusted. The one bound the synthesis needs, a noise band's centre below
+`maximumFrequencyRateFraction` of the output rate, is the rolling generator's own: it holds each band's centre within
+the noise band's domain at any wheel speed.
 The worklet rounds the surface index and releases the affected axle's forcing when it names no record; finite stored
 tails decay, and subsequent input naming a record restores excitation.
 
