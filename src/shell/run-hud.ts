@@ -39,8 +39,8 @@ export interface HudFacts {
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
-    /** Whether the player's SETTINGS show BRAKE!!. */
-    readonly brakeSign: boolean;
+    /** Whether the player's SETTINGS show SLOW DOWN. */
+    readonly slowDown: boolean;
   };
   /**
    * The TIME ATTACK record READY shows, from the records before the run: its time and the display name of the vehicle it
@@ -63,8 +63,8 @@ export const HUD_DURATIONS = Object.freeze({
   go: 1,
   /** The difference from the record run shows after each gate and lap crossing (race time). */
   split: 2,
-  /** BRAKE!! blinks, shown and hidden for this many fixed steps each. */
-  brakeBlinkSteps: 8,
+  /** SLOW DOWN blinks, shown and hidden for this many fixed steps each. */
+  slowDownBlinkSteps: 8,
 });
 const CAUSE_NAMES: Readonly<Record<GameOverCause, string>> = { TIME: 'TIME UP', RANK: 'RANK OUT' };
 
@@ -89,7 +89,7 @@ export const HUD_LAYOUT = Object.freeze({
   target: [24, 5],
   extend: ['center', 7],
   split: ['center', 7],
-  brake: ['center', 8],
+  slowDown: ['center', 8],
   roadLeft: [0, 13],
   roadRight: [36, 13],
   courseName: ['center', 10],
@@ -457,13 +457,13 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     },
   },
   {
-    // BRAKE!! while the race shows it and SETTINGS allow, blinking by fixed steps.
+    // SLOW DOWN while the race shows it and SETTINGS allow, blinking by fixed steps.
     middle: true,
     when: ({ race, run }) =>
-      run.brakeSign &&
-      race.brakeSign &&
-      Math.floor(Math.round(race.simulationSeconds / SIM_DT) / HUD_DURATIONS.brakeBlinkSteps) % 2 === 0,
-    write: (_facts, text) => write(text, 'brake', 'BRAKE!!', large('RED')),
+      run.slowDown &&
+      race.slowDown &&
+      Math.floor(Math.round(race.simulationSeconds / SIM_DT) / HUD_DURATIONS.slowDownBlinkSteps) % 2 === 0,
+    write: (_facts, text) => write(text, 'slowDown', 'SLOW DOWN', large('RED')),
   },
   {
     // From the ending until RESULT: GOAL, or GAME OVER and its cause.

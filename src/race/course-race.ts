@@ -14,7 +14,7 @@ import type { LaneIntent, PathOffset } from './lane-following.js';
 import { createTrafficField, type TrafficMotion } from './traffic.js';
 import { createVehiclePlacement } from './vehicle-placement.js';
 import { createLaneDriving } from './lane-driving.js';
-import { createBrakeSign } from './brake-sign.js';
+import { createSlowDown } from './slow-down.js';
 import {
   advancePresentVehicle,
   createPresentVehicle,
@@ -230,8 +230,8 @@ export function createCourseRace(options: {
   const playerSlot = playerEntry!.slot!;
   const playerActor = spawn(playerEntry!, { s: playerSlot.at.s, l: playerSlot.l, initialSpeed });
   const player = competitor(playerEntry!.id, playerActor, null, null, null);
-  // BRAKE!! for the player, planned with its vehicle's mechanics.
-  const brakeSign = createBrakeSign(runtime.readers, runtime.window, options.setup.mechanicsOf(playerEntry!.vehicle));
+  // SLOW DOWN for the player, planned with its vehicle's mechanics.
+  const slowDown = createSlowDown(runtime.readers, runtime.window, options.setup.mechanicsOf(playerEntry!.vehicle));
   // The player's own steering rule on its vehicle, resolved once; its driver's rule while a driver drives it.
   const playerOwnSteering = options.playerSteering
     ? driverSteering(options.playerSteering, playerActor.model)
@@ -669,12 +669,12 @@ export function createCourseRace(options: {
       return simulationSeconds;
     },
     /**
-     * Whether BRAKE!! shows: the player's own input drives it while the run is running, it is not in flight, and its
+     * Whether SLOW DOWN shows: the player's own input drives it while the run is running, it is not in flight, and its
      * speed exceeds what a driver's plan at the reference utilization along its lateral allows half a second ahead
-     * ([BRAKE!!](../../docs/browser.md#brake)).
+     * ([SLOW DOWN](../../docs/browser.md#slow-down)).
      */
-    get brakeSign() {
-      return brakeSign.shown;
+    get slowDown() {
+      return slowDown.shown;
     },
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {
@@ -783,7 +783,7 @@ export function createCourseRace(options: {
       player.body.step.input = input ?? idle;
       step(input);
       simulationSeconds += SIM_DT;
-      brakeSign.update(
+      slowDown.update(
         playerActor.vehicle,
         input !== null && startPhase.status === 'GO' && outcome.status === 'RUNNING',
       );
@@ -841,7 +841,7 @@ export type RaceFacts = Pick<
   CourseRace,
   | 'events'
   | 'simulationSeconds'
-  | 'brakeSign'
+  | 'slowDown'
   | 'stage'
   | 'lap'
   | 'lapCount'

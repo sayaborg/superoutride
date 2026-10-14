@@ -4,7 +4,7 @@ import { createSteeringRule, STEERING_REFERENCES, type SteeringRule } from '../v
 
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 7;
+const PLAYER_RECORD_VERSION = 8;
 
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
 export type VolumeName = (typeof VOLUME_NAMES)[number];
@@ -37,8 +37,8 @@ export interface PlayerSettings {
   readonly cameras: Readonly<Record<VehicleForm, CameraYawSource>>;
   /** The steering rule the player drives by, by the player vehicle's form. */
   readonly steering: Readonly<Record<VehicleForm, SteeringRule>>;
-  /** Whether the HUD shows BRAKE!!. */
-  readonly brakeSign: boolean;
+  /** Whether the HUD shows SLOW DOWN. */
+  readonly slowDown: boolean;
 }
 
 /**
@@ -79,7 +79,7 @@ const DEFAULT_SETTINGS = freezeSettings({
   latestSelections: {},
   cameras: DEFAULT_CAMERAS,
   steering: DEFAULT_STEERING,
-  brakeSign: true,
+  slowDown: true,
 });
 /** No records: what an older record or CLEAR RECORDS leaves. */
 export const NO_RECORDS = freezeRecords({ timeAttack: {} });
@@ -159,9 +159,9 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
 
 /** Settings of exactly the declared shape, or null. */
 function admitSettings(settings: unknown): PlayerSettings | null {
-  const keys = ['vehicleColors', 'volumes', 'latestSelections', 'cameras', 'steering', 'brakeSign'];
+  const keys = ['vehicleColors', 'volumes', 'latestSelections', 'cameras', 'steering', 'slowDown'];
   if (!hasExactKeys(settings, keys)) return null;
-  const { vehicleColors, volumes, latestSelections, cameras, steering, brakeSign } = settings;
+  const { vehicleColors, volumes, latestSelections, cameras, steering, slowDown } = settings;
   if (!isStringMap(vehicleColors) || !isStringMap(latestSelections) || !hasExactKeys(volumes, VOLUME_NAMES))
     return null;
   if (!VOLUME_NAMES.every((name) => isPercent(volumes[name]))) return null;
@@ -169,14 +169,14 @@ function admitSettings(settings: unknown): PlayerSettings | null {
   if (!VEHICLE_FORMS.every((form) => CAMERA_YAW_SOURCES.includes(cameras[form] as CameraYawSource))) return null;
   if (!hasExactKeys(steering, VEHICLE_FORMS) || !VEHICLE_FORMS.every((form) => isSteeringChoice(steering[form])))
     return null;
-  if (typeof brakeSign !== 'boolean') return null;
+  if (typeof slowDown !== 'boolean') return null;
   return freezeSettings({
     vehicleColors,
     volumes: volumes as Record<VolumeName, number>,
     latestSelections,
     cameras: cameras as Record<VehicleForm, CameraYawSource>,
     steering: steering as Record<VehicleForm, SteeringRule>,
-    brakeSign,
+    slowDown,
   });
 }
 
@@ -240,7 +240,7 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
       car: createSteeringRule(settings.steering.car.reference, settings.steering.car.utilization),
       bike: createSteeringRule(settings.steering.bike.reference, settings.steering.bike.utilization),
     }),
-    brakeSign: settings.brakeSign,
+    slowDown: settings.slowDown,
   });
 }
 // The records the player record publishes, read-only down to every record and its splits, wherever they came from.

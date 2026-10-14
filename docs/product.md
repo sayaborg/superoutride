@@ -206,7 +206,7 @@ TITLE: attract demo behind the logo; PRESS START, then the line SERIES / FREE PL
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / back to the selection / TITLE
 PAUSE:  RESUME / RETRY / QUIT
-SETTINGS: MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; BRAKE SIGN; controls
+SETTINGS: MASTER, MUSIC and EFFECTS volume; CAR and BIKE camera; CAR and BIKE steering and its use; SLOW DOWN; controls
 ```
 
 All screens are in one page and are drawn inside the 320×240 frame: text is a 40×30 grid of 8×8 font
@@ -284,12 +284,12 @@ elements, each reading one observation; the active run rules determine which app
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
 | Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes         |
 | TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                 |
-| Braking needed (SETTINGS)      | BRAKE!!                                                              |
+| Slowing needed (SETTINGS)      | SLOW DOWN                                                            |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME
 turns red under ten seconds and yellow for two seconds after an extension, shown as EXTEND with its seconds. A finished
-lap's time holds for two seconds. BRAKE!! blinks in red while the player drives faster than the vehicle could slow for
+lap's time holds for two seconds. SLOW DOWN blinks in red while the player drives faster than the vehicle could slow for
 the road just ahead, unless SETTINGS turns it off. Three signal lamps light red one per second and turn green at GO. The upper rows'
 race rules and the passing notices are drawn in ornate fonts, a light-topped ramp of color down each glyph: the
 upper row and GOAL or GAME OVER large, the rest small; menus and screens keep the plain font.

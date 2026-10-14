@@ -107,8 +107,8 @@
 - Stage AI is complete: every course has measured racing lines; one planned driver, from each vehicle's limits model
   at a utilization, drives rivals, traffic, reference runs, the attract demo and the takeover; rivals and the player's
   run driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
-  envelopes are gone; BRAKE!! warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
-  [BRAKE!!](browser.md#brake)).
+  envelopes are gone; SLOW DOWN warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
+  [SLOW DOWN](browser.md#slow-down)).
 
 Next PR: [Stage 16](#stage-16--produce-product-courses).
 
