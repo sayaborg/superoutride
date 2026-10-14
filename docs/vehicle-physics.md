@@ -525,43 +525,51 @@ The vehicle step receives a rule as the lever in metres from its reference posit
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is
 `frontAxle`, the front axle's distance from the centre of mass. Cars and bikes share the rule and its law.
 
-The input decides the front tire's force: full input uses the front tire up to the fraction `X` of its lateral bound.
-With the tire law's knee `H` and `a = KN`, the demand `rho(X)` is the inverse of `H` ([tire law](#tire-law)), resolved
-once with the rule:
+The input decides the front tire's force: input `u` uses the front tire up to the fraction `|u|*X` of its lateral
+bound, the same part of the yaw rate the input asks for (`w(u)` below). With the tire law's knee `H` and `a = KN`, the
+demand `rho(f)` at which the pure-lateral force is the fraction `f` is the inverse of `H` ([tire law](#tire-law)):
 
 ```text
-rho(X) = X                               X <= a
-       = 2-a-2*sqrt((1-a)*(1-X))         a < X <= 1
-S(X)   = grip*rho(X)*muY/kY
+rho(f) = f                               f <= a
+       = 2-a-2*sqrt((1-a)*(1-f))         a < f <= 1
+S(f)   = grip*rho(f)*muY/kY
 ```
 
-`rho(1) = 2-a`, so at `X = 1` the slip `S` is the plateau's start, `grip*PY`. `grip` is the gripFactor of the material
+`rho(1) = 2-a`, so at full input and `X = 1` the slip `S` is the plateau's start, `grip*PY`. `grip` is the gripFactor of the material
 sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate domain
 or on no material), so the angle changes only where the material changes and not at landing. With the steering
 actuator `u` in `[-1,1]`, the body's yaw rate `r`, rack bound `M` in `(0, pi/2)`, the steering low-speed
 regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` and the lever `lever`:
 
 ```text
-L          = min(M, atan(S(X)))
+slip(u)    = sign(u)*min(M, atan(S(|u|*X)))
+L          = slip(1)
 wGrip      = X*grip*muY*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
 wRack      = hypot(bodyForwardSpeed,steeringV0)*tan(M-L)/wheelbase
 w(u)       = u*min(wGrip, wRack)
 lat        = frontLateralSpeed - lever*(r - w(u))
-frontSteer = clamp(atan2(lat,hypot(frontForwardSpeed,steeringV0)),-(M-L),M-L) + u*L
+frontSteer = clamp(atan2(lat,hypot(frontForwardSpeed,steeringV0)),-(M-L),M-L) + slip(u)
 ```
 
 Each speed is a velocity's component along the body's forward or right axis: the body's at its centre of mass, the
 front's at the front reach point of the pre-steer front contact observation (its `reachVelocity`). `S` is the tangent
-of a slip angle (the tire law's `sy = -vy/U`), so `L` is that angle. The input scales `L` rather than being cut at it:
-the whole actuator range spans zero to `L`, and `|frontSteer| <= M` by construction. `L` does not depend on speed. What
-widens the angle is the travel-direction term: while the vehicle moves, the yaw rate the input commands (`w(u)`) turns
-the travel direction the rack follows, up to its range `M-L`, and the input reaches the whole rack from about 7 to
-10 km/h. At standstill and walking pace there is little travel to follow, so with the front reference the input moves
-the front wheel through about `L` alone (some 4.7° on dry asphalt at 95 %).
+of a slip angle (the tire law's `sy = -vy/U`), so `slip(u)` is that angle: zero at zero input, rising continuously and
+monotonically with `|u|` to `L` at full input, and `|frontSteer| <= M` by construction. `L` does not depend on speed.
+What widens the angle is the travel-direction term: while the vehicle moves, it turns the travel direction the rack
+follows, up to its range `M-L`. With the front reference the front wheel turns through `slip(u)` alone only at
+standstill (`L`, 4.7° on dry asphalt at 95 % and 5.7° at 100 %); once the vehicle moves, the turn it starts turns the
+front wheel's travel direction, and full input reaches the whole rack (65°) from about 10–12 km/h. With the centre
+reference the yaw rate asked for turns it even at standstill: `lat = frontAxle*w(u)`, with `w` the rack's turn at
+`steeringV0`, moves the front wheel through 38–52° at 95 % (by vehicle, with its front axle's share of the wheelbase),
+and full input reaches the whole rack from about 8–10 km/h.
 
 The front wheel is the rule's essence. With `lever = 0`, while the travel direction is within the rack and the speed is
-well above `steeringV0`, the tangent of the front tire's slip is `u*S(X)`: zero input leaves the front tire without
-slip and full input sets it at the fraction `X` of its lateral bound, whatever the yaw rate. Measuring from the front
+well above `steeringV0`, the tangent of the front tire's slip is `S(|u|*X)`: zero input leaves the front tire without
+slip and input `u` sets it at the fraction `|u|*X` of its lateral bound, whatever the yaw rate. Since `w(u)` asks the
+same fraction of the grip's turn, the steady turn on flat ground meets the yaw rate asked for at every input, and the
+yaw-rate term below stays zero there. Scaling the full input's slip `L` by `u` instead would ask more force than that
+below full input wherever `rho(X)` lies beyond the knee, the linear part's force being `u*rho(X)` against `u*X`: 26 %
+more at `X = 1` and 8.6 % at 95 %. The knee stays for the feel of the limit coming. Measuring from the front
 wheel's own travel direction also takes away the front tire's yaw damping, which a fixed steering angle has: the front
 tire's slip `frontSteer - beta - frontAxle*r/V` falls as the yaw rate rises. The yaw-rate term `lever*(r - w(u))`
 restores that damping against the departure from the turn the input asks for: it turns the direction the slip is

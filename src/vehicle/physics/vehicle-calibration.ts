@@ -19,11 +19,9 @@ export function createVehicleSteeringCalibration(
 
 /**
  * The steering rule of whoever drives the vehicle, as the vehicle step applies it: the lever in metres from the
- * reference position to the front axle, the front tire's utilization `X` at full input, and the normalized radial demand
- * `rho(X)` at which the front tire's pure-lateral slip reaches it.
+ * reference position to the front axle and the front tire's utilization `X` at full input.
  */
 export interface DriverSteering {
   readonly lever: number;
   readonly utilization: number;
-  readonly limitDemand: number;
 }

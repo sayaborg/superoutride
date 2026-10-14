@@ -1,5 +1,4 @@
 import { DefinitionDomainError } from '../core/admission.js';
-import { radialKneeInverse } from './physics/tire-friction-calibration.js';
 import type { DriverSteering } from './physics/vehicle-calibration.js';
 import type { VehicleModel } from './physics/vehicle-model.js';
 
@@ -26,12 +25,11 @@ export function createSteeringRule(reference: SteeringReference, utilization: nu
 
 /**
  * A steering rule as the step of `model`'s vehicle applies it: the reference's lever (0 at the front wheel, the front
- * axle's distance from the centre of mass at the centre) and the demand of its utilization under the model's tire.
+ * axle's distance from the centre of mass at the centre) and its utilization.
  */
 export function driverSteering(rule: SteeringRule, model: VehicleModel): Readonly<DriverSteering> {
   return Object.freeze({
     lever: rule.reference === 'front' ? 0 : model.compiledVehicle.frontAxle,
     utilization: rule.utilization,
-    limitDemand: radialKneeInverse(model.tire.rhoKnee, rule.utilization),
   });
 }
