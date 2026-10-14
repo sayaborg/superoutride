@@ -1,7 +1,8 @@
 import { ROLLING_SETTING_RANGES } from './tire-rolling-acoustics.js';
 
 /**
- * The friction system's input from what is rubbed: `roughness` scales its forcing and `susceptibility` its feedback.
+ * The friction system's input from what is rubbed, two fractions in [0, 1] of the friction settings' maxima:
+ * `roughness` of the forcing `noiseForcePerSecond` and `susceptibility` of the feedback `feedbackMaximumPerSecond`.
  * Listening values, NOT measured properties.
  */
 export type FrictionInput = Readonly<{ roughness: number; susceptibility: number }>;
@@ -16,14 +17,13 @@ export type SurfaceSound = Readonly<{
 }>;
 
 /**
- * The one value check of a friction input, for surfaces and walls alike: both numbers finite and at least 0, and
- * `susceptibility` at most 1. Returns a detached frozen record.
+ * The one value check of a friction input, for surfaces and walls alike: both numbers within [0, 1]. Returns a
+ * detached frozen record.
  */
 export function compileFrictionInput({ roughness, susceptibility }: FrictionInput): FrictionInput {
   for (const value of [roughness, susceptibility])
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-      throw new RangeError('invalid friction input: values must be finite and nonnegative');
-  if (susceptibility > 1) throw new RangeError('invalid friction input: susceptibility');
+    if (typeof value !== 'number' || !(value >= 0 && value <= 1))
+      throw new RangeError('invalid friction input: roughness and susceptibility must be within [0, 1]');
   return Object.freeze({ roughness, susceptibility });
 }
 
@@ -43,8 +43,8 @@ export const SURFACE_SOUND_LIMIT = 256;
 
 /**
  * The one value check of a surface sound: every number finite and at least 0, `textureLengthMeters` above 0,
- * `low`, `high` and `textureDepth` within `ROLLING_PALETTE_LIMITS` and `susceptibility` at most 1. Returns a detached
- * frozen record.
+ * `low`, `high` and `textureDepth` within `ROLLING_PALETTE_LIMITS` and the friction input within [0, 1]. Returns a
+ * detached frozen record.
  */
 export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
   const { rolling } = record;

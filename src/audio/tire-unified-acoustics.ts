@@ -15,7 +15,8 @@ export const UNIFIED_SYNTHESIS = Object.freeze({
 export const UNIFIED_SETTING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: { min: 2000, max: 12000, step: 100 },
   powerReferenceWatts: { min: 3000, max: 30000, step: 500 },
-  noiseForcePerSecond: { min: 0, max: 2400, step: 25 },
+  // The forcing of the roughest friction input (roughness 1) at full work.
+  noiseForcePerSecond: { min: 0, max: 4800, step: 50 },
   lowFrequencyHz: { min: 275, max: 600, step: 5 },
   highFrequencyHz: { min: 800, max: 2400, step: 25 },
   // Displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.

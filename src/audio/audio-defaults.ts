@@ -48,7 +48,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
   unified: Object.freeze<UnifiedSettings>({
     feedbackMaximumPerSecond: 8500,
     powerReferenceWatts: 12000,
-    noiseForcePerSecond: 1200,
+    noiseForcePerSecond: 2400,
     lowFrequencyHz: 300,
     highFrequencyHz: 1000,
     outputGainPerSecond: 900,
@@ -66,7 +66,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
   scrape: Object.freeze<ScrapeSettings>({
     feedbackMaximumPerSecond: 8500,
     powerReferenceWatts: 90000,
-    noiseForcePerSecond: 1200,
+    noiseForcePerSecond: 2400,
     lowFrequencyHz: 300,
     highFrequencyHz: 1000,
     outputGainPerSecond: 900,

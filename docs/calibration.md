@@ -226,7 +226,7 @@ accepts `(0,0.5]`.
 | --------------------------- | --------------------------------------------------------- | --------------------- | -------------------- |
 | `feedbackMaximumPerSecond`  | Maximum positive friction feedback                        | 8500 s⁻¹              | 2000–12000 / 100     |
 | `powerReferenceWatts`       | Work half-response                                        | 12000 W               | 3000–30000 W / 500 W |
-| `noiseForcePerSecond`       | Colored-force scale                                       | 1200 s⁻¹              | 0–2400 / 25          |
+| `noiseForcePerSecond`       | Colored force of the roughest input (roughness 1)         | 2400 s⁻¹              | 0–4800 / 50          |
 | `lowFrequencyHz`            | Low passive-mode frequency                                | 300 Hz                | 275–600 Hz / 5 Hz    |
 | `highFrequencyHz`           | High passive-mode frequency                               | 1000 Hz               | 800–2400 Hz / 25 Hz  |
 | `outputGainPerSecond`       | Displacement-pickup gain                                  | 900 s⁻¹               | 0–1800 / 25          |
@@ -297,16 +297,17 @@ width is kept inside the noise band's numerical domain.
 | `outputHz`            | Rolling output low-pass cutoff        | 900 Hz  | 225–3600 Hz / 25     |
 | `dcHz`                | Rolling output DC removal             | 18 Hz   | 5–60 Hz / 1          |
 
-The [surface-sound document](../content/surface-sounds/default.json) holds these values.
+The [surface-sound document](../content/surface-sounds/default.json) holds these values. Friction roughness and
+susceptibility are the [friction input](tire-audio.md#work-and-slip-mapping)'s fractions in [0, 1].
 
 | Surface     | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
 | ----------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
-| ASPHALT     | 0.9         | 0.18         | 0.3 m          | 0.12          | 1                  | 1                       |
-| WET_ASPHALT | 0.9         | 0.36         | 0.3 m          | 0.12          | 1                  | 0.7                     |
-| SHOULDER    | 0.85        | 0.7          | 0.6 m          | 0.4           | 1.3                | 0.4                     |
-| GRASS       | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.75               | 0.04                    |
-| DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 1.5                | 0.12                    |
-| SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 1.1                | 0.02                    |
+| ASPHALT     | 0.9         | 0.18         | 0.3 m          | 0.12          | 0.5                | 1                       |
+| WET_ASPHALT | 0.9         | 0.36         | 0.3 m          | 0.12          | 0.5                | 0.7                     |
+| SHOULDER    | 0.85        | 0.7          | 0.6 m          | 0.4           | 0.65               | 0.4                     |
+| GRASS       | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.375              | 0.04                    |
+| DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 0.75               | 0.12                    |
+| SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 0.55               | 0.02                    |
 
 WET_ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
 about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, _Tyre/Road Noise Reference Book_, 2002), taken
@@ -319,10 +320,10 @@ implementer's values, not chosen by listening. Course limits use `limit`.
 
 | Wall sound  | Meant for            | Friction roughness | Friction susceptibility |
 | ----------- | -------------------- | ------------------ | ----------------------- |
-| `limit`     | Every course limit   | 1                  | 0.5                     |
-| `guardrail` | Guardrails           | 1                  | 1                       |
-| `rock`      | Rock and cliff faces | 2                  | 0.2                     |
-| `wall`      | Low walls            | 1.5                | 0.5                     |
+| `limit`     | Every course limit   | 0.5                | 0.5                     |
+| `guardrail` | Guardrails           | 0.5                | 1                       |
+| `rock`      | Rock and cliff faces | 1                  | 0.2                     |
+| `wall`      | Low walls            | 0.75               | 0.5                     |
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), and the noise band's numerical domain

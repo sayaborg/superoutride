@@ -4,16 +4,16 @@
   "courseLimit": "limit",
   "walls": {
     "limit": {
-      "friction": { "roughness": 1, "susceptibility": 0.5 }
+      "friction": { "roughness": 0.5, "susceptibility": 0.5 }
     },
     "guardrail": {
-      "friction": { "roughness": 1, "susceptibility": 1 }
+      "friction": { "roughness": 0.5, "susceptibility": 1 }
     },
     "rock": {
-      "friction": { "roughness": 2, "susceptibility": 0.2 }
+      "friction": { "roughness": 1, "susceptibility": 0.2 }
     },
     "wall": {
-      "friction": { "roughness": 1.5, "susceptibility": 0.5 }
+      "friction": { "roughness": 0.75, "susceptibility": 0.5 }
     }
   }
 }
