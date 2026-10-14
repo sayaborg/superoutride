@@ -1,5 +1,5 @@
 import { snapCourseValue, type CourseChange } from './course-edits.js';
-import { combineCourseElements, sectionShift } from './course-forms.js';
+import { combineCourseElements, readShift, sectionShift } from './course-forms.js';
 import {
   readCourseSection,
   readCourseStructure,
@@ -213,8 +213,8 @@ function readingShift(before: Reading, after: Reading): number {
 /** A Section's move between readings: paired by element, else (when elements were renumbered) in order. */
 function shiftBetween(before: Reading, after: Reading) {
   const paired = readingShift(before, after);
-  if (Number.isFinite(paired) || !samePlan(before.plan, after.plan)) return paired;
-  return sectionShift(before.structure, after.structure) ?? Infinity;
+  if (Number.isFinite(paired) || !samePlan(before.plan, after.plan)) return readShift(paired);
+  return readShift(sectionShift(before.structure, after.structure) ?? Infinity);
 }
 
 /** The largest distance from the old centreline, sampled every 2 m, to the new one. */
@@ -225,7 +225,7 @@ function centrelineShift(before: SectionPlan | null, after: SectionPlan | null) 
     const p = before.toWorld(s, 0);
     shift = Math.max(shift, Math.abs(after.nearest(p.x, p.z).l));
   }
-  return shift;
+  return readShift(shift);
 }
 
 /** The Section index a Pointer is in. */
@@ -347,7 +347,7 @@ const KNOTS: readonly CourseElementKind[] = ['boundary-knot', 'wall-strip-knot',
 
 /**
  * Middle knots (of Boundaries, Strips and wall Strips) and PVIs whose removal leaves every resolved line, wall height
- * and the road height within `tolerance` (0: exactly the same). Each is removed alone to measure it; the first and last
+ * and the road height within `tolerance` (0: the same within the reading arithmetic, `readShift`). Each is removed alone to measure it; the first and last
  * knots bound their line and stay.
  */
 export function unneededKnotCandidates(

@@ -641,7 +641,9 @@ measuring the resolved form are separate: points written in sequences (knots, ve
 they resolve to, the lines and the profile, never against a renumbered neighbour; and a plan is the same only when its
 centreline, sampled every 2 m, is (a radius or a turn changes it while keeping every length). The centreline and the road height are compared at
 samples 2 m apart, an author value: their shift is the largest difference at the samples, an approximation that a
-difference between samples can exceed, not a bound. The second, `applyCleaning`, applies the chosen candidates as one
+difference between samples can exceed, not a bound. A shift within `JOIN_TOLERANCE_METERS` (1e-6 m), the arithmetic of reading
+one form through two compilations, is none (`readShift`), for form operations too: a plan whose centreline moves no
+more is the same, and tolerance 0 means the same within it. The second, `applyCleaning`, applies the chosen candidates as one
 edit, returning the shift and each changed Section's centreline shift (the old centreline's largest distance from the
 new one) and length change. Every applied candidate changes the course's identity, so the measured products become
 stale; the driving changes only when the shift is not 0.
@@ -649,7 +651,7 @@ stale; the driving changes only when the shift is not 0.
 - `roundCandidates` rounds written numbers of chosen kinds (plan lengths, radii, Position offsets, laterals, lane and
   median widths, PVI heights, curve lengths, repeat spacings) to a step: each value off the step is a candidate.
 - `unneededKnotCandidates` proposes each middle knot of a Boundary or wall Strip, and each middle PVI, whose
-  removal moves nothing beyond a tolerance (0: exactly the same lines and heights). The first and last knots bound a
+  removal moves nothing beyond a tolerance (0: the same lines and heights). The first and last knots bound a
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary or lane line at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly

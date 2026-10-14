@@ -16,6 +16,7 @@ import type { WorkSlices } from '../../core/work-slices.js';
 /**
  * Metres: how close a solid wall's end must lie to a course limit or another solid wall to join it. It absorbs only the
  * arithmetic of reading one line through two compiled readers; authors join lines by referring to the same Boundary.
+ * Form and cleaning operations read a shift within it as none, for the same arithmetic (`readShift`).
  */
 export const JOIN_TOLERANCE_METERS = 1e-6;
 

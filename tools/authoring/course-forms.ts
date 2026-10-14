@@ -1,3 +1,4 @@
+import { JOIN_TOLERANCE_METERS } from '../../src/course/compiler/course-walls.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import type { CourseJoints } from '../../src/course/course-geometry.js';
@@ -121,6 +122,12 @@ function lineShift(a: ResolvedLine, b: ResolvedLine): number {
 }
 
 /**
+ * A measured shift as form and cleaning operations report it: one within `JOIN_TOLERANCE_METERS`, the arithmetic of
+ * reading one line through two compiled readers, is none.
+ */
+export const readShift = (shift: number) => (shift <= JOIN_TOLERANCE_METERS ? 0 : shift);
+
+/**
  * How far a Section's resolved elements move from one reading to another, pair by pair in their order (repeats as
  * expanded): plan points, stations where there is no plan point, heights of the profile and resolved lines. Null when
  * the readings do not pair up (an element is added or removed).
@@ -155,7 +162,7 @@ function measured(document: Json, edited: Json, section: number, edits: CourseCh
     readCourseSection(next, section).structure,
   );
   if (shift === null) throw new Error('A form operation must keep its Section readings paired');
-  return { ok: true, document: next, changes, shift };
+  return { ok: true, document: next, changes, shift: readShift(shift) };
 }
 
 /**
