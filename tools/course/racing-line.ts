@@ -9,6 +9,7 @@ import { racingLineExits, type RacingLineLaterals } from '../../src/content/raci
 import { wrapAngle } from '../../src/core/math.js';
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../src/course/geometry/plan-coordinate.js';
 import { invertPlanarTransform, type PlanarTransform } from '../../src/core/planar-transform.js';
+import { REFERENCE_DRIVER } from './reference-driving-policy.js';
 
 /**
  * The racing line procedure: its name, version and the values deciding its lines. The edge margin derives from the
@@ -17,13 +18,26 @@ import { invertPlanarTransform, type PlanarTransform } from '../../src/core/plan
 export function racingLineProcedure(widestVehicle: number) {
   return Object.freeze({
     name: 'superoutride.racing-line',
-    version: 2,
+    version: 3,
+    /**
+     * Per square metre: the length weights λ the lines are solved for, ascending from 0 (the minimum-curvature lines),
+     * each from the lines of the one before; the one whose lines the timing driver drives fastest is chosen. Author
+     * values: the length term weighs as much as the squared curvature of a turn of radius `1/√λ`, here four to a
+     * decade from 316 m, gentler than a turn that limits speed, to 3.2 m, tighter than any road, where the lines are
+     * all but the shortest.
+     */
+    lengthWeights: Object.freeze([
+      0,
+      ...Array.from({ length: 17 }, (_, k) => Number((10 ** (-5 + k / 4)).toPrecision(3))),
+    ]),
+    /** The driver that times the lines: the reference driver, whose plan's speeds time them (`plannedLineSeconds`). */
+    driver: REFERENCE_DRIVER,
     /** Metres kept inside the road's edges: half the catalog's widest vehicle plus 0.3 m. */
     edgeMargin: Math.round((widestVehicle / 2 + 0.3) * 1e6) / 1e6,
     /**
-     * Linearisations of the path curvature at most, each solved to completion; the laterals move toward each solution
-     * by the longest step of 1, 1/2, 1/4, … (at most `halvings` halvings) that lowers the summed squared curvature, and
-     * the passes stop once one moves no lateral by more than the saved `resolution`, or no step lowers it.
+     * Linearisations of the objective at most, each solved to completion; the laterals move toward each solution by
+     * the longest step of 1, 1/2, 1/4, … (at most `halvings` halvings) that lowers the objective, and the passes stop
+     * once one moves no lateral by more than the saved `resolution`, or no step lowers it.
      */
     passes: 50,
     halvings: 20,
@@ -52,38 +66,61 @@ interface Line {
 }
 
 /**
- * One curvature term, `m κ²` at the middle of three consecutive samples, each the point of lateral
- * `l_j = x[variables[j]] + offsets[j]` at station `stations[j]` of its Section's plan coordinates: `κ` the path's
- * curvature as the planned driver reads it, the heading change of the chord to the third point from the chord from the
- * first over the chords' mean length `m`. The term is the square of its residual `√m κ`, linearised at the current
- * laterals as `constant + Σ coefficients_j x[variables[j]]`.
+ * A term of the linearised objective: the square of its residual `constant + Σ coefficients_j x[variables[j]]`, over
+ * consecutive samples, each the point of lateral `l_j = x[variables[j]] + offsets[j]` at station `stations[j]` of its
+ * Section's plan coordinates.
  */
 interface Term {
-  readonly coordinates: readonly [PlanCoordinateReader, PlanCoordinateReader, PlanCoordinateReader];
-  readonly stations: readonly [number, number, number];
-  readonly variables: readonly [number, number, number];
-  readonly offsets: readonly [number, number, number];
-  /**
-   * A term across a seam, whose points lie on two lines, places its beginning line's points in the ending line's frame
-   * by the Link's rigid motion, since each Section's plan coordinates are its own frame; null within one line.
-   */
-  readonly frame: PlanarTransform | null;
+  readonly coordinates: readonly PlanCoordinateReader[];
+  readonly stations: readonly number[];
+  readonly variables: readonly number[];
+  readonly offsets: readonly number[];
   readonly coefficients: Float64Array;
   constant: number;
 }
 
 /**
- * The racing lines of `course`: for each Section a lateral at each schedule station (its 5 m stations and its end), and
- * for a fork Section one per exit. They minimise the summed squared path curvature, measured on the chords between
- * the stations' points as the planned driver reads it, kept within the road each line drives less the edge margin, solved jointly
- * over the course graph as one sparse problem: every seam shares one lateral among the lines ending and beginning
- * there, and curvature terms span each seam, so the slope carries across it.
- *
- * Each pass linearises the path curvature at the current laterals, solves the box-constrained quadratic by a
- * primal–dual interior-point method and steps toward its solution as far as lowers the summed squared curvature; each Newton step eliminates every line's inner samples, a banded system per line,
- * leaving a small dense system over the samples at and beside seams.
+ * A curvature term, `m κ²` at the middle of three samples: `κ` the path's curvature as the planned driver reads it, the
+ * heading change of the chord to the third point from the chord from the first over the chords' mean length `m`. Its
+ * residual is `√m κ`.
  */
-export function solveRacingLines(course: CompiledCourse, procedure: RacingLineProcedure): RacingLineLaterals {
+interface CurvatureTerm extends Term {
+  /**
+   * A term across a seam, whose points lie on two lines, places its beginning line's points in the ending line's frame
+   * by the Link's rigid motion, since each Section's plan coordinates are its own frame; null within one line.
+   */
+  readonly frame: PlanarTransform | null;
+}
+
+/** A racing line solution and its timing: the lines, their length weight, and each timing vehicle's seconds. */
+export interface RacingLineSolution {
+  readonly laterals: RacingLineLaterals;
+  readonly lengthWeight: number;
+  readonly seconds: readonly number[];
+  /** Each timing vehicle's seconds on the minimum-curvature lines (length weight 0). */
+  readonly minimumCurvatureSeconds: readonly number[];
+}
+
+/**
+ * The racing lines of `course`: for each Section a lateral at each schedule station (its 5 m stations and its end), and
+ * for a fork Section one per exit. For a length weight λ they minimise `Σ m κ² + λ Σ len`: the summed squared path
+ * curvature, measured on the chords between the stations' points as the planned driver reads it and weighted by the
+ * chords' mean length, plus λ times the lines' length, the sum of their chords. They are kept within the road each line
+ * drives less the edge margin and solved jointly over the course graph as one sparse problem: every seam shares one
+ * lateral among the lines ending and beginning there, and curvature terms span each seam, so the slope carries across
+ * it. Of the procedure's length weights, the one whose lines `time` (each timing vehicle's seconds on them) sums least
+ * is chosen, the smaller on a tie.
+ *
+ * Each pass linearises the objective at the current laterals (each curvature term's residual, and each chord's length
+ * to second order), solves the box-constrained quadratic by a primal–dual interior-point method and steps toward its
+ * solution as far as lowers the objective; each Newton step eliminates every line's inner samples, a banded system
+ * per line, leaving a small dense system over the samples at and beside seams.
+ */
+export function solveRacingLines(
+  course: CompiledCourse,
+  procedure: RacingLineProcedure,
+  time: (laterals: RacingLineLaterals) => readonly number[],
+): RacingLineSolution {
   const lines: Line[] = [];
   let count = 0;
   // The seam at each Section's start that some Link enters: one variable in that Section's frame.
@@ -123,43 +160,61 @@ export function solveRacingLines(course: CompiledCourse, procedure: RacingLinePr
       lower[v] = middle - procedure.leastWidth / 2;
       upper[v] = middle + procedure.leastWidth / 2;
     }
-  const terms = curvatureTerms(lines);
-  const system = createSystem(lines, terms, count);
+  const curvatures = curvatureTerms(lines);
+  const chords = chordTerms(lines);
+  const terms = [...curvatures, ...chords];
+  const system = createSystem(lines, curvatures, terms, count);
   const x = new Float64Array(count),
     solution = new Float64Array(count),
-    trial = new Float64Array(count);
+    trial = new Float64Array(count),
+    linear = new Float64Array(count);
   for (let v = 0; v < count; v++) x[v] = (lower[v]! + upper[v]!) / 2;
-  let total = linearise(terms, x);
-  for (let pass = 0; pass < procedure.passes; pass++) {
-    solution.set(x);
-    interiorPoint(system, terms, solution, lower, upper, procedure);
-    // The longest step toward the solution that lowers the total; the bounds are a box, so every step keeps them.
-    let next = Infinity;
-    for (let halving = 0, step = 1; halving <= procedure.halvings && !(next < total); halving++, step /= 2) {
-      for (let v = 0; v < count; v++) trial[v] = x[v]! + step * (solution[v]! - x[v]!);
-      next = linearise(terms, trial);
+  // Minimise the objective at length weight `weight` from the current laterals.
+  const minimise = (weight: number) => {
+    const objective = (at: Float64Array) =>
+      linearise(curvatures, at) + weight * lineariseChords(chords, weight, at, linear);
+    let total = objective(x);
+    for (let pass = 0; pass < procedure.passes; pass++) {
+      solution.set(x);
+      interiorPoint(system, terms, linear, solution, lower, upper, procedure);
+      // The longest step toward the solution that lowers the total; the bounds are a box, so every step keeps them.
+      let next = Infinity;
+      for (let halving = 0, step = 1; halving <= procedure.halvings && !(next < total); halving++, step /= 2) {
+        for (let v = 0; v < count; v++) trial[v] = x[v]! + step * (solution[v]! - x[v]!);
+        next = objective(trial);
+      }
+      if (!(next < total)) break;
+      let moved = 0;
+      for (let v = 0; v < count; v++) moved = Math.max(moved, Math.abs(trial[v]! - x[v]!));
+      x.set(trial);
+      total = next;
+      if (moved <= procedure.resolution) break;
     }
-    if (!(next < total)) {
-      linearise(terms, x);
-      break;
-    }
-    let moved = 0;
-    for (let v = 0; v < count; v++) moved = Math.max(moved, Math.abs(trial[v]! - x[v]!));
-    x.set(trial);
-    total = next;
-    if (moved <= procedure.resolution) break;
-  }
+  };
   const scale = 1 / procedure.resolution;
-  const sections = new Map<string, Map<string | null, readonly number[]>>();
-  for (const line of lines) {
-    const laterals = line.stations.map(
-      (_, i) => Math.round((x[line.variables[i]!]! + line.offsets[i]!) * scale) / scale + 0,
-    );
-    const byExit = sections.get(line.section.id) ?? new Map<string | null, readonly number[]>();
-    byExit.set(line.section.fork ? line.link!.id : null, laterals);
-    sections.set(line.section.id, byExit);
+  const lateralsOf = (): RacingLineLaterals => {
+    const sections = new Map<string, Map<string | null, readonly number[]>>();
+    for (const line of lines) {
+      const laterals = line.stations.map(
+        (_, i) => Math.round((x[line.variables[i]!]! + line.offsets[i]!) * scale) / scale + 0,
+      );
+      const byExit = sections.get(line.section.id) ?? new Map<string | null, readonly number[]>();
+      byExit.set(line.section.fork ? line.link!.id : null, laterals);
+      sections.set(line.section.id, byExit);
+    }
+    return sections;
+  };
+  const sum = (seconds: readonly number[]) => seconds.reduce((total, value) => total + value, 0);
+  let chosen: Omit<RacingLineSolution, 'minimumCurvatureSeconds'> | null = null,
+    minimumCurvatureSeconds: readonly number[] = [];
+  for (const lengthWeight of procedure.lengthWeights) {
+    minimise(lengthWeight);
+    const laterals = lateralsOf();
+    const seconds = time(laterals);
+    if (lengthWeight === 0) minimumCurvatureSeconds = seconds;
+    if (!chosen || sum(seconds) < sum(chosen.seconds)) chosen = { laterals, lengthWeight, seconds };
   }
-  return sections;
+  return { ...chosen!, minimumCurvatureSeconds };
 }
 
 /**
@@ -196,14 +251,14 @@ function roadBounds(line: Line, s: number, margin: number): [number, number] {
  * The curvature terms: one at each interior sample of every line, and one at each seam for every line ending there and
  * every line beginning there.
  */
-function curvatureTerms(lines: readonly Line[]): Term[] {
-  const terms: Term[] = [];
+function curvatureTerms(lines: readonly Line[]): CurvatureTerm[] {
+  const terms: CurvatureTerm[] = [];
   const add = (points: readonly (readonly [Line, number])[], frame: PlanarTransform | null) =>
     terms.push({
-      coordinates: points.map(([line]) => line.section.coordinates) as unknown as Term['coordinates'],
-      stations: points.map(([line, i]) => line.stations[i]!) as unknown as Term['stations'],
-      variables: points.map(([line, i]) => line.variables[i]!) as unknown as Term['variables'],
-      offsets: points.map(([line, i]) => line.offsets[i]!) as unknown as Term['offsets'],
+      coordinates: points.map(([line]) => line.section.coordinates),
+      stations: points.map(([line, i]) => line.stations[i]!),
+      variables: points.map(([line, i]) => line.variables[i]!),
+      offsets: points.map(([line, i]) => line.offsets[i]!),
       frame,
       coefficients: new Float64Array(3),
       constant: 0,
@@ -245,7 +300,7 @@ function curvatureTerms(lines: readonly Line[]): Term[] {
  * `Σ m κ²`. A point moves with its lateral along its plan normal `N`, so each chord `d` turns by `(d × N)/|d|²` and
  * lengthens by `(d · N)/|d|` per metre of either end's lateral, and the residual by `(Δφ' − κ m'/2)/√m`.
  */
-function linearise(terms: readonly Term[], x: Float64Array): number {
+function linearise(terms: readonly CurvatureTerm[], x: Float64Array): number {
   const sample = createPlanCoordinateSample();
   const px = [0, 0, 0],
     pz = [0, 0, 0],
@@ -253,7 +308,7 @@ function linearise(terms: readonly Term[], x: Float64Array): number {
     nz = [0, 0, 0];
   let total = 0;
   for (const term of terms) {
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < term.variables.length; j++) {
       const point = term.coordinates[j]!.toWorld(term.stations[j]!, x[term.variables[j]!]! + term.offsets[j]!, sample);
       px[j] = point.x;
       pz[j] = point.z;
@@ -293,11 +348,65 @@ function linearise(terms: readonly Term[], x: Float64Array): number {
     ];
     const root = Math.sqrt(m);
     term.constant = root * kappa;
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < term.variables.length; j++) {
       term.coefficients[j] = (turns[j]! - (kappa * lengths[j]!) / 2) / root;
       term.constant -= term.coefficients[j]! * x[term.variables[j]!]!;
     }
     total += m * kappa * kappa;
+  }
+  return total;
+}
+
+/** The chord terms: one between each pair of consecutive samples of every line, in the line's frame. */
+function chordTerms(lines: readonly Line[]): Term[] {
+  const terms: Term[] = [];
+  for (const line of lines)
+    for (let i = 0; i + 1 < line.stations.length; i++)
+      terms.push({
+        coordinates: [line.section.coordinates, line.section.coordinates],
+        stations: [line.stations[i]!, line.stations[i + 1]!],
+        variables: [line.variables[i]!, line.variables[i + 1]!],
+        offsets: [line.offsets[i]!, line.offsets[i + 1]!],
+        coefficients: new Float64Array(2),
+        constant: 0,
+      });
+  return terms;
+}
+
+/**
+ * Model `weight` times each chord's length to second order at the laterals `x`, and return the summed length there. A
+ * chord `d` between points that move along their plan normals `N` lengthens by `±(d · N)/|d|` per metre of either end's
+ * lateral, which `linear` collects as the model's constant gradient, and its length's curvature is `(t · ΔN)²/|d|`
+ * along the unit normal `t` of `d`, which the chord's residual carries: `√(weight/(2|d|)) t · (N_b Δl_b − N_a Δl_a)`.
+ */
+function lineariseChords(chords: readonly Term[], weight: number, x: Float64Array, linear: Float64Array): number {
+  const sample = createPlanCoordinateSample();
+  linear.fill(0);
+  let total = 0;
+  for (const chord of chords) {
+    const a = chord.coordinates[0]!.toWorld(chord.stations[0]!, x[chord.variables[0]!]! + chord.offsets[0]!, sample);
+    const ax = a.x,
+      az = a.z,
+      ha = a.heading;
+    const b = chord.coordinates[1]!.toWorld(chord.stations[1]!, x[chord.variables[1]!]! + chord.offsets[1]!, sample);
+    const dx = b.x - ax,
+      dz = b.z - az,
+      length = Math.hypot(dx, dz);
+    // The ends' normals, the chord's direction and its unit normal.
+    const nax = Math.cos(ha),
+      naz = -Math.sin(ha),
+      nbx = Math.cos(b.heading),
+      nbz = -Math.sin(b.heading);
+    const ux = dx / length,
+      uz = dz / length;
+    linear[chord.variables[0]!]! -= weight * (ux * nax + uz * naz);
+    linear[chord.variables[1]!]! += weight * (ux * nbx + uz * nbz);
+    const scale = Math.sqrt(weight / (2 * length));
+    chord.coefficients[0] = -scale * (uz * nax - ux * naz);
+    chord.coefficients[1] = scale * (uz * nbx - ux * nbz);
+    chord.constant =
+      -chord.coefficients[0]! * x[chord.variables[0]!]! - chord.coefficients[1]! * x[chord.variables[1]!]!;
+    total += length;
   }
   return total;
 }
@@ -310,7 +419,12 @@ const coefficient = (term: Term, j: number) => term.coefficients[j]!;
  * in order) as one band of width two, and the border variables (every seam, and each sample beside one) apart. Inner
  * variables of different lines never share a term.
  */
-function createSystem(lines: readonly Line[], terms: readonly Term[], count: number) {
+function createSystem(
+  lines: readonly Line[],
+  curvatures: readonly CurvatureTerm[],
+  terms: readonly Term[],
+  count: number,
+) {
   const borderOf = new Int32Array(count).fill(-1),
     innerOf = new Int32Array(count).fill(-1),
     blockOf = new Int32Array(count).fill(-1);
@@ -319,7 +433,7 @@ function createSystem(lines: readonly Line[], terms: readonly Term[], count: num
     if (borderOf[v]! < 0) borderOf[v] = border.push(v) - 1;
   };
   // Every variable of a term reaching across a seam, and every seam, is a border variable.
-  for (const term of terms) if (term.frame) term.variables.forEach(addBorder);
+  for (const term of curvatures) if (term.frame) term.variables.forEach(addBorder);
   for (const line of lines) {
     if (line.section.incoming.length) addBorder(line.variables[0]!);
     if (line.link) addBorder(line.variables[line.variables.length - 1]!);
@@ -360,12 +474,13 @@ function createSystem(lines: readonly Line[], terms: readonly Term[], count: num
 type RacingLineSystem = ReturnType<typeof createSystem>;
 
 /**
- * Minimise the linearised `Σ (√m κ)²` within `lower ≤ x ≤ upper` from `x`, writing the minimiser to `x`: a primal–dual
- * interior-point method on the bound slacks, with a fixed centring.
+ * Minimise the linearised objective, the terms' squared residuals plus `linear · x`, within `lower ≤ x ≤ upper` from
+ * `x`, writing the minimiser to `x`: a primal–dual interior-point method on the bound slacks, with a fixed centring.
  */
 function interiorPoint(
   system: RacingLineSystem,
   terms: readonly Term[],
+  linear: Float64Array,
   x: Float64Array,
   lower: Float64Array,
   upper: Float64Array,
@@ -386,11 +501,12 @@ function interiorPoint(
     dzLower = new Float64Array(n),
     dzUpper = new Float64Array(n);
   for (let iteration = 0; iteration < procedure.iterations; iteration++) {
-    gradient.fill(0);
+    gradient.set(linear);
     for (const term of terms) {
       let residual = term.constant;
-      for (let j = 0; j < 3; j++) residual += coefficient(term, j) * x[term.variables[j]!]!;
-      for (let j = 0; j < 3; j++) gradient[term.variables[j]!]! += 2 * coefficient(term, j) * residual;
+      for (let j = 0; j < term.variables.length; j++) residual += coefficient(term, j) * x[term.variables[j]!]!;
+      for (let j = 0; j < term.variables.length; j++)
+        gradient[term.variables[j]!]! += 2 * coefficient(term, j) * residual;
     }
     let gap = 0;
     for (let v = 0; v < n; v++) gap += (x[v]! - lower[v]!) * zLower[v]! + (upper[v]! - x[v]!) * zUpper[v]!;
@@ -448,10 +564,10 @@ function solveNewton(
   });
   // The border-to-border Hessian.
   for (const term of terms)
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < term.variables.length; j++) {
       const p = borderOf[term.variables[j]!]!;
       if (p < 0) continue;
-      for (let k = 0; k < 3; k++) {
+      for (let k = 0; k < term.variables.length; k++) {
         const q = borderOf[term.variables[k]!]!;
         if (q >= 0) schur[p * size + q]! += 2 * coefficient(term, j) * coefficient(term, k);
       }
@@ -464,11 +580,11 @@ function solveNewton(
     const columns = new Map<number, Float64Array>();
     for (const p of block.coupled) columns.set(p, new Float64Array(m));
     for (const term of block.terms)
-      for (let j = 0; j < 3; j++) {
+      for (let j = 0; j < term.variables.length; j++) {
         const vj = term.variables[j]!;
         if (blockOf[vj] !== block.index) continue;
         const i = innerOf[vj]!;
-        for (let k = 0; k < 3; k++) {
+        for (let k = 0; k < term.variables.length; k++) {
           const vk = term.variables[k]!,
             value = 2 * coefficient(term, j) * coefficient(term, k);
           if (borderOf[vk]! >= 0) columns.get(borderOf[vk]!)![i]! += value;

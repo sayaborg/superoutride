@@ -5,13 +5,14 @@ import path from 'node:path';
 import { compileContent, type CompiledContent } from '../authoring/compile-content.js';
 import { createNodeContentStore, CONTENT_ROOT } from '../build/node-content-store.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { createRunVehicle } from '../../src/content/run-vehicle.js';
+import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { atomicWrite, options, reportError, requireCompiled, requireInput } from './authoring-io.js';
 import { procedureSha256 } from './procedure.js';
 import { referenceProcedure, runCourseReference } from './reference-run.js';
-import { racingLineProcedure, solveRacingLines } from './racing-line.js';
-import { racingLineDocument, readRacingLines } from '../../src/content/racing-line.js';
+import { racingLineProcedure } from './racing-line.js';
+import { readRacingLines } from '../../src/content/racing-line.js';
+import { measureRacingLines, racingLineVehicles } from './measured-products.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { planMeasurement, type MeasureJob, type MeasureResult } from '../authoring/measure.js';
 
@@ -125,8 +126,23 @@ async function trace(args: readonly string[]) {
     Math.max(...content.definitions.vehicles.map((candidate) => candidate.compiledVehicle.footprint)),
   );
   const lineSha256 = await procedureSha256(lineProcedure);
+  const timing = [];
+  for (const vehicleId of racingLineVehicles(
+    course.id,
+    content.seriesClasses,
+    content.definitions.vehicles.map((candidate) => candidate.compiledVehicle.id),
+  )) {
+    const timed = createRunVehicle(
+      content.definitions.vehicles.find((candidate) => candidate.compiledVehicle.id === vehicleId)!,
+      content.definitions.driving,
+    );
+    timing.push({ vehicleId, vehicleSha256: await runVehicleSha256(timed, content.materials), vehicle: timed });
+  }
   const lines = requireLoaded(
-    readRacingLines(course, racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))),
+    readRacingLines(
+      course,
+      measureRacingLines(course, lineProcedure, lineSha256, timing, content.definitions.vehicles),
+    ),
   );
   const result = {
     format: 'superoutride.reference-run',

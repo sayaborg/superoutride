@@ -56,6 +56,13 @@ export interface RunMechanics {
   readonly speedCap: number;
 }
 
+/** A run vehicle's mechanics, as every run and its drivers build them. */
+export function createRunMechanics(runVehicle: RunVehicle): RunMechanics {
+  const model = createVehicleModel(runVehicle, SIM_DT);
+  const limits = createVehicleLimits(model);
+  return Object.freeze({ model, limits, speedCap: limits.speedCap(0) });
+}
+
 /** The run's resolved traffic: metres between traffic positions and the candidates drawn for them. */
 export interface ResolvedTraffic {
   readonly spacing: number;
@@ -171,11 +178,7 @@ export function resolveRunSetup(
   const mechanics = new Map<RunVehicle, RunMechanics>();
   const mechanicsOf = (runVehicle: RunVehicle) => {
     let resolved = mechanics.get(runVehicle);
-    if (!resolved) {
-      const model = createVehicleModel(runVehicle, SIM_DT);
-      const limits = createVehicleLimits(model);
-      mechanics.set(runVehicle, (resolved = Object.freeze({ model, limits, speedCap: limits.speedCap(0) })));
-    }
+    if (!resolved) mechanics.set(runVehicle, (resolved = createRunMechanics(runVehicle)));
     return resolved;
   };
   // Each vehicle's fixed driver, compiled once at the rival utilization and its speed cap: the runout check below, the

@@ -652,6 +652,31 @@ export function plannedSpeedAhead(
 }
 
 /**
+ * The first node of the driver's plan from route station `s` moving at `speed` along `lane` within `domain`, without a
+ * vehicle ahead: its station, the path length to it and the speed the plan allows there, written to `out`; null where
+ * the plan has no node ahead. A `smooth` path is planned on its own curvature. Stepping from node to node at the
+ * speeds it allows drives the plan's own speed profile, which times a path without the vehicle's dynamics.
+ */
+export function plannedNode(
+  road: DriverRoad,
+  s: number,
+  speed: number,
+  driver: PlannedDriver,
+  lane: Lane,
+  ws: Workspace,
+  domain: DrivingDomain,
+  smooth: boolean,
+  out: { s: number; distance: number; speed: number },
+): { s: number; distance: number; speed: number } | null {
+  plan(road, s, speed, driver, lane, ws, domain, null, 0, smooth);
+  if (ws.count === 0) return null;
+  out.s = ws.stations[1]!;
+  out.distance = ws.distances[1]!;
+  out.speed = Math.sqrt(ws.free[1]!);
+  return out;
+}
+
+/**
  * The driver's planned speed at route station `s` along `lane`, behind `leader` when one is given: its plan from its
  * speed cap, which no faster speed changes.
  */
