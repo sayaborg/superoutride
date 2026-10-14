@@ -581,8 +581,10 @@ multiple of a step, nothing else. Derived points do not move. Setting a plan ele
 an arc's `radius` keeps its length, so what follows keeps its stations and turns. `setCoursePlanTurn` sets an arc's
 turn. `moveCourseJoint` moves the joint an element starts at along the Section, the element before it and the element
 taking up the move, so no other joint moves. `setCourseArcRadius` sets an arc's radius with its turning angle kept:
-its length scales, and a straight either side takes up the change of tangent length, so the arc's tangents meet at
-the same point. `addCoursePlanElement` inserts a straight or arc with a new id; `removeCoursePlanElement` is refused
+its length scales, and the straight either side takes up the change of tangent length, so the arc's tangents meet at
+the same point and what follows stays where it was. It applies only to an arc of less than half a circle between
+straights (`arcKeepsTangentPoint`): without a straight before it the meeting point moves, and without one after it what
+follows does. Setting the `radius` value itself remains for every arc. `addCoursePlanElement` inserts a straight or arc with a new id; `removeCoursePlanElement` is refused
 while a Position in its Section measures from its joint. `splitCoursePlanElement` splits an element in two of its
 shape, the second with a new id; two straights or two like arcs in a row are a state between edits, which the course
 does not admit until one of them changes.

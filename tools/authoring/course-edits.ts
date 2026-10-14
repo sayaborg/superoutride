@@ -1,5 +1,5 @@
 import { readCourseDocument } from '../../src/course/course-document.js';
-import type { CourseElement } from './course-structure.js';
+import { arcKeepsTangentPoint, type CourseElement } from './course-structure.js';
 import { childPointer, valueAt, withValue, type Json } from './json-pointer.js';
 import { withNormalizedPositions } from './course-joints.js';
 
@@ -208,25 +208,29 @@ export function moveCourseJoint(
 }
 
 /**
- * An arc's radius set with its turning angle kept, so its length scales with the radius; a straight either side of it
- * takes up the change of the tangent length, so the arc's tangents still meet at the same point and what follows the
- * arc stays where it was. Refused when such a straight would vanish or the arc turns half a circle or more.
+ * An arc's radius set with its turning angle kept, so its length scales with the radius; the straights either side of it
+ * take up the change of the tangent length, so the arc's tangents still meet at the same point and what follows the
+ * arc stays where it was. Offered only for an arc between straights of less than half a circle
+ * (`arcKeepsTangentPoint`); refused when a straight would vanish.
  */
 export function setCourseArcRadius(document: Json, pointer: string, radius: number): CourseEditResult {
   const found = planElementAt(document, pointer);
   if (found?.element.kind !== 'arc') return { ok: false, reason: `${pointer} is not an arc` };
   if (!(radius > 0)) return { ok: false, reason: 'A radius is positive' };
   const { section, index, element } = found;
+  if (!arcKeepsTangentPoint(valueAt(document, `${section}/plan`), index))
+    return {
+      ok: false,
+      reason: 'Only an arc of less than half a circle between straights keeps where its tangents meet',
+    };
   const angle = element.length / element.radius!;
-  if (!(angle < Math.PI)) return { ok: false, reason: 'An arc of half a circle or more has no tangent intersection' };
   const setback = (radius - element.radius!) * Math.tan(angle / 2);
   const values = [
     { pointer: `${pointer}/radius`, value: radius },
     { pointer: `${pointer}/length`, value: radius * angle },
   ];
   for (const side of [index - 1, index + 1]) {
-    const neighbour = planElementAt(document, `${section}/plan/${side}`);
-    if (neighbour?.element.kind !== 'straight') continue;
+    const neighbour = planElementAt(document, `${section}/plan/${side}`)!;
     const length = neighbour.element.length - setback;
     if (!(length > 0)) return { ok: false, reason: `The straight ${neighbour.element.id} would vanish` };
     values.push({ pointer: `${section}/plan/${side}/length`, value: length });

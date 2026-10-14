@@ -197,6 +197,23 @@ const record = (value: unknown): Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : []);
 
+/**
+ * Whether the plan element at `index` of a Section's `plan` is an arc whose radius can be set with its tangents' meeting
+ * point kept: less than half a circle, between straights on both sides, the one before keeping where the meeting point
+ * lies and the one after keeping what follows where it was.
+ */
+export function arcKeepsTangentPoint(plan: unknown, index: number): boolean {
+  const elements = list(plan);
+  const kind = (i: number) => (elements[i] as { kind?: unknown } | undefined)?.kind;
+  const arc = elements[index] as { kind?: unknown; length?: unknown; radius?: unknown } | undefined;
+  return (
+    kind(index) === 'arc' &&
+    Number(arc!.length) / Number(arc!.radius) < Math.PI &&
+    kind(index - 1) === 'straight' &&
+    kind(index + 1) === 'straight'
+  );
+}
+
 /** The problem a resolution raised: a course input error's code and pointer, else an unreadable value. */
 function problemOf(error: unknown, pointer: string): Problem {
   if (error instanceof CourseInputError) return { code: error.code, message: error.message, pointer: error.path };
@@ -442,13 +459,13 @@ function readSection(
       {},
       { point: 'derived', derivedFrom: `${pointer}/plan`, station: { s: plan.length, l: 0 } },
     );
-    // Each arc of less than half a circle: where its tangents meet, a handle for its radius.
+    // Each arc whose radius can be set with its tangents' meeting point kept: there, a handle for its radius.
     list(section.plan).forEach((element, i) => {
       const v = record(element);
       const start = plan.stations.get(String(v.id));
       const length = Number(v.length),
         radius = Number(v.radius);
-      if (v.kind !== 'arc' || start === undefined || !(length / radius < Math.PI)) return;
+      if (!arcKeepsTangentPoint(section.plan, i) || start === undefined) return;
       const from = plan.toWorld(start, 0),
         reach = radius * Math.tan(length / radius / 2);
       add(
