@@ -210,7 +210,11 @@ starts the new source when it stops. Stopping fades the same way and ends the pl
 zero over a given time and ends it.
 
 The shell's [recording player](../src/shell/recording-player.ts) decodes off the frame and menu path: a request returns
-at once and sounds when its recording is decoded, unless it was stopped first. Decoded effects and impacts are kept;
+at once and sounds when its recording is decoded, unless it was stopped first. Once the page's audio has first been
+started, the player owns every looped request until it is stopped: one made while there is no audio scene (while the
+audio initializes, or after a failure), or whose scene a retry replaced, sounds from its recording's beginning on the
+next scene, paused if it is paused. A request made before the audio was ever started is silent, and a recording played
+once belongs to the scene it was asked of and is dropped with it. Decoded effects and impacts are kept;
 one music track is kept at a time, and a request for another releases the previous. A decoded stereo track takes
 `duration × sampleRate × 2 × 4` bytes (about 63 MB for three minutes at 44.1 kHz, 3.9 MB for an 11-second placeholder).
 A recording the browser cannot decode stays silent: the reason goes to the console once and, with `dev=1`, the audio
@@ -334,7 +338,8 @@ then it times each render block with `Date.now()` (whole milliseconds, the one c
 posts the blocks, the overruns (blocks that took longer than the audio they produced) and the longest block about once
 a second. The audio lifetime applies a measuring listener to every scene it builds.
 
-An audio failure closes the affected graph and exposes retry while driving continues. A worklet processor's failure is
+An audio failure closes the affected graph and exposes retry while driving continues; a retry builds a new graph, on
+which the playing music starts again from its beginning ([recording player](#recording-playback)). A worklet processor's failure is
 one: every voice (tire, engine and scraping) watches its worklets' `processorerror`
 ([`processor-failure.ts`](../src/audio/processor-failure.ts)) and its next update throws, which fails the graph. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements

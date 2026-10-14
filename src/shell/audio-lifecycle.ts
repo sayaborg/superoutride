@@ -170,6 +170,7 @@ export function createAudioLifecycle(
     let built: Awaited<ReturnType<typeof createAudioScene>> | null = null;
     try {
       failed = false;
+      recordings.begin();
       created = new AudioContext();
       context = created;
       created.onstatechange = showSoundState;
