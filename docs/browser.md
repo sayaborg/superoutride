@@ -699,10 +699,8 @@ with several goals. READY, the PRE-RACE card and RESULT show the record as it st
 the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
 of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the run they were made for.
 
-Loading admits version 7 with exactly these keys and value types; version 6, whose settings and records carry over
-with BRAKE SIGN ON; and versions 1 to 5, whose settings carry over with no records: version 1 had none, and versions 2
-to 5 kept TIME TRIAL and RACE records, whose keys name no class. Settings before version 5 take the default steering,
-and those before version 4 the default cameras. There are no other migration readers. An absent, unreadable, unparsable or other-version
+Loading admits version 7 alone, with exactly these keys and value types; there are no migration readers. An absent,
+unreadable, unparsable or other-version
 record, or one whose settings are malformed, starts from the defaults and is replaced by the next save. A record
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
