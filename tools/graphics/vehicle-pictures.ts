@@ -326,7 +326,8 @@ function frame(cells: Uint8Array, width: number, height: number, anchorX: number
         top = Math.min(top, y);
         bottom = Math.max(bottom, y);
       }
-  if (right < 0) {
+  const empty = right < 0;
+  if (empty) {
     // Nothing reached half a texel: the frame is the one texel holding the base point.
     left = right = Math.min(Math.max(Math.floor(anchorX), 0), width - 1);
     top = bottom = Math.min(Math.max(Math.floor(anchorY), 0), height - 1);
@@ -343,7 +344,7 @@ function frame(cells: Uint8Array, width: number, height: number, anchorX: number
     anchorX: anchorX - 0.5 - left,
     anchorY: anchorY - 0.5 - top,
     rows,
-    empty: right < 0,
+    empty,
   };
 }
 
