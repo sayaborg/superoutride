@@ -1612,7 +1612,8 @@ provisional; the videos and their pixels are not in the repository. The developm
 `outrun-test` (OUTRUN TEST) is a BRANCH course in OutRun's structure that exercises every kind of road the engine can
 draw and drive; no test drives it. Its document is written by a production-only generator,
 [`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) (`npm run outrun-test`), from a table of stages; edit the
-table and run the generator rather than the document. Each stage is one Section, in five rows of 1 to 5 stages, left
+table and run the generator rather than the document. The generator writes nothing the shared course reader does not
+read (the build compiles it in full). Each stage is one Section, in five rows of 1 to 5 stages, left
 to right: COASTLINE; GATEWAY, CLIFF ROAD; FARMLAND, OLD TOWN, TUNNEL RUN; LAKESIDE, DESERT, ALPINE PASS, FOREST;
 RIVIERA, INTERCHANGE, DOWNHILL, RUINS, METROPOLIS. Difficulty rises to the right in every row. A stage of rows 1–4
 ends in a fork: its left Link leads to the same position in the next row and its right Link to the next position, so an

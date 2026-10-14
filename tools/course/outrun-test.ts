@@ -7,6 +7,7 @@
  */
 import { format, resolveConfig } from 'prettier';
 import { atomicWrite, reportError } from './authoring-io.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
 import {
   BAND,
   createStageContext,
@@ -1007,6 +1008,9 @@ try {
     sections: built.map((b) => b.section),
     links: built.flatMap((b) => b.links),
   };
+  // The course passes the shared reader before it is written; the build compiles it in full.
+  const read = readCourseDocument(course, 'content/courses/outrun-test.course.json');
+  if (!read.ok) throw Object.assign(new Error('OUTRUN TEST does not read'), { diagnostics: read.diagnostics });
   // Written as the repository formats its JSON.
   const file = new URL('../../content/courses/outrun-test.course.json', import.meta.url).pathname;
   await atomicWrite(file, await format(JSON.stringify(course), { ...(await resolveConfig(file)), parser: 'json' }));

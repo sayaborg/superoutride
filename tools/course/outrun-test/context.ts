@@ -51,6 +51,21 @@ interface SpriteOptions {
   readonly unselectedLink?: string | null;
 }
 
+interface Repeat<T> {
+  readonly kind: 'repeat';
+  readonly every: number;
+  readonly count: number;
+  readonly elements: readonly T[];
+}
+
+/**
+ * `count` copies of `element` every `every` metres as the course format writes them: none, the element alone, or a
+ * repeat of two or more.
+ */
+function repeated<T>(element: T, every: number, count: number): (T | Repeat<T>)[] {
+  return count < 1 ? [] : count === 1 ? [element] : [{ kind: 'repeat', every, count, elements: [element] }];
+}
+
 /** One stage's context: positions, lane lines, and the records its scenery adds. */
 export function createStageContext(options: {
   readonly id: string;
@@ -148,9 +163,8 @@ export function createStageContext(options: {
       part = every / 2,
     ) {
       const count = Math.floor((end - start - part) / every) + 1;
-      if (count < 1) return;
       const element = { kind: 'strip', start: at(start), end: at(start + part), left, right, color, material: null };
-      records.strips.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
+      records.strips.push(...repeated(element, every, count));
     },
     sprite(image: string, s: number, lateral: Lateral, o: SpriteOptions = {}) {
       if (s < 0 || s > length) return;
@@ -160,10 +174,9 @@ export function createStageContext(options: {
     sprites(image: string, start: number, end: number, every: number, lateral: Lateral, o: SpriteOptions = {}) {
       start = Math.max(0, start);
       end = Math.min(length, end);
+      if (end < start) return;
       const count = Math.floor((end - start) / every) + 1;
-      if (count < 1 || end < start) return;
-      const element = sprite(image, start, lateral, o);
-      records.sprites.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
+      records.sprites.push(...repeated(sprite(image, start, lateral, o), every, count));
     },
     boundary(id: string, knots: readonly (readonly [s: number, lateral: Lateral])[]) {
       records.boundaries.push({ id, knots: knots.map(([s, lateral]) => ({ at: at(s), lateral })) });
@@ -193,7 +206,7 @@ export function createStageContext(options: {
         start: at(start),
         end: at(end),
         solid: solid && { freeStart: solid.freeStart ?? null, freeEnd: solid.freeEnd ?? null, sound: solid.sound },
-        strips: strips.map((strip) => {
+        strips: strips.flatMap((strip) => {
           const piece = (from: number, to: number) => ({
             kind: 'strip',
             color: strip.color,
@@ -202,10 +215,11 @@ export function createStageContext(options: {
               { at: at(to), bottom: strip.bottom, top: strip.top },
             ],
           });
-          if (!strip.every) return piece(start, end);
+          // A strip without stripes is one copy over the whole wall.
+          if (!strip.every) return repeated(piece(start, end), end - start, 1);
           const part = strip.part ?? strip.every / 2;
           const count = Math.floor((end - start - part) / strip.every) + 1;
-          return { kind: 'repeat', every: strip.every, count, elements: [piece(start, start + part)] };
+          return repeated(piece(start, start + part), strip.every, count);
         }),
       });
     },
