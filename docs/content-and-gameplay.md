@@ -819,8 +819,8 @@ approximation. Reverse travel and recovery steps grant no crossing credit. Road 
 support do not limit a race line's width.
 
 `createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
-required line, accepted finish count, status and route s. It consumes consecutive lines in order,
-including several crossings in one step. A missed line remains required even after the resident window has advanced past it;
+required line, accepted finish count, status and route s. Each step it proposes the consecutive lines its motion
+crossed, several in one step included, and the race accepts them in that order up to the run's ending. A missed line remains required even after the resident window has advanced past it;
 recovery does not skip it. Accepted lines cannot be earned twice by backing up and driving forward.
 At the terminal FINISH, the actor's distance and exact finish time are fixed. Before finishing,
 distance follows route s, including backward movement, without checkpoint-based clipping.
@@ -846,11 +846,14 @@ at GOAL is the player's finish crossing. RESULT and records read that one value.
 The state before GO has one owner, the start phase: WAITING until the run starts, then READY for the 3-second
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
 GOAL or GAME_OVER with its cause, `TIME`
-(the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. At the end of each running step the earliest
-ending among the player's finish, a rank failure and expiry decides it, and race time stops at that ending; the race
-publishes the ending's race time. The
-player's own crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank
-failure. A run without a finish (a run with no lap count, TIME ATTACK on a CIRCUIT) has no GOAL: its finish lines
+(the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. Moving the field and deciding what
+happened are separate: each running step first moves every vehicle, then takes every competitor's crossing candidates
+of the step in race-time order (the player before rivals at equal times) and decides them one at a time up to the
+earliest ending among the player's finish, a rank failure and expiry. Nothing after that ending is decided: no
+crossing, lap, finish, extension, rank judgement, departure or appearance; race time stops at the ending, and the race
+publishes the ending's race time. A step without an ending ends with departures and appearances. The player's own
+crossing wins an exact tie with a failure, as it does with expiry; expiry wins an exact tie with a rank failure, so
+another competitor's crossing exactly at the deadline is not decided. A run without a finish (a run with no lap count, TIME ATTACK on a CIRCUIT) has no GOAL: its finish lines
 count laps and it runs until the player ends it. The race publishes whether the run can be ended so (`endable`: such a
 run, RUNNING) and ends it between steps (`end`), ENDED at the race time of that moment.
 

@@ -450,6 +450,7 @@ export function createCourseRace(options: {
   const noEvents: readonly RaceEvent[] = Object.freeze([]);
   let events = noEvents;
   const stepEvents: RaceEvent[] = [];
+  const candidates: { c: typeof player; crossing: RouteRaceEvent; timeSeconds: number }[] = [];
 
   // The player's driving after its finish: its vehicle's run driver, in the lane nearest the position it finished
   // at, planning a stop at its runout distance past the finish, within any Route terminal.
@@ -564,70 +565,71 @@ export function createCourseRace(options: {
     }
     const stepStart = clock.beginStep();
     driveField(input, stepStart);
-    stepEvents.length = 0;
-    let playerFinishSeconds: number | null = null;
+    // The step's crossing candidates of every competitor, in race-time order; a stable sort keeps competitor order
+    // (player, then rivals) for equal times, and each competitor's own crossings stay in route order.
+    candidates.length = 0;
     for (const c of active) {
       const { body } = c;
       legalRecovery(body);
-      const update = c.observer.update(
-        body.previous,
-        body.vehicle.course,
-        body.recovered,
-        // The clock decides the player's crossing candidates, in time order, against its deadline.
-        c === player ? clock.admit : undefined,
-      );
-      for (const event of update.events) {
-        const timeSeconds = raceEventSeconds(stepStart, event.u);
-        c.crossingSeconds.push(timeSeconds);
-        stepEvents.push(
-          Object.freeze({
-            competitorId: c.id,
-            landmark: event.landmark,
-            kind: event.kind,
-            lap: event.lap,
-            finish: event.finish,
-            timeSeconds,
-            extensionMs: c === player ? clock.extensionAt(timeSeconds) : null,
-          }),
-        );
-        if (course.type === 'CIRCUIT' && event.kind === 'finish') {
-          if (c.lapStartSeconds !== null) {
-            c.lastLapSeconds = timeSeconds - c.lapStartSeconds;
-            c.bestLapSeconds = Math.min(c.bestLapSeconds ?? Infinity, c.lastLapSeconds);
-          }
-          c.lapStartSeconds = timeSeconds;
-        }
+      for (const crossing of c.observer.crossings(body.previous, body.vehicle.course, body.recovered))
+        candidates.push({ c, crossing, timeSeconds: raceEventSeconds(stepStart, crossing.u) });
+    }
+    candidates.sort((x, y) => x.timeSeconds - y.timeSeconds);
+    // The facts are decided in time order up to the earliest ending, and none after it: the player's finish, a rank
+    // failure, or expiry. The clock decides the player's candidates against its deadline (one exactly at it is
+    // accepted, and a checkpoint's award extends it at once); any other crossing at or after the deadline follows the
+    // expiry, so expiry wins an exact tie with a rank failure. The player's own crossing is ordered first among equal
+    // times, so it wins an exact tie with either failure.
+    stepEvents.length = 0;
+    let ending: { seconds: number; end: Parameters<typeof outcome.end>[0] } | null = null;
+    for (const { c, crossing, timeSeconds } of candidates) {
+      const deadline = clock.deadlineSeconds;
+      if (c === player ? !clock.admit(crossing) : deadline !== null && deadline <= timeSeconds) {
+        ending = { seconds: deadline!, end: { status: 'GAME_OVER', cause: 'TIME' } };
+        break;
       }
-      if (c === player) playerGates += update.events.length;
-      if (update.justFinished) {
-        c.finishGateId = stepEvents.at(-1)!.landmark.id;
-        if (c === player) playerFinishSeconds = c.finishSeconds;
+      const finished = c.observer.accept();
+      c.crossingSeconds.push(timeSeconds);
+      const event: RaceEvent = Object.freeze({
+        competitorId: c.id,
+        landmark: crossing.landmark,
+        kind: crossing.kind,
+        lap: crossing.lap,
+        finish: crossing.finish,
+        timeSeconds,
+        extensionMs: c === player ? clock.extensionAt(timeSeconds) : null,
+      });
+      stepEvents.push(event);
+      if (course.type === 'CIRCUIT' && crossing.kind === 'finish') {
+        if (c.lapStartSeconds !== null) {
+          c.lastLapSeconds = timeSeconds - c.lapStartSeconds;
+          c.bestLapSeconds = Math.min(c.bestLapSeconds ?? Infinity, c.lastLapSeconds);
+        }
+        c.lapStartSeconds = timeSeconds;
+      }
+      if (c === player) playerGates += 1;
+      if (finished) c.finishGateId = crossing.landmark.id;
+      if (judge.observe([event]) !== null) {
+        ending = { seconds: timeSeconds, end: { status: 'GAME_OVER', cause: 'RANK' } };
+        break;
+      }
+      if (finished && c === player) {
+        ending = { seconds: timeSeconds, end: { status: 'GOAL' } };
+        break;
       }
     }
-    depart();
-    appear();
-    // Time order; a stable sort keeps competitor order (player, then rivals) for equal times.
-    events = stepEvents.length
-      ? Object.freeze([...stepEvents].sort((a, b) => a.timeSeconds - b.timeSeconds))
-      : noEvents;
-    // The earliest ending decides the outcome: the player's finish, a rank failure, then expiry. The player's own
-    // crossing wins an exact tie with either failure, and expiry wins an exact tie with a rank failure.
-    let ending: { seconds: number; end: Parameters<typeof outcome.end>[0] } | null =
-      playerFinishSeconds === null ? null : { seconds: playerFinishSeconds, end: { status: 'GOAL' } };
-    const rankFailure = judge.observe(events);
-    if (rankFailure !== null && (ending === null || rankFailure < ending.seconds))
-      ending = { seconds: rankFailure, end: { status: 'GAME_OVER', cause: 'RANK' } };
     const expiry = clock.expirySeconds;
-    if (
-      expiry !== null &&
-      (ending === null || expiry < ending.seconds || (expiry === ending.seconds && ending.end.status === 'GAME_OVER'))
-    )
-      ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
+    if (ending === null && expiry !== null) ending = { seconds: expiry, end: { status: 'GAME_OVER', cause: 'TIME' } };
+    events = stepEvents.length ? Object.freeze([...stepEvents]) : noEvents;
     // Race time stops at the ending: the clock's time is then the ending's, the one record of it.
     clock.completeStep(ending?.seconds ?? clock.stepEndSeconds);
     if (ending) {
+      // Presence holds from the ending: the step's end, after it, makes no departure or appearance.
       outcome.end(ending.end);
       if (ending.end.status === 'GOAL') takeOver();
+    } else {
+      depart();
+      appear();
     }
     stepObservation.recovered = player.body.recovered;
   };
