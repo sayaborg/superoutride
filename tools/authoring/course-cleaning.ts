@@ -671,3 +671,24 @@ export function sameValueGroups(document: Json) {
     absolutes: sorted(absolutes).map(([value, count]) => ({ value, count })),
   };
 }
+
+/** One cleaning operation's search: what "Find candidates" asks for, sent off the page's thread as it is. */
+export type CleaningRequest = { readonly scope: CleaningScope } & (
+  | { readonly operation: 'round'; readonly step: number; readonly values: readonly RoundedValue[] }
+  | { readonly operation: 'knots' | 'join'; readonly tolerance: number }
+  | { readonly operation: 'merge'; readonly colorTolerance: number }
+);
+
+/** The candidates a cleaning request finds in a document. */
+export function cleaningCandidates(document: Json, request: CleaningRequest): CleaningCandidate[] {
+  switch (request.operation) {
+    case 'round':
+      return roundCandidates(document, request);
+    case 'knots':
+      return unneededKnotCandidates(document, request);
+    case 'join':
+      return joinCandidates(document, request);
+    case 'merge':
+      return mergeCandidates(document, request);
+  }
+}

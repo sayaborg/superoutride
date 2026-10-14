@@ -1,12 +1,9 @@
 import {
   applyCleaning,
-  joinCandidates,
-  mergeCandidates,
-  roundCandidates,
   ROUNDED_VALUES,
   sameValueGroups,
-  unneededKnotCandidates,
   type CleaningCandidate,
+  type CleaningRequest,
   type CleaningResult,
   type CleaningScope,
 } from '../authoring/course-cleaning.js';
@@ -14,6 +11,7 @@ import type { Json } from '../authoring/json-pointer.js';
 import { make } from './dom.js';
 import { finiteNumber } from './pending-edit.js';
 import { stripColor } from './course-plan-view.js';
+import type { CourseQuery, QueryResponse } from './compile-protocol.js';
 
 /** What the cleaning panel reads from the course module, and how it shows and commits candidates. */
 export interface CleaningPanelHost {
@@ -29,6 +27,8 @@ export interface CleaningPanelHost {
   /** Select an element on the plan and in the document. */
   select(pointer: string): void;
   commit(document: Json, label: string): void;
+  /** Ask the compile worker, where the candidates are found off the page's thread. */
+  query(query: CourseQuery): Promise<QueryResponse>;
 }
 
 const OPERATIONS = {
@@ -88,7 +88,8 @@ export function createCleaningPanel(host: CleaningPanelHost) {
 
   // The candidates belong to the document they were found in; a changed document discards them.
   let candidates: CleaningCandidate[] = [],
-    source: Json | null = null;
+    source: Json | null = null,
+    searches = 0;
   const checked = () =>
     candidates.filter((_, i) => list.querySelector<HTMLInputElement>(`input[data-candidate="${i}"]`)?.checked);
   const clear = () => {
@@ -97,6 +98,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   };
   const discard = () => {
     clear();
+    searches++;
     candidates = [];
     source = null;
     list.replaceChildren();
@@ -114,27 +116,36 @@ export function createCleaningPanel(host: CleaningPanelHost) {
           : {};
     status.textContent = 'Finding…';
     discard();
-    // Let the status show before the work.
-    setTimeout(() => {
-      const started = performance.now();
-      const kind = operation.value as keyof typeof OPERATIONS;
-      const amount = finiteNumber(tolerance.value) ?? 0;
-      candidates =
-        kind === 'round'
-          ? roundCandidates(document, {
-              step: finiteNumber(step.value) ?? 0.1,
-              values: [...values.querySelectorAll<HTMLInputElement>('input:checked')].map(
-                (box) => box.value as (typeof ROUNDED_VALUES)[number],
-              ),
-              scope: where,
-            })
-          : kind === 'knots'
-            ? unneededKnotCandidates(document, { tolerance: amount, scope: where })
-            : kind === 'join'
-              ? joinCandidates(document, { tolerance: amount, scope: where })
-              : mergeCandidates(document, { colorTolerance: amount, scope: where });
+    const kind = operation.value as keyof typeof OPERATIONS;
+    const amount = finiteNumber(tolerance.value) ?? 0;
+    const request: CleaningRequest =
+      kind === 'round'
+        ? {
+            operation: kind,
+            step: finiteNumber(step.value) ?? 0.1,
+            values: [...values.querySelectorAll<HTMLInputElement>('input:checked')].map(
+              (box) => box.value as (typeof ROUNDED_VALUES)[number],
+            ),
+            scope: where,
+          }
+        : kind === 'merge'
+          ? { operation: kind, colorTolerance: amount, scope: where }
+          : { operation: kind, tolerance: amount, scope: where };
+    // Only the latest search not discarded, while its document stands, shows its candidates.
+    const ticket = searches;
+    void host.query({ kind: 'candidates', document, request }).then((answer) => {
+      if (ticket !== searches) return;
+      if (host.document() !== document) {
+        status.textContent = 'The document changed; find the candidates again.';
+        return;
+      }
+      if (answer.kind !== 'candidates') {
+        status.textContent = answer.kind === 'failed' ? answer.message : '';
+        return;
+      }
+      candidates = answer.candidates;
       source = document;
-      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(performance.now() - started)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
+      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
       showCandidates();
     });
   };

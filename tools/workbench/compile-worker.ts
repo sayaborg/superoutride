@@ -5,6 +5,7 @@ import { MEASUREMENT_STALE, racingLinePath, referenceTimesPath } from '../course
 import { workerStore } from './worker-store.js';
 import { courseReport, courseSection, createCourseFrameRenderer } from '../authoring/course-views.js';
 import { courseFindings } from '../authoring/course-findings.js';
+import { cleaningCandidates } from '../authoring/course-cleaning.js';
 import type { Json } from '../authoring/json-pointer.js';
 import type { CompiledContent } from '../authoring/compile-content.js';
 import type { CompileRequest, CompileResponse, CourseQuery, QueryRequest, QueryResponse } from './compile-protocol.js';
@@ -34,7 +35,10 @@ const compile = async (...[store, options]: Parameters<typeof compileContent>) =
 // The last frame renderer, kept while its compile, course, Section and vehicle are asked for again.
 let renderer: { readonly key: string; readonly render: ReturnType<typeof createCourseFrameRenderer>['render'] } | null =
   null;
-function answer(query: Exclude<CourseQuery, { kind: 'findings' }>, compiled: NonNullable<typeof latest>) {
+function answer(
+  query: Exclude<CourseQuery, { kind: 'findings' | 'candidates' }>,
+  compiled: NonNullable<typeof latest>,
+) {
   const course = compiled.content.courses.find((candidate) => candidate.id === query.course);
   if (!course) throw new RangeError(`Unknown course ${query.course}`);
   const section = courseSection(course, query.section);
@@ -62,6 +66,9 @@ function query({ id, query }: QueryRequest) {
     if (query.kind === 'findings') {
       const { document, ...options } = query;
       response = { ...base, milliseconds: 0, kind: 'findings', findings: courseFindings(document as Json, options) };
+    } else if (query.kind === 'candidates') {
+      const candidates = cleaningCandidates(query.document as Json, query.request);
+      response = { ...base, milliseconds: 0, kind: 'candidates', candidates };
     } else {
       if (!latest) throw new RangeError('Nothing has compiled yet');
       response = { ...base, milliseconds: 0, ...answer(query, latest) };

@@ -328,7 +328,8 @@ when its row is clicked; applying any of them makes the measured products stale.
 candidates applied with their shift and each Section's centreline shift and length change, and "Apply chosen" makes
 them one step. Candidates belong to the document they were found in: when the document changes (an edit, an undo, or
 another course opened) they are discarded, while a change of selection keeps them. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
-The candidates are found on the page's thread; a course's unneeded knots take seconds.
+The compile worker finds the candidates off the page's thread, from the document as it stands (a `candidates`
+query); only the latest search shows, and a course's unneeded knots take seconds.
 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
 counted by kind above the views. The compile worker works them out after each change, from the document as it stands,

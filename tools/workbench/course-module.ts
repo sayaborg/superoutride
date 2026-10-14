@@ -136,6 +136,7 @@ export const courseModule: WorkbenchModule = {
       preview: (result) => showPending(result),
       select: (pointer) => context.select(path(), pointer),
       commit: (next, label) => commit(next, label),
+      query: (query) => context.query(query),
     });
     const underlay = createUnderlayControls({
       store: () => context.store,
