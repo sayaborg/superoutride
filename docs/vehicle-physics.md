@@ -275,7 +275,9 @@ doubles from 900 to 1800 lbf, and published Magic Formula coefficients for car a
 0.20 per reference load. The Magic Formula's linear friction falls to zero at 6 to 11 times the reference load, so it
 does not serve landing loads; this rational form has the same slope near static load and stays monotonic. The plateau
 slips do not depend on load. Demand, capacity, rolling resistance and the torque protections all read `Ne`; the
-suspension and the body's vertical force, and the tire observation's `load`, keep `N`.
+suspension and the body's vertical force, and the tire observation's `load`, keep `N`. The formula has one owner,
+`effectiveTireLoad`: the physics, the vehicle limits model (with the load in units of `N0`) and the planned driver's
+steering read it there.
 
 For nonzero demand, `(Fx,Fy)=Ne*gripFactor*H*(muX*x,muY*y)/hypot(x,y)`, with demand `(Ne*kX*sx, Ne*kY*sy)`.
 The linear region returns linear demand; zero load/grip returns zero force. For positive load/grip,

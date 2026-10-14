@@ -1,5 +1,5 @@
 import { sampleEngineTorque } from './physics/automatic-powertrain.js';
-import { radialKneeInverse } from './physics/tire-friction-calibration.js';
+import { effectiveTireLoad, radialKneeInverse } from './physics/tire-friction-calibration.js';
 import { VEHICLE_GRAVITY } from './physics/vehicle-state.js';
 import type { VehicleModel } from './physics/vehicle-model.js';
 
@@ -82,11 +82,6 @@ export interface VehicleLimits {
   speedCap(rolling: number): number;
 }
 
-/** The effective load factor the tire law reads at load factor `n`: `n/(1+r(n-1))`, none at or below zero. */
-function effectiveLoadFactor(loadSensitivity: number, n: number): number {
-  return n > 0 ? n / (1 + loadSensitivity * (n - 1)) : 0;
-}
-
 export function createVehicleLimits(model: VehicleModel): VehicleLimits {
   const { compiledVehicle: vehicle, tire, powertrain: constants } = model;
   const { mass, frontDriveTorqueFraction: split, powertrain, frontStation, rearStation } = vehicle;
@@ -110,7 +105,8 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
   const rpmPerSpeed = (wheelPerSpeed * powertrain.finalDriveRatio * 60) / (2 * Math.PI);
   const fuelCut = powertrain.redlineRpm * constants.fuelCutEnterRedlineRatio;
   const upper = fuelCut / (rpmPerSpeed * powertrain.gearRatios[top - 1]!);
-  const friction = (mu: number, n: number) => mu * VEHICLE_GRAVITY * effectiveLoadFactor(tire.loadSensitivity, n);
+  // The tire law's effective load at load factor `n`, the load in units of the static load; none at or below zero.
+  const friction = (mu: number, n: number) => mu * VEHICLE_GRAVITY * (n > 0 ? effectiveTireLoad(tire, n, 1) : 0);
   // Each axle carries the lateral acceleration in proportion to its static share, so its lateral fraction is the
   // lateral over its own lateral semi-axis; what that leaves of its longitudinal semi-axis, per unit vehicle mass, while
   // the tires' longitudinal force is `force`. An axle the lateral overloads leaves nothing: -Infinity.
