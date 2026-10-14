@@ -609,11 +609,17 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
 - `explodeCourseRepeat` replaces a repeat by the elements it stands for, in place, one level at a time: copy k is the
   repeat's elements with every Position's `offset` moved by k × `every`, as the course expands it. Its shift is 0.
 - `combineCourseElements` replaces elements of one list by a repeat when they are one block (one element in station
-  order, or several in list order) repeated at one spacing, each copy the same but for its Positions. The repeat holds
-  the first block, in the first element's place. In a Strip list (a Section's or a wall's, or a repeat's elements in
-  one), whose declaration order decides which Strip overwrites which, the elements must stand together: an element
-  between them is refused at its Pointer. With tolerance 0 only exact steps combine; with a tolerance the steps are
-  evened out within it. Its shift is the one above. Exploding and combining again gives the same values.
+  order, or several in list order) repeated at one spacing: each copy is the same, whatever order its fields are
+  written in, but for its Positions, and each Position's station on the Section's ruler (its joint's station plus its
+  offset, whatever joint it is measured from) is the first block's plus k × the spacing. The repeat holds the first
+  block, in the first element's place, its Positions measured from their nearest joints; the copies' own joints are not
+  kept, as the repeat measures every copy from the first block's joints at one spacing. In a Strip list (a Section's or
+  a wall's, or a repeat's elements in one), whose declaration order decides which Strip overwrites which, the elements
+  must stand together: an element between them is refused at its Pointer. With tolerance 0 only steps equal at the
+  written precision combine; with a tolerance the steps are evened out within it. A course that admits and would not
+  admit with the repeat (a list that takes no repeat, a nesting too deep) is refused with the format's diagnostic. Its
+  shift is the one above. Exploding and combining again resolves to the same form in the same order; the written JSON,
+  its joints and its field order, may differ.
 - `bindCourseLateral` makes an absolute lateral a reference to a chosen Boundary, or to a lane's left edge, centre or
   right edge, its offset giving the same lateral at the element's station; between knots the line then follows that
   line. `unbindCourseLateral` makes a reference the

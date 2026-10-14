@@ -1,6 +1,9 @@
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
+import type { CourseJoints } from '../../src/course/course-geometry.js';
 import type { CourseChange } from './course-edits.js';
 import {
+  createSectionPlan,
   readCourseSection,
   referableLines,
   type LateralTarget,
@@ -51,19 +54,32 @@ function shiftedPositions(value: Json, ds: number): Json {
   return value;
 }
 
-/** A value's Positions' offsets in document order, and the value with each offset 0: what else it is. */
-function positionsOf(value: Json): { offsets: number[]; rest: string } {
-  const offsets: number[] = [];
+/**
+ * A value's Positions resolved on its Section's ruler (m), in order, and the value with each Position blanked and its
+ * fields in one order whatever order they are written in: what else it is. Null when a Position names no joint of the
+ * Section.
+ */
+function positionsOf(value: Json, joints: CourseJoints): { stations: number[]; rest: string } | null {
+  const stations: number[] = [];
+  let resolved = true;
   const strip = (v: Json): Json => {
     if (isPosition(v)) {
-      offsets.push(v.offset);
-      return { joint: v.joint, offset: 0 };
+      const station = joints.stations.get(v.joint);
+      if (station === undefined) resolved = false;
+      else stations.push(station + v.offset);
+      return {};
     }
     if (Array.isArray(v)) return v.map(strip);
-    if (isRecord(v)) return Object.fromEntries(Object.entries(v).map(([k, item]) => [k, strip(item)]));
+    if (isRecord(v))
+      return Object.fromEntries(
+        Object.keys(v)
+          .sort()
+          .map((k) => [k, strip(v[k]!)]),
+      );
     return v;
   };
-  return { offsets, rest: JSON.stringify(strip(value)) };
+  const rest = JSON.stringify(strip(value));
+  return resolved ? { stations, rest } : null;
 }
 
 /** The Section a Pointer is in: its index and Pointer. */
@@ -168,10 +184,14 @@ export function explodeCourseRepeat(document: Json, pointer: string): CourseForm
 
 /**
  * Combine elements of one list into a repeat. They must be a block repeated at one spacing: one element (taken in station
- * order) or several (taken in list order), each copy the same but for its Positions, which step by `every`. The repeat
- * holds the first block and takes the place of the first element in the list. In a Strip list, whose order decides
- * which Strip overwrites which, the elements must stand together: one between them is refused at its Pointer. With a
- * tolerance, steps within it are evened out; with 0, only exact steps combine. The shift is every form operation's.
+ * order) or several (taken in list order), each copy the same, whatever order its fields are written in, but for its
+ * Positions, whose stations on the Section's ruler step by `every` whatever joints they are measured from. The repeat
+ * holds the first block and takes the place of the first element in the list; its Positions are then measured from
+ * their nearest joints. In a Strip list, whose order decides which Strip overwrites which, the elements must stand
+ * together: one between them is refused at its Pointer. With a tolerance, steps within it are evened out; with 0, only
+ * steps equal at the written precision (`computedValue`) combine. A course that admitted and would not admit with the
+ * repeat (a list that takes none, too deep a nesting) is refused with the format's diagnostic. The shift is every form
+ * operation's.
  */
 export function combineCourseElements(document: Json, pointers: readonly string[], tolerance = 0): CourseFormResult {
   if (pointers.length < 2) return { ok: false, reason: 'Combine needs at least two elements' };
@@ -182,10 +202,18 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     return { ok: false, reason: 'Combine needs elements of one list' };
   if (new Set(pointers).size !== pointers.length) return { ok: false, reason: 'An element is chosen twice' };
   const list = items[0]!.list;
-  const listed = items
-    .map((item) => ({ index: item!.index, value: list[item!.index]!, ...positionsOf(list[item!.index]!) }))
-    .sort((a, b) => a.index - b.index);
-  if (listed.some((r) => !r.offsets.length)) return { ok: false, reason: 'Every element needs a Position' };
+  const section = sectionOf(pointers[0]!)!;
+  const { plan } = createSectionPlan(valueAt(document, section.pointer) as never, section.pointer);
+  if (!plan) return { ok: false, reason: `The plan of ${section.pointer} does not compile` };
+  const listed: { index: number; value: Json; stations: number[]; rest: string }[] = [];
+  for (const item of items) {
+    const positions = positionsOf(list[item!.index]!, plan.joints);
+    if (!positions)
+      return { ok: false, reason: `A Position of ${parent}/${item!.index} names no joint of its Section` };
+    listed.push({ index: item!.index, value: list[item!.index]!, ...positions });
+  }
+  listed.sort((a, b) => a.index - b.index);
+  if (listed.some((r) => !r.stations.length)) return { ok: false, reason: 'Every element needs a Position' };
   if (ORDERED_LIST.test(parent!)) {
     const between = listed.findIndex((r, i) => i > 0 && r.index !== listed[i - 1]!.index + 1);
     if (between > 0) {
@@ -197,7 +225,7 @@ export function combineCourseElements(document: Json, pointers: readonly string[
       };
     }
   }
-  const byStation = [...listed].sort((a, b) => a.offsets[0]! - b.offsets[0]!);
+  const byStation = [...listed].sort((a, b) => a.stations[0]! - b.stations[0]!);
   // The shortest block that repeats: copy k of block element j is element j moved k × every.
   const count = listed.length;
   let best: { block: typeof listed; copies: number; every: number } | null = null;
@@ -207,20 +235,28 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     const block = records.slice(0, size);
     if (records.some((r, i) => r.rest !== block[i % size]!.rest)) continue;
     const copies = count / size;
-    // How far the copies stray from even steps of `every`: with no tolerance, only exact steps count.
+    // How far the copies' stations stray from even steps of `every`: with no tolerance, only steps equal to the written
+    // precision count.
     const deviation = (every: number) => {
       let most = 0;
       records.forEach((record, i) =>
-        record.offsets.forEach((offset, j) => {
-          const expected = block[i % size]!.offsets[j]! + Math.floor(i / size) * every;
-          most = Math.max(most, tolerance === 0 ? (offset === expected ? 0 : Infinity) : Math.abs(offset - expected));
+        record.stations.forEach((station, j) => {
+          const expected = block[i % size]!.stations[j]! + Math.floor(i / size) * every;
+          most = Math.max(
+            most,
+            tolerance === 0
+              ? computedValue(station) === computedValue(expected)
+                ? 0
+                : Infinity
+              : Math.abs(station - expected),
+          );
         }),
       );
       return most;
     };
-    // The spacing: the first step as written (its floating-point noise dropped), or the mean step.
-    const step = records[size]!.offsets[0]! - block[0]!.offsets[0]!,
-      mean = (records[count - size]!.offsets[0]! - block[0]!.offsets[0]!) / (copies - 1);
+    // The spacing: the first step (its floating-point noise dropped), or the mean step.
+    const step = records[size]!.stations[0]! - block[0]!.stations[0]!,
+      mean = (records[count - size]!.stations[0]! - block[0]!.stations[0]!) / (copies - 1);
     const every = [Number(step.toPrecision(12)), step, computedValue(mean), mean].reduce((a, b) =>
       deviation(b) < deviation(a) ? b : a,
     );
@@ -242,7 +278,13 @@ export function combineCourseElements(document: Json, pointers: readonly string[
     parent!,
     list.flatMap((value, i) => (i === at ? [repeat] : chosen.has(i) ? [] : [value])),
   );
-  return measured(document, next, sectionOf(pointers[0]!)!.index, [
+  // Where a repeat may stand, and how deep, is the format's: a course that admitted must still admit.
+  const combined = readCourseDocument(next);
+  if (!combined.ok && readCourseDocument(document).ok) {
+    const first = combined.diagnostics[0]!;
+    return { ok: false, reason: first.message, pointer: ('path' in first ? first.path : undefined) ?? parent! };
+  }
+  return measured(document, next, section.index, [
     ...listed.map((r) => ({ pointer: `${parent}/${r.index}`, before: r.value, after: undefined })),
     { pointer: `${parent}/${at}`, before: undefined, after: repeat },
   ]);
