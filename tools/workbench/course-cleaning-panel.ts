@@ -86,12 +86,20 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   operation.addEventListener('change', showParameters);
   showParameters();
 
-  let candidates: CleaningCandidate[] = [];
+  // The candidates belong to the document they were found in; a changed document discards them.
+  let candidates: CleaningCandidate[] = [],
+    source: Json | null = null;
   const checked = () =>
     candidates.filter((_, i) => list.querySelector<HTMLInputElement>(`input[data-candidate="${i}"]`)?.checked);
   const clear = () => {
     host.preview(null);
     host.mark([]);
+  };
+  const discard = () => {
+    clear();
+    candidates = [];
+    source = null;
+    list.replaceChildren();
   };
   /** Find the chosen operation's candidates, over the chosen scope or the elements given. */
   const search = (pointers?: readonly string[]) => {
@@ -105,7 +113,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
           ? { pointers: host.chosen() }
           : {};
     status.textContent = 'Finding…';
-    clear();
+    discard();
     // Let the status show before the work.
     setTimeout(() => {
       const started = performance.now();
@@ -125,6 +133,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
             : kind === 'join'
               ? joinCandidates(document, { tolerance: amount, scope: where })
               : mergeCandidates(document, { colorTolerance: amount, scope: where });
+      source = document;
       status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(performance.now() - started)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
       showCandidates();
     });
@@ -158,7 +167,7 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     const summary = make('div', '', { class: 'hint' });
     preview.addEventListener('click', () => {
       const document = host.document();
-      if (!document) return;
+      if (!document || document !== source) return;
       const result = applyCleaning(document, checked());
       host.preview(result);
       summary.textContent = `Shift ${result.shift.toFixed(3)} m · ${result.sections
@@ -171,19 +180,15 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     apply.addEventListener('click', () => {
       const document = host.document(),
         chosen = checked();
-      if (!document || !chosen.length) return;
-      clear();
-      candidates = [];
-      list.replaceChildren();
+      if (!document || document !== source || !chosen.length) return;
+      discard();
       host.commit(
         applyCleaning(document, chosen).document,
         `${OPERATIONS[operation.value as keyof typeof OPERATIONS]}: ${chosen.length}`,
       );
     });
     drop.addEventListener('click', () => {
-      clear();
-      candidates = [];
-      list.replaceChildren();
+      discard();
       status.textContent = '';
     });
     list.replaceChildren(table, preview, apply, drop, summary);
@@ -240,10 +245,16 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     list,
     groups,
   );
-  return { element: panel, findFor };
-}
-
-/** Refresh the panel's view of what is written alike after the document changes. */
-export function refreshCleaningPanel(panel: HTMLElement) {
-  panel.dispatchEvent(new Event('toggle'));
+  /**
+   * Follow the host's state: a document other than the candidates' discards them (a selection change keeps them), and
+   * what is written alike is shown again.
+   */
+  const refresh = () => {
+    if (source !== null && host.document() !== source) {
+      discard();
+      status.textContent = 'The document changed; find the candidates again.';
+    }
+    showGroups();
+  };
+  return { element: panel, findFor, refresh };
 }

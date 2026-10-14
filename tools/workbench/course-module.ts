@@ -25,7 +25,7 @@ import { createProfileView } from './course-profile-view.js';
 import { createSectionView } from './course-section-view.js';
 import { createGameView } from './course-game-view.js';
 import { createFormPanel } from './course-form-panel.js';
-import { createCleaningPanel, refreshCleaningPanel } from './course-cleaning-panel.js';
+import { createCleaningPanel } from './course-cleaning-panel.js';
 import { createFindingsBar } from './course-findings-bar.js';
 import { createUnderlayControls } from './course-underlay-controls.js';
 import { createPlanEditing, createProfileEditing, writtenNumbers, type CourseEditHost } from './course-editing.js';
@@ -736,7 +736,7 @@ export const courseModule: WorkbenchModule = {
       void refresh().then(() => {
         follow();
         showProblems();
-        refreshCleaningPanel(cleaning.element);
+        cleaning.refresh();
         findings.update();
         // The game's frame follows the latest compile that succeeded, stale while the document is newer.
         const state = context.compile();
@@ -747,7 +747,7 @@ export const courseModule: WorkbenchModule = {
       'change',
       () =>
         void refresh().then(() => {
-          refreshCleaningPanel(cleaning.element);
+          cleaning.refresh();
           findings.update();
         }),
     );

@@ -318,7 +318,8 @@ join near things (a tolerance) or merge equal things (a colour tolerance). "Find
 with what it changes and whether the driving changes (its shift), rings their elements on the plan, and selects one
 when its row is clicked; applying any of them makes the measured products stale. "Preview chosen" draws the checked
 candidates applied with their shift and each Section's centreline shift and length change, and "Apply chosen" makes
-them one step. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
+them one step. Candidates belong to the document they were found in: when the document changes (an edit, an undo, or
+another course opened) they are discarded, while a change of selection keeps them. Below, what is written alike (colours with their uses, references and absolute laterals) is shown.
 The candidates are found on the page's thread; a course's unneeded knots take seconds.
 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
