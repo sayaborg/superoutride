@@ -192,6 +192,8 @@ the space, must have only index 0: it is the empty tile.
 | 532–597  | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile italic segment digit: lit core 1, edge 2; unlit 3, 4                                                    |
 | 598–613  | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left, a triple chevron: outline 1, shadow 2, gradient 3–10 from the top           |
 | 614–629  | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                                                                      |
+| 630–635  | `TIRES_CAR_0`…`_5`              | Tile k of the 2×3-tile tire gauge for a car: outline 1, tires 2, lines 3                                                     |
+| 636–641  | `TIRES_BIKE_0`…`_5`             | The same for a bike                                                                                                          |
 
 The fonts, the signal lamp, the segment digits and the road arrow are the [HUD design sources](#hud-design-sources)'. The other part tiles
 are drawn by the HUD tiles command ([Development](development.md#hud-tiles-command)), which writes them in place:
@@ -208,16 +210,23 @@ are drawn by the HUD tiles command ([Development](development.md#hud-tiles-comma
   the 30 tiles that hold part of a bar have patterns: one for each state they reach (the number of their bars lit and
   where the color split falls among them, with fuel cut latched or not), identical patterns saved once, tile by tile
   in order of first use, so the HUD finds a state's pattern by the same rule.
+- The tire gauge ([tire gauge](../src/image/tire-gauge.ts)) is 16×24 pixels over 2×3 tiles, the author's figure of
+  the axles from above by the vehicle's form: tires 4×6 pixels in slot 2 and lines 2 pixels wide in slot 3, every
+  other pixel beside one of them, diagonals included, the slot 1 outline. A car's tires stand at pixel columns 1–4 and
+  11–14, the front at rows 1–6 and the rear at 17–22, each axle a line in columns 6–9 between its tires (rows 3–4 and
+  19–20) and one line in columns 7–8 joining the axles; a bike's tires stand at columns 6–9, joined by a line in
+  columns 7–8. A tile holds one palette, so the front tires lie in the top row of tiles alone, the rear in the bottom
+  row alone, and the middle row holds only the line. Its patterns run row by row from the top left.
 
 The HUD pictures follow the part tiles in one fixed order that code names as well (`HUD_PICTURES`), each with a
 palette of its own after the named palettes, in that order:
 
 | Patterns  | Palette | Name         | Picture                                          | Frames                                   |
 | --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
-| 630–1781  | 29      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
-| 1782–2933 | 30      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
-| 2934–4085 | 31      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
-| 4086–5273 | 32      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+| 642–1793  | 77      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 1794–2945 | 78      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 2946–4097 | 79      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 4098–5285 | 80      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
 
 Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
 row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
@@ -240,6 +249,8 @@ tile serves every color and the lamp every state.
 | 26–30    | TACH_GREEN, TACH_YELLOW, TACH_RED, TACH_GREEN_YELLOW, TACH_YELLOW_RED | The tachometer's colors, one or where two meet                              |
 | 31–33    | LAMP_OFF, LAMP_RED, LAMP_GREEN                                        | The signal lamp unlit, lit red and lit green                                |
 | 34       | ARROW                                                                 | The road arrow                                                              |
+| 35–75    | `TIRES_0`…`TIRES_40`                                                  | The tire gauge's tire colors, green to yellow to red                        |
+| 76       | TIRES_AIR                                                             | The tire gauge's tires without load                                         |
 
 The authored palettes are WHITE, YELLOW, RED, DARK (unselectable items) and GREEN. They use the same slots: 1 the
 main color, 2 the glyph shadow, 3 a meter's ground and 4 a meter's cut part (red in every authored palette).
@@ -258,6 +269,14 @@ tachometer's colors, as 8-bit channels saved as RGB555:
 | Green  | (16,112,40) (32,168,56) (64,216,80) (136,244,136) (200,255,200)  | (36,68,44) / (28,56,36) |
 | Yellow | (160,104,0) (216,160,0) (248,208,16) (255,240,112) (255,255,200) | (76,68,28) / (64,56,20) |
 | Red    | (128,16,8) (192,28,16) (240,56,32) (255,136,112) (255,208,192)   | (76,32,28) / (64,24,20) |
+
+The tire gauge's palettes share slot 1, the signal lamp's outline, and slot 3, the lamp's middle bezel grey (slot 5
+of its palettes); slot 2 is the tires' color. The tire colors run from the tachometer's green to its yellow and on to
+its red, each its lit ramp's `L2`, in RGB555 steps: from one end color to the next there are as many steps as the
+channel that differs most differs, so that channel changes by one each step and the others by their nearest share
+(`round(a + (b - a) k / n)`), and yellow is shared. Green (8,26,10) to yellow (30,25,2) is 22 steps and yellow to red
+(29,7,4) 18, so `TIRES_0` is green, `TIRES_22` yellow and `TIRES_40` red. TIRES_AIR's tires are the DARK text's grey.
+The HUD chooses among them ([HUD](browser.md#hud)); no tile's pattern changes with them.
 
 The build admits the document and delivers it as authored as the
 manifest `image` entry `text-tiles`. `compileTextTiles` admits it and builds the immutable `TextTiles` reader, which

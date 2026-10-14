@@ -1,7 +1,12 @@
 import type { ArrowSource, LampSource, SegmentDigitsSource } from './hud-design-sources.js';
-import { rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
-import { TACHOMETER_COLORS, TACHOMETER_PATTERNS, type TachometerColor } from '../../src/image/tachometer.js';
+import {
+  TACHOMETER_COLORS,
+  TACHOMETER_PATTERNS,
+  tachometerRamp,
+  type TachometerColor,
+} from '../../src/image/tachometer.js';
 import { HUD_TILE_NAMES, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
+import { TIRE_GAUGE_COLORS, TIRE_GAUGE_PATTERNS } from '../../src/image/tire-gauge.js';
 
 /** A meter cell's rows: 4 pixels high, 2 pixels clear above and below. */
 const METER_ROWS = [2, 3, 4, 5];
@@ -17,7 +22,8 @@ const meter = (filled: (x: number) => number) => pattern((x, y) => (METER_ROWS.i
 
 /**
  * Every HUD part tile's 64 palette indices, in the text tiles' order of `HUD_TILE_NAMES`: the signal lamp, the segment
- * digits and the road arrow as their sources give them, the tachometer's by its rule and the meters drawn.
+ * digits and the road arrow as their sources give them, the tachometer's and the tire gauge's by their rules and the
+ * meters drawn.
  */
 export function drawHudParts(
   lamp: LampSource,
@@ -43,43 +49,12 @@ export function drawHudParts(
   );
   arrow.left.forEach((tile, k) => drawn.set(`ARROW_LEFT_${k}`, tile));
   arrow.right.forEach((tile, k) => drawn.set(`ARROW_RIGHT_${k}`, tile));
+  for (const [form, tiles] of Object.entries(TIRE_GAUGE_PATTERNS))
+    tiles.forEach((tile, k) => drawn.set(`TIRES_${form.toUpperCase()}_${k}`, tile));
   if (drawn.size !== HUD_TILE_NAMES.length || HUD_TILE_NAMES.some((name) => !drawn.has(name)))
     throw new Error('The HUD part tiles differ from the text tiles order');
   return HUD_TILE_NAMES.map((name) => drawn.get(name)!);
 }
-
-type Rgb = readonly [number, number, number];
-/** Each tachometer color's lit ramp `L0..L4`, dark to light, and its unlit `U0` and `U1`, as 8-bit channels. */
-const TACHOMETER_RAMPS: Readonly<Record<TachometerColor, readonly Rgb[]>> = Object.freeze({
-  GREEN: [
-    [16, 112, 40],
-    [32, 168, 56],
-    [64, 216, 80],
-    [136, 244, 136],
-    [200, 255, 200],
-    [36, 68, 44],
-    [28, 56, 36],
-  ],
-  YELLOW: [
-    [160, 104, 0],
-    [216, 160, 0],
-    [248, 208, 16],
-    [255, 240, 112],
-    [255, 255, 200],
-    [76, 68, 28],
-    [64, 56, 20],
-  ],
-  RED: [
-    [128, 16, 8],
-    [192, 28, 16],
-    [240, 56, 32],
-    [255, 136, 112],
-    [255, 208, 192],
-    [76, 32, 28],
-    [64, 24, 20],
-  ],
-});
-const ramp = (color: TachometerColor) => TACHOMETER_RAMPS[color].map(([r, g, b]) => rgbaToRgb555(rgba(r, g, b)));
 
 /**
  * The tachometer's palettes by name: one color in slots 1 to 7 (`L0..L4`, `U0`, `U1`), and where two meet the second
@@ -87,7 +62,7 @@ const ramp = (color: TachometerColor) => TACHOMETER_RAMPS[color].map(([r, g, b])
  */
 export function drawTachometerPalettes(): Map<string, readonly number[]> {
   const palette = (first: TachometerColor, second?: TachometerColor) => {
-    const colors = [...ramp(first), ...(second ? ramp(second) : [])];
+    const colors = [...tachometerRamp(first), ...(second ? tachometerRamp(second) : [])];
     return [0, ...colors, ...Array<number>(15 - colors.length).fill(0)];
   };
   const [green, yellow, red] = TACHOMETER_COLORS;
@@ -95,5 +70,17 @@ export function drawTachometerPalettes(): Map<string, readonly number[]> {
     ...TACHOMETER_COLORS.map((color) => [`TACH_${color}`, palette(color)] as const),
     [`TACH_${green}_${yellow}`, palette(green, yellow)],
     [`TACH_${yellow}_${red}`, palette(yellow, red)],
+  ]);
+}
+
+/**
+ * The tire gauge's palettes by name, each slot 1 the `outline`, 2 the tires and 3 the `line`: `TIRES_k` with the k-th
+ * tire color, and `TIRES_AIR` with the `air` grey of tires without load.
+ */
+export function drawTireGaugePalettes(outline: number, line: number, air: number): Map<string, readonly number[]> {
+  const palette = (tire: number) => [0, outline, tire, line, ...Array<number>(12).fill(0)];
+  return new Map([
+    ...TIRE_GAUGE_COLORS.map((color, k) => [`TIRES_${k}`, palette(color)] as const),
+    ['TIRES_AIR', palette(air)],
   ]);
 }

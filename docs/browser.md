@@ -601,6 +601,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | 13–14 | Three 2×2-tile signal lamps: before GO the race's lamps lit are LAMP_RED and the rest LAMP_OFF; all LAMP_GREEN for 1 s after GO                                             |
 | 16–19 | Ornate large, from the ending until RESULT: GOAL (SUNSET), or GAME OVER (RED) with TIME UP or RANK OUT (RED) below it                                                       |
 | 13–16 | While the camera is held at its yaw limit: the 4×4-tile road arrow, a triple chevron, steady, in columns 0–3 or 36–39                                                       |
+| 22–24 | Columns 1–2: the tire gauge, 2×3 tiles                                                                                                                                      |
 | 26–28 | Columns 1–6: the speed, three 2×3-tile italic segment digits; columns 7–10 of row 28: `km/h` (normal font)                                                                  |
 | 23–28 | Columns 17–22: the steering picture (6×6 tiles)                                                                                                                             |
 | 26–28 | Columns 26–35: the tachometer; columns 37–38: the gear, a segment digit                                                                                                     |
@@ -631,6 +632,19 @@ fills to the throttle actuator in green and the brake meter to the brake actuato
 take away shows red at the fill's end: the throttle beyond the powertrain's effective opening, and the brake beyond its
 share applied at the station whose share is smaller (`frontBrakeApplied`, `rearBrakeApplied`).
 
+The tire gauge, above the speed, draws the player vehicle's axles from above in the
+[tire gauge](image-assets.md#text-tiles)'s pattern for its form: a car's front and rear axles as an H, each a line between
+its two tires, and a bike's two tires joined by one line. Each axle's tires take one palette of the gauge from the
+player observation's tire on that axle (`tires.front`, `tires.rear`); the vehicle physics solves one tire per axle, so
+a car's left and right tires always share a color. A loaded tire's `utilization`, the fraction of its friction ellipse
+the braking or driving and cornering force together use (clamped to 0–1), picks the nearest of the gauge's tire
+colors: green at 0, yellow at the tire's knee and red at 1, the step `utilization / knee` of the way from green to
+yellow up to the knee and `(utilization - knee) / (1 - knee)` of the way from yellow to red beyond it. The knee is the
+player vehicle's tire `rhoKnee`, where the tire's force stops growing in proportion to its slip; up to the knee the
+force's fraction equals the tire's radial demand `rho`, so the knee in force is the knee in `rho`. A tire without load (`load` 0), in
+flight, is grey. A tile holds one palette, so the front tires lie in the gauge's top row of tiles and the rear in its
+bottom row; its middle row holds only the line, which every palette draws alike.
+
 The speed shows `round(speed*3.6)` km/h, held at 999, in three italic segment digits right-aligned in SEG_VFD; a
 leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in SEG_VFD, and in
 SEG_YELLOW after a shift; unlit segments are a dark trace of the lit color. The tachometer's 26 italic bars, 2 pixels wide
@@ -641,7 +655,7 @@ it yellow and the rest green; every bar is red while the limiter cuts fuel. A ti
 tile where green meets yellow or yellow meets red takes the TACH_GREEN_YELLOW or TACH_YELLOW_RED palette and the
 pattern that splits its bars there; the others take TACH_GREEN, TACH_YELLOW or TACH_RED.
 
-Rows 8 to 22, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
+Rows 8 to 21, the road and the player's vehicle, hold only these passing notices and the road arrow. The road arrow
 reads only the camera's `heldAtLimit` (1 when its yaw source has turned right beyond the limit, -1 left, 0 within
 it), for FACING and MOVING alike: held on the right, the road goes on to the left, so the left arrow stands in columns
 0–3, and held on the left the right arrow stands in columns 36–39. Its row is fixed, clear of the road and the player's vehicle,

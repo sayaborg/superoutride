@@ -9,9 +9,11 @@ import {
   type OrnateStyle,
   type TextFont,
   TEXT_PALETTES,
+  tireGaugePalette,
   type HudPicture,
 } from '../image/text-tiles.js';
 import { tachometerLitBars, tachometerTiles } from '../image/tachometer.js';
+import { TIRE_GAUGE, tireGaugeStep } from '../image/tire-gauge.js';
 import type { RaceFacts } from '../race/course-race.js';
 import type { GameOverCause } from '../race/run-outcome.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -24,7 +26,7 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { SLOW_DOWN, type SlowDownStage } from '../race/slow-down.js';
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's course, the name of its rules and the player vehicle's engine speeds and steering picture from
+ * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's course, the name of its rules and the player vehicle's engine speeds, steering picture and tire knee from
  * its definitions, and the record the run compares against.
  */
 export interface HudFacts {
@@ -40,6 +42,8 @@ export interface HudFacts {
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
+    /** The player vehicle's tire knee (`rhoKnee`), where the tire gauge is yellow. */
+    readonly tireKnee: number;
     /** Whether the player's SETTINGS show SLOW DOWN. */
     readonly slowDown: boolean;
   };
@@ -107,6 +111,7 @@ export const HUD_LAYOUT = Object.freeze({
   cause: ['center', 18],
   speed: [1, 26],
   speedUnit: [7, 28],
+  tires: [1, 22],
   steeringPicture: [17, 23],
   steeringBar: [17, 29],
   tachometer: [26, 26],
@@ -225,6 +230,10 @@ const writePicture = (text: TextLayer, place: Place, picture: HudPicture, angle:
     for (let x = 0; x < HUD_PICTURE_TILES; x++)
       text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, picture.palette);
 };
+
+/** An axle's tires' palette: its utilization's step of the tire colors, or grey without load. */
+const tirePalette = ({ load, utilization }: CompetitorObservation['tires']['front'], knee: number) =>
+  load > 0 ? tireGaugePalette(tireGaugeStep(utilization, knee)) : TEXT_PALETTES.TIRES_AIR;
 
 const extended = ({ clock }: RaceFacts) => {
   const extension = clock.lastExtension;
@@ -363,6 +372,25 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     when: () => true,
     write({ player, run }, text) {
       writePicture(text, 'steeringPicture', run.steeringPicture, player.frontSteerAngle * STEERING_RATIOS[player.form]);
+    },
+  },
+  {
+    // The tire gauge in the vehicle's form, each axle's tires in its own palette; the middle row holds only lines,
+    // which every palette draws alike.
+    when: () => true,
+    write({ player: { form, tires }, run }, text) {
+      const [column, row] = HUD_LAYOUT.tires;
+      const front = tirePalette(tires.front, run.tireKnee),
+        rear = tirePalette(tires.rear, run.tireKnee);
+      for (let k = 0; k < TIRE_GAUGE.columns * TIRE_GAUGE.rows; k++) {
+        const tileRow = Math.floor(k / TIRE_GAUGE.columns);
+        text.put(
+          column + (k % TIRE_GAUGE.columns),
+          row + tileRow,
+          HUD_TILES[`TIRES_${form.toUpperCase()}_${k}`]!,
+          tileRow < TIRE_GAUGE.rows - 1 ? front : rear,
+        );
+      }
     },
   },
   {

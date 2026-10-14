@@ -363,8 +363,8 @@ async function assembleCourseRun(
   };
   // The scene is drawn first; presenting follows the run screen's text.
   // The run's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
-  // tachometer scale and steering picture from its definitions; a DEV rebuild's run gives its own rules and tuned
-  // definition.
+  // tachometer scale, steering picture and tire knee from its definitions; a DEV rebuild's run gives its own rules and
+  // tuned definition.
   const hudRun = ({
     configuration,
     entries,
@@ -372,13 +372,14 @@ async function assembleCourseRun(
     readonly configuration: RunConfiguration;
     readonly entries: readonly { readonly vehicle: RunVehicle }[];
   }) => {
-    const { vehicleDefinition } = entries[0]!.vehicle;
+    const { vehicleDefinition, drivingDefinition } = entries[0]!.vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: course.name,
       rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
+      tireKnee: drivingDefinition.compiledDriving.tire.rhoKnee,
       slowDown: page.player.settings.slowDown,
     };
   };

@@ -1,6 +1,7 @@
 import { readArray, readDocument, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { IndexedPattern, readIndexedPalette, readPatternSymbols } from './indexed-image.js';
 import { TACHOMETER_PATTERNS } from './tachometer.js';
+import { TIRE_GAUGE, TIRE_GAUGE_COLORS, TIRE_GAUGE_PATTERNS } from './tire-gauge.js';
 
 /** Text tiles are 8 by 8 pixels. */
 export const TEXT_TILE_SIZE = 8;
@@ -60,7 +61,9 @@ const AUTHORED_PALETTE_NAMES = ['WHITE', 'YELLOW', 'RED', 'DARK', 'GREEN'] as co
  * colors, slots 1 and 2 the lit core and edge and 3 and 4 the unlit core and edge: SEG_VFD, the instruments' color,
  * SEG_YELLOW and SEG_RED, state colors; and the tachometer's colors, slots 1 to 7 a tile's first color (its lit ramp
  * `L0..L4` and its unlit `U0` and `U1`) and 8 to 14 its second, where green meets yellow or yellow meets red; the signal
- * lamp's states, unlit, red and green, with the source's slots; and the road arrow's.
+ * lamp's states, unlit, red and green, with the source's slots; the road arrow's; and the tire gauge's
+ * ([tire gauge](./tire-gauge.ts)), slots 1 to 3 its outline, tires and lines, `TIRES_k` for each of its tire colors in
+ * order and `TIRES_AIR` for tires without load.
  */
 export const HUD_DRAWN_PALETTE_NAMES = [
   'ORNATE_SMALL_SUNSET',
@@ -93,6 +96,8 @@ export const HUD_DRAWN_PALETTE_NAMES = [
   'LAMP_RED',
   'LAMP_GREEN',
   'ARROW',
+  ...TIRE_GAUGE_COLORS.map((_, k) => `TIRES_${k}` as const),
+  'TIRES_AIR',
 ] as const;
 /**
  * The named palettes: the authored ones, then the drawn ones. The HUD pictures' palettes follow them; later palettes
@@ -103,6 +108,8 @@ export const TEXT_PALETTES = named([...AUTHORED_PALETTE_NAMES, ...HUD_DRAWN_PALE
 export function ornatePalette(font: Exclude<TextFont, 'normal'>, style: OrnateStyle): number {
   return TEXT_PALETTES[`${font === 'ornateSmall' ? 'ORNATE_SMALL' : 'ORNATE_LARGE'}_${style}`];
 }
+/** The tire gauge's palette for step `step` of its tire colors, whose palettes come just before `TIRES_AIR`. */
+export const tireGaugePalette = (step: number) => TEXT_PALETTES.TIRES_AIR - TIRE_GAUGE_COLORS.length + step;
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 /** The signal lamp is 2 by 2 tiles, its patterns row by row from the top left. */
@@ -123,6 +130,8 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
  *   segments in slots 1 and 2 and the others in 3 and 4.
  * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow from the design sources, a triple
  *   chevron.
+ * - `TIRES_CAR_k` and `TIRES_BIKE_k`: tile k of the 16-by-24-pixel tire gauge ([tire gauge](./tire-gauge.ts)) by the
+ *   vehicle's form.
  */
 export const HUD_TILE_NAMES: readonly string[] = Object.freeze([
   ...['TL', 'TR', 'BL', 'BR'].map((part) => `LAMP_${part}`),
@@ -132,6 +141,9 @@ export const HUD_TILE_NAMES: readonly string[] = Object.freeze([
   ...[...'0123456789'.split(''), 'OFF'].flatMap((d) => tiles(`DIGIT_${d}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
   ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
+  ...Object.keys(TIRE_GAUGE_PATTERNS).flatMap((form) =>
+    tiles(`TIRES_${form.toUpperCase()}`, TIRE_GAUGE.columns * TIRE_GAUGE.rows),
+  ),
 ]);
 /** The pattern of each HUD part tile by name. */
 export const HUD_TILES: Readonly<Record<string, number>> = Object.freeze(

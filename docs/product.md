@@ -271,20 +271,20 @@ The product HUD is drawn inside the 320×240 frame. It reads only published obse
 the player vehicle's observations and the camera's. It is a set of independent
 elements, each reading one observation; the active run rules determine which appear.
 
-| Condition                      | Elements                                                             |
-| ------------------------------ | -------------------------------------------------------------------- |
-| Always                         | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake |
-| READY                          | Signal lamps, course name and session                                |
-| Clock on                       | TIME remaining, EXTEND                                               |
-| Two or more competitors ranked | POS n/m                                                              |
-| Next gate has a rank limit     | PASS n                                                               |
-| LINEAR or BRANCH               | STAGE n                                                              |
-| CIRCUIT                        | LAP x/y (LAP x without a lap count), lap time, BEST lap              |
-| One rival per stage            | TARGET distance while that rival is ahead                            |
-| Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT            |
-| Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes         |
-| TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                 |
-| Slowing needed (SETTINGS)      | SLOW DOWN                                                            |
+| Condition                      | Elements                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| Always                         | SPEED (km/h), GEAR, race time, tachometer, steering, throttle, brake, tires |
+| READY                          | Signal lamps, course name and session                                       |
+| Clock on                       | TIME remaining, EXTEND                                                      |
+| Two or more competitors ranked | POS n/m                                                                     |
+| Next gate has a rank limit     | PASS n                                                                      |
+| LINEAR or BRANCH               | STAGE n                                                                     |
+| CIRCUIT                        | LAP x/y (LAP x without a lap count), lap time, BEST lap                     |
+| One rival per stage            | TARGET distance while that rival is ahead                                   |
+| Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT                   |
+| Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes                |
+| TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                        |
+| Slowing needed (SETTINGS)      | SLOW DOWN                                                                   |
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME
@@ -296,6 +296,9 @@ upper row and GOAL or GAME OVER large, the rest small; menus and screens keep th
 
 The lower row, from the left:
 
+- **Tires:** above the speed, the vehicle's axles seen from above, a car's an H and a bike's two tires in a line, each
+  axle's tires colored by how much of their grip they use: green, yellow at the tire's knee (where its grip begins to level
+  off) and red at its limit, changing smoothly between, and grey in the air.
 - **Speed:** three italic seven-segment digits in km/h, right-aligned, in the blue-green of a vacuum fluorescent display;
   an unused leading digit shows all its segments unlit, and unlit segments are a dark trace of the lit color.
 - **Steering:** a picture of the vehicle's steering wheel (a bike's top bridge), 48 pixels square, turned as the front

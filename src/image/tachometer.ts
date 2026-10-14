@@ -1,3 +1,5 @@
+import { rgba, rgbaToRgb555 } from './rgb555.js';
+
 /**
  * The tachometer: 26 italic bars over a strip of 10 by 3 text tiles (80 by 24 pixels), their lighting to 110 % of
  * redline and their colors, and the tile patterns that draw every state it can reach. The HUD lights it and the HUD
@@ -37,6 +39,40 @@ const FIRST_RED = Array.from({ length: TACHOMETER.bars }, (_, i) => tachometerBa
 /** The tachometer's colors, in its palettes' order. */
 export const TACHOMETER_COLORS = Object.freeze(['GREEN', 'YELLOW', 'RED'] as const);
 export type TachometerColor = (typeof TACHOMETER_COLORS)[number];
+type Rgb = readonly [number, number, number];
+/** Each tachometer color's lit ramp `L0..L4`, dark to light, and its unlit `U0` and `U1`, as 8-bit channels. */
+const TACHOMETER_RAMPS: Readonly<Record<TachometerColor, readonly Rgb[]>> = Object.freeze({
+  GREEN: [
+    [16, 112, 40],
+    [32, 168, 56],
+    [64, 216, 80],
+    [136, 244, 136],
+    [200, 255, 200],
+    [36, 68, 44],
+    [28, 56, 36],
+  ],
+  YELLOW: [
+    [160, 104, 0],
+    [216, 160, 0],
+    [248, 208, 16],
+    [255, 240, 112],
+    [255, 255, 200],
+    [76, 68, 28],
+    [64, 56, 20],
+  ],
+  RED: [
+    [128, 16, 8],
+    [192, 28, 16],
+    [240, 56, 32],
+    [255, 136, 112],
+    [255, 208, 192],
+    [76, 32, 28],
+    [64, 24, 20],
+  ],
+});
+/** A tachometer color's `L0..L4`, `U0` and `U1` as RGB555. */
+export const tachometerRamp = (color: TachometerColor): number[] =>
+  TACHOMETER_RAMPS[color].map(([r, g, b]) => rgbaToRgb555(rgba(r, g, b)));
 /**
  * Bar i's color: red from the first bar at or above redline, yellow for the bars just before it and green below; every
  * bar is red while fuel cut is latched.

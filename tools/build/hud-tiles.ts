@@ -6,13 +6,14 @@ import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import {
   compileTextTiles,
   HUD_PICTURE_TILES,
+  TEXT_PALETTES,
   TEXT_TILE_SIZE,
   type TextTilesDocument,
 } from '../../src/image/text-tiles.js';
 import { replaceDocument } from '../authoring/content-store.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { reportError, requireInput } from '../course/authoring-io.js';
-import { drawHudParts, drawTachometerPalettes } from '../graphics/hud-parts.js';
+import { drawHudParts, drawTachometerPalettes, drawTireGaugePalettes } from '../graphics/hud-parts.js';
 import { drawHudPictures, withHudTiles } from '../graphics/hud-pictures.js';
 import {
   readArrow,
@@ -25,7 +26,7 @@ import { drawOrnateFonts } from '../graphics/hud-fonts.js';
 
 /**
  * The HUD tiles command: read the fonts and HUD parts from their design sources (`content/hud-design-sources/`), draw
- * the tachometer, the meters and every HUD picture from its source and recipe (`content/hud-picture-sources/`) and write
+ * the tachometer, the meters, the tire gauge and every HUD picture from its source and recipe (`content/hud-picture-sources/`) and write
  * them into the text tiles, `content/text-tiles/default.json`, with a check
  * sheet of each picture, `dist/hud-pictures/<name>.png`: its frames in order over a grey ground, which nothing reads.
  */
@@ -51,6 +52,9 @@ try {
     ['LAMP_RED', lamp.palettes.RED_ON],
     ['LAMP_GREEN', lamp.palettes.GREEN_ON],
     ['ARROW', arrow.palette],
+    // The tire gauge's outline is the signal lamp's, its lines the lamp's middle bezel grey and tires without load the
+    // DARK text's grey.
+    ...drawTireGaugePalettes(lamp.palettes.OFF[1]!, lamp.palettes.OFF[5]!, saved.palettes[TEXT_PALETTES.DARK]![1]!),
   ]);
   const document = withHudTiles(
     saved,
