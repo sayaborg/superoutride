@@ -285,6 +285,22 @@ pixel wide, joined vertically between columns, and run from the larger of idle a
 entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redline
 ([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)). The graph has no axis numbers.
 
+On ENGINE the shown vehicle's engine revs standing still: its model, as a run builds it, is held as in a race's READY
+([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)), so its inertia, friction, fuel cut and throttle actuator are
+the run's, and the throttle asked of it follows the page's time, the same for every vehicle:
+
+| Page time | Throttle |
+| --------- | -------- |
+| 0–1.5 s   | 0 (idle) |
+| 1.5–2.5 s | full     |
+| 2.5–4 s   | 0        |
+| 4–6 s     | full     |
+
+Each time ENGINE is shown, and with each change of vehicle on it, the engine starts again at idle; a change of color
+does not touch it, and no other page runs it. While its speed is at or above 20 % of redline a WHITE upright line
+stands at that speed on the horizontal axis, from the top grid line to the bottom row, with a mark of 3×3 pixels where
+it crosses each curve, in the curve's color; they are drawn over the curves and under the text.
+
 | Rows 14–20, left  | Example      | Source                                                    |
 | ----------------- | ------------ | --------------------------------------------------------- |
 | `ENGINE`          | `F12 4943cc` | listing `metadata.engine`, `displacementCc`               |

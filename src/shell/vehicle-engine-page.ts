@@ -17,6 +17,7 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import {
   BANK_PALETTES,
   DIM,
+  ENGINE_SPEED_LINE,
   EXHAUST_DIAGRAM,
   FIRING_FLASH,
   FIRING_STRIP,
@@ -48,7 +49,8 @@ function enginePeaks(vehicle: CompiledVehicleDefinition) {
 /**
  * The graph: DARK grid lines, lighter axes, the redline dashed RED, and the torque (YELLOW) and power (RED) curves, each scaled so its maximum
  * touches the top grid line and joined vertically between columns, from the larger of idle and 20 % of redline to the
- * fuel-cut entry.
+ * fuel-cut entry; over them, the free-revving engine's speed from 20 % of redline as a WHITE upright line with a mark
+ * in each curve's color where it crosses it.
  */
 function drawGraph(scene: VehiclePageScene) {
   const { frame, text, vehicle, fuelCutEnterRedlineRatio } = scene;
@@ -67,11 +69,29 @@ function drawGraph(scene: VehiclePageScene) {
   const curve = (share: (rpm: number) => number, color: number) =>
     drawGraphLine(frame, first, last, (x) => GRAPH.bottom - Math.round(share(rpmOf(x)) * height), color);
   const peakPower = peaks.power * 1000;
-  curve(
-    (rpm) => (sampleEngineTorque(powertrain, rpm) * rpm * 2 * Math.PI) / 60 / peakPower,
-    text.mainColor(TEXT_PALETTES.RED),
-  );
-  curve((rpm) => sampleEngineTorque(powertrain, rpm) / peaks.torque, text.mainColor(TEXT_PALETTES.YELLOW));
+  const red = text.mainColor(TEXT_PALETTES.RED);
+  const yellow = text.mainColor(TEXT_PALETTES.YELLOW);
+  const powerShare = (rpm: number) => (sampleEngineTorque(powertrain, rpm) * rpm * 2 * Math.PI) / 60 / peakPower;
+  const torqueShare = (rpm: number) => sampleEngineTorque(powertrain, rpm) / peaks.torque;
+  curve(powerShare, red);
+  curve(torqueShare, yellow);
+
+  // The free-revving engine's speed: a WHITE upright line where it stands on the axis, with a mark on each curve.
+  const rpm = scene.engineRpm;
+  if (rpm !== null && rpm >= GRAPH.firstRedline * redline) {
+    const x = Math.round(xOf(rpm));
+    if (x <= GRAPH.right) {
+      for (let y = GRAPH.top; y <= GRAPH.bottom; y++) frame.setPixel(x, y, text.mainColor(TEXT_PALETTES.WHITE));
+      const r = ENGINE_SPEED_LINE.markRadius;
+      for (const [share, color] of [
+        [powerShare, red],
+        [torqueShare, yellow],
+      ] as const) {
+        const y = GRAPH.bottom - Math.round(share(rpm) * height);
+        for (let row = y - r; row <= y + r; row++) frame.fillSpan(row, x - r, x + r, color);
+      }
+    }
+  }
   text.write(22, 3, 'TORQUE', TEXT_PALETTES.YELLOW);
   text.write(31, 3, 'POWER', TEXT_PALETTES.RED);
 }
@@ -256,6 +276,7 @@ function drawExhaust(scene: VehiclePageScene) {
 /** ENGINE: the engine's curves and values, its firing and its exhaust. */
 export const ENGINE_PAGE: VehiclePage = Object.freeze({
   name: 'ENGINE',
+  revs: true,
   draw(scene: VehiclePageScene) {
     drawGraph(scene);
     writeEngine(scene);

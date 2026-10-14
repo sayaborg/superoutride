@@ -136,6 +136,7 @@ function writeBody({ text, vehicle }: VehiclePageScene) {
 /** CHASSIS: the side view, the listing's era, market and specification, and the body. */
 export const CHASSIS_PAGE: VehiclePage = Object.freeze({
   name: 'CHASSIS',
+  revs: false,
   draw(scene: VehiclePageScene) {
     drawSideView(scene);
     writeListing(scene);

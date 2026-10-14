@@ -10,6 +10,17 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 export const YAW_IMAGE_STEPS = 6;
 /** Fixed steps each page stays before the next (6 s). */
 export const VEHICLE_PAGE_STEPS = 360;
+/**
+ * ENGINE's free-revving throttle by the page's fixed steps, the same for every vehicle (values the author chose): each
+ * entry's throttle holds from its step until the next entry's, idle for 1.5 s, full for 1 s, closed for 1.5 s and full
+ * to the page's end.
+ */
+export const FREE_REV_THROTTLE = Object.freeze([
+  Object.freeze({ step: 0, throttle: 0 }),
+  Object.freeze({ step: 90, throttle: 1 }),
+  Object.freeze({ step: 150, throttle: 0 }),
+  Object.freeze({ step: 240, throttle: 1 }),
+]);
 /** The picture's box in pixels: text columns 0-19 by rows 4-10. */
 export const PICTURE_BOX = Object.freeze({ x: 0, y: 32, width: 160, height: 56 });
 /** The factor by which a picture too large for its box shrinks from the player depth until it fits. */
@@ -51,6 +62,8 @@ export const GRAPH = Object.freeze({
   gridRedline: 0.1,
   gridLevels: 4,
 });
+/** The engine speed's marks on ENGINE's curves: squares `markRadius` pixels about each crossing. */
+export const ENGINE_SPEED_LINE = Object.freeze({ markRadius: 1 });
 /**
  * The gear rows: labels at `label`, ratios at `ratio` under the `RATIO` heading at `ratioHeading`, road speeds at `kmh`
  * under the `KMH` heading.
@@ -134,8 +147,8 @@ export const GREY = 22 | (22 << 5) | (22 << 10);
 export const DIM = 12 | (12 << 5) | (12 << 10);
 
 /**
- * What a page draws from: the frame and text under it, the shown vehicle, the fuel-cut entry ratio and the fixed steps
- * since the vehicle was shown.
+ * What a page draws from: the frame and text under it, the shown vehicle, the fuel-cut entry ratio, the fixed steps
+ * since the vehicle was shown, and the free-revving engine's speed (RPM) on a page that revs it, otherwise null.
  */
 export interface VehiclePageScene {
   readonly frame: SoftwareSurface;
@@ -143,12 +156,24 @@ export interface VehiclePageScene {
   readonly vehicle: CompiledVehicleDefinition;
   readonly fuelCutEnterRedlineRatio: number;
   readonly shownSteps: number;
+  readonly engineRpm: number | null;
 }
 
-/** One page of SELECT VEHICLE: the name its tab shows, and its drawing of the shown vehicle's pixels and text. */
+/**
+ * One page of SELECT VEHICLE: the name its tab shows, whether the shown vehicle's engine revs on it by
+ * `FREE_REV_THROTTLE`, and its drawing of the shown vehicle's pixels and text.
+ */
 export interface VehiclePage {
   readonly name: string;
+  readonly revs: boolean;
   draw(scene: VehiclePageScene): void;
+}
+
+/** The free-revving throttle at page step `step`. */
+export function freeRevThrottle(step: number): number {
+  let throttle = 0;
+  for (const entry of FREE_REV_THROTTLE) if (entry.step <= step) throttle = entry.throttle;
+  return throttle;
 }
 
 /**

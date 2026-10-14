@@ -5,6 +5,10 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import { drawScaledSprite, scaledSpriteBounds } from '../view/sprite.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
+import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
+import { createHeldVehicle, updateHeldVehicle, type HeldVehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { SIM_DT } from '../race/fixed-step.js';
 import {
   createVehiclePaletteVariant,
   selectVehicleSprite,
@@ -23,6 +27,7 @@ import {
   VEHICLE_PAGE_STEPS,
   WALLPAPER_SHADE,
   YAW_IMAGE_STEPS,
+  freeRevThrottle,
   type VehiclePage,
 } from './vehicle-page.js';
 import { ENGINE_PAGE } from './vehicle-engine-page.js';
@@ -109,8 +114,9 @@ function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSte
 
 /**
  * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, and
- * its pages (ENGINE, DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the fuel-cut entry at
- * `fuelCutEnterRedlineRatio` times redline and the physical values as the simulation holds them. LEFT and RIGHT change
+ * its pages (ENGINE, DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the physical values
+ * as the simulation holds them under `driving`. On a page that revs, the shown vehicle's model, as a run builds it, is
+ * held and revved by `FREE_REV_THROTTLE` from idle at the page's start; a change of vehicle starts it again. LEFT and RIGHT change
  * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
  * `colorOf` its color. A change of vehicle keeps the page and restarts its time. With fixed colors it has no color
  * choice and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
@@ -120,7 +126,7 @@ export function createVehicleScreen(
   text: TextLayer,
   present: () => void,
   candidates: readonly CompiledVehicleDefinition[],
-  fuelCutEnterRedlineRatio: number,
+  driving: CompiledDrivingDefinition,
   choice: {
     vehicleId: string | null;
     fixedColors: boolean;
@@ -142,6 +148,19 @@ export function createVehicleScreen(
     page = 0,
     pageSteps = 0,
     shownSteps = 0;
+  // The engine revving on a page that revs, from idle at the page's start, in the shown vehicle's model.
+  let engine: HeldVehicleState | null = null;
+  const models = new Map<CompiledVehicleDefinition, VehicleModel>();
+  const modelOf = (vehicleDefinition: CompiledVehicleDefinition) => {
+    let model = models.get(vehicleDefinition);
+    if (!model)
+      models.set(
+        vehicleDefinition,
+        (model = createVehicleModel({ vehicleDefinition, drivingDefinition: driving }, SIM_DT)),
+      );
+    return model;
+  };
+  const fuelCutEnterRedlineRatio = driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio;
   const sets = new Map<string, VehicleSpriteImages>();
   // A vehicle's colors share its pictures' shapes, so one fit serves them all.
   const fits = new Map<string, ReturnType<typeof pictureFit>>();
@@ -151,6 +170,7 @@ export function createVehicleScreen(
     color = Math.max(0, colors.indexOf(choice.colorOf(vehicle)));
     pageSteps = 0;
     shownSteps = 0;
+    engine = null;
   };
   show();
   const turn = (list: number, step: number, at: number) => (at + step + list) % list;
@@ -158,11 +178,17 @@ export function createVehicleScreen(
     live: false,
     wallpaper: choice.background,
     tick() {
+      if (PAGES[page]!.revs) {
+        const model = modelOf(candidates[index]!);
+        engine ??= createHeldVehicle(model);
+        updateHeldVehicle(engine, model, { steering: 0, throttle: freeRevThrottle(pageSteps), brake: 0 });
+      }
       steps++;
       shownSteps++;
       if (++pageSteps === VEHICLE_PAGE_STEPS) {
         page = (page + 1) % PAGES.length;
         pageSteps = 0;
+        engine = null;
       }
     },
     command(command: MenuCommand): MenuResponse | null {
@@ -220,7 +246,14 @@ export function createVehicleScreen(
         TEXT_PALETTES.WHITE,
       );
       drawTabs(frame, text, page, pageSteps);
-      PAGES[page]!.draw({ frame, text, vehicle, fuelCutEnterRedlineRatio, shownSteps });
+      PAGES[page]!.draw({
+        frame,
+        text,
+        vehicle,
+        fuelCutEnterRedlineRatio,
+        shownSteps,
+        engineRpm: engine?.powertrain.engineRpm ?? null,
+      });
       text.draw(frame);
       present();
     },

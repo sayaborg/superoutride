@@ -147,13 +147,58 @@ export function publishVehicleRenderY(vehicle: VehicleState, model: VehicleModel
   vehicle.renderY = vehicle.y - model.compiledVehicle.desiredCgHeight;
 }
 
+/** What a held vehicle's update reads and writes: its actuators, powertrain, wheel speeds and control observation. */
+export type HeldVehicleState = Pick<
+  VehicleState,
+  'actuator' | 'powertrain' | 'frontWheelOmega' | 'rearWheelOmega' | 'control'
+>;
+
+/** A vehicle standing still with its engine at idle, to be held, as SELECT VEHICLE's ENGINE page revs it. */
+export function createHeldVehicle(model: VehicleModel): HeldVehicleState {
+  return {
+    actuator: createDrivingActuatorState(),
+    powertrain: createAutomaticPowertrainState(model.compiledVehicle.powertrain, model.powertrain),
+    frontWheelOmega: 0,
+    rearWheelOmega: 0,
+    control: createVehicleControlObservation(),
+  };
+}
+
+/**
+ * One fixed step of a held vehicle: its body and wheels keep their pose and motion and its gear holds, while its
+ * actuators follow the input and its powertrain runs with the clutch open (zero capacity), so the engine revs freely
+ * with the throttle under its ordinary law, fuel cut and idle holding still bounding the opening. A race's READY phase
+ * holds its vehicles through `updateVehicle`, which steps them here; SELECT VEHICLE's ENGINE page revs its engine here.
+ */
+export function updateHeldVehicle(vehicle: HeldVehicleState, model: VehicleModel, input: DrivingInput): void {
+  assertExclusivePedalInput(input);
+  const { compiledVehicle, substep } = model;
+  const workspace = stepWorkspace(vehicle, model);
+  for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
+    updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
+    const powertrainStep = prepareAutomaticPowertrain(
+      vehicle.powertrain,
+      compiledVehicle.powertrain,
+      model.powertrain,
+      drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
+      false,
+      substep,
+      workspace.powertrain,
+      0,
+    );
+    completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
+  }
+  vehicle.control.throttleActuator = vehicle.actuator.throttle;
+  vehicle.control.brakeActuator = vehicle.actuator.brake;
+  vehicle.control.frontBrakeApplied = 1;
+  vehicle.control.rearBrakeApplied = 1;
+}
+
 const NO_EXTERNAL_FORCE: Readonly<Vec3> = Object.freeze({ x: 0, y: 0, z: 0 });
 
 /**
- * One fixed step of a vehicle. A `held` vehicle, as in a race's READY phase, is constrained explicitly: its body and
- * wheels keep their pose and motion and its gear holds, while its actuators follow the input and its powertrain runs
- * with the clutch open (zero capacity), so the engine revs freely with the throttle under its ordinary law, fuel cut
- * and idle holding still bounding the opening. The next free step uses the fixed capacity again.
+ * One fixed step of a vehicle. A `held` vehicle, as in a race's READY phase, is constrained explicitly: it takes
+ * `updateHeldVehicle`'s step. The next free step uses the fixed capacity again.
  * `externalForce` is a world force (N) from outside the vehicle, held through the step: it acts at the centre of mass,
  * so it adds no moment, and every substep integrates it with the vehicle's own forces. A held vehicle ignores it.
  * `steering` is the steering rule of whoever drives the vehicle this step.
@@ -169,28 +214,11 @@ export function updateVehicle(
 ): void {
   assertExclusivePedalInput(input);
   const { compiledVehicle, substep } = model;
-  const workspace = stepWorkspace(vehicle, model);
   if (held) {
-    for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
-      updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
-      const powertrainStep = prepareAutomaticPowertrain(
-        vehicle.powertrain,
-        compiledVehicle.powertrain,
-        model.powertrain,
-        drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-        false,
-        substep,
-        workspace.powertrain,
-        0,
-      );
-      completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
-    }
-    vehicle.control.throttleActuator = vehicle.actuator.throttle;
-    vehicle.control.brakeActuator = vehicle.actuator.brake;
-    vehicle.control.frontBrakeApplied = 1;
-    vehicle.control.rearBrakeApplied = 1;
+    updateHeldVehicle(vehicle, model, input);
     return;
   }
+  const workspace = stepWorkspace(vehicle, model);
   const velocityBeforeX = vehicle.velocityX,
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
@@ -473,8 +501,8 @@ export function vehicleBodyKinematics(
   return out;
 }
 
-const stepWorkspaces = new WeakMap<VehicleState, ReturnType<typeof createStepWorkspace>>();
-function stepWorkspace(vehicle: VehicleState, model: VehicleModel) {
+const stepWorkspaces = new WeakMap<HeldVehicleState, ReturnType<typeof createStepWorkspace>>();
+function stepWorkspace(vehicle: HeldVehicleState, model: VehicleModel) {
   let workspace = stepWorkspaces.get(vehicle);
   if (!workspace) {
     workspace = createStepWorkspace(model);

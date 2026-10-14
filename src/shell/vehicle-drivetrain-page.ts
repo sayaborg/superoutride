@@ -110,6 +110,7 @@ function writeWheels({ text, vehicle }: VehiclePageScene) {
 /** DRIVETRAIN: the gears' speed graph, the gears, the final drive and the drive, and the wheels. */
 export const DRIVETRAIN_PAGE: VehiclePage = Object.freeze({
   name: 'DRIVETRAIN',
+  revs: false,
   draw(scene: VehiclePageScene) {
     drawSpeedGraph(scene);
     writeGears(scene);

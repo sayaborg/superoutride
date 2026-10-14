@@ -401,7 +401,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             devices.text,
             devices.present,
             candidates,
-            driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio,
+            driving,
             {
               vehicleId: vehicleId ?? latest('vehicle') ?? null,
               fixedColors: place === 'SERIES' && classChoice!.fixedColors,
