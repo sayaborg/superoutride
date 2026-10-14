@@ -336,7 +336,9 @@ worker: it cannot be stopped midway, so a search asked for while one runs waits 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
 counted by kind above the views. The compile worker works them out after each change, from the document as it stands,
 compiled or not (a `findings` query), with the chosen step and tolerances. A kind lists its findings; choosing one
-selects its element and opens its cleaning operation's candidates for that element.
+selects its element and opens its cleaning operation over the scope the finding was found in, the whole course, with
+only the candidates at the finding's Pointer checked. The scope's rules are those of any search, so a candidate that
+needs others in the course (such as a near colour's) is proposed as it would be over the whole course.
 
 "Underlay" lays a PNG or JPEG opened in the browser under the open Section's plan, to trace a course from; the image
 is never saved, in the store or an archive. It is scaled by picking two points on it and giving their distance in

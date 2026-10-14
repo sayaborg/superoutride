@@ -672,7 +672,7 @@ stale; the driving changes only when the shift is not 0.
 
 **Findings** ([`course-findings.ts`](../tools/authoring/course-findings.ts)) list what in a course is worth tidying,
 apart from diagnostics and without changing anything; a course with findings builds and runs as any other, and the
-build does not read them. `courseFindings` takes a step, a distance tolerance and a colour tolerance, and returns each
+build does not read them. Findings are looked for over the whole course. `courseFindings` takes a step, a distance tolerance and a colour tolerance, and returns each
 finding's kind, Pointer, description and the cleaning operation that answers it: values off the step (`digits`,
 round), knots nothing needs at tolerance 0 (`unneeded-knot`, remove knots), near things (`near`, join), absolute
 laterals exactly on a Boundary's or lane's line (`referable`, join), runs that combine into repeats (`repeatable`,

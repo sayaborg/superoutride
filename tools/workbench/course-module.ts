@@ -150,7 +150,7 @@ export const courseModule: WorkbenchModule = {
       document: () => document as Json | null,
       query: (query) => context.query(query),
       select: (pointer) => context.select(path(), pointer),
-      open: (operation, pointer, amount) => cleaning.findFor(operation, [pointer], amount),
+      open: (operation, pointer, amount) => cleaning.findFor(operation, pointer, amount),
     });
     const views = make('div', '', { class: 'course-views' });
     const game = make('div', '', { class: 'course-game-pane' });

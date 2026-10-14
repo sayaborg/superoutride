@@ -103,13 +103,12 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     source = null;
     list.replaceChildren();
   };
-  /** Find the chosen operation's candidates, over the chosen scope or the elements given. */
-  const search = (pointers?: readonly string[]) => {
+  /** Find the chosen operation's candidates over the chosen scope; all are checked, or only those at a Pointer given. */
+  const search = (only?: string) => {
     const document = host.document();
     if (!document) return;
-    const where: CleaningScope = pointers
-      ? { pointers }
-      : scope.value === 'section'
+    const where: CleaningScope =
+      scope.value === 'section'
         ? { section: host.section() ?? '' }
         : scope.value === 'chosen'
           ? { pointers: host.chosen() }
@@ -146,18 +145,18 @@ export function createCleaningPanel(host: CleaningPanelHost) {
       candidates = answer.candidates;
       source = document;
       status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
-      showCandidates();
+      showCandidates(only);
     });
   };
   find.addEventListener('click', () => search());
 
-  const showCandidates = () => {
+  const showCandidates = (only?: string) => {
     host.mark(candidates.map((c) => c.pointer));
     const table = make('table', '', { class: 'course-form-changes' });
     candidates.forEach((candidate, i) => {
       const row = make('tr');
       const box = make('input', '', { type: 'checkbox', 'data-candidate': String(i) });
-      box.checked = true;
+      box.checked = only === undefined || candidate.pointer === only;
       const where = make('button', candidate.description, { type: 'button', class: 'link' });
       where.addEventListener('click', () => host.select(candidate.pointer));
       const moves = Number.isFinite(candidate.shift)
@@ -230,14 +229,18 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     );
   };
   panel.addEventListener('toggle', showGroups);
-  /** Open the candidates an operation has for some elements: what a finding's operation proposes there. */
-  const findFor = (kind: keyof typeof OPERATIONS, pointers: readonly string[], amount?: number) => {
+  /**
+   * Open a finding's operation over the scope the finding was found in (the whole course), with only the finding's own
+   * candidates checked: what the operation proposes there, among what else it would change.
+   */
+  const findFor = (kind: keyof typeof OPERATIONS, pointer: string, amount?: number) => {
     panel.open = true;
     operation.value = kind;
+    scope.value = 'course';
     showParameters();
     if (amount !== undefined) (kind === 'round' ? step : tolerance).value = String(amount);
     if (kind === 'round') for (const box of values.querySelectorAll<HTMLInputElement>('input')) box.checked = true;
-    search(pointers);
+    search(pointer);
   };
 
   panel.append(
