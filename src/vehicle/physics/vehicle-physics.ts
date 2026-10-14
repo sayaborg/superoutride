@@ -20,7 +20,7 @@ import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuato
 import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
 import type { DriverSteering } from './vehicle-calibration.js';
-import { effectiveTireLoad, lateralSlipAtDemand } from './tire-friction-calibration.js';
+import { effectiveTireLoad, lateralSlipAtDemand, radialKneeInverse } from './tire-friction-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   bodyFrameVelocity,
@@ -217,7 +217,7 @@ export function updateVehicle(
     // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for, a part of the
     // tightest one the vehicle holds within its grip and its rack.
     const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
-    const limit = steeringSlipLimit(model, steering, grip);
+    const limit = steeringSlip(model, steering, grip, 1);
     const automaticMax = maxRoadWheelSteer - limit;
     const askedYawRate =
       vehicle.actuator.steering *
@@ -234,7 +234,9 @@ export function updateVehicle(
       lever * (vehicle.yawRate - askedYawRate),
       STEERING_LOW_SPEED_REGULARIZATION,
     );
-    vehicle.frontSteerAngle = clamp(travelDirection, -automaticMax, automaticMax) + vehicle.actuator.steering * limit;
+    vehicle.frontSteerAngle =
+      clamp(travelDirection, -automaticMax, automaticMax) +
+      steeringSlip(model, steering, grip, vehicle.actuator.steering);
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
       coordinates,
@@ -371,11 +373,16 @@ function appliedShare(applied: number, requested: number): number {
 
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
-/** The front tire's pure-lateral slip angle at full steering input on `grip` under `steering`, within the rack. */
-function steeringSlipLimit(model: VehicleModel, steering: DriverSteering, grip: number): number {
-  return Math.min(
-    model.steering.maxRoadWheelSteer,
-    Math.atan(lateralSlipAtDemand(model.tire, grip, steering.limitDemand)),
+/**
+ * The front tire's pure-lateral slip angle that steering input `input` asks under `steering` on `grip`, within the rack:
+ * the slip at which its lateral force is the part `|input| X` of its bound, the part of the yaw rate the input asks, with
+ * the input's sign. Full input gives the rule's limit `L`.
+ */
+function steeringSlip(model: VehicleModel, steering: DriverSteering, grip: number, input: number): number {
+  const demand = radialKneeInverse(model.tire.rhoKnee, Math.abs(input) * steering.utilization);
+  return (
+    Math.sign(input) *
+    Math.min(model.steering.maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, demand)))
   );
 }
 
@@ -413,7 +420,7 @@ export function fullSteeringYawRate(
     forward,
     lateral,
     steering.utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
-    model.steering.maxRoadWheelSteer - steeringSlipLimit(model, steering, grip),
+    model.steering.maxRoadWheelSteer - steeringSlip(model, steering, grip, 1),
     compiledVehicle.frontAxle + compiledVehicle.rearAxle,
   );
 }
