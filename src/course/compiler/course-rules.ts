@@ -3,7 +3,7 @@ import type { CourseDocument, CourseGridSlotDocument, CourseLandmarkDocument } f
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints } from '../course-geometry.js';
 import { courseBoundaryAt } from '../course-boundaries.js';
-import { courseRoadsAt } from '../course-lanes.js';
+import { courseLane, courseRoadsAt } from '../course-lanes.js';
 import { stripSupportsInterval } from '../strip-material.js';
 import { RUN_RULE_LIMITS } from '../run-rules.js';
 import type { CompiledSection } from './course-graph.js';
@@ -132,7 +132,7 @@ export function compileCourseGates(
         );
         check(position.s <= front, `${path}/${i}`, 'Grid slots must be ordered from front to back');
         front = position.s;
-        const lane = entry.lanes.byId.get(slot.lane);
+        const lane = courseLane(entry.lanes, slot.lane);
         requireCourse(lane !== undefined, `${path}/${i}/lane`, 'Unknown lane', 'unresolved_reference');
         check(
           courseBoundaryAt(lane.width, position.s) > 0,

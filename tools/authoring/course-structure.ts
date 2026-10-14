@@ -27,6 +27,7 @@ import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 import { compileCourseLanes } from '../../src/course/compiler/course-lanes.js';
 import {
+  courseLane,
   courseRoadsAt,
   type CompiledLane,
   type CompiledLanes,
@@ -36,7 +37,6 @@ import {
 /** The lanes of a Section whose lanes do not compile: none, so lane references do not resolve. */
 const NO_LANES: CompiledLanes = Object.freeze({
   elements: [],
-  byId: new Map(),
   center: undefined as unknown as CompiledLane,
 });
 
@@ -671,7 +671,7 @@ function readSection(
         list(v[grid]).forEach((slot, k) => {
           // A slot lies at its lane's centre.
           const sv = record(slot);
-          const lane = lanes.byId.get(String(sv.lane));
+          const lane = courseLane(lanes, String(sv.lane));
           let station: { s: number; l: number } | undefined;
           try {
             const s = resolve(sv.at as unknown as CoursePosition, `${at}/${grid}/${k}/at`).s;

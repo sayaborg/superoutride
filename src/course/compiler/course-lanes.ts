@@ -110,10 +110,8 @@ export function compileCourseLanes(
     });
     return Object.freeze({ kind: 'lane' as const, lane });
   });
-  const lanes = compiled.flatMap((element) => (element.kind === 'lane' ? [element.lane] : []));
   return Object.freeze({
     elements: Object.freeze(compiled),
-    byId: new Map(lanes.map((lane) => [lane.id, lane])),
     center: (compiled[center] as { lane: CompiledLane }).lane,
   });
 }

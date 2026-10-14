@@ -19,8 +19,13 @@ export interface CompiledLanes {
     | { readonly kind: 'lane'; readonly lane: CompiledLane }
     | { readonly kind: 'median'; readonly width: CompiledBoundary }
   )[];
-  readonly byId: ReadonlyMap<string, CompiledLane>;
   readonly center: CompiledLane;
+}
+
+/** The lane named `id` in a Section's cross-section, or undefined when it has none: the one lane reference lookup. */
+export function courseLane(lanes: CompiledLanes, id: string): CompiledLane | undefined {
+  for (const element of lanes.elements) if (element.kind === 'lane' && element.lane.id === id) return element.lane;
+  return undefined;
 }
 
 /** A road at a station: lanes of positive width touching side by side, with no median of positive width between. */
@@ -68,5 +73,5 @@ export function courseLineOf(
   lanes: CompiledLanes,
 ): CompiledBoundary | undefined {
   if ('boundary' in reference) return boundary(reference.boundary);
-  return lanes.byId.get(reference.lane)?.[reference.side];
+  return courseLane(lanes, reference.lane)?.[reference.side];
 }

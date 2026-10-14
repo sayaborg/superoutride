@@ -2,7 +2,7 @@ import { compileCourseGround } from '../course-ground.js';
 import { createStripBudget } from '../strip-budget.js';
 import { compileCourseStrips } from './course-strip-ground.js';
 import { compileCourseLanes, validateCourseLanes } from './course-lanes.js';
-import type { CourseLines } from '../course-lanes.js';
+import { courseLane, type CourseLines } from '../course-lanes.js';
 import { createPlanCoordinateReader } from '../geometry/plan-coordinate-reader.js';
 import { contentDigest } from '../../core/content-digest.js';
 import { UNSLICED, type WorkSlices } from '../../core/work-slices.js';
@@ -49,12 +49,11 @@ import { enumerateCourseRoutes } from './course-routes.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
-interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance' | 'assets'> {
+interface SectionDraft extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance'> {
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
   fork: CompiledSection['fork'];
   appearance: CompiledSection['appearance'];
-  assets: CompiledSection['assets'];
 }
 
 /** Upper-level immutable product. Consumers receive its ordinary reader/data facets, never this root. */
@@ -90,8 +89,8 @@ const COURSE_COMPILER = Object.freeze({
   appearance: COURSE_APPEARANCE_RECIPE,
 });
 
-function reference<T>(table: ReadonlyMap<string, T>, id: string, path: string): T {
-  const value = table.get(id);
+function reference<T>(lookup: (id: string) => T | undefined, id: string, path: string): T {
+  const value = lookup(id);
   if (value === undefined)
     throw new CourseInputError('unresolved_reference', path, `Unknown reference ${JSON.stringify(id)} in this scope`);
   return value;
@@ -195,7 +194,6 @@ async function compileSection(
     barriers,
     ground: compileCourseGround(strips.material, barriers, `${path}/strips`),
     objects,
-    assets: Object.freeze([]),
     // Set by `compileAppearance`, after the fork structure and before anything reads it.
     appearance: null as unknown as SectionDraft['appearance'],
     incoming: [],
@@ -215,13 +213,7 @@ async function compileSection(
       walls,
       placements,
     );
-    // A Section's images are exactly those its backgrounds and sprites reference, in course asset order.
-    const used = new Set<object>([
-      ...appearance.environments.map((environment) => environment.background.asset),
-      ...appearance.sprites.map((sprite) => sprite.instance.asset),
-    ]);
     result.appearance = appearance;
-    result.assets = Object.freeze([...assets.values()].filter((asset) => used.has(asset)));
   };
   return {
     section: result,
@@ -271,7 +263,8 @@ export async function compileCourseDocument(
     });
     const sections = drafts.map((draft) => draft.section);
     const sectionTable = new Map(sections.map((section) => [section.id, section]));
-    const entry = reference(sectionTable, document.entry, '/entry');
+    const sectionOf = (id: string) => sectionTable.get(id);
+    const entry = reference(sectionOf, document.entry, '/entry');
     // Every destination and the course entrance has one unambiguous entry cross-section.
     const entrances = new Map(
       sections
@@ -287,9 +280,9 @@ export async function compileCourseDocument(
     );
     const links = await compileStage(document.links, slices, (source, index) => {
       const path = `/links/${index}`;
-      const from = reference(sectionTable, source.from.section, `${path}/from/section`);
-      const to = reference(sectionTable, source.to, `${path}/to`);
-      const lane = reference(from.lanes.byId, source.from.lane, `${path}/from/lane`);
+      const from = reference(sectionOf, source.from.section, `${path}/from/section`);
+      const to = reference(sectionOf, source.to, `${path}/to`);
+      const lane = reference((id) => courseLane(from.lanes, id), source.from.lane, `${path}/from/lane`);
       const cut = compileCourseCut(from, lane, from.coordinates.domain.end);
       const link = compileCourseLink(source.id, cut, entrances.get(to)!, path);
       from.outgoing.push(link);

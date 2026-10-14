@@ -2,7 +2,6 @@ import type { StripGround } from '../strip-ground.js';
 import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js';
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
-import type { CompiledCourseImageSource } from './course-image-source.js';
 import type { CourseAppearance } from '../course-appearance.js';
 import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary } from '../course-boundaries.js';
@@ -30,7 +29,6 @@ export interface CompiledSection {
   readonly ground: CourseGround;
   /** Solid objects — solid sprites, fixed or movable, and free wall ends — in station order. */
   readonly objects: readonly CourseObject[];
-  readonly assets: readonly CompiledCourseImageSource[];
   readonly appearance: CourseAppearance;
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];
