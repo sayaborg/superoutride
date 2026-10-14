@@ -34,7 +34,6 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   boundaryVertices: 65536,
   gates: 2048,
   startGridSlots: 2 * RUN_RULE_LIMITS.competitors,
-  coordinateMeters: 1_000_000,
   lengthMeters: 42000,
   lateralMeters: 1000,
   wallHeightMeters: 1000,

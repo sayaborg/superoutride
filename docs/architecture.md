@@ -214,7 +214,8 @@ For an accumulated transform `(R,t)` followed by a Link, the positional error bu
 the accumulated translation with the next Link's angular uncertainty. The angular budget increases
 by `headingToleranceRadians` per Link. These constants belong to `COURSE_LINK_RECIPE`: 1e-7 m
 translation and 1e-10 rad heading per Link. The latter is a wrapped-heading/composition roundoff
-allowance (at most 0.1 mm at a 1,000,000 m lever arm), not a driving allowance.
+allowance (below 0.6 mm at the longest composed lever arm, 128 Sections of 43,000 m native extent), not a driving
+allowance.
 The final translation norm and absolute wrapped angle `atan2(sine,cosine)` must be within those
 accumulated budgets. No correction is applied to authored geometry or Link transforms.
 

@@ -414,7 +414,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                      |
 | Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                              |
-| Non-circuit finite `routes` from the entry                              |                256 | Reference work bound: one continuous reference run per route and vehicle                                                |
+| Non-circuit finite `routes` from the entry                              |                256 | Author-chosen reference work bound, not derived: one reference run per route and vehicle (OUTRUN TEST has 16)           |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling           |
@@ -432,7 +432,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                     |
 | Start gate `startGridSlots` (each grid)                                 |                 32 | `RUN_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a run uses                |
 | `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                               |
-| `coordinateMeters`                                                      |         ±1000000 m | Retains 100 km native-coordinate origin allowance × 10                                                                  |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
 | Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                              |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
@@ -527,8 +526,10 @@ order, as the lanes either side of that: the two roads have as many lanes, the n
 pair's widths agree within 1e-7 m (`seam_edge_mismatch`). So lanes are added or ended only inside a Section, where a
 width reaches zero. The rigid yaw/translation maps the named lane's centre and heading at `L` to the destination's
 centreline and heading at zero. Heights agree within 1e-8 m and profile grades within 1e-10.
-These bounds cover double-precision evaluation of boundaries, plan coordinates and rigid rotation
-at the admitted 1,000,000 m coordinate limit; they are not a visual or driving allowance.
+These bounds cover double-precision evaluation of boundaries, plan coordinates and rigid rotation over the checked
+domains: a Section's native coordinates within its ruler (`lengthMeters`) and a lateral (`lateralMeters`) of its
+origin, 43,000 m, heights within `heightMeters`, and composed translations over `sections` such Sections; they are not
+a visual or driving allowance.
 Other boundaries, materials, Strips and appearance may change at the cut.
 
 The graph has an explicit entry. All Sections are reachable. The compiler derives the course kind:

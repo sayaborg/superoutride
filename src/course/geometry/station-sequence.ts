@@ -1,4 +1,4 @@
-// Metres: endpoint arithmetic/decimal conversion budget; 1 nm is about eight ulps at 10^6 m.
+// Metres: endpoint arithmetic/decimal conversion budget; 1 nm is about 137 ulps at a Section's 43,000 m native extent.
 // Only normalizes station endpoints, never ownership or route progress.
 const STATION_ENDPOINT_TOLERANCE_METERS = 1e-9;
 

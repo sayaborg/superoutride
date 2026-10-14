@@ -5,15 +5,20 @@ import { courseRoadsAt, type CompiledLane } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
 
-/** Roundoff of plan evaluation and rigid rotation over the admitted 1,000,000 m coordinate domain. */
+/**
+ * Roundoff of plan evaluation and rigid rotation over the checked domains: a Section's native coordinates lie within
+ * its ruler (`lengthMeters`, 42,000 m) and a lateral (`lateralMeters`, 1,000 m) of its origin, 43,000 m; heights within
+ * `heightMeters` (10,000 m); and a composed transform's translation within `sections` (128) such Sections, about
+ * 5.5 × 10^6 m.
+ */
 export const COURSE_LINK_RECIPE = Object.freeze({
   id: 'superoutride.cut-line-link',
   version: 4,
-  // Metres: rigid transform/evaluation budget; ~860 ulps at the admitted 10^6 m scale.
+  // Metres: rigid transform/evaluation budget; ~13,700 ulps at 43,000 m.
   edgeToleranceMeters: 1e-7,
-  // Radians: wrapped heading/composition roundoff, below 0.1 mm at a 10^6 m lever arm.
+  // Radians: wrapped heading/composition roundoff, below 0.6 mm at the 5.5 × 10^6 m composed lever arm.
   headingToleranceRadians: 1e-10,
-  // Metres: vertical polynomial evaluation budget; ~86 ulps at the admitted 10^6 m scale.
+  // Metres: vertical polynomial evaluation budget; ~5,500 ulps at 10,000 m.
   heightToleranceMeters: 1e-8,
   // Dimensionless dY/ds: 10^-10 absolute seam slope budget (10 nm height per 100 m).
   gradeTolerance: 1e-10,
