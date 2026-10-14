@@ -268,9 +268,14 @@ and switching is a cut.
 
 ### Pending product decisions
 
-- Racing line objective: the racing line is the minimum-curvature line (least summed squared curvature), so through a
-  hairpin turning near 180° it keeps to the outer edge, as at TSUKUBA's first corner and first hairpin. A line whose
-  objective is lap time is a later stage's design (K's decision, 2026-10-14); the line is unchanged until then.
+- Racing line objective: the lines minimise `Σ m κ² + λ Σ len`, `λ` chosen by the reference driver's planned lap time
+  (Stage RL, K's decision 2026-10-14; [Racing lines](content-and-gameplay.md#racing-lines)). Two follow-ups remain:
+  - The minimum-lap-time line itself, an optimal control problem over path and speed, which needs a limits model with
+    continuous gradients beside the planned driver's.
+  - The gap between plan and drive: on TSUKUBA the chosen `λ` plans lap 2 at 54.43 s (911 TURBO 3.3), 58.26 s (GOLF GTI
+    16V) and 52.82 s (VFR750R), and the reference driver drives it in 54.45 s, 58.33 s and 53.10 s: within 0.03–0.28 s,
+    the most on VFR750R. On OUTRUN TEST and OUTRUN TRIAL A STEEP the chosen lines' planned gain (1.7 s and 0.16 s) is
+    lost in the drive (+0.18 s and +0.41 s against the minimum-curvature lines).
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format

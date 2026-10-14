@@ -1184,11 +1184,24 @@ implementation for its own build only, and never saves the result.
 ### Racing lines
 
 A course's racing lines are a lateral `l(s)` for each Section and, on a fork Section, one per exit, over the whole
-Section ([`racing-line.ts`](../tools/course/racing-line.ts)). They depend on the course alone, never on a vehicle.
+Section ([`racing-line.ts`](../tools/course/racing-line.ts)). Every vehicle drives the same lines. They depend on the
+course and on the vehicles that time them: every vehicle a class runs on the course, or the whole catalog on a course
+no class runs (`racingLineVehicles`).
 
-- **Shape.** They minimise the total squared path curvature `Σ m κ²`, measured as the planned driver reads a smooth
-  path's curvature ([Drivers](#drivers)): at each station the heading change from the chord before it to the chord after
-  it, between the world points of the line's laterals, over the two chords' mean length `m`, which also weights it.
+- **Shape.** For a length weight `λ` they minimise `J_λ = Σ m κ² + λ Σ len`. The first sum is the squared path
+  curvature, measured as the planned driver reads a smooth path's curvature ([Drivers](#drivers)): at each station the
+  heading change from the chord before it to the chord after it, between the world points of the line's laterals, over
+  the two chords' mean length `m`, which also weights it. The second is the lines' length, the sum of their chords.
+- **Choice of `λ`.** The lines are solved for each length weight of the procedure in turn, ascending from 0 (the
+  minimum-curvature lines), each from the lines of the one before: 0 and four weights to a decade from 10⁻⁵ to 10⁻¹
+  per square metre. These are author values: the length term weighs as much as the squared curvature of a turn of
+  radius `1/√λ`, from 316 m, gentler than any turn that limits speed, to 3.2 m, tighter than any road, where the lines
+  are all but the shortest. Each solution is timed by each timing vehicle's reference driver (the planned driver at the
+  reference utilization, 0.9): its own speed plan along the lines, stepping from each node of the plan to the next at
+  the speeds the plan allows (`plannedLineSeconds`, the plan's forward and backward passes, no second speed model),
+  from rest at the last slot of the vehicle's grid. The time is the second lap on a CIRCUIT and the sum over every
+  route to its FINISH on a LINEAR or BRANCH course. The weight whose summed time is least is chosen, the smaller on a
+  tie.
 - **Bounds.** A line stays inside the road it drives less an edge margin of half the catalog's widest vehicle plus
   0.3 m. That road is the one the line's lane belongs to: the lane its Link leaves by (the exit's on a fork Section,
   the centre lane at a terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section
@@ -1204,18 +1217,38 @@ Section ([`racing-line.ts`](../tools/course/racing-line.ts)). They depend on the
   Each pass linearises every term's residual `√m κ` at the current laterals (a point moves along its plan normal as its
   lateral changes) and solves the resulting box-constrained quadratic by a primal–dual interior-point method; each
   Newton step eliminates every line's inner laterals, a band of width two, leaving a small dense system over the laterals
-  at and beside seams. The laterals then move toward that solution by the longest step of 1, 1/2, 1/4, … (at most 20
-  halvings) that lowers `Σ m κ²`. The passes, at most 50, stop once one moves no lateral by more than the saved
-  resolution (1 mm), or once no step lowers the total. The result is deterministic in Node.
+  at and beside seams. Each chord's length enters the quadratic to second order: it is convex in the laterals, so its
+  model adds a constant gradient and a positive semidefinite term on the chord's two laterals, within the band. The
+  laterals then move toward that solution by the longest step of 1, 1/2, 1/4, … (at most 20 halvings) that lowers
+  `J_λ`. The passes, at most 50, stop once one moves no lateral by more than the saved resolution (1 mm), or once no
+  step lowers the total. The result is deterministic in Node.
 
-The saved product (`superoutride.racing-line` version 1) has `courseBuildSha256`, `procedureSha256` (the racing line
-procedure's identity, whose record holds the edge margin, so a wider catalog vehicle makes it stale), `spacing` (the
-schedule spacing, 5 m) and `lines`: for each Section in course order, and each fork exit in exit order, its `section`,
+Why not minimum curvature alone: the least-curvature line is the line of the highest cornering speed, which is what
+a fast corner needs, but through a slow corner turning near 180°, such as TSUKUBA's hairpins, it keeps to the outer
+edge, where the extra distance at low speed costs more time than the higher speed gains. Weighing curvature against
+length is the classic compromise between the minimum-curvature and the shortest path (Braghin et al., "Race driver
+model", Computers & Structures 2008), and choosing the weight by lap time makes it one weight's approximation of the
+minimum-lap-time line. The minimum-lap-time line itself is an optimal control problem over the path and the speed
+together (Kapania et al., "A sequential two-step algorithm for fast generation of vehicle racing trajectories",
+2016, arXiv:1902.00606; van den Eshof et al., minimum time by sequential convex optimisation, 2025,
+arXiv:2511.13522; Betz et al., "Autonomous vehicles on the edge: a survey on autonomous vehicle racing", 2022,
+arXiv:2202.07008). It is not used: its optimisation needs a vehicle limits model whose gradients are continuous,
+which the vehicle limits (drive by gear, each axle's friction ellipse) are not, so it would be a second model of the
+same limits beside the one every driver plans with. Timing needs no gradient, so the one limits model times the lines.
+
+The saved product (`superoutride.racing-line` version 2) has `courseBuildSha256`, `procedureSha256` (the racing line
+procedure's identity, whose record holds the edge margin, so a wider catalog vehicle makes it stale, the length
+weights and the timing driver), `spacing` (the schedule spacing, 5 m), `lengthWeight` (the `λ` chosen), `vehicles`
+(each timing vehicle in catalog order: its `vehicleId`, `vehicleSha256`, `seconds` on the lines and
+`minimumCurvatureSeconds` on the lines of `λ = 0`, to the millisecond, so the product records what the choice gained)
+and `lines`: for each Section in course order, and each fork exit in exit order, its `section`,
 its `exit` (the Link ID, null on a Section that does not fork) and `laterals`, one at each of the Section's schedule
 stations (every 5 m from its start, then its end), rounded to the millimetre. It is delivered as saved
 (`racing-line`, by course ID). Admission (`readRacingLines`) checks the course identity, the spacing and one line of
-the right length for every Section and exit; the build also checks the procedure identity, and a stale or absent
-product fails it as any measured product does. The admitted lines read a Section's lateral toward an exit at a
+the right length for every Section and exit, and the shape of `lengthWeight` and `vehicles`; the build also checks the
+procedure identity and that `vehicles` are the timing vehicles with their current identities, and a stale or absent
+product fails it as any measured product does. Reference runs drive the lines, so the measurement tool measures a
+course's reference times again whenever it solves its lines again. The admitted lines read a Section's lateral toward an exit at a
 native station, interpolated linearly between stations. A run admits its course's lines with its other measured
 products; rivals, reference runs and the player's run driver drive them ([Drivers](#drivers)).
 

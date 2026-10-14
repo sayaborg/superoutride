@@ -2,7 +2,17 @@ import type { CompiledCourse } from '../../src/course/compiler/compiled-course.j
 import { courseBudgetLandmarks } from '../../src/content/course-time-budgets.js';
 import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
 import { readPaceSchedule } from '../../src/content/pace-schedule.js';
-import { RACING_LINE_FORMAT, readRacingLines, type RacingLineDocument } from '../../src/content/racing-line.js';
+import {
+  RACING_LINE_FORMAT,
+  createRacingLines,
+  racingLineDocument,
+  readRacingLines,
+  type RacingLineDocument,
+} from '../../src/content/racing-line.js';
+import type { RunVehicle } from '../../src/content/run-vehicle.js';
+import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
+import { solveRacingLines, type RacingLineProcedure } from './racing-line.js';
+import { plannedLineSeconds } from './line-time.js';
 import {
   AdmissionError,
   admit,
@@ -51,6 +61,50 @@ export function measuredCourses<Course extends { readonly id: string }>(
     course,
     vehicles: catalog.filter((vehicle) => vehicles.has(vehicle)),
   }));
+}
+
+/**
+ * The vehicles that time a course's racing lines: every vehicle a class runs there, or the whole catalog on a course no
+ * class runs, in catalog order.
+ */
+export function racingLineVehicles(
+  courseId: string,
+  classes: readonly {
+    readonly course: { readonly id: string };
+    readonly settings: { readonly vehicles: readonly string[] };
+  }[],
+  catalog: readonly string[],
+): readonly string[] {
+  return measuredCourses(classes, catalog).find(({ course }) => course.id === courseId)?.vehicles ?? catalog;
+}
+
+/**
+ * A course's racing lines solved and timed (`solveRacingLines`), as their saved document: each timing vehicle's time is
+ * its reference driver's plan along the lines (`plannedLineSeconds`).
+ */
+export function measureRacingLines(
+  course: CompiledCourse,
+  procedure: RacingLineProcedure,
+  procedureSha256: string,
+  vehicles: readonly { readonly vehicleId: string; readonly vehicleSha256: string; readonly vehicle: RunVehicle }[],
+  catalog: readonly CompiledVehicleDefinition[],
+): RacingLineDocument {
+  const solution = solveRacingLines(course, procedure, (laterals) => {
+    const lines = createRacingLines(course, laterals);
+    return vehicles.map(({ vehicle }) =>
+      plannedLineSeconds(course, lines, vehicle, catalog, procedure.driver.utilization),
+    );
+  });
+  return racingLineDocument(course, procedureSha256, {
+    laterals: solution.laterals,
+    lengthWeight: solution.lengthWeight,
+    vehicles: vehicles.map(({ vehicleId, vehicleSha256 }, i) => ({
+      vehicleId,
+      vehicleSha256,
+      seconds: solution.seconds[i]!,
+      minimumCurvatureSeconds: solution.minimumCurvatureSeconds[i]!,
+    })),
+  });
 }
 
 /** A pace schedule's times: from GO along the entry Section, and from each Section's start, in milliseconds. */
@@ -249,19 +303,21 @@ export function readSavedReferenceTimes(
 }
 
 /**
- * Admit a course's saved racing lines against the compiled course and the racing line procedure `procedureSha256`:
- * both identities current, then the lines as delivery admits them.
+ * Admit a course's saved racing lines against the compiled course, the racing line procedure `procedureSha256` and
+ * the vehicles that time them (`racingLineVehicles`, with their identities): every identity current, then the lines
+ * as delivery admits them.
  */
 export function readSavedRacingLines(
   course: CompiledCourse,
   procedureSha256: string,
+  vehicles: readonly { readonly vehicleId: string; readonly vehicleSha256: string }[],
   input: unknown,
   document = '',
 ): AdmissionResult<RacingLineDocument> {
   return admit(document, () => {
     const data = readDocument(
       input,
-      ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'spacing', 'lines'],
+      ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'spacing', 'lengthWeight', 'vehicles', 'lines'],
       RACING_LINE_FORMAT.format,
       RACING_LINE_FORMAT.version,
     );
@@ -273,6 +329,17 @@ export function readSavedRacingLines(
         'The racing line procedure or the widest vehicle changed since they were solved',
       );
     readUnder('', readRacingLines(course, input));
+    const timed = (input as RacingLineDocument).vehicles;
+    if (
+      timed.length !== vehicles.length ||
+      timed.some(
+        (entry, i) => entry.vehicleId !== vehicles[i]!.vehicleId || entry.vehicleSha256 !== vehicles[i]!.vehicleSha256,
+      )
+    )
+      staleMeasurement(
+        '/vehicles',
+        'The vehicles that time the racing lines, or their definitions, changed since they were solved',
+      );
     return input as RacingLineDocument;
   });
 }

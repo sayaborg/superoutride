@@ -42,6 +42,7 @@ import {
   measuredCourses,
   racingLinePath,
   readSavedRacingLines,
+  racingLineVehicles,
   readSavedReferenceTimes,
   referenceTimes,
   referenceTimesPath,
@@ -488,9 +489,16 @@ async function measuredFiles(
     return json(path);
   };
   const lineSha256 = await procedureSha256(lineProcedure);
+  const catalog = definitions.vehicles.map((entry) => entry.compiledVehicle.id);
   for (const course of compiledCourses) {
     const path = racingLinePath(course.id);
-    const lines = requireLoaded(readSavedRacingLines(course, lineSha256, await savedJson(path), `content/${path}`));
+    const timing = racingLineVehicles(course.id, seriesClasses, catalog).map((vehicleId) => ({
+      vehicleId,
+      vehicleSha256: vehicleSha256.get(vehicleId)!,
+    }));
+    const lines = requireLoaded(
+      readSavedRacingLines(course, lineSha256, timing, await savedJson(path), `content/${path}`),
+    );
     add('racing-line', course.id, encodeContentJson(lines));
   }
   const times = new Map<string, SavedReferenceTimes>();

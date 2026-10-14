@@ -1,20 +1,18 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
-import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
+import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../../src/content/run-vehicle.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
-import { racingLineProcedure, solveRacingLines } from '../course/racing-line.js';
-import {
-  RACING_LINE_FORMAT,
-  racingLineDocument,
-  readRacingLines,
-  type RacingLineDocument,
-} from '../../src/content/racing-line.js';
+import { racingLineProcedure } from '../course/racing-line.js';
+import { readRacingLines, type RacingLineDocument } from '../../src/content/racing-line.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import {
   REFERENCE_TIMES_FORMAT,
+  measureRacingLines,
   measuredCourses,
   racingLinePath,
+  racingLineVehicles,
+  readSavedRacingLines,
   referenceTimesPath,
   savedReferenceVehicle,
   type SavedReferenceTimes,
@@ -111,33 +109,32 @@ export async function planMeasurement(
   );
   const lineSha256 = await procedureSha256(lineProcedure);
   const referenceSha256 = await procedureSha256(referenceProcedure(lineProcedure));
-  const lines: { course: CompiledContent['courses'][number]; saved: unknown }[] = [];
-  for (const course of content.courses) lines.push({ course, saved: await savedJson(racingLinePath(course.id)) });
-  const staleLines = lines.filter(({ course, saved }) => {
-    const file = saved as Partial<RacingLineDocument> | null;
-    return (
-      everything ||
-      file?.format !== RACING_LINE_FORMAT.format ||
-      file.version !== RACING_LINE_FORMAT.version ||
-      file.courseBuildSha256 !== course.identity.buildSha256 ||
-      file.procedureSha256 !== lineSha256
-    );
-  });
-  // Each course's lines: the saved document when current, else solved now.
+  // Each catalog vehicle's run vehicle and identity.
+  const vehicles = new Map<string, { vehicle: RunVehicle; sha256: string }>();
+  for (const entry of content.definitions.vehicles) {
+    const vehicle = createRunVehicle(entry, content.definitions.driving);
+    vehicles.set(entry.compiledVehicle.id, { vehicle, sha256: await runVehicleSha256(vehicle, content.materials) });
+  }
+  // Each course's lines with the vehicles that time them: the saved document when current, else solved now.
+  const lines: { course: CompiledContent['courses'][number]; saved: unknown; stale: boolean }[] = [];
   const lineDocuments = new Map<string, RacingLineDocument>();
-  for (const { course, saved } of lines)
+  for (const course of content.courses) {
+    const saved = await savedJson(racingLinePath(course.id));
+    const timing = racingLineVehicles(course.id, content.seriesClasses, [...vehicles.keys()]).map((vehicleId) => ({
+      vehicleId,
+      vehicleSha256: vehicles.get(vehicleId)!.sha256,
+      vehicle: vehicles.get(vehicleId)!.vehicle,
+    }));
+    const stale = everything || !readSavedRacingLines(course, lineSha256, timing, saved).ok;
+    lines.push({ course, saved, stale });
     lineDocuments.set(
       course.id,
-      staleLines.some((stale) => stale.course === course)
-        ? racingLineDocument(course, lineSha256, solveRacingLines(course, lineProcedure))
+      stale
+        ? measureRacingLines(course, lineProcedure, lineSha256, timing, content.definitions.vehicles)
         : (saved as RacingLineDocument),
     );
-  // Each catalog vehicle's identity.
-  const vehicles = new Map<string, { sha256: string }>();
-  for (const entry of content.definitions.vehicles) {
-    const sha256 = await runVehicleSha256(createRunVehicle(entry, content.definitions.driving), content.materials);
-    vehicles.set(entry.compiledVehicle.id, { sha256 });
   }
+  const staleLines = lines.filter(({ stale }) => stale);
   // Each course a class runs, with its saved file and the vehicles the classes run there.
   const courses: { course: CompiledContent['courses'][number]; candidates: readonly string[]; saved: unknown }[] = [];
   for (const { course, vehicles: candidates } of measuredCourses(content.seriesClasses, [...vehicles.keys()]))
@@ -151,7 +148,9 @@ export async function planMeasurement(
       file.version === REFERENCE_TIMES_FORMAT.version &&
       file.courseBuildSha256 === course.identity.buildSha256 &&
       file.procedureSha256 === referenceSha256 &&
-      Array.isArray(file.vehicles)
+      Array.isArray(file.vehicles) &&
+      // Reference runs drive the course's racing lines, so lines solved again make them stale.
+      !staleLines.some((stale) => stale.course === course)
     )
       for (const entry of file.vehicles)
         if (vehicles.get(entry.vehicleId)?.sha256 === entry.vehicleSha256) entries.set(entry.vehicleId, entry);

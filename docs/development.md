@@ -165,7 +165,8 @@ npm run measure -- compare
 npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
 ```
 
-`generate` solves again each course's stale or absent racing lines first, then measures again only the reference
+`generate` solves again each course's stale or absent racing lines first (a line is also stale when a vehicle that times
+it changed), then measures again only the reference
 times whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line makes its
 course's reference times stale), writes them, removes saved products no course owns, and prints what it measured with each changed
 time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
@@ -509,7 +510,7 @@ format/version. The delivery layout (`layoutDelivery` in
 | `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`                   | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                                   |
 | `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
 | `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | RACE pace schedule (`superoutride.pace-schedule` v1)                                                                            |
-| `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v1)                                                                       |
+| `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v2)                                                                       |
 
 The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and
