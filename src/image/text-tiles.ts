@@ -184,6 +184,8 @@ const PATTERN_COUNT = LAST_PICTURE.first + LAST_PICTURE.frames * FRAME_PATTERNS;
 const PALETTE_COUNT = LAST_PICTURE.palette + 1;
 /** A pattern ID is a 16-bit and a palette ID an 8-bit unsigned integer, so a text grid cell holds any admitted pair. */
 export const TEXT_TILE_LIMITS = Object.freeze({ patterns: 2 ** 16, palettes: 2 ** 8 });
+if (PATTERN_COUNT > TEXT_TILE_LIMITS.patterns || PALETTE_COUNT > TEXT_TILE_LIMITS.palettes)
+  throw new Error('The text tiles outgrow the text grid cell');
 
 /** The indexed pattern/palette format with 8x8 transparent-capable tiles and no saved arrangement. */
 export interface TextTilesDocument {
@@ -216,7 +218,7 @@ export function compileTextTiles(value: unknown): TextTiles {
           TEXT_TILE_SIZE * TEXT_TILE_SIZE,
         ),
       ),
-    { min: PATTERN_COUNT, max: TEXT_TILE_LIMITS.patterns },
+    { length: PATTERN_COUNT },
   );
   requireAdmission(
     isEmpty(patterns[EMPTY_TEXT_TILE]!),
@@ -224,10 +226,7 @@ export function compileTextTiles(value: unknown): TextTiles {
     `/patterns/${EMPTY_TEXT_TILE}`,
     'The space pattern is the empty tile and has only index 0',
   );
-  const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, {
-    min: PALETTE_COUNT,
-    max: TEXT_TILE_LIMITS.palettes,
-  });
+  const palettes = readArray(document.palettes, '/palettes', readIndexedPalette, { length: PALETTE_COUNT });
   return new TextTiles(name, patterns, palettes);
 }
 

@@ -173,7 +173,7 @@ side with ◀ and ▶.
 
 The fonts come first (`TEXT_FONTS`), each a pattern per character in that order for each of its rows; the HUD part
 tiles follow them in one fixed order that code names, the same way, so their mapping needs no saved table either, and
-the HUD pictures follow them; the document must hold at least all of these, and later patterns are free. Pattern 0,
+the HUD pictures follow them; the document holds exactly these, all written by the generators. Pattern 0,
 the space, must have only index 0: it is the empty tile.
 
 | Patterns | Names                           | Content                                                                                                                      |
@@ -222,9 +222,10 @@ row from the top left, so frame `f`'s tile at row `r` and column `c` is the pict
 writes the pictures and their palettes in place; no table changes.
 
 The named palettes (`TEXT_PALETTES`) come first, the authored ones and then those the HUD tiles command draws, and the
-HUD pictures' palettes follow; later palettes are free. A document holds at most 65536 patterns and 256
-palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every palette ID an 8-bit unsigned integer and a
-text grid cell keeps any admitted pair. A tile's palette chooses its color, so one glyph, lamp, meter, bar or digit
+HUD pictures' palettes follow, and the document holds exactly these. The generators own the whole document: the HUD
+tiles command and the HUD picture generator write every pattern and palette, and nothing else may be added. The
+counts stay within 65536 patterns and 256 palettes (`TEXT_TILE_LIMITS`), so every pattern ID is a 16-bit and every
+palette ID an 8-bit unsigned integer and a text grid cell keeps any admitted pair. A tile's palette chooses its color, so one glyph, lamp, meter, bar or digit
 tile serves every color and the lamp every state.
 
 | Palettes | Names                                                                 | Use                                                                    |
