@@ -529,13 +529,18 @@ export function mergeCandidates(
   options: { readonly colorTolerance: number; readonly scope?: CleaningScope },
 ): CleaningCandidate[] {
   const proposals: Omit<CleaningCandidate, 'shift'>[] = [];
-  const lists = new Set(
-    scoped(document, options.scope ?? {})
-      .filter(({ element }) => !element.copies.length && !/knot|vertex|plan|tangent|pvi|curve-end/.test(element.kind))
-      .map(({ element }) => element.pointer.slice(0, element.pointer.lastIndexOf('/'))),
-  );
+  const scope = options.scope ?? {};
+  const elements = scoped(document, scope);
+  // Each list's items in scope, by index: a run combines items in scope alone, never a sibling outside it.
+  const lists = new Map<string, Set<number>>();
+  for (const { element } of elements)
+    if (!element.copies.length && !/knot|vertex|plan|tangent|pvi|curve-end/.test(element.kind)) {
+      const at = element.pointer.lastIndexOf('/');
+      const parent = element.pointer.slice(0, at);
+      lists.set(parent, (lists.get(parent) ?? new Set()).add(Number(element.pointer.slice(at + 1))));
+    }
   // A width written at Positions whose values are all the same is that one number.
-  for (const { element } of scoped(document, options.scope ?? {})) {
+  for (const { element } of elements) {
     if (element.kind !== 'lane' && element.kind !== 'median') continue;
     const width = valueAt(document, `${element.pointer}/width`);
     if (!Array.isArray(width) || width.length < 2) continue;
@@ -549,7 +554,7 @@ export function mergeCandidates(
         changes: [{ pointer: `${element.pointer}/width`, before: width, after: values[0] }],
       });
   }
-  for (const parent of lists) {
+  for (const [parent, inScope] of lists) {
     const list = valueAt(document, parent);
     if (!Array.isArray(list)) continue;
     let next: Json = document;
@@ -557,17 +562,22 @@ export function mergeCandidates(
     // Longest exact runs from the end, so earlier indexes stay valid as runs collapse.
     for (let end = list.length; end >= 3;) {
       let start = end - 3;
-      const combines = (from: number) =>
-        combineCourseElements(
-          next,
-          Array.from({ length: end - from }, (_, k) => `${parent}/${from + k}`),
-        );
-      if (!combines(start).ok) {
+      // The run from `from` to `end` combined, when every item in it is in scope.
+      const combined = (from: number) => {
+        const items = Array.from({ length: end - from }, (_, k) => from + k);
+        return items.every((index) => inScope.has(index))
+          ? combineCourseElements(
+              next,
+              items.map((index) => `${parent}/${index}`),
+            )
+          : null;
+      };
+      if (!combined(start)?.ok) {
         end--;
         continue;
       }
-      while (start > 0 && combines(start - 1).ok) start--;
-      const result = combines(start);
+      while (start > 0 && combined(start - 1)?.ok) start--;
+      const result = combined(start)!;
       if (result.ok) {
         next = result.document;
         runs++;
@@ -583,9 +593,14 @@ export function mergeCandidates(
         changes: [{ pointer: parent, before: list, after: valueAt(next, parent) }],
       });
   }
-  // Colours: each near a more used one takes it.
+  // Colours in scope: each near a more used one takes it. A Section's scope holds every colour written in it; elements or
+  // kinds hold the colours written in those elements.
+  const section = scope.section === undefined ? '' : sectionPointer(document, scope.section);
+  const holders = elements.map(({ element }) => `${element.pointer}/`);
   const colors = colorsOf(document).filter(
-    (c) => !options.scope?.section || c.pointer.startsWith(sectionPointer(document, options.scope.section)),
+    (c) =>
+      c.pointer.startsWith(section) &&
+      ((!scope.pointers && !scope.kinds) || holders.some((holder) => c.pointer.startsWith(holder))),
   );
   const counts = new Map<number, number>();
   for (const { color } of colors) counts.set(color, (counts.get(color) ?? 0) + 1);

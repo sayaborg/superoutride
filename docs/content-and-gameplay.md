@@ -628,7 +628,10 @@ resolved values are written to 1e-9 m, which drops floating-point noise.
   to itself.
 
 **Cleaning operations** ([`course-cleaning.ts`](../tools/authoring/course-cleaning.ts)) work in two phases over a scope
-(the course, a Section, chosen elements and what they hold, or element kinds). The first proposes candidates, each with
+(the course, a Section, chosen elements and what they hold, or element kinds), and every operation resolves that scope
+the same way and changes nothing outside it: a run combines only list items in scope, never a sibling outside it, and
+colours merge only among those written in the scope (a Section's: every colour written in it; elements' or kinds':
+those written in those elements). The first proposes candidates, each with
 the element it concerns, its changes and its own shift: the change applied alone and the Section read again, comparing
 lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler changes),
 other elements by plan point, and the road height. The second, `applyCleaning`, applies the chosen candidates as one
