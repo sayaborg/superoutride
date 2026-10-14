@@ -103,7 +103,8 @@ is a vehicle value. `pitchLimitDegrees=15` is the game-wide pitch protection lim
 down, for both forms, against the road line under the wheels
 ([Vehicle physics](vehicle-physics.md#torque-protection)); it is edited only in the file. Torque
 protection is the same for both forms.
-Tire and steering low-speed regularization are engine constants of 1.0 m/s.
+The tire and steering low-speed regularizations and the pitch barrier's frequency are engine values the author chose
+([Vehicle physics](vehicle-physics.md)); DEV does not tune them.
 `bodyContact` is the spring-damper of every body contact: between two vehicles whose footprints overlap
 ([Vehicle physics](vehicle-physics.md#body-contact)), and against walls, course limits and roadside objects: `frequencyHertz` is the natural frequency of the pair's
 relative motion in hertz, independent of the masses because the force scales with the pair's reduced mass, and

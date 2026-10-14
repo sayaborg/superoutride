@@ -1,4 +1,7 @@
-/** m/s: smooth the tire slip denominator and rolling sign at standstill. */
+/**
+ * m/s: smooth the tire slip denominator and rolling sign at standstill, and the speed above which ABS and MSR act. A
+ * value the author chose, not derived (docs/vehicle-physics.md).
+ */
 export const TIRE_LOW_SPEED_REGULARIZATION = 1.0;
 import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;

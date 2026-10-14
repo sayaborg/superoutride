@@ -35,7 +35,10 @@ import {
 import { createContactWorkspace, deriveContactObservation, reorientContactObservation } from './vehicle-contact.js';
 import { applySuspensionBumpStops, createBumpStopWorkspace } from './suspension-bump-stop.js';
 
-/** m/s: smooth the travel-direction steering angle at standstill. */
+/**
+ * m/s: smooth the travel-direction steering angle at standstill. A value the author chose, not derived: it decides how
+ * the front wheel turns at walking pace (docs/vehicle-physics.md).
+ */
 const STEERING_LOW_SPEED_REGULARIZATION = 1.0;
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3, type Vec3 } from '../../core/vector3.js';
 import { drivenWheelOmega } from './vehicle-definitions.js';

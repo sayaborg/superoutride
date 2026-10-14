@@ -1,7 +1,8 @@
 import { TIRE_LOW_SPEED_REGULARIZATION } from './tire-wheel.js';
 import { type Writable } from '../../core/writable.js';
 const PITCH_BISECTION_ITERATIONS = 12;
-// Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit.
+// Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit. A value the
+// author chose, not derived (docs/vehicle-physics.md).
 const PITCH_BARRIER_FREQUENCY = 6;
 // N m: the coupled locked-engine solve stops once its bracket on the inertia torque is this narrow.
 const COUPLED_INERTIA_TORQUE_TOLERANCE = 1e-6;

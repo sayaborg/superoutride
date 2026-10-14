@@ -41,9 +41,17 @@ vehicle's listing. Its reference identity `vehicleSha256` (`runVehicleSha256`, w
 drives on) derives from the delivered SHA-256 of the mechanics, driving and material documents.
 [Content and gameplay](content-and-gameplay.md#reference-times-and-clock) owns this cross-product identity.
 
-The engine owns tire and steering low-speed regularization (both 1.0 m/s): the tire law
-(`physics/tire-wheel.ts`) owns the tire value and the update's automatic steering (`physics/vehicle-physics.ts`)
-owns the steering value. They are numerical constants, not vehicle or driving design values.
+Three engine values are not derived from the model and decide what the player sees; they are values the author chose,
+each owned by its module, the same for every vehicle, and not tuned by DEV:
+
+- The tire's low-speed regularization `v0` (1.0 m/s, `physics/tire-wheel.ts`) smooths the slip denominator and the
+  rolling sign at standstill, and is the speed above which ABS and MSR act on a station
+  ([Torque protection](#torque-protection)).
+- The steering's low-speed regularization `steeringV0` (1.0 m/s, `physics/vehicle-physics.ts`) smooths the travel
+  direction at standstill, and so decides how the front wheel turns at walking pace
+  ([Actuators and steering](#actuators-and-steering)).
+- The pitch barrier's frequency `w` (6 rad/s, `physics/torque-protection.ts`) decides how early pitch protection
+  anticipates its limit ([Torque protection](#torque-protection)).
 
 The mechanics modules under `src/vehicle/physics/` divide by responsibility, without import cycles:
 `vehicle-state.ts` holds the shared dynamic state, the control observation, body kinematics, the plan
@@ -542,8 +550,11 @@ frontSteer = clamp(atan2(lat,hypot(frontForwardSpeed,steeringV0)),-(M-L),M-L) + 
 Each speed is a velocity's component along the body's forward or right axis: the body's at its centre of mass, the
 front's at the front reach point of the pre-steer front contact observation (its `reachVelocity`). `S` is the tangent
 of a slip angle (the tire law's `sy = -vy/U`), so `L` is that angle. The input scales `L` rather than being cut at it:
-the whole actuator range spans zero to `L`, and `|frontSteer| <= M` by construction. At low speed `L` reaches `M`: the
-travel direction has no range and the input moves the whole rack.
+the whole actuator range spans zero to `L`, and `|frontSteer| <= M` by construction. `L` does not depend on speed. What
+widens the angle is the travel-direction term: while the vehicle moves, the yaw rate the input commands (`w(u)`) turns
+the travel direction the rack follows, up to its range `M-L`, and the input reaches the whole rack from about 7 to
+10 km/h. At standstill and walking pace there is little travel to follow, so with the front reference the input moves
+the front wheel through about `L` alone (some 4.7° on dry asphalt at 95 %).
 
 The front wheel is the rule's essence. With `lever = 0`, while the travel direction is within the rack and the speed is
 well above `steeringV0`, the tangent of the front tire's slip is `u*S(X)`: zero input leaves the front tire without
