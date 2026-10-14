@@ -56,12 +56,15 @@ the console and, with `dev=1`, outside the frame with Retry.
 
 The page always has one current screen, owned by the screen host. A screen advances one fixed step, draws one
 frame (the framebuffer and the [text layer](architecture.md#text-layer)) and says whether it is live: whether the
-player's driving input and sound run on it. The host runs the frame loop while the page is visible and stops it
+player's driving input and sound run on it. A screen may also say that it drives a vehicle the player does not drive:
+SELECT VEHICLE while ENGINE revs its engine. The host runs the frame loop while the page is visible and stops it
 while the document is hidden or after `pagehide`; only the host watches document visibility and page hiding, and a
-page restored from the back/forward cache reloads. Driving input and sound are live exactly while the page is
-visible and the current screen is live, and the host runs one symmetric procedure when its route changes (driving,
-menu or off while hidden): driving clears input suspension; otherwise input is suspended (which resets it). The same
-procedure tells audio whether the page is visible and whether a run is driven ([Audio](audio.md#mix-and-lifetime)).
+page restored from the back/forward cache reloads. Driving input is live exactly while the page is
+visible, no transition runs and the current screen is live; a vehicle is driven while the page is visible, no
+transition runs and the current screen is live or drives a vehicle, and the host reads both after every fixed step.
+It runs one symmetric procedure when either changes (the route: driving, menu or off while hidden): driving clears
+input suspension; otherwise input is suspended (which resets it). The same procedure tells audio whether the page is
+visible and whether a vehicle is driven ([Audio](audio.md#mix-and-lifetime)).
 
 The PRE-RACE card stands while a run is assembled, doubling as its loading screen; `prerace` sounds as it appears. For
 a class (RACE and TIME ATTACK) it shows the series image with rows 17–29 (y 136–240) at quarter brightness; FREE PLAY
@@ -296,7 +299,11 @@ the run's, and the throttle asked of it follows the page's time, the same for ev
 | 2.5–4 s   | 0        |
 | 4–6 s     | full     |
 
-Each time ENGINE is shown, and with each change of vehicle on it, the engine starts again at idle; a change of color
+Its sound is the player's engine voice, sounding the vehicle's engine sound from the engine's observation as a run's
+player's does, while the title track plays on unchanged; the tires' voice receives the vehicle at rest. The vehicle
+sound is live on ENGINE alone ([Audio](audio.md#mix-and-lifetime)): entering it opens the live gate, and leaving it, a
+transition or a hidden page closes the gate with the silence fade, so the change to DRIVETRAIN, at the limiter, fades
+out. Each time ENGINE is shown, and with each change of vehicle on it, the engine starts again at idle; a change of color
 does not touch it, and no other page runs it. While its speed is at or above 20 % of redline a WHITE upright line
 stands at that speed on the horizontal axis, from the top grid line to the bottom row, with a mark of 3×3 pixels where
 it crosses each curve, in the curve's color; they are drawn over the curves and under the text.

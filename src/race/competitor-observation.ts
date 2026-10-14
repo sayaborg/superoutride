@@ -136,6 +136,21 @@ export function writeCompetitorObservation(
   out.brakeLampOn = Number(input.brake) > 0;
   out.speed = vehicle.speed;
   out.frontSteerAngle = vehicle.frontSteerAngle;
+  writeCompetitorPowertrain(observation, vehicle, simulationSeconds);
+  Object.assign(out.tires.front, vehicle.tires.front);
+  Object.assign(out.tires.rear, vehicle.tires.rear);
+}
+
+/**
+ * The copy of a vehicle's controls and powertrain at the end of a fixed step at `simulationSeconds`: the race's, and
+ * SELECT VEHICLE's for the engine it revs standing still, whose other values stay at rest.
+ */
+export function writeCompetitorPowertrain(
+  observation: CompetitorObservation,
+  vehicle: Pick<VehicleState, 'control' | 'powertrain'>,
+  simulationSeconds: number,
+): void {
+  const out = observation as CompetitorObservationSlot;
   const { control } = vehicle;
   out.control.steering = control.steeringActuator;
   out.control.throttle = control.throttleActuator;
@@ -149,6 +164,4 @@ export function writeCompetitorObservation(
   out.powertrain.fuelCut = powertrain.fuelCut;
   if (powertrain.shift.sequence !== out.powertrain.shift.sequence) out.powertrain.shiftSeconds = simulationSeconds;
   Object.assign(out.powertrain.shift, powertrain.shift);
-  Object.assign(out.tires.front, vehicle.tires.front);
-  Object.assign(out.tires.rear, vehicle.tires.rear);
 }

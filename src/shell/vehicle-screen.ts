@@ -10,6 +10,11 @@ import { createVehicleModel, type VehicleModel } from '../vehicle/physics/vehicl
 import { createHeldVehicle, updateHeldVehicle, type HeldVehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import {
+  createCompetitorObservation,
+  writeCompetitorPowertrain,
+  type CompetitorObservation,
+} from '../race/competitor-observation.js';
+import {
   createVehiclePaletteVariant,
   selectVehicleSprite,
   spriteSetColors,
@@ -116,7 +121,8 @@ function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSte
  * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, and
  * its pages (ENGINE, DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the physical values
  * as the simulation holds them under `driving`. On a page that revs, the shown vehicle's model, as a run builds it, is
- * held and revved by `FREE_REV_THROTTLE` from idle at the page's start; a change of vehicle starts it again. LEFT and RIGHT change
+ * held and revved by `FREE_REV_THROTTLE` from idle at the page's start; a change of vehicle starts it again. While it
+ * revs the screen drives a vehicle, and each frame gives `sound` the engine's observation, as the player's. LEFT and RIGHT change
  * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
  * `colorOf` its color. A change of vehicle keeps the page and restarts its time. With fixed colors it has no color
  * choice and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
@@ -125,6 +131,7 @@ export function createVehicleScreen(
   frame: SoftwareSurface,
   text: TextLayer,
   present: () => void,
+  sound: (engine: CompetitorObservation) => void,
   candidates: readonly CompiledVehicleDefinition[],
   driving: CompiledDrivingDefinition,
   choice: {
@@ -150,6 +157,8 @@ export function createVehicleScreen(
     shownSteps = 0;
   // The engine revving on a page that revs, from idle at the page's start, in the shown vehicle's model.
   let engine: HeldVehicleState | null = null;
+  // Its observation, in the player's place, at rest but for its controls and powertrain.
+  let observation: CompetitorObservation;
   const models = new Map<CompiledVehicleDefinition, VehicleModel>();
   const modelOf = (vehicleDefinition: CompiledVehicleDefinition) => {
     let model = models.get(vehicleDefinition);
@@ -171,17 +180,27 @@ export function createVehicleScreen(
     pageSteps = 0;
     shownSteps = 0;
     engine = null;
+    observation = createCompetitorObservation(
+      'PLAYER',
+      vehicle.compiledVehicle.id,
+      choice.colorOf(vehicle),
+      vehicle.listing.form,
+    );
   };
   show();
   const turn = (list: number, step: number, at: number) => (at + step + list) % list;
   return {
     live: false,
+    get vehicleDriven() {
+      return PAGES[page]!.revs;
+    },
     wallpaper: choice.background,
     tick() {
       if (PAGES[page]!.revs) {
         const model = modelOf(candidates[index]!);
         engine ??= createHeldVehicle(model);
         updateHeldVehicle(engine, model, { steering: 0, throttle: freeRevThrottle(pageSteps), brake: 0 });
+        writeCompetitorPowertrain(observation, engine, (pageSteps + 1) * SIM_DT);
       }
       steps++;
       shownSteps++;
@@ -255,6 +274,7 @@ export function createVehicleScreen(
         engineRpm: engine?.powertrain.engineRpm ?? null,
       });
       text.draw(frame);
+      if (engine) sound(observation);
       present();
     },
   };

@@ -298,7 +298,9 @@ the scene is built.
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
-run is driven, through one live gate before the MASTER gain. `engine`, `tire` and `contact` are live; `music` and
+vehicle is driven, through one live gate before the MASTER gain. A vehicle is driven during a run and on SELECT
+VEHICLE's ENGINE page, which revs the shown vehicle's engine standing still and gives its observation as the
+player's, with no rivals and no wall rubs ([Browser](browser.md#engine)); menu music and effects are unchanged by it. `engine`, `tire` and `contact` are live; `music` and
 `effects` are not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
 (EFFECTS) bus gains; the DEV ENG and TIRE mix
 values set the live buses' gains. A volume change applies at once through the bus and master gains.
@@ -334,10 +336,10 @@ gesture during a run the URL started. From then on the context runs while the pa
 suspends it, and becoming visible resumes it (an eligible gesture resumes it where the browser requires one). Pause,
 menus, the PRE-RACE card and RESULT leave it running, and SOUND OFF only sets the MASTER gain to zero: whether the clock
 runs depends on visibility alone, so nothing is scheduled on a stopped clock while the sound is off. The screen host's route
-is the one procedure that tells audio both facts, whether the page is visible and whether a run is driven
-(`setRoute`); audio never reads document visibility itself. While no run is driven, the live gate closes with the
+is the one procedure that tells audio both facts, whether the page is visible and whether a vehicle is driven
+(`setRoute`); audio never reads document visibility itself. While no vehicle is driven, the live gate closes with the
 silence fade, the worklets of the voices on live buses rest from the moment it is silent, rendering silence without
-running their kernels, and the voices receive no observations. When a run is driven again, the worklets wake at once
+running their kernels, and the voices receive no observations. When a vehicle is driven again, the worklets wake at once
 and continue from the state they rested in, the voices write the current observations, and the gate opens
 `transitionSeconds` after it is silent, so the kernels have followed the observations before they are heard. A page hidden without entering the back/forward cache disposes the context.
 Disposal closes the context, including a graph completing initialization after disposal. Module URLs resolve within

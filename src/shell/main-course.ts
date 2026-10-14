@@ -290,6 +290,8 @@ async function startPage(): Promise<void> {
         frame: shell.framebuffer,
         text: textLayer,
         present,
+        // The revved engine sounds alone, as the player's: no rivals and no wall rubs.
+        vehicleSound: (engine) => shell.updateAudio(engine, [], []),
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
         titleBackground: attractDemo,

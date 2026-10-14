@@ -37,10 +37,10 @@ export interface BrowserDrivingShell {
     rubs: readonly WallRubObservation[],
   ): void;
   /**
-   * The one procedure that routes devices, called by the screen host when the route changes: driving input and sound are
-   * live only while driving; menu commands follow the route.
+   * The one procedure that routes devices, called by the screen host when the route changes: driving input is live only
+   * while driving and vehicle sound while a vehicle is driven; menu commands follow the route.
    */
-  setRoute(route: InputRoute): void;
+  setRoute(route: InputRoute, vehicleSound: boolean): void;
   /** Read the devices for a fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
   /** Play what a menu command did: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`, `menu-deny` or `menu-back`. */
@@ -107,10 +107,9 @@ export function createBrowserDrivingShell(
     setBrightness(eighths): void {
       brightness = eighths;
     },
-    setRoute(route): void {
-      const live = route === 'driving';
-      inputManager.setSuspended(!live);
-      audio.setRoute(route);
+    setRoute(route, vehicleSound): void {
+      inputManager.setSuspended(route !== 'driving');
+      audio.setRoute(route, vehicleSound);
       menuInput.setRoute(route);
       corners.setRoute(route);
     },

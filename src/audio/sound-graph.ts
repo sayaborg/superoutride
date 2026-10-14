@@ -4,7 +4,8 @@ import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { fadeToSilence, follow } from './audio-parameter.js';
 
 /**
- * The buses and what each declares: `live` buses sound only while a run is driven. A new sound kind adds one bus
+ * The buses and what each declares: `live` buses sound only while a vehicle is driven (a run, or SELECT VEHICLE's
+ * ENGINE page). A new sound kind adds one bus
  * here and connects its voices to that bus's input.
  */
 const BUS_DECLARATIONS = Object.freeze({
@@ -16,7 +17,7 @@ const BUS_DECLARATIONS = Object.freeze({
 });
 export type SoundBus = keyof typeof BUS_DECLARATIONS;
 export const SOUND_BUSES = Object.freeze(Object.keys(BUS_DECLARATIONS) as SoundBus[]);
-/** Whether `bus` sounds only while a run is driven. */
+/** Whether `bus` sounds only while a vehicle is driven. */
 export const isLiveBus = (bus: SoundBus): boolean => BUS_DECLARATIONS[bus].live;
 
 /**
@@ -54,7 +55,7 @@ export function resolveMixSettings(overrides: Partial<MixSettings> = {}): MixSet
 
 /**
  * Named buses into one master gain and compressor; voices connect to a bus input. The live buses pass one live gate,
- * open only while a run is driven.
+ * open only while a vehicle is driven.
  */
 export function createSoundGraph(context: BaseAudioContext) {
   const master = context.createGain();

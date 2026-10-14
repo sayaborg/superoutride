@@ -32,6 +32,7 @@ import type { TilePicture } from '../image/tile-picture.js';
 import { createPictureMenuScreen, type PictureMenuLine } from './picture-menu-screen.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { SIM_DT } from '../race/fixed-step.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { shownRecord } from './run-records.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
 
@@ -77,6 +78,8 @@ export interface SelectionDevices {
   readonly frame: SoftwareSurface;
   readonly text: TextLayer;
   present(): void;
+  /** The sound of the engine SELECT VEHICLE revs, as the player's, each frame it revs. */
+  vehicleSound(engine: CompetitorObservation): void;
   show(screen: Screen): void;
   /** CONFIRM on PRESS START: the user gesture that enables sound and fullscreen where the browser allows them. */
   activate(): void;
@@ -400,6 +403,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
             devices.frame,
             devices.text,
             devices.present,
+            devices.vehicleSound,
             candidates,
             driving,
             {

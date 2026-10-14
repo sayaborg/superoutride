@@ -61,6 +61,7 @@ test('the front end screens render from the delivered content', async () => {
       frame,
       text,
       present: () => {},
+      vehicleSound: () => {},
       show: (next) => (host ? host.show(next) : (screen = next)),
       activate: () => {},
       titleBackground: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },

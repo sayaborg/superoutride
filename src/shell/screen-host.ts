@@ -13,6 +13,11 @@ export type MenuResponse = 'start' | 'move' | 'slide' | 'confirm' | 'entry' | 'd
 export interface Screen {
   /** Whether the player's driving input and sound are live on this screen; only a running run is. */
   readonly live: boolean;
+  /**
+   * Whether a vehicle the player does not drive is driven on this screen, so vehicle sound is live: SELECT VEHICLE's
+   * ENGINE page revving the shown vehicle's engine. Absent is false.
+   */
+  readonly vehicleDriven?: boolean;
   tick(): void;
   render(): void;
   /** One menu command and what it did; nothing for a command that does nothing. While live only PAUSE arrives. */
@@ -28,7 +33,8 @@ export interface Screen {
 
 /** The devices the host routes: driving input, sound and menu commands, and the sound of what a command did. */
 export interface ScreenDevices {
-  setRoute(route: InputRoute): void;
+  /** The input route, and whether vehicle sound is live: while a vehicle is driven. */
+  setRoute(route: InputRoute, vehicleSound: boolean): void;
   /** Read the devices for this fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
   menuSound(response: MenuResponse): void;
@@ -46,7 +52,8 @@ export const TRANSITION_STEPS = 8;
  * and menu commands are dropped. A change between two screens standing on the same wallpaper, asked for while no
  * transition runs, is immediate: the next frame draws the next screen at full brightness. It owns the input route: driving (driving input and sound live, only PAUSE as a menu
  * command) exactly while the page is visible, no transition runs and the current screen is live, menu while it is
- * visible otherwise, and off while hidden. It alone watches document visibility and page hiding, and reloads a page
+ * visible otherwise, and off while hidden. Vehicle sound is live while a vehicle is driven: while the page is visible,
+ * no transition runs and the current screen is live or drives a vehicle; each fixed step reads it again. It alone watches document visibility and page hiding, and reloads a page
  * restored from the back/forward cache.
  */
 export function createScreenHost(
@@ -60,7 +67,8 @@ export function createScreenHost(
     next: Screen | null = null,
     brightness = 0,
     hidden = visibilityDocument.hidden,
-    route: InputRoute | null = null;
+    route: InputRoute | null = null,
+    vehicleSound: boolean | null = null;
   const steady = () => next === null && brightness === TRANSITION_STEPS;
   // Each start begins a new frame clock, so stopped real time never enters the simulation. Each step first delivers
   // the menu commands to the current screen.
@@ -83,6 +91,7 @@ export function createScreenHost(
         if (response) devices.menuSound(response);
       }
       screen.tick();
+      update();
     },
     () => {
       devices.setBrightness(brightness);
@@ -93,9 +102,11 @@ export function createScreenHost(
     if (hidden) loop.stop();
     else loop.start();
     const next: InputRoute = hidden ? 'off' : steady() && screen.live ? 'driving' : 'menu';
-    if (next === route) return;
+    const sound = !hidden && steady() && (screen.live || screen.vehicleDriven === true);
+    if (next === route && sound === vehicleSound) return;
     route = next;
-    devices.setRoute(route);
+    vehicleSound = sound;
+    devices.setRoute(route, vehicleSound);
   };
   visibilityDocument.addEventListener('visibilitychange', () => {
     hidden = visibilityDocument.hidden;

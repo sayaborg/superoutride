@@ -59,7 +59,7 @@ export function createAudioLifecycle(
   let context: AudioContext | null = null;
   let scene: Awaited<ReturnType<typeof createAudioScene>> | null = null;
   let loading: Promise<void> | null = null;
-  // The screen host's route sets whether the page is visible and a run is driven; both start false.
+  // The screen host's route sets whether the page is visible and a vehicle is driven; both start false.
   let enabled = true,
     visible = false,
     live = false,
@@ -252,8 +252,8 @@ export function createAudioLifecycle(
   function unlock(event?: Event): void {
     if (event?.type === 'pointerdown' && (event as PointerEvent).pointerType !== 'mouse') return;
     if (controls.isSoundToggle(event?.target ?? null) || !supported || !shown()) return;
-    // Any gesture resumes the clock while the page shows; outside driving only `enable` creates the audio, and SOUND OFF
-    // creates none.
+    // Any gesture resumes the clock while the page shows; while no vehicle is driven only `enable` creates the audio, and
+    // SOUND OFF creates none.
     if (context || (live && enabled)) start();
   }
   /** Create the audio, or resume it; within a user gesture the browser lets it run. */
@@ -337,11 +337,11 @@ export function createAudioLifecycle(
     }),
     /**
      * The screen host's route: the context runs while the page is visible and is suspended while it is hidden; the
-     * live buses sound only while driving.
+     * live buses sound only while a vehicle is driven (`vehicleSound`): a run, or SELECT VEHICLE's ENGINE page.
      */
-    setRoute(route: InputRoute): void {
+    setRoute(route: InputRoute, vehicleSound: boolean): void {
       visible = route !== 'off';
-      live = route === 'driving';
+      live = vehicleSound;
       sync();
       if (shown() && context)
         void context

@@ -109,6 +109,10 @@
   run driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
   envelopes are gone; SLOW DOWN warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
   [SLOW DOWN](browser.md#slow-down)).
+- Stage VS2 is complete: SELECT VEHICLE turns through ENGINE, DRIVETRAIN and CHASSIS, 6 s each; DRIVETRAIN draws
+  each gear's engine speed against road speed; ENGINE revs the shown vehicle's engine standing still through the held
+  update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
+  while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
 
 Next PR: [Stage 16](#stage-16--produce-product-courses).
 
