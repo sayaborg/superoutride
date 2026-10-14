@@ -452,8 +452,9 @@ export function createCourseRace(options: {
   const stepEvents: RaceEvent[] = [];
   const candidates: { c: typeof player; crossing: RouteRaceEvent; timeSeconds: number }[] = [];
 
-  // The player's driving after its finish: its vehicle's run driver, in the lane nearest the position it finished
-  // at, planning a stop at its runout distance past the finish, within any Route terminal.
+  // The player's driving after its finish: its vehicle's run driver on the racing line, taken from where the vehicle is
+  // at the end of the step it finished in, planning a stop its runout distance past that station, within any Route
+  // terminal.
   const takeoverDriver = options.setup.driverOf(playerEntry!.vehicle);
   const takeoverWorkspace = createPlannedDriverWorkspace();
   const takeoverIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };

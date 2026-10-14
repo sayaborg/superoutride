@@ -776,8 +776,8 @@ lane of every road it lies on (`LINE`): its target is the course's racing line t
 fork (the intended exit's, or the selected one once decided), or the centre lane's centre without delivered racing
 lines; it never ends and is not carried across seams, and the lanes beside it are the nearest lane on each side of it in
 that road. A grid rival starts in its
-slot's lane, the lane nearest its slot (`intentLane`), and the player's driver and takeover start in the lane nearest
-the player. The recovery lane
+slot's lane, the lane nearest its slot (`intentLane`); the player's run driver (the attract demo and the takeover)
+takes the racing line from where the player is. The recovery lane
 (`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
 Run seed:
 
@@ -862,9 +862,9 @@ After the ending the race keeps moving the field: every present competitor advan
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
 therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
 their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's run
-driver at the fixed run driver utilization (0.75) drives it in the lane nearest the position it finished at
-(on a fork, in the selected exit) and planning a stop at the finish station plus that vehicle's runout distance
-(`speedCap² / (2*a)`, as admitted), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
+driver at the fixed run driver utilization (0.75) drives it on the racing line, taken with a path offset from where
+the vehicle is at the end of the step it finished in (on a fork, toward the selected exit), and plans a stop at its
+station then plus that vehicle's runout distance (`speedCap² / (2*a)`, as admitted), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
 
 Rank limits are RACE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each

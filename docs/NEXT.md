@@ -268,6 +268,10 @@ and switching is a cut.
 
 ### Pending product decisions
 
+- Racing line objective: the racing line is the minimum-curvature line (least summed squared curvature), so through a
+  hairpin turning near 180° it keeps to the outer edge, as at TSUKUBA's first corner and first hairpin. A line whose
+  objective is lap time is a later stage's design (K's decision, 2026-10-14); the line is unchanged until then.
+
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format
   declares both as data.

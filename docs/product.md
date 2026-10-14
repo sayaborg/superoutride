@@ -376,8 +376,8 @@ may have lanes and no painted lines.
 
 Traffic drives as on a public road: each vehicle keeps its lane and the traffic speed, leaves its lane
 only where the lane ends or a solid object stands in it, and does not yield to faster vehicles. Rivals
-race: they are bound neither to lanes nor to the traffic speed, take the shortest line the road allows and
-thread between other vehicles to pass them. Neither hits another vehicle or a solid object on purpose.
+race: they are bound neither to lanes nor to the traffic speed, drive the racing line and thread between other
+vehicles to pass them. Neither hits another vehicle or a solid object on purpose.
 Drivers read the surface ahead: on a surface with less grip they corner and brake within what it gives.
 
 Walls — guardrails, walls and cliff faces — run along the road. A visible wall stands on its line, rising
