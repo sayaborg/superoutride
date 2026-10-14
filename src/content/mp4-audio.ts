@@ -18,6 +18,12 @@ const fail = (message: string): never => {
   throw new AdmissionError('unsupported_format', '', message);
 };
 
+/** `at`, once the `length` bytes from it lie before `end`, the end of the box or descriptor holding them. */
+const within = (at: number, length: number, end: number, what: string): number => {
+  if (at + length > end) fail(`Malformed MP4 ${what}`);
+  return at;
+};
+
 /** The boxes between `start` and `end`; a box that overruns its parent is malformed. */
 function readBoxes(view: DataView, start: number, end: number): Box[] {
   const boxes: Box[] = [];
@@ -51,8 +57,8 @@ const only = (boxes: readonly Box[], type: string): Box => {
 
 /** A full box's timescale and duration (mvhd, mdhd): version 0 has 32-bit times, version 1 64-bit. */
 function readTimes(view: DataView, box: Box): { timescale: number; duration: number } {
-  const version = view.getUint8(box.start);
-  const at = box.start + 4 + (version === 1 ? 16 : 8);
+  const version = view.getUint8(within(box.start, 4, box.end, box.type));
+  const at = within(box.start + 4 + (version === 1 ? 16 : 8), version === 1 ? 12 : 8, box.end, box.type);
   const timescale = view.getUint32(at);
   const duration = version === 1 ? Number(view.getBigUint64(at + 4)) : view.getUint32(at + 4);
   if (timescale === 0) fail('MP4 timescale is zero');
@@ -79,14 +85,15 @@ function readDescriptor(view: DataView, at: number, end: number): { tag: number;
 function audioObjectType(view: DataView, esds: Box): number {
   const es = readDescriptor(view, esds.start + 4, esds.end);
   if (es.tag !== 0x03) fail('Expected an MPEG-4 ES descriptor');
-  const flags = view.getUint8(es.start + 2);
+  const flags = view.getUint8(within(es.start, 3, es.end, 'ES descriptor') + 2);
   let at = es.start + 3;
   if (flags & 0x80) at += 2;
-  if (flags & 0x40) at += 1 + view.getUint8(at);
+  if (flags & 0x40) at += 1 + view.getUint8(within(at, 1, es.end, 'ES descriptor'));
   if (flags & 0x20) at += 2;
   const config = readDescriptor(view, at, es.end);
   if (config.tag !== 0x04) fail('Expected an MPEG-4 decoder configuration');
-  if (view.getUint8(config.start) !== 0x40) fail('Expected MPEG-4 audio');
+  if (view.getUint8(within(config.start, 13, config.end, 'decoder configuration')) !== 0x40)
+    fail('Expected MPEG-4 audio');
   const specific = readDescriptor(view, config.start + 13, config.end);
   if (specific.tag !== 0x05 || specific.end === specific.start) fail('Expected an AudioSpecificConfig');
   return view.getUint8(specific.start) >> 3;
@@ -107,15 +114,17 @@ export function readMp4Audio(bytes: Uint8Array): Mp4AudioFacts {
   const track = readBoxes(view, trak.start, trak.end);
   const mdia = readBoxes(view, only(track, 'mdia').start, only(track, 'mdia').end);
   const hdlr = only(mdia, 'hdlr');
+  within(hdlr.start, 12, hdlr.end, 'hdlr');
   if (String.fromCharCode(...bytes.subarray(hdlr.start + 8, hdlr.start + 12)) !== 'soun')
     fail('Expected an audio track');
   const media = readTimes(view, only(mdia, 'mdhd'));
   const minf = readBoxes(view, only(mdia, 'minf').start, only(mdia, 'minf').end);
   const stbl = readBoxes(view, only(minf, 'stbl').start, only(minf, 'stbl').end);
   const stsd = only(stbl, 'stsd');
-  if (view.getUint32(stsd.start + 4) !== 1) fail('Expected one audio sample description');
+  if (view.getUint32(within(stsd.start, 8, stsd.end, 'stsd') + 4) !== 1) fail('Expected one audio sample description');
   const entry = only(readBoxes(view, stsd.start + 8, stsd.end), 'mp4a');
-  if (view.getUint16(entry.start + 8) !== 0) fail('Expected a version 0 audio sample entry');
+  if (view.getUint16(within(entry.start, 28, entry.end, 'mp4a') + 8) !== 0)
+    fail('Expected a version 0 audio sample entry');
   const channels = view.getUint16(entry.start + 16);
   const sampleRate = view.getUint32(entry.start + 24) >>> 16;
   const esds = only(readBoxes(view, entry.start + 28, entry.end), 'esds');
@@ -124,7 +133,7 @@ export function readMp4Audio(bytes: Uint8Array): Mp4AudioFacts {
   const edts = track.find((box) => box.type === 'edts');
   if (edts) {
     const elst = only(readBoxes(view, edts.start, edts.end), 'elst');
-    const version = view.getUint8(elst.start);
+    const version = view.getUint8(within(elst.start, 8, elst.end, 'edit list'));
     const count = view.getUint32(elst.start + 4);
     const size = version === 1 ? 20 : 12;
     if (elst.start + 8 + count * size > elst.end) fail('Malformed MP4 edit list');

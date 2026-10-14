@@ -186,7 +186,8 @@ by ear in the workbench's music module ([Development](development.md#workbench))
 The content build ([recording catalog](../src/content/recording-catalog.ts)) admits the recordings and the music
 documents together; each failure is a diagnostic and nothing falls back. It reads each recording's MP4 boxes without a
 decoder: the file starts with `ftyp`, the movie holds exactly one track, an audio (`soun`) track with one `mp4a` sample
-description whose decoder configuration is MPEG-4 audio with audio object type 2 (AAC-LC). The track's duration is
+description whose decoder configuration is MPEG-4 audio with audio object type 2 (AAC-LC); every field it reads lies
+within its own box or descriptor, and one too short for its fields is a malformed file. The track's duration is
 its edit list's playable span when it has one, which excludes the encoder's priming, else its media duration. The effect
 and impact groups must hold exactly the listed names; every track's document has its `music/<id>` recording and every
 music recording its document; there is at least one track; selection orders are unique; a title fits one menu line
