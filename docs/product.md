@@ -219,11 +219,10 @@ in four colors, each shown by its period paint name; the first is its default. P
 which enables sound and requests fullscreen where the browser allows it, and TITLE then shows the line SERIES / FREE
 PLAY / SETTINGS on the same screen. There is no continue. Behind TITLE the attract demo runs the RACE sessions of the
 product classes in series and class order,
-looping, 30 seconds a turn with no HUD and no sound, its series, class, vehicle and color written at the right. Each
-class keeps one race, a real RACE of its class and field with its first vehicle in its first color driven by the
-reference driver: its first turn shows the start (READY, then GO), and each later turn resumes the race where the last
-one left it, so from the second round the demo shows racing in progress. A race that ends is shown to the end of its
-RESULT delay, its turn ends early, and the class's next turn starts a new race. RESULT shows the outcome (GOAL or GAME
+looping, 30 seconds a turn with no HUD and no sound, its series, class, vehicle and color written at the right. A turn
+shows a real RACE of its class and field, its first vehicle in its first color driven by the player's run driver. The
+demo holds only the shown class's race and the next class's, and every turn starts its race from READY: a class shown
+again starts a new race. A race that ends is shown to the end of its RESULT delay, and its turn ends early. RESULT shows the outcome (GOAL or GAME
 OVER), rank when two or more competitors are ranked, race time, best lap on circuits and new records; a TIME ATTACK on
 a CIRCUIT shows its completed laps and its best lap, with no outcome line and no total time. DEV controls, DEV displays
 and development series appear only when the URL has `dev=1`.

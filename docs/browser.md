@@ -218,8 +218,7 @@ the first track) plays as an audition, so its volume is set by ear.
   fades out over the black transition into READY; the run's track then starts at READY. Every other menu screen, and
   RESULT, is silent. Leaving a run for a series screen plays the title track from its start again.
 
-DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once. Without it
-every delivered course is a DEV one today, so SERIES and FREE PLAY are DARK.
+DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once.
 
 RESULT follows GOAL or GAME OVER after the RESULT delay, a DEV setting (default 3 s; 0, 1, 2, 3, 5 or 10 s; not
 persisted), which the shell counts in fixed simulation steps after the step that ended the run. Until then the loop,

@@ -39,9 +39,9 @@
   product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
   `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
   crossings and on RESULT; all UI is English.
-- Engine sound can lag on some devices and stay late. With `dev=1` the audio timing line measures the AudioContext's
-  latency, clock and worklet overruns; headless Chromium did not reproduce the lag, so its fix waits on a reading
-  from an affected device ([Browser](browser.md#performance-hud)).
+- Engine sound that lagged and stayed late on some devices no longer does on the owner's device (2026-10-14); its
+  cause was not identified. With `dev=1` the audio timing line still measures the AudioContext's latency, clock and
+  worklet overruns ([Browser](browser.md#performance-hud)).
 - Stage 13 is complete: vehicles have overall dimensions and road-aligned footprints that contact vehicles, walls,
   course limits and roadside objects through one external force on the ordinary mechanics; Carriageways have lanes,
   drivers follow lane centres, change lanes past slower vehicles or follow them and merge where their lane ends; traffic
@@ -269,7 +269,7 @@ and switching is a cut.
 ### Pending product decisions
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
-  two-wheeler bank count (currently 5) is still to decide before producing final bike art. The sprite set format
+  two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format
   declares both as data.
 
 | Area             | Decision or future capability                                                                                                                                                                                |
