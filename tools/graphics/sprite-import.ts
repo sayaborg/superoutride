@@ -1,3 +1,4 @@
+import { compileSpriteLod } from './sprite-lod-compiler.js';
 import { readArray, readBoolean, readDocument, readNumber, readRecord } from '../../src/core/admission.js';
 import type { PNG as PngDecoder } from 'pngjs';
 import { admit } from '../../src/core/admission.js';
@@ -110,9 +111,14 @@ export async function importSpriteSource(
 }
 
 /**
- * A course image master as its named file, `images/<name>.json` in the saved layout: the source's name, which courses
- * use. Writing it replaces an image of that name, so every course using the name shows the new image.
+ * A course image master as its named file, `images/<name>.json` in the saved layout, compiled with every level it is
+ * delivered with: the one way a course image is written, so its master and its levels never disagree. The file is the
+ * source's name, which courses use; writing it replaces an image of that name, so every course using the name shows
+ * the new image.
  */
 export function courseImageFile(master: SpriteLodDocument) {
-  return { path: `images/${master.name}.json`, bytes: new TextEncoder().encode(formatSavedJson(master)) };
+  return {
+    path: `images/${master.name}.json`,
+    bytes: new TextEncoder().encode(formatSavedJson(compileSpriteLod(master))),
+  };
 }

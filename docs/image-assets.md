@@ -39,8 +39,8 @@ once before drawing; patterns remain shared.
 
 `shadow` is optional: a binary frame whose anchor is the image's base point on the road, nonzero indices opaque, drawn
 at the image's scale with exactly as many levels as the image; level `k` is `ceil(w/2^k)` by `ceil(h/2^k)` with the
-anchor mapped as the image's. A master carries its shadow's master level; the build reduces it, a level texel opaque
-where any master texel in its box is, so a shadow never vanishes at a distance. A movable object's standing, flying and
+anchor mapped as the image's. A master carries its shadow's master level; the LOD compiler reduces it, a level texel
+opaque where any master texel in its box is, so a shadow never vanishes at a distance. A movable object's standing, flying and
 landed images each carry one ([Content and gameplay](content-and-gameplay.md#sprites-and-environment)); the
 provisional ones are the object's square seen by the size-0 contract camera ([Picture contract](#picture-contract)).
 Course sprites select one declared palette by its required name, including an explicit default name.
@@ -52,8 +52,11 @@ Invalid dimensions, anchors, indices, palettes, mixtures or unknown fields
 fail. Every saved image format in this document and the sprite recipe admit
 through the [content admission toolkit](architecture.md#content-admission-toolkit) and report the
 first failure at its JSON Pointer. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
-One normalized master level is valid input; shipped sprites have full build-generated LOD.
-Source masters and named palette declarations are saved; completed pyramids are generated products.
+A course image is saved with every level of its LOD, compiled from its master when it is written; the build admits it
+as it is and compiles no level, and refuses a saved sprite without every level. Every tool that writes a course image
+writes it through one function (`courseImageFile`), which compiles the levels from the master, so no saved image holds a
+master without its levels or levels of another master. A master alone (one normalized level) is the LOD compiler's
+input.
 
 ## Common prefilter rules
 
@@ -323,8 +326,8 @@ source alpha back. `palette` has 16 slots; null generates it from the masked cro
 ([Candidate palettes](#candidate-palettes)) with 15 colors.
 
 **Import.** The masked source is normalized as [External source normalization](#external-source-normalization)
-describes, with the recipe's palette, and written as its named file, `content/images/<name>.json` with the master in
-the saved layout, `<name>` being the source's name; it replaces an image of that name, so every course naming it shows
+describes, with the recipe's palette, and written as its named file, `content/images/<name>.json` with the master and
+every level compiled from it in the saved layout, `<name>` being the source's name; it replaces an image of that name, so every course naming it shows
 the new image. Naming it in a course is the course's edit.
 
 ## Course image sources

@@ -352,8 +352,8 @@ result (or the diagnostics, exiting 1):
 npm run sprite -- import tree
 ```
 
-`import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it as
-`content/images/<name>.json` (replacing one of that name).
+`import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
+LOD, as `content/images/<name>.json` (replacing one of that name).
 
 ### Pictures command
 
@@ -530,7 +530,7 @@ documents in one pass, in dependency order: the vehicle sprite library (compiled
 surface materials, surface sounds (resolved against those materials), wall sounds, audio settings, recordings and the
 music documents (admitted against those recordings), FREE PLAY rules, engine sounds, vehicle and driving definitions
 (admitted against that library and engine-sound catalog), courses (their solid walls admitted against the wall
-sounds) and their images, the course index, then series (admitted against those courses and the vehicle catalog).
+sounds) and their images (admitted with the levels they are saved with; none is compiled), the course index, then series (admitted against those courses and the vehicle catalog).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a

@@ -4,16 +4,16 @@ import type { CourseImageBytes } from '../../src/course/compiler/course-image-so
 import { readCourseImageSources } from '../../src/course/compiler/course-image-source.js';
 import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
 import { encodeContentJson } from '../../src/content/content-manifest.js';
-import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
+import { spriteLodLayout } from '../../src/image/sprite.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 
 /** Delivered image IDs that are not course images: a course cannot name an image so. */
 export const RESERVED_IMAGE_NAMES: readonly string[] = ['vehicles', 'text-tiles'];
 
 /**
- * Build-only image compilation: the delivered bytes of each image a course names, by that name. Every sprite master,
- * a placement's or a movable body's knocked image alike, becomes its compiled LOD; a background, which has no LOD, is
- * delivered as its compact JSON.
+ * Build-only image delivery: the delivered bytes of each image a course names, by that name, each its saved document as
+ * compact JSON. A sprite, a placement's or a movable body's knocked image alike, is saved with every level of its LOD
+ * (`courseImageFile`), so the build admits it as it is and compiles no level; a background has no LOD.
  * The course document itself is unchanged.
  */
 export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseImageBytes[]) {
@@ -26,12 +26,23 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
       ),
     );
   const admitted = requireLoaded(await readCourseImageSources(names, inputs));
+  const partial = admitted.filter(
+    (image) =>
+      image.kind === 'sprite' &&
+      image.image.levels.length !== spriteLodLayout(image.image.width, image.image.height).length,
+  );
+  if (partial.length)
+    requireLoaded(
+      courseFailures(
+        partial.map(
+          (image) =>
+            new CourseAssetError('asset_invalid_image', image.id, 'A saved sprite holds every level of its LOD'),
+        ),
+      ),
+    );
   const images: CourseImageBytes[] = admitted.map((image) => ({
     name: image.id,
-    bytes:
-      image.kind === 'sprite'
-        ? new TextEncoder().encode(JSON.stringify(compileSpriteLod(image.document, image.image)) + '\n')
-        : encodeContentJson(image.document),
+    bytes: encodeContentJson(image.document),
   }));
   return { document, images };
 }
