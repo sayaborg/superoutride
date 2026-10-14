@@ -115,23 +115,26 @@ function profileShift(a: ProfileReader | null, b: ProfileReader | null, length: 
   return shift;
 }
 
-/** Each wall Strip's `bottom` and `top` along s, from its knots (the same repetition), as lines of heights. */
+/**
+ * Each wall Strip's `bottom` and `top` along s, from its knots (the same repetition), as lines of heights: one pass over
+ * the Section's elements, kept with its reading, since every candidate compares against the same reading before it.
+ */
+const wallHeightsOf = new WeakMap<Reading, Map<string, Record<'bottom' | 'top', ResolvedLine>>>();
 function wallHeights(reading: Reading) {
-  const elements = reading.structure.elements;
+  const known = wallHeightsOf.get(reading);
+  if (known) return known;
+  const copy = (e: CourseElement) => e.copies.map((c) => c.index).join(',');
   const heights = new Map<string, Record<'bottom' | 'top', ResolvedLine>>();
-  for (const strip of elements)
-    if (strip.kind === 'wall-strip') {
-      const copy = strip.copies.map((c) => c.index).join(',');
-      const knots = elements.filter(
-        (k) =>
-          k.kind === 'wall-strip-knot' &&
-          k.pointer.startsWith(`${strip.pointer}/knots/`) &&
-          k.s !== null &&
-          k.copies.map((c) => c.index).join(',') === copy,
-      );
-      const line = (key: 'bottom' | 'top') => knots.map((k) => ({ s: k.s!, l: Number(k.values[key]), authored: true }));
-      heights.set(`${strip.pointer} ${copy}`, { bottom: line('bottom'), top: line('top') });
-    }
+  for (const strip of reading.structure.elements)
+    if (strip.kind === 'wall-strip') heights.set(`${strip.pointer} ${copy(strip)}`, { bottom: [], top: [] });
+  for (const knot of reading.structure.elements) {
+    if (knot.kind !== 'wall-strip-knot' || knot.s === null) continue;
+    const strip = heights.get(`${knot.pointer.slice(0, knot.pointer.lastIndexOf('/knots/'))} ${copy(knot)}`);
+    if (!strip) continue;
+    for (const key of ['bottom', 'top'] as const)
+      (strip[key] as ResolvedLine[number][]).push({ s: knot.s, l: Number(knot.values[key]), authored: true });
+  }
+  wallHeightsOf.set(reading, heights);
   return heights;
 }
 
