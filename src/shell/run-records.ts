@@ -108,15 +108,16 @@ export function createRunRecords(player: Pick<PlayerRecord, 'records' | 'updateR
       return split;
     },
     /**
-     * After each running step: the player's crossings among `events`, and the goal the run can now reach (null while
-     * several remain). True when a lap of a CIRCUIT just set a record; a LINEAR or BRANCH record shows at RESULT.
+     * After each running step: the player's crossings among `events`, and `goal`, which reads the goal the run can now
+     * reach (null while several remain); it is read only at a crossing of the player's on a course with several goals.
+     * True when a lap of a CIRCUIT just set a record; a LINEAR or BRANCH record shows at RESULT.
      */
-    step(events: readonly RaceEvent[], playerId: string, goal: string | null): boolean {
+    step(events: readonly RaceEvent[], playerId: string, goal: () => string | null): boolean {
       let lapRecord = false;
       for (const event of events) {
         if (event.competitorId !== playerId) continue;
         crossings.push(raceMilliseconds(event.timeSeconds - lapStartSeconds));
-        const reachable = selection.goals.length === 1 ? selection.goals[0]! : goal;
+        const reachable = selection.goals.length === 1 ? selection.goals[0]! : goal();
         const compared = reachable === null ? null : currentRecord(player.records, selection, reachable);
         const index = crossings.length - 1;
         if (compared && index < compared.splitsMs.length)

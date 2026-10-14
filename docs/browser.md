@@ -696,7 +696,8 @@ faster time is saved with its gate times. An equal time keeps the earlier record
 not current counts as none and is replaced. While driven, each of the player's crossings is compared with the record
 run's crossing of the same index (within the lap on a CIRCUIT) against the record as it stands, once the goal the run
 can reach is known: from the start on a course with one goal, else once the race has decided the route
-(`routeLinks`), whose last FINISH is the goal. READY, the PRE-RACE card and RESULT show the record as it stood before
+(`routeLinks`), whose last FINISH is the goal; the records read that goal only at a crossing of the player's on a course
+with several goals. READY, the PRE-RACE card and RESULT show the record as it stood before
 the run: SELECT SESSION, READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
 of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the run they were made for.
 

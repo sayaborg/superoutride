@@ -301,11 +301,13 @@ async function assembleCourseRun(
   if (track === undefined) throw new RangeError(`Unknown track ${request.track}`);
   const music = createRunMusic(shell, track);
   const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
-  // The goal a run's Route reaches once the race has decided it (`race.routeLinks`): the last FINISH along it.
+  // The goal the run's Route reaches once the race has decided it (`race.routeLinks`): the last FINISH along it. The
+  // records read it when they need it.
   const finishes = new Map(
     course.gates.intervals.flatMap((interval) => (interval.finish ? [[interval.section, interval.finish.id]] : [])),
   );
-  const routeGoal = (links: readonly string[] | null) => {
+  const routeGoal = (): string | null => {
+    const links = active.race.routeLinks;
     if (links === null) return null;
     const sections = [course.entry, ...links.map((id) => course.links.find((link) => link.id === id)!.to.section)];
     return sections.reduce<string | null>((goal, section) => finishes.get(section) ?? goal, null);
@@ -341,7 +343,7 @@ async function assembleCourseRun(
     // The background's transitions run in the screen's fixed steps, from the camera's station.
     active.scene.advance(lifecycle.camera);
     // A lap that set a record sounds NEW RECORD as it completes.
-    if (active.records?.step(race.events, race.player.id, routeGoal(race.routeLinks))) effects.newRecord();
+    if (active.records?.step(race.events, race.player.id, routeGoal)) effects.newRecord();
     if (!demo) {
       effects.step(race, race);
       // Each contact of the player's that began in the step sounds once, as it begins.
