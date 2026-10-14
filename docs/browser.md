@@ -239,7 +239,7 @@ the run, clearing `paused` and `finished`, so it drives at once. A run's start r
 ### SELECT VEHICLE
 
 SELECT VEHICLE is a catalog page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its
-listing as the simulation holds them. Rows 0–11 stand on every page; below them two pages, POWERTRAIN and CHASSIS,
+listing as the simulation holds them. Rows 0–11 stand on every page; below them two pages, ENGINE and CHASSIS,
 take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
 | Rows  | Columns | Content                                                                                        |
@@ -260,7 +260,7 @@ The picture turns through the yaw images, one every six fixed steps, in the show
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns
 0–19 by rows 4–10 (160×56 pixels), and that anchor centres the images in the box.
 
-Each page stays 480 fixed steps (8 s), then the next follows, POWERTRAIN after CHASSIS; no key turns the pages and no
+Each page stays 480 fixed steps (8 s), then the next follows, ENGINE after CHASSIS; no key turns the pages and no
 black stands between them. A change of vehicle keeps the page and starts its time again; a change of color does not.
 The tabs on row 12 name the pages from column 1, two columns apart, the shown page WHITE and the other DARK. Under the
 shown page's name, on y 103, its time line runs DIM across the name's width, YELLOW from the left over the share of
@@ -273,7 +273,7 @@ right column's at columns 20 and 28. Power and torque are integers from 10 up an
 RPM, millimetres, kilograms, inertias and brake torques are integers; ratios have three decimals below 10 and two from 10 up (`14.47`), wheel inertias one,
 and ride frequency, damping and drag two. A left value ends by column 18 and a right value by column 39.
 
-#### POWERTRAIN
+#### ENGINE
 
 Row 3 heads the graph with `TORQUE` (YELLOW) at column 22 and `POWER` (RED) at column 31. The graph is drawn in pixels
 under the text, in x 176–319 and y 32–95. Its horizontal axis runs from 20 % to 110 % of redline, 16 pixels for each

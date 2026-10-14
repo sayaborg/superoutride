@@ -266,9 +266,9 @@ function drawExhaust(scene: VehiclePageScene) {
   );
 }
 
-/** POWERTRAIN: the engine's curves and values, its firing and its exhaust. */
-export const POWERTRAIN_PAGE: VehiclePage = Object.freeze({
-  name: 'POWERTRAIN',
+/** ENGINE: the engine's curves and values, its firing and its exhaust. */
+export const ENGINE_PAGE: VehiclePage = Object.freeze({
+  name: 'ENGINE',
   draw(scene: VehiclePageScene) {
     drawGraph(scene);
     writeEngine(scene);

@@ -80,7 +80,7 @@ export const SIDE_VIEW = Object.freeze({
   loadLastColumn: 36,
 });
 /**
- * POWERTRAIN's moving drawings run `SLOW_MOTION` times slower than real: the engine turns at idle and the exhaust's
+ * ENGINE's moving drawings run `SLOW_MOTION` times slower than real: the engine turns at idle and the exhaust's
  * pulses travel at the speed of sound, both slowed alike, so their timing keeps its real ratio.
  */
 export const SLOW_MOTION = 30;
