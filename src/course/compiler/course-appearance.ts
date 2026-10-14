@@ -1,4 +1,4 @@
-import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
+import { expandCourseElements, expansionWork, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type SectionDocument } from '../course-document.js';
 import type { CompiledFork } from './course-graph.js';
@@ -88,7 +88,7 @@ export function compileCourseAppearance(
   expandCourseElements(
     source,
     `${path}/environments`,
-    COURSE_DOCUMENT_LIMITS.environmentKnots * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
+    expansionWork(COURSE_DOCUMENT_LIMITS.environmentKnots * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1)),
     (environment, offset, at) => {
       requireCourse(
         environments.length < COURSE_DOCUMENT_LIMITS.environmentKnots,

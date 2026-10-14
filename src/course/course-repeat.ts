@@ -27,6 +27,17 @@ export interface CourseElementLeaf<T> {
   readonly copies: readonly CourseRepeatCopy[];
 }
 
+/** One unit of expansion work, at the JSON Pointer of what it visits; it throws past its owner's limit. */
+export type ExpansionWork = (path: string) => void;
+
+/** Expansion work counted against `limit` alone. */
+export function expansionWork(limit: number): ExpansionWork {
+  let work = 0;
+  return (at) => {
+    if (++work > limit) throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
+  };
+}
+
 /**
  * The expanded elements in depth-first authored order; offsets accumulate without changing the leaf's native Position.
  * Each leaf carries the repetitions enclosing it, outermost first (none when it is not repeated).
@@ -34,9 +45,8 @@ export interface CourseElementLeaf<T> {
 export function* courseElementLeaves<T extends object>(
   elements: readonly RepeatElement<T>[],
   path: string,
-  workLimit: number,
+  work: ExpansionWork,
 ): Generator<CourseElementLeaf<T>, void, undefined> {
-  let work = 0;
   function* expand(
     items: readonly RepeatElement<T>[],
     offset: number,
@@ -45,11 +55,10 @@ export function* courseElementLeaves<T extends object>(
   ): Generator<CourseElementLeaf<T>, void, undefined> {
     for (const [index, element] of items.entries()) {
       const at = `${path}/${index}`;
-      if (++work > workLimit) throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
+      work(at);
       if (isRepeat(element)) {
         for (let i = 0; i < element.count; i++) {
-          if (++work > workLimit)
-            throw new CourseInputError('resource_limit', at, 'Repeat expansion work limit exceeded');
+          work(at);
           yield* expand(element.elements, offset + i * element.every, `${at}/elements`, [
             ...copies,
             Object.freeze({ path: at, index: i }),
@@ -65,10 +74,10 @@ export function* courseElementLeaves<T extends object>(
 export function expandCourseElements<T extends object>(
   elements: readonly RepeatElement<T>[],
   path: string,
-  workLimit: number,
+  work: ExpansionWork,
   visit: (element: T, offset: number, path: string, repeated: boolean, copies: readonly CourseRepeatCopy[]) => void,
 ): void {
-  for (const leaf of courseElementLeaves(elements, path, workLimit))
+  for (const leaf of courseElementLeaves(elements, path, work))
     visit(leaf.element, leaf.offset, leaf.path, leaf.repeated, leaf.copies);
 }
 

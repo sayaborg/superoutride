@@ -439,11 +439,11 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Unique course images `imageTotalEncodedBytes` / `imageTotalLevelTexels` | 128 MiB / 33554432 | 928 image types averaging 128×64 master texels, ×4/3 mip texels, ×2 margin; allow 4 encoded bytes/level texel, round up |
 
 Sprite and environment expansion each allow at most `expandedLimit * (2*repeatDepth+1)` work visits:
-one leaf plus up to one repeat node and one iteration per permitted nesting level. Strip expansion
-retains its independent `stripExpansion` work and piece budgets. The Section ceilings on Strip products — expanded
-pieces (`stripExpansion`), resolved slabs (`stripSlabs`), preblend cells (`preblendCells`) and coefficient storage
-(`coefficientBytes`) — count the Section's road Strips and every wall's Strips together, color and material tables
-alike. This bounds empty nested repetitions
+one leaf plus up to one repeat node and one iteration per permitted nesting level. The Section ceilings on Strip work
+and products — the expansion's visits to elements and repeat iterations and its expanded pieces (each counted
+separately against `stripExpansion`), resolved slabs (`stripSlabs`), preblend cells (`preblendCells`) and coefficient
+storage (`coefficientBytes`) — count the Section's road Strips and every wall's Strips together, color and material
+tables alike, so dividing a wall does not raise them. This bounds empty nested repetitions
 as well as visible output. Sprite element arrays use the same 30 authored records/km × 21 km × 2
 planning density as Strip arrays, rounded up to 2048; expanded placements retain the 220/km basis.
 

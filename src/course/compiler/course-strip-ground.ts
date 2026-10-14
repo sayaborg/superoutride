@@ -88,7 +88,7 @@ async function expandCourseStrips(
       'Strip left edge cannot exceed its right edge',
       'invalid_strip',
     );
-    budget.spend('stripExpansion', 1, path, "The Section's expanded Strip pieces");
+    budget.spend('stripPieces', 1, path, "The Section's expanded Strip pieces");
     extents.push(shape);
   };
   const add = (piece: StripPiece) => {
@@ -300,11 +300,7 @@ async function expandCourseStrips(
       }
     }
   };
-  for (const leaf of courseElementLeaves<Parameters<typeof expand>[0]>(
-    elements,
-    path,
-    COURSE_DOCUMENT_LIMITS.stripExpansion,
-  )) {
+  for (const leaf of courseElementLeaves<Parameters<typeof expand>[0]>(elements, path, budget.work)) {
     if (slices.due()) await slices.pause();
     expand(leaf.element, leaf.offset, leaf.path, leaf.repeated);
   }

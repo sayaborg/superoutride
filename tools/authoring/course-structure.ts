@@ -14,7 +14,12 @@ import {
   resolveLateralInterval,
 } from '../../src/course/compiler/course-lateral.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../../src/course/course-boundaries.js';
-import { expandCourseElements, type CourseRepeatCopy, type RepeatElement } from '../../src/course/course-repeat.js';
+import {
+  expandCourseElements,
+  expansionWork,
+  type CourseRepeatCopy,
+  type RepeatElement,
+} from '../../src/course/course-repeat.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { valueAt, type Json } from './json-pointer.js';
@@ -520,7 +525,7 @@ function readSection(
       expandCourseElements(
         list(items) as RepeatElement<object>[],
         at,
-        COURSE_DOCUMENT_LIMITS.stripExpansion,
+        expansionWork(COURSE_DOCUMENT_LIMITS.stripExpansion),
         (source, offset, path, _repeated, copies) => each(record(source), offset, path, copies),
       );
     } catch (error) {

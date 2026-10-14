@@ -2,7 +2,7 @@ import type { CoursePosition, SectionDocument, SpriteDocument } from '../course-
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseObject } from '../course-objects.js';
 import type { ProfileReader } from '../geometry/profile.js';
-import { expandCourseElements, shiftedCoursePosition } from '../course-repeat.js';
+import { expandCourseElements, expansionWork, shiftedCoursePosition } from '../course-repeat.js';
 import { resolveCourseLateral } from './course-lateral.js';
 import type { CourseLines } from '../course-lanes.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
@@ -39,7 +39,7 @@ export function compileCourseSpritePlacements(
   expandCourseElements(
     section.sprites,
     `${path}/sprites`,
-    COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1),
+    expansionWork(COURSE_DOCUMENT_LIMITS.spritePlacements * (2 * COURSE_DOCUMENT_LIMITS.repeatDepth + 1)),
     (source, offset, at) => {
       requireCourse(
         placements.length < COURSE_DOCUMENT_LIMITS.spritePlacements,
