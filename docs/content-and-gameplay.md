@@ -633,8 +633,11 @@ the same way and changes nothing outside it: a run combines only list items in s
 colours merge only among those written in the scope (a Section's: every colour written in it; elements' or kinds':
 those written in those elements). The first proposes candidates, each with
 the element it concerns, its changes and its own shift: the change applied alone and the Section read again, comparing
-lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler changes),
-other elements by plan point, and the road height. The second, `applyCleaning`, applies the chosen candidates as one
+lines and wall heights laterally along an unchanged ruler (and vertex by vertex in the plan when the ruler or the
+centreline changes), other elements by plan point, and the road height. Pairing written elements by their number and
+measuring the resolved form are separate: points written in sequences (knots, vertices, PVIs) are measured through what
+they resolve to, the lines and the profile, never against a renumbered neighbour; and a plan is the same only when its
+centreline, sampled every 2 m, is (a radius or a turn changes it while keeping every length). The second, `applyCleaning`, applies the chosen candidates as one
 edit, returning the shift and each changed Section's centreline shift (the old centreline's largest distance from the
 new one) and length change. Every applied candidate changes the course's identity, so the measured products become
 stale; the driving changes only when the shift is not 0.

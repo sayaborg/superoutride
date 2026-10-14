@@ -94,10 +94,17 @@ function lineAt(line: ResolvedLine, s: number): number | null {
   return courseBoundaryAt({ id: '', vertices: line.map((v) => ({ at: { s: v.s }, l: v.l })) }, s);
 }
 
-/** Whether two plans are the same ruler: the same length and joint stations. */
+/**
+ * Whether two plans are the same ruler on the same ground: the same length and joint stations, and the same centreline.
+ * A radius or a turn changes the centreline while it keeps the lengths.
+ */
 function samePlan(a: SectionPlan | null, b: SectionPlan | null) {
   if (!a || !b) return a === b;
-  return a.length === b.length && [...a.stations].every(([joint, s]) => b.stations.get(joint) === s);
+  return (
+    a.length === b.length &&
+    [...a.stations].every(([joint, s]) => b.stations.get(joint) === s) &&
+    centrelineShift(a, b) === 0
+  );
 }
 
 /** The greatest height difference of two profiles, sampled every 2 m over both. */
@@ -164,11 +171,14 @@ function readingShift(before: Reading, after: Reading): number {
     counts.set(key(e), n + 1);
     const f = later.get(key(e))?.[n];
     if (!f) {
-      // A removed knot, or a later sibling renumbered by it, is measured through its element's lines.
+      // A removed knot, or a later sibling renumbered by it, is measured through its element's lines, and a PVI through
+      // the profile.
       if (/knot|vertex|pvi|curve-end/.test(e.kind)) continue;
       return Infinity;
     }
-    if (!/knot|vertex|curve-end/.test(e.kind) && e.x !== null && f.x !== null)
+    // Points written in sequences (knots, vertices, PVIs) pair by number, not by what they resolve to; their lines and
+    // the profile measure them.
+    if (!/knot|vertex|pvi|curve-end/.test(e.kind) && e.x !== null && f.x !== null)
       shift = Math.max(shift, Math.hypot(e.x - f.x, e.z! - f.z!));
     for (const [name, line] of Object.entries(e.lines)) {
       const other = f.lines[name];
@@ -207,7 +217,6 @@ function shiftBetween(before: Reading, after: Reading) {
 /** The largest distance from the old centreline, sampled every 2 m, to the new one. */
 function centrelineShift(before: SectionPlan | null, after: SectionPlan | null) {
   if (!before || !after) return before === after ? 0 : Infinity;
-  if (samePlan(before, after)) return 0;
   let shift = 0;
   for (let s = 0; s <= before.length; s += 2) {
     const p = before.toWorld(s, 0);
