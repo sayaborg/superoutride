@@ -1127,7 +1127,7 @@ Each procedure that produces a measured product has one record, its name, versio
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
 procedure's version. The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 8) records the race's fixed step, the run seed, the reference driver (the
+`superoutride.reference-driving` version 9) records the race's fixed step, the run seed, the reference driver (the
 driver policy `PLANNED_DRIVER` at utilization 0.9, steering by its rule) and the pace schedule's station spacing; its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`

@@ -338,7 +338,6 @@ export function compileDrivingDocument(
       'engineInertiaKilogramSquareMetersPerLitre',
       'clutchLockIdleMargin',
       'clutchCapacityFactor',
-      'suspensionProgression',
       'pitchLimitDegrees',
     ] as const;
     const v = readDocument(

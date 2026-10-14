@@ -45,10 +45,7 @@ steps and never rejects a driving definition.
 | Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
 
 `fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
-latches' thresholds and keep them from chattering; they are edited only in the file. `suspensionProgression` (9.8) is the
-game-wide suspension stiffness at full travel as a multiple of each ride spring rate
-([Vehicle physics](vehicle-physics.md#suspension)); it is also edited only in the file. It must be finite and at
-least 1; each vehicle model admits it through [suspension stability](vehicle-physics.md#suspension-stability).
+latches' thresholds and keep them from chattering; they are edited only in the file.
 `steeringReference` (`center`; `front` or `center`) and `steeringUtilization` (0.95, in `(0, 1]`) are the default
 steering rule, a driver's rule rather than a vehicle value ([Vehicle physics](vehicle-physics.md#actuators-and-steering));
 DEV does not tune them, so they too are edited only in the file.

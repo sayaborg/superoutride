@@ -413,9 +413,9 @@ slash, and further lines have no label. Lines past row 29 are not shown.
 | `MASS`                      | `1625kg`      | `mass`                         |
 | `CG HT`                     | `478mm`       | `desiredCgHeight`              |
 | `YAW I`, `PITCH I`          | `3100kgm2`    | inertias                       |
-| `RIDE`                      | `1.75/1.85Hz` | front/rear ride frequency      |
-| `DAMPING`                   | `0.38/0.40`   | front/rear damping ratio       |
-| `TRAVEL`                    | `290/290mm`   | front/rear `qTravel`           |
+| `RIDE`                      | `1.50/1.50Hz` | front/rear ride frequency      |
+| `DAMPING`                   | `0.40/0.40`   | front/rear damping ratio       |
+| `TRAVEL`                    | `300/300mm`   | front/rear `qTravel`           |
 | `BRAKE`                     | `4800/3000Nm` | front/rear brake torque maxima |
 | `DRAG`                      | `0.44kg/m`    | `quadraticDrag`                |
 

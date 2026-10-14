@@ -93,7 +93,6 @@ export function deriveContactObservation(
   surfaces: SurfaceMapReader,
   body: BodyKinematics,
   station: CompiledContactStation,
-  suspensionProgression: number,
   steerAngle: number,
   previousS: number,
   workspace: ContactWorkspace,
@@ -134,7 +133,7 @@ export function deriveContactObservation(
   const withinReach = supportAvailable && dot3(body.up, surface.normal) > 0 && gap <= 0;
   const q = withinReach ? -gap : 0;
   const qDot = withinReach ? -dot3(reachVelocity, surface.normal) : 0;
-  const normalLoad = withinReach ? Math.max(0, suspensionForce(q, qDot, station.suspension, suspensionProgression)) : 0;
+  const normalLoad = withinReach ? Math.max(0, suspensionForce(q, qDot, station.suspension)) : 0;
   sub3(reachPoint, scale3(surface.normal, gap, a), out.contactPoint);
   out.id = station.id;
   out.station = station;

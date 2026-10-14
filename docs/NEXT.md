@@ -141,12 +141,15 @@ and its three classes ([Series](product.md#5-series)). The OUTRUN, SUPER HANG-ON
 together use every run rule component. The following production and authoring goals
 are collected from the topic specifications; their order within this stage is not yet scheduled.
 
-- TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved
-  at full steering input from the final corner's entry and overturned on its exit, recovering 16 times in 30 laps;
-  with the five-point torque curves (PT-1) its reference run completes without recovery. Bike handling at the limit
-  is reviewed again once bike handling or the AI driving changes. The GSX-R750 joins the class once it is in the
-  catalog. Solid barriers in place of the course limits at the verges; review of the scenery on real devices; signboard
-  walls, which today are sprites standing in a row.
+- TSUKUBA's remaining work: the bike's driving at the limit. At the reference driver's 0.9 utilization VFR750R weaved at
+  full steering input from the final corner's entry and overturned on its exit, recovering 16 times in 30 laps; with the
+  five-point torque curves (PT-1) its reference run completes without recovery. Bike handling at the limit is reviewed
+  again once bike handling or the AI driving changes. Bikes slide 20–55° at the limit (VFR750R 28° on TSUKUBA, up to 55°
+  on OUTRUN TEST); turning in while braking hard unloads the rear tire and saturates it: with Stage DV's steering on
+  RL-1's lines, FXRT SPORT GLIDE's rear load fell to 480–820 N at TSUKUBA's first corner and hairpin, and it and R80 G/S
+  PARIS DAKAR spun there; on RL-2's lines neither spins. The GSX-R750 joins the class once it is in the catalog. Solid
+  barriers in place of the course limits at the verges; review of the scenery on real devices; signboard walls, which
+  today are sprites standing in a row.
 
 ### Course format follow-ups
 

@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "e040753a8c09bbf2ad8d72994a5689c444a469a853b150056506e2e9502d3c95",
-      "seconds": 7302.062,
-      "minimumCurvatureSeconds": 7303.736
+      "vehicleSha256": "dbfebfa7f3d450ccd2b6e2a13670e9c7797c8d04be25b7a73ffabfe535b9b950",
+      "seconds": 7302.969,
+      "minimumCurvatureSeconds": 7304.691
     }
   ],
   "lines": [

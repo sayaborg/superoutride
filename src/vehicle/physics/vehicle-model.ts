@@ -26,8 +26,6 @@ export interface VehicleModel {
   readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly powertrain: Readonly<PowertrainConstants>;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
-  /** Game-wide suspension stiffness at full travel as a multiple of each ride spring rate. */
-  readonly suspensionProgression: number;
 }
 
 /** The admitted vehicle and driving definitions a model is built from. */
@@ -47,7 +45,7 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
   const { compiledVehicle } = input.vehicleDefinition;
   const substep = step / VEHICLE_SUBSTEPS;
   for (const station of [compiledVehicle.frontStation, compiledVehicle.rearStation])
-    assertSuspensionStability(compiledVehicle.id, station, driving.suspensionProgression, substep);
+    assertSuspensionStability(compiledVehicle.id, station, substep);
   return Object.freeze({
     compiledVehicle,
     step,
@@ -57,6 +55,5 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
     tire: driving.tire,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection: driving.torqueProtection,
-    suspensionProgression: driving.suspensionProgression,
   });
 }
