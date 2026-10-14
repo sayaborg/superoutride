@@ -30,7 +30,7 @@ const IDLE_INPUT = Object.freeze({ steering: 0, throttle: false, brake: false })
  */
 export const REFERENCE_RUN = Object.freeze({
   name: 'superoutride.reference-driving',
-  version: 8,
+  version: 7,
   dt: SIM_DT,
   seed: 0,
   driver: REFERENCE_DRIVER,
