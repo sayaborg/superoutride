@@ -8,7 +8,15 @@ import {
   relativePointer,
   type AdmissionResult,
 } from '../core/admission.js';
-import { compileSurfaceSound, type CompiledSurfaceSounds } from './surface-sounds.js';
+import { compileSurfaceSound, type CompiledSurfaceSounds, type SurfaceSound } from './surface-sounds.js';
+
+export const SURFACE_SOUND_DOCUMENT_FORMAT = 'superoutride.surface-sounds';
+export const SURFACE_SOUND_DOCUMENT_VERSION = 1;
+
+/** The `superoutride.surface-sounds` document of surface sounds by material ID: what the DEV export saves. */
+export function surfaceSoundDocument(surfaces: Readonly<Record<string, SurfaceSound>>) {
+  return { format: SURFACE_SOUND_DOCUMENT_FORMAT, version: SURFACE_SOUND_DOCUMENT_VERSION, surfaces };
+}
 
 /**
  * Admit the `superoutride.surface-sounds` version 1 document: one record per material ID. The reader checks format,
@@ -20,7 +28,12 @@ export function compileSurfaceSoundDocument(
   sha256: string,
 ): AdmissionResult<CompiledSurfaceSounds> {
   return admit(path, () => {
-    const v = readDocument(value, ['format', 'version', 'surfaces'], 'superoutride.surface-sounds', 1);
+    const v = readDocument(
+      value,
+      ['format', 'version', 'surfaces'],
+      SURFACE_SOUND_DOCUMENT_FORMAT,
+      SURFACE_SOUND_DOCUMENT_VERSION,
+    );
     const surfaces = readDictionary(v.surfaces, '/surfaces', (entry, at) => {
       const record = readRecord(entry, at, ['rolling', 'friction']);
       const rollingKeys = ['low', 'high', 'textureLengthMeters', 'textureDepth'] as const;

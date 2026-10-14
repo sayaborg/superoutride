@@ -6,7 +6,7 @@ import type { ProcessingReport } from './processing-meter.js';
 import { watchProcessor } from './processor-failure.js';
 import { sameUnifiedSettings } from './tire-unified-acoustics.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
-import type { WallSoundRecords } from './wall-sounds.js';
+import type { WallSound, WallSoundRecords } from './wall-sounds.js';
 
 /** One barrier line rubbing the player: its friction power (W), the speed along the road (m/s) and its wall sound. */
 export interface WallRubObservation {
@@ -17,8 +17,9 @@ export interface WallRubObservation {
 
 /**
  * The walls' scraping voice: one worklet, sounding the rub of the line with the most friction power (one voice).
- * Without a rub its excitation stops and the stored vibration decays, as a released tire's does. Settings changes fade
- * out and replace the kernel after the transition, as the tire voice's do; admitted values are used as given.
+ * Without a rub its excitation stops and the stored vibration decays, as a released tire's does. Settings and wall
+ * record changes fade out and replace the kernel after the transition, as the tire voice's do; admitted values are used
+ * as given.
  */
 export function createScrapeVoice(context: BaseAudioContext, destination: AudioNode, walls: WallSoundRecords) {
   const node = new AudioWorkletNode(context, 'wall-scrape', {
@@ -33,7 +34,8 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
   const requireProcessor = watchProcessor(node, 'scrape sound');
   let settings: ScrapeSettings = DEFAULT_AUDIO_SETTINGS.scrape,
     control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control;
-  let active = { settings, control },
+  let records = walls.walls;
+  let active = { settings, control, records },
     pendingAt: number | null = null,
     disposed = false;
   const parameter = (name: string) => node.parameters.get(name)!;
@@ -44,6 +46,10 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
     setControl(value: ControlSettings): void {
       control = value;
     },
+    /** DEV: the wall records at the same numbers; a new array fades and replaces the kernel. */
+    setWalls(value: readonly WallSound[]): void {
+      records = value;
+    },
     update(rubs: readonly WallRubObservation[]): void {
       if (disposed) return;
       requireProcessor();
@@ -53,7 +59,10 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
       parameter('speed').value = rub?.speed ?? 0;
       parameter('wall').value = rub ? walls.indexOf(rub.sound) : -1;
       const now = context.currentTime;
-      const changed = !sameUnifiedSettings(settings, active.settings) || !sameControlSettings(active.control, control);
+      const changed =
+        !sameUnifiedSettings(settings, active.settings) ||
+        !sameControlSettings(active.control, control) ||
+        records !== active.records;
       if (!changed) {
         if (pendingAt !== null) follow(output.gain, 1, now, control.gainSeconds);
         pendingAt = null;
@@ -61,8 +70,8 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
       }
       pendingAt ??= fadeToSilence(output.gain, now, control.fadeSeconds);
       if (now < pendingAt) return;
-      node.port.postMessage({ settings, control, walls: walls.walls });
-      active = { settings, control };
+      node.port.postMessage({ settings, control, walls: records });
+      active = { settings, control, records };
       pendingAt = null;
       follow(output.gain, 1, now, control.gainSeconds);
     },

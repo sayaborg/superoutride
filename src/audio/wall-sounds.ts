@@ -77,6 +77,16 @@ export interface WallSoundRecords {
   indexOf(sound: string | null): number;
 }
 
+/** The `superoutride.wall-sounds` document of wall sounds by ID and the course limits' record: the DEV export's. */
+export function wallSoundDocument(sounds: Pick<CompiledWallSounds, 'courseLimit' | 'walls'>) {
+  return {
+    format: WALL_SOUND_DOCUMENT_FORMAT,
+    version: WALL_SOUND_DOCUMENT_VERSION,
+    courseLimit: sounds.courseLimit,
+    walls: sounds.walls,
+  };
+}
+
 /** Number the admitted wall sounds for transport. */
 export function wallSoundRecords(sounds: CompiledWallSounds): WallSoundRecords {
   const ids = Object.keys(sounds.walls).sort();

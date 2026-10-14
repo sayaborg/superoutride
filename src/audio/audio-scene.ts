@@ -11,10 +11,10 @@ import type { UnifiedSettings } from './tire-unified-acoustics.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import { createTireVoice } from './tire-voice.js';
 import { createScrapeVoice, type WallRubObservation } from './scrape-voice.js';
-import type { WallSoundRecords } from './wall-sounds.js';
+import type { WallSound, WallSoundRecords } from './wall-sounds.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
 import { createRecordingPlayback, type RecordingPlayback, type PlaybackOptions } from './recording-playback.js';
-import type { TireSurfaceSounds } from './surface-sounds.js';
+import type { SurfaceSound, TireSurfaceSounds } from './surface-sounds.js';
 import type { CompiledEngineSound } from './engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
@@ -195,6 +195,14 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     },
     setRollingSettings(value: RollingSettings): void {
       tires.setRollingSettings(value);
+    },
+    /** DEV: replacement surface records, at the numbers the scene was built with. */
+    setSurfaceSounds(value: readonly SurfaceSound[]): void {
+      tires.setSurfaces(value);
+    },
+    /** DEV: replacement wall records, at the numbers the scene was built with. */
+    setWallSounds(value: readonly WallSound[]): void {
+      scrape.setWalls(value);
     },
     setTireComponents(value: TireComponents): void {
       tires.setComponents(value);

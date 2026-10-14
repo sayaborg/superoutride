@@ -6,25 +6,25 @@ import { sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoust
 import { sameRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { TIRE_COMPONENTS, type TireComponents } from './tire-sound-components.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
-import type { TireSurfaceSounds } from './surface-sounds.js';
+import type { SurfaceSound, TireSurfaceSounds } from './surface-sounds.js';
 import type { ProcessingReport } from './processing-meter.js';
 import { watchProcessor } from './processor-failure.js';
 
 /**
- * One reusable worklet. Only tire sound settings fade/replace generators; engines, context and driving continue.
- * Surface numbers are positions in `materialIds`; the worklet receives the records at the same numbers. Settings and
- * surfaces are admitted ones, used as given.
+ * One reusable worklet. Only tire sound settings and surface records fade/replace generators; engines, context and
+ * driving continue. Surface numbers are positions in `materialIds`; the worklet receives the records at the same
+ * numbers. Settings and surfaces are admitted ones, used as given.
  */
 export function createTireVoice(
   context: BaseAudioContext,
   destination: AudioNode,
-  { materialIds, surfaces }: TireSurfaceSounds,
+  { materialIds, surfaces: initialSurfaces }: TireSurfaceSounds,
 ) {
   const node = new AudioWorkletNode(context, 'vehicle-tires', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: { surfaces },
+    processorOptions: { surfaces: initialSurfaces },
   });
   const output = context.createGain();
   output.gain.value = 0;
@@ -32,14 +32,21 @@ export function createTireVoice(
   let desiredSettings = DEFAULT_AUDIO_SETTINGS.unified;
   let rolling = DEFAULT_AUDIO_SETTINGS.rolling;
   let control = DEFAULT_AUDIO_SETTINGS.control;
-  type Entry = { settings: UnifiedSettings; rolling: RollingSettings; control: ControlSettings };
+  let surfaces = initialSurfaces;
+  type Entry = {
+    settings: UnifiedSettings;
+    rolling: RollingSettings;
+    control: ControlSettings;
+    surfaces: readonly SurfaceSound[];
+  };
   let active: Entry | null = null;
   let pending: (Entry & { at: number }) | null = null;
   const same = (entry: Entry | null): boolean =>
     entry !== null &&
     sameUnifiedSettings(desiredSettings, entry.settings) &&
     sameRollingSettings(rolling, entry.rolling) &&
-    sameControlSettings(entry.control, control);
+    sameControlSettings(entry.control, control) &&
+    entry.surfaces === surfaces;
   let disposed = false;
   const requireProcessor = watchProcessor(node, 'tire sound');
   return {
@@ -51,6 +58,10 @@ export function createTireVoice(
     },
     setControl(value: ControlSettings): void {
       if (!sameControlSettings(control, value)) control = value;
+    },
+    /** DEV: the surface records at the same numbers; a new array fades and replaces the generators. */
+    setSurfaces(value: readonly SurfaceSound[]): void {
+      surfaces = value;
     },
     setComponents(value: TireComponents): void {
       if (disposed) return;
@@ -75,6 +86,7 @@ export function createTireVoice(
             settings: desiredSettings,
             rolling,
             control,
+            surfaces,
             at: fadeToSilence(output.gain, now, control.fadeSeconds),
           };
         }
@@ -82,7 +94,7 @@ export function createTireVoice(
       }
       if (changed) {
         node.port.postMessage({ settings: desiredSettings, rolling, control, surfaces });
-        active = { settings: desiredSettings, rolling, control };
+        active = { settings: desiredSettings, rolling, control, surfaces };
         follow(output.gain, 1, now, control.gainSeconds);
       } else if (pending) follow(output.gain, 1, now, control.gainSeconds);
       pending = null;

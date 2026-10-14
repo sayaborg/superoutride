@@ -42,7 +42,8 @@ float32 parameter carries every integer to 2²⁴) materials; the content
 build applies it before delivery and the game at startup. The voice looks up each observed material's number in
 the catalog order; the worklet receives the records at construction and in every settings message
 (`{ settings, rolling, control, surfaces }`), uses them as given ([admitted once](audio.md#audio-document)) and
-replaces its kernels when they change, and the kernels read them by number.
+replaces its kernels when they change, and the kernels read them by number. DEV's SURFACES panel
+([Browser](browser.md#sound-controls)) changes the records at the same numbers, each through the one value check.
 
 ## Wall sounds
 
@@ -56,6 +57,8 @@ path ([Architecture](architecture.md)). `courseLimit` names the record every cou
 name a record (`unresolved_reference`). At most `WALL_SOUND_LIMIT` (256, the scraping worklet's `wall` transport
 range, an author value as for surfaces) records are admitted (`resource_limit`), so every record keeps its number in transport. [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
 content build admits each course's solid walls against it ([Content and gameplay](content-and-gameplay.md#walls)).
+DEV's WALLS panel changes the records at the same numbers, each through the one value check; the scraping worklet
+receives them in its settings message and replaces its kernel, as for surfaces.
 
 ## Rolling synthesis
 

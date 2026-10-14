@@ -25,7 +25,6 @@ import { createSelectionFlow } from './selection-flow.js';
 import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
-import { resolveSurfaceSoundRecords } from '../audio/surface-sounds.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
@@ -34,7 +33,6 @@ import { loadCourseIndex } from '../content/course-index.js';
 import { createTextLayer, TEXT_COLUMNS } from '../view/text-layer.js';
 import { loadMusic } from '../content/recording-catalog.js';
 import { loadWallSounds } from '../content/wall-sound-catalog.js';
-import { wallSoundRecords } from '../audio/wall-sounds.js';
 import { playTrack } from './run-music.js';
 import { createWorkSlices } from '../core/work-slices.js';
 
@@ -78,10 +76,6 @@ async function startPage(): Promise<void> {
     const content = await browserContent();
     const materials = await loadSurfaceMaterials(content);
     const materialIds = materials.source.materials.map((material) => material.id);
-    const surfaceSounds = {
-      materialIds,
-      surfaces: resolveSurfaceSoundRecords(await loadSurfaceSounds(content), materialIds),
-    };
     const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
@@ -107,8 +101,7 @@ async function startPage(): Promise<void> {
     let run: Run | null = null;
     const shell = createBrowserDrivingShell(
       vehicles,
-      surfaceSounds,
-      wallSoundRecords(await loadWallSounds(content)),
+      { materialIds, surfaces: await loadSurfaceSounds(content), walls: await loadWallSounds(content) },
       await loadAudioSettings(content),
       player,
       (id) => content.bytes('recording', id),

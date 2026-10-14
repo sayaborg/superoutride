@@ -307,8 +307,9 @@ width is kept inside the noise band's numerical domain.
 | `outputHz`            | Rolling output low-pass cutoff        | 900 Hz  | 225–3600 Hz / 25     |
 | `dcHz`                | Rolling output DC removal             | 18 Hz   | 5–60 Hz / 1          |
 
-The [surface-sound document](../content/surface-sounds/default.json) holds these values. Friction roughness and
-susceptibility are the [friction input](tire-audio.md#work-and-slip-mapping)'s fractions in [0, 1].
+The [surface-sound document](../content/surface-sounds/default.json) holds these values, which DEV's SURFACES panel
+changes ([Browser](browser.md#sound-controls)). Friction roughness and susceptibility are the
+[friction input](tire-audio.md#work-and-slip-mapping)'s fractions in [0, 1].
 
 | Surface     | Rolling low | Rolling high | Texture length | Texture depth | Friction roughness | Friction susceptibility |
 | ----------- | ----------- | ------------ | -------------- | ------------- | ------------------ | ----------------------- |
@@ -323,10 +324,11 @@ WET_ASPHALT's surface sound is ASPHALT's with two physical changes: a water film
 about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, _Tyre/Road Noise Reference Book_, 2002), taken
 as 6 dB on the high band (0.18 × 2); and its friction susceptibility, the tendency of sliding to excite the tire,
 scales with the friction it lubricates away, by the wet-road friction ratio 0.7 ([Surface materials](#surface-materials)).
-The texture, a property of the asphalt under the water, is unchanged.
+The texture, a property of the asphalt under the water, is unchanged. The document keeps this derivation; a DEV change
+to either surface does not carry over to the other.
 
 The [wall-sound document](../content/wall-sounds/default.json) holds the walls' friction inputs. They are the
-implementer's values, not chosen by listening. Course limits use `limit`.
+implementer's values, not chosen by listening, and DEV's WALLS panel changes them. Course limits use `limit`.
 
 | Wall sound  | Meant for            | Friction roughness | Friction susceptibility |
 | ----------- | -------------------- | ------------------ | ----------------------- |
