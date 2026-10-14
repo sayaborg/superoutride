@@ -53,17 +53,14 @@ interface SettingRange {
   readonly min: number;
   readonly max: number;
   readonly step: number;
-  readonly uiMin?: number;
-  readonly uiMax?: number;
-  readonly exclusiveMin?: boolean;
 }
-// One numeric authority. Optional UI limits deliberately narrow the kernel's accepted domain.
+// One numeric authority: each range is both the accepted domain and the DEV control's.
 export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, SettingRange>> = Object.freeze({
-  closedExcitation: Object.freeze({ min: 0, max: 1, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
+  // Excitation divides the rise time, so its least value is one control step, never zero.
+  closedExcitation: Object.freeze({ min: 0.01, max: 1, step: 0.01 }),
   outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
-  // Excitation divides the rise time, so zero is excluded like closedExcitation.
-  pumpingExcitation: Object.freeze({ min: 0, max: 0.5, step: 0.01, exclusiveMin: true, uiMin: 0.01 }),
+  pumpingExcitation: Object.freeze({ min: 0.01, max: 0.5, step: 0.01 }),
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
   pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
@@ -82,12 +79,7 @@ export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {})
   for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {
     const value = overrides[key] === undefined ? settings[key] : overrides[key];
     const range = EXHAUST_SETTING_RANGES[key];
-    if (
-      !Number.isFinite(value) ||
-      value < range.min ||
-      value > range.max ||
-      (range.exclusiveMin && value === range.min)
-    )
+    if (!Number.isFinite(value) || value < range.min || value > range.max)
       throw new RangeError(`invalid exhaust settings: ${key}`);
     settings[key] = value;
   }

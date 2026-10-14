@@ -214,8 +214,8 @@ supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute ti
 | `dcHz`                     | Output DC-removal corner                     | 18 Hz   | 5–60 Hz / 1        |
 | `clipCeiling`              | Soft-clip bound and small-signal gain        | 0.65    | 0.2–1 / 0.01       |
 
-Kernel domains equal these UI ranges except `closedExcitation` accepts `(0,1]` and `pumpingExcitation`
-accepts `(0,0.5]`.
+These ranges are the accepted domains: an engine-sound document or DEV value outside them is refused. The excitations'
+least value is one step, 0.01, since excitation divides the pulse rise time.
 
 ## UNIFIED tire settings
 

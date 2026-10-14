@@ -121,8 +121,8 @@ export function mountEngineSoundSettings(
     const control = createNumberStepper(
       {
         label: title,
-        min: range.uiMin ?? range.min,
-        max: range.uiMax ?? range.max,
+        min: range.min,
+        max: range.max,
         step: range.step,
         value: settings[key],
         format: (value) =>
