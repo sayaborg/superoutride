@@ -214,7 +214,8 @@ at any other path is refused. A file equal to the build's own is no change. Undo
 Ctrl+Shift+Z or Ctrl+Y outside text fields) move through the history, which the workbench keeps: at most 200 steps and
 128 MiB of distinct file versions, the oldest steps going first. The Changes module lists every changed, added and
 deleted path with its difference from the build, each with a revert; it also sets a file's bytes from a file on disk
-and deletes a file by path.
+and deletes a file by path. Edits, undo, redo, reverts, opening an archive and saving run in one order, each after
+those asked for before it, so an archive holds every edit made before it was saved.
 
 The workbench keeps nothing in the browser. **Save archive** downloads one stored (uncompressed) zip: each changed or
 added file at its `content/` path, and `workbench-changes.json` (`superoutride.workbench-changes` version 1: the

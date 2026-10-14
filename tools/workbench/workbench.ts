@@ -113,16 +113,22 @@ function start(index: AuthoredIndex, published: ContentStore) {
     compile();
   };
 
-  // One edit: a new state of the changes. A file equal to the build's own is no change. Edits apply in order.
+  // The one order of the history: every edit, undo, redo, revert, archive opening and save runs after the ones asked for
+  // before it, so a save holds every edit committed before it was asked for.
+  let queue = Promise.resolve();
+  const inOrder = (work: () => void | Promise<void>) => {
+    // A failed step is reported and the steps after it still run.
+    queue = queue.then(work).catch((error: unknown) => console.error('Workbench step failed', error));
+  };
+  // One edit: a new state of the changes. A file equal to the build's own is no change.
   // A path that is not under content/ (CONTENT_PATH) is refused before it reaches the history.
-  let edits = Promise.resolve();
   const edit = (files: readonly (readonly [string, Uint8Array<ArrayBuffer> | null])[], label: string) => {
     const outside = files.find(([path]) => !CONTENT_PATH.pattern.test(path));
     if (outside) {
       alert(`Not a path under content/: ${outside[0]}`);
       return;
     }
-    edits = edits.then(async () => {
+    inOrder(async () => {
       const next = new Map(history.changes);
       for (const [path, bytes] of files) {
         const original = index.files.find((file) => file.path === path);
@@ -166,10 +172,12 @@ function start(index: AuthoredIndex, published: ContentStore) {
       moved();
     },
     revert(path: string) {
-      const next = new Map(history.changes);
-      next.delete(path);
-      history.push(next, `Revert ${path}`);
-      moved();
+      inOrder(() => {
+        const next = new Map(history.changes);
+        next.delete(path);
+        history.push(next, `Revert ${path}`);
+        moved();
+      });
     },
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -190,16 +198,18 @@ function start(index: AuthoredIndex, published: ContentStore) {
   });
 
   // Undo and redo move through the history; each position compiles again.
-  const undo = () => {
-    if (!history.canUndo) return;
-    history.undo();
-    moved();
-  };
-  const redo = () => {
-    if (!history.canRedo) return;
-    history.redo();
-    moved();
-  };
+  const undo = () =>
+    inOrder(() => {
+      if (!history.canUndo) return;
+      history.undo();
+      moved();
+    });
+  const redo = () =>
+    inOrder(() => {
+      if (!history.canRedo) return;
+      history.redo();
+      moved();
+    });
   element('undo').addEventListener('click', undo);
   element('redo').addEventListener('click', redo);
   document.addEventListener('keydown', (event) => {
@@ -213,7 +223,8 @@ function start(index: AuthoredIndex, published: ContentStore) {
   });
 
   // Saving downloads one archive of the changes; nothing is kept in the browser.
-  element('save').addEventListener('click', () => {
+  element('save').addEventListener('click', () => inOrder(save));
+  function save() {
     const changes: ArchivedChange[] = [...history.changes].map(([path, bytes]) => ({
       path,
       base: index.files.find((file) => file.path === path)?.sha256 ?? null,
@@ -227,12 +238,14 @@ function start(index: AuthoredIndex, published: ContentStore) {
     URL.revokeObjectURL(link.href);
     saved = history.changes;
     notify();
-  });
-  element<HTMLInputElement>('open-archive').addEventListener('change', async (event) => {
+  }
+  element<HTMLInputElement>('open-archive').addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (file) inOrder(() => openArchive(file));
+  });
+  async function openArchive(file: File) {
     const result = readChangeArchive(new Uint8Array(await file.arrayBuffer()));
     if (!result.ok) {
       alert(`The archive cannot be opened: ${result.diagnostics[0]!.message}`);
@@ -245,7 +258,7 @@ function start(index: AuthoredIndex, published: ContentStore) {
     history.push(new Map(chosen.map((change) => [change.path, change.bytes])), `Open ${file.name}`);
     saved = history.changes;
     moved();
-  });
+  }
   addEventListener('beforeunload', (event) => {
     if (history.changes === saved || !history.changes.size) return;
     event.preventDefault();
