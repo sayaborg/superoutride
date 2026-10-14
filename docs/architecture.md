@@ -468,15 +468,12 @@ pieces and passes them through the shared material/color slab resolver described
 adjacent equal colors; transparent upper Strips erase lower colors before filtering. The active count
 includes hidden declarations, not just the visible resolved spans.
 
-The course compiler averages resolved colors over dyadic s cells starting at one metre, in two phases per level.
-The aligned phase of level `n` has `ceil(L/2^n)` cells `[i*2^n, (i+1)*2^n)` for Section length `L`; its last cell
-ends at `L` and is averaged over its actual length. The top level has one aligned cell spanning the Section. The
-half-shifted phase has cells `[i*2^n - 2^(n-1), (i+1)*2^n - 2^(n-1))` clipped to `[0, L]`: its first cell is
-`[0, 2^(n-1))` and its last ends at `L`, each averaged over its actual length. Both phases count toward the
-`preblendCells` and `coefficientBytes` ceilings. Level 0's cells integrate the resolved slabs; every coarser cell
-averages the aligned cells of the level below that it covers (the aligned cell of level `n` the two of level `n-1`
-below it, the half-shifted cell the two its half-cell offset straddles), weighted by their actual lengths, which
-equals integrating its slabs directly. Contributions to one lateral position that cancel to within 1e-9 of their summed
+The course compiler averages resolved colors over dyadic s cells starting at one metre, one phase per level: level `n`
+has `ceil(L/2^n)` cells `[i*2^n, (i+1)*2^n)` for Section length `L`, its last cell ending at `L` and averaged over its
+actual length. The top level has one cell spanning the Section. These cells, and the coefficient bytes of their
+distinct fields, count toward the `preblendCells` and `coefficientBytes` ceilings. Level 0's cells integrate the
+resolved slabs; every coarser cell averages the two cells of the level below that it covers, weighted by their actual
+lengths, which equals integrating its slabs directly. Contributions to one lateral position that cancel to within 1e-9 of their summed
 magnitudes, such as the two halves of a moving edge's ramp meeting where two slabs or cells meet, are zero, and a
 position where every channel is zero carries no node.
 Lateral fields store premultiplied linear-sRGB channels and coverage as piecewise-linear
@@ -494,7 +491,7 @@ A row uses the terrain projection's representative s and effective depth footpri
 A projected `[-1,+1]` metre ruler supplies the affine screen-to-l map; it does not clip ground.
 The ground and every wall have one read, LEVEL-POINT, not independently configurable s/l kernels. Longitudinally, with
 `rho = deltaS / 1 m` and the [shared image selector](#shared-image-level-selection), a row reads one cached dyadic
-cell, the aligned cell containing s at the selected level, without cell/level interpolation or mixing neighboring
+cell, the cell containing s at the selected level, without cell/level interpolation or mixing neighboring
 occurrences; a row whose footprint is under one metre (`rho < 1`) reads the instantaneous resolved Strips at s instead,
 which follows the ordered resolved slab without preblending or sorting. Laterally it reads the field's value at each
 pixel centre x. It uses the source owning s and its lateral origin; a seam belongs to its successor.

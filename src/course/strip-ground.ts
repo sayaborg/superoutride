@@ -83,16 +83,11 @@ interface PackedFields {
   readonly counts: Uint32Array;
   readonly data: Float64Array;
 }
-/** One phase of a level's cells: cell `i` spans `[i*step - offset, (i+1)*step - offset)`, clipped to `[0, length]`. */
-interface LevelPhase {
-  readonly offset: number;
-  readonly indices: Uint32Array;
-  readonly active: Uint8Array;
-}
-/** A level's aligned cells (offset 0) and its cells shifted by half a cell (offset `step/2`). */
+/** A level's cells: cell `i` spans `[i*step, (i+1)*step)`, the last clipped to `length`; each names its field. */
 interface Level {
   readonly step: number;
-  readonly phases: readonly [LevelPhase, LevelPhase];
+  readonly indices: Uint32Array;
+  readonly active: Uint8Array;
 }
 /**
  * A lateral field while compiling: its base and its events in ascending x, each `x`, then the jumps of the premultiplied
@@ -368,19 +363,14 @@ export interface StripGroundCellReader {
    * first span's color as the base, then one node at each later span's left edge with that span's color and no slope.
    */
   readInstant(s: number, target: StripCellTarget): void;
-  /** The aligned cell of `level` containing `s`. */
+  /** The cell of `level` containing `s`. */
   read(level: number, s: number, target: StripCellTarget): void;
-  /**
-   * The cell of `level` whose center is nearest `s`, among its aligned and half-shifted cells; at an equal distance,
-   * the aligned cell.
-   */
-  readCentered(level: number, s: number, target: StripCellTarget): void;
 }
 
 /**
- * The dyadic levels and their distinct fields. Level 0's cells integrate the slabs; each coarser cell averages the
- * aligned cells of the level below that it spans (the aligned phase's two, the half-shifted phase's the two its offset
- * of one finer cell straddles), weighted by their actual extents, which equals integrating its slabs directly.
+ * The dyadic levels and their distinct fields. Level 0's cells integrate the slabs; each coarser cell averages the two
+ * cells of the level below that it spans, weighted by their actual extents, which equals integrating its slabs
+ * directly.
  */
 async function compileLevels(
   length: number,
@@ -394,19 +384,17 @@ async function compileLevels(
   let cells = 0,
     coefficientBytes = 0,
     directoryBytes = 0;
-  const extent = (step: number, offset: number, i: number) =>
-    Math.min(length, (i + 1) * step - offset) - Math.max(0, i * step - offset);
-  // Each phase's cells average over their actual extent; equal lateral fields share storage across phases and levels.
-  const phase = async (
+  const extent = (step: number, i: number) => Math.min(length, (i + 1) * step) - i * step;
+  // Each level's cells average over their actual extent; equal lateral fields share storage across levels.
+  const level = async (
     step: number,
-    offset: number,
     build: (
       start: number,
       end: number,
       i: number,
     ) => { index: number; active: number } | (FieldDraft & { active: number }),
-  ): Promise<LevelPhase> => {
-    const count = Math.ceil((length + offset) / step);
+  ): Promise<Level> => {
+    const count = Math.ceil(length / step);
     cells += count;
     budget.spend('preblendCells', count, path, "The Section's Strip preblend cells");
     const indices = new Uint32Array(count),
@@ -414,7 +402,7 @@ async function compileLevels(
     directoryBytes += indices.byteLength + active.byteLength;
     for (let i = 0; i < count; i++) {
       if (slices.due()) await slices.pause();
-      const built = build(Math.max(0, i * step - offset), Math.min(length, (i + 1) * step - offset), i);
+      const built = build(i * step, Math.min(length, (i + 1) * step), i);
       let index: number;
       if ('index' in built) index = built.index;
       else {
@@ -429,7 +417,7 @@ async function compileLevels(
       indices[i] = index;
       active[i] = built.active;
     }
-    return { offset, indices, active };
+    return { step, indices, active };
   };
   let slab = 0;
   const scratch = { records: new Float64Array(64 * ACCUMULATED) };
@@ -438,17 +426,17 @@ async function compileLevels(
     const { field, active } = lateralFieldFor(slabs, slab, start, end, scratch);
     return { ...field, active };
   };
-  // The cell of the finer aligned phase `below` spanning cells `i` and `i + 1` there, the second absent past its end.
-  const averaged = (below: LevelPhase, step: number, i: number) => {
-    const first = i >= 0 ? i : i + 1,
-      second = i + 1 < below.indices.length && i >= 0 ? i + 1 : null;
+  // The cell spanning cells `i` and `i + 1` of the finer level `below`, the second absent past its end.
+  const averaged = (below: Level, i: number) => {
+    const first = i,
+      second = i + 1 < below.indices.length ? i + 1 : null;
     if (second === null || below.indices[first] === below.indices[second])
       return {
         index: below.indices[first]!,
         active: second === null ? below.active[first]! : Math.max(below.active[first]!, below.active[second]!),
       };
-    const wa = extent(step, 0, first),
-      wb = extent(step, 0, second),
+    const wa = extent(below.step, first),
+      wb = extent(below.step, second),
       total = wa + wb;
     const field = averageFields(
       fields[below.indices[first]!]!,
@@ -459,20 +447,10 @@ async function compileLevels(
     return { ...field, active: Math.max(below.active[first]!, below.active[second]!) };
   };
   for (let step = STRIP_BASE_STEP; ; step *= 2) {
-    let aligned: LevelPhase, shifted: LevelPhase;
-    if (step === STRIP_BASE_STEP) {
-      slab = 0;
-      aligned = await phase(step, 0, integrated);
-      slab = 0;
-      shifted = await phase(step, step / 2, integrated);
-    } else {
-      const below = levels.at(-1)!.phases[0],
-        half = step / 2;
-      aligned = await phase(step, 0, (_start, _end, i) => averaged(below, half, 2 * i));
-      shifted = await phase(step, step / 2, (_start, _end, i) => averaged(below, half, 2 * i - 1));
-    }
-    levels.push({ step, phases: [aligned, shifted] });
-    if (aligned.indices.length === 1) break;
+    const below = levels.at(-1);
+    const built = await level(step, below ? (_start, _end, i) => averaged(below, 2 * i) : integrated);
+    levels.push(built);
+    if (built.indices.length === 1) break;
   }
   const offsets = new Uint32Array(fields.length),
     counts = new Uint32Array(fields.length);
@@ -537,13 +515,9 @@ export async function compileStripGround(
   const reserve = (target: StripCellTarget, count: number) => {
     if (target.data.length < count * EVENT) target.data = new Float64Array(2 ** Math.ceil(Math.log2(count * EVENT)));
   };
-  // A phase's cell containing s (the final closed endpoint uses the last cell), and the center of its clipped extent.
-  // Both return numbers so reading a cell allocates nothing.
-  const cellAt = (step: number, input: LevelPhase, s: number) =>
-    Math.min(input.indices.length - 1, Math.floor((s + input.offset) / step));
-  const cellCenter = (step: number, input: LevelPhase, cell: number) =>
-    (Math.max(0, cell * step - input.offset) + Math.min(length, (cell + 1) * step - input.offset)) / 2;
-  const copy = (input: LevelPhase, cell: number, target: StripCellTarget) => {
+  // A level's cell containing s (the final closed endpoint uses the last cell), as a number so reading allocates nothing.
+  const cellAt = (input: Level, s: number) => Math.min(input.indices.length - 1, Math.floor(s / input.step));
+  const copy = (input: Level, cell: number, target: StripCellTarget) => {
     const field = input.indices[cell]!,
       { data } = lateralFields,
       at = lateralFields.offsets[field]!,
@@ -577,17 +551,8 @@ export async function compileStripGround(
       }
     },
     read(level: number, s: number, target: StripCellTarget) {
-      const { step, phases } = levels[level]!;
-      copy(phases[0], cellAt(step, phases[0], s), target);
-    },
-    readCentered(level: number, s: number, target: StripCellTarget) {
-      const { step, phases } = levels[level]!;
-      const aligned = cellAt(step, phases[0], s),
-        shifted = cellAt(step, phases[1], s);
-      const nearer =
-        Math.abs(cellCenter(step, phases[1], shifted) - s) < Math.abs(cellCenter(step, phases[0], aligned) - s);
-      if (nearer) copy(phases[1], shifted, target);
-      else copy(phases[0], aligned, target);
+      const input = levels[level]!;
+      copy(input, cellAt(input, s), target);
     },
   });
   return Object.freeze({ length, coverage, metrics, reader });

@@ -682,7 +682,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 48, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 49, incorporating Link recipe v4, physical
 recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 
