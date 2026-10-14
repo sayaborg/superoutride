@@ -1,3 +1,5 @@
+import { DefinitionDomainError } from '../core/admission.js';
+
 /** Firing facts and authored acoustic approximations; amplitudes are not pressure in Pa. */
 export interface EngineSoundDefinition {
   readonly cycleRevolutions: 1 | 2;
@@ -71,30 +73,32 @@ function validPipes(banks: readonly number[], pipes: readonly ExhaustPipe[]): bo
   return reaches.size === count;
 }
 
+/**
+ * The one value check of an engine sound. Each rule refuses at the field it reads (`firingPhases/2`,
+ * `exhaust/lengths/0`); the exhaust's topology, a rule over its banks and pipes together, refuses at `exhaust`.
+ */
 export function compileEngineSound(definition: EngineSoundDefinition): EngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
-  if (
-    (cycleRevolutions !== 1 && cycleRevolutions !== 2) ||
-    !Array.isArray(firingPhases) ||
-    firingPhases.length === 0 ||
-    firingPhases.length > 16 ||
-    firingPhases.some(
-      (phase, i) => !Number.isFinite(phase) || phase < 0 || phase >= 1 || (i > 0 && phase <= firingPhases[i - 1]!),
-    )
-  )
-    throw new RangeError('invalid engine sound firing phases');
+  if (cycleRevolutions !== 1 && cycleRevolutions !== 2)
+    throw new DefinitionDomainError('cycleRevolutions', 'cycleRevolutions must be 1 or 2');
+  if (!Array.isArray(firingPhases) || firingPhases.length === 0 || firingPhases.length > 16)
+    throw new DefinitionDomainError('firingPhases', 'Expected 1 to 16 firing phases');
+  firingPhases.forEach((phase, i) => {
+    if (!Number.isFinite(phase) || phase < 0 || phase >= 1 || (i > 0 && phase <= firingPhases[i - 1]!))
+      throw new DefinitionDomainError(`firingPhases/${i}`, 'A firing phase lies in [0, 1), after the one before');
+  });
+  if (!exhaust || !Array.isArray(exhaust.banks) || !Array.isArray(exhaust.lengths) || !Array.isArray(exhaust.pipes))
+    throw new DefinitionDomainError('exhaust', 'invalid exhaust topology');
+  if (exhaust.banks.length !== firingPhases.length)
+    throw new DefinitionDomainError('exhaust/banks', 'Expected one bank per firing phase');
+  if (exhaust.lengths.length !== firingPhases.length)
+    throw new DefinitionDomainError('exhaust/lengths', 'Expected one main pipe length per firing phase');
   // Resource limits bound delay storage; these are not claims about real exhaust geometry.
-  if (
-    !exhaust ||
-    !Array.isArray(exhaust.banks) ||
-    !Array.isArray(exhaust.lengths) ||
-    !Array.isArray(exhaust.pipes) ||
-    exhaust.banks.length !== firingPhases.length ||
-    exhaust.lengths.length !== firingPhases.length ||
-    exhaust.lengths.some((length) => !Number.isFinite(length) || length < 0.1 || length > 3) ||
-    !validPipes(exhaust.banks, exhaust.pipes)
-  )
-    throw new RangeError('invalid exhaust topology');
+  exhaust.lengths.forEach((length, i) => {
+    if (!Number.isFinite(length) || length < 0.1 || length > 3)
+      throw new DefinitionDomainError(`exhaust/lengths/${i}`, 'A main pipe length lies within [0.1, 3] m');
+  });
+  if (!validPipes(exhaust.banks, exhaust.pipes)) throw new DefinitionDomainError('exhaust', 'invalid exhaust topology');
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),

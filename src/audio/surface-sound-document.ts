@@ -1,10 +1,11 @@
 import {
-  AdmissionError,
   admit,
+  admitDomain,
   readDictionary,
   readDocument,
   readNumber,
   readRecord,
+  relativePointer,
   type AdmissionResult,
 } from '../core/admission.js';
 import { compileSurfaceSound, type CompiledSurfaceSounds } from './surface-sounds.js';
@@ -31,15 +32,14 @@ export function compileSurfaceSoundDocument(
           number
         >;
       };
-      try {
-        return compileSurfaceSound({
-          rolling: numbers(record.rolling, `${at}/rolling`, rollingKeys),
-          friction: numbers(record.friction, `${at}/friction`, frictionKeys),
-        });
-      } catch (error) {
-        if (!(error instanceof RangeError)) throw error;
-        throw new AdmissionError('invalid_value', at, error.message);
-      }
+      const sound = {
+        rolling: numbers(record.rolling, `${at}/rolling`, rollingKeys),
+        friction: numbers(record.friction, `${at}/friction`, frictionKeys),
+      };
+      return admitDomain(
+        () => compileSurfaceSound(sound),
+        (path) => relativePointer(path, at),
+      );
     });
     return Object.freeze({ surfaces, sha256 });
   });

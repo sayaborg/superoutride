@@ -1,11 +1,13 @@
 import {
   AdmissionError,
   admit,
+  admitDomain,
   readDictionary,
   readDocument,
   readNumber,
   readRecord,
   readString,
+  relativePointer,
   type AdmissionResult,
 } from '../core/admission.js';
 import { compileFrictionInput, type FrictionInput } from './surface-sounds.js';
@@ -48,17 +50,16 @@ export function compileWallSoundDocument(
         'roughness',
         'susceptibility',
       ]);
-      try {
-        return Object.freeze({
-          friction: compileFrictionInput({
-            roughness: readNumber(friction.roughness, `${at}/friction/roughness`),
-            susceptibility: readNumber(friction.susceptibility, `${at}/friction/susceptibility`),
-          }),
-        });
-      } catch (error) {
-        if (!(error instanceof RangeError)) throw error;
-        throw new AdmissionError('invalid_value', `${at}/friction`, error.message);
-      }
+      const input = {
+        roughness: readNumber(friction.roughness, `${at}/friction/roughness`),
+        susceptibility: readNumber(friction.susceptibility, `${at}/friction/susceptibility`),
+      };
+      return Object.freeze({
+        friction: admitDomain(
+          () => compileFrictionInput(input),
+          (path) => relativePointer(path, `${at}/friction`),
+        ),
+      });
     });
     if (Object.keys(walls).length > WALL_SOUND_LIMIT)
       throw new AdmissionError('resource_limit', '/walls', `At most ${WALL_SOUND_LIMIT} wall sounds are admitted`);

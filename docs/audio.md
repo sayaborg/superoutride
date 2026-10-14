@@ -36,7 +36,9 @@ manifest ID; the documents carry none. The fields are `format`, `version`, `cycl
 `exhaust` (`banks`, `lengths`, `pipes` of `{length, from, to}` with `to: null` for an open end) and `metadata`
 (authoring notes such as the collector `topology`; not read). The audio layer compiles a document:
 [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
-with the admission toolkit and leaves value validation to `compileEngineSound`; the `CompiledEngineSound` adds
+with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
+diagnostic at the field the rule reads (`/exhaust/lengths/0`), or at `/exhaust` for the exhaust's topology, a rule over
+its banks and pipes together; the `CompiledEngineSound` adds
 the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the

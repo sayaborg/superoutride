@@ -1,3 +1,4 @@
+import { DefinitionDomainError, withDefinitionPath } from '../core/admission.js';
 import { ROLLING_SETTING_RANGES } from './tire-rolling-acoustics.js';
 
 /**
@@ -17,14 +18,16 @@ export type SurfaceSound = Readonly<{
 }>;
 
 /**
- * The one value check of a friction input, for surfaces and walls alike: both numbers within [0, 1]. Returns a
- * detached frozen record.
+ * The one value check of a friction input, for surfaces and walls alike: both numbers within [0, 1], each refused
+ * at its own field. Returns a detached frozen record.
  */
-export function compileFrictionInput({ roughness, susceptibility }: FrictionInput): FrictionInput {
-  for (const value of [roughness, susceptibility])
+export function compileFrictionInput(input: FrictionInput): FrictionInput {
+  for (const key of ['roughness', 'susceptibility'] as const) {
+    const value = input[key];
     if (typeof value !== 'number' || !(value >= 0 && value <= 1))
-      throw new RangeError('invalid friction input: roughness and susceptibility must be within [0, 1]');
-  return Object.freeze({ roughness, susceptibility });
+      throw new DefinitionDomainError(key, `${key} must be within [0, 1]`);
+  }
+  return Object.freeze({ roughness: input.roughness, susceptibility: input.susceptibility });
 }
 
 /**
@@ -43,20 +46,29 @@ export const SURFACE_SOUND_LIMIT = 256;
 
 /**
  * The one value check of a surface sound: every number finite and at least 0, `textureLengthMeters` above 0,
- * `low`, `high` and `textureDepth` within `ROLLING_PALETTE_LIMITS` and the friction input within [0, 1]. Returns a
- * detached frozen record.
+ * `low`, `high` and `textureDepth` within `ROLLING_PALETTE_LIMITS` and the friction input within [0, 1], each refused
+ * at its own field (`rolling/low`, `friction/roughness`). Returns a detached frozen record.
  */
 export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
   const { rolling } = record;
-  const values = [rolling.low, rolling.high, rolling.textureLengthMeters, rolling.textureDepth];
-  if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0))
-    throw new RangeError('invalid surface sound: values must be finite and nonnegative');
-  if (rolling.textureLengthMeters <= 0) throw new RangeError('invalid surface sound: textureLengthMeters');
-  if (rolling.low > ROLLING_PALETTE_LIMITS.level || rolling.high > ROLLING_PALETTE_LIMITS.level)
-    throw new RangeError(`invalid surface sound: low and high must be at most ${ROLLING_PALETTE_LIMITS.level}`);
-  if (rolling.textureDepth > ROLLING_PALETTE_LIMITS.textureDepth)
-    throw new RangeError(`invalid surface sound: textureDepth must be at most ${ROLLING_PALETTE_LIMITS.textureDepth}`);
-  const friction = compileFrictionInput(record.friction);
+  const most = {
+    low: ROLLING_PALETTE_LIMITS.level,
+    high: ROLLING_PALETTE_LIMITS.level,
+    textureLengthMeters: Infinity,
+    textureDepth: ROLLING_PALETTE_LIMITS.textureDepth,
+  };
+  for (const key of ['low', 'high', 'textureLengthMeters', 'textureDepth'] as const) {
+    const value = rolling[key];
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+      throw new DefinitionDomainError(`rolling/${key}`, `${key} must be finite and nonnegative`);
+    if (value > most[key]) throw new DefinitionDomainError(`rolling/${key}`, `${key} must be at most ${most[key]}`);
+  }
+  if (rolling.textureLengthMeters <= 0)
+    throw new DefinitionDomainError('rolling/textureLengthMeters', 'textureLengthMeters must be above 0');
+  const friction = withDefinitionPath(
+    () => compileFrictionInput(record.friction),
+    (path) => `friction/${path}`,
+  );
   return Object.freeze({
     rolling: Object.freeze({
       low: rolling.low,

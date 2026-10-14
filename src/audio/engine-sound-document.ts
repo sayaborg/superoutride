@@ -1,6 +1,6 @@
 import {
-  AdmissionError,
   admit,
+  admitDomain,
   readArray,
   readDocument,
   readNumber,
@@ -48,13 +48,7 @@ export function compileEngineSoundDocument(
         pipes,
       },
     };
-    let sound;
-    try {
-      sound = compileEngineSound(definition);
-    } catch (error) {
-      if (!(error instanceof RangeError)) throw error;
-      throw new AdmissionError('invalid_value', '', error.message);
-    }
+    const sound = admitDomain(() => compileEngineSound(definition));
     return Object.freeze({ ...sound, id, sha256 });
   });
 }
