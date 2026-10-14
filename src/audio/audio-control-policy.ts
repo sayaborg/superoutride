@@ -12,11 +12,11 @@ export interface ControlSettings {
   readonly mixSeconds: number;
   /** Rival pan. */
   readonly panSeconds: number;
-  /** Fade-out before replacement and on silence. */
+  /** The silence fade: a linear fade to silence, before replacement, rest and stopping, which happen once it is silent. */
   readonly fadeSeconds: number;
   /** R/Q output switching inside the tire kernel. */
   readonly componentSeconds: number;
-  /** Time given to a fade before a discontinuity (kernel replacement, context suspension). */
+  /** Time woken kernels follow the current observations, after the live gate is silent, before it opens. */
   readonly transitionSeconds: number;
   /** The run's track fades out over this time at GOAL and GAME OVER. */
   readonly musicFadeSeconds: number;

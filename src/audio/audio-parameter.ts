@@ -21,6 +21,18 @@ export function hold(param: AudioParam, now: number): void {
   held(now);
 }
 
+/**
+ * Fade `param` linearly from its value now to silence, reached at the returned time, `now + seconds`: the one fade after
+ * which a source stops, a kernel is replaced or a worklet rests, so each happens in silence.
+ */
+export function fadeToSilence(param: AudioParam, now: number, seconds: number): number {
+  hold(param, now);
+  // A linear ramp runs from the previous event: anchor it at the value held now.
+  param.setValueAtTime(param.value, now);
+  param.linearRampToValueAtTime(0, now + seconds);
+  return now + seconds;
+}
+
 /** Retarget at currentTime while bounding scheduled events and preserving the current value. */
 export function follow(param: AudioParam, value: number, now: number, tau: number): void {
   hold(param, now);

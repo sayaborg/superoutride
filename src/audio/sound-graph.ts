@@ -1,7 +1,7 @@
 import { clamp } from '../core/math.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
-import { follow } from './audio-parameter.js';
+import { fadeToSilence, follow } from './audio-parameter.js';
 
 /**
  * The buses and what each declares: `live` buses sound only while a run is driven. A new sound kind adds one bus
@@ -93,13 +93,14 @@ export function createSoundGraph(context: BaseAudioContext) {
       follow(master.gain, clamp(value, 0, 1), context.currentTime, control.mixSeconds);
     },
     /**
-     * Close the live gate with the silence fade, or open it: closed first, it opens after the transition time, so
-     * kernels that woke from rest reach the current observation before they are heard.
+     * Close the live gate with the silence fade, or open it: closed first, it opens the transition time after it is
+     * silent, so kernels that woke from rest reach the current observation before they are heard. Returns when the gate
+     * is silent.
      */
-    setLive(live: boolean): void {
-      const now = context.currentTime;
-      follow(liveGate.gain, 0, now, control.fadeSeconds);
-      if (live) liveGate.gain.setTargetAtTime(1, now + control.transitionSeconds, control.mixSeconds);
+    setLive(live: boolean): number {
+      const silent = fadeToSilence(liveGate.gain, context.currentTime, control.fadeSeconds);
+      if (live) liveGate.gain.setTargetAtTime(1, silent + control.transitionSeconds, control.mixSeconds);
+      return silent;
     },
     /** Admitted settings, written directly to the compressor's parameters. */
     setMixSettings(value: MixSettings): void {

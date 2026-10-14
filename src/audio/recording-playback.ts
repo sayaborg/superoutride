@@ -1,5 +1,5 @@
 import type { ControlSettings } from './audio-control-policy.js';
-import { follow, hold } from './audio-parameter.js';
+import { fadeToSilence, follow } from './audio-parameter.js';
 
 /** A looped recording returns from `end` to `start`, in seconds of the decoded recording. */
 export interface RecordingLoop {
@@ -37,8 +37,8 @@ export interface RecordingPlayback {
  * Each playback has its own source and gain, so playbacks of one recording overlap. A loop runs sample-accurately
  * between its points (the source's own loop). A playback starting from the beginning starts at full volume, or rises
  * over `fadeInSeconds` when given; one
- * starting elsewhere or continuing from a pause fades in with the silence fade (`fadeSeconds`), and pause and stop fade
- * out with it before the source stops (`transitionSeconds`). A playback sounds one source at a time: playing again
+ * starting elsewhere or continuing from a pause fades in over `fadeSeconds`, and pause and stop fade out with the
+ * silence fade, the source stopping once it is silent. A playback sounds one source at a time: playing again
  * before a paused source has stopped starts when it stops.
  */
 export function createRecordingPlayback(
@@ -74,9 +74,7 @@ export function createRecordingPlayback(
     playing.stop(at);
   };
   const pause = (): void => {
-    const now = context.currentTime;
-    follow(gain.gain, 0, now, control().fadeSeconds);
-    release(now + control().transitionSeconds);
+    release(fadeToSilence(gain.gain, context.currentTime, control().fadeSeconds));
   };
   return {
     play(): void {
@@ -118,12 +116,7 @@ export function createRecordingPlayback(
       ended = true;
     },
     fadeOut(seconds = control().musicFadeSeconds): void {
-      const now = context.currentTime;
-      hold(gain.gain, now);
-      // A linear ramp runs from the previous event: anchor it at the value held now.
-      gain.gain.setValueAtTime(gain.gain.value, now);
-      gain.gain.linearRampToValueAtTime(0, now + seconds);
-      release(now + seconds);
+      release(fadeToSilence(gain.gain, context.currentTime, seconds));
       ended = true;
     },
     position,

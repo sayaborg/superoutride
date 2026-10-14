@@ -179,8 +179,8 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     setLive(value: boolean): void {
       if (value === live) return;
       live = value;
-      graph.setLive(value);
-      const restAt = value ? null : context.currentTime + control.transitionSeconds;
+      const silent = graph.setLive(value);
+      const restAt = value ? null : silent;
       for (const { voice, bus } of voices) if (isLiveBus(bus)) voice.rest(restAt);
     },
     setExhaustSettings(value: ExhaustSettings): void {

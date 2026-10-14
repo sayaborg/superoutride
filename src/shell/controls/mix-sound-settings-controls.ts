@@ -22,9 +22,9 @@ const TIMING_LABELS = {
   gainSeconds: ['Output gain smoothing', 's'],
   mixSeconds: ['Bus and MASTER volume smoothing', 's'],
   panSeconds: ['Rival pan smoothing', 's'],
-  fadeSeconds: ['Fade before replacement', 's'],
+  fadeSeconds: ['Fade to silence', 's'],
   componentSeconds: ['R/Q switch smoothing', 's'],
-  transitionSeconds: ['Wait before a discontinuity', 's'],
+  transitionSeconds: ['Wait before heard after waking', 's'],
   musicFadeSeconds: ['Music fade at GOAL and GAME OVER', 's'],
 } as const satisfies Record<keyof ControlSettings, readonly [string, string]>;
 

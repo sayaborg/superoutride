@@ -1,6 +1,6 @@
 import type { ControlSettings } from './audio-control-policy.js';
 import { sameControlSettings } from './audio-control-policy.js';
-import { follow } from './audio-parameter.js';
+import { fadeToSilence, follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import type { ProcessingReport } from './processing-meter.js';
 import { watchProcessor } from './processor-failure.js';
@@ -59,10 +59,7 @@ export function createScrapeVoice(context: BaseAudioContext, destination: AudioN
         pendingAt = null;
         return;
       }
-      if (pendingAt === null) {
-        pendingAt = now + control.transitionSeconds;
-        follow(output.gain, 0, now, control.fadeSeconds);
-      }
+      pendingAt ??= fadeToSilence(output.gain, now, control.fadeSeconds);
       if (now < pendingAt) return;
       node.port.postMessage({ settings, control, walls: walls.walls });
       active = { settings, control };

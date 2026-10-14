@@ -1,5 +1,5 @@
 import { TIRE_SOUND_INPUT_KEYS, tireSoundParameters } from './tire-sound-transport.js';
-import { follow } from './audio-parameter.js';
+import { fadeToSilence, follow } from './audio-parameter.js';
 import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { sameUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
@@ -70,8 +70,13 @@ export function createTireVoice(
       const changed = !same(active);
       if (active !== null && changed) {
         if (!same(pending)) {
-          pending = { settings: desiredSettings, rolling, control, at: now + control.transitionSeconds };
-          follow(output.gain, 0, now, control.fadeSeconds); // Authored settings-change fade, not vibration decay.
+          // Authored settings-change fade, not vibration decay.
+          pending = {
+            settings: desiredSettings,
+            rolling,
+            control,
+            at: fadeToSilence(output.gain, now, control.fadeSeconds),
+          };
         }
         if (now < pending!.at) return;
       }

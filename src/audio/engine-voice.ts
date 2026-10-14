@@ -1,5 +1,5 @@
 import { clamp } from '../core/math.js';
-import { follow } from './audio-parameter.js';
+import { fadeToSilence, follow } from './audio-parameter.js';
 import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { EXHAUST_SETTING_RANGES } from './exhaust-acoustics.js';
@@ -71,8 +71,7 @@ export function createEngineVoice(
       const changed = !same(active, sound);
       if (active && changed) {
         if (!same(pending, sound)) {
-          pending = { sound, settings, control, at: now + control.transitionSeconds };
-          follow(output.gain, 0, now, control.fadeSeconds);
+          pending = { sound, settings, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
         }
         if (pending && now < pending.at) return;
       }
@@ -118,7 +117,7 @@ export function createEngineVoice(
     silence(): void {
       // A newly assigned competitor's earlier shifts must not sound.
       heardShift = null;
-      follow(output.gain, 0, context.currentTime, control.fadeSeconds);
+      fadeToSilence(output.gain, context.currentTime, control.fadeSeconds);
     },
     dispose(): void {
       exhaust.port.postMessage('stop');

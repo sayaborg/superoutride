@@ -206,8 +206,8 @@ A playback starts at the recording's beginning, at full volume or rising linearl
 track's crossfade), unless it is given a start position (the workbench's music module
 starts a few seconds before `loop.end`); a looped playback, once it reaches `loop.end`, returns to `loop.start`
 sample-accurately (the source's own loop). A playback from the beginning starts at full volume, since recordings start
-at their first sample, and one from elsewhere fades in with the silence fade (`fadeSeconds`); pausing fades out with
-the silence fade and stops the source after the transition time (`transitionSeconds`), keeping the position, and
+at their first sample, and one from elsewhere fades in over `fadeSeconds`; pausing fades out with the silence fade and
+stops the source when it is silent, keeping the position, and
 playing again starts a new source from that position with the silence fade in. A playback sounds one source at a time: playing again before the paused source has stopped
 starts the new source when it stops. Stopping fades the same way and ends the playback; a fade-out ramps linearly to
 zero over a given time and ends it.
@@ -303,8 +303,7 @@ rivals and traffic vehicles the race observes on the resident Route. That cutoff
 inverse-distance law `referenceMeters/max(referenceMeters, distance)` over the 3D physical world distance, and the
 pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. Each engine
 voice sounds the engine sound of its competitor's vehicle (the observation's vehicle ID, resolved through the
-vehicle catalog); when a voice's sound changes, it fades out and waits the transition time before the new sound
-starts. ENG, TIRE and MASTER independently multiply their
+vehicle catalog); when a voice's sound changes, it fades to silence and the new sound starts once it is silent. ENG, TIRE and MASTER independently multiply their
 outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
 state running.
 
@@ -313,8 +312,10 @@ time constants, and each control has one smoothing authority. Voices write engin
 inputs directly to AudioParams (tire inputs after their one validation in
 [Tire audio](tire-audio.md#observation-transport)); the kernels follow them per sample with `observationSeconds`. Output
 gains, bus and master gains and the rival pan follow only through AudioParam automation (`gainSeconds`,
-`mixSeconds`, `panSeconds`); silence and pre-replacement fades use `fadeSeconds`, and a discontinuity waits
-`transitionSeconds` after its fade. The main thread reads these values when it schedules each change; the kernel
+`mixSeconds`, `panSeconds`). The silence fade (`fadeToSilence`, over `fadeSeconds`) ramps linearly to zero and
+reaches it at a known time; every discontinuity (a kernel replaced, a source stopped, a worklet resting) happens at
+that time, in silence. `transitionSeconds` is the time woken kernels follow the observations before the live gate
+opens. The main thread reads these values when it schedules each change; the kernel
 values (`observationSeconds`, `componentSeconds`) travel with the worklet's settings message, so a TIMING change
 replaces the kernels like a settings change. Engine sound, exhaust settings and control
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
@@ -328,11 +329,10 @@ menus, the PRE-RACE card and RESULT leave it running, and SOUND OFF only sets th
 runs depends on visibility alone, so nothing is scheduled on a stopped clock while the sound is off. The screen host's route
 is the one procedure that tells audio both facts, whether the page is visible and whether a run is driven
 (`setRoute`); audio never reads document visibility itself. While no run is driven, the live gate closes with the
-silence fade (`fadeSeconds`), the worklets of the voices on live buses rest from the transition time
-(`transitionSeconds`) after it, rendering silence without running their kernels, and the voices receive no
-observations. When a run is driven again, the worklets wake at once and continue from the state they rested in, the
-voices write the current observations, and the gate opens after the transition time, so the kernels have followed the
-observations before they are heard. A page hidden without entering the back/forward cache disposes the context.
+silence fade, the worklets of the voices on live buses rest from the moment it is silent, rendering silence without
+running their kernels, and the voices receive no observations. When a run is driven again, the worklets wake at once
+and continue from the state they rested in, the voices write the current observations, and the gate opens
+`transitionSeconds` after it is silent, so the kernels have followed the observations before they are heard. A page hidden without entering the back/forward cache disposes the context.
 Disposal closes the context, including a graph completing initialization after disposal. Module URLs resolve within
 the selected commit-versioned build.
 
