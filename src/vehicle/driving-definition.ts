@@ -46,7 +46,10 @@ export interface DrivingDefinition {
   readonly bodyContact: Readonly<{ frequencyHertz: number; dampingRatio: number; barrierFriction: number }>;
 }
 
+export const DRIVING_DOCUMENT_FORMAT = 'superoutride.driving-definition';
+export const DRIVING_DOCUMENT_VERSION = 19;
+
 export interface DrivingDocument extends DrivingDefinition {
-  readonly format: 'superoutride.driving-definition';
-  readonly version: 18;
+  readonly format: typeof DRIVING_DOCUMENT_FORMAT;
+  readonly version: typeof DRIVING_DOCUMENT_VERSION;
 }

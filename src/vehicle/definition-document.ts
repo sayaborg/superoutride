@@ -19,7 +19,8 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import type { DrivingDocument } from './driving-definition.js';
+import { DRIVING_DOCUMENT_FORMAT, DRIVING_DOCUMENT_VERSION, type DrivingDocument } from './driving-definition.js';
+import type { SteeringReference } from './steering-rule.js';
 import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
 import type { CompiledEngineSound } from '../audio/engine-sound.js';
 import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
@@ -47,15 +48,19 @@ export interface VehicleMetadata {
   /** The engine's layout and cylinders in at most five characters, such as F12 or V8. */
   readonly engine: string;
 }
+export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
+export const VEHICLE_MECHANICS_VERSION = 2;
+export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
+export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
 export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> {
-  readonly format: 'superoutride.vehicle-mechanics';
-  readonly version: 2;
+  readonly format: typeof VEHICLE_MECHANICS_FORMAT;
+  readonly version: typeof VEHICLE_MECHANICS_VERSION;
 }
 /** The listing document: how a vehicle is named, ordered, drawn, heard and shown on the HUD. */
 export interface VehicleListingDocument {
-  readonly format: 'superoutride.vehicle-listing';
-  readonly version: 5;
+  readonly format: typeof VEHICLE_LISTING_FORMAT;
+  readonly version: typeof VEHICLE_LISTING_VERSION;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
   readonly visuals: Readonly<{
@@ -136,8 +141,8 @@ export function compileVehicleMechanicsDocument(
     const v = readDocument(
       value,
       ['format', 'version', ...mechanicalNumbers, 'powertrain'],
-      'superoutride.vehicle-mechanics',
-      2,
+      VEHICLE_MECHANICS_FORMAT,
+      VEHICLE_MECHANICS_VERSION,
     );
     const mechanics = Object.fromEntries(mechanicalNumbers.map((key) => [key, readNumber(v[key], `/${key}`)]));
     const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
@@ -154,8 +159,8 @@ export function compileVehicleMechanicsDocument(
     };
     const definition = { ...mechanics, powertrain } as unknown as Omit<VehicleDefinition, 'id'>;
     const source: VehicleMechanicsDocument = deepFreeze({
-      format: 'superoutride.vehicle-mechanics',
-      version: 2,
+      format: VEHICLE_MECHANICS_FORMAT,
+      version: VEHICLE_MECHANICS_VERSION,
       ...definition,
     });
     const compiledVehicle = admitDomain(
@@ -178,8 +183,8 @@ export function compileVehicleListingDocument(
     const v = readDocument(
       value,
       ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
-      'superoutride.vehicle-listing',
-      5,
+      VEHICLE_LISTING_FORMAT,
+      VEHICLE_LISTING_VERSION,
     );
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
@@ -282,8 +287,8 @@ export function compileVehicleListingDocument(
     if (!Object.hasOwn(sounds, soundId))
       throw new AdmissionError('unresolved_reference', '/sound', `Unknown sound ID: ${soundId}`);
     const source = deepFreeze({
-      format: 'superoutride.vehicle-listing',
-      version: 5,
+      format: VEHICLE_LISTING_FORMAT,
+      version: VEHICLE_LISTING_VERSION,
       form: v.form,
       selectionOrder,
       visuals,
@@ -308,6 +313,11 @@ export function createVehicleDefinition(
     compiledVehicle: mechanics.compiledVehicle,
     sound: listing.sound,
   });
+}
+
+/** Each named field of a record, read as a number at its own pointer. */
+function readNumbers<K extends string>(record: Record<string, unknown>, keys: readonly K[], path: string) {
+  return Object.fromEntries(keys.map((key) => [key, readNumber(record[key], `${path}/${key}`)])) as Record<K, number>;
 }
 
 export function compileDrivingDocument(
@@ -345,8 +355,8 @@ export function compileDrivingDocument(
         'rivalPace',
         'bodyContact',
       ],
-      'superoutride.driving-definition',
-      19,
+      DRIVING_DOCUMENT_FORMAT,
+      DRIVING_DOCUMENT_VERSION,
     );
     const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
@@ -357,7 +367,7 @@ export function compileDrivingDocument(
       };
     };
     const keys = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity'] as const;
-    const t = readRecord(v.tire, '/tire', keys);
+    const tire = readNumbers(readRecord(v.tire, '/tire', keys), keys, '/tire');
     const paceKeys = [
       'minimumUtilization',
       'maximumUtilization',
@@ -365,21 +375,30 @@ export function compileDrivingDocument(
       'bandSeconds',
       'responseSeconds',
     ] as const;
-    const pace = readRecord(v.rivalPace, '/rivalPace', paceKeys);
+    const rivalPace = readNumbers(readRecord(v.rivalPace, '/rivalPace', paceKeys), paceKeys, '/rivalPace');
     const contactKeys = ['frequencyHertz', 'dampingRatio', 'barrierFriction'] as const;
-    const contact = readRecord(v.bodyContact, '/bodyContact', contactKeys);
-    const source = deepFreeze({
-      format: 'superoutride.driving-definition',
-      version: 18,
-      ...Object.fromEntries(numbers.map((key) => [key, readNumber(v[key], `/${key}`)])),
-      steeringReference: readString(v.steeringReference, '/steeringReference'),
+    const bodyContact = readNumbers(
+      readRecord(v.bodyContact, '/bodyContact', contactKeys),
+      contactKeys,
+      '/bodyContact',
+    );
+    const { maxRoadWheelSteerDegrees, steeringTraversalSeconds, ...n } = readNumbers(v, numbers, '');
+    // The source keeps the saved layout's field order, so an export of an unchanged definition is its file.
+    const source: DrivingDocument = deepFreeze({
+      format: DRIVING_DOCUMENT_FORMAT,
+      version: DRIVING_DOCUMENT_VERSION,
+      maxRoadWheelSteerDegrees,
+      steeringTraversalSeconds,
+      // The compiled steering rule admits the reference below.
+      steeringReference: readString(v.steeringReference, '/steeringReference') as SteeringReference,
+      ...n,
       throttle: pedal('throttle'),
       brake: pedal('brake'),
       wheelSlip,
-      tire: Object.fromEntries(keys.map((key) => [key, readNumber(t[key], `/tire/${key}`)])),
-      rivalPace: Object.fromEntries(paceKeys.map((key) => [key, readNumber(pace[key], `/rivalPace/${key}`)])),
-      bodyContact: Object.fromEntries(contactKeys.map((key) => [key, readNumber(contact[key], `/bodyContact/${key}`)])),
-    } as DrivingDocument);
+      tire,
+      rivalPace,
+      bodyContact,
+    });
     return Object.freeze({ source, sha256, compiledDriving: deepFreeze(admitDomain(() => compileDriving(source))) });
   });
 }
