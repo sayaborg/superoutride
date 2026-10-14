@@ -124,7 +124,7 @@ function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSte
  * held and revved by `FREE_REV_THROTTLE` from idle at the page's start; a change of vehicle starts it again. While it
  * revs the screen drives a vehicle, and each frame gives `sound` the engine's observation, as the player's. LEFT and RIGHT change
  * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
- * `colorOf` its color. A change of vehicle keeps the page and restarts its time. With fixed colors it has no color
+ * `colorOf` its color. A change of vehicle returns to the first page, ENGINE, at the start of its time. With fixed colors it has no color
  * choice and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
  */
 export function createVehicleScreen(
@@ -177,6 +177,7 @@ export function createVehicleScreen(
     const vehicle = candidates[index]!;
     colors = choice.fixedColors ? [] : spriteSetColors(vehicle.spriteSet);
     color = Math.max(0, colors.indexOf(choice.colorOf(vehicle)));
+    page = 0;
     pageSteps = 0;
     shownSteps = 0;
     engine = null;

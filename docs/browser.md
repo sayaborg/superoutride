@@ -266,7 +266,7 @@ the largest from the player depth down (in steps of 1 %) at which every yaw imag
 0–19 by rows 4–10 (160×56 pixels), and that anchor centres the images in the box.
 
 Each page stays 360 fixed steps (6 s), then the next follows, ENGINE after CHASSIS; no key turns the pages and no
-black stands between them. A change of vehicle keeps the page and starts its time again; a change of color does not.
+black stands between them. A change of vehicle returns to ENGINE at the start of its time; a change of color keeps the page and its time.
 The tabs on row 12 name the pages from column 1, two columns apart, the shown page WHITE and the others DARK. Under the
 shown page's name, on y 103, its time line runs DIM across the name's width, YELLOW from the left over the share of
 the page's time gone; a DIM rule crosses the frame on y 106. Over a wallpaper the frame stands at quarter brightness,
@@ -305,7 +305,7 @@ Its sound is the player's engine voice, sounding the vehicle's engine sound from
 player's does, while the title track plays on unchanged; the tires' voice receives the vehicle at rest. The vehicle
 sound is live on ENGINE alone ([Audio](audio.md#mix-and-lifetime)): entering it opens the live gate, and leaving it, a
 transition or a hidden page closes the gate with the silence fade, so the change to DRIVETRAIN, at the limiter, fades
-out. Each time ENGINE is shown, and with each change of vehicle on it, the engine starts again at idle; a change of color
+out. Each time ENGINE is shown, a change of vehicle included, the engine starts again at idle; a change of color
 does not touch it, and no other page runs it. While its speed is at or above 20 % of redline a WHITE upright line
 stands at that speed on the horizontal axis, from the top grid line to the bottom row, with a mark of 3×3 pixels where
 it crosses each curve, in the curve's color; they are drawn over the curves and under the text.
