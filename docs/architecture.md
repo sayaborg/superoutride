@@ -29,7 +29,8 @@ named entries), `readString` (nonempty, no surrounding whitespace, optional leng
 `id` values) and `deepFreeze`, the one recursive freeze in the product: it ends at cycles and does not walk
 again what it has already frozen. A JSON object is a non-array object whose prototype is the plain object
 prototype or none, for records and dictionaries alike. A wrong type is `invalid_shape`; a string outside
-its declared pattern, such as an ID or a SHA-256 digest (`SHA256_TEXT`), is `invalid_value`. Formats keep their semantic checks and report them through the same
+its declared pattern, such as an ID or a SHA-256 digest (`SHA256_TEXT`), or outside an enumeration (`readEnum`), is
+`invalid_value`. Formats keep their semantic checks and report them through the same
 error, with `requireAdmission` or a format subclass carrying its own codes. Readers of one format's values belong to
 that format's owner, such as `readRgb555` in [`image/rgb555.ts`](../src/image/rgb555.ts).
 

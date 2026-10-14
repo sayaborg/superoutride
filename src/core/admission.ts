@@ -191,8 +191,10 @@ export function readNumber(
   return Object.is(value, -0) ? 0 : value;
 }
 
+/** One of `allowed`: a value that is not a string is `invalid_shape`, a string not allowed `invalid_value`. */
 export function readEnum<T extends string>(value: unknown, allowed: readonly T[], path: string): T {
-  if (typeof value !== 'string' || !allowed.includes(value as T))
+  if (typeof value !== 'string') throw new AdmissionError('invalid_shape', path, 'Expected a string');
+  if (!allowed.includes(value as T))
     throw new AdmissionError('invalid_value', path, `Expected one of ${allowed.join(', ')}`);
   return value as T;
 }
