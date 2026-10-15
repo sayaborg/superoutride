@@ -69,7 +69,7 @@
   arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
   six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures and shadows are finished sets generated
   from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)), and VFR750R's
-  a generated prototype with its rider and seven banks, kept until a 3D model's pictures replace it; the other
+  a prototype rendered from a 3D model with its rider and seven banks, five greys and three paint ramps; the other
   vehicles keep their converted provisional pictures until their views are made.
 - Stage PT is complete: every torque curve has five points (idle, knee, maximum torque, maximum power, redline); fuel
   cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
@@ -327,11 +327,10 @@ and switching is a cut.
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                 |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                         |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                      |
-| Vehicle art      | Two-wheeler pictures: whether the rider is part of the generated solid, and the bank axis and base point                                                                                                     |
 | Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                  |
 | Vehicle art      | Pictures of a stopped vehicle's wheels (generated pictures always show them turning)                                                                                                                         |
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                 |
-| Vehicle art      | VFR750R's four colors once its pictures are generated: the real tricolour and three fictional racing schemes                                                                                                 |
+| Vehicle art      | VFR750R's four colors on real devices: the real tricolour and three provisional fictional schemes                                                                                                            |
 | Weather          | Falling rain over wet sections (WET_ASPHALT lies under an overcast sky without rain today)                                                                                                                   |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
