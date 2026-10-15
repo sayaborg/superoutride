@@ -672,13 +672,17 @@ stale; the driving changes only when the shift is not 0.
 
 **Findings** ([`course-findings.ts`](../tools/authoring/course-findings.ts)) list what in a course is worth tidying,
 apart from diagnostics and without changing anything; a course with findings builds and runs as any other, and the
-build does not read them. Findings are looked for over the whole course. `courseFindings` takes a step, a distance tolerance and a colour tolerance, and returns each
-finding's kind, Pointer, description and the cleaning operation that answers it: values off the step (`digits`,
-round), knots nothing needs at tolerance 0 (`unneeded-knot`, remove knots), near things (`near`, join), absolute
-laterals exactly on a Boundary's or lane's line (`referable`, join), runs that combine into repeats (`repeatable`,
-merge), widths whose values all agree (`equal-width`, merge), near colours (`near-color`, merge), Boundaries no other
-value of their Section names or images no value of the course names (`unused`, no operation), and medians zero wide
-throughout (`zero-median`, no operation).
+build does not read them. Findings are looked for over the whole course. `courseFindings` takes a step, a distance
+tolerance and a colour tolerance, and returns each finding's kind, Pointer, description, the cleaning operation that
+answers it and the candidate of that operation it was found as, the one that operation's search over the whole course
+with the same amounts finds: values off the step (`digits`, round), knots nothing needs at tolerance 0
+(`unneeded-knot`, remove knots), near things (`near`, join), absolute laterals exactly on a Boundary's or lane's line
+(`referable`, join), runs that combine into repeats (`repeatable`, merge), widths whose values all agree
+(`equal-width`, merge), near colours (`near-color`, merge), Boundaries no other value of their Section names or images
+no value of the course names (`unused`, no operation), and medians zero wide throughout (`zero-median`, no operation).
+Findings without an operation hold no candidate. A value off the step holds round's proposal without its shift: the
+shift is measured by reading the value's Section again, and a course has thousands of such values (OUTRUN TEST 12838
+at 0.001 m), each measured after every change.
 
 **Underlay alignments** ([`course-underlays.ts`](../tools/authoring/course-underlays.ts)) are production-only numbers
 in `content/course-underlays/<course>.json`, which the core neither reads nor delivers:

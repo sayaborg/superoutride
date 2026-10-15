@@ -30,6 +30,9 @@ export interface CleaningCandidate {
   readonly shift: number;
 }
 
+/** A candidate before its shift is measured: what an operation proposes, from which its shift is measured. */
+export type CleaningProposal = Omit<CleaningCandidate, 'shift'>;
+
 /** Where a cleaning operation looks: a Section (its id), elements (their Pointers or what they hold), element kinds. */
 export interface CleaningScope {
   readonly section?: string;
@@ -247,9 +250,9 @@ const sectionIndexOf = (pointer: string) => Number(/^\/sections\/(\d+)/.exec(poi
  * reach when it has one. A Section compiles as one unit (its plan, joints, Positions measured from joints and Strip
  * slabs), so it is read again whole.
  */
-function withShifts(
+export function withShifts(
   document: Json,
-  proposals: readonly (Omit<CleaningCandidate, 'shift'> & { readonly reach?: Reach | null })[],
+  proposals: readonly (CleaningProposal & { readonly reach?: Reach | null })[],
 ): CleaningCandidate[] {
   const readings = new Map<number, Reading>();
   const before = (index: number) => {
@@ -341,7 +344,7 @@ export function roundCandidates(
 export function offStepValues(
   document: Json,
   options: { readonly step: number; readonly values: readonly RoundedValue[]; readonly scope?: CleaningScope },
-): Omit<CleaningCandidate, 'shift'>[] {
+): CleaningProposal[] {
   return scoped(document, options.scope ?? {}).flatMap(({ element }) =>
     roundable(element, document, options.values).flatMap(({ pointer, value }) => {
       const after = snapCourseValue(value, options.step);

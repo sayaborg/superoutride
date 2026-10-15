@@ -2,7 +2,9 @@ import {
   applyCleaning,
   ROUNDED_VALUES,
   sameValueGroups,
+  withShifts,
   type CleaningCandidate,
+  type CleaningProposal,
   type CleaningRequest,
   type CleaningResult,
   type CleaningScope,
@@ -30,6 +32,9 @@ export interface CleaningPanelHost {
   /** Ask the compile worker, where the candidates are found off the page's thread. */
   query(query: CourseQuery): Promise<QueryResponse>;
 }
+
+const STALE =
+  'Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.';
 
 const OPERATIONS = {
   round: 'Round values',
@@ -103,8 +108,8 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     source = null;
     list.replaceChildren();
   };
-  /** Find the chosen operation's candidates over the chosen scope; all are checked, or only those at a Pointer given. */
-  const search = (only?: string) => {
+  /** Find the chosen operation's candidates over the chosen scope, each checked. */
+  const search = () => {
     const document = host.document();
     if (!document) return;
     const where: CleaningScope =
@@ -144,19 +149,19 @@ export function createCleaningPanel(host: CleaningPanelHost) {
       }
       candidates = answer.candidates;
       source = document;
-      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds)} ms. Applying any changes the course, so its measured products become stale; the driving changes only where the shift is not 0.`;
-      showCandidates(only);
+      status.textContent = `${candidates.length} candidate${candidates.length === 1 ? '' : 's'} · ${Math.round(answer.milliseconds)} ms. ${STALE}`;
+      showCandidates();
     });
   };
   find.addEventListener('click', () => search());
 
-  const showCandidates = (only?: string) => {
+  const showCandidates = () => {
     host.mark(candidates.map((c) => c.pointer));
     const table = make('table', '', { class: 'course-form-changes' });
     candidates.forEach((candidate, i) => {
       const row = make('tr');
       const box = make('input', '', { type: 'checkbox', 'data-candidate': String(i) });
-      box.checked = only === undefined || candidate.pointer === only;
+      box.checked = true;
       const where = make('button', candidate.description, { type: 'button', class: 'link' });
       where.addEventListener('click', () => host.select(candidate.pointer));
       const moves = Number.isFinite(candidate.shift)
@@ -230,17 +235,30 @@ export function createCleaningPanel(host: CleaningPanelHost) {
   };
   panel.addEventListener('toggle', showGroups);
   /**
-   * Open a finding's operation over the scope the finding was found in (the whole course), with only the finding's own
-   * candidates checked: what the operation proposes there, among what else it would change.
+   * Show a finding's candidate alone and checked, with the operation, scope (the whole course) and amount it was found
+   * with; a proposal is measured first. "Find candidates" then searches as chosen.
    */
-  const findFor = (kind: keyof typeof OPERATIONS, pointer: string, amount?: number) => {
+  const show = (
+    kind: keyof typeof OPERATIONS,
+    candidate: CleaningCandidate | CleaningProposal,
+    document: Json,
+    amount: number,
+  ) => {
     panel.open = true;
     operation.value = kind;
     scope.value = 'course';
     showParameters();
-    if (amount !== undefined) (kind === 'round' ? step : tolerance).value = String(amount);
+    (kind === 'round' ? step : tolerance).value = String(amount);
     if (kind === 'round') for (const box of values.querySelectorAll<HTMLInputElement>('input')) box.checked = true;
-    search(pointer);
+    discard();
+    if (host.document() !== document) {
+      status.textContent = 'The document changed; find the candidates again.';
+      return;
+    }
+    candidates = 'shift' in candidate ? [candidate] : withShifts(document, [candidate]);
+    source = document;
+    status.textContent = `The finding's candidate. ${STALE}`;
+    showCandidates();
   };
 
   panel.append(
@@ -270,5 +288,5 @@ export function createCleaningPanel(host: CleaningPanelHost) {
     }
     showGroups();
   };
-  return { element: panel, findFor, refresh };
+  return { element: panel, show, refresh };
 }

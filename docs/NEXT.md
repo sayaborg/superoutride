@@ -231,7 +231,10 @@ vehicle-infeasible intervals as remaster departures. Footage and vehicle choices
 
 The course editor is the human inspection and adjustment view over the file/CLI workflow. Decide the default rounding
 steps and joining tolerances of its cleaning operations while producing the first product courses, and which findings
-become build rules once those defaults hold. Show anchor displacement after geometry changes if producing courses
+become build rules once those defaults hold. The findings are worked out after every change, so their time is the
+author's wait (one worker, the default amounts): TSUKUBA 39 s (digits 0.2 s, unneeded knots 13 s, near and referable
+27 s, merge kinds 0.3 s), OUTRUN TEST 13 min (digits 2.6 s, unneeded knots 18 s, near and referable 12 min, merge kinds
+29 s). Show anchor displacement after geometry changes if producing courses
 needs it. Before master-course production, document/compiler versions can advance without migration readers; replace
 development inputs with the corresponding version.
 

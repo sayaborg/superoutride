@@ -4,6 +4,8 @@ import {
   offStepValues,
   ROUNDED_VALUES,
   unneededKnotCandidates,
+  type CleaningCandidate,
+  type CleaningProposal,
 } from './course-cleaning.js';
 import { childPointer, type Json } from './json-pointer.js';
 
@@ -21,12 +23,17 @@ export const FINDING_KINDS = {
 } as const;
 export type FindingKind = keyof typeof FINDING_KINDS;
 
-/** A finding: something in the course data worth tidying, where it is, and the operation that tidies it. */
+/**
+ * A finding: something in the course data worth tidying, where it is, the operation that tidies it and the candidate of
+ * that operation it was found as (none without an operation). A value off the step holds round's proposal unmeasured:
+ * measuring every such value's shift costs a reading of its Section each, after every change.
+ */
 export interface CourseFinding {
   readonly kind: FindingKind;
   readonly pointer: string;
   readonly description: string;
   readonly operation: (typeof FINDING_KINDS)[FindingKind];
+  readonly candidate: CleaningCandidate | CleaningProposal | null;
 }
 
 /** The step a value is meaningful to, the distance things count as near and the colour steps colours do. */
@@ -58,7 +65,13 @@ function unusedDeclarations(document: Json): CourseFinding[] {
       const pointer = `/sections/${i}/boundaries/${b}`;
       const id = record(boundary).id;
       if (typeof id === 'string' && !names.some((n) => n.text === id && n.pointer !== `${pointer}/id`))
-        findings.push({ kind: 'unused', pointer, description: `Boundary ${id} is not used`, operation: null });
+        findings.push({
+          kind: 'unused',
+          pointer,
+          description: `Boundary ${id} is not used`,
+          operation: null,
+          candidate: null,
+        });
     });
     // A median whose width is zero throughout separates nothing.
     const lanes = record(section).lanes;
@@ -72,6 +85,7 @@ function unusedDeclarations(document: Json): CourseFinding[] {
           pointer: `/sections/${i}/lanes/${l}`,
           description: `The median at /sections/${i}/lanes/${l} is zero wide throughout`,
           operation: null,
+          candidate: null,
         });
     });
   });
@@ -81,24 +95,28 @@ function unusedDeclarations(document: Json): CourseFinding[] {
 /**
  * What in a course document is worth tidying, without changing it: values off the step (meaningless digits), knots
  * nothing needs, near things that could be one, absolute laterals a reference could write, runs that could be a
- * repeat, near colours and declarations nothing uses. Each finding has its kind, Pointer, description and the cleaning
- * operation that answers it; the step and tolerances are arguments. The build does not read findings.
+ * repeat, near colours and declarations nothing uses. Each finding has its kind, Pointer, description, the cleaning
+ * operation that answers it and the candidate it was found as; the step and tolerances are arguments. The build does
+ * not read findings.
  */
 export function courseFindings(document: Json, options: FindingOptions): CourseFinding[] {
   const findings: CourseFinding[] = [];
-  const add = (kind: FindingKind, pointer: string, description: string) =>
-    findings.push({ kind, pointer, description, operation: FINDING_KINDS[kind] });
-  for (const value of offStepValues(document, { step: options.step, values: ROUNDED_VALUES }))
-    add('digits', value.pointer, value.description);
-  for (const knot of unneededKnotCandidates(document, { tolerance: 0 }))
-    add('unneeded-knot', knot.pointer, knot.description);
+  const add = (kind: FindingKind, candidate: CleaningCandidate | CleaningProposal) =>
+    findings.push({
+      kind,
+      pointer: candidate.pointer,
+      description: candidate.description,
+      operation: FINDING_KINDS[kind],
+      candidate,
+    });
+  for (const value of offStepValues(document, { step: options.step, values: ROUNDED_VALUES })) add('digits', value);
+  for (const knot of unneededKnotCandidates(document, { tolerance: 0 })) add('unneeded-knot', knot);
   for (const join of joinCandidates(document, { tolerance: options.tolerance }))
-    add(join.operation === 'join-reference' ? 'referable' : 'near', join.pointer, join.description);
+    add(join.operation === 'join-reference' ? 'referable' : 'near', join);
   for (const merge of mergeCandidates(document, { colorTolerance: options.colorTolerance }))
     add(
       merge.operation === 'combine' ? 'repeatable' : merge.operation === 'merge-width' ? 'equal-width' : 'near-color',
-      merge.pointer,
-      merge.description,
+      merge,
     );
   findings.push(...unusedDeclarations(document));
   return findings;

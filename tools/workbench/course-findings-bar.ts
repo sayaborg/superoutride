@@ -1,4 +1,10 @@
-import { FINDING_KINDS, type CourseFinding, type FindingKind } from '../authoring/course-findings.js';
+import type { CleaningCandidate, CleaningProposal } from '../authoring/course-cleaning.js';
+import {
+  FINDING_KINDS,
+  type CourseFinding,
+  type FindingKind,
+  type FindingOptions,
+} from '../authoring/course-findings.js';
 import type { Json } from '../authoring/json-pointer.js';
 import type { CourseQuery, QueryResponse } from './compile-protocol.js';
 import { make } from './dom.js';
@@ -7,18 +13,23 @@ import { confirmField, finiteNumber } from './pending-edit.js';
 /** The cleaning operation each finding's operation opens in the Clean panel, with the amount it uses. */
 const OPENS = { round: 'round', 'remove-knots': 'knots', join: 'join', merge: 'merge' } as const;
 
-/** What the findings bar reads and does: the document, the worker, selecting a place and opening candidates. */
+/** What the findings bar reads and does: the document, the worker, selecting a place and showing a candidate. */
 export interface FindingsBarHost {
   document(): Json | null;
   query(query: CourseQuery): Promise<QueryResponse>;
   select(pointer: string): void;
-  open(operation: (typeof OPENS)[keyof typeof OPENS], pointer: string, amount: number): void;
+  open(
+    operation: (typeof OPENS)[keyof typeof OPENS],
+    candidate: CleaningCandidate | CleaningProposal,
+    document: Json,
+    amount: number,
+  ): void;
 }
 
 /**
  * The course's findings, apart from its diagnostics: counts by kind, always visible, worked out by the compile worker
  * after each change with the chosen step and tolerances. A kind lists its findings; choosing one goes to its place on
- * the plan and opens its cleaning operation's candidates there.
+ * the plan and shows the candidate it was found as in its cleaning operation, with the amounts it was found with.
  */
 export function createFindingsBar(host: FindingsBarHost) {
   const bar = make('div', '', { class: 'course-findings' });
@@ -41,7 +52,9 @@ export function createFindingsBar(host: FindingsBarHost) {
   );
   bar.append(make('strong', 'Findings '), counts, settings, list);
 
+  // The findings belong to the document and amounts they were found with.
   let findings: readonly CourseFinding[] = [],
+    found: { document: Json; amounts: FindingOptions } | null = null,
     shown: FindingKind | null = null,
     asked = 0,
     timer: ReturnType<typeof setTimeout> | undefined;
@@ -60,10 +73,15 @@ export function createFindingsBar(host: FindingsBarHost) {
           const go = make('button', finding.description, { type: 'button', class: 'link' });
           go.addEventListener('click', () => {
             host.select(finding.pointer);
-            if (!finding.operation) return;
-            const { step: s, tolerance: t, colorTolerance: c } = amounts();
+            if (!finding.operation || !finding.candidate || !found) return;
+            const { step: s, tolerance: t, colorTolerance: c } = found.amounts;
             const operation = OPENS[finding.operation];
-            host.open(operation, finding.pointer, { round: s, knots: 0, join: t, merge: c }[operation]);
+            host.open(
+              operation,
+              finding.candidate,
+              found.document,
+              { round: s, knots: 0, join: t, merge: c }[operation],
+            );
           });
           item.append(go);
           return item;
@@ -95,13 +113,16 @@ export function createFindingsBar(host: FindingsBarHost) {
       const ticket = ++asked;
       if (document === null) {
         findings = [];
+        found = null;
         showCounts(false);
         showList();
         return;
       }
-      const answer = await host.query({ kind: 'findings', document, ...amounts() });
+      const asking = amounts();
+      const answer = await host.query({ kind: 'findings', document, ...asking });
       if (ticket !== asked) return;
       findings = answer.kind === 'findings' ? answer.findings : [];
+      found = { document, amounts: asking };
       showCounts(false);
       showList();
     }, 300);

@@ -336,9 +336,10 @@ worker: it cannot be stopped midway, so a search asked for while one runs waits 
 The course's [findings](content-and-gameplay.md#course-authoring-operations), apart from its diagnostics, are always
 counted by kind above the views. The compile worker works them out after each change, from the document as it stands,
 compiled or not (a `findings` query), with the chosen step and tolerances. A kind lists its findings; choosing one
-selects its element and opens its cleaning operation over the scope the finding was found in, the whole course, with
-only the candidates at the finding's Pointer checked. The scope's rules are those of any search, so a candidate that
-needs others in the course (such as a near colour's) is proposed as it would be over the whole course.
+selects its element and shows, in the Clean panel, the candidate it was found as, alone and checked, with the
+operation, scope (the whole course) and amount it was found with; nothing is searched again. A value off the step is
+held as round's proposal and measured when shown. The candidate belongs to the document the findings were found in, so
+a document changed since shows none. "Find candidates" then searches the chosen scope as before.
 
 "Underlay" lays a PNG or JPEG opened in the browser under the open Section's plan, to trace a course from; the image
 is never saved, in the store or an archive. It is scaled by picking two points on it and giving their distance in
