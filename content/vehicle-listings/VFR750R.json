@@ -5,9 +5,9 @@
   "selectionOrder": 6,
   "visuals": {
     "spriteSet": "vfr750r",
-    "palette": "white",
+    "palette": "tricolor",
     "steeringPicture": "top-bridge",
-    "colorNames": { "white": "WHITE", "red": "RED", "blue": "BLUE", "black": "BLACK" }
+    "colorNames": { "tricolor": "TRICOLOR", "red": "RED", "blue": "BLUE", "black": "BLACK" }
   },
   "sound": "VFR750R",
   "metadata": {
