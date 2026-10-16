@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 2,
+  "version": 3,
   "overallLength": 1.76,
   "overallWidth": 0.695,
   "overallHeight": 1.11,
@@ -27,6 +27,7 @@
   "powertrain": {
     "displacementCc": 198,
     "cycle": 2,
+    "compressionRatio": 9.8,
     "idleRpm": 900,
     "redlineRpm": 6500,
     "finalDriveRatio": 1,

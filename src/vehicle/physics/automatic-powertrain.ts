@@ -11,6 +11,8 @@ export interface AutomaticPowertrainDefinition {
   /** Authored engine size and cycle; friction torque derives from them with game-wide pressures. */
   readonly displacementCc: number;
   readonly cycle: 2 | 4;
+  /** Geometric compression ratio; the engine sound's blowdown reads it ([Audio](audio.md)), physics does not. */
+  readonly compressionRatio: number;
   /** Engine speed held by idle-holding torque, and the torque-sampling floor. */
   readonly idleRpm: number;
   readonly redlineRpm: number;
@@ -432,6 +434,8 @@ export function compileAutomaticPowertrainDefinition(
     throw new DefinitionDomainError('displacementCc', 'displacementCc must be finite and > 0');
   if (definition.cycle !== 2 && definition.cycle !== 4)
     throw new DefinitionDomainError('cycle', 'cycle must be 2 or 4 strokes');
+  if (!(definition.compressionRatio > 1) || !Number.isFinite(definition.compressionRatio))
+    throw new DefinitionDomainError('compressionRatio', 'compressionRatio must be finite and > 1');
   for (const field of ['idleRpm', 'redlineRpm', 'finalDriveRatio'] as const) {
     if (!Number.isFinite(definition[field])) throw new DefinitionDomainError(field, `${field} must be finite`);
   }

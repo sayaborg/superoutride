@@ -436,7 +436,8 @@ Admission requires exactly five points with finite, strictly increasing RPM and 
 `idleRpm` and E at `redlineRpm`, C's torque above every other point's, and peak-power RPM equal to D's RPM.
 Compilation derives peak-power RPM once as the maximum of `rpm * torque` over the piecewise-linear curve, including
 an interior maximum within a segment; since D is below E, peak power lies below redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
-strokes.
+strokes; `powertrain.compressionRatio` is finite and above 1. Physics does not read the compression ratio: it describes
+the engine, and its engine sound's blowdown reads it ([Audio](audio.md#derived-values)).
 
 [Calibration](calibration.md#vehicle-values) owns per-vehicle value authority, value meanings and
 running-body assumptions; admission owns structural and domain validation.
@@ -621,7 +622,7 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 2 document: the vehicle's physical description — the values
+`superoutride.vehicle-mechanics` version 3 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
@@ -641,7 +642,7 @@ admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engin
 
 | Mechanics field     | Contract                                                                        |
 | ------------------- | ------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `2`                                           |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `3`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |

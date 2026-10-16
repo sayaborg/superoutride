@@ -8,19 +8,19 @@
   "vehicles": [
     {
       "vehicleId": "911_TURBO_3_3",
-      "vehicleSha256": "430428b2ef0e79dbd7794cd465faf0d88795f324323c0ae1162fa2401e92e805",
+      "vehicleSha256": "60ac4d4376a982fac1d2d21e05e60cea53c5879b61f1860470b38452837dee7a",
       "seconds": 54.462,
       "minimumCurvatureSeconds": 55.311
     },
     {
       "vehicleId": "GOLF_GTI_16V",
-      "vehicleSha256": "7f624b838385d88e2ccaa09bbad2f6fdb551685b44a28492af9f74111368b53c",
+      "vehicleSha256": "22808728ae512f76d9863d6888e6e91be0255e7da7803248f3262cfe4056190b",
       "seconds": 58.274,
       "minimumCurvatureSeconds": 59.17
     },
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "8467c6c1e431ad3d5eb629db831ad1bcedf28880f8f05ce1c3db914d38f43117",
+      "vehicleSha256": "06322711e36b45181e69966f8c0432ba27b8ffec61c5e0b8aae2ea68f73ea963",
       "seconds": 53.003,
       "minimumCurvatureSeconds": 53.858
     }

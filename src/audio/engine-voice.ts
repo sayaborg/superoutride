@@ -4,7 +4,7 @@ import { sameControlSettings, type ControlSettings } from './audio-control-polic
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { EXHAUST_SETTING_RANGES } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
-import type { CompiledEngineSound } from './engine-sound.js';
+import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { ProcessingReport } from './processing-meter.js';
 import { watchProcessor } from './processor-failure.js';
@@ -30,7 +30,7 @@ export function createEngineVoice(
     settings: initialSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
     control: initialControl = DEFAULT_AUDIO_SETTINGS.control,
   }: {
-    sound?: CompiledEngineSound;
+    sound?: VehicleEngineSound;
     settings?: ExhaustSettings;
     control?: ControlSettings;
   } = {},
@@ -50,14 +50,14 @@ export function createEngineVoice(
   const requireProcessor = watchProcessor(exhaust, 'engine sound');
   let active = initialSound ? { sound: initialSound, settings, control } : null;
   let pending: {
-    sound: CompiledEngineSound;
+    sound: VehicleEngineSound;
     settings: ExhaustSettings;
     control: ControlSettings;
     at: number;
   } | null = null;
   const same = (
-    entry: { sound: CompiledEngineSound; settings: ExhaustSettings; control: ControlSettings } | null,
-    sound: CompiledEngineSound,
+    entry: { sound: VehicleEngineSound; settings: ExhaustSettings; control: ControlSettings } | null,
+    sound: VehicleEngineSound,
   ): boolean =>
     entry?.sound === sound &&
     sameExhaustSettings(entry.settings, settings) &&
@@ -65,7 +65,7 @@ export function createEngineVoice(
   // The last shift sequence heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
   return {
-    update(state: VehicleAudioObservation, sound: CompiledEngineSound, gain = 1): void {
+    update(state: VehicleAudioObservation, sound: VehicleEngineSound, gain = 1): void {
       requireProcessor();
       const now = context.currentTime;
       const changed = !same(active, sound);

@@ -4,6 +4,11 @@ export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
 });
+// The cylinder's blowdown: its gas when the exhaust valve opens and its valve's discharge coefficient.
+export const BLOWDOWN_REFERENCE = Object.freeze({
+  temperatureK: 1100, // cylinder gas at exhaust valve opening; petrol engines typically 1000-1300 K
+  dischargeCoefficient: 0.65, // exhaust valve flow coefficient; measured exhaust valves 0.6-0.7 at working lift
+});
 const AIR = Object.freeze({ gamma: 1.4, gasConstant: 287, prandtl: 0.71 });
 const waveSpeed = Math.round(Math.sqrt(AIR.gamma * AIR.gasConstant * REFLECTION_REFERENCE.temperatureK));
 // Sutherland air viscosity (Pa s), then ideal-gas density. No running gas simulation.
@@ -24,6 +29,28 @@ export const OUTLET_REFLECTION = -1;
  */
 export function openEndCutoffHz(diameter: number): number {
   return waveSpeed / (Math.PI * diameter);
+}
+
+/**
+ * The cutoff of a tube of `diameter`'s first transverse mode, `1.841*c/(pi*D)`: above it the one-dimensional pipe
+ * model no longer holds.
+ */
+export function transverseCutoffHz(diameter: number): number {
+  return (1.841 * waveSpeed) / (Math.PI * diameter);
+}
+
+// Choked-flow coefficient psi* = sqrt(gamma)*(2/(gamma+1))^((gamma+1)/(2*(gamma-1))), and the cylinder gas's sound speed.
+const CHOKED_FLOW = Math.sqrt(AIR.gamma) * (2 / (AIR.gamma + 1)) ** ((AIR.gamma + 1) / (2 * (AIR.gamma - 1)));
+const blowdownSoundSpeed = Math.sqrt(AIR.gamma * AIR.gasConstant * BLOWDOWN_REFERENCE.temperatureK);
+
+/**
+ * The blowdown time constant `V/(A*c*psi*)` of a cylinder of `volume` (m^3) emptying through the narrower of its valve's
+ * effective area (`dischargeCoefficient` times the area of `valveDiameter`) and its primary of `primaryDiameter`.
+ */
+export function blowdownSeconds(volume: number, valveDiameter: number, primaryDiameter: number): number {
+  const valveArea = (BLOWDOWN_REFERENCE.dischargeCoefficient * Math.PI * valveDiameter ** 2) / 4;
+  const primaryArea = (Math.PI * primaryDiameter ** 2) / 4;
+  return volume / (Math.min(valveArea, primaryArea) * blowdownSoundSpeed * CHOKED_FLOW);
 }
 
 /** Log-spaced frequencies from 20 Hz to Nyquist at which a tube's wall-loss filter is fitted. */
@@ -70,16 +97,13 @@ export function wallLossPole(length: number, diameter: number, rate: number): nu
  */
 export interface ExhaustSettings {
   readonly closedExcitation: number;
-  readonly outputCutoffHz: number;
   readonly pulseVariation: number;
   readonly pumpingExcitation: number;
   readonly pulseRiseMs: number;
-  readonly pulseDecayDegrees: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
   readonly popStrength: number;
-  readonly dcHz: number;
   readonly clipCeiling: number;
 }
 
@@ -92,18 +116,23 @@ interface SettingRange {
 export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, SettingRange>> = Object.freeze({
   // Excitation divides the rise time, so its least value is one control step, never zero.
   closedExcitation: Object.freeze({ min: 0.01, max: 1, step: 0.01 }),
-  outputCutoffHz: Object.freeze({ min: 100, max: 12000, step: 100 }),
   pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
   pumpingExcitation: Object.freeze({ min: 0.01, max: 0.5, step: 0.01 }),
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
-  pulseDecayDegrees: Object.freeze({ min: 2, max: 360, step: 1 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   popStrength: Object.freeze({ min: 0, max: 1, step: 0.05 }),
-  dcHz: Object.freeze({ min: 5, max: 60, step: 1 }),
   clipCeiling: Object.freeze({ min: 0.2, max: 1, step: 0.01 }),
 });
+
+/**
+ * The listening stage's smooth, bounded saturation `ceiling*x/(1+|x|)`: small-signal gain and asymptotic bound
+ * `ceiling`, with no table clipping or unconstrained feedback gain.
+ */
+export function softClip(x: number, ceiling: number): number {
+  return (ceiling * x) / (1 + Math.abs(x));
+}
 
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
   const settings = { ...DEFAULT_AUDIO_SETTINGS.exhaust };

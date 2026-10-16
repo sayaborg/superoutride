@@ -11,12 +11,6 @@ const CONTROLS = [
     'The share of excitation kept at closed throttle. A sound-design setting that changes pulse strength and rise; not measured combustion pressure.',
   ],
   [
-    'outputCutoffHz',
-    'Final LPF (muffler)',
-    'Hz',
-    'First-order LPF after the soft clip, about −6 dB/oct. A tone adjustment independent of the reflected waves; not a measured muffler response.',
-  ],
-  [
     'pulseVariation',
     'Pulse variation',
     '',
@@ -33,12 +27,6 @@ const CONTROLS = [
     'Pulse rise',
     'ms',
     'The rise at full excitation, shared by every vehicle. An absolute time independent of engine speed, smoothed in two stages to prevent clicks. Smaller is sharper; it softens at low load.',
-  ],
-  [
-    'pulseDecayDegrees',
-    'Pulse decay (crank angle)',
-    '°',
-    'The decay shared by every vehicle. Defined in crank angle, so the tail is longer at low speed and shorter at high speed. At 3000 rpm, 18° = 1 ms.',
   ],
   [
     'blipOpening',
@@ -63,12 +51,6 @@ const CONTROLS = [
     'Afterfire strength',
     '',
     'The strength of the pop pulse injected at the collector. No unburnt-fuel or temperature state is kept.',
-  ],
-  [
-    'dcHz',
-    'Output DC removal',
-    'Hz',
-    'The cutoff frequency of the output DC removal. An implementer default, not chosen by the owner by ear.',
   ],
   [
     'clipCeiling',

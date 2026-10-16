@@ -15,7 +15,7 @@ import type { WallSound, WallSoundRecords } from './wall-sounds.js';
 import type { ScrapeSettings } from './wall-scrape-acoustics.js';
 import { createRecordingPlayback, type RecordingPlayback, type PlaybackOptions } from './recording-playback.js';
 import type { SurfaceSound, TireSurfaceSounds } from './surface-sounds.js';
-import type { CompiledEngineSound } from './engine-sound.js';
+import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 
 /** Physical world position in meters. */
@@ -150,7 +150,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     update(
       player: VehicleAudioEmitter,
       rivals: readonly VehicleAudioEmitter[],
-      soundOf: (vehicleId: string) => CompiledEngineSound,
+      soundOf: (vehicleId: string) => VehicleEngineSound,
       rubs: readonly WallRubObservation[],
     ): void {
       playerEngine.update(player, soundOf(player.vehicleId));

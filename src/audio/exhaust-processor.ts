@@ -1,8 +1,7 @@
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
-import type { ExhaustSettings } from './exhaust-acoustics.js';
+import { softClip, type ExhaustSettings } from './exhaust-acoustics.js';
 import type { ControlSettings } from './audio-control-policy.js';
-import type { EngineSound } from './engine-sound.js';
-import { compileEngineSound } from './engine-sound.js';
+import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import { ProcessingMeter } from './processing-meter.js';
 import { WorkletRest } from './worklet-rest.js';
 declare const sampleRate: number;
@@ -11,6 +10,7 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 
 class ExhaustProcessor extends AudioWorkletProcessor {
   private engine: ExhaustWaveguide | null = null;
+  private ceiling = 1;
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
@@ -25,7 +25,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   }
   constructor(options?: {
     processorOptions?: {
-      sound: EngineSound;
+      sound: VehicleEngineSound;
       settings: ExhaustSettings;
       control: ControlSettings;
     };
@@ -48,9 +48,10 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       }
     };
   }
-  /** The voice sends admitted settings, used as given. */
-  private configure(sound: EngineSound, settings: ExhaustSettings, control: ControlSettings): void {
-    this.engine = new ExhaustWaveguide(compileEngineSound(sound), sampleRate, settings, control);
+  /** The voice sends an admitted sound and admitted settings, used as given. */
+  private configure(sound: VehicleEngineSound, settings: ExhaustSettings, control: ControlSettings): void {
+    this.engine = new ExhaustWaveguide(sound, sampleRate, settings, control);
+    this.ceiling = settings.clipCeiling;
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
     if (!this.running) return false;
@@ -72,7 +73,9 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     const fuelCut = parameters.fuelCut![0]! >= 0.5;
     // Overrun reads the observed opening before the blip, so a blip suppresses pops.
     const overrun = opening === 0 && !fuelCut;
-    for (let i = 0; i < output.length; i++) output[i] = this.engine.sample(rpm, load, fuelCut, overrun);
+    // The exhaust's pressure, then the listening stage's soft clip.
+    for (let i = 0; i < output.length; i++)
+      output[i] = softClip(this.engine.sample(rpm, load, fuelCut, overrun), this.ceiling);
     this.meter.end(started, output.length);
     return true;
   }

@@ -69,7 +69,7 @@ excitation floor, `closedExcitation`: weak combustion, distinct from fuel cut. W
 fuel cut, firings sound with the `pumpingExcitation` strength and no variation, as exhaust-valve blowdown
 without combustion. At the limiter the physical latch alternates between its clear and entry thresholds (1.03 and 1.05 times redline),
 so combustion stops and resumes in turn and is heard as the limiter's interruption. Stronger excitation,
-pumping included, shortens pulse rise time, while decay time is independent of load.
+pumping included, shortens pulse rise time, while decay time is independent of load and RPM.
 
 At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xorshift32 `r` in `[-1,1)`.
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
@@ -96,10 +96,11 @@ pulse area `strength*decayTime`, while the pressure onset starts with zero slope
 at firing would be heard as a click.
 
 `riseTime` is `pulseRiseMs` divided by excitation, in absolute time: the wavefront is set by the pressure
-ratio when the valve opens and does not depend on RPM. `decayTime` is the duration of the `pulseDecayDegrees`
-crank angle, `D/(6*rpm)` seconds at the smoothed RPM, recomputed every sample: blowdown lasts a crank angle, so
-the tail is longer at low RPM; that conversion is its only derivation. Firing resets `p` and keeps `r1` and `r2`
-continuous. Exact exponential evolution across fractional firing times supplies the sample-average pulse to the
+ratio when the valve opens and does not depend on RPM. `decayTime` is the cylinder's blowdown time constant
+(`pulseDecaySeconds`, [derived](#derived-values)), also in absolute time: the time the cylinder's gas takes to leave
+through its valve and primary, whatever the RPM, so in crank angle the tail spans 6–10° at idle and 44–74° at redline
+on the delivered vehicles. Cylinders with equal decay times share the per-sample pulse weights. Firing resets `p` and
+keeps `r1` and `r2` continuous. Exact exponential evolution across fractional firing times supplies the sample-average pulse to the
 pipe.
 
 The exhaust is a graph of junctions and tubes. Junctions are numbered from 0; each cylinder's primary ends at
@@ -134,20 +135,26 @@ native-rate nonlinear stages define the model's temporal and spectral resolution
 ## Output conditioning
 
 ```text
-Collector mix -> DC removal (dcHz) -> soft clipping -> final low-pass filter
+Collector mix -> DC removal (dcHz) -> low-pass (outputCutoffHz)       physics: the exhaust's pressure
+              -> soft clipping (clipCeiling)                          listening
               -> voice/master gain -> compressor
 ```
 
-Soft clipping uses `y = clipCeiling*x/(1+abs(x))`, with small-signal gain and asymptotic bounds `clipCeiling`.
-The final filter uses `tone += a*(y-tone)`, where `a = 1-exp(-2*pi*outputCutoffHz/sampleRate)`.
-It is independent of the boundary return filter. The master compressor supplies envelope-based
-compression. Output depends on the engine sound, RPM, excitation and fixed mix gains.
+The DC removal and the low-pass are the exhaust's own: `dc += a*(x-dc)` and `tone += b*(x-dc-tone)` with
+`a = 1-exp(-2*pi*dcHz/sampleRate)` and `b = 1-exp(-2*pi*outputCutoffHz/sampleRate)`, both [derived](#derived-values):
+the DC goes and the idle's fundamental stays, and the output keeps the band in which the one-dimensional pipes hold.
+The waveguide returns this pressure; the exhaust processor then applies the listening stage, soft clipping
+`y = clipCeiling*x/(1+abs(x))` (`softClip`), with small-signal gain and asymptotic bounds `clipCeiling`. The
+smooth saturation's added components are small and fall off steeply above the signal, so they are not filtered again.
+The master compressor supplies envelope-based compression. Output depends on the engine sound, the vehicle's engine,
+RPM, excitation and fixed mix gains.
 
 ## Derived values
 
 Derived values follow from physics and are never DEV settings: the wave speed (`ACOUSTICS.waveSpeed`, 480 m/s),
-each tube's wall-loss filter and open-end cutoff, the open-end reflection (values in
-[Calibration](calibration.md#derived-values)), the rival inverse-distance law and the rival pan geometry.
+each tube's wall-loss filter and open-end cutoff, the open-end and valve-end reflections, each vehicle's output
+low-pass, DC removal and pulse decay (values in [Calibration](calibration.md#derived-values)), the rival
+inverse-distance law and the rival pan geometry.
 [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives the pipe values under stated physical assumptions
 (`REFLECTION_REFERENCE`): 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)` and `Pr=0.71`; each tube's radius
 `a` is its document's.
@@ -160,6 +167,24 @@ whose pole `p` is chosen once per tube when the sound is assembled: the least-sq
 `-alpha(f)*L` in dB at 64 log-spaced frequencies from 20 Hz to Nyquist. On the delivered sounds at 48 kHz the fit's
 RMS error is at most 0.93 dB (GOLF GTI 16V's 3.15 m pipe; 1.6 dB at worst, at Nyquist) and 0.02–0.6 dB elsewhere.
 
+Three values follow from a vehicle and its engine sound together. `compileVehicleEngineSound`
+([vehicle engine sound](../src/audio/vehicle-engine-sound.ts)) computes them once where the vehicle catalog pairs a
+vehicle's mechanics with its listing's sound (`createVehicleDefinition`), and the vehicle's `sound` carries them; when
+DEV's ENGINE SOUNDS panel changes a sound, the audio lifetime computes them again for each vehicle using it:
+
+- The output low-pass `outputCutoffHz = 1.841*c/(pi*D)`, the first transverse mode of `D`, the widest open-end pipe's
+  diameter (the lowest such cutoff): above it the one-dimensional pipe model does not hold.
+- The DC removal `dcHz = idleRpm/60 * cylinders/cycleRevolutions / 2`, half the idle firing frequency.
+- Each cylinder's pulse decay `pulseDecaySeconds = V_cyl/(A_eff*c_cyl*psi*)`: the cylinder's volume at bottom dead
+  centre `V_cyl = displacement/cylinders * r/(r-1)` (`r` the mechanics' `compressionRatio`), leaving through
+  `A_eff = min(C_d*A_valve, A_primary)`, the narrower of the valve's effective area and the primary, at the cylinder
+  gas's sound speed `c_cyl = sqrt(gamma*R*T_evo)` and the choked-flow coefficient
+  `psi* = sqrt(gamma)*(2/(gamma+1))^((gamma+1)/(2*(gamma-1)))`.
+
+The pulse decay's two assumptions stand beside the gas assumptions (`BLOWDOWN_REFERENCE`): the cylinder gas's
+temperature when the exhaust valve opens, `T_evo = 1100 K` (petrol engines are typically 1000–1300 K), and the
+exhaust valve's discharge coefficient `C_d = 0.65` (measured exhaust valves give 0.6–0.7 at working lift).
+
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
 TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`), IMPACT (`ImpactSettings`)
 and the tire groups UNIFIED
@@ -170,7 +195,7 @@ and the tire groups UNIFIED
 ## Audio document
 
 The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 4 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+version 5 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
 `unified`, `scrape`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
 number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission

@@ -1,4 +1,4 @@
-import type { EngineSound } from './engine-sound.js';
+import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 
 import { ACOUSTICS, OUTLET_REFLECTION, openEndCutoffHz, wallLossPole } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
@@ -113,18 +113,23 @@ export class ExhaustWaveguide {
   private tone = 0;
   // Reused cascade weights, so firing events do not allocate.
   private readonly weights = new Float64Array(3);
-  // Per-sample pulse weights shared by every pulse state; set at the start of each sample.
-  private decayRate = 0;
-  private decayStep = 0;
-  private decayAverage = 0;
+  // Cylinders of equal blowdown share a decay group: its rate per sample, its sample-average decay and its weights.
+  private readonly cylinderGroup: Int32Array;
+  private readonly decayRates: Float64Array;
+  private readonly decayAverages: Float64Array;
+  // Per-sample pulse weights of each decay group; set at the start of each sample.
+  private readonly decaySteps: Float64Array;
+  private readonly firstCouplings: Float64Array;
+  private readonly secondCouplings: Float64Array;
+  // A pop's decay group: that of the cylinder that fired it.
+  private readonly popGroup: Int32Array;
+  // Per-sample rise weights shared by every pulse state.
   private riseRate = 0;
   private stageStep = 0;
   private stageLink = 0;
-  private firstCoupling = 0;
-  private secondCoupling = 0;
 
   constructor(
-    private readonly sound: EngineSound,
+    private readonly sound: VehicleEngineSound,
     private readonly rate: number,
     settings: ExhaustSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
     control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control,
@@ -177,10 +182,20 @@ export class ExhaustWaveguide {
       if (to !== null) ports[to]!++;
     }
     this.popShare = Float64Array.from(ports, (count) => 1 / count);
+    this.popGroup = new Int32Array(groups);
+    // Blowdown lasts an absolute time, whatever the RPM: each decay rate is constant.
+    const rates = sound.pulseDecaySeconds.map((seconds) => 1 / (seconds * rate));
+    const distinct = [...new Set(rates)];
+    this.cylinderGroup = Int32Array.from(rates, (decay) => distinct.indexOf(decay));
+    this.decayRates = Float64Array.from(distinct);
+    this.decayAverages = Float64Array.from(distinct, (decay) => -Math.expm1(-decay) / decay);
+    this.decaySteps = new Float64Array(distinct.length);
+    this.firstCouplings = new Float64Array(distinct.length);
+    this.secondCouplings = new Float64Array(distinct.length);
     this.openNormalization = Math.sqrt(pipes.filter(({ to }) => to === null).length);
     this.smoothing = 1 - Math.exp(-1 / (control.observationSeconds * rate));
-    this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.dcHz) / rate);
-    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * this.settings.outputCutoffHz) / rate);
+    this.dcCoefficient = 1 - Math.exp((-2 * Math.PI * sound.dcHz) / rate);
+    this.toneCoefficient = 1 - Math.exp((-2 * Math.PI * sound.outputCutoffHz) / rate);
   }
 
   /** One seeded xorshift32 draw in [-1, 1); called only at firing events. */
@@ -201,16 +216,17 @@ export class ExhaustWaveguide {
     riseSecond: Float64Array,
     emission: Float64Array,
     i: number,
+    group: number,
   ): void {
     const p = pulse[i]!;
     const r1 = rise[i]!;
     const r2 = riseSecond[i]!;
-    const nextFirst = this.stageStep * r1 + this.firstCoupling * p;
-    const nextSecond = this.stageStep * r2 + this.stageLink * r1 + this.secondCoupling * p;
-    emission[i] = this.decayAverage * p - (nextFirst - r1 + nextSecond - r2) / this.riseRate;
+    const nextFirst = this.stageStep * r1 + this.firstCouplings[group]! * p;
+    const nextSecond = this.stageStep * r2 + this.stageLink * r1 + this.secondCouplings[group]! * p;
+    emission[i] = this.decayAverages[group]! * p - (nextFirst - r1 + nextSecond - r2) / this.riseRate;
     rise[i] = nextFirst;
     riseSecond[i] = nextSecond;
-    pulse[i] = p * this.decayStep;
+    pulse[i] = p * this.decaySteps[group]!;
   }
 
   /** Fire an advanced pulse state `elapsed` samples before the sample end; both rise stages stay continuous. */
@@ -220,32 +236,32 @@ export class ExhaustWaveguide {
     riseSecond: Float64Array,
     emission: Float64Array,
     i: number,
+    group: number,
     strength: number,
     elapsed: number,
   ): void {
     const weights = this.weights;
-    pulseCascade(this.decayRate, this.riseRate, elapsed, weights);
+    const decayRate = this.decayRates[group]!;
+    pulseCascade(decayRate, this.riseRate, elapsed, weights);
     const decay = weights[0]!;
     const jump = strength - pulse[i]! / decay;
     rise[i]! += jump * weights[1]!;
     riseSecond[i]! += jump * weights[2]!;
     emission[i]! +=
-      jump * (-Math.expm1(-this.decayRate * elapsed) / this.decayRate - (weights[1]! + weights[2]!) / this.riseRate);
+      jump * (-Math.expm1(-decayRate * elapsed) / decayRate - (weights[1]! + weights[2]!) / this.riseRate);
     pulse[i] = strength * decay;
   }
 
-  /** One acoustic step at the supplied internal rate, without allocation. */
+  /**
+   * One acoustic step at the supplied internal rate, without allocation: the exhaust's pressure at the pickup, DC
+   * removed and kept below the widest outlet's first transverse mode.
+   */
   sample(targetRpm: number, targetLoad: number, fuelCut: boolean, overrun: boolean): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
     const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
     const previous = this.phase;
     this.phase = (this.phase + step) % 1;
-    // Crank degrees to samples at the smoothed RPM: D degrees last D / (6 * rpm) seconds.
-    const samplesPerDegree = this.rate / (6 * this.rpm);
-    const decayRate = 1 / (this.settings.pulseDecayDegrees * samplesPerDegree);
-    this.decayRate = decayRate;
-    this.decayAverage = -Math.expm1(-decayRate) / decayRate;
     // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
     // Fuel cut is a boolean observation, never smoothed: firings pump without combustion.
     const excitation = fuelCut
@@ -257,19 +273,22 @@ export class ExhaustWaveguide {
     this.riseRate = riseRate;
     this.stageStep = Math.exp(-riseRate);
     this.stageLink = riseRate * this.stageStep;
-    // Prepare the one-sample cascade weights once for all pulse states.
-    pulseCascade(decayRate, riseRate, 1, this.weights);
-    this.decayStep = this.weights[0]!;
-    this.firstCoupling = this.weights[1]!;
-    this.secondCoupling = this.weights[2]!;
+    // Prepare the one-sample cascade weights once for each decay group.
+    for (let group = 0; group < this.decayRates.length; group++) {
+      pulseCascade(this.decayRates[group]!, riseRate, 1, this.weights);
+      this.decaySteps[group] = this.weights[0]!;
+      this.firstCouplings[group] = this.weights[1]!;
+      this.secondCouplings[group] = this.weights[2]!;
+    }
     this.sums.fill(0);
     for (let bank = 0; bank < this.popPulse.length; bank++)
-      this.advancePulse(this.popPulse, this.popRise, this.popRiseSecond, this.popEmission, bank);
+      this.advancePulse(this.popPulse, this.popRise, this.popRiseSecond, this.popEmission, bank, this.popGroup[bank]!);
     for (let i = 0; i < this.pulse.length; i++) {
       const offset = this.sound.firingPhases[i]!;
       const crossed =
         this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
-      this.advancePulse(this.pulse, this.rise, this.riseSecond, this.emission, i);
+      const group = this.cylinderGroup[i]!;
+      this.advancePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, group);
       if (crossed) {
         let strength = excitation;
         // Variation is combustion spread, so pumping pulses have none.
@@ -278,18 +297,22 @@ export class ExhaustWaveguide {
           strength = Math.max(0, excitation + this.settings.pulseVariation * this.draw());
         // Resolve the event inside this sample; preserve the continuous rise states at the reset.
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
-        this.firePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, strength, elapsed);
+        this.firePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, group, strength, elapsed);
         // During overrun a separate draw decides a pop; the combustion pulse above still sounds.
-        if (overrun && (this.draw() + 1) / 2 < this.settings.popProbability)
+        if (overrun && (this.draw() + 1) / 2 < this.settings.popProbability) {
+          const bank = this.banks[i]!;
+          this.popGroup[bank] = group;
           this.firePulse(
             this.popPulse,
             this.popRise,
             this.popRiseSecond,
             this.popEmission,
-            this.banks[i]!,
+            bank,
+            group,
             this.settings.popStrength,
             elapsed,
           );
+        }
       }
       this.sums[this.banks[i]!]! += this.primaryShare[i]! * this.forward[i]!.read();
     }
@@ -340,11 +363,8 @@ export class ExhaustWaveguide {
     }
     const raw = exhaust / this.openNormalization;
     this.dc += this.dcCoefficient * (raw - this.dc);
-    // Smooth, bounded saturation; no table clipping or unconstrained feedback gain.
-    const x = raw - this.dc;
-    const clipped = (this.settings.clipCeiling * x) / (1 + Math.abs(x));
-    // The final one-pole also attenuates high frequencies generated by saturation.
-    this.tone += this.toneCoefficient * (clipped - this.tone);
+    // The pipes' one-dimensional model holds below the widest outlet's first transverse mode: keep that band.
+    this.tone += this.toneCoefficient * (raw - this.dc - this.tone);
     return this.tone;
   }
 }

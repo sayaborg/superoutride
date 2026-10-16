@@ -20,13 +20,9 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     // pressure ratio when the valve opens, not by RPM. The kernel splits it into two equal stages so the pulse
     // onset is C1 (a slope discontinuity at firing is heard as a click) with the same mean delay.
     pulseRiseMs: 0.2,
-    // No derivation; chosen by listening. Decay in crank angle, because blowdown lasts a crank angle; the only
-    // derivation is the conversion D / (6 * rpm) seconds. Base strength is fixed at 1.
-    pulseDecayDegrees: 90,
     pulseVariation: 0.2, // No derivation; chosen by listening. Absolute fraction of full excitation.
     // No derivation; chosen by listening. Firing strength during fuel cut: blowdown without combustion.
     pumpingExcitation: 0.06,
-    outputCutoffHz: 7300, // No derivation; chosen by listening. Post-clip listening filter.
     // No derivation; chosen by listening. A downshift's rev-matching opening peak and its decay time; the
     // physical shift is instantaneous.
     blipOpening: 0.7,
@@ -35,7 +31,6 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     // the collector junction; the pop rate is proportional to RPM.
     popProbability: 0.12,
     popStrength: 0.5,
-    dcHz: 18, // No derivation; chosen by listening. Output DC-removal corner.
     clipCeiling: 0.65, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
   }),
   unified: Object.freeze<UnifiedSettings>({

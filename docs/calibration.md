@@ -176,14 +176,28 @@ vehicle's rated figures where they are known (D's torque is rated power / ω); B
 descriptions of the engine; A and E are estimates, with E low enough that D stays the power peak
 ([Vehicle physics](vehicle-physics.md#wheel-and-powertrain) admits the curve). Upshift occurs at redline. Downshift
 occurs when the next lower ratio would place the engine at or below D's RPM. Shift RPM thresholds are not vehicle values.
-Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless.
+Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless. The compression
+ratio is the geometric ratio from references; physics does not read it, and the engine sound's blowdown does
+([Audio](audio.md#derived-values)):
+
+| Vehicle            | Compression ratio |
+| ------------------ | ----------------- |
+| TESTAROSSA         | 9.2               |
+| 911_TURBO_3_3      | 7.0               |
+| CORVETTE_C4        | 9.5               |
+| DELTA_HF_INTEGRALE | 8.0               |
+| GOLF_GTI_16V       | 10.0              |
+| VFR750R            | 11.0              |
+| FXRT_SPORT_GLIDE   | 8.5               |
+| R80_GS_PARIS_DAKAR | 8.2               |
+| PX200E_ARCOBALENO  | 9.8               |
 
 ## Exhaust topologies
 
 [Engine-sound documents](../content/engine-sounds/) write each exhaust from the valves to the tailpipes, every tube by
 its length and internal diameter; each document's `metadata.note` names its references. Values from references are
 the valve sizes, lifts and timings (FIA homologation forms, part data, shop manuals as quoted), pipe outer diameters
-(replacement parts, homologation forms) and the manifolds' forms; the others (most pipe lengths,
+(replacement parts, homologation forms), the manifolds' forms and the compression ratios; the others (most pipe lengths,
 turbine throats and some valve dimensions) are estimates, chosen physically plausible. Silencer, catalyst and
 collector-box bodies are straight pipes of their inlet diameter, a run of equal pipes is one pipe, and turbochargers'
 wastegates are not represented. DEV's ENGINE SOUNDS panel changes the lengths and diameters
@@ -207,7 +221,8 @@ Audio values are either [derived](#derived-values) or DEV listening settings. Ev
 implementer's initial value, not a value the owner chose by listening; the defaults are
 [`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts) and the game reads the
 [audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
-supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
+supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time; the pulse decay, the output low-pass and
+the DC removal are [derived](#derived-values).
 
 | Key                 | Meaning                               | Default | Accepted / step    |
 | ------------------- | ------------------------------------- | ------- | ------------------ |
@@ -215,13 +230,10 @@ supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute ti
 | `pulseVariation`    | Absolute event-strength variation     | 0.20    | 0–0.40 / 0.01      |
 | `pumpingExcitation` | Firing strength during fuel cut       | 0.06    | 0.01–0.50 / 0.01   |
 | `pulseRiseMs`       | Full-excitation pulse rise time       | 0.2 ms  | 0.05–2 ms / 0.01   |
-| `pulseDecayDegrees` | Pulse decay, crank angle              | 90°     | 2–360° / 1°        |
-| `outputCutoffHz`    | Final listening-filter cutoff         | 7300 Hz | 100–12000 Hz / 100 |
 | `blipOpening`       | Downshift blip opening peak           | 0.70    | 0–1 / 0.01         |
 | `blipDecaySeconds`  | Downshift blip decay time             | 0.08 s  | 0.02–0.30 s / 0.01 |
 | `popProbability`    | Overrun pop probability per firing    | 0.12    | 0–1 / 0.01         |
 | `popStrength`       | Overrun pop pulse strength            | 0.50    | 0–1 / 0.05         |
-| `dcHz`              | Output DC-removal corner              | 18 Hz   | 5–60 Hz / 1        |
 | `clipCeiling`       | Soft-clip bound and small-signal gain | 0.65    | 0.2–1 / 0.01       |
 
 These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
@@ -415,6 +427,10 @@ change them.
 | Open-end return cutoff | `c/(2*pi*a)` at the outlet pipe's radius `a`        | per tube     |
 | Valve-end reflection   | `(A_p-A_v)/(A_p+A_v)` over the valve's opening      | per cylinder |
 | Wall loss              | Kirchhoff `alpha(f)` at the tube's radius, one pole | per tube     |
+| Output low-pass        | `1.841*c/(pi*D)`, `D` the widest outlet pipe        | 4.9–15.6 kHz |
+| DC removal             | `idleRpm/60 * cylinders/cycleRevolutions / 2`       | 7.1–50 Hz    |
+| Pulse decay            | `V_cyl/(A_eff*c_cyl*psi*)`                          | 0.84–2.37 ms |
+| `BLOWDOWN_REFERENCE`   | Cylinder gas at exhaust opening; valve `C_d`        | 1100 K; 0.65 |
 | Rival gain             | Inverse distance, unity within `referenceMeters`    | —            |
 | Rival pan              | Lateral displacement / `max(panMinimumMeters, d)`   | —            |
 

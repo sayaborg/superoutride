@@ -78,7 +78,8 @@ async function startPage(): Promise<void> {
     const content = await browserContent();
     const materials = await loadSurfaceMaterials(content);
     const materialIds = materials.source.materials.map((material) => material.id);
-    const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+    const engineSounds = await loadEngineSounds(content);
+    const definitions = await loadVehicleDefinitions(content, engineSounds);
     const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
     // `dev=1` is read here only. Without it no DEV panel, DEV HUD or DEV control is built.
@@ -103,7 +104,12 @@ async function startPage(): Promise<void> {
     let run: Run | null = null;
     const shell = createBrowserDrivingShell(
       vehicles,
-      { materialIds, surfaces: await loadSurfaceSounds(content), walls: await loadWallSounds(content) },
+      {
+        materialIds,
+        surfaces: await loadSurfaceSounds(content),
+        walls: await loadWallSounds(content),
+        engines: engineSounds,
+      },
       await loadAudioSettings(content),
       player,
       (id) => content.bytes('recording', id),

@@ -24,6 +24,7 @@ import type { SteeringReference } from './steering-rule.js';
 import type { CompiledDrivingDefinition } from './compiled-driving-definition.js';
 import type { CompiledEngineSound } from '../audio/engine-sound.js';
 import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
+import { compileVehicleEngineSound, type VehicleEngineSound } from '../audio/vehicle-engine-sound.js';
 
 export type VehicleForm = 'car' | 'bike';
 /** The longest engine label, which SELECT VEHICLE shows before the displacement. */
@@ -49,7 +50,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 2;
+export const VEHICLE_MECHANICS_VERSION = 3;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -91,8 +92,9 @@ export interface CompiledVehicleListing {
 }
 /**
  * One vehicle: its mechanics and listing documents, paired by identifier in the catalog, each fact published once. The
- * documents hold the authored facts (form and metadata are read from `listing`); `compiledVehicle`, `spriteSet`,
- * `steeringPicture` and `sound` are what the mechanics compile to and what the listing's IDs name.
+ * documents hold the authored facts (form and metadata are read from `listing`); `compiledVehicle`, `spriteSet` and
+ * `steeringPicture` are what the mechanics compile to and what the listing's IDs name, and `sound` is the listing's
+ * engine sound as this vehicle's engine sounds it.
  */
 export interface CompiledVehicleDefinition {
   readonly mechanics: VehicleMechanicsDocument;
@@ -101,7 +103,7 @@ export interface CompiledVehicleDefinition {
   readonly spriteSet: VehicleSpriteSet;
   readonly steeringPicture: HudPicture;
   readonly compiledVehicle: CompiledVehicle;
-  readonly sound: CompiledEngineSound;
+  readonly sound: VehicleEngineSound;
 }
 const mechanicalNumbers = [
   'overallLength',
@@ -128,7 +130,14 @@ const mechanicalNumbers = [
   'rearBrakeTorqueMax',
   'quadraticDrag',
 ] as const;
-const powertrainNumbers = ['displacementCc', 'cycle', 'idleRpm', 'redlineRpm', 'finalDriveRatio'] as const;
+const powertrainNumbers = [
+  'displacementCc',
+  'cycle',
+  'compressionRatio',
+  'idleRpm',
+  'redlineRpm',
+  'finalDriveRatio',
+] as const;
 
 /** The catalog supplies the vehicle's identifier (its file name and manifest ID) and delivered SHA-256. */
 export function compileVehicleMechanicsDocument(
@@ -299,7 +308,7 @@ export function compileVehicleListingDocument(
   });
 }
 
-/** Pair one vehicle's compiled mechanics and listing. */
+/** Pair one vehicle's compiled mechanics and listing: where the vehicle and its engine sound meet. */
 export function createVehicleDefinition(
   mechanics: CompiledVehicleMechanics,
   listing: CompiledVehicleListing,
@@ -311,7 +320,7 @@ export function createVehicleDefinition(
     spriteSet: listing.spriteSet,
     steeringPicture: listing.steeringPicture,
     compiledVehicle: mechanics.compiledVehicle,
-    sound: listing.sound,
+    sound: compileVehicleEngineSound(listing.sound, mechanics.compiledVehicle.powertrain),
   });
 }
 

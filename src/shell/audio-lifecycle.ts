@@ -1,6 +1,8 @@
 import { mountSoundControls } from './controls/sound-controls.js';
 import { createAudioScene } from '../audio/audio-scene.js';
 import type { CompiledEngineSound } from '../audio/engine-sound.js';
+import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
+import { compileVehicleEngineSound, type VehicleEngineSound } from '../audio/vehicle-engine-sound.js';
 import { resolveSurfaceSoundRecords, type CompiledSurfaceSounds, type SurfaceSound } from '../audio/surface-sounds.js';
 import { wallSoundRecords, type CompiledWallSounds, type WallSound } from '../audio/wall-sounds.js';
 import type { WallRubObservation } from '../audio/scrape-voice.js';
@@ -38,8 +40,9 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
- * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog. The DEV sound controls
- * start from the delivered audio document's `settings` and the delivered surface and wall `sounds`, whose records the
+ * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog; a sound the DEV ENGINE SOUNDS
+ * panel changed is sounded as each vehicle using it sounds it (`compileVehicleEngineSound`). The DEV sound controls
+ * start from the delivered audio document's `settings` and the delivered surface, wall and engine `sounds`, whose records the
  * scene numbers once (surfaces in the material catalog's order). The player record is the one owner of the MASTER, MUSIC and
  * EFFECTS volumes: `setVolume` changes them, the DEV stepper shows MASTER, and every sync sets the master gain and the
  * buses from the record. This lifecycle syncs the controls' values to the scene, owns the AudioContext and plays
@@ -51,6 +54,7 @@ export function createAudioLifecycle(
     readonly materialIds: readonly string[];
     readonly surfaces: CompiledSurfaceSounds;
     readonly walls: CompiledWallSounds;
+    readonly engines: EngineSoundCatalog;
   },
   settings: AudioSettings,
   player: PlayerRecord,
@@ -67,15 +71,23 @@ export function createAudioLifecycle(
   let failed = false;
   // DEV: the processing listener, applied to every scene built while it is set.
   let processingListener: ((report: ProcessingReport) => void) | null = null;
-  // Each vehicle's engine sound ID; the sounds it names are the DEV panel's, taken at each sync.
-  const engineSoundIds = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.sound.id]));
-  let engineSounds: Readonly<Record<string, CompiledEngineSound>> = Object.freeze(
-    Object.fromEntries(vehicles.map((vehicle) => [vehicle.sound.id, vehicle.sound])),
+  // The DEV panel's engine sounds by ID, taken at each sync; each vehicle sounds its own as its engine sounds it.
+  let engineSounds: Readonly<Record<string, CompiledEngineSound>> = sounds.engines;
+  const voiced = new Map(
+    vehicles.map((vehicle) => [
+      vehicle.compiledVehicle.id,
+      { vehicle, source: sounds.engines[vehicle.sound.id], sound: vehicle.sound },
+    ]),
   );
-  const soundOf = (vehicleId: string) => {
-    const sound = engineSounds[engineSoundIds.get(vehicleId) ?? ''];
-    if (!sound) throw new Error(`No engine sound for vehicle ${vehicleId}`);
-    return sound;
+  const soundOf = (vehicleId: string): VehicleEngineSound => {
+    const entry = voiced.get(vehicleId);
+    if (!entry) throw new Error(`No engine sound for vehicle ${vehicleId}`);
+    const source = engineSounds[entry.vehicle.sound.id]!;
+    if (source !== entry.source) {
+      entry.source = source;
+      entry.sound = compileVehicleEngineSound(source, entry.vehicle.compiledVehicle.powertrain);
+    }
+    return entry.sound;
   };
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
@@ -100,20 +112,14 @@ export function createAudioLifecycle(
   );
   // Numbered at once, so a material without a surface sound, or one without a material, fails the page at startup.
   surfaceRecords(sounds.surfaces.surfaces);
-  const controls = mountSoundControls(
-    document,
-    settings,
-    { ...sounds, engines: engineSounds },
-    player.settings.volumes.master,
-    {
-      onChange() {
-        unlock();
-        sync();
-      },
-      onVolume: (percent) => setVolume('master', percent),
-      onToggle: toggle,
+  const controls = mountSoundControls(document, settings, sounds, player.settings.volumes.master, {
+    onChange() {
+      unlock();
+      sync();
     },
-  );
+    onVolume: (percent) => setVolume('master', percent),
+    onToggle: toggle,
+  });
   /** The one way a volume changes: the player record keeps it and the scene follows. */
   function setVolume(name: VolumeName, percent: number): void {
     player.updateSettings({ volumes: { ...player.settings.volumes, [name]: percent } });
