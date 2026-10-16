@@ -1,62 +1,62 @@
 {
   "format": "superoutride.engine-loudness",
   "version": 1,
-  "procedureSha256": "a6d369f526a05556cef64c3e18f0cfb95bb74ed8a10a85eaf8866914e2757c88",
+  "procedureSha256": "2524317fd1450fd0391c77f958c2f55c226064efb0ece98bc96524f9d259f6e0",
   "audioSha256": "21cb791ef932102a2dee21af146255276f84630207d32e8f2522c98d8cfca1c5",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "50acf62e28b1f6a57a8fc62b3b83812109e33c7ecb2fecad1b6ace75ea8df5e9",
       "soundSha256": "89b6db40d417a6f076b6d72c6523091a4004233734fe902bb31ce76540300144",
-      "lufs": -16.710839821068962
+      "lufs": -18.68816464506906
     },
     {
       "vehicleId": "911_TURBO_3_3",
       "vehicleSha256": "e2d2acb86018c276f36f5a6b45454853cad96470fe21bf5235cbaad23f9fa6af",
       "soundSha256": "4e55809c2f1019ab430084226b1c1b2a794d1e395b86bfb1ddd6ac0a27fef1ef",
-      "lufs": -17.301028116934813
+      "lufs": -19.342899006355957
     },
     {
       "vehicleId": "CORVETTE_C4",
       "vehicleSha256": "aa12e3b967f9b84be286a7ee65d21d0546a14325b619714d62c1480a863f12a3",
       "soundSha256": "4fcac5f5666a6fd7c9b3a1c91252148c821e67b2634d4863eebd68493d5af693",
-      "lufs": -17.94993908696694
+      "lufs": -19.654382663106173
     },
     {
       "vehicleId": "GOLF_GTI_16V",
       "vehicleSha256": "d570964441f71d22b815c7f9236095fbdfda7e045b283c79c6dff55e60786032",
       "soundSha256": "9dfc89d322dec643ad9daf3651c38abb605dddcabba5f45aa584f0b112db18a4",
-      "lufs": -15.066925978576508
+      "lufs": -17.753909739791958
     },
     {
       "vehicleId": "DELTA_HF_INTEGRALE",
       "vehicleSha256": "71979c01e47916227ac45b7cfc19322d6bcecca37aa8af00850eb2b32d85d94b",
       "soundSha256": "f1fdc5171ee4af0687d885b11030a5dc1c734443502dd72cdab89ffe45e2c909",
-      "lufs": -15.042142269496784
+      "lufs": -17.9571020098553
     },
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "5c51cb016bb6e554a755654c7a62276f2cf02104aee3e12cdc1d510d2fe0e73f",
       "soundSha256": "b2bf0f54d60b73672339edd45954c914daa7adb1ff0601eeb7ef7903f2332213",
-      "lufs": -12.920696962608153
+      "lufs": -14.798445322975779
     },
     {
       "vehicleId": "R80_GS_PARIS_DAKAR",
       "vehicleSha256": "9ded95e23827d026cc76bb513e4a7e7b738c12a177d1837ae84edb5612ef700e",
       "soundSha256": "29d9c29bf05f8253805299aaea645e981d73c2d6cf99d4aea0681bfbee2fda54",
-      "lufs": -9.128079064317326
+      "lufs": -12.61849124084665
     },
     {
       "vehicleId": "FXRT_SPORT_GLIDE",
       "vehicleSha256": "785ac8bfd15640629c591016dfab332ce67937daf363271d3ae95c4100f14fa6",
       "soundSha256": "b1fc12e779254188111ef241ba3f957cfea160f0d71c2c01cbefd9906b2c1894",
-      "lufs": -6.650829164283439
+      "lufs": -7.9051657513367495
     },
     {
       "vehicleId": "PX200E_ARCOBALENO",
       "vehicleSha256": "684b14c8d49f002122e5a1d57daf261e0a37638b950f8d94abbe3f16d86f119d",
       "soundSha256": "c999d8aa8e7398969dab9a21b5dfdc5e6fe0700668b5449fe3db8642300e8d74",
-      "lufs": 3.9208122976063953
+      "lufs": 1.3975175844154606
     }
   ]
 }

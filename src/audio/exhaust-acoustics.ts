@@ -53,42 +53,73 @@ export function blowdownSeconds(volume: number, valveDiameter: number, primaryDi
   return volume / (Math.min(valveArea, primaryArea) * blowdownSoundSpeed * CHOKED_FLOW);
 }
 
-/** Log-spaced frequencies from 20 Hz to Nyquist at which a tube's wall-loss filter is fitted. */
-const WALL_LOSS_FIT = Object.freeze({ lowestHz: 20, points: 64, iterations: 80 });
+/** One traversal's Kirchhoff wall loss `alpha(f)*length` in nepers at `hz`, for a tube of `length` and `diameter`. */
+export function wallLossNepers(length: number, diameter: number, hz: number): number {
+  return (WALL_LOSS * Math.sqrt(hz) * length) / (diameter / 2);
+}
 
 /**
- * The pole `p` of the one-pole low-pass `y += (1 - p) * (x - y)`, unity at DC, whose magnitude in dB best fits one
- * traversal's wall loss `-alpha(f) * length` (least squares over log-spaced frequencies from 20 Hz to Nyquist at `rate`)
- * for a tube of `diameter`. Golden-section search over `p` in [0, 1); computed once per tube when a sound is assembled.
+ * The wall loss's shelves: one first-order shelf at each corner, `ratio` apart, the same for every tube; a shelf's zero
+ * is capped at `zeroCap` of the rate, the domain's edge for tubes beyond the data (no catalog tube reaches it).
  */
-export function wallLossPole(length: number, diameter: number, rate: number): number {
-  const { lowestHz, points, iterations } = WALL_LOSS_FIT;
-  const cosines = new Float64Array(points);
-  const targets = new Float64Array(points);
-  const decibelsPerNeper = 20 / Math.LN10;
-  for (let k = 0; k < points; k++) {
-    const hz = lowestHz * (rate / 2 / lowestHz) ** (k / (points - 1));
-    cosines[k] = Math.cos((2 * Math.PI * hz) / rate);
-    targets[k] = (-decibelsPerNeper * WALL_LOSS * Math.sqrt(hz) * length) / (diameter / 2);
+const WALL_LOSS_SHELVES = Object.freeze({ cornersHz: Object.freeze([20, 160, 1280, 10240]), ratio: 8, zeroCap: 0.49 });
+
+/**
+ * Each shelf's bilinear coefficients `[b0, b1, a1]` for one traversal of a tube of `length` and `diameter` at `rate`,
+ * targeting `ln|H(f)| = -kappa*sqrt(f)`: shelf k at corner `f_k` is `kappa*(sqrt(2)*ln(r)/pi)*sqrt(f_k)` nepers deep, the
+ * lowest also carrying the omitted shelves below it (times `sqrt(r)/(sqrt(r)-1)`).
+ */
+export function wallLossSections(length: number, diameter: number, rate: number): Float64Array {
+  const { cornersHz, ratio, zeroCap } = WALL_LOSS_SHELVES;
+  const kappa = wallLossNepers(length, diameter, 1);
+  const out = new Float64Array(cornersHz.length * 3);
+  const K = 2 * rate;
+  cornersHz.forEach((fp, k) => {
+    let depth = kappa * ((Math.SQRT2 * Math.log(ratio)) / Math.PI) * Math.sqrt(fp);
+    if (k === 0) depth *= Math.sqrt(ratio) / (Math.sqrt(ratio) - 1);
+    const fz = Math.min(fp * Math.exp(depth), zeroCap * rate);
+    const wp = K * Math.tan((Math.PI * fp) / rate),
+      wz = K * Math.tan((Math.PI * fz) / rate);
+    const g = wp / wz,
+      a0 = K + wp;
+    out[3 * k] = (g * (K + wz)) / a0; // b0
+    out[3 * k + 1] = (g * (wz - K)) / a0; // b1
+    out[3 * k + 2] = (wp - K) / a0; // a1
+  });
+  return out;
+}
+
+/** The wall loss's poles `a1_k` at `rate`: one per shelf, shared by every tube. */
+export function wallLossPoles(rate: number): Float64Array {
+  const K = 2 * rate;
+  return Float64Array.from(WALL_LOSS_SHELVES.cornersHz, (fp) => {
+    const wp = K * Math.tan((Math.PI * fp) / rate);
+    return (wp - K) / (K + wp);
+  });
+}
+
+/**
+ * A tube's wall-loss weights `[C, R_0, R_1, R_2, R_3]` at `rate`: its shelves in series, `prod (b0_k + b1_k w)/(1 +
+ * a1_k w)` with `w = z^-1`, as partial fractions `C + sum R_k/(1 + a1_k w)` over `wallLossPoles`. `C = prod b1_k/a1_k`;
+ * `R_k` is the residue at `w = -1/a1_k`.
+ */
+export function wallLossWeights(length: number, diameter: number, rate: number): Float64Array {
+  const s = wallLossSections(length, diameter, rate);
+  const shelves = WALL_LOSS_SHELVES.cornersHz.length;
+  const b0 = (k: number) => s[3 * k]!,
+    b1 = (k: number) => s[3 * k + 1]!,
+    a = (k: number) => s[3 * k + 2]!;
+  const out = new Float64Array(shelves + 1);
+  let direct = 1;
+  for (let k = 0; k < shelves; k++) direct *= b1(k) / a(k);
+  out[0] = direct;
+  for (let k = 0; k < shelves; k++) {
+    const w = -1 / a(k);
+    let residue = b0(k) + b1(k) * w;
+    for (let j = 0; j < shelves; j++) if (j !== k) residue *= (b0(j) + b1(j) * w) / (1 + a(j) * w);
+    out[k + 1] = residue;
   }
-  const cost = (p: number) => {
-    let sum = 0;
-    for (let k = 0; k < points; k++) {
-      const decibels = 10 * Math.log10(((1 - p) * (1 - p)) / (1 - 2 * p * cosines[k]! + p * p));
-      sum += (decibels - targets[k]!) ** 2;
-    }
-    return sum;
-  };
-  const ratio = (Math.sqrt(5) - 1) / 2;
-  let low = 0,
-    high = 1 - 1e-9;
-  for (let i = 0; i < iterations; i++) {
-    const left = high - ratio * (high - low),
-      right = low + ratio * (high - low);
-    if (cost(left) <= cost(right)) high = right;
-    else low = left;
-  }
-  return (low + high) / 2;
+  return out;
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 
-import { ACOUSTICS, OUTLET_REFLECTION, openEndCutoffHz, wallLossPole } from './exhaust-acoustics.js';
+import { ACOUSTICS, OUTLET_REFLECTION, openEndCutoffHz, wallLossPoles, wallLossWeights } from './exhaust-acoustics.js';
 import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
@@ -37,24 +37,35 @@ function pulseCascade(decayRate: number, riseRate: number, duration: number, wei
 }
 
 /**
- * One way through a tube: a fixed delay of its length, rounded to whole samples, and its wall loss, a one-pole
- * low-pass of unity DC gain (`wallLossPole`) on each traversal.
+ * One way through a tube: a fixed delay of its length, rounded to whole samples, and its wall loss on each traversal,
+ * four shelves in parallel form over the shared `poles` (`wallLossWeights`).
  */
 class Delay {
   private readonly data: Float32Array;
-  private readonly follow: number;
+  private readonly weights: Float64Array;
+  private readonly state = new Float64Array(4);
   private position = 0;
-  private lossState = 0;
-  constructor(meters: number, diameter: number, rate: number) {
+  constructor(
+    meters: number,
+    diameter: number,
+    rate: number,
+    private readonly poles: Float64Array,
+  ) {
     this.data = new Float32Array(Math.max(1, Math.round((meters * rate) / ACOUSTICS.waveSpeed)));
-    this.follow = 1 - wallLossPole(meters, diameter, rate);
+    this.weights = wallLossWeights(meters, diameter, rate);
   }
   read(): number {
     return this.data[this.position]!;
   }
   write(value: number): void {
-    this.lossState += this.follow * (value - this.lossState);
-    this.data[this.position] = this.lossState;
+    const a = this.poles,
+      u = this.state,
+      w = this.weights;
+    u[0] = value - a[0]! * u[0]!;
+    u[1] = value - a[1]! * u[1]!;
+    u[2] = value - a[2]! * u[2]!;
+    u[3] = value - a[3]! * u[3]!;
+    this.data[this.position] = w[0]! * value + w[1]! * u[0]! + w[2]! * u[1]! + w[3]! * u[2]! + w[4]! * u[3]!;
     this.position = (this.position + 1) % this.data.length;
   }
 }
@@ -132,7 +143,9 @@ export class ExhaustWaveguide {
     let groups = 0;
     for (const { to } of primaries) groups = Math.max(groups, to + 1);
     for (const { from, to } of pipes) groups = Math.max(groups, from + 1, (to ?? 0) + 1);
-    const tube = ({ length, diameter }: { length: number; diameter: number }) => new Delay(length, diameter, rate);
+    const poles = wallLossPoles(rate);
+    const tube = ({ length, diameter }: { length: number; diameter: number }) =>
+      new Delay(length, diameter, rate, poles);
     this.forward = primaries.map(tube);
     this.backward = primaries.map(tube);
     this.downstream = pipes.map(tube);

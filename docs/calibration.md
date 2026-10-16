@@ -375,8 +375,9 @@ resistance at speed is not modelled.
 ## MIX settings
 
 [Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the engines' loudness into the
-soft clip (`MixSettings`). `engineDriveLufs`'s default is the delivered [engine loudness](audio.md#engine-loudness)'s mean
-over the nine vehicles (−11.87 LUFS, to the step), so their gains into the soft clip average 0 dB.
+soft clip (`MixSettings`). `engineDriveLufs`'s default, −11.9 LUFS, is the owner's by listening: set at the delivered
+[engine loudness](audio.md#engine-loudness)'s mean over the nine vehicles (−11.87 LUFS, to the step), it was kept when
+the √f wall loss (EX-7) lowered that mean to −14.15 LUFS, so the engines' gains into the soft clip average +2.25 dB.
 
 | Key               | Meaning                            | Default    | Range / step      |
 | ----------------- | ---------------------------------- | ---------- | ----------------- |
@@ -421,19 +422,19 @@ inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audib
 These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
 change them.
 
-| Value                  | Derivation                                          | Value        |
-| ---------------------- | --------------------------------------------------- | ------------ |
-| `ACOUSTICS.waveSpeed`  | `sqrt(gamma*R*T)` at 573.15 K, rounded              | 480 m/s      |
-| `OUTLET_REFLECTION`    | Unflanged open-end low-frequency limit              | -1           |
-| Open-end return cutoff | `c/(2*pi*a)` at the outlet pipe's radius `a`        | per tube     |
-| Valve-end reflection   | `(A_p-A_v)/(A_p+A_v)` over the valve's opening      | per cylinder |
-| Wall loss              | Kirchhoff `alpha(f)` at the tube's radius, one pole | per tube     |
-| Output low-pass        | `1.841*c/(pi*D)`, `D` the widest outlet pipe        | 4.9–15.6 kHz |
-| DC removal             | `idleRpm/60 * cylinders/cycleRevolutions / 2`       | 7.1–50 Hz    |
-| Pulse decay            | `V_cyl/(A_eff*c_cyl*psi*)`                          | 0.84–2.37 ms |
-| `BLOWDOWN_REFERENCE`   | Cylinder gas at exhaust opening; valve `C_d`        | 1100 K; 0.65 |
-| Rival gain             | Inverse distance, unity within `referenceMeters`    | —            |
-| Rival pan              | Lateral displacement / `max(panMinimumMeters, d)`   | —            |
+| Value                  | Derivation                                        | Value        |
+| ---------------------- | ------------------------------------------------- | ------------ |
+| `ACOUSTICS.waveSpeed`  | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s      |
+| `OUTLET_REFLECTION`    | Unflanged open-end low-frequency limit            | -1           |
+| Open-end return cutoff | `c/(2*pi*a)` at the outlet pipe's radius `a`      | per tube     |
+| Valve-end reflection   | `(A_p-A_v)/(A_p+A_v)` over the valve's opening    | per cylinder |
+| Wall loss              | Kirchhoff `alpha(f)`, four shelves at 20·8^k Hz   | per tube     |
+| Output low-pass        | `1.841*c/(pi*D)`, `D` the widest outlet pipe      | 4.9–15.6 kHz |
+| DC removal             | `idleRpm/60 * cylinders/cycleRevolutions / 2`     | 7.1–50 Hz    |
+| Pulse decay            | `V_cyl/(A_eff*c_cyl*psi*)`                        | 0.84–2.37 ms |
+| `BLOWDOWN_REFERENCE`   | Cylinder gas at exhaust opening; valve `C_d`      | 1100 K; 0.65 |
+| Rival gain             | Inverse distance, unity within `referenceMeters`  | —            |
+| Rival pan              | Lateral displacement / `max(panMinimumMeters, d)` | —            |
 
 ## Mix levels
 

@@ -101,7 +101,7 @@ Every junction reaches an open end through pipes; loops are allowed, since a rin
 (2-1, a turbine inlet), a log manifold's run of merges and an H or X pipe are junctions where several tubes meet. The
 [waveguide](../src/audio/exhaust-waveguide.ts) gives each primary and each pipe a bidirectional delay pair,
 rounded to the nearest sample at the reference wave speed. Each traversal applies the tube's wall loss
-`exp(-alpha(f)*length)` ([derived values](#derived-values)) as a one-pole low-pass of unity DC gain. Every junction
+`exp(-alpha(f)*length)` ([derived values](#derived-values)) as four first-order shelves of unity DC gain. Every junction
 scatters by its ports' cross-sections whatever their direction: `p = 2*sum(A_k*incoming_k)/sum(A_k)` and
 `outgoing_k = p-incoming_k`, where the ports are the junction's primaries and each attached pipe end and `A_k` is the
 port's tube's cross-section; with equal tubes this is equal-admittance scattering.
@@ -156,10 +156,26 @@ inverse-distance law and the rival pan geometry.
 The derivation uses `c=sqrt(gamma*R*T)`, the unflanged open-end negative reflection limit, `fc=c/(2*pi*a)` and
 Kirchhoff's wall loss `alpha(f)=sqrt(pi*f*nu)/(a*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
 `mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`. A traversal's loss
-`exp(-alpha(f)*L)` grows as `sqrt(f)`; the kernel applies it as the one-pole low-pass `y += (1-p)*(x-y)`, unity at DC,
-whose pole `p` is chosen once per tube when the sound is assembled: the least-squares fit of its magnitude in dB to
-`-alpha(f)*L` in dB at 64 log-spaced frequencies from 20 Hz to Nyquist. On the delivered sounds at 48 kHz the fit's
-RMS error is at most 0.93 dB (GOLF GTI 16V's 3.15 m pipe; 1.6 dB at worst, at Nyquist) and 0.02–0.6 dB elsewhere.
+`exp(-alpha(f)*L)` grows as `sqrt(f)`: `ln|H(f)| = -kappa*sqrt(f)` with `kappa = alpha(f)*L/sqrt(f)`, fixed per tube.
+The kernel applies it as four first-order shelves at corners `f_k = 20*8^k` Hz (20, 160, 1280 and 10240 Hz, ratio
+`r = 8`), the same for every tube, each `D_k = kappa*(sqrt(2)*ln(r)/pi)*sqrt(f_k)` nepers deep. A shallow shelf's
+loss has the form `x²/(1+x²)` of frequency over its corner, and over an unbounded geometric series of corners
+`integral of x^(1/2)/(1+x²) dx = pi/sqrt(2)` makes the sum exactly `kappa*sqrt(f)`; the shelves omitted below 20 Hz
+sum to `D_0/(sqrt(r)-1)`, which the lowest shelf carries (its depth times `sqrt(r)/(sqrt(r)-1)`), and the DC gain
+stays 1. Each shelf is the analog `(wp/wz)(s+wz)/(s+wp)` through the bilinear transform: `K = 2*rate`,
+`wp = K*tan(pi*f_k/rate)`, `wz = K*tan(pi*f_z/rate)` with zero `f_z = min(f_k*exp(D_k), 0.49*rate)`; with
+`g = wp/wz`, `b0 = g*(K+wz)/(K+wp)`, `b1 = g*(wz-K)/(K+wp)` and `a1 = (wp-K)/(K+wp)`. The `0.49*rate` cap is the
+domain's edge for tubes beyond the data; on the delivered sounds `f_z` reaches at most 16.0 kHz.
+
+The four shelves in series are applied in parallel form, `C + sum R_k/(1+a1_k*z^-1)`: the poles `a1_k` are shared by
+every tube (`wallLossPoles`) and each tube carries the weights `C = prod b1_k/a1_k` and the residues `R_k` at
+`z^-1 = -1/a1_k` (`wallLossWeights`), computed once when the sound is assembled. A traversal updates
+`u_k = x - a1_k*u_k` for k = 0..3 and writes `y = C*x + R_0*u_0 + R_1*u_1 + R_2*u_2 + R_3*u_3`, summed left to right.
+For every delivered tube at 44.1 and 48 kHz the loss is 0.89–1.10 times Kirchhoff's from 50 Hz to 8 kHz, the DC gain is
+1 within 1e-12 and the parallel form matches the series within 1e-12. The one-pole low-pass this replaced, fitted by
+least squares in dB up to Nyquist, was set by the 10–20 kHz loss and left the audible band nearly lossless (0.1 % of
+Kirchhoff's loss at 100 Hz and 3 % at 1 kHz on a 0.3 m by 36 mm tube), so tube resonances rang 10 to 100 times longer
+than the wall allows.
 
 Three values follow from a vehicle and its engine sound together. `compileVehicleEngineSound`
 ([vehicle engine sound](../src/audio/vehicle-engine-sound.ts)) computes them once where the vehicle catalog pairs a
