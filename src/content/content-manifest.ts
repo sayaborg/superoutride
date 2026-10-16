@@ -47,7 +47,6 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'free-play',
   'recording',
   'music',
-  'wall-sound',
 ];
 const RELATIVE_PATH = {
   pattern: /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:\/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$/,

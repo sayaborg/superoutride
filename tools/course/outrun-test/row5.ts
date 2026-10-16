@@ -67,7 +67,7 @@ export function interchange(ctx: StageContext) {
         { color: hex(0xb8b4a8), bottom: 0, top: 0.9 },
         { color: hex(0x8a867c), bottom: 0, top: 0.2 },
       ],
-      { sound: 'wall', freeStart: 0.2, freeEnd: 0.2 },
+      { freeStart: 0.2, freeEnd: 0.2 },
     );
   }
   ctx.sprites('lamp-highway', 30, length, 50, roadLeft(3.4));
@@ -135,7 +135,7 @@ export function downhill(ctx: StageContext, ridge: readonly [number, number]) {
         { color: hex(0xc8ccd4), bottom: 0.45, top: 0.75 },
         { color: hex(0x9098a4), bottom: 0, top: 0.75, every: 4, part: 0.15 },
       ],
-      { sound: 'guardrail', freeStart: 0.2, freeEnd: 0.2 },
+      { freeStart: 0.2, freeEnd: 0.2 },
     );
   }
   ctx.sprites('snow-pole', from, to, 25, roadLeft(1.0));
@@ -206,7 +206,7 @@ function towers(ctx: StageContext, boundary: string, start: number, end: number,
           part: 1.4,
         })),
       ],
-      { sound: 'wall' },
+      {},
     );
     s += block;
   }
@@ -242,7 +242,7 @@ export function metropolis(ctx: StageContext) {
         { color: hex(0x4a4e54), bottom: 0, top: 0.6 },
         { color: hex(0xf0f0e0), bottom: 4.6, top: 4.9, every: 8, part: 3 },
       ],
-      { sound: 'wall' },
+      {},
     );
     towers(ctx, id, tunnelEnd, finish - 120, id === 'fronts-left' ? 514 : 515);
   }

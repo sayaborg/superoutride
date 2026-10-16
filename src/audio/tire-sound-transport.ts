@@ -6,7 +6,7 @@ import { SURFACE_SOUND_LIMIT } from './surface-sounds.js';
 import type { TireAudioObservation } from './vehicle-audio-observation.js';
 
 /** The largest finite float32, the most an AudioParam carries. */
-export const AUDIO_PARAM_MAXIMUM = 3.4028234663852886e38;
+const AUDIO_PARAM_MAXIMUM = 3.4028234663852886e38;
 const signed = Object.freeze({ min: -AUDIO_PARAM_MAXIMUM, max: AUDIO_PARAM_MAXIMUM });
 const nonnegative = Object.freeze({ min: 0, max: AUDIO_PARAM_MAXIMUM });
 

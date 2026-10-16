@@ -49,8 +49,8 @@
 - Stage 14 is complete: the AudioContext runs while the page is visible and the vehicle sounds only while a run is
   driven; recordings (AAC in MP4) and music documents are delivered and admitted; SELECT MUSIC chooses the run's track,
   which starts at READY, loops, pauses with the run and fades under the GOAL or GAME OVER jingle; countdown, crossing,
-  extension and menu effects sound from race facts and menu commands; the player's wall scraping runs the tire's
-  friction synthesis on the wall's sound, and its impacts are recordings at a volume from their work; the player record
+  extension and menu effects sound from race facts and menu commands; the player's impacts are recordings at a volume
+  from their work; the player record
   owns the MASTER, MUSIC and EFFECTS volumes. Its recordings are placeholders until K's files replace them
   ([placeholder recordings](#placeholder-recordings)).
 - Stage 15 is complete: one authoring core compiles the authored documents for the build, the CLI and the workbench,
@@ -372,7 +372,7 @@ and switching is a cut.
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                            |
 | Audio            | Whether levelling by measured loudness leaves the engines' clipped levels close enough: 1.5 dB apart unweighted after the soft clip (the owner's estimate was 0.7 dB)                                        |
-| Audio            | Whether impacts need finer recordings than one per counterpart (by wall sound, by object or by strength)                                                                                                     |
+| Audio            | Whether impacts need finer recordings than one per counterpart (by kind of wall, by object or by strength)                                                                                                   |
 | Audio            | Whether other vehicles' contacts sound, and how many other vehicles have voices (after measuring the 32-vehicle scene on devices)                                                                            |
 
 ### Stage FE decisions for K

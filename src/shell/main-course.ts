@@ -35,7 +35,6 @@ import { loadTextTiles } from '../content/text-tiles-catalog.js';
 import { loadCourseIndex } from '../content/course-index.js';
 import { createTextLayer, TEXT_COLUMNS } from '../view/text-layer.js';
 import { loadMusic } from '../content/recording-catalog.js';
-import { loadWallSounds } from '../content/wall-sound-catalog.js';
 import { playTrack } from './run-music.js';
 import { createWorkSlices } from '../core/work-slices.js';
 
@@ -109,7 +108,6 @@ async function startPage(): Promise<void> {
       {
         materialIds,
         surfaces: await loadSurfaceSounds(content),
-        walls: await loadWallSounds(content),
         engines: engineSounds,
         engineLoudness: await loadEngineLoudness(content, vehicles, audioSettings.sha256),
       },
@@ -299,8 +297,8 @@ async function startPage(): Promise<void> {
         frame: shell.framebuffer,
         text: textLayer,
         present,
-        // The revved engine sounds alone, as the player's: no rivals and no wall rubs.
-        vehicleSound: (engine) => shell.updateAudio(engine, [], []),
+        // The revved engine sounds alone, as the player's: no rivals.
+        vehicleSound: (engine) => shell.updateAudio(engine, []),
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
         titleBackground: attractDemo,

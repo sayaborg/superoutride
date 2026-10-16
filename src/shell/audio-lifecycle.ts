@@ -4,8 +4,6 @@ import type { CompiledEngineSound } from '../audio/engine-sound.js';
 import type { EngineSoundCatalog } from '../audio/engine-sound-document.js';
 import { compileVehicleEngineSound, type VehicleEngineSound } from '../audio/vehicle-engine-sound.js';
 import { resolveSurfaceSoundRecords, type CompiledSurfaceSounds, type SurfaceSound } from '../audio/surface-sounds.js';
-import { wallSoundRecords, type CompiledWallSounds, type WallSound } from '../audio/wall-sounds.js';
-import type { WallRubObservation } from '../audio/scrape-voice.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { SOUND_BUSES, type SoundBus } from '../audio/sound-graph.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -43,7 +41,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
  * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, driven into the soft clip by
  * its measured `engineLoudness`; a sound the DEV ENGINE SOUNDS panel changed is sounded as each vehicle using it sounds
  * it (`compileVehicleEngineSound`), still at the loudness measured for the delivered values. The DEV sound controls
- * start from the delivered audio document's `settings` and the delivered surface, wall and engine `sounds`, whose records the
+ * start from the delivered audio document's `settings` and the delivered surface and engine `sounds`, whose records the
  * scene numbers once (surfaces in the material catalog's order). The player record is the one owner of the MASTER, MUSIC and
  * EFFECTS volumes: `setVolume` changes them, the DEV stepper shows MASTER, and every sync sets the master gain and the
  * buses from the record. This lifecycle syncs the controls' values to the scene, owns the AudioContext and plays
@@ -54,7 +52,6 @@ export function createAudioLifecycle(
   sounds: {
     readonly materialIds: readonly string[];
     readonly surfaces: CompiledSurfaceSounds;
-    readonly walls: CompiledWallSounds;
     readonly engines: EngineSoundCatalog;
     /** Each vehicle's measured engine loudness, or null for a delivery without it. */
     readonly engineLoudness: ReadonlyMap<string, number> | null;
@@ -114,9 +111,6 @@ export function createAudioLifecycle(
   };
   const surfaceRecords = numbered((surfaces: Readonly<Record<string, SurfaceSound>>) =>
     resolveSurfaceSoundRecords({ ...sounds.surfaces, surfaces }, sounds.materialIds),
-  );
-  const wallRecords = numbered((walls: Readonly<Record<string, WallSound>>) =>
-    wallSoundRecords({ ...sounds.walls, walls }),
   );
   // Numbered at once, so a material without a surface sound, or one without a material, fails the page at startup.
   surfaceRecords(sounds.surfaces.surfaces);
@@ -207,7 +201,7 @@ export function createAudioLifecycle(
     showEngineLoudness();
     if (!context || !scene) return;
     try {
-      const { settings: current, surfaces, walls, engines, busVolumes, components } = controls.read();
+      const { settings: current, surfaces, engines, busVolumes, components } = controls.read();
       engineSounds = engines;
       const { volumes } = player.settings;
       scene.setControlSettings(current.control);
@@ -215,10 +209,8 @@ export function createAudioLifecycle(
       scene.setRivalSettings(current.rival);
       scene.setExhaustSettings(current.exhaust);
       scene.setTireSettings(current.unified);
-      scene.setScrapeSettings(current.scrape);
       scene.setRollingSettings(current.rolling);
       scene.setSurfaceSounds(surfaceRecords(surfaces));
-      scene.setWallSounds(wallRecords(walls).walls);
       for (const bus of SOUND_BUSES) {
         const volume = BUS_VOLUMES[bus];
         scene.setBusGain(bus, volume ? volumes[volume] / 100 : (busVolumes[bus] ?? 1));
@@ -255,12 +247,8 @@ export function createAudioLifecycle(
         () => true,
         () => false,
       );
-      const { surfaces, walls } = controls.read();
-      built = await createAudioScene(
-        created,
-        { materialIds: sounds.materialIds, surfaces: surfaceRecords(surfaces) },
-        wallRecords(walls),
-      );
+      const { surfaces } = controls.read();
+      built = await createAudioScene(created, { materialIds: sounds.materialIds, surfaces: surfaceRecords(surfaces) });
       if (disposed || context !== created) {
         closeGraph(built, created);
         return;
@@ -337,11 +325,7 @@ export function createAudioLifecycle(
     enable(): void {
       if (supported && enabled && !disposed) start();
     },
-    update(
-      player: CompetitorObservation,
-      rivals: readonly CompetitorObservation[],
-      rubs: readonly WallRubObservation[],
-    ): void {
+    update(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void {
       if (!scene || !context || context.state !== 'running' || !audible() || !live) return;
       try {
         readVehicleAudio(player, playerEmitter);
@@ -351,7 +335,7 @@ export function createAudioLifecycle(
           readVehicleAudio(rivals[i]!, rivalEmitters[i]!);
           presentRivals[i] = rivalEmitters[i]!;
         }
-        scene.update(playerEmitter, presentRivals, engineOf, rubs);
+        scene.update(playerEmitter, presentRivals, engineOf);
       } catch {
         fail();
       }

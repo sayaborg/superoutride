@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 51;
+const COURSE_DOCUMENT_VERSION = 52;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -178,12 +178,11 @@ export interface WallDocument {
 
 /**
  * A solid wall's ends, at `start` and at `end`: each null where it joins a course limit or another solid wall, or the
- * thickness (m) of a declared free end, a fixed object that wide; and its wall sound, an ID of the wall-sound document.
+ * thickness (m) of a declared free end, a fixed object that wide.
  */
 export interface SolidWallDocument {
   readonly freeStart: number | null;
   readonly freeEnd: number | null;
-  readonly sound: string;
 }
 
 /** A stretch of one side of a Section where no course limit runs: `side` from `start` to `end`. */
@@ -607,7 +606,7 @@ function wall(value: unknown, path: string): WallDocument {
   });
 }
 function solidWall(value: unknown, path: string): SolidWallDocument {
-  const v = readRecord(value, path, ['freeStart', 'freeEnd', 'sound']);
+  const v = readRecord(value, path, ['freeStart', 'freeEnd']);
   const thickness = (end: unknown, at: string) =>
     end === null
       ? null
@@ -615,7 +614,6 @@ function solidWall(value: unknown, path: string): SolidWallDocument {
   return Object.freeze({
     freeStart: thickness(v.freeStart, `${path}/freeStart`),
     freeEnd: thickness(v.freeEnd, `${path}/freeEnd`),
-    sound: readString(v.sound, `${path}/sound`),
   });
 }
 function openLimit(value: unknown, path: string): OpenLimitDocument {

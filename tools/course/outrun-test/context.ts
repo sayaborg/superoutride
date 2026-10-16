@@ -183,7 +183,7 @@ export function createStageContext(options: {
     },
     /**
      * A wall along Boundary `boundary` from `start` to `end`: its strips (each a color between heights `bottom` and
-     * `top`, constant along the wall, or stripes repeating every `every` metres), solid with `sound` or for looks only.
+     * `top`, constant along the wall, or stripes repeating every `every` metres), solid or for looks only.
      */
     wall(
       boundary: string,
@@ -196,7 +196,7 @@ export function createStageContext(options: {
         readonly every?: number;
         readonly part?: number;
       }[],
-      solid: { readonly sound: string; readonly freeStart?: number | null; readonly freeEnd?: number | null } | null,
+      solid: { readonly freeStart?: number | null; readonly freeEnd?: number | null } | null,
     ) {
       start = clamp(start);
       end = clamp(end);
@@ -205,7 +205,7 @@ export function createStageContext(options: {
         boundary,
         start: at(start),
         end: at(end),
-        solid: solid && { freeStart: solid.freeStart ?? null, freeEnd: solid.freeEnd ?? null, sound: solid.sound },
+        solid: solid && { freeStart: solid.freeStart ?? null, freeEnd: solid.freeEnd ?? null },
         strips: strips.flatMap((strip) => {
           const piece = (from: number, to: number) => ({
             kind: 'strip',

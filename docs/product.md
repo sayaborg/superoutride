@@ -385,7 +385,7 @@ Drivers read the surface ahead: on a surface with less grip they corner and brak
 
 Walls — guardrails, walls and cliff faces — run along the road. A visible wall stands on its line, rising
 above the road, dropping below it, or both, in strips of color that may repeat along the road. A solid
-wall cannot be crossed at any height: a vehicle touching it is pushed back across the road, and scraping
+wall cannot be crossed at any height: a vehicle touching it is pushed back across the road, and sliding
 along it slows the vehicle. A wall may be invisible, and a wall may be for looks only. The edge of the
 course's ground is an invisible solid wall, except where the course opens it: there a vehicle can drive
 off, falls, and returns to the road.
@@ -402,10 +402,9 @@ the run and is no longer solid.
 
 ## 13. Music and sound effects
 
-Engine, tire and contact sound follow physical observations. Scraping along a wall sounds for as long as
-it lasts, stronger the faster and the harder the vehicle rubs, and differently on different walls. A hit
-on a vehicle, a wall or an object sounds once, louder the harder the hit. Only contacts of the player's
-own vehicle sound; vehicles rubbing each other make no scraping sound.
+Engine, tire and contact sound follow physical observations. A hit on a vehicle, a wall or an object sounds
+once, at the instant it begins, louder the harder the hit; sliding along a wall or another vehicle makes no
+sound of its own. Only contacts of the player's own vehicle sound.
 
 Music is original. Each series has a title track, which plays from SELECT SERIES through the series' screens and
 fades out into READY, and zero or more race tracks. SELECT MUSIC offers the race tracks of the series (every

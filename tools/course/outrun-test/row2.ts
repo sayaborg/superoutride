@@ -127,7 +127,7 @@ export function cliffRoad(ctx: StageContext) {
       { color: hex(0x6a5848), bottom: 7, top: 8.5 },
       { color: hex(0xa48c76), bottom: 11, top: 14, every: 13, part: 5 },
     ],
-    { sound: 'rock' },
+    {},
   );
   // The guardrail on the left verge, broken by gaps where the course limit opens over the drop.
   ctx.boundary('rail', [
@@ -145,7 +145,7 @@ export function cliffRoad(ctx: StageContext) {
         { color: hex(0xc8ccd4), bottom: 0.45, top: 0.75 },
         { color: hex(0x9098a4), bottom: 0, top: 0.75, every: 4, part: 0.15 },
       ],
-      { sound: 'guardrail', freeStart: 0.2, freeEnd: 0.2 },
+      { freeStart: 0.2, freeEnd: 0.2 },
     );
     if (gap !== edgeS) ctx.openLimit('left', gap, gap + 60);
     from = gap + 60;

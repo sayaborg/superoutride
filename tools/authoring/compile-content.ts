@@ -29,7 +29,6 @@ import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-i
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
-import { admitCourseWallSounds, compileWallSounds } from '../../src/content/wall-sound-catalog.js';
 import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
@@ -227,13 +226,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     return delivered('surface-sound', documents);
   });
 
-  // Each course's solid walls are admitted against the wall sounds below.
-  const wallSoundFiles = await read('wall-sounds');
-  const wallSounds = await stage('wall-sounds', inputs(wallSoundFiles), async () => {
-    const documents = await sources('wall-sounds', wallSoundFiles);
-    return { catalog: requireLoaded(compileWallSounds(documents)), files: delivered('wall-sound', documents) };
-  });
-
   const audioFiles = await read('audio');
   const audio = await stage('audio', inputs(audioFiles), async () => {
     const documents = await sources('audio', audioFiles);
@@ -314,9 +306,8 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     for (const image of namedImages(bytes))
       imageBytes.push(image, await store.read(`images/${image}.json`).catch(() => image));
     courses.push(
-      await stage(`course:${name}`, [materials.key, wallSounds.key, bytes, ...imageBytes], async () => {
+      await stage(`course:${name}`, [materials.key, bytes, ...imageBytes], async () => {
         const document = requireLoaded(readCourseDocumentBytes(bytes, path));
-        requireLoaded(admitCourseWallSounds(document, wallSounds.value.catalog, path));
         const prepared = await compileCourseImages(
           document,
           await readCourseImages(courseImageNames(document), (file) => store.read(`images/${file}`)),
@@ -386,7 +377,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...screenPictures.value.files,
     ...materials.value.files,
     ...surfaceSounds.value,
-    ...wallSounds.value.files,
     ...audio.value.files,
     ...recordings.value.files,
     ...freePlay.value.files,

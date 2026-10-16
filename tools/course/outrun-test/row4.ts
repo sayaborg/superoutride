@@ -27,7 +27,7 @@ function bridge(ctx: StageContext, start: number, end: number) {
         { color: hex(0x9098a4), bottom: 0, top: 1.05, every: 2.5, part: 0.2 },
         { color: hex(0x7a7e86), bottom: -6, top: 0 },
       ],
-      { sound: 'guardrail', freeStart: 0.2, freeEnd: 0.2 },
+      { freeStart: 0.2, freeEnd: 0.2 },
     );
   ctx.sprite('bridge-tower', start + 4, edge('a', 'right'));
   ctx.sprite('bridge-tower', end - 4, edge('a', 'right'));
@@ -138,7 +138,7 @@ export function alpinePass(ctx: StageContext, summit: readonly [number, number])
       { color: hex(0x5e5e66), bottom: 3, top: 4 },
       { color: hex(0x9a9aa0), bottom: 7, top: 10, every: 11, part: 4 },
     ],
-    { sound: 'rock' },
+    {},
   );
   ctx.sprites('snow-pole', 30, ctx.final, 20, roadLeft(1.2));
   for (let s = 80; s < length; s += 60 + next() * 80)

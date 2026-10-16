@@ -202,11 +202,9 @@ temperature when the exhaust valve opens, `T_evo = 1100 K` (petrol engines are t
 exhaust valve's discharge coefficient `C_d = 0.65` (measured exhaust valves give 0.6–0.7 at working lift).
 
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
-TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`), IMPACT (`ImpactSettings`)
-and the tire groups UNIFIED
-(`UnifiedSettings`) and ROLLING
-(`RollingSettings`); the values are the implementer's, not values chosen by listening, and
-[Calibration](calibration.md) lists them.
+TIMING (`ControlSettings`), RIVAL (`RivalSettings`), IMPACT (`ImpactSettings`) and the tire groups UNIFIED
+(`UnifiedSettings`) and ROLLING (`RollingSettings`); ENGINE's values are the owner's, chosen by listening, the others
+the implementer's, and [Calibration](calibration.md) lists them.
 
 ## Engine loudness
 
@@ -252,9 +250,9 @@ engines at once, but the loudness stays the one measured for the delivered value
 
 ## Audio document
 
-The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 6 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
-`unified`, `scrape`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
+The game's source of these seven records is content: `content/audio/default.json` is the one `superoutride.audio`
+version 8 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+`unified`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
 number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission
 toolkit and leaves value validation to each record's resolver (`resolveExhaustSettings` and the others); a resolver's
@@ -375,16 +373,8 @@ crossings never sound. Menu commands sound through the screen host ([Browser](br
 
 The player's contacts sound on the `contact` bus, a live bus that follows the MASTER volume alone. Only contacts of the
 player's own vehicle sound, from the race's [player contact
-observations](content-and-gameplay.md#player-contact-observations); vehicles rubbing each other make no scraping sound.
-
-Scraping along a wall is synthesized, never recorded: the [scraping voice](../src/audio/scrape-voice.ts) and its worklet
-run the tire's one [friction synthesis](tire-audio.md#friction-synthesis) with the same input mapping. The accepted power
-is the power the wall's friction removes, the slip speed is the speed along the road, and the surface's `roughness`
-and `susceptibility` are the rubbed wall's [wall sound](tire-audio.md#wall-sounds) (a course limit's is the record the
-wall-sound document names). One voice sounds the line with the most friction power in the step. When no line pushes
-the player, its excitation stops at once and the stored vibration decays, as a released tire's does. Its settings are
-their own record, SCRAPE (`ScrapeSettings`), with the same items as the tire's UNIFIED and its own values; a change
-fades and replaces the kernel as the tire's do.
+observations](content-and-gameplay.md#player-contact-observations). Only the instant a contact begins sounds: sliding
+along a wall or another vehicle has no sound of its own.
 
 A hit is a recording: each contact of the player's that begins plays its counterpart's impact recording
 (`impacts/vehicle`, `impacts/wall` for a wall, a course limit or a wall's free end, `impacts/object`,
@@ -402,7 +392,7 @@ each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixS
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
 vehicle is driven, through one live gate before the MASTER gain. A vehicle is driven during a run and on SELECT
 VEHICLE's ENGINE page, which revs the shown vehicle's engine standing still and gives its observation as the
-player's, with no rivals and no wall rubs ([Browser](browser.md#engine)); menu music and effects are unchanged by it. `engine`, `tire` and `contact` are live; `music` and
+player's, with no rivals ([Browser](browser.md#engine)); menu music and effects are unchanged by it. `engine`, `tire` and `contact` are live; `music` and
 `effects` are not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
 (EFFECTS) bus gains; the DEV ENG and TIRE mix
 values set the live buses' gains. A volume change applies at once through the bus and master gains.
@@ -455,7 +445,7 @@ a second. The audio lifetime applies a measuring listener to every scene it buil
 
 An audio failure closes the affected graph and exposes retry while driving continues; a retry builds a new graph, on
 which the playing music starts again from its beginning ([recording player](#recording-playback)). A worklet processor's failure is
-one: every voice (tire, engine and scraping) watches its worklets' `processorerror`
+one: every voice (tire and engine) watches its worklets' `processorerror`
 ([`processor-failure.ts`](../src/audio/processor-failure.ts)) and its next update throws, which fails the graph. A late result
 from an older initialization cannot replace or close a newer graph. Invalid processor replacements
 produce silence. Browsers without AudioWorklet support remain playable with unavailable sound, and so does a device

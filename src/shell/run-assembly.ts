@@ -424,7 +424,7 @@ async function assembleCourseRun(
         ),
       present() {
         const { player } = observations;
-        shell.updateAudio(player, otherVehicles, race.playerContacts.rubs);
+        shell.updateAudio(player, otherVehicles);
         music.update(race, race.outcome.status, state.live);
         // With DEV, the bike lean indicator is drawn over the frame at the player's screen point.
         shell.present(

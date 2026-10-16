@@ -1,9 +1,5 @@
 import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
-import {
-  mountRollingSoundSettings,
-  mountScrapeSoundSettings,
-  mountTireSoundSettings,
-} from './tire-sound-settings-controls.js';
+import { mountRollingSoundSettings, mountTireSoundSettings } from './tire-sound-settings-controls.js';
 import {
   mountImpactSoundSettings,
   mountMixSoundSettings,
@@ -16,16 +12,11 @@ import { TIRE_COMPONENTS, type TireComponent, type TireComponents } from '../../
 import { audioSettingsDocument, type AudioSettings } from '../../audio/audio-document.js';
 import type { SoundBus } from '../../audio/sound-graph.js';
 import { downloadDefinition } from '../definition-export.js';
-import {
-  mountEngineSoundRecords,
-  mountSurfaceSoundSettings,
-  mountWallSoundSettings,
-} from './record-sound-settings-controls.js';
+import { mountEngineSoundRecords, mountSurfaceSoundSettings } from './record-sound-settings-controls.js';
 import type { CompiledEngineSound } from '../../audio/engine-sound.js';
 import { engineSoundDocument } from '../../audio/engine-sound-document.js';
 import type { CompiledSurfaceSounds, SurfaceSound } from '../../audio/surface-sounds.js';
 import { surfaceSoundDocument } from '../../audio/surface-sound-document.js';
-import { wallSoundDocument, type CompiledWallSounds, type WallSound } from '../../audio/wall-sounds.js';
 
 /** The DEV screen's name for each tire component: its button label and description. */
 const TIRE_COMPONENT_LABELS: Readonly<Record<TireComponent, { readonly label: string; readonly description: string }>> =
@@ -39,13 +30,12 @@ const MIX_BUSES = Object.freeze({ engine: 'ENG', tire: 'TIRE' }) satisfies Parti
 type MixBus = keyof typeof MIX_BUSES;
 
 /**
- * What the DEV sound controls currently hold: the eight settings records, the surface and wall sounds by ID (the same
+ * What the DEV sound controls currently hold: the seven settings records, the surface sounds by ID (the same
  * objects until a value changes), the engine sounds by ID (likewise), the mix volumes and R/Q components.
  */
 export interface SoundControlValues {
   readonly settings: AudioSettings;
   readonly surfaces: Readonly<Record<string, SurfaceSound>>;
-  readonly walls: Readonly<Record<string, WallSound>>;
   readonly engines: Readonly<Record<string, CompiledEngineSound>>;
   readonly busVolumes: Readonly<Partial<Record<SoundBus, number>>>;
   readonly components: TireComponents;
@@ -53,7 +43,7 @@ export interface SoundControlValues {
 
 /**
  * The DEV sound controls found by their ids in `root`: the sound toggle, MASTER volume stepper, ENG/TIRE volumes,
- * R/Q buttons, the eight settings panels, the surface, wall and engine sound panels and the four exports. The settings
+ * R/Q buttons, the seven settings panels, the surface and engine sound panels and the three exports. The settings
  * panels start from, and reset to, `initial`, and the sound panels the delivered `sounds`; each export saves its panels'
  * current values in its document (the engine sound export, the chosen engine sound's). The stepper shows the MASTER volume, starting at `initialVolume` percent, and
  * passes each press to `onVolume`; the player record keeps the volume. A missing host leaves its control out and its
@@ -64,7 +54,6 @@ export function mountSoundControls(
   initial: AudioSettings,
   sounds: {
     readonly surfaces: CompiledSurfaceSounds;
-    readonly walls: CompiledWallSounds;
     readonly engines: Readonly<Record<string, CompiledEngineSound>>;
   },
   initialVolume: number,
@@ -145,18 +134,14 @@ export function mountSoundControls(
   const timingSettings = mountHost('timing-sound-settings', initial.control, mountTimingSoundSettings);
   const rivalSettings = mountHost('rival-sound-settings', initial.rival, mountRivalSoundSettings);
   const rollingSettings = mountHost('rolling-sound-settings', initial.rolling, mountRollingSoundSettings);
-  const scrapeSettings = mountHost('scrape-sound-settings', initial.scrape, mountScrapeSoundSettings);
   const impactSettings = mountHost('impact-sound-settings', initial.impact, mountImpactSoundSettings);
   const surfaceSettings = mountHost('surface-sound-settings', sounds.surfaces.surfaces, mountSurfaceSoundSettings);
-  const wallSettings = mountHost('wall-sound-settings', sounds.walls.walls, mountWallSoundSettings);
   const surfaces = () => surfaceSettings?.read() ?? sounds.surfaces.surfaces;
-  const walls = () => wallSettings?.read() ?? sounds.walls.walls;
   const engineRecords = mountHost('engine-sound-records', sounds.engines, mountEngineSoundRecords);
   // The current values of every panel; a missing panel keeps the document's record.
   const currentSettings = (): AudioSettings => ({
     exhaust: engineSoundSettings?.read() ?? initial.exhaust,
     unified: tireSoundSettings?.read() ?? initial.unified,
-    scrape: scrapeSettings?.read() ?? initial.scrape,
     rolling: rollingSettings?.read() ?? initial.rolling,
     mix: mixSettings?.read() ?? initial.mix,
     control: timingSettings?.read() ?? initial.control,
@@ -169,10 +154,6 @@ export function mountSoundControls(
   const exportSurfacesButton = root.getElementById('export-surface-sounds-button');
   const exportSurfaces = (): void => downloadDefinition('default.json', surfaceSoundDocument(surfaces()));
   exportSurfacesButton?.addEventListener('click', exportSurfaces);
-  const exportWallsButton = root.getElementById('export-wall-sounds-button');
-  const exportWalls = (): void =>
-    downloadDefinition('default.json', wallSoundDocument({ courseLimit: sounds.walls.courseLimit, walls: walls() }));
-  exportWallsButton?.addEventListener('click', exportWalls);
   const exportEngineButton = root.getElementById('export-engine-sound-button');
   const exportEngine = (): void => {
     if (!engineRecords) return;
@@ -203,7 +184,6 @@ export function mountSoundControls(
     read: (): SoundControlValues => ({
       settings: currentSettings(),
       surfaces: surfaces(),
-      walls: walls(),
       engines: engineRecords?.read() ?? sounds.engines,
       busVolumes,
       components: componentState,
@@ -232,14 +212,12 @@ export function mountSoundControls(
       showComponents();
       for (const panel of [
         tireSoundSettings,
-        scrapeSettings,
         rollingSettings,
         mixSettings,
         timingSettings,
         rivalSettings,
         impactSettings,
         surfaceSettings,
-        wallSettings,
         engineRecords,
       ])
         panel?.setEnabled(value);
@@ -248,7 +226,6 @@ export function mountSoundControls(
       button?.removeEventListener('click', callbacks.onToggle);
       exportButton?.removeEventListener('click', exportAudio);
       exportSurfacesButton?.removeEventListener('click', exportSurfaces);
-      exportWallsButton?.removeEventListener('click', exportWalls);
       exportEngineButton?.removeEventListener('click', exportEngine);
       for (const { button, toggle } of componentButtons) {
         button.removeEventListener('click', toggle);
@@ -263,10 +240,8 @@ export function mountSoundControls(
       timingSettings?.dispose();
       rivalSettings?.dispose();
       rollingSettings?.dispose();
-      scrapeSettings?.dispose();
       impactSettings?.dispose();
       surfaceSettings?.dispose();
-      wallSettings?.dispose();
       engineRecords?.dispose();
       for (const { host, control } of mixControls) {
         control.dispose();

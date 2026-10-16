@@ -116,7 +116,7 @@ function facades(ctx: StageContext, boundary: string, start: number, end: number
         { color: hex(0xe8e0d0), bottom: height - 0.6, top: height - 0.35 },
         { color: hex(0xa04a30), bottom: height - 0.35, top: height },
       ],
-      { sound: 'wall' },
+      {},
     );
     s += block;
   }
@@ -194,7 +194,7 @@ export function tunnelRun(ctx: StageContext) {
           { color: hex(0x5a5650), bottom: 0, top: 0.5 },
           { color: hex(0xe8d890), bottom: 3.6, top: 3.8, every: 10, part: 2 },
         ],
-        { sound: 'wall' },
+        {},
       );
     ctx.sprite('tunnel-portal', start, edge('a', 'right'));
     ctx.sprites('tunnel-rib', start + 10, end - 4, 10, edge('a', 'right'));

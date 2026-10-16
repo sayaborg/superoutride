@@ -1,34 +1,15 @@
-import { DefinitionDomainError, withDefinitionPath } from '../core/admission.js';
+import { DefinitionDomainError } from '../core/admission.js';
 import { ROLLING_SETTING_RANGES } from './tire-rolling-acoustics.js';
 
 /**
- * The friction system's input from what is rubbed, two fractions in [0, 1] of the friction settings' maxima:
- * `roughness` of the forcing `noiseForcePerSecond` and `susceptibility` of the feedback `feedbackMaximumPerSecond`.
- * Listening values, NOT measured properties.
- */
-export type FrictionInput = Readonly<{ roughness: number; susceptibility: number }>;
-
-/**
- * One sound record per material ID: the rolling generator's surface palette and the friction system's input.
- * Listening values, NOT measured surface properties.
+ * One sound record per material ID: the rolling generator's surface palette and the friction system's input, two
+ * fractions in [0, 1] of the UNIFIED maxima: `roughness` of the forcing `noiseForcePerSecond` and `susceptibility` of
+ * the feedback `feedbackMaximumPerSecond`. Listening values, NOT measured surface properties.
  */
 export type SurfaceSound = Readonly<{
   rolling: Readonly<{ low: number; high: number; textureLengthMeters: number; textureDepth: number }>;
-  friction: FrictionInput;
+  friction: Readonly<{ roughness: number; susceptibility: number }>;
 }>;
-
-/**
- * The one value check of a friction input, for surfaces and walls alike: both numbers within [0, 1], each refused
- * at its own field. Returns a detached frozen record.
- */
-export function compileFrictionInput(input: FrictionInput): FrictionInput {
-  for (const key of ['roughness', 'susceptibility'] as const) {
-    const value = input[key];
-    if (typeof value !== 'number' || !(value >= 0 && value <= 1))
-      throw new DefinitionDomainError(key, `${key} must be within [0, 1]`);
-  }
-  return Object.freeze({ roughness: input.roughness, susceptibility: input.susceptibility });
-}
 
 /**
  * The rolling palette's domain, derived from the rolling generator: a band's excitation is level (below 1) × gain ×
@@ -65,10 +46,12 @@ export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
   }
   if (rolling.textureLengthMeters <= 0)
     throw new DefinitionDomainError('rolling/textureLengthMeters', 'textureLengthMeters must be above 0');
-  const friction = withDefinitionPath(
-    () => compileFrictionInput(record.friction),
-    (path) => `friction/${path}`,
-  );
+  const { friction } = record;
+  for (const key of ['roughness', 'susceptibility'] as const) {
+    const value = friction[key];
+    if (typeof value !== 'number' || !(value >= 0 && value <= 1))
+      throw new DefinitionDomainError(`friction/${key}`, `${key} must be within [0, 1]`);
+  }
   return Object.freeze({
     rolling: Object.freeze({
       low: rolling.low,
@@ -76,7 +59,7 @@ export function compileSurfaceSound(record: SurfaceSound): SurfaceSound {
       textureLengthMeters: rolling.textureLengthMeters,
       textureDepth: rolling.textureDepth,
     }),
-    friction,
+    friction: Object.freeze({ roughness: friction.roughness, susceptibility: friction.susceptibility }),
   });
 }
 

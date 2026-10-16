@@ -266,21 +266,6 @@ Resolution also requires `resonanceDampingPerSecond/2 < 2*pi*lowFrequencyHz`, so
 the DEV slider keeps its previous value when a change would break it. Control following uses the TIMING
 `observationSeconds`.
 
-## SCRAPE settings
-
-[Wall scrape acoustics](../src/audio/wall-scrape-acoustics.ts) supplies the walls' scraping settings
-(`ScrapeSettings`): the items, meanings and ranges of the UNIFIED table above, except the work half-response, whose
-range is about a quarter to four times its default. The defaults are the implementer's, not chosen by listening: the
-UNIFIED defaults, a work half-response of 90 kW, set near the median wall-rub power measured on departures from a road
-at about 30 m/s (peaks about 12 MW), and slip half-response and rolloff for wall speeds.
-
-| Key                   | Default   | Range / step            |
-| --------------------- | --------- | ----------------------- |
-| `powerReferenceWatts` | 90000 W   | 22500–360000 W / 2500 W |
-| `slipHalfMps`         | 8 m/s     | 1–12 m/s / 0.25         |
-| `slipRolloffMps`      | 80 m/s    | 20–80 m/s / 1           |
-| Every other key       | UNIFIED's | UNIFIED's               |
-
 ## IMPACT settings
 
 [Impact acoustics](../src/audio/impact-acoustics.ts) supplies each counterpart's impact reference work
@@ -339,16 +324,6 @@ as 6 dB on the high band (0.18 × 2); and its friction susceptibility, the tende
 scales with the friction it lubricates away, by the wet-road friction ratio 0.7 ([Surface materials](#surface-materials)).
 The texture, a property of the asphalt under the water, is unchanged. The document keeps this derivation; a DEV change
 to either surface does not carry over to the other.
-
-The [wall-sound document](../content/wall-sounds/default.json) holds the walls' friction inputs. They are the
-implementer's values, not chosen by listening, and DEV's WALLS panel changes them. Course limits use `limit`.
-
-| Wall sound  | Meant for            | Friction roughness | Friction susceptibility |
-| ----------- | -------------------- | ------------------ | ----------------------- |
-| `limit`     | Every course limit   | 0.5                | 0.5                     |
-| `guardrail` | Guardrails           | 0.5                | 1                       |
-| `rock`      | Rock and cliff faces | 1                  | 0.2                     |
-| `wall`      | Low walls            | 0.75               | 0.5                     |
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), the noise band's numerical domain

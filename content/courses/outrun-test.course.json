@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 51,
+  "version": 52,
   "name": "OUTRUN TEST",
   "entry": "coastline",
   "maxLaps": 1,
@@ -4585,7 +4585,7 @@
           "boundary": "face",
           "start": { "joint": "arc-2", "offset": -50 },
           "end": { "joint": "straight-21", "offset": -40 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "rock" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -4664,7 +4664,7 @@
           "boundary": "rail",
           "start": { "joint": "arc-2", "offset": -60 },
           "end": { "joint": "arc-6", "offset": -6 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -4711,7 +4711,7 @@
           "boundary": "rail",
           "start": { "joint": "arc-6", "offset": 54 },
           "end": { "joint": "arc-10", "offset": 54 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -4758,7 +4758,7 @@
           "boundary": "rail",
           "start": { "joint": "straight-11", "offset": -95 },
           "end": { "joint": "straight-15", "offset": 3 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -4805,7 +4805,7 @@
           "boundary": "rail",
           "start": { "joint": "straight-15", "offset": 63 },
           "end": { "joint": "straight-19", "offset": 61 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -4852,7 +4852,7 @@
           "boundary": "rail",
           "start": { "joint": "straight-19", "offset": 121 },
           "end": { "joint": "straight-21", "offset": -60 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -9528,7 +9528,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-2", "offset": -50 },
           "end": { "joint": "arc-2", "offset": -27.531106 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -9699,7 +9699,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-2", "offset": -27.531106 },
           "end": { "joint": "arc-2", "offset": 5.829959 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -9847,7 +9847,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-2", "offset": 5.829959 },
           "end": { "joint": "straight-3", "offset": -31.117427 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10018,7 +10018,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": -31.117427 },
           "end": { "joint": "straight-3", "offset": 3.150102 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10189,7 +10189,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 3.150102 },
           "end": { "joint": "straight-3", "offset": 41.676348 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10360,7 +10360,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 41.676348 },
           "end": { "joint": "straight-3", "offset": 85.425612 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10531,7 +10531,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 85.425612 },
           "end": { "joint": "straight-3", "offset": 115.569821 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10702,7 +10702,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 115.569821 },
           "end": { "joint": "straight-3", "offset": 163.11915 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -10850,7 +10850,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 163.11915 },
           "end": { "joint": "arc-4", "offset": -150.164156 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11021,7 +11021,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -150.164156 },
           "end": { "joint": "arc-4", "offset": -120.808383 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11192,7 +11192,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -120.808383 },
           "end": { "joint": "arc-4", "offset": -93.287079 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11317,7 +11317,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -93.287079 },
           "end": { "joint": "arc-4", "offset": -51.703967 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11442,7 +11442,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -51.703967 },
           "end": { "joint": "arc-4", "offset": -27.73936 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11590,7 +11590,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -27.73936 },
           "end": { "joint": "arc-4", "offset": 19.632886 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11715,7 +11715,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": 19.632886 },
           "end": { "joint": "straight-5", "offset": -1.402497 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11840,7 +11840,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": -1.402497 },
           "end": { "joint": "straight-5", "offset": 45.903748 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -11988,7 +11988,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 45.903748 },
           "end": { "joint": "straight-5", "offset": 83.25717 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12159,7 +12159,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 83.25717 },
           "end": { "joint": "straight-5", "offset": 111.126243 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12307,7 +12307,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 111.126243 },
           "end": { "joint": "arc-6", "offset": -142.427841 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12478,7 +12478,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -142.427841 },
           "end": { "joint": "arc-6", "offset": -119.255178 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12603,7 +12603,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -119.255178 },
           "end": { "joint": "arc-6", "offset": -90.425709 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12728,7 +12728,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -90.425709 },
           "end": { "joint": "arc-6", "offset": -65.621788 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -12876,7 +12876,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -65.621788 },
           "end": { "joint": "arc-6", "offset": -20.524557 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13001,7 +13001,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -20.524557 },
           "end": { "joint": "arc-6", "offset": 14.375832 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13172,7 +13172,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": 14.375832 },
           "end": { "joint": "straight-7", "offset": -24.801962 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13297,7 +13297,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": -24.801962 },
           "end": { "joint": "straight-7", "offset": 0.517245 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13422,7 +13422,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 0.517245 },
           "end": { "joint": "straight-7", "offset": 43.289303 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13593,7 +13593,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 43.289303 },
           "end": { "joint": "straight-7", "offset": 87.840462 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13741,7 +13741,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 87.840462 },
           "end": { "joint": "straight-7", "offset": 131.245026 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -13866,7 +13866,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 131.245026 },
           "end": { "joint": "straight-7", "offset": 165.524849 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14014,7 +14014,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 165.524849 },
           "end": { "joint": "straight-7", "offset": 195.83841 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14139,7 +14139,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 195.83841 },
           "end": { "joint": "arc-8", "offset": -165.888685 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14287,7 +14287,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -165.888685 },
           "end": { "joint": "arc-8", "offset": -126.057629 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14435,7 +14435,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -126.057629 },
           "end": { "joint": "arc-8", "offset": -100.508303 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14606,7 +14606,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -100.508303 },
           "end": { "joint": "arc-8", "offset": -72.937939 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14731,7 +14731,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -72.937939 },
           "end": { "joint": "arc-8", "offset": -40.113254 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -14902,7 +14902,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -40.113254 },
           "end": { "joint": "arc-8", "offset": 3.263804 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15050,7 +15050,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": 3.263804 },
           "end": { "joint": "arc-8", "offset": 30.705554 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15175,7 +15175,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": 30.705554 },
           "end": { "joint": "straight-9", "offset": -14.094548 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15346,7 +15346,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": -14.094548 },
           "end": { "joint": "straight-9", "offset": 16.137804 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15517,7 +15517,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": 16.137804 },
           "end": { "joint": "straight-9", "offset": 43.239637 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15642,7 +15642,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": 43.239637 },
           "end": { "joint": "straight-9", "offset": 83.04782 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15813,7 +15813,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": 83.04782 },
           "end": { "joint": "straight-9", "offset": 119.01616 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -15984,7 +15984,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": 119.01616 },
           "end": { "joint": "arc-10", "offset": -103.448636 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16132,7 +16132,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": -103.448636 },
           "end": { "joint": "arc-10", "offset": -74.444489 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16257,7 +16257,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": -74.444489 },
           "end": { "joint": "arc-10", "offset": -43.636878 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16428,7 +16428,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": -43.636878 },
           "end": { "joint": "arc-10", "offset": -14.688079 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16553,7 +16553,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": -14.688079 },
           "end": { "joint": "arc-10", "offset": 21.817176 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16724,7 +16724,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": 21.817176 },
           "end": { "joint": "straight-11", "offset": -24.137535 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16849,7 +16849,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": -24.137535 },
           "end": { "joint": "straight-11", "offset": 11.919682 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -16997,7 +16997,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 11.919682 },
           "end": { "joint": "straight-11", "offset": 43.299638 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17168,7 +17168,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 43.299638 },
           "end": { "joint": "straight-11", "offset": 70.758552 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17293,7 +17293,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 70.758552 },
           "end": { "joint": "straight-11", "offset": 116.045608 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17441,7 +17441,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 116.045608 },
           "end": { "joint": "straight-11", "offset": 159.797842 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17612,7 +17612,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 159.797842 },
           "end": { "joint": "straight-11", "offset": 199.253627 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17760,7 +17760,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 199.253627 },
           "end": { "joint": "arc-12", "offset": -167.702631 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -17885,7 +17885,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -167.702631 },
           "end": { "joint": "arc-12", "offset": -137.298214 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18010,7 +18010,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -137.298214 },
           "end": { "joint": "arc-12", "offset": -90.6848 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18158,7 +18158,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -90.6848 },
           "end": { "joint": "arc-12", "offset": -65.568377 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18283,7 +18283,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -65.568377 },
           "end": { "joint": "arc-12", "offset": -42.103757 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18408,7 +18408,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -42.103757 },
           "end": { "joint": "arc-12", "offset": -12.483772 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18579,7 +18579,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -12.483772 },
           "end": { "joint": "arc-12", "offset": 31.751709 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18704,7 +18704,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": 31.751709 },
           "end": { "joint": "straight-13", "offset": -14.758008 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -18875,7 +18875,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": -14.758008 },
           "end": { "joint": "straight-13", "offset": 11.628174 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19000,7 +19000,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 11.628174 },
           "end": { "joint": "straight-13", "offset": 37.5991 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19125,7 +19125,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 37.5991 },
           "end": { "joint": "straight-13", "offset": 80.044879 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19296,7 +19296,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 80.044879 },
           "end": { "joint": "straight-13", "offset": 110.901711 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19444,7 +19444,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 110.901711 },
           "end": { "joint": "straight-13", "offset": 139.698601 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19615,7 +19615,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 139.698601 },
           "end": { "joint": "arc-14", "offset": -118.106898 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19763,7 +19763,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -118.106898 },
           "end": { "joint": "arc-14", "offset": -88.910687 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -19888,7 +19888,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -88.910687 },
           "end": { "joint": "arc-14", "offset": -61.960605 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20036,7 +20036,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -61.960605 },
           "end": { "joint": "arc-14", "offset": -26.374107 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20184,7 +20184,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -26.374107 },
           "end": { "joint": "arc-14", "offset": 12.058869 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20355,7 +20355,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": 12.058869 },
           "end": { "joint": "straight-15", "offset": -26.109572 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20480,7 +20480,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": -26.109572 },
           "end": { "joint": "straight-15", "offset": 3.614982 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20628,7 +20628,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 3.614982 },
           "end": { "joint": "straight-15", "offset": 25.621583 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20776,7 +20776,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 25.621583 },
           "end": { "joint": "straight-15", "offset": 62.803733 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -20947,7 +20947,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 62.803733 },
           "end": { "joint": "straight-15", "offset": 105.00445 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21072,7 +21072,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 105.00445 },
           "end": { "joint": "straight-15", "offset": 129.991063 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21243,7 +21243,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 129.991063 },
           "end": { "joint": "straight-15", "offset": 152.467615 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21391,7 +21391,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 152.467615 },
           "end": { "joint": "arc-16", "offset": -165.771696 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21562,7 +21562,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": -165.771696 },
           "end": { "joint": "arc-16", "offset": -119.855817 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21687,7 +21687,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": -119.855817 },
           "end": { "joint": "arc-16", "offset": -72.490476 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21858,7 +21858,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": -72.490476 },
           "end": { "joint": "arc-16", "offset": -25.188878 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -21983,7 +21983,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": -25.188878 },
           "end": { "joint": "arc-16", "offset": 0.477698 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22154,7 +22154,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": 0.477698 },
           "end": { "joint": "arc-16", "offset": 32.446575 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22279,7 +22279,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-16", "offset": 32.446575 },
           "end": { "joint": "straight-17", "offset": -13.444947 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22450,7 +22450,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-17", "offset": -13.444947 },
           "end": { "joint": "straight-17", "offset": 24.382905 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22598,7 +22598,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-17", "offset": 24.382905 },
           "end": { "joint": "straight-17", "offset": 47.435959 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22769,7 +22769,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-17", "offset": 47.435959 },
           "end": { "joint": "straight-17", "offset": 72.338817 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -22940,7 +22940,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-17", "offset": 72.338817 },
           "end": { "joint": "straight-17", "offset": 98.136166 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23088,7 +23088,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-17", "offset": 98.136166 },
           "end": { "joint": "straight-17", "offset": 120 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23259,7 +23259,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-2", "offset": -50 },
           "end": { "joint": "arc-2", "offset": -27.532743 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23430,7 +23430,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-2", "offset": -27.532743 },
           "end": { "joint": "arc-2", "offset": 7.217109 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23555,7 +23555,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-2", "offset": 7.217109 },
           "end": { "joint": "straight-3", "offset": -26.917399 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23703,7 +23703,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": -26.917399 },
           "end": { "joint": "straight-3", "offset": 16.725571 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23828,7 +23828,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 16.725571 },
           "end": { "joint": "straight-3", "offset": 40.959953 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -23999,7 +23999,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 40.959953 },
           "end": { "joint": "straight-3", "offset": 66.197684 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24147,7 +24147,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 66.197684 },
           "end": { "joint": "straight-3", "offset": 95.00965 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24272,7 +24272,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 95.00965 },
           "end": { "joint": "straight-3", "offset": 119.474087 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24443,7 +24443,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 119.474087 },
           "end": { "joint": "straight-3", "offset": 156.333223 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24614,7 +24614,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 156.333223 },
           "end": { "joint": "arc-4", "offset": -162.367917 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24762,7 +24762,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -162.367917 },
           "end": { "joint": "arc-4", "offset": -134.965736 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -24933,7 +24933,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -134.965736 },
           "end": { "joint": "arc-4", "offset": -101.90603 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25081,7 +25081,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -101.90603 },
           "end": { "joint": "arc-4", "offset": -57.515106 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25206,7 +25206,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -57.515106 },
           "end": { "joint": "arc-4", "offset": -22.440505 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25331,7 +25331,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -22.440505 },
           "end": { "joint": "arc-4", "offset": 13.848924 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25502,7 +25502,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": 13.848924 },
           "end": { "joint": "straight-5", "offset": -20.607055 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25627,7 +25627,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": -20.607055 },
           "end": { "joint": "straight-5", "offset": 4.836667 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25752,7 +25752,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 4.836667 },
           "end": { "joint": "straight-5", "offset": 50.399212 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -25900,7 +25900,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 50.399212 },
           "end": { "joint": "straight-5", "offset": 89.97181 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26071,7 +26071,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 89.97181 },
           "end": { "joint": "straight-5", "offset": 123.708396 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26196,7 +26196,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 123.708396 },
           "end": { "joint": "arc-6", "offset": -142.343686 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26321,7 +26321,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -142.343686 },
           "end": { "joint": "arc-6", "offset": -115.869735 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26469,7 +26469,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -115.869735 },
           "end": { "joint": "arc-6", "offset": -87.402503 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26640,7 +26640,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -87.402503 },
           "end": { "joint": "arc-6", "offset": -47.911495 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26765,7 +26765,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -47.911495 },
           "end": { "joint": "arc-6", "offset": -23.681116 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -26913,7 +26913,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -23.681116 },
           "end": { "joint": "arc-6", "offset": 10.522317 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27084,7 +27084,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": 10.522317 },
           "end": { "joint": "straight-7", "offset": -35.705456 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27232,7 +27232,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": -35.705456 },
           "end": { "joint": "straight-7", "offset": -11.846437 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27380,7 +27380,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": -11.846437 },
           "end": { "joint": "straight-7", "offset": 34.878226 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27551,7 +27551,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 34.878226 },
           "end": { "joint": "straight-7", "offset": 57.861038 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27722,7 +27722,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 57.861038 },
           "end": { "joint": "straight-7", "offset": 85.316485 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27847,7 +27847,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 85.316485 },
           "end": { "joint": "straight-7", "offset": 120.234841 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -27972,7 +27972,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 120.234841 },
           "end": { "joint": "straight-7", "offset": 164.130409 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28143,7 +28143,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 164.130409 },
           "end": { "joint": "straight-7", "offset": 190.41955 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28268,7 +28268,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 190.41955 },
           "end": { "joint": "arc-8", "offset": -169.988887 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28439,7 +28439,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -169.988887 },
           "end": { "joint": "arc-8", "offset": -126.192557 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28564,7 +28564,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -126.192557 },
           "end": { "joint": "arc-8", "offset": -89.413083 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28712,7 +28712,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -89.413083 },
           "end": { "joint": "arc-8", "offset": -53.588743 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28860,7 +28860,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -53.588743 },
           "end": { "joint": "arc-8", "offset": -26.075246 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -28985,7 +28985,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -26.075246 },
           "end": { "joint": "arc-8", "offset": 14.179899 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29156,7 +29156,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": 14.179899 },
           "end": { "joint": "straight-9", "offset": -15.099427 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29327,7 +29327,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": -15.099427 },
           "end": { "joint": "straight-9", "offset": 27.989871 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29498,7 +29498,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 27.989871 },
           "end": { "joint": "straight-9", "offset": 56.1426 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29646,7 +29646,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 56.1426 },
           "end": { "joint": "straight-9", "offset": 92.012814 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29771,7 +29771,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 92.012814 },
           "end": { "joint": "straight-9", "offset": 117.58768 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -29919,7 +29919,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 117.58768 },
           "end": { "joint": "arc-10", "offset": -101.430183 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30044,7 +30044,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": -101.430183 },
           "end": { "joint": "arc-10", "offset": -57.383091 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30192,7 +30192,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": -57.383091 },
           "end": { "joint": "arc-10", "offset": -26.805556 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30363,7 +30363,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": -26.805556 },
           "end": { "joint": "arc-10", "offset": -2.5786 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30488,7 +30488,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": -2.5786 },
           "end": { "joint": "straight-11", "offset": -29.152605 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30636,7 +30636,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": -29.152605 },
           "end": { "joint": "straight-11", "offset": 10.215142 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30761,7 +30761,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 10.215142 },
           "end": { "joint": "straight-11", "offset": 35.819993 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -30886,7 +30886,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 35.819993 },
           "end": { "joint": "straight-11", "offset": 80.253639 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31011,7 +31011,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 80.253639 },
           "end": { "joint": "straight-11", "offset": 111.332955 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31136,7 +31136,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 111.332955 },
           "end": { "joint": "straight-11", "offset": 155.713709 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31307,7 +31307,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 155.713709 },
           "end": { "joint": "straight-11", "offset": 179.210235 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31478,7 +31478,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 179.210235 },
           "end": { "joint": "arc-12", "offset": -174.82351 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31626,7 +31626,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -174.82351 },
           "end": { "joint": "arc-12", "offset": -149.536649 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31751,7 +31751,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -149.536649 },
           "end": { "joint": "arc-12", "offset": -125.79418 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -31899,7 +31899,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -125.79418 },
           "end": { "joint": "arc-12", "offset": -100.129529 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32070,7 +32070,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -100.129529 },
           "end": { "joint": "arc-12", "offset": -61.87205 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32218,7 +32218,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -61.87205 },
           "end": { "joint": "arc-12", "offset": -22.162437 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32389,7 +32389,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -22.162437 },
           "end": { "joint": "arc-12", "offset": 3.464874 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32537,7 +32537,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": 3.464874 },
           "end": { "joint": "straight-13", "offset": -42.535455 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32662,7 +32662,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": -42.535455 },
           "end": { "joint": "straight-13", "offset": -1.842804 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32833,7 +32833,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": -1.842804 },
           "end": { "joint": "straight-13", "offset": 46.029889 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -32981,7 +32981,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 46.029889 },
           "end": { "joint": "straight-13", "offset": 91.436171 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33106,7 +33106,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 91.436171 },
           "end": { "joint": "straight-13", "offset": 117.212093 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33254,7 +33254,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 117.212093 },
           "end": { "joint": "straight-13", "offset": 147.860475 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33425,7 +33425,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 147.860475 },
           "end": { "joint": "arc-14", "offset": -117.44578 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33550,7 +33550,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -117.44578 },
           "end": { "joint": "arc-14", "offset": -91.742769 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33698,7 +33698,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -91.742769 },
           "end": { "joint": "arc-14", "offset": -52.518556 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33823,7 +33823,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -52.518556 },
           "end": { "joint": "arc-14", "offset": -30.433888 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -33948,7 +33948,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -30.433888 },
           "end": { "joint": "arc-14", "offset": 13.943696 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34119,7 +34119,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": 13.943696 },
           "end": { "joint": "arc-14", "offset": 37.294399 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34267,7 +34267,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": 37.294399 },
           "end": { "joint": "straight-15", "offset": -2.488396 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34438,7 +34438,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": -2.488396 },
           "end": { "joint": "straight-15", "offset": 41.740662 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34609,7 +34609,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 41.740662 },
           "end": { "joint": "straight-15", "offset": 85.729069 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34757,7 +34757,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 85.729069 },
           "end": { "joint": "straight-15", "offset": 123.06891 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -34882,7 +34882,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 123.06891 },
           "end": { "joint": "straight-15", "offset": 146.203811 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35030,7 +35030,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 146.203811 },
           "end": { "joint": "arc-16", "offset": -160.425622 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35155,7 +35155,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": -160.425622 },
           "end": { "joint": "arc-16", "offset": -136.805578 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35303,7 +35303,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": -136.805578 },
           "end": { "joint": "arc-16", "offset": -103.083255 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35474,7 +35474,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": -103.083255 },
           "end": { "joint": "arc-16", "offset": -56.931373 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35622,7 +35622,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": -56.931373 },
           "end": { "joint": "arc-16", "offset": -21.287804 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35747,7 +35747,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": -21.287804 },
           "end": { "joint": "arc-16", "offset": 6.276744 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -35918,7 +35918,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-16", "offset": 6.276744 },
           "end": { "joint": "straight-17", "offset": -23.226804 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -36066,7 +36066,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-17", "offset": -23.226804 },
           "end": { "joint": "straight-17", "offset": 0.01794 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -36214,7 +36214,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-17", "offset": 0.01794 },
           "end": { "joint": "straight-17", "offset": 45.696728 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -36339,7 +36339,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-17", "offset": 45.696728 },
           "end": { "joint": "straight-17", "offset": 82.06281 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -36464,7 +36464,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-17", "offset": 82.06281 },
           "end": { "joint": "straight-17", "offset": 120 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37458,7 +37458,7 @@
           "boundary": "bore-left",
           "start": { "joint": "straight-3", "offset": 52 },
           "end": { "joint": "arc-4", "offset": 22 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37521,7 +37521,7 @@
           "boundary": "bore-right",
           "start": { "joint": "straight-3", "offset": 52 },
           "end": { "joint": "arc-4", "offset": 22 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37584,7 +37584,7 @@
           "boundary": "bore-left",
           "start": { "joint": "arc-6", "offset": -111 },
           "end": { "joint": "arc-6", "offset": 109 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37647,7 +37647,7 @@
           "boundary": "bore-right",
           "start": { "joint": "arc-6", "offset": -111 },
           "end": { "joint": "arc-6", "offset": 109 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37710,7 +37710,7 @@
           "boundary": "bore-left",
           "start": { "joint": "arc-8", "offset": 45 },
           "end": { "joint": "straight-9", "offset": 147 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37773,7 +37773,7 @@
           "boundary": "bore-right",
           "start": { "joint": "arc-8", "offset": 45 },
           "end": { "joint": "straight-9", "offset": 147 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37836,7 +37836,7 @@
           "boundary": "bore-left",
           "start": { "joint": "straight-11", "offset": -57 },
           "end": { "joint": "arc-12", "offset": -107 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37899,7 +37899,7 @@
           "boundary": "bore-right",
           "start": { "joint": "straight-11", "offset": -57 },
           "end": { "joint": "arc-12", "offset": -107 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -37962,7 +37962,7 @@
           "boundary": "bore-left",
           "start": { "joint": "straight-13", "offset": 90 },
           "end": { "joint": "arc-14", "offset": 60 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -38025,7 +38025,7 @@
           "boundary": "bore-right",
           "start": { "joint": "straight-13", "offset": 90 },
           "end": { "joint": "arc-14", "offset": 60 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -38088,7 +38088,7 @@
           "boundary": "bore-left",
           "start": { "joint": "arc-16", "offset": -33 },
           "end": { "joint": "straight-17", "offset": 26 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -38151,7 +38151,7 @@
           "boundary": "bore-right",
           "start": { "joint": "arc-16", "offset": -33 },
           "end": { "joint": "straight-17", "offset": 26 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -39661,7 +39661,7 @@
           "boundary": "rail-left",
           "start": { "joint": "straight-3", "offset": 2 },
           "end": { "joint": "arc-4", "offset": -178 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -39724,7 +39724,7 @@
           "boundary": "rail-right",
           "start": { "joint": "straight-3", "offset": 2 },
           "end": { "joint": "arc-4", "offset": -178 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -39787,7 +39787,7 @@
           "boundary": "rail-left",
           "start": { "joint": "straight-5", "offset": -40 },
           "end": { "joint": "arc-6", "offset": -100 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -39850,7 +39850,7 @@
           "boundary": "rail-right",
           "start": { "joint": "straight-5", "offset": -40 },
           "end": { "joint": "arc-6", "offset": -100 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -39913,7 +39913,7 @@
           "boundary": "rail-left",
           "start": { "joint": "arc-8", "offset": -225 },
           "end": { "joint": "arc-8", "offset": -5 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -39976,7 +39976,7 @@
           "boundary": "rail-right",
           "start": { "joint": "arc-8", "offset": -225 },
           "end": { "joint": "arc-8", "offset": -5 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -40039,7 +40039,7 @@
           "boundary": "rail-left",
           "start": { "joint": "arc-10", "offset": 107 },
           "end": { "joint": "arc-10", "offset": 367 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -40102,7 +40102,7 @@
           "boundary": "rail-right",
           "start": { "joint": "arc-10", "offset": 107 },
           "end": { "joint": "arc-10", "offset": 367 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -46222,7 +46222,7 @@
           "boundary": "mountain",
           "start": { "joint": "arc-2", "offset": -80 },
           "end": { "joint": "arc-18", "offset": 45 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "rock" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -65592,7 +65592,7 @@
           "boundary": "barrier-left",
           "start": { "joint": "arc-2", "offset": 0 },
           "end": { "joint": "straight-17", "offset": -40 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "wall" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -65632,7 +65632,7 @@
           "boundary": "barrier-right",
           "start": { "joint": "arc-2", "offset": 0 },
           "end": { "joint": "straight-17", "offset": -40 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "wall" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -67089,7 +67089,7 @@
           "boundary": "rail-left",
           "start": { "joint": "arc-4", "offset": 121 },
           "end": { "joint": "arc-6", "offset": -386 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -67136,7 +67136,7 @@
           "boundary": "rail-right",
           "start": { "joint": "arc-4", "offset": 121 },
           "end": { "joint": "arc-6", "offset": -386 },
-          "solid": { "freeStart": 0.2, "freeEnd": 0.2, "sound": "guardrail" },
+          "solid": { "freeStart": 0.2, "freeEnd": 0.2 },
           "strips": [
             {
               "kind": "strip",
@@ -76535,7 +76535,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-2", "offset": -50 },
           "end": { "joint": "arc-2", "offset": -18.71077 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -76674,7 +76674,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-2", "offset": -18.71077 },
           "end": { "joint": "straight-3", "offset": -28.018409 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -76813,7 +76813,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": -28.018409 },
           "end": { "joint": "straight-3", "offset": 6.017257 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -76998,7 +76998,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 6.017257 },
           "end": { "joint": "straight-3", "offset": 75.117276 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -77229,7 +77229,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 75.117276 },
           "end": { "joint": "straight-3", "offset": 123.567967 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -77414,7 +77414,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 123.567967 },
           "end": { "joint": "straight-3", "offset": 181.720799 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -77645,7 +77645,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 181.720799 },
           "end": { "joint": "straight-3", "offset": 248.646006 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -77784,7 +77784,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-3", "offset": 248.646006 },
           "end": { "joint": "arc-4", "offset": -215.294819 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -77969,7 +77969,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -215.294819 },
           "end": { "joint": "arc-4", "offset": -182.869657 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -78200,7 +78200,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -182.869657 },
           "end": { "joint": "arc-4", "offset": -133.888761 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -78339,7 +78339,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -133.888761 },
           "end": { "joint": "arc-4", "offset": -75.164841 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -78570,7 +78570,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -75.164841 },
           "end": { "joint": "arc-4", "offset": -41.377511 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -78709,7 +78709,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": -41.377511 },
           "end": { "joint": "arc-4", "offset": 23.591812 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -78871,7 +78871,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-4", "offset": 23.591812 },
           "end": { "joint": "straight-5", "offset": -28.652018 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79033,7 +79033,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": -28.652018 },
           "end": { "joint": "straight-5", "offset": 32.500845 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79195,7 +79195,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 32.500845 },
           "end": { "joint": "straight-5", "offset": 79.168715 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79334,7 +79334,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 79.168715 },
           "end": { "joint": "straight-5", "offset": 120.463713 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79519,7 +79519,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 120.463713 },
           "end": { "joint": "straight-5", "offset": 169.468232 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79704,7 +79704,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 169.468232 },
           "end": { "joint": "straight-5", "offset": 200.885325 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -79843,7 +79843,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-5", "offset": 200.885325 },
           "end": { "joint": "arc-6", "offset": -182.228303 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80051,7 +80051,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -182.228303 },
           "end": { "joint": "arc-6", "offset": -144.337808 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80259,7 +80259,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -144.337808 },
           "end": { "joint": "arc-6", "offset": -89.412614 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80398,7 +80398,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -89.412614 },
           "end": { "joint": "arc-6", "offset": -54.931514 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80560,7 +80560,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": -54.931514 },
           "end": { "joint": "arc-6", "offset": 4.350026 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80745,7 +80745,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-6", "offset": 4.350026 },
           "end": { "joint": "straight-7", "offset": -23.096074 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -80930,7 +80930,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": -23.096074 },
           "end": { "joint": "straight-7", "offset": 36.902475 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -81115,7 +81115,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 36.902475 },
           "end": { "joint": "straight-7", "offset": 100.539807 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -81277,7 +81277,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 100.539807 },
           "end": { "joint": "straight-7", "offset": 166.842244 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -81508,7 +81508,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 166.842244 },
           "end": { "joint": "straight-7", "offset": 200.420999 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -81716,7 +81716,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 200.420999 },
           "end": { "joint": "straight-7", "offset": 235.694179 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -81924,7 +81924,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 235.694179 },
           "end": { "joint": "straight-7", "offset": 280.357107 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -82155,7 +82155,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-7", "offset": 280.357107 },
           "end": { "joint": "arc-8", "offset": -261.195716 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -82386,7 +82386,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -261.195716 },
           "end": { "joint": "arc-8", "offset": -197.847725 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -82594,7 +82594,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -197.847725 },
           "end": { "joint": "arc-8", "offset": -161.399991 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -82802,7 +82802,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -161.399991 },
           "end": { "joint": "arc-8", "offset": -111.103566 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83010,7 +83010,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -111.103566 },
           "end": { "joint": "arc-8", "offset": -76.580628 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83172,7 +83172,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -76.580628 },
           "end": { "joint": "arc-8", "offset": -20.052533 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83403,7 +83403,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": -20.052533 },
           "end": { "joint": "arc-8", "offset": 15.721136 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83611,7 +83611,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-8", "offset": 15.721136 },
           "end": { "joint": "straight-9", "offset": -8.543313 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83796,7 +83796,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": -8.543313 },
           "end": { "joint": "straight-9", "offset": 56.222657 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -83958,7 +83958,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-9", "offset": 60 },
           "end": { "joint": "arc-10", "offset": -20 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -84021,7 +84021,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": -20 },
           "end": { "joint": "arc-10", "offset": 11.293961 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -84160,7 +84160,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-10", "offset": 11.293961 },
           "end": { "joint": "straight-11", "offset": -26.793702 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -84391,7 +84391,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": -26.793702 },
           "end": { "joint": "straight-11", "offset": 41.000207 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -84622,7 +84622,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 41.000207 },
           "end": { "joint": "straight-11", "offset": 97.362987 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -84830,7 +84830,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 97.362987 },
           "end": { "joint": "straight-11", "offset": 144.110919 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85038,7 +85038,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 144.110919 },
           "end": { "joint": "straight-11", "offset": 183.809373 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85177,7 +85177,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-11", "offset": 183.809373 },
           "end": { "joint": "arc-12", "offset": -247.728376 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85316,7 +85316,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -247.728376 },
           "end": { "joint": "arc-12", "offset": -190.81458 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85547,7 +85547,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -190.81458 },
           "end": { "joint": "arc-12", "offset": -141.577005 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85755,7 +85755,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -141.577005 },
           "end": { "joint": "arc-12", "offset": -76.231528 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -85940,7 +85940,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -76.231528 },
           "end": { "joint": "arc-12", "offset": -31.307167 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86125,7 +86125,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": -31.307167 },
           "end": { "joint": "arc-12", "offset": 21.367465 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86264,7 +86264,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-12", "offset": 21.367465 },
           "end": { "joint": "straight-13", "offset": -28.90013 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86403,7 +86403,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": -28.90013 },
           "end": { "joint": "straight-13", "offset": 39.714415 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86542,7 +86542,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 39.714415 },
           "end": { "joint": "straight-13", "offset": 74.873442 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86750,7 +86750,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 74.873442 },
           "end": { "joint": "straight-13", "offset": 118.049429 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -86935,7 +86935,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 118.049429 },
           "end": { "joint": "straight-13", "offset": 148.634746 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -87097,7 +87097,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 148.634746 },
           "end": { "joint": "straight-13", "offset": 209.078971 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -87236,7 +87236,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-13", "offset": 209.078971 },
           "end": { "joint": "arc-14", "offset": -181.677934 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -87444,7 +87444,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -181.677934 },
           "end": { "joint": "arc-14", "offset": -132.91989 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -87629,7 +87629,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -132.91989 },
           "end": { "joint": "arc-14", "offset": -102.566109 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -87837,7 +87837,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -102.566109 },
           "end": { "joint": "arc-14", "offset": -37.905463 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -88068,7 +88068,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": -37.905463 },
           "end": { "joint": "arc-14", "offset": 2.399899 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -88299,7 +88299,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": 2.399899 },
           "end": { "joint": "arc-14", "offset": 39.276281 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -88530,7 +88530,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": 39.276281 },
           "end": { "joint": "arc-14", "offset": 92.762106 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -88669,7 +88669,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "arc-14", "offset": 92.762106 },
           "end": { "joint": "straight-15", "offset": -56.438983 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -88877,7 +88877,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": -56.438983 },
           "end": { "joint": "straight-15", "offset": 10.036871 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -89085,7 +89085,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 10.036871 },
           "end": { "joint": "straight-15", "offset": 50.057781 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -89224,7 +89224,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 50.057781 },
           "end": { "joint": "straight-15", "offset": 93.594119 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -89363,7 +89363,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 93.594119 },
           "end": { "joint": "straight-15", "offset": 149.107733 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -89594,7 +89594,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 149.107733 },
           "end": { "joint": "straight-15", "offset": 182.820574 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -89825,7 +89825,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 182.820574 },
           "end": { "joint": "straight-15", "offset": 241.471047 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90010,7 +90010,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 241.471047 },
           "end": { "joint": "straight-15", "offset": 305.835397 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90172,7 +90172,7 @@
           "boundary": "fronts-left",
           "start": { "joint": "straight-15", "offset": 305.835397 },
           "end": { "joint": "straight-15", "offset": 330 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90311,7 +90311,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-2", "offset": -50 },
           "end": { "joint": "arc-2", "offset": -18.708253 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90450,7 +90450,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-2", "offset": -18.708253 },
           "end": { "joint": "straight-3", "offset": -30.171937 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90635,7 +90635,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": -30.171937 },
           "end": { "joint": "straight-3", "offset": 9.265458 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -90843,7 +90843,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 9.265458 },
           "end": { "joint": "straight-3", "offset": 53.004079 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91028,7 +91028,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 53.004079 },
           "end": { "joint": "straight-3", "offset": 113.422683 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91213,7 +91213,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 113.422683 },
           "end": { "joint": "straight-3", "offset": 163.096174 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91444,7 +91444,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 163.096174 },
           "end": { "joint": "straight-3", "offset": 233.008555 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91675,7 +91675,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-3", "offset": 233.008555 },
           "end": { "joint": "arc-4", "offset": -206.19755 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91814,7 +91814,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -206.19755 },
           "end": { "joint": "arc-4", "offset": -174.139192 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -91999,7 +91999,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -174.139192 },
           "end": { "joint": "arc-4", "offset": -127.482988 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92138,7 +92138,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -127.482988 },
           "end": { "joint": "arc-4", "offset": -69.245373 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92300,7 +92300,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -69.245373 },
           "end": { "joint": "arc-4", "offset": -11.114831 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92462,7 +92462,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": -11.114831 },
           "end": { "joint": "arc-4", "offset": 21.523909 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92601,7 +92601,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-4", "offset": 21.523909 },
           "end": { "joint": "straight-5", "offset": -19.256522 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92763,7 +92763,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": -19.256522 },
           "end": { "joint": "straight-5", "offset": 33.127437 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -92994,7 +92994,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 33.127437 },
           "end": { "joint": "straight-5", "offset": 96.238459 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -93225,7 +93225,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 96.238459 },
           "end": { "joint": "straight-5", "offset": 166.01257 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -93364,7 +93364,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 166.01257 },
           "end": { "joint": "straight-5", "offset": 222.326468 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -93549,7 +93549,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-5", "offset": 222.326468 },
           "end": { "joint": "arc-6", "offset": -184.446755 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -93688,7 +93688,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -184.446755 },
           "end": { "joint": "arc-6", "offset": -131.308252 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -93896,7 +93896,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -131.308252 },
           "end": { "joint": "arc-6", "offset": -100.543085 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94104,7 +94104,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -100.543085 },
           "end": { "joint": "arc-6", "offset": -44.280901 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94243,7 +94243,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": -44.280901 },
           "end": { "joint": "arc-6", "offset": 15.784747 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94428,7 +94428,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-6", "offset": 15.784747 },
           "end": { "joint": "straight-7", "offset": -26.910279 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94590,7 +94590,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": -26.910279 },
           "end": { "joint": "straight-7", "offset": 12.573373 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94821,7 +94821,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 12.573373 },
           "end": { "joint": "straight-7", "offset": 78.742665 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -94983,7 +94983,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 78.742665 },
           "end": { "joint": "straight-7", "offset": 128.827229 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -95214,7 +95214,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 128.827229 },
           "end": { "joint": "straight-7", "offset": 164.463813 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -95353,7 +95353,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 164.463813 },
           "end": { "joint": "straight-7", "offset": 203.110434 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -95538,7 +95538,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 203.110434 },
           "end": { "joint": "straight-7", "offset": 245.76328 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -95746,7 +95746,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 245.76328 },
           "end": { "joint": "straight-7", "offset": 284.784203 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -95977,7 +95977,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-7", "offset": 284.784203 },
           "end": { "joint": "arc-8", "offset": -268.806909 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -96162,7 +96162,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -268.806909 },
           "end": { "joint": "arc-8", "offset": -211.710855 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -96393,7 +96393,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -211.710855 },
           "end": { "joint": "arc-8", "offset": -176.469887 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -96578,7 +96578,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -176.469887 },
           "end": { "joint": "arc-8", "offset": -142.402183 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -96740,7 +96740,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -142.402183 },
           "end": { "joint": "arc-8", "offset": -87.249237 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -96948,7 +96948,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -87.249237 },
           "end": { "joint": "arc-8", "offset": -20.651546 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97110,7 +97110,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": -20.651546 },
           "end": { "joint": "arc-8", "offset": 33.329657 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97341,7 +97341,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-8", "offset": 33.329657 },
           "end": { "joint": "straight-9", "offset": 21.656285 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97526,7 +97526,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 21.656285 },
           "end": { "joint": "straight-9", "offset": 60 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97688,7 +97688,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-9", "offset": 60 },
           "end": { "joint": "arc-10", "offset": -20 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97751,7 +97751,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": -20 },
           "end": { "joint": "arc-10", "offset": 11.296478 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -97890,7 +97890,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-10", "offset": 11.296478 },
           "end": { "joint": "straight-11", "offset": -29.553351 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -98075,7 +98075,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": -29.553351 },
           "end": { "joint": "straight-11", "offset": 33.622749 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -98306,7 +98306,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 33.622749 },
           "end": { "joint": "straight-11", "offset": 64.468019 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -98445,7 +98445,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 64.468019 },
           "end": { "joint": "straight-11", "offset": 129.404248 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -98653,7 +98653,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 129.404248 },
           "end": { "joint": "straight-11", "offset": 198.128251 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -98815,7 +98815,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-11", "offset": 198.128251 },
           "end": { "joint": "arc-12", "offset": -236.083941 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99046,7 +99046,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -236.083941 },
           "end": { "joint": "arc-12", "offset": -193.595913 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99254,7 +99254,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -193.595913 },
           "end": { "joint": "arc-12", "offset": -144.577442 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99462,7 +99462,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -144.577442 },
           "end": { "joint": "arc-12", "offset": -76.790697 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99624,7 +99624,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -76.790697 },
           "end": { "joint": "arc-12", "offset": -32.272976 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99832,7 +99832,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": -32.272976 },
           "end": { "joint": "arc-12", "offset": 7.283993 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -99994,7 +99994,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-12", "offset": 7.283993 },
           "end": { "joint": "straight-13", "offset": -12.84041 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -100156,7 +100156,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": -12.84041 },
           "end": { "joint": "straight-13", "offset": 39.395737 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -100318,7 +100318,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 39.395737 },
           "end": { "joint": "straight-13", "offset": 85.825002 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -100457,7 +100457,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 85.825002 },
           "end": { "joint": "straight-13", "offset": 152.869803 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -100619,7 +100619,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 152.869803 },
           "end": { "joint": "straight-13", "offset": 211.22591 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -100850,7 +100850,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-13", "offset": 211.22591 },
           "end": { "joint": "arc-14", "offset": -205.786799 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101012,7 +101012,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -205.786799 },
           "end": { "joint": "arc-14", "offset": -139.760872 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101220,7 +101220,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -139.760872 },
           "end": { "joint": "arc-14", "offset": -109.755027 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101405,7 +101405,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -109.755027 },
           "end": { "joint": "arc-14", "offset": -71.497089 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101613,7 +101613,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -71.497089 },
           "end": { "joint": "arc-14", "offset": -4.893986 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101844,7 +101844,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": -4.893986 },
           "end": { "joint": "arc-14", "offset": 49.667833 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -101983,7 +101983,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "arc-14", "offset": 49.667833 },
           "end": { "joint": "straight-15", "offset": -89.45015 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -102122,7 +102122,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": -89.45015 },
           "end": { "joint": "straight-15", "offset": -43.973613 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -102330,7 +102330,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": -43.973613 },
           "end": { "joint": "straight-15", "offset": 21.993685 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -102515,7 +102515,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 21.993685 },
           "end": { "joint": "straight-15", "offset": 81.798298 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -102654,7 +102654,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 81.798298 },
           "end": { "joint": "straight-15", "offset": 133.735137 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -102885,7 +102885,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 133.735137 },
           "end": { "joint": "straight-15", "offset": 182.338725 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -103116,7 +103116,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 182.338725 },
           "end": { "joint": "straight-15", "offset": 245.158852 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -103347,7 +103347,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 245.158852 },
           "end": { "joint": "straight-15", "offset": 293.234569 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",
@@ -103578,7 +103578,7 @@
           "boundary": "fronts-right",
           "start": { "joint": "straight-15", "offset": 293.234569 },
           "end": { "joint": "straight-15", "offset": 330 },
-          "solid": { "freeStart": null, "freeEnd": null, "sound": "wall" },
+          "solid": { "freeStart": null, "freeEnd": null },
           "strips": [
             {
               "kind": "strip",

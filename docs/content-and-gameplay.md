@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 51,
+  format: "superoutride.course", version: 52,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -252,11 +252,8 @@ Section `walls` is an array (empty when the Section has none) of `{boundary, sta
 the Section Boundary `boundary` from Position `start` to Position `end`. Compilation requires `start < end` and the
 Boundary to
 cover that interval (`invalid_wall`; an unknown Boundary is `unresolved_reference`). `solid` is null for a wall vehicles
-pass through (for looks only), or `{freeStart, freeEnd, sound}` for a solid one, which vehicles meet; an invisible solid
-wall is solid too. `sound` names the wall's record in the [wall-sound document](tire-audio.md#wall-sounds), which the
-content build checks (`unresolved_reference` at `/sections/i/walls/j/solid/sound` for an unknown ID); the compiled
-barrier line carries it, and a course limit's line carries none (null): it uses the record the wall-sound document
-names for course limits. Each solid end, at `start`
+pass through (for looks only), or `{freeStart, freeEnd}` for a solid one, which vehicles meet; an invisible solid
+wall is solid too. Each solid end, at `start`
 and at `end`, either joins another barrier line — it lies on a course limit, or on another solid wall from its `start`
 through its `end`, ends included — and is then null, or is declared free with its thickness, positive metres. Compilation
 checks every solid end once, within `JOIN_TOLERANCE_METERS` (1e-6 m, reading one line through two compiled readers): an
@@ -1604,10 +1601,6 @@ The race publishes the contacts of the player's vehicle at the end of each fixed
 the last step's only, with no sound values, and none of other vehicles' contacts with each other, with walls or with
 objects. It changes no mechanics; it reports quantities the contacts already compute.
 
-- **Rubs:** each barrier line pushing the player this step: the line's wall sound (its wall's `sound`, or null for a
-  course limit, which uses the wall-sound document's own), its push `F` (N), the player's speed along the
-  road `|v_along|` (m/s) and the power the line's friction removes, `|friction × v_along|` (W), which is
-  `barrierFriction × F × |v_along|` unless the friction is at its `m × |v_along| / step` bound.
 - **Starts:** each contact of the player that began this step: its counterpart (`vehicle`; `wall` for a wall, a course
   limit or a solid wall's free end; `object` for a fixed object; `movable` for a movable one) and the work the
   spring-damper's damper term dissipated over the step, `m × 2ζω × v² × step` (J, never negative; `m` the mass the push

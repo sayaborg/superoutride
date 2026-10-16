@@ -45,21 +45,6 @@ the catalog order; the worklet receives the records at construction and in every
 replaces its kernels when they change, and the kernels read them by number. DEV's SURFACES panel
 ([Browser](browser.md#sound-controls)) changes the records at the same numbers, each through the one value check.
 
-## Wall sounds
-
-Wall sounds are content: `content/wall-sounds/default.json` is the one `superoutride.wall-sounds` version 1 document
-(manifest kind `wall-sound`, ID `default`) with exactly `format`, `version`, `courseLimit` and `walls`. `walls` holds one
-record per wall-sound ID, `{friction: {roughness, susceptibility}}`: the friction input of a wall rubbed along, with
-the same meaning and the same one value check as a surface's ([`compileFrictionInput`](../src/audio/surface-sounds.ts):
-both within [0, 1]). Each check fails as an `invalid_value` diagnostic at the field it reads, such as
-`/walls/limit/friction/roughness` or `/surfaces/ASPHALT/rolling/textureDepth`, through the shared relative domain
-path ([Architecture](architecture.md)). `courseLimit` names the record every course limit uses; it must
-name a record (`unresolved_reference`). At most `WALL_SOUND_LIMIT` (256, the scraping worklet's `wall` transport
-range, an author value as for surfaces) records are admitted (`resource_limit`), so every record keeps its number in transport. [`compileWallSoundDocument`](../src/audio/wall-sounds.ts) admits it, and the
-content build admits each course's solid walls against it ([Content and gameplay](content-and-gameplay.md#walls)).
-DEV's WALLS panel changes the records at the same numbers, each through the one value check; the scraping worklet
-receives them in its settings message and replaces its kernel, as for surfaces.
-
 ## Rolling synthesis
 
 [Rolling synthesis](../src/audio/tire-rolling-model.ts) uses wheel angular velocity for noise-band

@@ -1,14 +1,13 @@
 import type { ControlSettings } from './audio-control-policy.js';
 import { FrictionResonator } from './friction-resonator.js';
-import type { FrictionInput } from './surface-sounds.js';
+import type { SurfaceSound } from './surface-sounds.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
 
 const saturate = (value: number, half: number): number => value / (value + half);
 
 /**
- * ONE stochastic friction system: the friction resonator excited by accepted work at a slip speed on a rubbed friction
- * input, followed within the kernel and picked up through DC removal and a low-pass. The tire's Q and a wall's scraping
- * are this one system with their own settings.
+ * The tire's Q, ONE stochastic friction system: the friction resonator excited by accepted work at a slip speed on a
+ * surface's friction input, followed within the kernel and picked up through DC removal and a low-pass.
  */
 export class FrictionSynthesis {
   private readonly resonator: FrictionResonator;
@@ -61,7 +60,7 @@ export class FrictionSynthesis {
    * Excite with accepted power `power` (W) at slip speed `slip` (m/s) on `friction`; without both positive the system
    * is released.
    */
-  update(power: number, slip: number, friction: FrictionInput): void {
+  update(power: number, slip: number, friction: SurfaceSound['friction']): void {
     const settings = this.settings;
     this.active = slip > 0 && power > 0;
     if (!this.active) {

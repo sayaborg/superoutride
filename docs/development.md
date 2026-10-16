@@ -511,7 +511,7 @@ racing lines, game time budgets and pace schedules from the [measured products](
 `dist/delivery/manifest.json` is the sole delivery index. Its own
 `format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
 `{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
-mechanics, vehicle listing, driving, material, surface-sound, wall-sound, audio, engine-sound, music, series, screen picture and text tile documents are delivered exactly as authored in that
+mechanics, vehicle listing, driving, material, surface-sound, audio, engine-sound, music, series, screen picture and text tile documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
 as the exact bytes its author placed under `content/`. Entries contain no payload
 format/version. The delivery layout (`layoutDelivery` in
@@ -535,7 +535,6 @@ format/version. The delivery layout (`layoutDelivery` in
 | `free-play`       | `default`                                                                                       | `free-play/<id>.json`                     | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                                            |
 | `recording`       | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>`                            | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                     |
 | `music`           | Track ID                                                                                        | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                               |
-| `wall-sound`      | `default`                                                                                       | `wall-sounds/<id>.json`                   | Wall-sound document ([Tire audio](tire-audio.md#wall-sounds))                                                                   |
 | `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
 | `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | RACE pace schedule (`superoutride.pace-schedule` v1)                                                                            |
 | `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v2)                                                                       |
@@ -562,10 +561,9 @@ Authoring inputs under `content/` still use explicit source filenames and image 
 The browser-tools build writes only `dist/tools`: the bundled workbench and the license of the PNG codec it bundles. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
 `compileContent` reads `content/` through the Node content store and compiles every delivered file from authored
 documents in one pass, in dependency order: the vehicle sprite library (compiled LOD and admitted), text tiles,
-surface materials, surface sounds (resolved against those materials), wall sounds, audio settings, recordings and the
+surface materials, surface sounds (resolved against those materials), audio settings, recordings and the
 music documents (admitted against those recordings), FREE PLAY rules, engine sounds, vehicle and driving definitions
-(admitted against that library and engine-sound catalog), courses (their solid walls admitted against the wall
-sounds) and their images (admitted with the levels they are saved with; none is compiled), the course index, then series (admitted against those courses and the vehicle catalog).
+(admitted against that library and engine-sound catalog), courses and their images (admitted with the levels they are saved with; none is compiled), the course index, then series (admitted against those courses and the vehicle catalog).
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a

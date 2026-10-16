@@ -21,8 +21,7 @@ export type ContentKind =
   | 'audio'
   | 'free-play'
   | 'recording'
-  | 'music'
-  | 'wall-sound';
+  | 'music';
 
 /** A required delivered or built file is absent from the content manifest. */
 export interface MissingContentDiagnostic {

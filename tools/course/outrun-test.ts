@@ -1000,7 +1000,7 @@ try {
   const built = ROWS.flatMap((stages, row) => stages.map((design, position) => buildStage(design, row, position)));
   const course = {
     format: 'superoutride.course',
-    version: 51,
+    version: 52,
     name: 'OUTRUN TEST',
     entry: ROWS[0]![0]!.id,
     maxLaps: 1,

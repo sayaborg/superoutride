@@ -5,7 +5,6 @@ import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { MixSettings } from './sound-graph.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
-import type { ScrapeSettings } from './wall-scrape-acoustics.js';
 import type { ImpactSettings } from './impact-acoustics.js';
 
 /**
@@ -39,24 +38,6 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     saturationPerSecond: 6000,
     slipHalfMps: 3,
     slipRolloffMps: 45,
-    noiseBandwidthHz: 600,
-    outputCutoffHz: 8000,
-    resonanceDampingPerSecond: 2 * Math.PI * 500,
-    lowParticipation: 0.45,
-    dcHz: 18,
-  }),
-  // The walls' scraping: the UNIFIED defaults with a work reference of 90 kW, set near the median wall-rub power
-  // measured on departures from a road at about 30 m/s, and slip mappings for wall speeds.
-  scrape: Object.freeze<ScrapeSettings>({
-    feedbackMaximumPerSecond: 8500,
-    powerReferenceWatts: 90000,
-    noiseForcePerSecond: 2400,
-    lowFrequencyHz: 300,
-    highFrequencyHz: 1000,
-    outputGainPerSecond: 900,
-    saturationPerSecond: 6000,
-    slipHalfMps: 8,
-    slipRolloffMps: 80,
     noiseBandwidthHz: 600,
     outputCutoffHz: 8000,
     resonanceDampingPerSecond: 2 * Math.PI * 500,

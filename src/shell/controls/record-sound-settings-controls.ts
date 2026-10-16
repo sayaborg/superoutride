@@ -1,6 +1,5 @@
 import { compileEngineSound, type CompiledEngineSound } from '../../audio/engine-sound.js';
-import { compileFrictionInput, compileSurfaceSound, type SurfaceSound } from '../../audio/surface-sounds.js';
-import type { WallSound } from '../../audio/wall-sounds.js';
+import { compileSurfaceSound, type SurfaceSound } from '../../audio/surface-sounds.js';
 
 type Path = readonly (string | number)[];
 /** A record's number at `path`, with its label and unit. */
@@ -119,11 +118,6 @@ function createRecordSoundSettings<R>(
   };
 }
 
-const FRICTION_FIELDS: readonly Field[] = [
-  ['Friction roughness', ['friction', 'roughness'], ''],
-  ['Friction susceptibility', ['friction', 'susceptibility'], ''],
-];
-
 /** The surface sounds by material: the rolling palette and the friction input. */
 export function mountSurfaceSoundSettings(
   host: HTMLElement,
@@ -139,28 +133,12 @@ export function mountSurfaceSoundSettings(
       ['Rolling high', ['rolling', 'high'], ''],
       ['Texture length', ['rolling', 'textureLengthMeters'], 'm'],
       ['Texture depth', ['rolling', 'textureDepth'], ''],
-      ...FRICTION_FIELDS,
+      ['Friction roughness', ['friction', 'roughness'], ''],
+      ['Friction susceptibility', ['friction', 'susceptibility'], ''],
     ],
     compileSurfaceSound,
     onChange,
     'Reset SURFACES to defaults',
-  );
-}
-
-/** The wall sounds by ID: the friction input. */
-export function mountWallSoundSettings(
-  host: HTMLElement,
-  initial: Readonly<Record<string, WallSound>>,
-  onChange: () => void,
-) {
-  return createRecordSoundSettings(
-    host,
-    'WALLS · friction input',
-    initial,
-    () => FRICTION_FIELDS,
-    (record) => Object.freeze({ friction: compileFrictionInput(record.friction) }),
-    onChange,
-    'Reset WALLS to defaults',
   );
 }
 

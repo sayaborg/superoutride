@@ -1,5 +1,4 @@
 import { createAudioLifecycle, type AudioTimingSource } from './audio-lifecycle.js';
-import type { WallRubObservation } from '../audio/scrape-voice.js';
 import type { AudioSettings } from '../audio/audio-document.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels, scaleRgb555Pixels } from '../image/rgb555.js';
@@ -30,12 +29,8 @@ export interface BrowserDrivingShell {
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
   /** The brightness frames are presented at, in eighths: the screen host's black transition sets it. */
   setBrightness(eighths: number): void;
-  /** The run's vehicles for the audio scene, and the player's wall rubs of the last step. */
-  updateAudio(
-    player: CompetitorObservation,
-    rivals: readonly CompetitorObservation[],
-    rubs: readonly WallRubObservation[],
-  ): void;
+  /** The run's vehicles for the audio scene. */
+  updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
   /**
    * The one procedure that routes devices, called by the screen host when the route changes: driving input is live only
    * while driving and vehicle sound while a vehicle is driven; menu commands follow the route.
@@ -138,8 +133,8 @@ export function createBrowserDrivingShell(
       touchIndicators.update(inputManager.touch);
       overlay?.(ctx);
     },
-    updateAudio(player, rivals, rubs): void {
-      audio.update(player, rivals, rubs);
+    updateAudio(player, rivals): void {
+      audio.update(player, rivals);
     },
   };
 }
