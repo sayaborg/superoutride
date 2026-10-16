@@ -439,6 +439,24 @@ environment within it, and for each Link named after
 `--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
 transition shows; nothing reads them.
 
+### Footage commands
+
+The footage tool raises a course from videos of an original game ([Courses from footage](footage.md)). It runs as
+`npm run footage -- <command>` and needs ffmpeg and ffprobe on the path. It reads videos and writes frames, features,
+evidence and side-by-sides under `reference-media/`, which Git ignores; it commits numbers alone, under
+`content/footage/`, besides the course document and the outline boards (their sprite sources and course images). Stage
+VC adds these commands one PR at a time ([NEXT](NEXT.md#stage-vc--courses-from-footage) lists those still to come):
+
+| Command     | Purpose                                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------- |
+| `fake`      | Draw fake footage of a course with a camera unlike the product's, and write its truth                         |
+| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                        |
+| `features`  | Measure each frame's features                                                                                 |
+| `calibrate` | Make the original's footage model from its first course's videos, or check a later course's videos against it |
+| `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video   |
+| `replay`    | Draw a video's replay and its side-by-side with the video                                                     |
+| `roundtrip` | Run the whole procedure on fake footage and compare every result with its truth                               |
+
 ### Skies command
 
 The skies command draws every course sky that has a source, `content/sky-sources/<name>.png` with its entry in that
@@ -474,6 +492,10 @@ Only numeric observations, scalar calibration and source/edition descriptions ar
 reference evidence. Product-renderer previews and reports are generated outputs.
 An underlay image traced in the course module is such a source: it is opened in the browser and never stored, and only
 its alignment numbers are committed, under `content/course-underlays/`.
+The one exception is an outline board ([Courses from footage](footage.md#outline-boards)): the outline of a sprite fixed
+on an original's course, filled with one color, is committed as a sprite source and course image. Nothing inside the
+outline (colors, patterns, lettering) is. An outline's evidence, the original-resolution texel shapes and each frame's
+masks, stays in `reference-media/`, as do HUD templates and background mosaics.
 
 ## Build outputs
 

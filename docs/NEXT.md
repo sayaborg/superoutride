@@ -120,11 +120,45 @@
   `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
   exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
 
-Next PR: [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-2](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage VC — Courses from footage
+
+Stage VC builds the footage tool ([Courses from footage](footage.md)) and proves it on fake footage of OUTRUN TEST
+against known truth. Afterwards, each time K supplies videos of an original's course, the implementer raises the course
+by the [procedure](footage.md#procedure) alone. It ends before Stage 16 produces the OUTRUN, SUPER HANG-ON and CHASE H.Q.
+courses, and it raises none of them itself.
+
+K decided it runs in parallel with other stages, in its own sessions and branches. It touches the tools, the
+specifications and, where replay needs it, a generalization of the renderer (a frame size or pose as an argument, never a
+branch for an original); never audio, vehicles or physics, so it shares only NEXT, the specification index and
+Development with other work: when main moves, the branch is brought up to it and validated again before main is
+fast-forwarded.
+
+Rules of the stage: the trial courses (OUTRUN TRIAL A and A STEEP) and the driving scenarios do not change; reference
+driving is not fitted to an original's times; every value is derived, set from a noise level or recorded in the footage
+model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
+the [stopping conditions](footage.md#stopping-conditions).
+
+- VC-2: the fake footage generator (`fake`), through the truth it writes, so that every later step is checked against
+  truth.
+- VC-3: ingest and features (`ingest`, `features`), checked against the fake footage's truth, with each feature's noise
+  level measured.
+- VC-4: calibration (`calibrate`): the footage model recovers the fake footage's camera.
+- VC-5: the initial estimate, landmarks and partition over several videos: plan, profile, lanes, start, forks,
+  checkpoints and goals, written as a course document.
+- VC-6: appearance: Strips, color changes, materials and environment knots.
+- VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement.
+- VC-8: replay and the comparison (`replay`, `solve`'s iteration): each video replayed, every video's residuals updating
+  the course, and leave one out.
+- VC-9: the round trip (`roundtrip`) passes, exact and corrupted, at 60 and 30 fps, compressed; the report (lateral
+  acceleration, where the vehicle leaves the ground, inconsistency amount, sprite kinds). The frame measurement tool
+  (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are
+  deleted, leaving the footage observations the one observation format.
 
 ## Audit 2 leftovers
 
@@ -213,25 +247,11 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                               |
 | RALLY STAGE    | Provisional courses: FOREST (tarmac, gravel, tarmac, gravel), MOUNTAIN (narrow tarmac, gravel climb, mountain tarmac), COAST (fast tarmac, dirt, wet tarmac), WINTER (tarmac, snow, packed snow, tarmac). Vehicle years, valve variants and Group A references are open.                                                                                                             |
 
-### Time-based authoring
+### Courses from footage
 
-Implement a timeline-based fitting workflow. For the selected vehicle, observations contain interval
-start/duration, turn direction, speed ratio to maximum speed, and relaxed/fast/limit headroom.
-Hills, environments, sprites and checkpoints use timestamped landmarks.
-
-Use the vehicle limits model ([Drivers](content-and-gameplay.md#drivers)) and explicit authoring defaults, initially:
-
-```text
-u(relaxed, fast, limit) = (0.55, 0.75, 0.95)
-v = speedRatio*maximumSpeed
-R = v²/(u*lateralLimit(v))
-arcLength = v*duration
-```
-
-Fit a new CourseDocument without requiring a template. Keep fitting and iteration outside compiler/runtime.
-Initial pacing goals are ±10% per interval and ±3% overall. Compare continuous reference driving with
-observations, revise explicit speed ratio, utilization and interval lengths, and record geometric or
-vehicle-infeasible intervals as remaster departures. Footage and vehicle choices remain content inputs.
+The OUTRUN, SUPER HANG-ON and CHASE H.Q. courses are raised from K's videos by the
+[footage procedure](footage.md#procedure), two or more videos per course, once Stage VC is complete. Each course's
+footage observations and report go with it; its time limits come from reference driving, as for every course.
 
 ### Inspection and art
 
