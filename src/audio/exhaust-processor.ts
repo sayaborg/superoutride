@@ -15,6 +15,10 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
+  // One render quantum's targets and pressure, sized at the first quantum.
+  private rpm = new Float64Array(0);
+  private load = new Float64Array(0);
+  private pressure = new Float64Array(0);
   static get parameterDescriptors() {
     return [
       // An author value above every catalog redline; the parameter's range is the only bound on rpm ([Audio](audio.md)).
@@ -78,9 +82,16 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     const rpm = parameters.rpm![0]!,
       load = Math.max(parameters.load![0]!, parameters.blip![0]!);
     const fuelCut = parameters.fuelCut![0]! >= 0.5;
+    if (this.pressure.length !== output.length) {
+      this.rpm = new Float64Array(output.length);
+      this.load = new Float64Array(output.length);
+      this.pressure = new Float64Array(output.length);
+    }
+    this.rpm.fill(rpm);
+    this.load.fill(load);
     // The exhaust's pressure, then the listening stage: the drive to the mix's engine loudness and the soft clip.
-    for (let i = 0; i < output.length; i++)
-      output[i] = softClip(this.drive * this.engine.sample(rpm, load, fuelCut), this.ceiling);
+    this.engine.render(this.pressure, 0, output.length, this.rpm, this.load, fuelCut);
+    for (let i = 0; i < output.length; i++) output[i] = softClip(this.drive * this.pressure[i]!, this.ceiling);
     this.meter.end(started, output.length);
     return true;
   }

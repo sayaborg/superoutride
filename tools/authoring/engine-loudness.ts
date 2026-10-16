@@ -42,14 +42,18 @@ export function measureEngineLoudness(
 ): number {
   const { sampleRate, drive } = ENGINE_LOUDNESS_PROCEDURE;
   const kernel = new ExhaustWaveguide(vehicle.sound, sampleRate, exhaust, control);
-  const signal: number[] = [];
-  for (const { seconds, from, to, opening } of drive) {
+  const lengths = drive.map(({ seconds }) => Math.round(seconds * sampleRate));
+  const signal = new Float64Array(lengths.reduce((sum, samples) => sum + samples, 0));
+  let offset = 0;
+  drive.forEach(({ from, to, opening }, segment) => {
     const start = engineSpeed(from, vehicle),
       end = engineSpeed(to, vehicle);
-    const samples = Math.round(seconds * sampleRate);
-    for (let n = 0; n < samples; n++) signal.push(kernel.sample(start + ((end - start) * n) / samples, opening, false));
-  }
-  return integratedLoudness(Float64Array.from(signal));
+    const samples = lengths[segment]!;
+    const rpm = Float64Array.from({ length: samples }, (_, n) => start + ((end - start) * n) / samples);
+    kernel.render(signal, offset, samples, rpm, new Float64Array(samples).fill(opening), false);
+    offset += samples;
+  });
+  return integratedLoudness(signal);
 }
 
 /** BS.1770-4's K-weighting at 48 kHz: the head's high shelf, then the revised low-frequency B high-pass. */

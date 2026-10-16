@@ -122,7 +122,13 @@ one. A displacement pulse, expansion chambers and packing absorption were tried 
 fluctuation was considered: none improved driving sound, and each added computation.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
-native-rate nonlinear stages define the model's temporal and spectral resolution.
+native-rate nonlinear stages define the model's temporal and spectral resolution. The kernel renders in blocks (`render`) of at
+most 64 samples and never longer than its shortest delay line, so every arrival a block reads was written before it:
+a block computes each cylinder's pulse and valve end sample by sample, reads every line, scatters at every junction,
+then passes every line's leaving waves through its wall loss and writes them. Each sample's arithmetic, and the order
+of every sum (a junction's ports: its primaries in cylinder order, then each pipe's `from` and `to` ends; the pickup's
+open ends in pipe order), is the same as rendering that sample alone, so the output does not depend on how the calls
+divide the samples. The pulse weights are prepared again only when the excitation changes.
 
 ## Output conditioning
 

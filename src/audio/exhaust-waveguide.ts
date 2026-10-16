@@ -36,71 +36,60 @@ function pulseCascade(decayRate: number, riseRate: number, duration: number, wei
   weights[2] = rise * rise * decay * second;
 }
 
-/**
- * One way through a tube: a fixed delay of its length, rounded to whole samples, and its wall loss on each traversal,
- * four shelves in parallel form over the shared `poles` (`wallLossWeights`).
- */
-class Delay {
-  private readonly data: Float32Array;
-  private readonly weights: Float64Array;
-  private readonly state = new Float64Array(4);
-  private position = 0;
-  constructor(
-    meters: number,
-    diameter: number,
-    rate: number,
-    private readonly poles: Float64Array,
-  ) {
-    this.data = new Float32Array(Math.max(1, Math.round((meters * rate) / ACOUSTICS.waveSpeed)));
-    this.weights = wallLossWeights(meters, diameter, rate);
-  }
-  read(): number {
-    return this.data[this.position]!;
-  }
-  write(value: number): void {
-    const a = this.poles,
-      u = this.state,
-      w = this.weights;
-    u[0] = value - a[0]! * u[0]!;
-    u[1] = value - a[1]! * u[1]!;
-    u[2] = value - a[2]! * u[2]!;
-    u[3] = value - a[3]! * u[3]!;
-    this.data[this.position] = w[0]! * value + w[1]! * u[0]! + w[2]! * u[1]! + w[3]! * u[2]! + w[4]! * u[3]!;
-    this.position = (this.position + 1) % this.data.length;
-  }
-}
-
 /** The one-pole coefficient of an open end's return low-pass for a tube of `diameter`. */
 const openEndFollow = (diameter: number, rate: number) =>
   1 - Math.exp((-2 * Math.PI * openEndCutoffHz(diameter)) / rate);
 
-/** Acoustic state only: RPM is supplied by physics; no torque or crank dynamics. */
+/** The longest block the kernel renders at once; a block is never longer than the shortest delay line. */
+const MAX_BLOCK = 64;
+
+/**
+ * Acoustic state only: RPM is supplied by physics; no torque or crank dynamics. Each tube is a pair of delay lines, one
+ * each way, of its length rounded to whole samples, whose writes pass its wall loss (`wallLossWeights`). The kernel
+ * renders in blocks no longer than its shortest line, so every arrival a block reads was written before the block:
+ * each block computes its sources, reads every line, scatters at every junction, then passes every line's leaving waves
+ * through its loss and writes them. Every sample's arithmetic is the same as one sample rendered alone.
+ */
 export class ExhaustWaveguide {
-  private readonly forward: Delay[];
-  private readonly backward: Delay[];
-  // One delay pair per exhaust pipe: downstream runs from -> to, upstream to -> from.
-  private readonly downstream: Delay[];
-  private readonly upstream: Delay[];
+  // Delay lines, in one buffer: each primary's forward (valve to junction), each primary's backward, each pipe's
+  // downstream (from -> to), each pipe's upstream; each line's start, length and position.
+  private readonly buffer: Float32Array;
+  private readonly lineStart: Int32Array;
+  private readonly lineLength: Int32Array;
+  private readonly linePosition: Int32Array;
+  // Wall loss: the poles shared by every line, each line's weights [C, R_0..R_3] and its four states.
+  private readonly poles: Float64Array;
+  private readonly lossWeights: Float64Array;
+  private readonly lossStates: Float64Array;
+  private readonly block: number;
+  // Each junction J's ports, portStart[J] to portStart[J + 1]: its primaries (cylinder order), then each pipe's `from`
+  // and `to` ends (pipe order); each port's arriving line and share of the junction's cross-section.
+  private readonly portStart: Int32Array;
+  private readonly portLine: Int32Array;
+  private readonly portShare: Float64Array;
   private readonly pipeFrom: Int32Array;
   // Junction index, or -1 for an open end.
   private readonly pipeTo: Int32Array;
-  private readonly arriving: Float64Array;
-  private readonly returning: Float64Array;
   // Each cylinder's junction (its primary's `to`).
   private readonly banks: Int32Array;
-  // Each port's share of its junction's cross-section: primaries, then each pipe's `from` and `to` ends.
-  private readonly primaryShare: Float64Array;
-  private readonly fromShare: Float64Array;
-  private readonly toShare: Float64Array;
-  // Area-weighted incoming pressure at each junction.
-  private readonly sums: Float64Array;
-  private readonly junctions: Float64Array;
+  // One block's values, `block` samples per row: each line's arriving and leaving waves, each junction's pressure,
+  // each cylinder's emission and valve-end reflection, and the pickup.
+  private readonly arriving: Float64Array;
+  private readonly leaving: Float64Array;
+  private readonly pressure: Float64Array;
+  private readonly emissions: Float64Array;
+  private readonly reflections: Float64Array;
+  private readonly exhaust: Float64Array;
   private readonly pulse: Float64Array;
   private readonly rise: Float64Array;
   private readonly riseSecond: Float64Array;
   private readonly emission: Float64Array;
-  // Each cylinder's greatest valve area over its primary's cross-section.
+  // Each cylinder's firing phase, its greatest valve area over its primary's cross-section and the valve's open share.
+  private readonly firingPhases: Float64Array;
   private readonly valveRatio: Float64Array;
+  private readonly valveOpen: number;
+  // The engine speed (RPM) over this divides into the phase step per sample.
+  private readonly cycleSamples: number;
   // Low-passed outgoing wave at each pipe's open end (unused for junction-to-junction pipes), and its coefficient.
   private readonly outlet: Float64Array;
   private readonly outletFollow: Float64Array;
@@ -121,7 +110,7 @@ export class ExhaustWaveguide {
   private readonly cylinderGroup: Int32Array;
   private readonly decayRates: Float64Array;
   private readonly decayAverages: Float64Array;
-  // Per-sample pulse weights of each decay group; set at the start of each sample.
+  // Per-sample pulse weights of each decay group, for the excitation they were prepared for.
   private readonly decaySteps: Float64Array;
   private readonly firstCouplings: Float64Array;
   private readonly secondCouplings: Float64Array;
@@ -129,9 +118,10 @@ export class ExhaustWaveguide {
   private riseRate = 0;
   private stageStep = 0;
   private stageLink = 0;
+  private excitation = NaN;
 
   constructor(
-    private readonly sound: VehicleEngineSound,
+    sound: VehicleEngineSound,
     private readonly rate: number,
     settings: ExhaustSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
     control: ControlSettings = DEFAULT_AUDIO_SETTINGS.control,
@@ -143,17 +133,27 @@ export class ExhaustWaveguide {
     let groups = 0;
     for (const { to } of primaries) groups = Math.max(groups, to + 1);
     for (const { from, to } of pipes) groups = Math.max(groups, from + 1, (to ?? 0) + 1);
-    const poles = wallLossPoles(rate);
-    const tube = ({ length, diameter }: { length: number; diameter: number }) =>
-      new Delay(length, diameter, rate, poles);
-    this.forward = primaries.map(tube);
-    this.backward = primaries.map(tube);
-    this.downstream = pipes.map(tube);
-    this.upstream = pipes.map(tube);
+    const tubes = [...primaries, ...primaries, ...pipes, ...pipes];
+    this.lineLength = Int32Array.from(tubes, ({ length }) =>
+      Math.max(1, Math.round((length * rate) / ACOUSTICS.waveSpeed)),
+    );
+    this.lineStart = new Int32Array(tubes.length);
+    let total = 0;
+    this.lineLength.forEach((size, line) => {
+      this.lineStart[line] = total;
+      total += size;
+    });
+    this.buffer = new Float32Array(total);
+    this.linePosition = new Int32Array(tubes.length);
+    this.poles = wallLossPoles(rate);
+    this.lossWeights = new Float64Array(5 * tubes.length);
+    tubes.forEach(({ length, diameter }, line) =>
+      this.lossWeights.set(wallLossWeights(length, diameter, rate), 5 * line),
+    );
+    this.lossStates = new Float64Array(4 * tubes.length);
+    this.block = Math.min(MAX_BLOCK, ...this.lineLength);
     this.pipeFrom = Int32Array.from(pipes, ({ from }) => from);
     this.pipeTo = Int32Array.from(pipes, ({ to }) => to ?? -1);
-    this.arriving = new Float64Array(pipes.length);
-    this.returning = new Float64Array(pipes.length);
     // Every port of a junction, its cylinders' primaries and each pipe end attached to it, weighted by its area.
     const area = ({ diameter }: { diameter: number }) => diameter * diameter;
     const junctionArea = new Float64Array(groups);
@@ -162,15 +162,36 @@ export class ExhaustWaveguide {
       junctionArea[pipe.from]! += area(pipe);
       if (pipe.to !== null) junctionArea[pipe.to]! += area(pipe);
     }
-    this.primaryShare = Float64Array.from(primaries, (primary) => area(primary) / junctionArea[primary.to]!);
-    this.fromShare = Float64Array.from(pipes, (pipe) => area(pipe) / junctionArea[pipe.from]!);
-    this.toShare = Float64Array.from(pipes, (pipe) => (pipe.to === null ? 0 : area(pipe) / junctionArea[pipe.to]!));
-    this.sums = new Float64Array(groups);
-    this.junctions = new Float64Array(groups);
+    // A primary's port receives its forward line, a pipe's `from` end its upstream line and its `to` end its downstream.
+    const ports: { junction: number; line: number; share: number }[] = [];
+    primaries.forEach((primary, i) =>
+      ports.push({ junction: primary.to, line: i, share: area(primary) / junctionArea[primary.to]! }),
+    );
+    pipes.forEach((pipe, j) => {
+      ports.push({ junction: pipe.from, line: 2 * n + pipes.length + j, share: area(pipe) / junctionArea[pipe.from]! });
+      if (pipe.to !== null)
+        ports.push({ junction: pipe.to, line: 2 * n + j, share: area(pipe) / junctionArea[pipe.to]! });
+    });
+    ports.sort((a, b) => a.junction - b.junction);
+    this.portStart = new Int32Array(groups + 1);
+    for (const { junction } of ports) this.portStart[junction + 1]!++;
+    for (let junction = 0; junction < groups; junction++) this.portStart[junction + 1]! += this.portStart[junction]!;
+    this.portLine = Int32Array.from(ports, ({ line }) => line);
+    this.portShare = Float64Array.from(ports, ({ share }) => share);
+    const block = this.block;
+    this.arriving = new Float64Array(tubes.length * block);
+    this.leaving = new Float64Array(tubes.length * block);
+    this.pressure = new Float64Array(groups * block);
+    this.emissions = new Float64Array(n * block);
+    this.reflections = new Float64Array(n * block);
+    this.exhaust = new Float64Array(block);
     this.outlet = new Float64Array(pipes.length);
     this.outletFollow = Float64Array.from(pipes, ({ diameter }) => openEndFollow(diameter, rate));
     const { valve } = sound.exhaust;
+    this.firingPhases = Float64Array.from(sound.firingPhases);
     this.valveRatio = Float64Array.from(primaries, ({ diameter }) => (valve.diameter / diameter) ** 2);
+    this.valveOpen = valve.open;
+    this.cycleSamples = 60 * sound.cycleRevolutions * rate;
     this.pulse = new Float64Array(n);
     this.rise = new Float64Array(n);
     this.riseSecond = new Float64Array(n);
@@ -244,41 +265,45 @@ export class ExhaustWaveguide {
     pulse[i] = strength * decay;
   }
 
-  /**
-   * One acoustic step at the supplied internal rate, without allocation: the exhaust's pressure at the pickup, DC
-   * removed and kept below the widest outlet's first transverse mode.
-   */
-  sample(targetRpm: number, targetLoad: number, fuelCut: boolean): number {
-    this.rpm += this.smoothing * (targetRpm - this.rpm);
-    this.load += this.smoothing * (targetLoad - this.load);
-    const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
-    const previous = this.phase;
-    this.phase = (this.phase + step) % 1;
-    // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
-    // Fuel cut is a boolean observation, never smoothed: firings pump without combustion.
-    const excitation = fuelCut
-      ? this.settings.pumpingExcitation
-      : this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
+  /** The rise weights and each decay group's one-sample cascade weights for `excitation`. */
+  private prepareRise(excitation: number): void {
     const riseTime = ((this.settings.pulseRiseMs / 1000) * this.rate) / excitation;
     // Two stages of riseTime / 2 each keep the one-stage mean delay riseTime while the onset slope starts at zero.
     const riseRate = 2 / riseTime;
     this.riseRate = riseRate;
     this.stageStep = Math.exp(-riseRate);
     this.stageLink = riseRate * this.stageStep;
-    // Prepare the one-sample cascade weights once for each decay group.
     for (let group = 0; group < this.decayRates.length; group++) {
       pulseCascade(this.decayRates[group]!, riseRate, 1, this.weights);
       this.decaySteps[group] = this.weights[0]!;
       this.firstCouplings[group] = this.weights[1]!;
       this.secondCouplings[group] = this.weights[2]!;
     }
-    this.sums.fill(0);
-    for (let i = 0; i < this.pulse.length; i++) {
-      const offset = this.sound.firingPhases[i]!;
-      const crossed =
-        this.phase >= previous ? offset > previous && offset <= this.phase : offset > previous || offset <= this.phase;
+  }
+
+  /** Sample `b` of the block's sources: the control's smoothing, the phase, each cylinder's pulse and valve end. */
+  private sources(b: number, targetRpm: number, targetLoad: number, fuelCut: boolean): void {
+    this.rpm += this.smoothing * (targetRpm - this.rpm);
+    this.load += this.smoothing * (targetLoad - this.load);
+    const step = this.rpm / this.cycleSamples;
+    const previous = this.phase;
+    const phase = (previous + step) % 1;
+    this.phase = phase;
+    // One excitation control: stronger pulses also rise faster. No load-dependent output EQ/drive.
+    // Fuel cut is a boolean observation, never smoothed: firings pump without combustion.
+    const excitation = fuelCut
+      ? this.settings.pumpingExcitation
+      : this.settings.closedExcitation + (1 - this.settings.closedExcitation) * this.load;
+    if (excitation !== this.excitation) {
+      this.excitation = excitation;
+      this.prepareRise(excitation);
+    }
+    const { block, valveOpen: open, firingPhases, emission, emissions, reflections } = this;
+    for (let i = 0; i < firingPhases.length; i++) {
+      const offset = firingPhases[i]!;
+      const crossed = phase >= previous ? offset > previous && offset <= phase : offset > previous || offset <= phase;
       const group = this.cylinderGroup[i]!;
-      this.advancePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, group);
+      this.advancePulse(this.pulse, this.rise, this.riseSecond, emission, i, group);
       if (crossed) {
         let strength = excitation;
         // Variation is combustion spread, so pumping pulses have none.
@@ -286,57 +311,153 @@ export class ExhaustWaveguide {
         if (!fuelCut && this.settings.pulseVariation > 0)
           strength = Math.max(0, excitation + this.settings.pulseVariation * this.draw());
         // Resolve the event inside this sample; preserve the continuous rise states at the reset.
-        const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
-        this.firePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, group, strength, elapsed);
+        const elapsed = (phase >= offset ? phase - offset : phase - offset + 1) / step;
+        this.firePulse(this.pulse, this.rise, this.riseSecond, emission, i, group, strength, elapsed);
       }
-      this.sums[this.banks[i]!]! += this.primaryShare[i]! * this.forward[i]!.read();
-    }
-    // Read every pipe end before any write: a delay's read and write share one position per sample.
-    const arriving = this.arriving;
-    const returning = this.returning;
-    for (let j = 0; j < this.downstream.length; j++) {
-      arriving[j] = this.downstream[j]!.read();
-      returning[j] = this.upstream[j]!.read();
-    }
-    // Incoming waves at each junction; a pipe's `from` end receives its upstream wave, its `to` end its downstream.
-    for (let j = 0; j < arriving.length; j++) {
-      this.sums[this.pipeFrom[j]!]! += this.fromShare[j]! * returning[j]!;
-      const to = this.pipeTo[j]!;
-      if (to >= 0) this.sums[to]! += this.toShare[j]! * arriving[j]!;
-    }
-    // Area-weighted scattering at every junction: p = 2 sum(area * incoming) / sum(area).
-    for (let k = 0; k < this.junctions.length; k++) this.junctions[k] = 2 * this.sums[k]!;
-    let exhaust = 0;
-    for (let j = 0; j < arriving.length; j++) {
-      const to = this.pipeTo[j]!;
-      this.downstream[j]!.write(this.junctions[this.pipeFrom[j]!]! - returning[j]!);
-      if (to >= 0) {
-        this.upstream[j]!.write(this.junctions[to]! - arriving[j]!);
+      emissions[i * block + b] = emission[i]!;
+      // The valve opens at the firing phase and is open for `open` of the cycle; closed, it reflects +1.
+      let since = phase - offset + 1;
+      if (since >= 1) since -= 1;
+      if (since >= open) {
+        reflections[i * block + b] = 1;
         continue;
       }
-      // Open end: low-passed negative reflection; the pickup hears the outgoing and low-passed waves.
-      const out = arriving[j]!;
-      this.outlet[j]! += this.outletFollow[j]! * (out - this.outlet[j]!);
-      this.upstream[j]!.write(OUTLET_REFLECTION * this.outlet[j]!);
-      exhaust += out + this.outlet[j]!;
-    }
-    const open = this.sound.exhaust.valve.open;
-    for (let i = 0; i < this.backward.length; i++) {
-      // The valve opens at the firing phase and is open for `open` of the cycle.
-      const position = ((this.phase - this.sound.firingPhases[i]! + 1) % 1) / open;
+      const position = since / open;
       const lift = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
       const area = this.valveRatio[i]! * 16 * lift * lift;
       // The valve end reflects by the open valve's area against the primary's: closed, +1; open, the wave passes on.
-      const reflection = (1 - area) / (1 + area);
-      const incoming = this.forward[i]!.read();
-      this.forward[i]!.write(this.emission[i]! + reflection * this.backward[i]!.read());
-      this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);
+      reflections[i * block + b] = (1 - area) / (1 + area);
     }
-    const raw = exhaust / this.openNormalization;
-    this.dc += this.dcCoefficient * (raw - this.dc);
-    // The pipes' one-dimensional model holds below the widest outlet's first transverse mode: keep that band.
-    this.tone += this.toneCoefficient * (raw - this.dc - this.tone);
-    return this.tone;
+  }
+
+  /**
+   * Render `count` samples into `out` from `offset`, without allocation: the exhaust's pressure at the pickup, DC
+   * removed and kept below the widest outlet's first transverse mode. `rpm[k]` and `load[k]` are sample k's targets;
+   * `fuelCut` holds for the whole call.
+   */
+  render(
+    out: Float64Array,
+    offset: number,
+    count: number,
+    rpm: ArrayLike<number>,
+    load: ArrayLike<number>,
+    fuelCut: boolean,
+  ): void {
+    for (let done = 0; done < count;) {
+      const samples = Math.min(this.block, count - done);
+      this.renderBlock(out, offset + done, samples, rpm, load, done, fuelCut);
+      done += samples;
+    }
+  }
+
+  private renderBlock(
+    out: Float64Array,
+    offset: number,
+    samples: number,
+    rpm: ArrayLike<number>,
+    load: ArrayLike<number>,
+    target: number,
+    fuelCut: boolean,
+  ): void {
+    const block = this.block;
+    for (let b = 0; b < samples; b++) this.sources(b, rpm[target + b]!, load[target + b]!, fuelCut);
+    const { buffer, lineStart, lineLength, linePosition, arriving, leaving, pressure, exhaust } = this;
+    const lines = lineLength.length;
+    // Every line's arrivals, all written before this block.
+    for (let line = 0; line < lines; line++) {
+      const start = lineStart[line]!,
+        size = lineLength[line]!;
+      let index = linePosition[line]!;
+      for (let b = 0; b < samples; b++) {
+        arriving[line * block + b] = buffer[start + index]!;
+        if (++index === size) index = 0;
+      }
+    }
+    // Area-weighted scattering at every junction: p = 2 sum(area * incoming) / sum(area).
+    const { portStart, portLine, portShare } = this;
+    for (let junction = 0; junction + 1 < portStart.length; junction++)
+      for (let b = 0; b < samples; b++) {
+        let sum = 0;
+        for (let port = portStart[junction]!; port < portStart[junction + 1]!; port++)
+          sum += portShare[port]! * arriving[portLine[port]! * block + b]!;
+        pressure[junction * block + b] = 2 * sum;
+      }
+    // Leaving waves: each pipe's downstream and upstream (or open end), then each primary's forward and backward.
+    const n = this.pulse.length,
+      pipes = this.pipeFrom.length;
+    exhaust.fill(0, 0, samples);
+    for (let j = 0; j < pipes; j++) {
+      const down = (2 * n + j) * block,
+        up = (2 * n + pipes + j) * block;
+      const from = this.pipeFrom[j]! * block,
+        to = this.pipeTo[j]!;
+      for (let b = 0; b < samples; b++) leaving[down + b] = pressure[from + b]! - arriving[up + b]!;
+      if (to >= 0) {
+        for (let b = 0; b < samples; b++) leaving[up + b] = pressure[to * block + b]! - arriving[down + b]!;
+        continue;
+      }
+      // Open end: low-passed negative reflection; the pickup hears the outgoing and low-passed waves.
+      const follow = this.outletFollow[j]!;
+      let outlet = this.outlet[j]!;
+      for (let b = 0; b < samples; b++) {
+        const outgoing = arriving[down + b]!;
+        outlet += follow * (outgoing - outlet);
+        leaving[up + b] = OUTLET_REFLECTION * outlet;
+        exhaust[b]! += outgoing + outlet;
+      }
+      this.outlet[j] = outlet;
+    }
+    const { emissions, reflections } = this;
+    for (let i = 0; i < n; i++) {
+      const forward = i * block,
+        backward = (n + i) * block,
+        bank = this.banks[i]! * block;
+      for (let b = 0; b < samples; b++) {
+        leaving[forward + b] = emissions[forward + b]! + reflections[forward + b]! * arriving[backward + b]!;
+        leaving[backward + b] = pressure[bank + b]! - arriving[forward + b]!;
+      }
+    }
+    // Every line's leaving waves through its wall loss, `u_k = x - a_k*u_k` and `C*x + sum R_k*u_k`, then written.
+    const { lossWeights, lossStates } = this;
+    const a0 = this.poles[0]!,
+      a1 = this.poles[1]!,
+      a2 = this.poles[2]!,
+      a3 = this.poles[3]!;
+    for (let line = 0; line < lines; line++) {
+      const c = lossWeights[5 * line]!,
+        r0 = lossWeights[5 * line + 1]!,
+        r1 = lossWeights[5 * line + 2]!,
+        r2 = lossWeights[5 * line + 3]!,
+        r3 = lossWeights[5 * line + 4]!;
+      let u0 = lossStates[4 * line]!,
+        u1 = lossStates[4 * line + 1]!,
+        u2 = lossStates[4 * line + 2]!,
+        u3 = lossStates[4 * line + 3]!;
+      const start = lineStart[line]!,
+        size = lineLength[line]!;
+      let index = linePosition[line]!;
+      for (let b = 0; b < samples; b++) {
+        const x = leaving[line * block + b]!;
+        u0 = x - a0 * u0;
+        u1 = x - a1 * u1;
+        u2 = x - a2 * u2;
+        u3 = x - a3 * u3;
+        buffer[start + index] = c * x + r0 * u0 + r1 * u1 + r2 * u2 + r3 * u3;
+        if (++index === size) index = 0;
+      }
+      lossStates[4 * line] = u0;
+      lossStates[4 * line + 1] = u1;
+      lossStates[4 * line + 2] = u2;
+      lossStates[4 * line + 3] = u3;
+      linePosition[line] = index;
+    }
+    for (let b = 0; b < samples; b++) {
+      const raw = exhaust[b]! / this.openNormalization;
+      this.dc += this.dcCoefficient * (raw - this.dc);
+      // The pipes' one-dimensional model holds below the widest outlet's first transverse mode: keep that band.
+      this.tone += this.toneCoefficient * (raw - this.dc - this.tone);
+      out[offset + b] = this.tone;
+    }
   }
 }

@@ -120,7 +120,7 @@
   `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
   exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
 
-Next PR: [EX-8](#stage-ex2--exhaust-wall-loss-computation-and-diagram) and, in parallel,
+Next PR: [EX-9](#stage-ex2--exhaust-wall-loss-computation-and-diagram) and, in parallel,
 [VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -131,7 +131,6 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 K's decisions after listening to Stage EX. Each PR proceeds without waiting for approval.
 
-- EX-8: the exhaust kernel renders in blocks over flat arrays, its output identical to EX-7's sample for sample.
 - EX-9: ENGINE's diagram draws tubes in proportion to their diameter, each junction as one bar, and shades the drawn
   shape once.
 
