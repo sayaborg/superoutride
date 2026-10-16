@@ -4,7 +4,7 @@ import type { ControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { createEngineVoice } from './engine-voice.js';
-import type { ExhaustSettings } from './exhaust-acoustics.js';
+import { engineDriveGain, type ExhaustSettings } from './exhaust-acoustics.js';
 import { createSoundGraph, isLiveBus, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
@@ -142,18 +142,23 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   let live: boolean | null = null;
   let rival = DEFAULT_AUDIO_SETTINGS.rival;
   let control = DEFAULT_AUDIO_SETTINGS.control;
+  let engineDriveLufs = DEFAULT_AUDIO_SETTINGS.mix.engineDriveLufs;
   let assignedId: string | null = null;
   let switchAt = 0;
   let disposed = false;
   return {
-    /** The player's and the nearest vehicle's voices, and the player's wall rubs (its scraping). */
+    /**
+     * The player's and the nearest vehicle's voices, and the player's wall rubs (its scraping). `engineOf` names each
+     * vehicle's engine sound and its measured loudness (null when not measured), which sets its drive into the soft clip.
+     */
     update(
       player: VehicleAudioEmitter,
       rivals: readonly VehicleAudioEmitter[],
-      soundOf: (vehicleId: string) => VehicleEngineSound,
+      engineOf: (vehicleId: string) => { readonly sound: VehicleEngineSound; readonly lufs: number | null },
       rubs: readonly WallRubObservation[],
     ): void {
-      playerEngine.update(player, soundOf(player.vehicleId));
+      const playerSound = engineOf(player.vehicleId);
+      playerEngine.update(player, playerSound.sound, engineDriveGain(engineDriveLufs, playerSound.lufs));
       tires.update(player);
       scrape.update(rubs);
       const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
@@ -169,7 +174,8 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
         return;
       }
       const { gain, pan } = rivalSpatialization(player, nearest, rival);
-      rivalEngine.update(nearest, soundOf(nearest.vehicleId), gain);
+      const rivalSound = engineOf(nearest.vehicleId);
+      rivalEngine.update(nearest, rivalSound.sound, engineDriveGain(engineDriveLufs, rivalSound.lufs), gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     /**
@@ -210,6 +216,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
     },
     setMixSettings(value: MixSettings): void {
       graph.setMixSettings(value);
+      engineDriveLufs = value.engineDriveLufs;
     },
     setControlSettings(value: ControlSettings): void {
       control = value;

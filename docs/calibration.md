@@ -374,15 +374,18 @@ resistance at speed is not modelled.
 
 ## MIX settings
 
-[Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings (`MixSettings`).
+[Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the engines' loudness into the
+soft clip (`MixSettings`). `engineDriveLufs`'s default is the delivered [engine loudness](audio.md#engine-loudness)'s mean
+over the nine vehicles (−11.87 LUFS, to the step), so their gains into the soft clip average 0 dB.
 
-| Key              | Meaning              | Default | Range / step      |
-| ---------------- | -------------------- | ------- | ----------------- |
-| `thresholdDb`    | Compressor threshold | -6 dB   | -40–0 dB / 1      |
-| `kneeDb`         | Compressor knee      | 6 dB    | 0–40 dB / 1       |
-| `ratio`          | Compressor ratio     | 12      | 1–20 / 0.5        |
-| `attackSeconds`  | Compressor attack    | 0.003 s | 0.001–0.1 / 0.001 |
-| `releaseSeconds` | Compressor release   | 0.12 s  | 0.02–1 / 0.01     |
+| Key               | Meaning                            | Default    | Range / step      |
+| ----------------- | ---------------------------------- | ---------- | ----------------- |
+| `thresholdDb`     | Compressor threshold               | -6 dB      | -40–0 dB / 1      |
+| `kneeDb`          | Compressor knee                    | 6 dB       | 0–40 dB / 1       |
+| `ratio`           | Compressor ratio                   | 12         | 1–20 / 0.5        |
+| `attackSeconds`   | Compressor attack                  | 0.003 s    | 0.001–0.1 / 0.001 |
+| `releaseSeconds`  | Compressor release                 | 0.12 s     | 0.02–1 / 0.01     |
+| `engineDriveLufs` | Engine loudness into the soft clip | -11.9 LUFS | -40–0 LUFS / 0.1  |
 
 ## TIMING settings
 

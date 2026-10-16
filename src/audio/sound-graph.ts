@@ -21,8 +21,8 @@ export const SOUND_BUSES = Object.freeze(Object.keys(BUS_DECLARATIONS) as SoundB
 export const isLiveBus = (bus: SoundBus): boolean => BUS_DECLARATIONS[bus].live;
 
 /**
- * Master compressor: output protection for the summed mix, not a vehicle or pipe property. No derivation;
- * listening settings on the DEV MIX panel.
+ * The mix: the master compressor, output protection for the summed mix, and the loudness every engine enters its soft
+ * clip at. Not vehicle or pipe properties; no derivation; listening settings on the DEV MIX panel.
  */
 export interface MixSettings {
   readonly thresholdDb: number;
@@ -30,6 +30,8 @@ export interface MixSettings {
   readonly ratio: number;
   readonly attackSeconds: number;
   readonly releaseSeconds: number;
+  /** The integrated loudness (LUFS) each engine's measured exhaust is brought to before its soft clip. */
+  readonly engineDriveLufs: number;
 }
 
 export const MIX_SETTING_RANGES: Readonly<Record<keyof MixSettings, { min: number; max: number; step: number }>> =
@@ -39,6 +41,7 @@ export const MIX_SETTING_RANGES: Readonly<Record<keyof MixSettings, { min: numbe
     ratio: Object.freeze({ min: 1, max: 20, step: 0.5 }),
     attackSeconds: Object.freeze({ min: 0.001, max: 0.1, step: 0.001 }),
     releaseSeconds: Object.freeze({ min: 0.02, max: 1, step: 0.01 }),
+    engineDriveLufs: Object.freeze({ min: -40, max: 0, step: 0.1 }),
   });
 
 export function resolveMixSettings(overrides: Partial<MixSettings> = {}): MixSettings {
@@ -103,7 +106,7 @@ export function createSoundGraph(context: BaseAudioContext) {
       if (live) liveGate.gain.setTargetAtTime(1, silent + control.transitionSeconds, control.mixSeconds);
       return silent;
     },
-    /** Admitted settings, written directly to the compressor's parameters. */
+    /** Admitted settings, written directly to the compressor's parameters; the engines' drive is the voices'. */
     setMixSettings(value: MixSettings): void {
       applyMix(value);
     },

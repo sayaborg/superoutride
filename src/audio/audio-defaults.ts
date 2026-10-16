@@ -86,6 +86,8 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     ratio: 12,
     attackSeconds: 0.003,
     releaseSeconds: 0.12,
+    // The delivered engine loudness's mean over the nine vehicles, so their gains into the soft clip average 0 dB.
+    engineDriveLufs: -11.9,
   }),
   control: Object.freeze<ControlSettings>({
     observationSeconds: 0.025,

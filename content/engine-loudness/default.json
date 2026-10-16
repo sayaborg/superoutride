@@ -2,7 +2,7 @@
   "format": "superoutride.engine-loudness",
   "version": 1,
   "procedureSha256": "a6d369f526a05556cef64c3e18f0cfb95bb74ed8a10a85eaf8866914e2757c88",
-  "audioSha256": "9b95b20570073bf2c82cdc5e62040d95232392ca58bae9d101b674f4fb87e3d0",
+  "audioSha256": "21cb791ef932102a2dee21af146255276f84630207d32e8f2522c98d8cfca1c5",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",

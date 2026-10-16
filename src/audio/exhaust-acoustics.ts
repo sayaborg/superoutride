@@ -130,6 +130,14 @@ export function softClip(x: number, ceiling: number): number {
   return (ceiling * x) / (1 + Math.abs(x));
 }
 
+/**
+ * The listening stage's drive into the soft clip: the gain `10^((targetLufs - lufs)/20)` that brings an engine of
+ * measured loudness `lufs` to `targetLufs`, or 1 for an engine not measured (a delivery without measured products).
+ */
+export function engineDriveGain(targetLufs: number, lufs: number | null): number {
+  return lufs === null ? 1 : 10 ** ((targetLufs - lufs) / 20);
+}
+
 export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
   const settings = { ...DEFAULT_AUDIO_SETTINGS.exhaust };
   for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {

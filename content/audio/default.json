@@ -1,6 +1,6 @@
 {
   "format": "superoutride.audio",
-  "version": 6,
+  "version": 7,
   "exhaust": {
     "closedExcitation": 0.22,
     "pulseRiseMs": 0.2,
@@ -59,7 +59,14 @@
     "outputHz": 900,
     "dcHz": 18
   },
-  "mix": { "thresholdDb": -6, "kneeDb": 6, "ratio": 12, "attackSeconds": 0.003, "releaseSeconds": 0.12 },
+  "mix": {
+    "thresholdDb": -6,
+    "kneeDb": 6,
+    "ratio": 12,
+    "attackSeconds": 0.003,
+    "releaseSeconds": 0.12,
+    "engineDriveLufs": -11.9
+  },
   "control": {
     "observationSeconds": 0.025,
     "gainSeconds": 0.025,

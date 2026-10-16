@@ -848,8 +848,11 @@ DEV sound settings come in groups, each with its own reset to the delivered docu
 or for SURFACES, WALLS and ENGINE SOUNDS the surface-sound, wall-sound and engine-sound documents'); a page reload restores those values and new
 runs preserve them:
 
-- **ENGINE** (`engine-sound-settings`): seven minus/plus controls for the exhaust settings; buttons stop at limits.
-- **MIX** (`mix-sound-settings`): the master compressor.
+- **ENGINE** (`engine-sound-settings`): seven minus/plus controls for the exhaust settings; buttons stop at limits. A
+  line above them (`engine-loudness-state`) says whether the measured engine loudness describes the current ENGINE,
+  TIMING and ENGINE SOUNDS values, is stale for them (measured for the delivered values; adopt them and run
+  `npm run measure -- generate`), or is not measured in this build.
+- **MIX** (`mix-sound-settings`): the master compressor and `engineDriveLufs`, the engines' loudness into the soft clip.
 - **TIMING** (`timing-sound-settings`): the control time constants.
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
 - **UNIFIED** (`tire-sound-settings`): the friction-model settings.

@@ -10,6 +10,7 @@ import { createBrowserDrivingShell } from './driving-shell.js';
 import { mustGet } from './dom.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
+import { loadEngineLoudness } from '../content/engine-loudness.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
 import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalog.js';
@@ -102,6 +103,7 @@ async function startPage(): Promise<void> {
     const raceSprites = createRaceSprites(vehicles);
     // The one run, which the current run screen shows.
     let run: Run | null = null;
+    const audioSettings = await loadAudioSettings(content);
     const shell = createBrowserDrivingShell(
       vehicles,
       {
@@ -109,8 +111,9 @@ async function startPage(): Promise<void> {
         surfaces: await loadSurfaceSounds(content),
         walls: await loadWallSounds(content),
         engines: engineSounds,
+        engineLoudness: await loadEngineLoudness(content, vehicles, audioSettings.sha256),
       },
-      await loadAudioSettings(content),
+      audioSettings,
       player,
       (id) => content.bytes('recording', id),
     );

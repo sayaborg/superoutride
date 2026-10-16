@@ -5,7 +5,7 @@ import type { ContentDelivery } from './content-delivery.js';
 /** Generated products are admitted with their delivered path as the diagnostic document. */
 export async function admitProduct<T>(
   content: ContentDelivery,
-  kind: 'course-index' | 'reference-times' | 'schedule' | 'racing-line',
+  kind: 'course-index' | 'reference-times' | 'schedule' | 'racing-line' | 'engine-loudness',
   id: string,
   read: (value: unknown, document: string) => AdmissionResult<T> | Promise<AdmissionResult<T>>,
 ): Promise<T> {

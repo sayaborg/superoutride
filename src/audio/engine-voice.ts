@@ -19,8 +19,8 @@ function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSe
 }
 
 /**
- * One reusable exhaust worklet. Engine sound, exhaust settings and kernel control changes share the same fade. Settings
- * are admitted ones, used as given.
+ * One reusable exhaust worklet. Engine sound, drive, exhaust settings and kernel control changes share the same fade.
+ * Settings are admitted ones, used as given; `drive` is the gain into the soft clip (`engineDriveGain`).
  */
 export function createEngineVoice(
   context: BaseAudioContext,
@@ -44,41 +44,35 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialSound ? { sound: initialSound, settings, control } : undefined,
+    processorOptions: initialSound ? { sound: initialSound, settings, control, drive: 1 } : undefined,
   });
   exhaust.connect(output);
   const requireProcessor = watchProcessor(exhaust, 'engine sound');
-  let active = initialSound ? { sound: initialSound, settings, control } : null;
-  let pending: {
-    sound: VehicleEngineSound;
-    settings: ExhaustSettings;
-    control: ControlSettings;
-    at: number;
-  } | null = null;
-  const same = (
-    entry: { sound: VehicleEngineSound; settings: ExhaustSettings; control: ControlSettings } | null,
-    sound: VehicleEngineSound,
-  ): boolean =>
+  type Installed = { sound: VehicleEngineSound; drive: number; settings: ExhaustSettings; control: ControlSettings };
+  let active: Installed | null = initialSound ? { sound: initialSound, drive: 1, settings, control } : null;
+  let pending: (Installed & { at: number }) | null = null;
+  const same = (entry: Installed | null, sound: VehicleEngineSound, drive: number): boolean =>
     entry?.sound === sound &&
+    entry.drive === drive &&
     sameExhaustSettings(entry.settings, settings) &&
     sameControlSettings(entry.control, control);
   // The last shift sequence heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
   return {
-    update(state: VehicleAudioObservation, sound: VehicleEngineSound, gain = 1): void {
+    update(state: VehicleAudioObservation, sound: VehicleEngineSound, drive: number, gain = 1): void {
       requireProcessor();
       const now = context.currentTime;
-      const changed = !same(active, sound);
+      const changed = !same(active, sound, drive);
       if (active && changed) {
-        if (!same(pending, sound)) {
-          pending = { sound, settings, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
+        if (!same(pending, sound, drive)) {
+          pending = { sound, drive, settings, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
         }
         if (pending && now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        exhaust.port.postMessage({ sound, settings, control });
-        active = { sound, settings, control };
+        exhaust.port.postMessage({ sound, settings, control, drive });
+        active = { sound, drive, settings, control };
       }
       const { shift } = state;
       if (

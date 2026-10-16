@@ -40,8 +40,9 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
- * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog; a sound the DEV ENGINE SOUNDS
- * panel changed is sounded as each vehicle using it sounds it (`compileVehicleEngineSound`). The DEV sound controls
+ * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, driven into the soft clip by
+ * its measured `engineLoudness`; a sound the DEV ENGINE SOUNDS panel changed is sounded as each vehicle using it sounds
+ * it (`compileVehicleEngineSound`), still at the loudness measured for the delivered values. The DEV sound controls
  * start from the delivered audio document's `settings` and the delivered surface, wall and engine `sounds`, whose records the
  * scene numbers once (surfaces in the material catalog's order). The player record is the one owner of the MASTER, MUSIC and
  * EFFECTS volumes: `setVolume` changes them, the DEV stepper shows MASTER, and every sync sets the master gain and the
@@ -55,6 +56,8 @@ export function createAudioLifecycle(
     readonly surfaces: CompiledSurfaceSounds;
     readonly walls: CompiledWallSounds;
     readonly engines: EngineSoundCatalog;
+    /** Each vehicle's measured engine loudness, or null for a delivery without it. */
+    readonly engineLoudness: ReadonlyMap<string, number> | null;
   },
   settings: AudioSettings,
   player: PlayerRecord,
@@ -76,10 +79,15 @@ export function createAudioLifecycle(
   const voiced = new Map(
     vehicles.map((vehicle) => [
       vehicle.compiledVehicle.id,
-      { vehicle, source: sounds.engines[vehicle.sound.id], sound: vehicle.sound },
+      {
+        vehicle,
+        source: sounds.engines[vehicle.sound.id],
+        sound: vehicle.sound,
+        lufs: sounds.engineLoudness?.get(vehicle.compiledVehicle.id) ?? null,
+      },
     ]),
   );
-  const soundOf = (vehicleId: string): VehicleEngineSound => {
+  const engineOf = (vehicleId: string): { readonly sound: VehicleEngineSound; readonly lufs: number | null } => {
     const entry = voiced.get(vehicleId);
     if (!entry) throw new Error(`No engine sound for vehicle ${vehicleId}`);
     const source = engineSounds[entry.vehicle.sound.id]!;
@@ -87,7 +95,7 @@ export function createAudioLifecycle(
       entry.source = source;
       entry.sound = compileVehicleEngineSound(source, entry.vehicle.compiledVehicle.powertrain);
     }
-    return entry.sound;
+    return entry;
   };
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
@@ -179,8 +187,24 @@ export function createAudioLifecycle(
     failed = true;
     showSoundState();
   }
+  /** DEV: whether the measured engine loudness still describes the panels' engines. */
+  function showEngineLoudness(): void {
+    const { settings: current, engines } = controls.read();
+    const same = <T extends object>(left: T, right: T) =>
+      (Object.keys(left) as (keyof T)[]).every((key) => left[key] === right[key]);
+    controls.showEngineLoudness(
+      !sounds.engineLoudness
+        ? 'Engine loudness is not measured in this build: engines enter the soft clip unlevelled.'
+        : same(current.exhaust, settings.exhaust) &&
+            same(current.control, settings.control) &&
+            Object.keys(engines).every((id) => engines[id] === sounds.engines[id])
+          ? 'Engine loudness is measured for these ENGINE, TIMING and ENGINE SOUNDS values.'
+          : 'Engine loudness is stale: measured for the delivered ENGINE, TIMING and ENGINE SOUNDS values, not these. Adopt them and run npm run measure -- generate.',
+    );
+  }
   function sync(): void {
     showSoundState();
+    showEngineLoudness();
     if (!context || !scene) return;
     try {
       const { settings: current, surfaces, walls, engines, busVolumes, components } = controls.read();
@@ -327,7 +351,7 @@ export function createAudioLifecycle(
           readVehicleAudio(rivals[i]!, rivalEmitters[i]!);
           presentRivals[i] = rivalEmitters[i]!;
         }
-        scene.update(playerEmitter, presentRivals, soundOf, rubs);
+        scene.update(playerEmitter, presentRivals, engineOf, rubs);
       } catch {
         fail();
       }

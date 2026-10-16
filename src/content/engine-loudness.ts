@@ -10,6 +10,8 @@ import {
 } from '../core/admission.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import type { ContentDelivery } from './content-delivery.js';
+import { admitProduct } from './delivered-product.js';
 
 /**
  * The engine loudness: each vehicle's measured integrated loudness (LUFS) of its exhaust before the soft clip, with
@@ -108,4 +110,19 @@ export function readEngineLoudness(
     });
     return loudness;
   });
+}
+
+/**
+ * The delivered engine loudness of the catalog's `vehicles` for the audio document of `audioSha256`, or null for a
+ * delivery without it (the workbench's build while measurements are stale), whose engines are not levelled.
+ */
+export async function loadEngineLoudness(
+  content: ContentDelivery,
+  vehicles: readonly CompiledVehicleDefinition[],
+  audioSha256: string,
+): Promise<ReadonlyMap<string, number> | null> {
+  if (!content.manifest.files.some((file) => file.kind === 'engine-loudness')) return null;
+  return admitProduct(content, 'engine-loudness', ENGINE_LOUDNESS_ID, (value, document) =>
+    readEngineLoudness(value, engineLoudnessSources(vehicles, audioSha256), document),
+  );
 }

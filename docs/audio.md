@@ -128,18 +128,20 @@ native-rate nonlinear stages define the model's temporal and spectral resolution
 
 ```text
 Collector mix -> DC removal (dcHz) -> low-pass (outputCutoffHz)       physics: the exhaust's pressure
-              -> soft clipping (clipCeiling)                          listening
+              -> drive (engineDriveLufs) -> soft clipping (clipCeiling)  listening
               -> voice/master gain -> compressor
 ```
 
 The DC removal and the low-pass are the exhaust's own: `dc += a*(x-dc)` and `tone += b*(x-dc-tone)` with
 `a = 1-exp(-2*pi*dcHz/sampleRate)` and `b = 1-exp(-2*pi*outputCutoffHz/sampleRate)`, both [derived](#derived-values):
 the DC goes and the idle's fundamental stays, and the output keeps the band in which the one-dimensional pipes hold.
-The waveguide returns this pressure; the exhaust processor then applies the listening stage, soft clipping
-`y = clipCeiling*x/(1+abs(x))` (`softClip`), with small-signal gain and asymptotic bounds `clipCeiling`. The
-smooth saturation's added components are small and fall off steeply above the signal, so they are not filtered again.
-The master compressor supplies envelope-based compression. Output depends on the engine sound, the vehicle's engine,
-RPM, excitation and fixed mix gains.
+The waveguide returns this pressure; the exhaust processor then applies the listening stage: the drive, the gain that
+brings the vehicle's [measured engine loudness](#engine-loudness) to MIX's `engineDriveLufs`, then soft clipping
+`y = clipCeiling*x/(1+abs(x))` (`softClip`), with small-signal gain and asymptotic bounds `clipCeiling`. Every engine
+thus enters the soft clip equally loud, and these two DEV values set how it is clipped for all alike: how hard it enters
+(`engineDriveLufs`) and its bound (`clipCeiling`). The smooth saturation's added components are small and fall off
+steeply above the signal, so they are not filtered again. The master compressor supplies envelope-based compression.
+Output depends on the engine sound, the vehicle's engine and measured loudness, RPM, excitation and fixed mix gains.
 
 ## Derived values
 
@@ -186,8 +188,10 @@ and the tire groups UNIFIED
 
 ## Engine loudness
 
-Vehicles' exhausts differ in level, as physics makes them. Each vehicle's engine loudness is measured once, outside the
-build, and saved with the identities of what it was measured from; [NEXT](NEXT.md) schedules its use (EX-5b). The
+Vehicles' exhausts differ in level, as physics makes them; the game levels them by measurement, while each engine's own
+changes of level as it is driven (idle against full throttle) stay its physics'. No automatic gain control follows the
+sound. Each vehicle's engine loudness is measured once, outside the build, and saved with the identities of what it was
+measured from. The
 measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs the game's exhaust kernel at 48 kHz with the
 audio document's ENGINE and TIMING settings on one drive, the same for every vehicle at its own idle and redline:
 
@@ -214,6 +218,15 @@ measuring every vehicle again when any identity differs; a build admits it as a
 [measured product](content-and-gameplay.md#measured-products), refusing it as stale when any identity differs, and
 delivers it as saved (kind `engine-loudness`, ID `default`). [`readEngineLoudness`](../src/content/engine-loudness.ts)
 is its one reader.
+
+The game loads it once with the catalog (`loadEngineLoudness`), refusing a delivered one whose identities are not the
+delivered documents'. Each engine voice, the rival's included, drives its exhaust into the soft clip by
+`engineDriveGain = 10^((engineDriveLufs - lufs)/20)` (MIX's target against the vehicle's measured loudness); the rival's
+inverse-distance gain follows the clip as before. A delivery without the engine loudness (the workbench's build while
+measurements are stale) drives every engine by 1, unlevelled. A changed drive (a DEV MIX change, or another rival
+vehicle) fades and replaces the kernel as a settings change does. DEV's ENGINE and ENGINE SOUNDS panels change the
+engines at once, but the loudness stays the one measured for the delivered values: the DEV panel says so
+([Browser](browser.md#sound-controls)) until the changed values are adopted and measured again.
 
 ## Audio document
 

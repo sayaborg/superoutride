@@ -10,6 +10,7 @@ declare function registerProcessor(name: string, processor: typeof AudioWorkletP
 
 class ExhaustProcessor extends AudioWorkletProcessor {
   private engine: ExhaustWaveguide | null = null;
+  private drive = 1;
   private ceiling = 1;
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
@@ -28,11 +29,12 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       sound: VehicleEngineSound;
       settings: ExhaustSettings;
       control: ControlSettings;
+      drive: number;
     };
   }) {
     super();
     const initial = options?.processorOptions;
-    if (initial) this.configure(initial.sound, initial.settings, initial.control);
+    if (initial) this.configure(initial.sound, initial.settings, initial.control, initial.drive);
     this.port.onmessage = ({ data }) => {
       if (this.meter.receive(data) || this.rest.receive(data)) return;
       if (data === 'stop') {
@@ -41,16 +43,22 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       } else if (data === null) this.engine = null;
       else {
         try {
-          this.configure(data.sound, data.settings, data.control);
+          this.configure(data.sound, data.settings, data.control, data.drive);
         } catch {
           this.engine = null;
         }
       }
     };
   }
-  /** The voice sends an admitted sound and admitted settings, used as given. */
-  private configure(sound: VehicleEngineSound, settings: ExhaustSettings, control: ControlSettings): void {
+  /** The voice sends an admitted sound, admitted settings and the drive into the soft clip, used as given. */
+  private configure(
+    sound: VehicleEngineSound,
+    settings: ExhaustSettings,
+    control: ControlSettings,
+    drive: number,
+  ): void {
     this.engine = new ExhaustWaveguide(sound, sampleRate, settings, control);
+    this.drive = drive;
     this.ceiling = settings.clipCeiling;
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
@@ -70,8 +78,9 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     const rpm = parameters.rpm![0]!,
       load = Math.max(parameters.load![0]!, parameters.blip![0]!);
     const fuelCut = parameters.fuelCut![0]! >= 0.5;
-    // The exhaust's pressure, then the listening stage's soft clip.
-    for (let i = 0; i < output.length; i++) output[i] = softClip(this.engine.sample(rpm, load, fuelCut), this.ceiling);
+    // The exhaust's pressure, then the listening stage: the drive to the mix's engine loudness and the soft clip.
+    for (let i = 0; i < output.length; i++)
+      output[i] = softClip(this.drive * this.engine.sample(rpm, load, fuelCut), this.ceiling);
     this.meter.end(started, output.length);
     return true;
   }

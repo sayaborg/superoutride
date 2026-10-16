@@ -15,6 +15,7 @@ const MIX_LABELS = {
   ratio: ['Compressor ratio', ':1'],
   attackSeconds: ['Compressor attack', 's'],
   releaseSeconds: ['Compressor release', 's'],
+  engineDriveLufs: ['Engine loudness into the soft clip', 'LUFS'],
 } as const satisfies Record<keyof MixSettings, readonly [string, string]>;
 
 const TIMING_LABELS = {

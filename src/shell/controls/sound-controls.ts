@@ -213,6 +213,11 @@ export function mountSoundControls(
       volumeControl?.setValue(percent);
     },
     /** The sound toggle's label and pressed state, which the audio lifecycle owns. */
+    /** DEV: whether the measured engine loudness describes the panels' current engines. */
+    showEngineLoudness(text: string): void {
+      const line = root.getElementById('engine-loudness-state');
+      if (line) line.textContent = text;
+    },
     showSoundState(text: string, pressed: boolean): void {
       if (!button) return;
       button.textContent = text;
