@@ -14,6 +14,7 @@ import {
 } from '../view/exhaust-diagram.js';
 import type { EngineSound } from '../audio/engine-sound.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
+import { TEXT_COLUMNS } from '../view/text-layer.js';
 import {
   BANK_PALETTES,
   DIM,
@@ -172,7 +173,7 @@ function drawFiring(scene: VehiclePageScene) {
   sound.firingPhases.forEach((firing, cylinder) => {
     const x = Math.round(strip.left + firing * width);
     const lit = sinceFiring(sound, phase, cylinder) < FIRING_FLASH;
-    const color = lit ? white : bankColor(scene, sound.exhaust.banks[cylinder]!);
+    const color = lit ? white : bankColor(scene, sound.exhaust.primaries[cylinder]!.to);
     for (let y = strip.top + (lit ? 0 : strip.tickInset); y < strip.bottom; y++) {
       frame.setPixel(x, y, color);
       frame.setPixel(x + 1, y, color);
@@ -242,7 +243,9 @@ function drawExhaust(scene: VehiclePageScene) {
 
   const pixelsPerSecond = (ACOUSTICS.waveSpeed * PLAYER_DEPTH_PIXELS_PER_METER) / SLOW_MOTION;
   for (const { cylinder, junction, row, start } of diagram.primaries) {
-    text.write(20, row, centimetres(sound.exhaust.lengths[cylinder]!).padStart(3), TEXT_PALETTES.WHITE);
+    // Until the diagram is redrawn (NEXT, EX-6), lengths stand only on the rows above the PIPE row.
+    if (row < EXHAUST_DIAGRAM.pipeRow)
+      text.write(20, row, centimetres(sound.exhaust.primaries[cylinder]!.length).padStart(3), TEXT_PALETTES.WHITE);
     const since = sinceFiring(sound, phase, cylinder);
     const lit = since < FIRING_FLASH;
     const [x, y] = start;
@@ -268,7 +271,10 @@ function drawExhaust(scene: VehiclePageScene) {
   text.write(
     EXHAUST_DIAGRAM.pipeColumn,
     EXHAUST_DIAGRAM.pipeRow,
-    sound.exhaust.pipes.map((pipe) => centimetres(pipe.length)).join('/'),
+    sound.exhaust.pipes
+      .map((pipe) => centimetres(pipe.length))
+      .join('/')
+      .slice(0, TEXT_COLUMNS - EXHAUST_DIAGRAM.pipeColumn),
     TEXT_PALETTES.WHITE,
   );
 }

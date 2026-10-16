@@ -1,19 +1,24 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.125, 0.5, 0.625],
   "exhaust": {
-    "banks": [0, 1, 0, 1],
-    "lengths": [0.7, 0.92, 0.76, 0.86],
+    "valve": { "diameter": 0.0325, "open": 0.3958 },
+    "primaries": [
+      { "length": 0.48, "diameter": 0.032, "to": 0 },
+      { "length": 0.68, "diameter": 0.032, "to": 1 },
+      { "length": 0.5, "diameter": 0.032, "to": 0 },
+      { "length": 0.7, "diameter": 0.032, "to": 1 }
+    ],
     "pipes": [
-      { "length": 0.25, "from": 0, "to": 2 },
-      { "length": 0.25, "from": 1, "to": 2 },
-      { "length": 0.55, "from": 2, "to": null }
+      { "length": 0.1, "diameter": 0.04, "from": 0, "to": 2 },
+      { "length": 0.2, "diameter": 0.04, "from": 1, "to": 2 },
+      { "length": 0.6, "diameter": 0.048, "from": 2, "to": 3 },
+      { "length": 0.05, "diameter": 0.04, "from": 3, "to": null }
     ]
   },
   "metadata": {
-    "topology": "4-2-1",
-    "note": "Pairs of cylinders merge, then the two pairs merge into one outlet. Collector grouping and lengths are listening sketches, not a factory header reconstruction."
+    "note": "Rear pair and front pair (longer pipes around the radiator) join, then one collector through the single silencer. Every pipe is an estimate. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 23 mm and 8.0 mm lift (estimates); about 285 deg seat to seat from 50 BBDC / 20 ATDC at 1 mm (Honda manual via owners' club)."
   }
 }

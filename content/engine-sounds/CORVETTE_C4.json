@@ -1,20 +1,40 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
   "exhaust": {
-    "banks": [0, 1, 1, 0, 1, 0, 0, 1],
-    "lengths": [0.62, 0.8, 0.54, 0.7, 0.72, 0.52, 0.84, 0.6],
+    "valve": { "diameter": 0.0381, "open": 0.4139 },
+    "primaries": [
+      { "length": 0.09, "diameter": 0.038, "to": 0 },
+      { "length": 0.09, "diameter": 0.038, "to": 1 },
+      { "length": 0.09, "diameter": 0.038, "to": 2 },
+      { "length": 0.09, "diameter": 0.038, "to": 3 },
+      { "length": 0.09, "diameter": 0.038, "to": 4 },
+      { "length": 0.09, "diameter": 0.038, "to": 5 },
+      { "length": 0.09, "diameter": 0.038, "to": 6 },
+      { "length": 0.09, "diameter": 0.038, "to": 7 }
+    ],
     "pipes": [
-      { "length": 0.8, "from": 0, "to": 2 },
-      { "length": 0.8, "from": 1, "to": 2 },
-      { "length": 1.2, "from": 2, "to": null },
-      { "length": 1.2, "from": 2, "to": null }
+      { "length": 0.112, "diameter": 0.049, "from": 0, "to": 3 },
+      { "length": 0.112, "diameter": 0.049, "from": 3, "to": 5 },
+      { "length": 0.112, "diameter": 0.049, "from": 5, "to": 6 },
+      { "length": 0.112, "diameter": 0.049, "from": 7, "to": 2 },
+      { "length": 0.112, "diameter": 0.049, "from": 2, "to": 4 },
+      { "length": 0.112, "diameter": 0.049, "from": 4, "to": 1 },
+      { "length": 0.78, "diameter": 0.054, "from": 6, "to": 8 },
+      { "length": 0.58, "diameter": 0.054, "from": 1, "to": 8 },
+      { "length": 0.38, "diameter": 0.054, "from": 8, "to": 9 },
+      { "length": 0.3, "diameter": 0.06, "from": 9, "to": 10 },
+      { "length": 1.1, "diameter": 0.054, "from": 10, "to": 11 },
+      { "length": 1.1, "diameter": 0.054, "from": 10, "to": 12 },
+      { "length": 0.18, "diameter": 0.051, "from": 11, "to": null },
+      { "length": 0.18, "diameter": 0.051, "from": 11, "to": null },
+      { "length": 0.18, "diameter": 0.051, "from": 12, "to": null },
+      { "length": 0.18, "diameter": 0.051, "from": 12, "to": null }
     ]
   },
   "metadata": {
-    "topology": "8-2-1-2",
-    "note": "Firing order 1-8-4-3-6-5-7-2; odd/even cylinders use separate banks. The two bank collectors merge at an X/H junction that splits to two outlets."
+    "note": "Each port joins its bank's cast log manifold (rear outlets); a Y-pipe with a light-off converter in each leg, the dual-bed converter, a rear Y and two mufflers with two tailpipes each. Y-pipe 2.25 in and rear section 2.5/2.25 in (replacement parts); lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 38.1 mm, 10.92 mm lift (GM bulletin lobe lift x 1.5 rocker), about 298 deg advertised (estimate)."
   }
 }

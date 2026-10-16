@@ -180,20 +180,26 @@ Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive a
 
 ## Exhaust topologies
 
-[Engine-sound documents](../content/engine-sounds/) declare typical collector topologies; pipe lengths are rough
-real-vehicle guides revised by listening, which DEV's ENGINE SOUNDS panel changes ([Browser](browser.md#sound-controls)). Junctions 0 and 1 are the cylinders' collectors unless noted.
+[Engine-sound documents](../content/engine-sounds/) write each exhaust from the valves to the tailpipes, every tube by
+its length and internal diameter; each document's `metadata.note` names its references. Values from references are
+the valve sizes, lifts and timings (FIA homologation forms, part data, shop manuals as quoted), pipe outer diameters
+(replacement parts, homologation forms) and the manifolds' forms; the others (most pipe lengths,
+turbine throats and some valve dimensions) are estimates, chosen physically plausible. Silencer, catalyst and
+collector-box bodies are straight pipes of their inlet diameter, a run of equal pipes is one pipe, and turbochargers'
+wastegates are not represented. DEV's ENGINE SOUNDS panel changes the lengths and diameters
+([Browser](browser.md#sound-controls)).
 
-| Vehicle            | Topology | Pipes (from → to, length)                                  |
-| ------------------ | -------- | ---------------------------------------------------------- |
-| TESTAROSSA         | 12-2     | 0 → open 0.85 m; 1 → open 0.85 m                           |
-| 911_TURBO_3_3      | 6-2-1    | 0 → 2 0.3 m; 1 → 2 0.3 m (turbine inlet); 2 → open 0.9 m   |
-| CORVETTE_C4        | 8-2-1-2  | 0 → 2 0.8 m; 1 → 2 0.8 m (X/H junction); 2 → open 1.2 m ×2 |
-| GOLF_GTI_16V       | 4-1      | 0 → open 1.25 m                                            |
-| DELTA_HF_INTEGRALE | 4-1      | 0 → open 1.65 m                                            |
-| VFR750R            | 4-2-1    | 0 → 2 0.25 m; 1 → 2 0.25 m; 2 → open 0.55 m                |
-| R80_GS_PARIS_DAKAR | 2-1      | 0 → 2 0.4 m; 1 → 2 0.4 m; 2 → open 0.85 m                  |
-| FXRT_SPORT_GLIDE   | 2-1      | 0 → 2 0.35 m; 1 → 2 0.35 m; 2 → open 0.75 m                |
-| PX200E_ARCOBALENO  | 1-1      | 0 → open 0.48 m                                            |
+| Vehicle            | Exhaust                                                                                                 | Primaries (m × mm)    | Pipes (m × mm)                                                                                               | Valve (mm, cycle) | From references                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------- | ------------------------------------------------------ |
+| TESTAROSSA         | 1989 ROW without catalyst: four 3-into-1 headers, a Y per bank, the transverse silencer, four tailpipes | 12 × 0.46–0.55 × 35.5 | headers' legs 0.50 and 0.22 × 47; banks 1.15 × 57; tailpipes 0.15 × 52                                       | 39.6, 0.389       | valve timing                                           |
+| 911_TURBO_3_3      | 1989 ROW without catalyst: heat exchangers into two 3-into-1 collectors, the KKK K27's throat, one tail | 6 × 0.52–0.76 × 38    | collectors 0.42 and 0.73 × 50; throat 0.10 × 36; intermediate 0.90 × 60; tailpipe 0.15 × 57                  | 40.7, 0.389       | primary tube size, valve diameter                      |
+| CORVETTE_C4        | cast log manifolds (rear outlets), Y-pipe with light-off converters, converter, rear Y, two mufflers    | 8 × 0.09 × 38         | logs 6 × 0.112 × 49; Y legs 0.78 and 0.58 × 54; 0.38 × 54; converter 0.30 × 60; 2 × 1.10 × 54; 4 × 0.18 × 51 | 38.1, 0.414       | Y-pipe and rear section sizes, valve diameter and lift |
+| DELTA_HF_INTEGRALE | 185 PS without catalyst: cast 4-into-1 manifold, the Garrett T3's throat, centre and rear silencers     | 4 × 0.19–0.31 × 36    | throat 0.08 × 26; 1.85 × 51; 1.35 × 47; tailpipe 0.15 × 50                                                   | 36.5, 0.331       | valve diameter, turbine housing                        |
+| GOLF_GTI_16V       | KR without catalyst: two cast elements (1+4, 2+3), twin downpipe, three silencers, two tailpipes        | 4 × 0.22–0.34 × 33    | downpipes 0.42 and 0.38 × 33; 3.15 × 50; 2 × 0.12 × 42                                                       | 39.6, 0.399       | element outlets, valve sizes, lift and timing          |
+| VFR750R            | rear and front pairs join, one collector, the single silencer                                           | 4 × 0.48–0.70 × 32    | pairs 0.10 and 0.20 × 40; collector 0.60 × 48; outlet 0.05 × 40                                              | 32.5, 0.396       | valve timing                                           |
+| FXRT_SPORT_GLIDE   | front and rear head pipes, a crossover, two stacked mufflers with their own outlets                     | 2 × 0.415–0.865 × 41  | crossover 0.10 × 35; 2 × 0.70 × 41; 2 × 0.10 × 35                                                            | 40.9, 0.386       | head pipe size, valve diameter and lift                |
+| R80_GS_PARIS_DAKAR | headers through the collector box, a link pipe, the single high silencer                                | 2 × 0.90–0.92 × 34    | box 0.20 × 34; link 1.00 × 36; outlet 0.10 × 30                                                              | 37.8, 0.428       | header size, valve diameter, cam duration and lift     |
+| PX200E_ARCOBALENO  | port through the cylinder duct, downpipe and box to the small tailpipe                                  | 1 × 0.765 × 33        | tailpipe 0.12 × 18                                                                                           | 29.0, 0.450       | port open duration                                     |
 
 ## Engine sound settings
 
@@ -405,14 +411,14 @@ inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audib
 These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
 change them.
 
-| Value                                   | Derivation                                        | Value     |
-| --------------------------------------- | ------------------------------------------------- | --------- |
-| `ACOUSTICS.waveSpeed`                   | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s   |
-| `PIPE_COEFFICIENTS.outletReflection`    | Unflanged open-end low-frequency limit            | -1        |
-| `PIPE_COEFFICIENTS.returnCutoffHz`      | `c/(2*pi*radius)` at 25 mm radius, rounded        | 3100 Hz   |
-| `PIPE_COEFFICIENTS.attenuationPerMeter` | Kirchhoff boundary-layer loss at 500 Hz, rounded  | 0.03 Np/m |
-| Rival gain                              | Inverse distance, unity within `referenceMeters`  | —         |
-| Rival pan                               | Lateral displacement / `max(panMinimumMeters, d)` | —         |
+| Value                                   | Derivation                                          | Value    |
+| --------------------------------------- | --------------------------------------------------- | -------- |
+| `ACOUSTICS.waveSpeed`                   | `sqrt(gamma*R*T)` at 573.15 K, rounded              | 480 m/s  |
+| `OUTLET_REFLECTION`                     | Unflanged open-end low-frequency limit              | -1       |
+| Open-end and cylinder-end return cutoff | `c/(2*pi*a)` at the tube's radius `a`               | per tube |
+| Wall loss                               | Kirchhoff `alpha(f)` at the tube's radius, one pole | per tube |
+| Rival gain                              | Inverse distance, unity within `referenceMeters`    | —        |
+| Rival pan                               | Lateral displacement / `max(panMinimumMeters, d)`   | —        |
 
 ## Mix levels
 

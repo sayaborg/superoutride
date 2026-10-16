@@ -114,11 +114,50 @@
   update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
   while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
 
-Next PR: [Stage 16](#stage-16--produce-product-courses).
+Next PR: [EX-2](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage EX — Exhaust dimensions
+
+The engine sound's exhaust is solved from each vehicle's pipe and valve dimensions, written to the tailpipes from
+references and estimates ([Calibration](calibration.md#exhaust-topologies)), and values that follow from physics leave
+DEV. The owner chose each item by listening offline to all nine vehicles; the PRs keep the rationale, including the
+options not taken. At the end ENGINE keeps seven DEV values (`closedExcitation`, `pulseRiseMs`, `pulseVariation`,
+`pumpingExcitation`, `blipOpening`, `blipDecaySeconds` and `clipCeiling`, their defaults unchanged) and MIX gains one,
+`engineDriveLufs`. Each PR proceeds without waiting for approval and stops to report if a vehicle diverges or falls
+silent, the diagram does not fit at one common scale, the data fails admission, or a driving scenario fails for a cause
+outside the stage.
+
+- EX-2: the valve end's reflection follows the valve's open area against its primary's cross-section,
+  `R(t) = (A_p − A_v(t))/(A_p + A_v(t))` with `A_v(t) = A_valve·16u²(1−u)²` over the valve's `open` share of the cycle
+  from its firing phase; the valve end's return low-pass goes, and so do `cylinderWindowCycles`,
+  `cylinderClosedReflection` and `cylinderOpenReflection` (audio document version up). Until EX-2 the engine-sound
+  documents' `valve` is admitted but not read, which saves a second document version.
+- EX-3: three values follow from the vehicle, computed once when the sound is assembled, and leave DEV: the output
+  low-pass at the widest outlet's first transverse mode, `1.841·c/(π·D)`, moved before the soft clip; DC removal at half
+  the idle firing frequency, computed where the vehicle catalog resolves the sound; the pulse decay a time constant
+  `V_cyl/(A_eff·c_cyl·ψ*)` with `T_evo = 1100 K` and `C_d = 0.65` beside the gas assumptions, and
+  `powertrain.compressionRatio` in the vehicle mechanics (version up).
+- EX-4: overrun pops are deleted (`popProbability`, `popStrength`, their pulse states and the kernel's `overrun`
+  input); a deletion-only PR.
+- EX-5: each vehicle's engine loudness is measured once by a tool outside the build (ITU-R BS.1770 integrated
+  loudness of the signal before the soft clip on one fixed drive) and saved with the identities of what it measured;
+  the build refuses a stale measurement, and a gain `10^((engineDriveLufs − measured)/20)` before the soft clip brings
+  every vehicle to MIX's `engineDriveLufs`. DEV shows when a changed ENGINE value has left the measurements stale.
+- EX-6: SELECT VEHICLE's ENGINE page draws the exhaust at one length scale and one cross-section scale for every
+  vehicle, with each primary's length and diameter, the valve's size and duration and scale marks, and without the
+  travelling pulses; the form counts a log manifold as one collector (CORVETTE C4 `8-2-1-2-4`). Until then the diagram
+  keeps 40 px/m, so exhausts written to their tailpipes run past the screen.
+
+Known issue, not addressed by this stage: DELTA HF INTEGRALE and GOLF GTI 16V ring metallically. Their cast manifolds'
+short primaries (19–34 cm) ring near 1–1.3 kHz between the closed valve (reflection +1, from EX-2) and the collector:
+30–60 ms after the valve closes the ring stands at −12 dB (DELTA) and −17 dB (GOLF), against −19 to −20 dB on the other
+vehicles. The turbine throat does not cause it (the owner listened); restoring the DEV valve end removes it but changes
+every other vehicle, so it was not taken. What the model lacks is likely the loss of a cast manifold's rough walls and
+disturbed flow.
 
 ## Audit 2 leftovers
 

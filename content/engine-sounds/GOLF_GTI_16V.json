@@ -1,12 +1,25 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.25, 0.5, 0.75],
   "exhaust": {
-    "banks": [0, 0, 0, 0],
-    "lengths": [0.55, 0.42, 0.48, 0.6],
-    "pipes": [{ "length": 1.25, "from": 0, "to": null }]
+    "valve": { "diameter": 0.0396, "open": 0.3986 },
+    "primaries": [
+      { "length": 0.33, "diameter": 0.033, "to": 0 },
+      { "length": 0.22, "diameter": 0.033, "to": 1 },
+      { "length": 0.34, "diameter": 0.033, "to": 0 },
+      { "length": 0.23, "diameter": 0.033, "to": 1 }
+    ],
+    "pipes": [
+      { "length": 0.42, "diameter": 0.033, "from": 0, "to": 2 },
+      { "length": 0.38, "diameter": 0.033, "from": 1, "to": 2 },
+      { "length": 3.15, "diameter": 0.05, "from": 2, "to": 3 },
+      { "length": 0.12, "diameter": 0.042, "from": 3, "to": null },
+      { "length": 0.12, "diameter": 0.042, "from": 3, "to": null }
+    ]
   },
-  "metadata": { "topology": "4-1", "note": "One collector, one outlet." }
+  "metadata": {
+    "note": "Two cast elements pair cylinders 1+4 and 2+3 (33 mm outlets, FIA A-5295) into a twin downpipe; one pipe through the front, centre and rear silencers to two tailpipes. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 28 mm, 10.2 mm lift, 69 BBDC / 38 ATDC = 287 deg (FIA A-5295)."
+  }
 }

@@ -24,32 +24,40 @@ Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; au
 filter and envelope state. Player tire sound reads the player's observed tire observations;
 rival sound uses the rival's observed powertrain values and its own vehicle's engine sound.
 
-An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per
-cycle, ordered firing phases, each cylinder's junction (`banks`), primary lengths and the collector graph
-(`pipes`). Each firing phase is that cylinder's exhaust-opening instant (start of blowdown); the offset from
-combustion top dead centre is common to all cylinders and is not represented. Phase count determines cylinder count. The resource limits are author values bounding the kernel's work and delay
-storage, not claims about real engines: 1 to 16 firing phases, primaries of 0.1 to 3 m, and 1 to 8 pipes of 0.1 to
-4 m. Each primary and pipe is a delay pair of `length × rate / waveSpeed` samples (`waveSpeed` 480 m/s), so the
-longest sound stores at most 2 × (16 × 3 + 8 × 4) m × 192000 / 480 = 64000 samples, and the shortest pipe is
-at least 9 samples at 44100 Hz. `compileEngineSound` validates an
-`EngineSoundDefinition` into an `EngineSound`. Firing rows identify events and collector groups.
+An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per cycle, ordered firing phases and
+the exhaust from the valves to the tail: one cylinder's exhaust valve (`valve`), each cylinder's primary and the pipes,
+every tube with its length and internal diameter in metres. Each firing phase is that cylinder's exhaust-opening instant
+(start of blowdown); the offset from combustion top dead centre is common to all cylinders and is not represented. Phase
+count determines cylinder count, and the primaries follow the firing phases' order: cylinder i's primary runs from its
+valve, the head's exhaust port included, to junction `to`. Each pipe runs from junction `from` to junction `to`, or to
+an open end (`to: null`), as far as the tailpipes; a turbine is a short, narrow pipe of its throat. The valve's
+`diameter` is that of the circle whose area is the valve's greatest open area (for poppet valves
+`count × min(π·d·lift, π·d²/4)`, for a two-stroke the port window's area), and `open` is how long it is open, seat to
+seat, as a share of the cycle from the firing phase. The resource limits are author values bounding the kernel's work
+and delay storage, not claims about real engines: 1 to 16 firing phases and 1 to 16 pipes, every tube longer than 0
+and at most 4 m, and wider than 0 and at most 0.5 m. Each primary and pipe is a delay pair of
+`length × rate / waveSpeed` samples, rounded and at least one (`waveSpeed` 480 m/s), so the longest sound stores at
+most 2 × (16 + 16) × 4 m × 192000 / 480 = 102400 samples. `compileEngineSound` validates an `EngineSoundDefinition`
+into an `EngineSound`: positive valve diameter, `open` within (0, 1), one primary per firing phase, tubes within the
+limits and the junctions' topology. Firing rows identify events and collector groups.
 
 Engine sound definitions are content: `content/engine-sounds/<id>.json` stores one
-`superoutride.engine-sound` version 1 document per sound ID, its file name without `.json`, which is also its
+`superoutride.engine-sound` version 2 document per sound ID, its file name without `.json`, which is also its
 manifest ID; the documents carry none. The fields are `format`, `version`, `cycleRevolutions`, `firingPhases`,
-`exhaust` (`banks`, `lengths`, `pipes` of `{length, from, to}` with `to: null` for an open end) and `metadata`
-(authoring notes such as the collector `topology`; not read, and kept as written only for the DEV export). The audio layer compiles a document:
+`exhaust` (`valve` of `{diameter, open}`, `primaries` of `{length, diameter, to}` and `pipes` of
+`{length, diameter, from, to}` with `to: null` for an open end) and `metadata` (authoring notes, such as each value's
+references; not read, and kept as written only for the DEV export). The audio layer compiles a document:
 [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
 with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
-diagnostic at the field the rule reads (`/exhaust/lengths/0`, `/exhaust/pipes/1/length`, `/exhaust/banks/2`), or at
-`/exhaust/pipes` for the pipes' count and topology (junctions numbered from 0, one open end reached from every
-junction), rules over the pipes together; the `CompiledEngineSound` adds
-the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
+diagnostic at the field the rule reads (`/exhaust/primaries/0/length`, `/exhaust/pipes/1/diameter`,
+`/exhaust/primaries/2/to`, `/exhaust/valve/open`), or at `/exhaust/pipes` for the pipes' count and topology (junctions
+numbered from 0, one open end reached from every junction), rules over the pipes together; the `CompiledEngineSound`
+adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
 same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
-changes a sound's primary and pipe lengths, each change through `compileEngineSound`; every voice whose competitor's
-vehicle uses that sound fades to silence and installs it, as for any change of sound.
+changes a sound's primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
+competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
 ## Engine synthesis
 
@@ -71,7 +79,7 @@ During overrun (observed effective opening 0 without fuel cut, judged before the
 firing draws a separate seeded number and becomes a pop with the `popProbability` setting. The cylinder's
 combustion pulse still sounds at the closed-throttle floor, and a pulse of the `popStrength` setting fires in
 that collector's pop state, which follows the same rise and decay as the cylinder pulses and enters the
-collector junction as incoming pressure. Because the draw is per firing, the pop rate is proportional to RPM.
+collector junction as incoming pressure with one port's weight (`1/portCount` of the scattering sum). Because the draw is per firing, the pop rate is proportional to RPM.
 No unburnt-fuel or temperature state is kept; draw counts depend on the state, but the same seed and input
 history reproduce the same sound.
 
@@ -94,25 +102,29 @@ the tail is longer at low RPM; that conversion is its only derivation. Firing re
 continuous. Exact exponential evolution across fractional firing times supplies the sample-average pulse to the
 pipe.
 
-The exhaust is a graph of junctions and pipes. Junctions are numbered from 0; each cylinder's primary ends at
-its junction `banks[i]`, and each pipe runs from junction `from` to junction `to` or to an open end (`to: null`).
+The exhaust is a graph of junctions and tubes. Junctions are numbered from 0; each cylinder's primary ends at
+its junction `to`, and each pipe runs from junction `from` to junction `to` or to an open end (`to: null`).
 Every junction reaches an open end through pipes; loops are allowed, since a ring of pipes is physical. A merge
-(2-1, a turbine inlet) and an H or X pipe are junctions where several pipes meet. The
+(2-1, a turbine inlet), a log manifold's run of merges and an H or X pipe are junctions where several tubes meet. The
 [waveguide](../src/audio/exhaust-waveguide.ts) gives each primary and each pipe a bidirectional delay pair,
-rounded to the nearest sample at the reference wave speed. Each traversal multiplies amplitude by
-`exp(-attenuationPerMeter*length)`. Every junction scatters with equal admittance whatever the direction of its
-ports: `p = 2*sum(incoming)/portCount` and `outgoing = p-incoming`, where the ports are the junction's primaries and
-each attached pipe end.
+rounded to the nearest sample at the reference wave speed. Each traversal applies the tube's wall loss
+`exp(-alpha(f)*length)` ([derived values](#derived-values)) as a one-pole low-pass of unity DC gain. Every junction
+scatters by its ports' cross-sections whatever their direction: `p = 2*sum(A_k*incoming_k)/sum(A_k)` and
+`outgoing_k = p-incoming_k`, where the ports are the junction's primaries and each attached pipe end and `A_k` is the
+port's tube's cross-section; with equal tubes this is equal-admittance scattering.
 
 After a cylinder's exhaust opens, its cylinder-end reflection varies from `cylinderClosedReflection` to
 `cylinderOpenReflection` through the aperture `16*u²*(1-u)²` over `cylinderWindowCycles` of the firing cycle, then
 returns to its closed value. These three are DEV settings; the window is an acoustic boundary, not the valve's
 open duration: a window spanning the valve event removed the pipe resonance. The aperture has continuous value and slope and a window
-mean of 8/15. Cylinder-end and outlet low-pass filters act inside their return paths. The listening pickup
-sums each open end's outgoing and low-passed outgoing waves, divided by `sqrt(openEndCount)`.
+mean of 8/15. Each open end reflects with `OUTLET_REFLECTION` (-1) through a one-pole low-pass at its pipe's
+`c/(2*pi*radius)`, and each cylinder end's return passes the same low-pass at its primary's radius. The listening
+pickup sums each open end's outgoing and low-passed outgoing waves, divided by `sqrt(openEndCount)`.
 
-A displacement pulse, pipe cross-sections and muffler segments, and packing absorption were tried (11-7b–11-7k) and
-cycle speed fluctuation was considered: none improved driving sound, and each added computation.
+Pipe cross-sections enter through each tube's diameter (scattering, wall loss and open-end cutoff); silencer,
+catalyst and collector-box bodies are written as straight pipes of their inlet diameter, and a run of equal pipes as
+one. A displacement pulse, expansion chambers and packing absorption were tried (11-7b–11-7k) and cycle speed
+fluctuation was considered: none improved driving sound, and each added computation.
 
 Each acoustic step runs at the output sample rate. Integer pipe delays, the pulse approximation and
 native-rate nonlinear stages define the model's temporal and spectral resolution.
@@ -132,17 +144,19 @@ compression. Output depends on the engine sound, RPM, excitation and fixed mix g
 ## Derived values
 
 Derived values follow from physics and are never DEV settings: the wave speed (`ACOUSTICS.waveSpeed`, 480 m/s),
-`PIPE_COEFFICIENTS` (outlet reflection, return cutoff and attenuation; values in
+each tube's wall-loss filter and open-end cutoff, the open-end reflection (values in
 [Calibration](calibration.md#derived-values)), the rival inverse-distance law and the rival pan geometry.
 [Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives the pipe values under stated physical assumptions
-(`REFLECTION_REFERENCE`): an unflanged 50 mm internal-diameter pipe, 573.15 K air at 101325 Pa, `gamma=1.4`,
-`R=287 J/(kg K)`, `Pr=0.71` and a 500 Hz loss reference.
+(`REFLECTION_REFERENCE`): 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)` and `Pr=0.71`; each tube's radius
+`a` is its document's.
 
-The derivation uses `c=sqrt(gamma*R*T)`, the open-end negative reflection limit,
-`fc=c/(2*pi*radius)` and
-`alpha=sqrt(pi*f*nu)/(radius*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
-`mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`.
-The resulting loss is about 0.034 Np/m before rounding.
+The derivation uses `c=sqrt(gamma*R*T)`, the unflanged open-end negative reflection limit, `fc=c/(2*pi*a)` and
+Kirchhoff's wall loss `alpha(f)=sqrt(pi*f*nu)/(a*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
+`mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`. A traversal's loss
+`exp(-alpha(f)*L)` grows as `sqrt(f)`; the kernel applies it as the one-pole low-pass `y += (1-p)*(x-y)`, unity at DC,
+whose pole `p` is chosen once per tube when the sound is assembled: the least-squares fit of its magnitude in dB to
+`-alpha(f)*L` in dB at 64 log-spaced frequencies from 20 Hz to Nyquist. On the delivered sounds at 48 kHz the fit's
+RMS error is at most 0.93 dB (GOLF GTI 16V's 3.15 m pipe; 1.6 dB at worst, at Nyquist) and 0.02–0.6 dB elsewhere.
 
 Every other value is a DEV setting in one of the groups ENGINE (`ExhaustSettings`), MIX (`MixSettings`),
 TIMING (`ControlSettings`), RIVAL (`RivalSettings`), the walls' SCRAPE (`ScrapeSettings`), IMPACT (`ImpactSettings`)

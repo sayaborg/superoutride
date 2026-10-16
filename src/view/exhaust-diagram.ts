@@ -47,7 +47,8 @@ export interface ExhaustDiagram {
  * written twice (`1-1`).
  */
 export function exhaustTopology(sound: EngineSound): string {
-  const { banks, pipes } = sound.exhaust;
+  const { primaries, pipes } = sound.exhaust;
+  const banks = primaries.map(({ to }) => to);
   const counts = [banks.length];
   let stage = new Set(banks);
   const seen = new Set(stage);
@@ -77,7 +78,9 @@ export function exhaustTopology(sound: EngineSound): string {
  * `outletSpacing` apart about its height. Junctions the cylinders do not reach along pipes are not drawn.
  */
 export function createExhaustDiagram(sound: EngineSound, placement: ExhaustDiagramPlacement): ExhaustDiagram {
-  const { banks, lengths, pipes } = sound.exhaust;
+  const { primaries: tubes, pipes } = sound.exhaust;
+  const banks = tubes.map(({ to }) => to);
+  const lengths = tubes.map(({ length }) => length);
   const scale = placement.pixelsPerMeter;
   const end = placement.left + Math.max(...lengths) * scale;
   const groups = [...new Set(banks)].sort((a, b) => a - b);

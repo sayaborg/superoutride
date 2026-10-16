@@ -3,8 +3,6 @@ import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
   pressurePa: 101325,
-  radiusMeters: 0.025, // assumed 50 mm internal diameter, unflanged opening
-  frequencyHz: 500, // reference frequency for the constant-loss approximation
 });
 const AIR = Object.freeze({ gamma: 1.4, gasConstant: 287, prandtl: 0.71 });
 const waveSpeed = Math.round(Math.sqrt(AIR.gamma * AIR.gasConstant * REFLECTION_REFERENCE.temperatureK));
@@ -13,19 +11,58 @@ const viscosity =
   (1.716e-5 * (REFLECTION_REFERENCE.temperatureK / 273) ** 1.5 * (273 + 111)) /
   (REFLECTION_REFERENCE.temperatureK + 111);
 const density = REFLECTION_REFERENCE.pressurePa / (AIR.gasConstant * REFLECTION_REFERENCE.temperatureK);
-const attenuation =
-  (Math.sqrt((Math.PI * REFLECTION_REFERENCE.frequencyHz * viscosity) / density) /
-    (REFLECTION_REFERENCE.radiusMeters * waveSpeed)) *
-  (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
+// Kirchhoff thin-boundary-layer wall loss: alpha(f) = WALL_LOSS * sqrt(f) / radius, in Np/m.
+const WALL_LOSS =
+  (Math.sqrt((Math.PI * viscosity) / density) / waveSpeed) * (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-/** Pipe coefficients derived from REFLECTION_REFERENCE. Derived values: DEV controls never change them. */
-export const PIPE_COEFFICIENTS = Object.freeze({
-  // Rounded to control resolution; Kirchhoff thin-boundary-layer loss at the reference frequency.
-  attenuationPerMeter: Math.round(attenuation * 100) / 100,
-  // One-pole magnitude matches |R| ~ 1 - (ka)^2/2 at low frequency; NOT its end-correction phase.
-  returnCutoffHz: Math.round(waveSpeed / (2 * Math.PI * REFLECTION_REFERENCE.radiusMeters) / 100) * 100,
-  outletReflection: -1, // unflanged open-end low-frequency pressure-reflection limit
-});
+/** Unflanged open-end low-frequency pressure-reflection limit. A derived value: DEV controls never change it. */
+export const OUTLET_REFLECTION = -1;
+
+/**
+ * The cutoff of the one-pole low-pass on an open end's return, `c/(2*pi*radius)` for a tube of `diameter`: its magnitude
+ * matches |R| ~ 1 - (ka)^2/2 at low frequency, NOT the end correction's phase.
+ */
+export function openEndCutoffHz(diameter: number): number {
+  return waveSpeed / (Math.PI * diameter);
+}
+
+/** Log-spaced frequencies from 20 Hz to Nyquist at which a tube's wall-loss filter is fitted. */
+const WALL_LOSS_FIT = Object.freeze({ lowestHz: 20, points: 64, iterations: 80 });
+
+/**
+ * The pole `p` of the one-pole low-pass `y += (1 - p) * (x - y)`, unity at DC, whose magnitude in dB best fits one
+ * traversal's wall loss `-alpha(f) * length` (least squares over log-spaced frequencies from 20 Hz to Nyquist at `rate`)
+ * for a tube of `diameter`. Golden-section search over `p` in [0, 1); computed once per tube when a sound is assembled.
+ */
+export function wallLossPole(length: number, diameter: number, rate: number): number {
+  const { lowestHz, points, iterations } = WALL_LOSS_FIT;
+  const cosines = new Float64Array(points);
+  const targets = new Float64Array(points);
+  const decibelsPerNeper = 20 / Math.LN10;
+  for (let k = 0; k < points; k++) {
+    const hz = lowestHz * (rate / 2 / lowestHz) ** (k / (points - 1));
+    cosines[k] = Math.cos((2 * Math.PI * hz) / rate);
+    targets[k] = (-decibelsPerNeper * WALL_LOSS * Math.sqrt(hz) * length) / (diameter / 2);
+  }
+  const cost = (p: number) => {
+    let sum = 0;
+    for (let k = 0; k < points; k++) {
+      const decibels = 10 * Math.log10(((1 - p) * (1 - p)) / (1 - 2 * p * cosines[k]! + p * p));
+      sum += (decibels - targets[k]!) ** 2;
+    }
+    return sum;
+  };
+  const ratio = (Math.sqrt(5) - 1) / 2;
+  let low = 0,
+    high = 1 - 1e-9;
+  for (let i = 0; i < iterations; i++) {
+    const left = high - ratio * (high - low),
+      right = low + ratio * (high - low);
+    if (cost(left) <= cost(right)) high = right;
+    else low = left;
+  }
+  return (low + high) / 2;
+}
 
 /**
  * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults, in

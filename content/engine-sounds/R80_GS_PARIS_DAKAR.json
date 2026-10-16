@@ -1,16 +1,21 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.5],
   "exhaust": {
-    "banks": [0, 1],
-    "lengths": [0.82, 0.9],
+    "valve": { "diameter": 0.0378, "open": 0.4278 },
+    "primaries": [
+      { "length": 0.9, "diameter": 0.034, "to": 0 },
+      { "length": 0.92, "diameter": 0.034, "to": 0 }
+    ],
     "pipes": [
-      { "length": 0.4, "from": 0, "to": 2 },
-      { "length": 0.4, "from": 1, "to": 2 },
-      { "length": 0.85, "from": 2, "to": null }
+      { "length": 0.2, "diameter": 0.034, "from": 0, "to": 1 },
+      { "length": 1, "diameter": 0.036, "from": 1, "to": 2 },
+      { "length": 0.1, "diameter": 0.03, "from": 2, "to": null }
     ]
   },
-  "metadata": { "topology": "2-1", "note": "Both cylinders' pipes merge into one outlet." }
+  "metadata": {
+    "note": "Headers (38 mm tapering to 36 mm OD) through the small collector box under the gearbox, a link pipe and the single high silencer. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 38 mm (BMW part), 308 deg cam with 9.4 mm lift (BMW literature)."
+  }
 }

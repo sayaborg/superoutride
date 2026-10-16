@@ -1,18 +1,41 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [
     0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334,
     0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666
   ],
   "exhaust": {
-    "banks": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    "lengths": [0.5, 0.54, 0.46, 0.5, 0.58, 0.62, 0.54, 0.58, 0.42, 0.46, 0.62, 0.66],
+    "valve": { "diameter": 0.0396, "open": 0.3889 },
+    "primaries": [
+      { "length": 0.54, "diameter": 0.0355, "to": 0 },
+      { "length": 0.52, "diameter": 0.0355, "to": 1 },
+      { "length": 0.47, "diameter": 0.0355, "to": 2 },
+      { "length": 0.55, "diameter": 0.0355, "to": 3 },
+      { "length": 0.52, "diameter": 0.0355, "to": 0 },
+      { "length": 0.46, "diameter": 0.0355, "to": 1 },
+      { "length": 0.55, "diameter": 0.0355, "to": 2 },
+      { "length": 0.53, "diameter": 0.0355, "to": 3 },
+      { "length": 0.46, "diameter": 0.0355, "to": 0 },
+      { "length": 0.54, "diameter": 0.0355, "to": 1 },
+      { "length": 0.53, "diameter": 0.0355, "to": 2 },
+      { "length": 0.47, "diameter": 0.0355, "to": 3 }
+    ],
     "pipes": [
-      { "length": 0.85, "from": 0, "to": null },
-      { "length": 0.85, "from": 1, "to": null }
+      { "length": 0.5, "diameter": 0.047, "from": 0, "to": 4 },
+      { "length": 0.22, "diameter": 0.047, "from": 2, "to": 4 },
+      { "length": 0.5, "diameter": 0.047, "from": 1, "to": 5 },
+      { "length": 0.22, "diameter": 0.047, "from": 3, "to": 5 },
+      { "length": 1.15, "diameter": 0.057, "from": 4, "to": 6 },
+      { "length": 1.15, "diameter": 0.057, "from": 5, "to": 7 },
+      { "length": 0.15, "diameter": 0.052, "from": 6, "to": null },
+      { "length": 0.15, "diameter": 0.052, "from": 6, "to": null },
+      { "length": 0.15, "diameter": 0.052, "from": 7, "to": null },
+      { "length": 0.15, "diameter": 0.052, "from": 7, "to": null }
     ]
   },
-  "metadata": { "topology": "12-2", "note": "Each bank's collector has its own open outlet." }
+  "metadata": {
+    "note": "Four 3-into-1 headers (cylinders 1-3, 4-6, 7-9, 10-12) join in one Y per bank; each bank's pipe runs through its half of the transverse silencer to two tailpipes. Exhaust timing and every pipe are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 28 mm and 9.5 mm lift (estimates); about 280 deg seat to seat, from 54 BBDC / 10 ATDC at 0.5 mm (shop manual via owners' forum)."
+  }
 }

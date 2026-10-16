@@ -1,16 +1,23 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 1,
+  "version": 2,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.4375],
   "exhaust": {
-    "banks": [0, 1],
-    "lengths": [0.72, 1.04],
+    "valve": { "diameter": 0.0409, "open": 0.3861 },
+    "primaries": [
+      { "length": 0.865, "diameter": 0.041, "to": 0 },
+      { "length": 0.415, "diameter": 0.041, "to": 1 }
+    ],
     "pipes": [
-      { "length": 0.35, "from": 0, "to": 2 },
-      { "length": 0.35, "from": 1, "to": 2 },
-      { "length": 0.75, "from": 2, "to": null }
+      { "length": 0.1, "diameter": 0.035, "from": 0, "to": 1 },
+      { "length": 0.7, "diameter": 0.041, "from": 0, "to": 2 },
+      { "length": 0.7, "diameter": 0.041, "from": 1, "to": 3 },
+      { "length": 0.1, "diameter": 0.035, "from": 2, "to": null },
+      { "length": 0.1, "diameter": 0.035, "from": 3, "to": null }
     ]
   },
-  "metadata": { "topology": "2-1", "note": "Both headers merge into one collector and a single outlet." }
+  "metadata": {
+    "note": "Front and rear head pipes (1.75 in), joined by a crossover ahead of two stacked mufflers, each with its own outlet. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 40.9 mm, 12.57 mm lift, 1988 L cam (H-D table); about 278 deg advertised (estimate)."
+  }
 }

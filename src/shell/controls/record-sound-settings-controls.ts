@@ -164,7 +164,7 @@ export function mountWallSoundSettings(
   );
 }
 
-/** The engine sounds by ID: each cylinder's primary length and each collector pipe's length. */
+/** The engine sounds by ID: each cylinder's primary and each pipe, their lengths and diameters. */
 export function mountEngineSoundRecords(
   host: HTMLElement,
   initial: Readonly<Record<string, CompiledEngineSound>>,
@@ -172,14 +172,16 @@ export function mountEngineSoundRecords(
 ) {
   return createRecordSoundSettings(
     host,
-    'ENGINE SOUNDS · exhaust pipe lengths',
+    'ENGINE SOUNDS · exhaust pipe lengths and diameters',
     initial,
     ({ exhaust }) => [
-      ...exhaust.lengths.map((_, i): Field => [`Cylinder ${i + 1} primary`, ['exhaust', 'lengths', i], 'm']),
-      ...exhaust.pipes.map(({ from, to }, i): Field => [
-        `Pipe ${from} → ${to ?? 'open end'}`,
-        ['exhaust', 'pipes', i, 'length'],
-        'm',
+      ...exhaust.primaries.flatMap((_, i): Field[] => [
+        [`Cylinder ${i + 1} primary length`, ['exhaust', 'primaries', i, 'length'], 'm'],
+        [`Cylinder ${i + 1} primary diameter`, ['exhaust', 'primaries', i, 'diameter'], 'm'],
+      ]),
+      ...exhaust.pipes.flatMap(({ from, to }, i): Field[] => [
+        [`Pipe ${from} → ${to ?? 'open end'} length`, ['exhaust', 'pipes', i, 'length'], 'm'],
+        [`Pipe ${from} → ${to ?? 'open end'} diameter`, ['exhaust', 'pipes', i, 'diameter'], 'm'],
       ]),
     ],
     ({ id, sha256, metadata, ...definition }) =>

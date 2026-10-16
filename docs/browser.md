@@ -323,7 +323,7 @@ The firing and the exhaust move in slow motion, 30 times slower than real: the e
 taking `cycleRevolutions` × 60 × 30 / `idleRpm` seconds, and the exhaust's pulses travel at `ACOUSTICS.waveSpeed`, the
 speed the exhaust's sound uses, slowed alike, so their timing keeps its real ratio. Their time is counted in fixed steps
 since the vehicle was shown, from the cycle's start. A cylinder fires at its `firingPhases` entry and stays lit for
-4 % of a cycle after it. Its bank is its cylinder-side junction (`exhaust.banks`), colored by junction number YELLOW,
+4 % of a cycle after it. Its bank is its cylinder-side junction (its primary's `to`), colored by junction number YELLOW,
 RED, GREEN and WHITE in turn.
 
 FIRING: row 22 has `FIRING` (DARK) and, at column 8, the crank degrees between firings in firing order as their
@@ -337,15 +337,17 @@ color from y 192, and WHITE from y 188 while lit. The engine's place is a dotted
 EXHAUST: row 14 has `EXHAUST` at column 20 (DARK), the exhaust's form at column 28 (WHITE) and `cm` at column 37
 (DARK). The form counts the flows stage by stage: the cylinders, then the junctions at each depth reached from them
 along pipes from `from` to `to`, then the open ends leaving the last. Neighbouring stages with equal counts are one
-stage, and a single stage is written twice, so the vehicles read `12-2`, `6-2-1`, `8-2-1-2`, `4-1`, `4-2-1`, `2-1` and
-`1-1`. Row 29 has `PIPE` at column 20 (DARK) and each pipe's length in centimetres, joined by `/`, at column 25 (WHITE).
+stage, and a single stage is written twice, so the vehicles read `12-4-2-4`, `6-2-1`, `8-1-2-4`, `4-1`, `4-2-1-2`,
+`4-2-1`, `2-2`, `2-1` and `1-1`. Row 29 has `PIPE` at column 20 (DARK) and each pipe's length in centimetres, joined by
+`/`, at column 25 (WHITE), cut at the grid's last column.
 
 The exhaust is drawn at the player depth's 40 px/m, true to its lengths
 (`src/view/exhaust-diagram.ts`; the screen makes it once for each engine sound):
 
 - Primaries take a text row each from row 16, grouped by junction in junction order with an empty row between groups,
   in cylinder order, each running along its row's middle. Each primary's length in centimetres stands right-aligned in
-  columns 20–22 (WHITE).
+  columns 20–22 (WHITE) on the rows above row 29. Exhausts written to their tailpipes run past the screen's edge and
+  rows; [NEXT](NEXT.md) schedules the diagram's redrawing (EX-6).
 - Every cylinder-side junction stands where the longest primary ends (x 192 plus that primary's length), at the middle
   of its primaries' rows. Each primary starts its own length before it, so unequal primaries show as staggered starts.
 - A pipe runs level from its `from` junction, then upright to its `to` junction. A downstream junction stands at the
@@ -856,7 +858,7 @@ runs preserve them:
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 - **SURFACES** (`surface-sound-settings`): a chosen material's surface sound, its rolling palette and friction input.
 - **WALLS** (`wall-sound-settings`): a chosen wall sound's friction input.
-- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's primary and collector pipe lengths.
+- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's primary and pipe lengths and diameters.
 
 MIX, TIMING, RIVAL, UNIFIED, SCRAPE, IMPACT and ROLLING use sliders with the acoustic ranges. SURFACES, WALLS and
 ENGINE SOUNDS use number fields: each value is the record's one value check's ([Tire audio](tire-audio.md#surface-sounds),
