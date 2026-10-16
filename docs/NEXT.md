@@ -120,9 +120,10 @@
   `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
   exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
 - Stage EX2 is complete: the wall loss follows Kirchhoff's `sqrt(f)` through four shelves in parallel form (the
-  engine loudness measured again, `engineDriveLufs` kept at −11.9); the exhaust kernel renders in blocks over flat
-  arrays, its output unchanged; ENGINE draws tubes in proportion to their diameter, each junction as one bar, shaded
-  once as one shape.
+  engine loudness measured again); the exhaust kernel renders in blocks over flat arrays, its output unchanged; ENGINE
+  draws tubes in proportion to their diameter, each junction as one bar, shaded once as one shape. EX-10 made the
+  owner's DEV ENGINE values the defaults, with MIX's `engineDriveLufs` at −24 so that the engines seldom reach the soft
+  clip and `clipCeiling` at 1.
 
 Next PR: [VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 

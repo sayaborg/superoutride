@@ -217,8 +217,8 @@ wastegates are not represented. DEV's ENGINE SOUNDS panel changes the lengths an
 
 ## Engine sound settings
 
-Audio values are either [derived](#derived-values) or DEV listening settings. Every DEV default is the
-implementer's initial value, not a value the owner chose by listening; the defaults are
+Audio values are either [derived](#derived-values) or DEV listening settings. The ENGINE defaults are the owner's,
+chosen by listening on DEV ENGINE (EX-10); the defaults are
 [`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts) and the game reads the
 [audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
 supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time; the pulse decay, the output low-pass and
@@ -226,16 +226,19 @@ the DC removal are [derived](#derived-values).
 
 | Key                 | Meaning                               | Default | Accepted / step    |
 | ------------------- | ------------------------------------- | ------- | ------------------ |
-| `closedExcitation`  | Closed-throttle excitation            | 0.22    | 0.01–1 / 0.01      |
-| `pulseVariation`    | Absolute event-strength variation     | 0.20    | 0–0.40 / 0.01      |
-| `pumpingExcitation` | Firing strength during fuel cut       | 0.06    | 0.01–0.50 / 0.01   |
-| `pulseRiseMs`       | Full-excitation pulse rise time       | 0.2 ms  | 0.05–2 ms / 0.01   |
-| `blipOpening`       | Downshift blip opening peak           | 0.70    | 0–1 / 0.01         |
-| `blipDecaySeconds`  | Downshift blip decay time             | 0.08 s  | 0.02–0.30 s / 0.01 |
-| `clipCeiling`       | Soft-clip bound and small-signal gain | 0.65    | 0.2–1 / 0.01       |
+| `closedExcitation`  | Closed-throttle excitation            | 0.30    | 0.01–1 / 0.01      |
+| `pulseVariation`    | Absolute event-strength variation     | 0.30    | 0–0.40 / 0.01      |
+| `pumpingExcitation` | Firing strength during fuel cut       | 0.20    | 0.01–0.50 / 0.01   |
+| `pulseRiseMs`       | Full-excitation pulse rise time       | 0.3 ms  | 0.05–2 ms / 0.01   |
+| `blipOpening`       | Downshift blip opening peak           | 1       | 0–1 / 0.01         |
+| `blipDecaySeconds`  | Downshift blip decay time             | 0.25 s  | 0.02–0.30 s / 0.01 |
+| `clipCeiling`       | Soft-clip bound and small-signal gain | 1       | 0.2–1 / 0.01       |
 
 These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
 least value is one step, 0.01, since excitation divides the pulse rise time.
+
+`clipCeiling` is 1, the owner's decision: it scales the soft clip's output without changing how much it cuts, and from
+0.65 it gives back 3.7 dB of the level that MIX's lower [`engineDriveLufs`](#mix-settings) takes away.
 
 ## UNIFIED tire settings
 
@@ -375,18 +378,33 @@ resistance at speed is not modelled.
 ## MIX settings
 
 [Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the engines' loudness into the
-soft clip (`MixSettings`). `engineDriveLufs`'s default, −11.9 LUFS, is the owner's by listening: set at the delivered
-[engine loudness](audio.md#engine-loudness)'s mean over the nine vehicles (−11.87 LUFS, to the step), it was kept when
-the √f wall loss (EX-7) lowered that mean to −14.15 LUFS, so the engines' gains into the soft clip average +2.25 dB.
+soft clip (`MixSettings`). `engineDriveLufs`'s default, −24 LUFS, is the owner's (EX-10), chosen so that the engines
+seldom reach the soft clip. `x/(1+|x|)` has no corner, so no level escapes it entirely; the table gives the soft clip's
+loss on the ENGINE defaults over the nine vehicles, driven at full throttle from idle to redline and then held at
+redline:
 
-| Key               | Meaning                            | Default    | Range / step      |
-| ----------------- | ---------------------------------- | ---------- | ----------------- |
-| `thresholdDb`     | Compressor threshold               | -6 dB      | -40–0 dB / 1      |
-| `kneeDb`          | Compressor knee                    | 6 dB       | 0–40 dB / 1       |
-| `ratio`           | Compressor ratio                   | 12         | 1–20 / 0.5        |
-| `attackSeconds`   | Compressor attack                  | 0.003 s    | 0.001–0.1 / 0.001 |
-| `releaseSeconds`  | Compressor release                 | 0.12 s     | 0.02–1 / 0.01     |
-| `engineDriveLufs` | Engine loudness into the soft clip | -11.9 LUFS | -40–0 LUFS / 0.1  |
+| `engineDriveLufs` | Peak loss, largest / mean | Loss of the top 0.1 %, largest |
+| ----------------- | ------------------------- | ------------------------------ |
+| −11.9 (before)    | 10.6 / 8.3 dB             | 9.0 dB                         |
+| −20               | 5.7 / 4.3 dB              | 4.7 dB                         |
+| **−24**           | **4.0 / 2.9 dB**          | **3.3 dB**                     |
+| −28               | about 2.7 / 2.0 dB        | 2.3 dB                         |
+
+CORVETTE C4 loses most: its peaks stand 19 dB above its loudness, the others' 14–17 dB. Lowering the target from −11.9
+lowers the engines' output by about 9 dB, and `clipCeiling` at 1 instead of 0.65 gives back 3.7 dB: on the
+[engine loudness](audio.md#engine-loudness) procedure's drive, after the soft clip, the engines stand at about
+−25 LUFS with peaks of −9 to −12 dBFS (before: about −20 LUFS, peaks −7 to −9 dBFS), at or below the foot of the master
+compressor's knee (threshold −6 dB, knee 6 dB: −9 dB). The compressor seldom acts, and the music seldom pumps with the
+engines.
+
+| Key               | Meaning                            | Default  | Range / step      |
+| ----------------- | ---------------------------------- | -------- | ----------------- |
+| `thresholdDb`     | Compressor threshold               | -6 dB    | -40–0 dB / 1      |
+| `kneeDb`          | Compressor knee                    | 6 dB     | 0–40 dB / 1       |
+| `ratio`           | Compressor ratio                   | 12       | 1–20 / 0.5        |
+| `attackSeconds`   | Compressor attack                  | 0.003 s  | 0.001–0.1 / 0.001 |
+| `releaseSeconds`  | Compressor release                 | 0.12 s   | 0.02–1 / 0.01     |
+| `engineDriveLufs` | Engine loudness into the soft clip | -24 LUFS | -40–0 LUFS / 0.1  |
 
 ## TIMING settings
 

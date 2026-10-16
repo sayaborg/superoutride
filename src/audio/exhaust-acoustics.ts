@@ -124,7 +124,7 @@ export function wallLossWeights(length: number, diameter: number, rate: number):
 
 /**
  * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults, in
- * `DEFAULT_AUDIO_SETTINGS`, are the implementer's initial values, not values the owner chose by listening.
+ * `DEFAULT_AUDIO_SETTINGS`, are the owner's, chosen by listening.
  */
 export interface ExhaustSettings {
   readonly closedExcitation: number;

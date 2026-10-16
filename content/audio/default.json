@@ -2,13 +2,13 @@
   "format": "superoutride.audio",
   "version": 7,
   "exhaust": {
-    "closedExcitation": 0.22,
-    "pulseRiseMs": 0.2,
-    "pulseVariation": 0.2,
-    "pumpingExcitation": 0.06,
-    "blipOpening": 0.7,
-    "blipDecaySeconds": 0.08,
-    "clipCeiling": 0.65
+    "closedExcitation": 0.3,
+    "pulseRiseMs": 0.3,
+    "pulseVariation": 0.3,
+    "pumpingExcitation": 0.2,
+    "blipOpening": 1,
+    "blipDecaySeconds": 0.25,
+    "clipCeiling": 1
   },
   "unified": {
     "feedbackMaximumPerSecond": 8500,
@@ -65,7 +65,7 @@
     "ratio": 12,
     "attackSeconds": 0.003,
     "releaseSeconds": 0.12,
-    "engineDriveLufs": -11.9
+    "engineDriveLufs": -24
   },
   "control": {
     "observationSeconds": 0.025,

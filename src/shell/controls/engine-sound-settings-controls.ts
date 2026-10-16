@@ -40,12 +40,7 @@ const CONTROLS = [
     's',
     'The time constant over which the throttle peak decays exponentially. Larger blips longer.',
   ],
-  [
-    'clipCeiling',
-    'Soft-clip ceiling',
-    '',
-    "The soft clip's asymptotic ceiling, which is also its small-signal gain. An implementer default, not chosen by the owner by ear.",
-  ],
+  ['clipCeiling', 'Soft-clip ceiling', '', "The soft clip's asymptotic ceiling, which is also its small-signal gain."],
 ] as const;
 
 /** Starts from, and resets to, `initial`: the delivered audio document's exhaust record. */
