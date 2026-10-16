@@ -445,17 +445,18 @@ The footage tool raises a course from videos of an original game ([Courses from 
 `npm run footage -- <command>` and needs ffmpeg and ffprobe on the path. It reads videos and writes frames, features,
 evidence and side-by-sides under `reference-media/`, which Git ignores; it commits numbers alone, under
 `content/footage/`, besides the course document and the outline boards (their sprite sources and course images). Stage
-VC adds these commands one PR at a time ([NEXT](NEXT.md#stage-vc--courses-from-footage) lists those still to come):
+VC adds these commands one PR at a time ([NEXT](NEXT.md#stage-vc--courses-from-footage) lists those still to come);
+each takes `--out`, a root in place of `reference-media/`:
 
-| Command     | Purpose                                                                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------------------- |
-| `fake`      | Draw fake footage of a course with a camera unlike the product's, and write its truth                         |
-| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                        |
-| `features`  | Measure each frame's features                                                                                 |
-| `calibrate` | Make the original's footage model from its first course's videos, or check a later course's videos against it |
-| `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video   |
-| `replay`    | Draw a video's replay and its side-by-side with the video                                                     |
-| `roundtrip` | Run the whole procedure on fake footage and compare every result with its truth                               |
+| Command     | Purpose                                                                                                                                                                                 |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fake`      | Draw the fake original's videos and truth (`--video` names some; `--seconds` keeps their start; `--exact n` also writes every nth game frame and the next; `--no-video` skips encoding) |
+| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                                                                                                  |
+| `features`  | Measure each frame's features                                                                                                                                                           |
+| `calibrate` | Make the original's footage model from its first course's videos, or check a later course's videos against it                                                                           |
+| `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video                                                                             |
+| `replay`    | Draw a video's replay and its side-by-side with the video                                                                                                                               |
+| `roundtrip` | Run the whole procedure on fake footage and compare every result with its truth                                                                                                         |
 
 ### Skies command
 

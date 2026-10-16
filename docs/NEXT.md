@@ -120,7 +120,7 @@
   `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
   exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
 
-Next PR: [VC-2b](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -144,9 +144,14 @@ driving is not fitted to an original's times; every value is derived, set from a
 model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
 the [stopping conditions](footage.md#stopping-conditions).
 
-- VC-2b: the fake footage generator (`fake`), through the truth it writes, so that every later step is checked against
-  truth. VC-2 was split in two: VC-2a generalized the scene (a frame without a player; a camera's own background
-  scroll), which the generator's corrupted player and replay need.
+Found while making fake footage: OUTRUN TEST draws no medians. Its generator draws the median's grass and edge lines
+only when the stage has a lane `m`, and a median has no id, so every median is asphalt-colored, of `ASPHALT`, without
+lines, and a divided road or fork reads as one wide road. Fixing it changes the course's identity and measured products,
+so it waits for K; the fake footage's truth course draws them.
+
+VC-2 was split in two: VC-2a generalized the scene (a frame without a player; a camera's own background scroll) and
+VC-2b added the fake footage generator (`fake`) with the truth it writes.
+
 - VC-3: ingest and features (`ingest`, `features`), checked against the fake footage's truth, with each feature's noise
   level measured.
 - VC-4: calibration (`calibrate`): the footage model recovers the fake footage's camera.

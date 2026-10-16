@@ -459,23 +459,54 @@ tool makes it again deterministically from the videos.
 
 Before any original's video, the whole procedure passes a round trip on footage of a known course.
 
-- **Truth.** Several OUTRUN TEST stages, with hills, a jump, tight curves, lanes that appear and end, medians, wet road and
-  dirt, and drawn sprites: trees, signs, gates, an overpass, sea stacks standing below the road, cones and spectators.
-- **Generator.** On the tool's side, the product scene and renderer draw it with a camera unlike the product's (other
-  `f`, `h`, `y₀` and `x₀`, and a background scroll `a ≠ f`):
-  - a trajectory of smooth speed and lateral weaving, with times of `ψ ≠ 0`;
-  - the speed in whole km/h drawn on the HUD in text tiles;
-  - traffic driving, to hide things;
-  - scaling by an integer factor with nearest texels, H.264 at a video site's compression, and a 30 fps version.
-- **Corrupted versions,** made inside the generator only, never in the product renderer:
-  - hills: the drawn frame's rows reordered over hills (rows moved uniformly, a change not consistent with depth);
-  - player: the frame drawn without the player and its picture laid over at one fixed size (a player off the road's
-    scale).
-- **Several videos.** The same course in three or more videos with different trajectories and capture (crop, scale,
-  compression, frame rate).
-- **Landmarks.** The start line, the grid, checkpoint and goal gates and forks, with timing events (time added) on the HUD.
-- **Truth written.** The course document, every frame's pose, the camera (with `D′`), the HUD's true speed and the events'
-  times.
+- **Truth.** Four OUTRUN TEST stages, COASTLINE, CLIFF ROAD, FARMLAND and INTERCHANGE (27.6 km), with hills, a jump,
+  tight curves, lanes that appear and end, medians, wet road and dirt, and drawn sprites: trees, signs, gates, an
+  overpass, sea stacks standing below the road, cones and spectators. The generator makes this truth course
+  (`outrun-test-route`) from the saved OUTRUN TEST document:
+  - the stages are chained in that order, each through OUTRUN TEST's own Link to the next stage where it has one and
+    its left exit otherwise; every other exit keeps its fork (lock, closure and signs) and leads to a stub, a 400 m
+    level straight of two lanes ending in a finish, enough for the view past the seam;
+  - walls and course-limit openings are left out, since footage does not raise walls;
+  - checkpoint arches stand at their seams, where timing happens, not 12 m past them;
+  - a row of cones (movable objects) lines INTERCHANGE's first lane taper;
+  - each median is drawn as OUTRUN TEST's generator means to and does not (grass in 40 m light and dark stripes, a
+    solid line inside each road's edge along it), so that footage shows it.
+- **Camera.** The fake original's frame is 320×224 game pixels (the top of the logical frame) seen from `f` = 200 px,
+  `h` = 1.6 m, `x₀` = 156, `y₀` = 98, `a` = 150 px/rad and `D′` = 4 m, pitching with the road's chord from the camera
+  to the player (pitch rule `road`), the camera `h` above the road beneath it. Each frame's camera stands at its pose
+  `(s_c, l_c, ψ, φ, Y_c)` exactly as replay places it; its lateral puts the player's base point on the centre column.
+  As in an original, the player stands where its picture's lowest row meets the road, `D′` from the camera, and timing
+  happens there; the product picture's own base point, the footprint's centre, stands 5.19 m from the camera, since
+  TESTAROSSA's picture seen from behind reaches 0.48 m below it (`D = D′·(h + e)/h` for a reach `e`).
+  The product camera's own values are 240 px, 2 m, 160, 120 and `a = f`, its player 6 m away.
+- **Drive.** From the pole, 3 s at rest, GO, then the speed the road's curvature allows (8.5 m/s² across, top speed
+  288 km/h varied smoothly), weaving across the taken road's two lanes, the camera looking aside by 0.03–0.08 rad for
+  2–3 s every 8–18 s; past the goal it slows to 30 m/s and ends 60 m before the course's end. The HUD shows the speed in
+  whole km/h (the player's chainage rate), a clock, the stage and the events GO, TIME BONUS (each checkpoint) and GOAL
+  for 2 s, all in text tiles. Traffic (GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3, about two per kilometre at
+  27–36 m/s) keeps a lane of the taken road and is passed at least 2.6 m aside, hiding what lies behind it.
+- **Capture.** Each video scales the game frame by a whole factor with nearest pixels into a larger frame with black
+  margins and encodes it with H.264, in its own range and matrix; the 30 fps video keeps every other frame. Corrupted
+  versions are made inside the generator only, never in the product renderer:
+  - `hills`: while the camera passes within 60 m of a vertical curve, rows below the horizon move by up to 10 game
+    pixels, down over crests and up over sags, easing over 60 m: a change not consistent with depth;
+  - `player`: the frame drawn without the player, its picture laid over at 1.3 times the road's scale where its base
+    point projects: a player off the road's scale.
+
+  | Video    | Seed | fps | Scale | Video size | Margins (left, top) | CRF | Range, matrix   | Corruption |
+  | -------- | ---: | --: | ----: | ---------- | ------------------- | --: | --------------- | ---------- |
+  | `a`      |    1 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
+  | `b`      |    2 |  60 |     2 | 854×480    | 107, 16             |  27 | limited, BT.601 | none       |
+  | `c`      |    3 |  30 |     4 | 1440×1080  | 80, 92              |  25 | full, BT.709    | none       |
+  | `hills`  |    4 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | hills      |
+  | `player` |    5 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | player     |
+
+- **Truth written.** `reference-media/fake/outrun-test-route/` holds the truth course document and, per video,
+  `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 1): the stages and their route stations, the
+  video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths, the corruption and its
+  intervals, the landmarks (start line, pole, checkpoints, fork beginnings and finish, in route stations), the HUD's
+  events with their frames and times and its layout, the traffic, and every kept frame's time, pose, player place,
+  speed and displayed km/h.
 
 It passes when:
 
