@@ -6,7 +6,7 @@ import { createTextLayer } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { halveRgb555 } from '../../src/image/rgb555.js';
 import { FOOTAGE_MODEL_FORMAT, type ColorRole, type FootageModel } from './footage-model.js';
-import { FAKE_CAMERA, FAKE_GAME } from './fake-plan.js';
+import { FAKE_CAMERA, FAKE_GAME, FAKE_PLAYER } from './fake-plan.js';
 import { FAKE_HUD } from './fake-footage.js';
 
 /**
@@ -60,8 +60,11 @@ const ROLES: readonly (readonly [hex: number, roles: readonly ColorRole[]])[] = 
   [11943, ['median']],
 ];
 
-/** The fake original's footage model as a person drafts it, and its HUD templates. */
-export async function writeFakeModelDraft(root: string) {
+/**
+ * The fake original's footage model as a person drafts it, and its HUD templates. The gauge is TESTAROSSA at the width
+ * the fake original draws it (`gaugeWidth`), as a person names an original's player vehicle and its real width.
+ */
+export async function writeFakeModelDraft(root: string, gaugeWidth: number) {
   const directory = path.join(root, FAKE_GAME);
   const cell = 8;
   const colors = ROLES.map(([rgb555, roles]) => ({ rgb555, roles }));
@@ -106,6 +109,12 @@ export async function writeFakeModelDraft(root: string) {
       { kind: 'player', x: 104, y: 104, width: 104, height: FAKE_CAMERA.frame.height - 104 },
     ],
     colors: [...colors, ...[...shadows].map(([rgb555, roles]) => ({ rgb555, roles }))],
+    gauge: {
+      vehicle: FAKE_PLAYER,
+      width: gaugeWidth,
+      reference: "The width the fake original draws TESTAROSSA at the road scale of its picture's lowest row",
+    },
+    camera: null,
   };
   await atomicWrite(path.join(directory, 'footage-model.json'), JSON.stringify(model, null, 2) + '\n');
   await atomicWrite(

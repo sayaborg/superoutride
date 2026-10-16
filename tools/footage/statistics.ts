@@ -43,3 +43,37 @@ export function median(values: readonly number[]): number {
   const n = sorted.length;
   return n % 2 ? sorted[(n - 1) / 2]! : (sorted[n / 2 - 1]! + sorted[n / 2]!) / 2;
 }
+
+/** The median and the median absolute deviation scaled to a normal standard deviation. */
+export function robustCentre(values: readonly number[]): { median: number; sigma: number; n: number } {
+  const centre = median(values);
+  return { median: centre, sigma: 1.4826 * median(values.map((v) => Math.abs(v - centre))), n: values.length };
+}
+
+/**
+ * The most frequent value of `values`: the peak of their density, a sum of normal kernels whose width is the values'
+ * own spread by Silverman's rule, sought on a grid of a tenth of that width.
+ */
+export function mostFrequent(values: readonly number[]): number {
+  const { median, sigma, n } = robustCentre(values);
+  if (n < 2 || !(sigma > 0)) return median;
+  const width = 0.9 * sigma * n ** -0.2;
+  const sorted = Float64Array.from(values).sort();
+  let best = median,
+    bestDensity = -Infinity;
+  for (let x = median - 4 * sigma; x <= median + 4 * sigma; x += width / 10) {
+    let density = 0;
+    // Only values within four widths count.
+    let lo = 0,
+      hi = n;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sorted[mid]! < x - 4 * width) lo = mid + 1;
+      else hi = mid;
+    }
+    for (let i = lo; i < n && sorted[i]! <= x + 4 * width; i++)
+      density += Math.exp(-0.5 * ((sorted[i]! - x) / width) ** 2);
+    if (density > bestDensity) [best, bestDensity] = [x, density];
+  }
+  return best;
+}

@@ -3,12 +3,13 @@
  * command prints one JSON result, or its diagnostics and exits 1.
  */
 import path from 'node:path';
-import { reportError, requireInput } from '../course/authoring-io.js';
+import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { writeFakeFootage } from './fake-footage.js';
 import { FRAMES_DIRECTORY, ingestVideo } from './ingest.js';
 import { colorCensus } from './census.js';
 import { measureFeatures, type HudTemplates } from './features.js';
-import { EXACT_DIRECTORY, exactIndices, measureNoise } from './noise.js';
+import { EXACT_DIRECTORY, exactIndices, measureNoise, readFeatures } from './noise.js';
+import { calibrateCamera } from './calibrate.js';
 import { loadFootageModel } from './footage-model.js';
 import { writeFakeModelDraft } from './fake-model.js';
 import { access, readFile } from 'node:fs/promises';
@@ -58,12 +59,12 @@ try {
   const root = path.resolve(options.get('--out')?.[0] ?? 'reference-media');
   switch (command) {
     case 'fake': {
-      const written = await writeFakeFootage(root, options.get('--video') ?? [], {
+      const { written, gauge } = await writeFakeFootage(root, options.get('--video') ?? [], {
         seconds: Number(options.get('--seconds')?.[0] ?? Infinity),
         exact: Number(options.get('--exact')?.[0] ?? 0),
         encode: !options.has('--no-video'),
       });
-      await writeFakeModelDraft(root);
+      await writeFakeModelDraft(root, gauge.gaugeWidth);
       console.log(JSON.stringify({ ok: true, written }));
       break;
     }
@@ -106,6 +107,24 @@ try {
         out: 'exact-features.jsonl',
       });
       console.log(JSON.stringify({ ok: true, noise: await measureNoise(directory, 'exact-video-features.jsonl') }));
+      break;
+    }
+    case 'calibrate': {
+      // Every named video of the original's first course, calibrated together.
+      const game = options.get('--game')?.[0] ?? '';
+      const names = options.get('--video') ?? [];
+      requireInput(names.length > 0, '/arguments/--video', '--video names one or more videos');
+      const file = await footageModelFile(root, game, options);
+      const model = await loadFootageModel(file);
+      const videos = await Promise.all(
+        names.map(async (id) => {
+          const directory = videoDirectory(root, new Map([...options, ['--video', [id]]]));
+          return { id, features: await readFeatures(path.join(directory, 'features.jsonl')) };
+        }),
+      );
+      const { camera, evidence } = calibrateCamera(videos, model);
+      await atomicWrite(file, JSON.stringify({ ...model, camera }, null, 2) + '\n');
+      console.log(JSON.stringify({ ok: true, camera, evidence }));
       break;
     }
     default:

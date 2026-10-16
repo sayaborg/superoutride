@@ -455,7 +455,7 @@ each takes `--out`, a root in place of `reference-media/`:
 | `colors`    | List the colors a video's frames are drawn in, for a person to give the ground's their roles                                                                                            |
 | `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                                                      |
 | `noise`     | For fake footage: each feature's capture noise, the video's frames against the exact ones (`fake --exact`)                                                                              |
-| `calibrate` | Make the original's footage model from its first course's videos, or check a later course's videos against it                                                                           |
+| `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                                                         |
 | `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video                                                                             |
 | `replay`    | Draw a video's replay and its side-by-side with the video                                                                                                                               |
 | `roundtrip` | Run the whole procedure on fake footage and compare every result with its truth                                                                                                         |

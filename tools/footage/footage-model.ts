@@ -54,13 +54,43 @@ export interface FootageModelDraft {
   };
   readonly masks: readonly (Rectangle & { readonly kind: 'hud' | 'player' })[];
   readonly colors: readonly { readonly rgb555: number; readonly roles: readonly ColorRole[] }[];
+  /** The gauge: the vehicle whose drawing is as wide as its real overall width `B`, m, and where that width is from. */
+  readonly gauge: { readonly vehicle: string; readonly width: number; readonly reference: string };
+}
+
+/** A measured value and its standard error. */
+export interface Measured {
+  readonly value: number;
+  readonly error: number;
+}
+
+/** The original's camera as calibration measures it ([Footage model](../../docs/footage.md#footage-model)). */
+export interface FootageCamera {
+  readonly focalLength: Measured;
+  readonly height: Measured;
+  readonly centerX: Measured;
+  readonly horizonRow: Measured;
+  /** Null until the initial estimate measures it. */
+  readonly backgroundScale: Measured | null;
+  readonly playerDistance: Measured;
 }
 
 /** A footage model: the draft and, once calibration has measured them, the camera and the rules the original draws by. */
 export interface FootageModel extends FootageModelDraft {
   readonly format: typeof FOOTAGE_MODEL_FORMAT.format;
   readonly version: typeof FOOTAGE_MODEL_FORMAT.version;
+  /** The camera, null until calibrated. */
+  readonly camera: FootageCamera | null;
 }
+
+const CAMERA_FIELDS = [
+  'focalLength',
+  'height',
+  'centerX',
+  'horizonRow',
+  'backgroundScale',
+  'playerDistance',
+] as const satisfies readonly (keyof FootageCamera)[];
 
 const rectangle = (value: unknown, path: string, frame?: { width: number; height: number }): Rectangle => {
   const record = readRecord(value, path, ['x', 'y', 'width', 'height']);
@@ -80,7 +110,17 @@ const rectangle = (value: unknown, path: string, frame?: { width: number; height
 
 /** Admit a footage model's JSON. */
 export function readFootageModel(value: unknown): FootageModel {
-  const record = readRecord(value, '', ['format', 'version', 'game', 'frame', 'hud', 'masks', 'colors']);
+  const record = readRecord(value, '', [
+    'format',
+    'version',
+    'game',
+    'frame',
+    'hud',
+    'masks',
+    'colors',
+    'gauge',
+    'camera',
+  ]);
   requireAdmission(
     record.format === FOOTAGE_MODEL_FORMAT.format && record.version === FOOTAGE_MODEL_FORMAT.version,
     'unsupported_format',
@@ -140,6 +180,33 @@ export function readFootageModel(value: unknown): FootageModel {
         }),
       };
     }),
+    gauge: (() => {
+      const g = readRecord(record.gauge, '/gauge', ['vehicle', 'width', 'reference']);
+      return {
+        vehicle: readString(g.vehicle, '/gauge/vehicle'),
+        width: readNumber(g.width, '/gauge/width', { min: 0, exclusiveMin: true }),
+        reference: readString(g.reference, '/gauge/reference'),
+      };
+    })(),
+    camera:
+      record.camera === null
+        ? null
+        : (() => {
+            const c = readRecord(record.camera, '/camera', CAMERA_FIELDS);
+            return Object.fromEntries(
+              CAMERA_FIELDS.map((field) => {
+                if (field === 'backgroundScale' && c[field] === null) return [field, null];
+                const m = readRecord(c[field], `/camera/${field}`, ['value', 'error']);
+                return [
+                  field,
+                  {
+                    value: readNumber(m.value, `/camera/${field}/value`),
+                    error: readNumber(m.error, `/camera/${field}/error`, { min: 0 }),
+                  },
+                ];
+              }),
+            ) as unknown as FootageCamera;
+          })(),
   });
 }
 

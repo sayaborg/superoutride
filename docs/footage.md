@@ -122,7 +122,8 @@ do not. There is no separate vertical scale.
   recorded in the footage model.
 - **Results, not assumptions.** Lane and road widths are results. Each is reported beside the motorway lane standard of
   the country it is set in: USA 3.65 m, Germany 3.75 m, UK 3.65 m, Japan 3.5 m.
-- **Background scroll.** `a` is measured once `f` is known, from the background's horizontal motion against `Δθ`.
+- **Background scroll.** `a` is measured once `f` is known, from the background's horizontal motion against `Δθ`: the
+  initial estimate measures it, since `Δθ` needs the road's heading and the camera's yaw.
 - **Closed courses.** On a circuit the headings sum to 2π and the plan closes. Those constraints fix `f` on their own,
   so they test the gauge; their difference from it is reported.
 
@@ -162,7 +163,7 @@ check it, and a contradiction stops the work.
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `game`       | The original's name, edition and cabinet, as text                                                                                                                                      |
 | `frame`      | The game pixel frame's `width` and `height`                                                                                                                                            |
-| `camera`     | `focalLength` (`f`), `height` (`h`), `centerX` (`x₀`), `horizonRow` (`y₀`), `backgroundScale` (`a`), `playerDistance` (`D′`), each with its standard error                             |
+| `camera`     | `focalLength` (`f`), `height` (`h`), `centerX` (`x₀`), `horizonRow` (`y₀`), `backgroundScale` (`a`), `playerDistance` (`D′`), each its `value` and standard `error`                    |
 | `gauge`      | `vehicle` (a vehicle ID or a named real vehicle), `width` (`B`) and its reference, `measuredOn` (`player`, `traffic` or `rival`), `playerScale` (1 at the road's scale), `commonWidth` |
 | `projection` | The projection-form check: its residual in game pixels                                                                                                                                 |
 | `depth`      | The depth authority: the agreeing cues among `row`, `width`, `stripes` and `sprites`                                                                                                   |
@@ -268,6 +269,50 @@ indices (`exact-video-features.jsonl`), and writes, per feature, the mean and va
 exact one, with the count of readings the exact frame has and the video lacks (`noise.json`): road edges and lines
 each pair with the video's nearest of their kind within 3 game pixels; the speed's and event's mismatch rates; the
 player's bottom row and width; `roadTop`, `groundTop` and the background's shift.
+
+## Calibration
+
+`calibrate` measures the original's camera from every video of its first course together (`--video` names each) and
+writes it into the footage model's `camera`, each value with its standard error; the person's draft holds the gauge
+(`vehicle`, `width` and its reference) and `camera: null`.
+
+- **Marks.** A frame's marks are its left road edges, right road edges and line centres from the ground top down, each
+  kind linked row to row on its own, a point to the one on the next row that is its nearest while it is that one's
+  nearest. Where a mark's point is missing on a row its nearest may be another mark's, so a mark breaks where its second
+  difference exceeds three deviations of the frame's second differences (their robust spread, no less than rounding's
+  √(6/12) px). Marks of five rows or more take part, each weighed by the inverse of its variance about its own parabola
+  (a curve does not inflate it), no less than rounding's 1/12 px².
+- **Straights.** In rows `w = y − y_v` below a vanishing point, a straight and level road's marks are
+  `x = x_v + c_i·w`; ahead of a curve, to first order, `x = x_v + c_i·w + (C + c_i·E)/w`, with `C` from plan curvature
+  and `E` from vertical curvature. The meeting set grows from the two longest marks: the mark that adds least joins
+  while its residual through the point, at its own best slope, exceeds its own line's by no more than three deviations,
+  so the sides of objects and sprites' runs of road colors stay out however many they are. A frame of three meeting
+  marks or more is on a straight when BIC, each mark's variance known, prefers their meeting at one point both to each
+  mark's own line and to the road ahead curving.
+- **Horizon and centre.** `x₀` and `y₀` are the most frequent column and row of the straights' vanishing points (the
+  peak of a kernel density of Silverman's width). A level straight is one whose vanishing row agrees with `y₀` within
+  three deviations of both (its own from the fit, `y₀`'s), and is measured from `y₀`.
+- **`K`.** On level straights, the stripe edges of the road under the player's column: the boundary between two rows of
+  different road colors, `u` rows below `y₀`. Each edge is predicted on the next level frame at `1/u − Δs/K` (`Δs` the
+  displayed speed's integral), and a prediction and an edge that are each other's nearest, within the two rows'
+  rounding (the earlier magnified by the motion, `(u′/u)²`) and the motion's share of `K`'s uncertainty, continue one
+  track. The tracks share one slope `−1/K` of `1/u` against `s`, each with its own intercept, by least squares weighted
+  by `u⁴` (a row's rounding is `1/u²` in `1/u`); a track whose own slope departs from the others' by more than three
+  deviations (its rounding, scaled by the tracks' robust spread) is no fixed stripe edge, such as one the drawing holds
+  still near the horizon, and is left out. The standard error is clustered by track. From a rough start (single steps
+  to the next edge below, their median weighted as the fit weighs them), following and fitting repeat until `K` moves
+  by less than its standard error.
+- **Gauge and player.** On level straights the player picture's base row stands `u` rows below `y₀` and spans `b`
+  columns: `D′ = K/u` and `h = B·u/b`, then `f = K/h`. Each of `u` and `b` is the mean over the frames within three
+  robust deviations (no less than a pixel) of their median, so turning pictures stand apart and the picture's columns,
+  rounded at every lateral phase, average out.
+- **Several videos.** Each video is measured on its own (`x₀`, `y₀`, `K`, `u` and `b`) and the original's values are
+  their weighted means, each standard error scaled by the videos' disagreement (the square root of their reduced
+  chi-square) when they disagree beyond their own errors, so differences between captures enter the errors. The base
+  row is a whole row at one depth in every video, so its rounding (1/12 row²) is added after combining. Errors propagate
+  to first order.
+- **Background scroll.** `backgroundScale` stays null until the initial estimate measures it, since `Δθ` needs the
+  road's heading and the camera's yaw that it solves.
 
 ## Initial estimate
 
@@ -556,14 +601,16 @@ Before any original's video, the whole procedure passes a round trip on footage 
 
 - **What a person would write.** `fake` also writes, under `reference-media/fake/`, what a person would after looking at
   the fake original's frames: its footage model draft (every OUTRUN TEST ground color of the truth course with its
-  roles, the halved shadows of them, the HUD's readouts and event places with their ink colors, and the masks) and its
-  HUD templates.
+  roles, the halved shadows of them, the HUD's readouts and event places with their ink colors, the masks, and the
+  gauge: TESTAROSSA at the width the fake original draws it, as a person names an original's player vehicle and its
+  real width) and its HUD templates.
 - **Truth written.** `reference-media/fake/outrun-test-route/` holds the truth course document and, per video,
   `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 1): the stages and their route stations, the
-  video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths, the corruption and its
-  intervals, the landmarks (start line, pole, checkpoints, fork beginnings and finish, in route stations), the HUD's
-  events with their frames and times and its layout, the traffic, and every kept frame's time, pose, player place,
-  speed and displayed km/h.
+  video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths and the widths their
+  pictures are drawn at (a picture's width at the road scale of its lowest row, wider than the vehicle since the picture
+  is a view in perspective), the corruption and its intervals, the landmarks (start line, pole, checkpoints, fork
+  beginnings and finish, in route stations), the HUD's events with their frames and times and its layout, the traffic,
+  and every kept frame's time, pose, player place, speed and displayed km/h.
 
 It passes when:
 

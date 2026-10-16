@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-4](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -158,14 +158,13 @@ only when the stage has a lane `m`, and a median has no id, so every median is a
 lines, and a divided road or fork reads as one wide road. Fixing it changes the course's identity and measured products,
 so it waits for K; the fake footage's truth course draws them.
 
-VC-2 was split in two: VC-2a generalized the scene (a frame without a player; a camera's own background scroll) and
-VC-2b added the fake footage generator (`fake`) with the truth it writes.
-
-- VC-4: calibration (`calibrate`): the footage model recovers the fake footage's camera.
 - VC-5: the initial estimate, landmarks and partition over several videos: plan, profile, lanes, start, forks,
-  checkpoints and goals, written as a course document.
+  checkpoints and goals, written as a course document; with them the background scale `a`, the projection-form check,
+  the depth authority and the pitch rule, which need the solved heading, yaw and profile.
 - VC-6: appearance: Strips, color changes, materials and environment knots.
-- VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement.
+- VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement; with tracked
+  vehicles, the gauge's choice of vehicle (traffic pictures against the player's: its scale factor and a common width),
+  which `calibrate` now takes on the player.
 - VC-8: replay and the comparison (`replay`, `solve`'s iteration): each video replayed, every video's residuals updating
   the course, and leave one out.
 - VC-9: the round trip (`roundtrip`) passes, exact and corrupted, at 60 and 30 fps, compressed; the report (lateral

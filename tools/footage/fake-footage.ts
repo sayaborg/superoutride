@@ -100,7 +100,8 @@ export async function writeFakeFootage(
   const written = [];
   for (const video of videos)
     written.push(await writeVideo(directory, course, content.definitions.vehicles, tiles, video, drawing));
-  return written;
+  const player = content.definitions.vehicles.find((v) => v.compiledVehicle.id === FAKE_PLAYER)!;
+  return { written, gauge: pictureGauge(createVehicleSprites(player).off) };
 }
 
 /** OUTRUN TEST's start gantry stands over its grid, 205 m into its entry stage (`tools/course/outrun-test.ts`). */
@@ -191,10 +192,17 @@ async function writeVideo(
     stages: stages.map((stage) => ({ id: stage.section.id, start: stage.start, exit: stage.exit?.id ?? null })),
     video,
     camera: { ...FAKE_CAMERA, anchorDistance },
+    // Each vehicle's overall width and its picture's gauge width: the width the fake original draws it at the road's
+    // scale of its picture's lowest row, which the round trip's gauge takes as the vehicle's width.
     gauge: {
       vehicle: FAKE_PLAYER,
       overallWidth: player.compiledVehicle.overallWidth,
-      traffic: traffic.map((v) => ({ vehicle: v.compiledVehicle.id, overallWidth: v.compiledVehicle.overallWidth })),
+      ...pictureGauge(createVehicleSprites(player).off),
+      traffic: traffic.map((v) => ({
+        vehicle: v.compiledVehicle.id,
+        overallWidth: v.compiledVehicle.overallWidth,
+        ...pictureGauge(createVehicleSprites(v).off),
+      })),
     },
     corruption:
       video.corruption === 'hills'
@@ -236,16 +244,30 @@ async function writeVideo(
  * below the horizon are `K/D′ = K/D + e·f/D` for a reach `e` below the base point, so `D = D′·(h + e)/h`.
  */
 function playerAnchorDistance(set: ReturnType<typeof createVehicleSprites>['off']): number {
+  return (FAKE_CAMERA.playerDistance * (FAKE_CAMERA.height + pictureGauge(set).reach)) / FAKE_CAMERA.height;
+}
+
+/**
+ * A vehicle picture seen from behind, at full size: its opaque width and how far it reaches below its base point (m at
+ * 40 texels per metre), and its gauge width, the width it is drawn at the road's scale of its lowest row. On level road
+ * that row lies at depth `d·h/(h + e)` for a base point at `d`, so the gauge width is `width·h/(h + e)`: a product
+ * picture is a view in perspective, wider than the vehicle at its base point.
+ */
+export function pictureGauge(set: ReturnType<typeof createVehicleSprites>['off']) {
   const level = set.assets[0]![0]!.levels[0]!;
-  let lowest = -1;
-  for (let y = level.height - 1; y >= 0 && lowest < 0; y--)
+  let lowest = -1,
+    left = Infinity,
+    right = -Infinity;
+  for (let y = 0; y < level.height; y++)
     for (let x = 0; x < level.width; x++)
       if (level.pattern.indexAt(y * level.width + x)) {
         lowest = y;
-        break;
+        left = Math.min(left, x);
+        right = Math.max(right, x + 1);
       }
-  const reach = (lowest + 1 - (level.anchorY + 0.5)) / 40;
-  return (FAKE_CAMERA.playerDistance * (FAKE_CAMERA.height + reach)) / FAKE_CAMERA.height;
+  const width = (right - left) / 40,
+    reach = (lowest + 1 - (level.anchorY + 0.5)) / 40;
+  return { width, reach, gaugeWidth: (width * FAKE_CAMERA.height) / (FAKE_CAMERA.height + reach) };
 }
 
 /** A scene on the route with every exit selected, so it extends through the whole route as the camera moves. */
