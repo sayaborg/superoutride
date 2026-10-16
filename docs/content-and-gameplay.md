@@ -1162,6 +1162,8 @@ run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and event
 The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
 under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each course a class runs has
 `content/reference-times/<course>.json`, and every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
+The catalog's engine loudness, `content/engine-loudness/default.json`, is the one measured product of no course; its
+procedure, format and identities are [Audio](audio.md#engine-loudness)'s.
 
 A reference run depends on the course, the vehicle and the procedure alone: it drives the course's `maxLaps` and a
 Run reads the laps it runs, so no series or class value enters it, and classes running the same course and
@@ -1179,9 +1181,9 @@ Run's budget rounds, once, after its margin is applied. The delivered pace sched
 identities and the station spacing.
 
 A saved product is current while its identities equal the current course build, run vehicle and procedure
-identities. Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
+identities (the engine loudness: its own sources and procedure). Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
 delivered racing lines, reference times and schedules from them, each once. A saved product that is stale, absent or
-owned by no course, or reference times whose entries are not the vehicles the
+owned by nothing measured, or reference times whose entries are not the vehicles the
 classes run on that course in catalog order (a measurement no class uses is stale), fail
 with a `measurement_stale` diagnostic at the file and the stale field that names `npm run measure -- generate`; other
 malformed values fail as any admitted document does. Changing a class's `timeMargin` changes only the series document

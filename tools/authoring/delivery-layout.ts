@@ -43,6 +43,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `schedules/${id}.json`;
     case 'racing-line':
       return `racing-lines/${id}.json`;
+    case 'engine-loudness':
+      return `engine-loudness/${id}.json`;
   }
 }
 

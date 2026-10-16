@@ -114,7 +114,7 @@
   update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
   while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
 
-Next PR: [EX-5](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [EX-5b](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -131,10 +131,10 @@ options not taken. At the end ENGINE keeps seven DEV values (`closedExcitation`,
 silent, the diagram does not fit at one common scale, the data fails admission, or a driving scenario fails for a cause
 outside the stage.
 
-- EX-5: each vehicle's engine loudness is measured once by a tool outside the build (ITU-R BS.1770 integrated
-  loudness of the signal before the soft clip on one fixed drive) and saved with the identities of what it measured;
-  the build refuses a stale measurement, and a gain `10^((engineDriveLufs − measured)/20)` before the soft clip brings
-  every vehicle to MIX's `engineDriveLufs`. DEV shows when a changed ENGINE value has left the measurements stale.
+- EX-5b: a gain `10^((engineDriveLufs − lufs)/20)` before the soft clip brings every vehicle's engine to MIX's new
+  `engineDriveLufs` (default: the value whose mean gain over the nine vehicles is 0 dB), rivals included; DEV shows when
+  a changed ENGINE value has left the measured loudness stale. EX-5 was split in two: EX-5a made each vehicle's engine
+  loudness a measured product ([Audio](audio.md#engine-loudness)), delivered but not yet used.
 - EX-6: SELECT VEHICLE's ENGINE page draws the exhaust at one length scale and one cross-section scale for every
   vehicle, with each primary's length and diameter, the valve's size and duration and scale marks, and without the
   travelling pulses; the form counts a log manifold as one collector (CORVETTE C4 `8-2-1-2-4`). Until then the diagram

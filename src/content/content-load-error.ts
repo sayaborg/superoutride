@@ -11,6 +11,7 @@ export type ContentKind =
   | 'reference-times'
   | 'schedule'
   | 'racing-line'
+  | 'engine-loudness'
   | 'vehicle'
   | 'vehicle-listing'
   | 'driving'

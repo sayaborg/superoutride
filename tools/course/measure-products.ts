@@ -69,7 +69,11 @@ async function measure(verb: 'generate' | 'regenerate' | 'compare') {
     JSON.stringify({
       ok: true,
       seconds,
-      measured: plan.jobs.map(({ vehicleId, courses: due }) => ({ vehicle: vehicleId, courses: due })),
+      measured: plan.jobs.map(({ vehicleId, courses: due, loudness }) => ({
+        vehicle: vehicleId,
+        courses: due,
+        loudness,
+      })),
       removed: plan.extra,
       report,
     }),

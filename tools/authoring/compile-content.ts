@@ -17,6 +17,9 @@ import { compileSurfaceMaterials } from '../../src/content/surface-material-cata
 import { resolveSurfaceSoundRecords } from '../../src/audio/surface-sounds.js';
 import { compileSurfaceSounds } from '../../src/content/surface-sound-catalog.js';
 import { compileAudioSettings } from '../../src/content/audio-catalog.js';
+import type { CompiledAudioSettings } from '../../src/audio/audio-document.js';
+import { ENGINE_LOUDNESS_ID, engineLoudnessSources, readEngineLoudness } from '../../src/content/engine-loudness.js';
+import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256 } from './engine-loudness.js';
 import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
@@ -66,6 +69,8 @@ export interface CompiledContent {
   readonly materials: SurfaceMaterialCatalog;
   readonly freePlay: FreePlayRules;
   readonly definitions: VehicleDefinitions;
+  /** The game-wide sound settings, which the engine loudness is measured with. */
+  readonly audio: CompiledAudioSettings;
   readonly courses: readonly CompiledCourse[];
   /** Each series course with its admitted series settings. */
   readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: SeriesClass }[];
@@ -232,8 +237,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const audioFiles = await read('audio');
   const audio = await stage('audio', inputs(audioFiles), async () => {
     const documents = await sources('audio', audioFiles);
-    requireLoaded(compileAudioSettings(documents));
-    return delivered('audio', documents);
+    return { settings: requireLoaded(compileAudioSettings(documents)), files: delivered('audio', documents) };
   });
 
   // Recordings are delivered as their authored bytes once admitted; music documents are admitted against them, with
@@ -383,7 +387,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...materials.value.files,
     ...surfaceSounds.value,
     ...wallSounds.value.files,
-    ...audio.value,
+    ...audio.value.files,
     ...recordings.value.files,
     ...freePlay.value.files,
     ...sounds.value.files,
@@ -394,22 +398,26 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   ];
   if (measured) {
     const timeFiles = await read('reference-times', ''),
-      lineFiles = await read('racing-lines', '');
+      lineFiles = await read('racing-lines', ''),
+      loudnessFiles = await read('engine-loudness', '');
     const products = await stage(
       'measured',
       [
         definitions.key,
         materials.key,
+        audio.key,
         series.key,
         ...courses.map((course) => course.key),
         ...inputs(timeFiles),
         ...inputs(lineFiles),
+        ...inputs(loudnessFiles),
       ],
       () =>
         measuredFiles(
           store,
           definitions.value.definitions,
           materials.value.catalog,
+          audio.value.settings,
           series.value.seriesClasses,
           compiledCourses,
         ),
@@ -422,6 +430,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     materials: materials.value.catalog,
     freePlay: freePlay.value.rules,
     definitions: definitions.value.definitions,
+    audio: audio.value.settings,
     courses: Object.freeze(compiledCourses),
     seriesClasses: series.value.seriesClasses,
   });
@@ -445,13 +454,14 @@ function namedImages(bytes: Uint8Array): string[] {
 
 /**
  * The measured products: each course's racing lines and, for each course a class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
- * each delivered once. Every saved file must be current and owned. A run applies its class's margin to the
- * delivered times.
+ * each delivered once, and the engine loudness, delivered as saved. Every saved file must be current and owned. A run
+ * applies its class's margin to the delivered times.
  */
 async function measuredFiles(
   store: ContentStore,
   definitions: VehicleDefinitions,
   materials: SurfaceMaterialCatalog,
+  audio: CompiledAudioSettings,
   seriesClasses: CompiledContent['seriesClasses'],
   compiledCourses: readonly CompiledCourse[],
 ): Promise<DeliveredFile[]> {
@@ -478,16 +488,31 @@ async function measuredFiles(
   const owned = new Set([
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
     ...compiledCourses.map((course) => racingLinePath(course.id)),
+    ENGINE_LOUDNESS_PATH,
   ]);
   const saved = new Set<string>();
-  for (const directory of ['reference-times', 'racing-lines'])
+  for (const directory of ['reference-times', 'racing-lines', 'engine-loudness'])
     for (const name of await store.list(directory)) saved.add(`${directory}/${name}`);
   for (const path of saved)
-    if (!owned.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'No course owns it')));
+    if (!owned.has(path))
+      requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'Nothing measured owns it')));
   const savedJson = async (path: string) => {
     if (!saved.has(path)) requireLoaded(admit(`content/${path}`, () => staleMeasurement('', 'It is absent')));
     return json(path);
   };
+  const loudness = await savedJson(ENGINE_LOUDNESS_PATH);
+  requireLoaded(
+    readEngineLoudness(
+      loudness,
+      engineLoudnessSources(definitions.vehicles, audio.sha256),
+      `content/${ENGINE_LOUDNESS_PATH}`,
+      {
+        procedureSha256: await engineLoudnessProcedureSha256(),
+        mismatch: staleMeasurement,
+      },
+    ),
+  );
+  add('engine-loudness', ENGINE_LOUDNESS_ID, encodeContentJson(loudness));
   const lineSha256 = await procedureSha256(lineProcedure);
   const catalog = definitions.vehicles.map((entry) => entry.compiledVehicle.id);
   for (const course of compiledCourses) {

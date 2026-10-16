@@ -167,12 +167,13 @@ npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 
 
 `generate` solves again each course's stale or absent racing lines first (a line is also stale when a vehicle that times
 it changed), then measures again only the reference
-times whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line makes its
+times and the engine loudness whose identities are stale or that are absent (reference runs drive the racing lines, so a stale line makes its
 course's reference times stale), writes them, removes saved products no course owns, and prints what it measured with each changed
 time (`before`, `after` and `difference` by gate and lap). `regenerate` measures and writes everything. `compare`
 measures everything, writes nothing, and fails listing the files that would change; CI does not run it. `trace` writes
 one reference run of a course a class runs (route index and laps optional; laps default to the first class running
-it) to a disposable file. Vehicles are measured in parallel on up to four workers. The measurement itself
+it) to a disposable file. Vehicles are measured in parallel on up to four workers, each vehicle's reference runs and
+engine loudness on one. The measurement itself
 (which products are stale, the jobs, the saved files) is one implementation in
 [`tools/authoring/measure.ts`](../tools/authoring/measure.ts), free of Node and the browser; the tool and the
 workbench differ only in how they start workers and write files.
@@ -242,7 +243,7 @@ its document there. Containers open on demand, a long one 200 entries at a time,
 without expanding.
 
 When only measured products are stale, the header says so and the workbench also compiles the content without them,
-so editing and previews go on. The Measure module lists the stale course entries and racing lines and measures them with
+so editing and previews go on. The Measure module lists the stale course entries, racing lines and engine loudness and measures them with
 the measurement tool's implementation, on up to four workers off the page's thread, showing which vehicle and phase it
 is on; it can be cancelled. The results are preview measurements for this build only: they are not changes, not a
 history step and not in the archive, and they are used only while their vehicle, course and procedure identities match
@@ -515,6 +516,7 @@ format/version. The delivery layout (`layoutDelivery` in
 | `reference-times` | `<course>/<vehicle>`                                                                            | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
 | `schedule`        | `<course>/<vehicle>`                                                                            | `schedules/<course>/<vehicle>.json`       | RACE pace schedule (`superoutride.pace-schedule` v1)                                                                            |
 | `racing-line`     | Course ID                                                                                       | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v2)                                                                       |
+| `engine-loudness` | `default`                                                                                       | `engine-loudness/<id>.json`               | Each vehicle's engine loudness, as saved (`superoutride.engine-loudness` v1, [Audio](audio.md#engine-loudness))                 |
 
 The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and

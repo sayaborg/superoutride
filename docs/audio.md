@@ -184,6 +184,37 @@ and the tire groups UNIFIED
 (`RollingSettings`); the values are the implementer's, not values chosen by listening, and
 [Calibration](calibration.md) lists them.
 
+## Engine loudness
+
+Vehicles' exhausts differ in level, as physics makes them. Each vehicle's engine loudness is measured once, outside the
+build, and saved with the identities of what it was measured from; [NEXT](NEXT.md) schedules its use (EX-5b). The
+measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs the game's exhaust kernel at 48 kHz with the
+audio document's ENGINE and TIMING settings on one drive, the same for every vehicle at its own idle and redline:
+
+| Seconds | Engine speed        | Opening |
+| ------- | ------------------- | ------- |
+| 1       | idle                | 0       |
+| 3       | idle to redline     | 1       |
+| 0.3     | redline             | 1       |
+| 1.7     | redline to 2500 rpm | 0       |
+| 1.5     | 3000 to 3500 rpm    | 0.3     |
+| 0.5     | 3500 rpm to idle    | 0       |
+
+Engine speed changes linearly within a segment, and fuel is never cut. The kernel's output, the exhaust's pressure
+before the soft clip, is metered by ITU-R BS.1770-4 integrated loudness: K-weighting, the mean square of 400 ms blocks
+every 100 ms, the absolute gate at −70 LUFS and the relative gate 10 LU below the gated mean. The procedure's record
+(`ENGINE_LOUDNESS_PROCEDURE`) holds the drive and the rate; the SHA-256 of its JSON is its identity, and a change to its
+results raises its version.
+
+`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 1 document, with exactly
+`format`, `version`, `procedureSha256`, `audioSha256` (the audio document's SHA-256) and `vehicles`: every catalog
+vehicle once, in catalog order, with `vehicleId`, `vehicleSha256` (its mechanics document's SHA-256), `soundSha256`
+(its engine sound document's) and `lufs`. The measurement tool writes it ([Development](development.md#measured-products)),
+measuring every vehicle again when any identity differs; a build admits it as a
+[measured product](content-and-gameplay.md#measured-products), refusing it as stale when any identity differs, and
+delivers it as saved (kind `engine-loudness`, ID `default`). [`readEngineLoudness`](../src/content/engine-loudness.ts)
+is its one reader.
+
 ## Audio document
 
 The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`

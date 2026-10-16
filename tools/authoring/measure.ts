@@ -20,6 +20,13 @@ import {
 } from '../course/measured-products.js';
 import type { CompiledContent } from './compile-content.js';
 import type { ContentStore } from './content-store.js';
+import {
+  ENGINE_LOUDNESS_FORMAT,
+  engineLoudnessSources,
+  readEngineLoudness,
+  type EngineLoudnessDocument,
+} from '../../src/content/engine-loudness.js';
+import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256, measureEngineLoudness } from './engine-loudness.js';
 
 /**
  * The measured products' one implementation: which saved products are stale, measuring them, and the files to save.
@@ -27,16 +34,22 @@ import type { ContentStore } from './content-store.js';
  * workers and write its files through their own stores.
  */
 
-/** One vehicle's measurements: its reference runs on each named course, driving that course's racing lines. */
+/**
+ * One vehicle's measurements: its reference runs on each named course, driving that course's racing lines, and its
+ * engine loudness when `loudness` is set.
+ */
 export interface MeasureJob {
   readonly vehicleId: string;
   readonly courses: readonly string[];
   readonly racingLines: Readonly<Record<string, RacingLineDocument>>;
+  readonly loudness: boolean;
 }
 
 export interface MeasureResult {
   readonly vehicleId: string;
   readonly runs: readonly { readonly course: string; readonly runs: ReturnType<typeof runCourseReference>[] }[];
+  /** The engine loudness (LUFS) when the job measured it, else null. */
+  readonly lufs: number | null;
 }
 
 /** A saved file to write: its path under `content/`, its text, and the value saved there before (null if none). */
@@ -51,7 +64,7 @@ export interface MeasurementPlan {
   readonly jobs: readonly MeasureJob[];
   /** The courses whose racing lines are solved: those stale (every course when asked). */
   readonly racingLines: readonly string[];
-  /** Saved measured products no course owns. */
+  /** Saved measured products nothing measured owns. */
   readonly extra: readonly string[];
   /** The files the results save, with what changed by gate and lap. */
   assemble(results: ReadonlyMap<string, MeasureResult>): { writes: MeasuredWrite[]; report: unknown[] };
@@ -67,7 +80,7 @@ export function runMeasureJob(
   const vehicle = createRunVehicle(entry, content.definitions.driving);
   const catalog = { vehicles: content.definitions.vehicles, freePlay: content.freePlay };
   const runs = job.courses.map((id) => {
-    progress(id);
+    progress(`reference runs on ${id}`);
     const course = content.courses.find((candidate) => candidate.id === id)!;
     const lines = requireLoaded(readRacingLines(course, job.racingLines[id]));
     return {
@@ -77,12 +90,14 @@ export function runMeasureJob(
       ),
     };
   });
-  return { vehicleId: job.vehicleId, runs };
+  if (job.loudness) progress('engine loudness');
+  const lufs = job.loudness ? measureEngineLoudness(entry, content.audio.exhaust, content.audio.control) : null;
+  return { vehicleId: job.vehicleId, runs, lufs };
 }
 
 /**
- * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) racing lines
- * and course entries, or everything when `everything` is set.
+ * Plan a measurement of `content` against the measured products saved in `store`: the stale (or absent) racing lines,
+ * course entries and engine loudness entries, or everything when `everything` is set.
  */
 export async function planMeasurement(
   store: ContentStore,
@@ -92,6 +107,7 @@ export async function planMeasurement(
   const savedNames = new Set([
     ...(await store.list('reference-times')).map((name) => `reference-times/${name}`),
     ...(await store.list('racing-lines')).map((name) => `racing-lines/${name}`),
+    ...(await store.list('engine-loudness')).map((name) => `engine-loudness/${name}`),
   ]);
   // The saved JSON at a path, or null when it is absent or not JSON.
   const savedJson = async (path: string): Promise<unknown> => {
@@ -156,6 +172,15 @@ export async function planMeasurement(
         if (vehicles.get(entry.vehicleId)?.sha256 === entry.vehicleSha256) entries.set(entry.vehicleId, entry);
     fresh.set(course.id, entries);
   }
+  // Each catalog vehicle's saved engine loudness while its identities are current; any other change measures all.
+  const loudnessSources = engineLoudnessSources(content.definitions.vehicles, content.audio.sha256);
+  const loudnessSha256 = await engineLoudnessProcedureSha256();
+  const savedLoudness = await savedJson(ENGINE_LOUDNESS_PATH);
+  const freshLoudness = new Map<string, number>();
+  if (!everything) {
+    const current = readEngineLoudness(savedLoudness, loudnessSources, '', { procedureSha256: loudnessSha256 });
+    if (current.ok) for (const [vehicleId, lufs] of current.value) freshLoudness.set(vehicleId, lufs);
+  }
   // One job per vehicle with anything to measure.
   const jobs: MeasureJob[] = [];
   for (const vehicleId of vehicles.keys()) {
@@ -165,16 +190,19 @@ export async function planMeasurement(
           candidates.includes(vehicleId) && (everything || !fresh.get(course.id)!.has(vehicleId)),
       )
       .map(({ course }) => course.id);
-    if (due.length)
+    const loudness = !freshLoudness.has(vehicleId);
+    if (due.length || loudness)
       jobs.push({
         vehicleId,
         courses: due,
         racingLines: Object.fromEntries(due.map((id) => [id, lineDocuments.get(id)!])),
+        loudness,
       });
   }
   const owned = new Set([
     ...courses.map(({ course }) => referenceTimesPath(course.id)),
     ...content.courses.map((course) => racingLinePath(course.id)),
+    ENGINE_LOUDNESS_PATH,
   ]);
   const extra = [...savedNames].filter((path) => !owned.has(path)).sort();
 
@@ -212,6 +240,21 @@ export async function planMeasurement(
         vehicles: vehiclesOut,
       };
       writes.push({ path: referenceTimesPath(course.id), text: formatSavedJson(file), previous: saved });
+    }
+    // The engine loudness, every catalog vehicle in catalog order, written when any was measured.
+    const measuredLoudness = [...results.values()].filter((result) => result.lufs !== null);
+    if (measuredLoudness.length) {
+      const loudness: EngineLoudnessDocument = {
+        ...ENGINE_LOUDNESS_FORMAT,
+        procedureSha256: loudnessSha256,
+        audioSha256: loudnessSources.audioSha256,
+        vehicles: loudnessSources.vehicles.map((sources) => ({
+          ...sources,
+          lufs: results.get(sources.vehicleId)?.lufs ?? freshLoudness.get(sources.vehicleId)!,
+        })),
+      };
+      for (const { vehicleId, lufs } of measuredLoudness) report.push({ engineLoudness: vehicleId, lufs });
+      writes.push({ path: ENGINE_LOUDNESS_PATH, text: formatSavedJson(loudness), previous: savedLoudness });
     }
     return { writes, report };
   };

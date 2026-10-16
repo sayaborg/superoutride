@@ -34,7 +34,7 @@ scope.addEventListener('message', async ({ data }) => {
     const plan = await planMeasurement(store, content, data.everything);
     scope.postMessage({
       type: 'plan',
-      jobs: plan.jobs.map((job) => ({ vehicle: job.vehicleId, courses: job.courses })),
+      jobs: plan.jobs.map((job) => ({ vehicle: job.vehicleId, courses: job.courses, loudness: job.loudness })),
       racingLines: plan.racingLines,
       extra: plan.extra,
     });
