@@ -848,7 +848,7 @@ DEV sound settings come in groups, each with its own reset to the delivered docu
 or for SURFACES, WALLS and ENGINE SOUNDS the surface-sound, wall-sound and engine-sound documents'); a page reload restores those values and new
 runs preserve them:
 
-- **ENGINE** (`engine-sound-settings`): fifteen minus/plus controls for the exhaust settings; buttons stop at limits.
+- **ENGINE** (`engine-sound-settings`): twelve minus/plus controls for the exhaust settings; buttons stop at limits.
 - **MIX** (`mix-sound-settings`): the master compressor.
 - **TIMING** (`timing-sound-settings`): the control time constants.
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
@@ -858,7 +858,8 @@ runs preserve them:
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 - **SURFACES** (`surface-sound-settings`): a chosen material's surface sound, its rolling palette and friction input.
 - **WALLS** (`wall-sound-settings`): a chosen wall sound's friction input.
-- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's primary and pipe lengths and diameters.
+- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's valve diameter and open share, and its primary and
+  pipe lengths and diameters.
 
 MIX, TIMING, RIVAL, UNIFIED, SCRAPE, IMPACT and ROLLING use sliders with the acoustic ranges. SURFACES, WALLS and
 ENGINE SOUNDS use number fields: each value is the record's one value check's ([Tire audio](tire-audio.md#surface-sounds),

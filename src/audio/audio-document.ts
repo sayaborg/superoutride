@@ -33,7 +33,7 @@ export interface CompiledAudioSettings extends AudioSettings {
 }
 
 export const AUDIO_DOCUMENT_FORMAT = 'superoutride.audio';
-export const AUDIO_DOCUMENT_VERSION = 3;
+export const AUDIO_DOCUMENT_VERSION = 4;
 
 /**
  * Each record's resolver: the one value check, applied where settings are admitted (this document and the DEV

@@ -35,13 +35,6 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     // the collector junction; the pop rate is proportional to RPM.
     popProbability: 0.12,
     popStrength: 0.5,
-    // No derivation; chosen by listening. The cylinder-end boundary window as a cycle fraction, NOT the valve's
-    // open duration (a 240-degree window removed the pipe resonance, so 11-7f restored this value).
-    cylinderWindowCycles: 0.23,
-    // No derivation; chosen by listening. Nearly rigid closed termination; magnitude < 1 absorbs energy.
-    cylinderClosedReflection: 0.94,
-    // No derivation; chosen by listening. Pressure-release-like open endpoint, not valve-flow physics.
-    cylinderOpenReflection: -0.3,
     dcHz: 18, // No derivation; chosen by listening. Output DC-removal corner.
     clipCeiling: 0.65, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
   }),

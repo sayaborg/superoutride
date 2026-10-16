@@ -79,9 +79,6 @@ export interface ExhaustSettings {
   readonly blipDecaySeconds: number;
   readonly popProbability: number;
   readonly popStrength: number;
-  readonly cylinderWindowCycles: number;
-  readonly cylinderClosedReflection: number;
-  readonly cylinderOpenReflection: number;
   readonly dcHz: number;
   readonly clipCeiling: number;
 }
@@ -104,9 +101,6 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
   popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   popStrength: Object.freeze({ min: 0, max: 1, step: 0.05 }),
-  cylinderWindowCycles: Object.freeze({ min: 0.05, max: 0.6, step: 0.01 }),
-  cylinderClosedReflection: Object.freeze({ min: 0.5, max: 1, step: 0.01 }),
-  cylinderOpenReflection: Object.freeze({ min: -1, max: 0.5, step: 0.05 }),
   dcHz: Object.freeze({ min: 5, max: 60, step: 1 }),
   clipCeiling: Object.freeze({ min: 0.2, max: 1, step: 0.01 }),
 });

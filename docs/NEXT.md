@@ -114,7 +114,7 @@
   update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
   while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
 
-Next PR: [EX-2](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [EX-3](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -131,11 +131,6 @@ options not taken. At the end ENGINE keeps seven DEV values (`closedExcitation`,
 silent, the diagram does not fit at one common scale, the data fails admission, or a driving scenario fails for a cause
 outside the stage.
 
-- EX-2: the valve end's reflection follows the valve's open area against its primary's cross-section,
-  `R(t) = (A_p − A_v(t))/(A_p + A_v(t))` with `A_v(t) = A_valve·16u²(1−u)²` over the valve's `open` share of the cycle
-  from its firing phase; the valve end's return low-pass goes, and so do `cylinderWindowCycles`,
-  `cylinderClosedReflection` and `cylinderOpenReflection` (audio document version up). Until EX-2 the engine-sound
-  documents' `valve` is admitted but not read, which saves a second document version.
 - EX-3: three values follow from the vehicle, computed once when the sound is assembled, and leave DEV: the output
   low-pass at the widest outlet's first transverse mode, `1.841·c/(π·D)`, moved before the soft clip; DC removal at half
   the idle firing frequency, computed where the vehicle catalog resolves the sound; the pulse decay a time constant
@@ -153,7 +148,7 @@ outside the stage.
   keeps 40 px/m, so exhausts written to their tailpipes run past the screen.
 
 Known issue, not addressed by this stage: DELTA HF INTEGRALE and GOLF GTI 16V ring metallically. Their cast manifolds'
-short primaries (19–34 cm) ring near 1–1.3 kHz between the closed valve (reflection +1, from EX-2) and the collector:
+short primaries (19–34 cm) ring near 1–1.3 kHz between the closed valve (reflection +1) and the collector:
 30–60 ms after the valve closes the ring stands at −12 dB (DELTA) and −17 dB (GOLF), against −19 to −20 dB on the other
 vehicles. The turbine throat does not cause it (the owner listened); restoring the DEV valve end removes it but changes
 every other vehicle, so it was not taken. What the model lacks is likely the loss of a cast manifold's rough walls and

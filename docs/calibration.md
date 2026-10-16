@@ -209,23 +209,20 @@ implementer's initial value, not a value the owner chose by listening; the defau
 [audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
 supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time and pulse decay a crank angle (at 3000 RPM, 18° lasts 1 ms).
 
-| Key                        | Meaning                                      | Default | Accepted / step    |
-| -------------------------- | -------------------------------------------- | ------- | ------------------ |
-| `closedExcitation`         | Closed-throttle excitation                   | 0.22    | 0.01–1 / 0.01      |
-| `pulseVariation`           | Absolute event-strength variation            | 0.20    | 0–0.40 / 0.01      |
-| `pumpingExcitation`        | Firing strength during fuel cut              | 0.06    | 0.01–0.50 / 0.01   |
-| `pulseRiseMs`              | Full-excitation pulse rise time              | 0.2 ms  | 0.05–2 ms / 0.01   |
-| `pulseDecayDegrees`        | Pulse decay, crank angle                     | 90°     | 2–360° / 1°        |
-| `outputCutoffHz`           | Final listening-filter cutoff                | 7300 Hz | 100–12000 Hz / 100 |
-| `blipOpening`              | Downshift blip opening peak                  | 0.70    | 0–1 / 0.01         |
-| `blipDecaySeconds`         | Downshift blip decay time                    | 0.08 s  | 0.02–0.30 s / 0.01 |
-| `popProbability`           | Overrun pop probability per firing           | 0.12    | 0–1 / 0.01         |
-| `popStrength`              | Overrun pop pulse strength                   | 0.50    | 0–1 / 0.05         |
-| `cylinderWindowCycles`     | Cylinder-end boundary window, cycle fraction | 0.23    | 0.05–0.6 / 0.01    |
-| `cylinderClosedReflection` | Closed cylinder-end pressure reflection      | 0.94    | 0.5–1 / 0.01       |
-| `cylinderOpenReflection`   | Open cylinder-end pressure reflection        | -0.3    | -1–0.5 / 0.05      |
-| `dcHz`                     | Output DC-removal corner                     | 18 Hz   | 5–60 Hz / 1        |
-| `clipCeiling`              | Soft-clip bound and small-signal gain        | 0.65    | 0.2–1 / 0.01       |
+| Key                 | Meaning                               | Default | Accepted / step    |
+| ------------------- | ------------------------------------- | ------- | ------------------ |
+| `closedExcitation`  | Closed-throttle excitation            | 0.22    | 0.01–1 / 0.01      |
+| `pulseVariation`    | Absolute event-strength variation     | 0.20    | 0–0.40 / 0.01      |
+| `pumpingExcitation` | Firing strength during fuel cut       | 0.06    | 0.01–0.50 / 0.01   |
+| `pulseRiseMs`       | Full-excitation pulse rise time       | 0.2 ms  | 0.05–2 ms / 0.01   |
+| `pulseDecayDegrees` | Pulse decay, crank angle              | 90°     | 2–360° / 1°        |
+| `outputCutoffHz`    | Final listening-filter cutoff         | 7300 Hz | 100–12000 Hz / 100 |
+| `blipOpening`       | Downshift blip opening peak           | 0.70    | 0–1 / 0.01         |
+| `blipDecaySeconds`  | Downshift blip decay time             | 0.08 s  | 0.02–0.30 s / 0.01 |
+| `popProbability`    | Overrun pop probability per firing    | 0.12    | 0–1 / 0.01         |
+| `popStrength`       | Overrun pop pulse strength            | 0.50    | 0–1 / 0.05         |
+| `dcHz`              | Output DC-removal corner              | 18 Hz   | 5–60 Hz / 1        |
+| `clipCeiling`       | Soft-clip bound and small-signal gain | 0.65    | 0.2–1 / 0.01       |
 
 These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
 least value is one step, 0.01, since excitation divides the pulse rise time.
@@ -411,14 +408,15 @@ inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audib
 These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
 change them.
 
-| Value                                   | Derivation                                          | Value    |
-| --------------------------------------- | --------------------------------------------------- | -------- |
-| `ACOUSTICS.waveSpeed`                   | `sqrt(gamma*R*T)` at 573.15 K, rounded              | 480 m/s  |
-| `OUTLET_REFLECTION`                     | Unflanged open-end low-frequency limit              | -1       |
-| Open-end and cylinder-end return cutoff | `c/(2*pi*a)` at the tube's radius `a`               | per tube |
-| Wall loss                               | Kirchhoff `alpha(f)` at the tube's radius, one pole | per tube |
-| Rival gain                              | Inverse distance, unity within `referenceMeters`    | —        |
-| Rival pan                               | Lateral displacement / `max(panMinimumMeters, d)`   | —        |
+| Value                  | Derivation                                          | Value        |
+| ---------------------- | --------------------------------------------------- | ------------ |
+| `ACOUSTICS.waveSpeed`  | `sqrt(gamma*R*T)` at 573.15 K, rounded              | 480 m/s      |
+| `OUTLET_REFLECTION`    | Unflanged open-end low-frequency limit              | -1           |
+| Open-end return cutoff | `c/(2*pi*a)` at the outlet pipe's radius `a`        | per tube     |
+| Valve-end reflection   | `(A_p-A_v)/(A_p+A_v)` over the valve's opening      | per cylinder |
+| Wall loss              | Kirchhoff `alpha(f)` at the tube's radius, one pole | per tube     |
+| Rival gain             | Inverse distance, unity within `referenceMeters`    | —            |
+| Rival pan              | Lateral displacement / `max(panMinimumMeters, d)`   | —            |
 
 ## Mix levels
 

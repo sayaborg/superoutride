@@ -88,7 +88,8 @@ export class ExhaustWaveguide {
   private readonly rise: Float64Array;
   private readonly riseSecond: Float64Array;
   private readonly emission: Float64Array;
-  private readonly wall: Float64Array;
+  // Each cylinder's greatest valve area over its primary's cross-section.
+  private readonly valveRatio: Float64Array;
   // One pop pulse per collector, injected at its junction.
   private readonly popPulse: Float64Array;
   private readonly popRise: Float64Array;
@@ -99,8 +100,6 @@ export class ExhaustWaveguide {
   // Low-passed outgoing wave at each pipe's open end (unused for junction-to-junction pipes), and its coefficient.
   private readonly outlet: Float64Array;
   private readonly outletFollow: Float64Array;
-  // Each primary's cylinder-end return low-pass coefficient.
-  private readonly wallFollow: Float64Array;
   private readonly openNormalization: number;
   private readonly smoothing: number;
   private readonly dcCoefficient: number;
@@ -161,12 +160,12 @@ export class ExhaustWaveguide {
     this.junctions = new Float64Array(groups);
     this.outlet = new Float64Array(pipes.length);
     this.outletFollow = Float64Array.from(pipes, ({ diameter }) => openEndFollow(diameter, rate));
-    this.wallFollow = Float64Array.from(primaries, ({ diameter }) => openEndFollow(diameter, rate));
+    const { valve } = sound.exhaust;
+    this.valveRatio = Float64Array.from(primaries, ({ diameter }) => (valve.diameter / diameter) ** 2);
     this.pulse = new Float64Array(n);
     this.rise = new Float64Array(n);
     this.riseSecond = new Float64Array(n);
     this.emission = new Float64Array(n);
-    this.wall = new Float64Array(n);
     this.popPulse = new Float64Array(groups);
     this.popRise = new Float64Array(groups);
     this.popRiseSecond = new Float64Array(groups);
@@ -326,18 +325,17 @@ export class ExhaustWaveguide {
       this.upstream[j]!.write(OUTLET_REFLECTION * this.outlet[j]!);
       exhaust += out + this.outlet[j]!;
     }
+    const open = this.sound.exhaust.valve.open;
     for (let i = 0; i < this.backward.length; i++) {
-      const age = (this.phase - this.sound.firingPhases[i]! + 1) % 1;
-      const position = age / this.settings.cylinderWindowCycles;
-      const aperture = position < 1 ? position * (1 - position) : 0;
+      // The valve opens at the firing phase and is open for `open` of the cycle.
+      const position = ((this.phase - this.sound.firingPhases[i]! + 1) % 1) / open;
+      const lift = position < 1 ? position * (1 - position) : 0;
       // Unit-height quartic aperture: zero value and slope at both ends, without a trig call.
-      const opening = 16 * aperture * aperture;
-      this.wall[i]! += this.wallFollow[i]! * (this.backward[i]!.read() - this.wall[i]!);
-      const reflection =
-        this.settings.cylinderClosedReflection +
-        (this.settings.cylinderOpenReflection - this.settings.cylinderClosedReflection) * opening;
+      const area = this.valveRatio[i]! * 16 * lift * lift;
+      // The valve end reflects by the open valve's area against the primary's: closed, +1; open, the wave passes on.
+      const reflection = (1 - area) / (1 + area);
       const incoming = this.forward[i]!.read();
-      this.forward[i]!.write(this.emission[i]! + reflection * this.wall[i]!);
+      this.forward[i]!.write(this.emission[i]! + reflection * this.backward[i]!.read());
       this.backward[i]!.write(this.junctions[this.banks[i]!]! - incoming);
     }
     const raw = exhaust / this.openNormalization;

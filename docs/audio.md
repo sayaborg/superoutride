@@ -56,7 +56,7 @@ adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exact
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
 same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
-changes a sound's primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
+changes a sound's valve and its primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
 competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
 ## Engine synthesis
@@ -113,13 +113,15 @@ scatters by its ports' cross-sections whatever their direction: `p = 2*sum(A_k*i
 `outgoing_k = p-incoming_k`, where the ports are the junction's primaries and each attached pipe end and `A_k` is the
 port's tube's cross-section; with equal tubes this is equal-admittance scattering.
 
-After a cylinder's exhaust opens, its cylinder-end reflection varies from `cylinderClosedReflection` to
-`cylinderOpenReflection` through the aperture `16*u²*(1-u)²` over `cylinderWindowCycles` of the firing cycle, then
-returns to its closed value. These three are DEV settings; the window is an acoustic boundary, not the valve's
-open duration: a window spanning the valve event removed the pipe resonance. The aperture has continuous value and slope and a window
-mean of 8/15. Each open end reflects with `OUTLET_REFLECTION` (-1) through a one-pole low-pass at its pipe's
-`c/(2*pi*radius)`, and each cylinder end's return passes the same low-pass at its primary's radius. The listening
-pickup sums each open end's outgoing and low-passed outgoing waves, divided by `sqrt(openEndCount)`.
+Each primary's valve end reflects by the valve's open area against the primary's cross-section. The valve opens at
+its cylinder's firing phase and stays open for the sound's `valve.open` share of the cycle; at position `u` in that
+interval its open area is `A_v = A_valve*16*u²*(1-u)²` (`A_valve = pi*valve.diameter²/4`), the lift curve approximated
+with continuous value and slope at both ends, and zero while closed. The pressure reflection is
+`R = (A_p-A_v)/(A_p+A_v)`, with `A_p` the primary's cross-section: a closed valve reflects +1, and through the open
+valve a wave passes into the port's area beyond and does not return. The cylinder's pulse enters the primary at the
+valve end. Each open end reflects with `OUTLET_REFLECTION` (-1) through a one-pole low-pass at its pipe's
+`c/(2*pi*radius)`. The listening pickup sums each open end's outgoing and low-passed outgoing waves, divided by
+`sqrt(openEndCount)`.
 
 Pipe cross-sections enter through each tube's diameter (scattering, wall loss and open-end cutoff); silencer,
 catalyst and collector-box bodies are written as straight pipes of their inlet diameter, and a run of equal pipes as
@@ -168,7 +170,7 @@ and the tire groups UNIFIED
 ## Audio document
 
 The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 3 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+version 4 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
 `unified`, `scrape`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
 number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission

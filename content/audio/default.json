@@ -1,6 +1,6 @@
 {
   "format": "superoutride.audio",
-  "version": 3,
+  "version": 4,
   "exhaust": {
     "closedExcitation": 0.22,
     "pulseRiseMs": 0.2,
@@ -12,9 +12,6 @@
     "blipDecaySeconds": 0.08,
     "popProbability": 0.12,
     "popStrength": 0.5,
-    "cylinderWindowCycles": 0.23,
-    "cylinderClosedReflection": 0.94,
-    "cylinderOpenReflection": -0.3,
     "dcHz": 18,
     "clipCeiling": 0.65
   },

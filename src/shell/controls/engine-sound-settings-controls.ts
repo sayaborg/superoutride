@@ -65,24 +65,6 @@ const CONTROLS = [
     'The strength of the pop pulse injected at the collector. No unburnt-fuel or temperature state is kept.',
   ],
   [
-    'cylinderWindowCycles',
-    'Cylinder opening width',
-    'cycles',
-    'The width of the window after the exhaust opens in which the cylinder-side reflection changes, as a share of the firing period. Not the valve-open duration. An implementer default, not chosen by the owner by ear.',
-  ],
-  [
-    'cylinderClosedReflection',
-    'Cylinder reflection (closed)',
-    '',
-    'The cylinder-side pressure reflection while closed. Below 1 absorbs energy. An implementer default, not chosen by the owner by ear.',
-  ],
-  [
-    'cylinderOpenReflection',
-    'Cylinder reflection (open)',
-    '',
-    'The cylinder-side pressure reflection while open. Not valve-flow physics. An implementer default, not chosen by the owner by ear.',
-  ],
-  [
     'dcHz',
     'Output DC removal',
     'Hz',
