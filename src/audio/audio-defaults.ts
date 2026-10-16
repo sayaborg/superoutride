@@ -27,10 +27,6 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     // physical shift is instantaneous.
     blipOpening: 0.7,
     blipDecaySeconds: 0.08,
-    // No derivation; chosen by listening. Per-firing overrun pop probability and the pop pulse strength at
-    // the collector junction; the pop rate is proportional to RPM.
-    popProbability: 0.12,
-    popStrength: 0.5,
     clipCeiling: 0.65, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
   }),
   unified: Object.freeze<UnifiedSettings>({

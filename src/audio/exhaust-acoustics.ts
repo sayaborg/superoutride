@@ -102,8 +102,6 @@ export interface ExhaustSettings {
   readonly pulseRiseMs: number;
   readonly blipOpening: number;
   readonly blipDecaySeconds: number;
-  readonly popProbability: number;
-  readonly popStrength: number;
   readonly clipCeiling: number;
 }
 
@@ -121,8 +119,6 @@ export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, Sett
   pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
   blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
   blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
-  popProbability: Object.freeze({ min: 0, max: 1, step: 0.01 }),
-  popStrength: Object.freeze({ min: 0, max: 1, step: 0.05 }),
   clipCeiling: Object.freeze({ min: 0.2, max: 1, step: 0.01 }),
 });
 

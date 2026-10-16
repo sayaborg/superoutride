@@ -114,7 +114,7 @@
   update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
   while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
 
-Next PR: [EX-4](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [EX-5](#stage-ex--exhaust-dimensions), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -131,8 +131,6 @@ options not taken. At the end ENGINE keeps seven DEV values (`closedExcitation`,
 silent, the diagram does not fit at one common scale, the data fails admission, or a driving scenario fails for a cause
 outside the stage.
 
-- EX-4: overrun pops are deleted (`popProbability`, `popStrength`, their pulse states and the kernel's `overrun`
-  input); a deletion-only PR.
 - EX-5: each vehicle's engine loudness is measured once by a tool outside the build (ITU-R BS.1770 integrated
   loudness of the signal before the soft clip on one fixed drive) and saved with the identities of what it measured;
   the build refuses a stale measurement, and a gain `10^((engineDriveLufs − measured)/20)` before the soft clip brings

@@ -90,13 +90,6 @@ export class ExhaustWaveguide {
   private readonly emission: Float64Array;
   // Each cylinder's greatest valve area over its primary's cross-section.
   private readonly valveRatio: Float64Array;
-  // One pop pulse per collector, injected at its junction.
-  private readonly popPulse: Float64Array;
-  private readonly popRise: Float64Array;
-  private readonly popRiseSecond: Float64Array;
-  private readonly popEmission: Float64Array;
-  // A pop's weight at its junction: one port's share, as an equal-admittance port.
-  private readonly popShare: Float64Array;
   // Low-passed outgoing wave at each pipe's open end (unused for junction-to-junction pipes), and its coefficient.
   private readonly outlet: Float64Array;
   private readonly outletFollow: Float64Array;
@@ -121,8 +114,6 @@ export class ExhaustWaveguide {
   private readonly decaySteps: Float64Array;
   private readonly firstCouplings: Float64Array;
   private readonly secondCouplings: Float64Array;
-  // A pop's decay group: that of the cylinder that fired it.
-  private readonly popGroup: Int32Array;
   // Per-sample rise weights shared by every pulse state.
   private riseRate = 0;
   private stageStep = 0;
@@ -171,18 +162,6 @@ export class ExhaustWaveguide {
     this.rise = new Float64Array(n);
     this.riseSecond = new Float64Array(n);
     this.emission = new Float64Array(n);
-    this.popPulse = new Float64Array(groups);
-    this.popRise = new Float64Array(groups);
-    this.popRiseSecond = new Float64Array(groups);
-    this.popEmission = new Float64Array(groups);
-    const ports = new Float64Array(groups);
-    for (const { to } of primaries) ports[to]!++;
-    for (const { from, to } of pipes) {
-      ports[from]!++;
-      if (to !== null) ports[to]!++;
-    }
-    this.popShare = Float64Array.from(ports, (count) => 1 / count);
-    this.popGroup = new Int32Array(groups);
     // Blowdown lasts an absolute time, whatever the RPM: each decay rate is constant.
     const rates = sound.pulseDecaySeconds.map((seconds) => 1 / (seconds * rate));
     const distinct = [...new Set(rates)];
@@ -256,7 +235,7 @@ export class ExhaustWaveguide {
    * One acoustic step at the supplied internal rate, without allocation: the exhaust's pressure at the pickup, DC
    * removed and kept below the widest outlet's first transverse mode.
    */
-  sample(targetRpm: number, targetLoad: number, fuelCut: boolean, overrun: boolean): number {
+  sample(targetRpm: number, targetLoad: number, fuelCut: boolean): number {
     this.rpm += this.smoothing * (targetRpm - this.rpm);
     this.load += this.smoothing * (targetLoad - this.load);
     const step = this.rpm / (60 * this.sound.cycleRevolutions * this.rate);
@@ -281,8 +260,6 @@ export class ExhaustWaveguide {
       this.secondCouplings[group] = this.weights[2]!;
     }
     this.sums.fill(0);
-    for (let bank = 0; bank < this.popPulse.length; bank++)
-      this.advancePulse(this.popPulse, this.popRise, this.popRiseSecond, this.popEmission, bank, this.popGroup[bank]!);
     for (let i = 0; i < this.pulse.length; i++) {
       const offset = this.sound.firingPhases[i]!;
       const crossed =
@@ -298,27 +275,9 @@ export class ExhaustWaveguide {
         // Resolve the event inside this sample; preserve the continuous rise states at the reset.
         const elapsed = (this.phase >= offset ? this.phase - offset : this.phase - offset + 1) / step;
         this.firePulse(this.pulse, this.rise, this.riseSecond, this.emission, i, group, strength, elapsed);
-        // During overrun a separate draw decides a pop; the combustion pulse above still sounds.
-        if (overrun && (this.draw() + 1) / 2 < this.settings.popProbability) {
-          const bank = this.banks[i]!;
-          this.popGroup[bank] = group;
-          this.firePulse(
-            this.popPulse,
-            this.popRise,
-            this.popRiseSecond,
-            this.popEmission,
-            bank,
-            group,
-            this.settings.popStrength,
-            elapsed,
-          );
-        }
       }
       this.sums[this.banks[i]!]! += this.primaryShare[i]! * this.forward[i]!.read();
     }
-    // Pops enter each collector junction as an additional incoming pressure on one port's share.
-    for (let bank = 0; bank < this.popEmission.length; bank++)
-      this.sums[bank]! += this.popShare[bank]! * this.popEmission[bank]!;
     // Read every pipe end before any write: a delay's read and write share one position per sample.
     const arriving = this.arriving;
     const returning = this.returning;

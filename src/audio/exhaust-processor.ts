@@ -67,15 +67,11 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       this.meter.end(started, output.length);
       return true;
     }
-    const opening = parameters.load![0]!;
     const rpm = parameters.rpm![0]!,
-      load = Math.max(opening, parameters.blip![0]!);
+      load = Math.max(parameters.load![0]!, parameters.blip![0]!);
     const fuelCut = parameters.fuelCut![0]! >= 0.5;
-    // Overrun reads the observed opening before the blip, so a blip suppresses pops.
-    const overrun = opening === 0 && !fuelCut;
     // The exhaust's pressure, then the listening stage's soft clip.
-    for (let i = 0; i < output.length; i++)
-      output[i] = softClip(this.engine.sample(rpm, load, fuelCut, overrun), this.ceiling);
+    for (let i = 0; i < output.length; i++) output[i] = softClip(this.engine.sample(rpm, load, fuelCut), this.ceiling);
     this.meter.end(started, output.length);
     return true;
   }

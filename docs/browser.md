@@ -848,7 +848,7 @@ DEV sound settings come in groups, each with its own reset to the delivered docu
 or for SURFACES, WALLS and ENGINE SOUNDS the surface-sound, wall-sound and engine-sound documents'); a page reload restores those values and new
 runs preserve them:
 
-- **ENGINE** (`engine-sound-settings`): nine minus/plus controls for the exhaust settings; buttons stop at limits.
+- **ENGINE** (`engine-sound-settings`): seven minus/plus controls for the exhaust settings; buttons stop at limits.
 - **MIX** (`mix-sound-settings`): the master compressor.
 - **TIMING** (`timing-sound-settings`): the control time constants.
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.

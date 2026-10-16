@@ -41,18 +41,6 @@ const CONTROLS = [
     'The time constant over which the throttle peak decays exponentially. Larger blips longer.',
   ],
   [
-    'popProbability',
-    'Afterfire probability',
-    '',
-    'The chance of a pop at each firing while off throttle (not in fuel cut). Drawn per firing, so the rate is proportional to engine speed.',
-  ],
-  [
-    'popStrength',
-    'Afterfire strength',
-    '',
-    'The strength of the pop pulse injected at the collector. No unburnt-fuel or temperature state is kept.',
-  ],
-  [
     'clipCeiling',
     'Soft-clip ceiling',
     '',

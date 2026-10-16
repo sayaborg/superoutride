@@ -75,14 +75,6 @@ At each firing, `strength = max(0, excitation + pulseVariation*r)` for seeded xo
 Variation is an absolute fraction of full excitation. The same seed and input history reproduce the
 same event sequence; random draws occur at firing events.
 
-During overrun (observed effective opening 0 without fuel cut, judged before the blip is combined), each
-firing draws a separate seeded number and becomes a pop with the `popProbability` setting. The cylinder's
-combustion pulse still sounds at the closed-throttle floor, and a pulse of the `popStrength` setting fires in
-that collector's pop state, which follows the same rise and decay as the cylinder pulses and enters the
-collector junction as incoming pressure with one port's weight (`1/portCount` of the scattering sum). Because the draw is per firing, the pop rate is proportional to RPM.
-No unburnt-fuel or temperature state is kept; draw counts depend on the state, but the same seed and input
-history reproduce the same sound.
-
 The pulse model is:
 
 ```text
@@ -195,7 +187,7 @@ and the tire groups UNIFIED
 ## Audio document
 
 The game's source of these eight records is content: `content/audio/default.json` is the one `superoutride.audio`
-version 5 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
+version 6 document (manifest kind `audio`, ID `default`) with exactly the fields `format`, `version`, `exhaust`,
 `unified`, `scrape`, `rolling`, `mix`, `control`, `rival` and `impact`, each holding every field of its record as a
 number.
 [`compileAudioDocument`](../src/audio/audio-document.ts) checks format, version and shapes with the admission

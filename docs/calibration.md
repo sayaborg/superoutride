@@ -232,8 +232,6 @@ the DC removal are [derived](#derived-values).
 | `pulseRiseMs`       | Full-excitation pulse rise time       | 0.2 ms  | 0.05–2 ms / 0.01   |
 | `blipOpening`       | Downshift blip opening peak           | 0.70    | 0–1 / 0.01         |
 | `blipDecaySeconds`  | Downshift blip decay time             | 0.08 s  | 0.02–0.30 s / 0.01 |
-| `popProbability`    | Overrun pop probability per firing    | 0.12    | 0–1 / 0.01         |
-| `popStrength`       | Overrun pop pulse strength            | 0.50    | 0–1 / 0.05         |
 | `clipCeiling`       | Soft-clip bound and small-signal gain | 0.65    | 0.2–1 / 0.01       |
 
 These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
