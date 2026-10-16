@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { readdir, writeFile } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
 import type { FrameFeatures } from './features.js';
 
 /** One feature's capture noise: how far a video's reading lies from the exact frame's, over the frames compared. */
@@ -22,11 +24,12 @@ export async function exactIndices(directory: string): Promise<number[]> {
     .sort((a, b) => a - b);
 }
 
+/** A features file, line by line: a whole video's features exceed the longest string. */
 export async function readFeatures(file: string): Promise<FrameFeatures[]> {
-  return (await readFile(file, 'utf8'))
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => JSON.parse(line) as FrameFeatures);
+  const features: FrameFeatures[] = [];
+  for await (const line of createInterface({ input: createReadStream(file), crlfDelay: Infinity }))
+    if (line) features.push(JSON.parse(line) as FrameFeatures);
+  return features;
 }
 
 /**

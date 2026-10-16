@@ -1,5 +1,8 @@
 import path from 'node:path';
-import { readFile, writeFile } from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { once } from 'node:events';
+import { finished } from 'node:stream/promises';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { PNG } from 'pngjs';
@@ -104,9 +107,17 @@ export async function measureFeatures(
         }),
     ),
   );
-  const lines = parts.flat();
-  await writeFile(path.join(directory, source.out), lines.join('\n') + '\n');
-  return { frames: lines.length };
+  // Line by line: a whole video's features exceed the longest string.
+  const out = createWriteStream(path.join(directory, source.out));
+  let frames = 0;
+  for (const part of parts)
+    for (const line of part) {
+      if (!out.write(line + '\n')) await once(out, 'drain');
+      frames++;
+    }
+  out.end();
+  await finished(out);
+  return { frames };
 }
 
 /** One worker's frames: which video, model and templates, and which frames of which directory. */
