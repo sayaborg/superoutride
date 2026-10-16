@@ -14,15 +14,19 @@ export interface ExhaustDiagramPlacement {
   readonly rowHeight: number;
   /** Pixels along a tube per metre of its length. */
   readonly pixelsPerMeter: number;
-  /** Pixels across a tube per square metre of its cross-section. */
-  readonly pixelsPerSquareMeter: number;
+  /** Pixels across a tube per metre of its diameter. */
+  readonly pixelsAcrossPerMeter: number;
   /** Pixels left clear between tubes laid side by side where a junction splits. */
   readonly gap: number;
 }
 
+/** A rectangle of pixels, inclusive. */
+export type DiagramBox = readonly [left: number, top: number, right: number, bottom: number];
+
 /**
  * A tube drawn as level and upright pieces through `points`, `thickness` pixels across: a primary, starting at its
- * valve, with its collector (`exhaustCollectors`), or a pipe with its index, ending at an open end when `open`.
+ * valve, with its collector (`exhaustCollectors`), or a pipe with its index, ending at an open end when `open`. Its
+ * other ends join a junction's bar.
  */
 export type DiagramTube = {
   readonly points: readonly DiagramPoint[];
@@ -33,8 +37,17 @@ export type DiagramTube = {
 );
 
 /**
+ * A junction drawn as one bar: as wide as its thickest tube, centred on its x, and as tall as every tube's cross-section
+ * where it reaches the junction. A collector's bar, where two or more primaries enter, has its collector; others null.
+ */
+export interface DiagramBar {
+  readonly box: DiagramBox;
+  readonly collector: number | null;
+}
+
+/**
  * An exhaust drawn from its engine sound: each primary's cylinder, junction, text row and valve (where its cylinder
- * stands); the tubes, pipes first and primaries last; and the open ends with their thickness.
+ * stands); the tubes, pipes first and primaries last; and the junctions' bars, collectors' last.
  */
 export interface ExhaustDiagram {
   readonly primaries: readonly {
@@ -44,12 +57,21 @@ export interface ExhaustDiagram {
     readonly valve: DiagramPoint;
   }[];
   readonly tubes: readonly DiagramTube[];
-  readonly outlets: readonly { readonly end: DiagramPoint; readonly thickness: number }[];
+  readonly bars: readonly DiagramBar[];
 }
 
-/** A tube's thickness in pixels: its cross-section at the placement's scale, at least one pixel. */
-export function tubeThickness(diameter: number, pixelsPerSquareMeter: number): number {
-  return Math.max(1, Math.round(((Math.PI * diameter * diameter) / 4) * pixelsPerSquareMeter));
+/** A tube's thickness in pixels: its diameter at the placement's scale, at least one pixel. */
+export function tubeThickness(diameter: number, pixelsAcrossPerMeter: number): number {
+  return Math.max(1, Math.round(diameter * pixelsAcrossPerMeter));
+}
+
+/**
+ * The pixels a cross-section `thickness` across spans about its centre line: `low` above or left and `high` below or
+ * right.
+ */
+export function crossSection(thickness: number): { readonly low: number; readonly high: number } {
+  const low = Math.floor((thickness - 1) / 2);
+  return { low, high: thickness - 1 - low };
 }
 
 /**
@@ -142,19 +164,20 @@ export function exhaustTopology(sound: EngineSound): string {
 
 /**
  * The diagram of `sound`'s exhaust. Every tube runs level for its own length at `pixelsPerMeter` (junction positions
- * from `exhaustPositions`, its leftmost valve at `left`), across its cross-section at `pixelsPerSquareMeter`; uprights
- * join it to the next junction's height and carry no length. Primaries take a row each from `firstRow`, in the order
- * their junctions are reached going upstream from each last junction (pipes into a junction before its own primaries),
- * so merges and a log manifold's ports stand together. A junction stands at the mean height of its primaries, or else of
- * the junctions whose pipes enter it; the pipes leaving a junction for its own downstream junctions (each entered by
- * that pipe alone) and its open ends stand side by side about its height, each as wide as what it carries, `gap` apart.
- * Junctions the cylinders do not reach are not drawn.
+ * from `exhaustPositions`, its leftmost valve at `left`), across its diameter at `pixelsAcrossPerMeter`. Primaries take a
+ * row each from `firstRow`, in the order their junctions are reached going upstream from each last junction (pipes into
+ * a junction before its own primaries), so merges and a log manifold's ports stand together. A junction stands at the
+ * mean height of its primaries, or else of the junctions whose pipes enter it; the pipes leaving a junction for its own
+ * downstream junctions (each entered by that pipe alone) and its open ends stand side by side about its height, each
+ * as wide as what it carries, `gap` apart; any other pipe runs at its `from` junction's height. Each junction's bar
+ * joins the tubes reaching it at their heights and carries no length. Junctions the cylinders do not reach are not
+ * drawn.
  */
 export function createExhaustDiagram(sound: EngineSound, placement: ExhaustDiagramPlacement): ExhaustDiagram {
   const { primaries, pipes } = sound.exhaust;
   const { pixelsPerMeter: scale, gap } = placement;
   const { at } = exhaustPositions(sound);
-  const thickness = (diameter: number) => tubeThickness(diameter, placement.pixelsPerSquareMeter);
+  const thickness = (diameter: number) => tubeThickness(diameter, placement.pixelsAcrossPerMeter);
   const x = (junction: number) => Math.round(placement.left + at.get(junction)! * scale);
 
   // Rows: going upstream from each last junction, pipes into a junction first, then its own primaries.
@@ -217,27 +240,25 @@ export function createExhaustDiagram(sound: EngineSound, placement: ExhaustDiagr
   }
 
   const tubes: DiagramTube[] = [];
-  const outlets: { end: DiagramPoint; thickness: number }[] = [];
+  // Each junction's tubes where they reach it: their heights and thicknesses.
+  const reaching = new Map<number, { y: number; thickness: number }[]>();
+  const reach = (junction: number, y: number, diameter: number) => {
+    if (!reaching.has(junction)) reaching.set(junction, []);
+    reaching.get(junction)!.push({ y, thickness: thickness(diameter) });
+  };
   pipes.forEach((pipe, index) => {
     if (!at.has(pipe.from)) return;
-    const start: DiagramPoint = [x(pipe.from), Math.round(height.get(pipe.from)!)];
+    const y = Math.round(lane.get(index) ?? height.get(pipe.from)!);
+    const start: DiagramPoint = [x(pipe.from), y];
+    reach(pipe.from, y, pipe.diameter);
     if (pipe.to === null) {
-      const y = Math.round(lane.get(index) ?? start[1]);
       const end: DiagramPoint = [Math.round(start[0] + pipe.length * scale), y];
-      tubes.push({
-        points: [start, [start[0], y], end],
-        thickness: thickness(pipe.diameter),
-        kind: 'pipe',
-        pipe: index,
-        open: true,
-      });
-      outlets.push({ end, thickness: thickness(pipe.diameter) });
+      tubes.push({ points: [start, end], thickness: thickness(pipe.diameter), kind: 'pipe', pipe: index, open: true });
       return;
     }
-    const end: DiagramPoint = [x(pipe.to), Math.round(height.get(pipe.to)!)];
-    const y = Math.round(lane.get(index) ?? start[1]);
+    reach(pipe.to, y, pipe.diameter);
     tubes.push({
-      points: [start, [start[0], y], [end[0], y], end],
+      points: [start, [x(pipe.to), y]],
       thickness: thickness(pipe.diameter),
       kind: 'pipe',
       pipe: index,
@@ -248,15 +269,21 @@ export function createExhaustDiagram(sound: EngineSound, placement: ExhaustDiagr
   const drawn = primaries.map(({ to, length, diameter }, cylinder) => {
     const row = rowOf.get(cylinder)!;
     const collector = collectors.get(to)!;
-    const junction: DiagramPoint = [x(to), Math.round(height.get(to)!)];
-    const valve: DiagramPoint = [Math.round(junction[0] - length * scale), Math.round(middle(row))];
-    tubes.push({
-      points: [valve, [junction[0], valve[1]], junction],
-      thickness: thickness(diameter),
-      kind: 'primary',
-      collector,
-    });
+    const valve: DiagramPoint = [Math.round(x(to) - length * scale), Math.round(middle(row))];
+    reach(to, valve[1], diameter);
+    tubes.push({ points: [valve, [x(to), valve[1]]], thickness: thickness(diameter), kind: 'primary', collector });
     return { cylinder, collector, row, valve };
   });
-  return deepFreeze({ primaries: drawn, tubes, outlets });
+  const bars = [...reaching].map(([junction, tubes]): DiagramBar => {
+    const across = crossSection(Math.max(...tubes.map((tube) => tube.thickness)));
+    const top = Math.min(...tubes.map(({ y, thickness }) => y - crossSection(thickness).low));
+    const bottom = Math.max(...tubes.map(({ y, thickness }) => y + crossSection(thickness).high));
+    const entering = primaries.filter((primary) => primary.to === junction).length;
+    return {
+      box: [x(junction) - across.low, top, x(junction) + across.high, bottom],
+      collector: entering >= 2 ? collectors.get(junction)! : null,
+    };
+  });
+  bars.sort((a, b) => Number(a.collector !== null) - Number(b.collector !== null));
+  return deepFreeze({ primaries: drawn, tubes, bars });
 }

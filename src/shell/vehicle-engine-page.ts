@@ -5,9 +5,11 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { fuelCutRpm, sampleEngineTorque } from '../vehicle/physics/automatic-powertrain.js';
 import {
   createExhaustDiagram,
+  crossSection,
   exhaustCollectors,
   exhaustTopology,
   tubeThickness,
+  type DiagramBox,
   type DiagramPoint,
   type ExhaustDiagram,
 } from '../view/exhaust-diagram.js';
@@ -189,46 +191,68 @@ function drawFiring(scene: VehiclePageScene) {
   text.write(0, strip.noteRow, `IDLE x1/${SLOW_MOTION}`, TEXT_PALETTES.DARK);
 }
 
-/** A rectangle of pixels, inclusive. */
-type PixelBox = readonly [left: number, top: number, right: number, bottom: number];
-
 /**
- * The pixels of one level or upright piece of a tube `thickness` pixels across, centred on its line. An end that
- * `joins` another piece reaches half the thickness past its point, so corners close; a valve's or open end's does not.
+ * The pixels of one level or upright piece of a tube `thickness` pixels across, its cross-section about its line
+ * (`crossSection`). An end that `joins` a bar or another piece reaches past its point by that side's part of the
+ * cross-section, so it ends inside what it joins; a valve's or open end's does not.
  */
 function tubeBox(
   [[x0, y0], [x1, y1]]: readonly [DiagramPoint, DiagramPoint],
   thickness: number,
   joins: readonly [boolean, boolean],
-): PixelBox {
-  const first = -Math.floor((thickness - 1) / 2);
-  const reach = Math.floor(thickness / 2);
+): DiagramBox {
+  const { low, high } = crossSection(thickness);
   const [lowJoins, highJoins] = x1 > x0 || y1 > y0 ? joins : [joins[1], joins[0]];
   return y0 === y1
-    ? [
-        Math.min(x0, x1) - (lowJoins ? reach : 0),
-        y0 + first,
-        Math.max(x0, x1) + (highJoins ? reach : 0),
-        y0 + first + thickness - 1,
-      ]
-    : [
-        x0 + first,
-        Math.min(y0, y1) - (lowJoins ? reach : 0),
-        x0 + first + thickness - 1,
-        Math.max(y0, y1) + (highJoins ? reach : 0),
-      ];
+    ? [Math.min(x0, x1) - (lowJoins ? low : 0), y0 - low, Math.max(x0, x1) + (highJoins ? high : 0), y0 + high]
+    : [x0 - low, Math.min(y0, y1) - (lowJoins ? low : 0), x0 + high, Math.max(y0, y1) + (highJoins ? high : 0)];
 }
 
 /**
- * A tube piece's `box` from 3 pixels across lit above or left, `color` between and shaded below or right; thinner, a
- * flat band of `color`. `level` pieces run along x.
+ * Boxes painted flat in their colors, later over earlier, then shaded once as one shape whatever their colors: a
+ * pixel that tops a vertical run of 3 or more painted pixels, or ends a horizontal run of 3 or more on the left and
+ * does not end a vertical one at the bottom, is lit halfway to white; one that ends a vertical run at the bottom, or a
+ * horizontal run on the right and does not top a vertical one, is at half brightness; lit wins over both.
  */
-function drawTube(frame: SoftwareSurface, [left, top, right, bottom]: PixelBox, level: boolean, color: number) {
-  const across = level ? bottom - top + 1 : right - left + 1;
-  const shade = (k: number) =>
-    across < 3 ? color : k === 0 ? lighten(color) : k === across - 1 ? halveRgb555(color) : color;
-  if (level) for (let y = top; y <= bottom; y++) frame.fillSpan(y, left, right, shade(y - top));
-  else for (let y = top; y <= bottom; y++) for (let x = left; x <= right; x++) frame.setPixel(x, y, shade(x - left));
+function drawShaded(frame: SoftwareSurface, shapes: readonly { readonly box: DiagramBox; readonly color: number }[]) {
+  const left = Math.min(...shapes.map(({ box }) => box[0])),
+    top = Math.min(...shapes.map(({ box }) => box[1]));
+  const width = Math.max(...shapes.map(({ box }) => box[2])) - left + 1,
+    height = Math.max(...shapes.map(({ box }) => box[3])) - top + 1;
+  const paint = new Int32Array(width * height).fill(-1);
+  for (const { box, color } of shapes)
+    for (let y = box[1]; y <= box[3]; y++)
+      paint.fill(color, (y - top) * width + box[0] - left, (y - top) * width + box[2] - left + 1);
+  const painted = (x: number, y: number) => x >= 0 && x < width && y >= 0 && y < height && paint[y * width + x]! >= 0;
+  // Each painted pixel's run length down its column and along its row.
+  const vertical = new Int32Array(width * height),
+    horizontal = new Int32Array(width * height);
+  for (let x = 0; x < width; x++)
+    for (let y = 0; y < height;) {
+      let end = y;
+      while (painted(x, end)) end++;
+      for (let k = y; k < end; k++) vertical[k * width + x] = end - y;
+      y = Math.max(end, y + 1);
+    }
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width;) {
+      let end = x;
+      while (painted(end, y)) end++;
+      horizontal.fill(end - x, y * width + x, y * width + end);
+      x = Math.max(end, x + 1);
+    }
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const color = paint[y * width + x]!;
+      if (color < 0) continue;
+      const column = vertical[y * width + x]! >= 3,
+        row = horizontal[y * width + x]! >= 3;
+      const topEnd = column && !painted(x, y - 1),
+        bottomEnd = column && !painted(x, y + 1);
+      const lit = topEnd || (row && !painted(x - 1, y) && !bottomEnd);
+      const shaded = bottomEnd || (row && !painted(x + 1, y) && !topEnd);
+      frame.setPixel(left + x, top + y, lit ? lighten(color) : shaded ? halveRgb555(color) : color);
+    }
 }
 
 const diagrams = new WeakMap<EngineSound, { readonly scale: number; readonly diagram: ExhaustDiagram }>();
@@ -241,7 +265,7 @@ function exhaustDiagramOf(sound: EngineSound, pixelsPerMeter: number): ExhaustDi
     firstRow: EXHAUST_DIAGRAM.firstRow,
     rowHeight: TEXT_TILE_SIZE,
     pixelsPerMeter,
-    pixelsPerSquareMeter: EXHAUST_DIAGRAM.pixelsPerSquareMeter,
+    pixelsAcrossPerMeter: EXHAUST_DIAGRAM.pixelsAcrossPerMeter,
     gap: EXHAUST_DIAGRAM.gap,
   });
   diagrams.set(sound, { scale: pixelsPerMeter, diagram });
@@ -249,10 +273,11 @@ function exhaustDiagramOf(sound: EngineSound, pixelsPerMeter: number): ExhaustDi
 }
 
 /**
- * The exhaust: its form; each primary's length (cm) and diameter (mm); the tubes true to their lengths and as thick as
- * their cross-sections at the catalog's one scale, primaries in their bank's color and the rest grey, each open end with
- * an outlet and each cylinder a block before its valve that is lit WHITE for `FIRING_FLASH` of a cycle after it fires;
- * the valve's diameter and open crank angle; and the scale marks, a metre and a 50 mm pipe.
+ * The exhaust: its form; each primary's length (cm) and diameter (mm); the tubes true to their lengths and in proportion
+ * to their diameters at the catalog's one scale and the junctions' bars, shaded as one shape (`drawShaded`): primaries
+ * and collectors' bars in their bank's color and the rest grey; each cylinder a block before its valve that is lit
+ * WHITE for `FIRING_FLASH` of a cycle after it fires; the valve's diameter and open crank angle; and the scale marks, a
+ * metre and a 50 mm pipe.
  */
 function drawExhaust(scene: VehiclePageScene) {
   const { frame, text, vehicle, exhaustPixelsPerMeter } = scene;
@@ -263,8 +288,9 @@ function drawExhaust(scene: VehiclePageScene) {
   const layout = EXHAUST_DIAGRAM;
 
   // Every drawn pixel box, so the pipes' values stand only in text cells nothing is drawn in.
-  const boxes: PixelBox[] = [];
-  const levels = new Map<number, PixelBox>();
+  const boxes: DiagramBox[] = [];
+  const shapes: { box: DiagramBox; color: number }[] = [];
+  const levels = new Map<number, DiagramBox>();
   for (const tube of diagram.tubes) {
     const { points, thickness } = tube;
     const color = tube.kind === 'primary' ? bankColor(scene, tube.collector) : GREY;
@@ -279,21 +305,17 @@ function drawExhaust(scene: VehiclePageScene) {
         !(k === 0 && tube.kind === 'primary'),
         !(n === pieces.length - 1 && tube.kind === 'pipe' && tube.open),
       ]);
-      drawTube(frame, box, level, color);
-      boxes.push(box);
+      shapes.push({ box, color });
       // A pipe's value stands by its longest level piece.
       const known = tube.kind === 'pipe' ? levels.get(tube.pipe) : undefined;
       if (tube.kind === 'pipe' && level && (!known || box[2] - box[0] > known[2] - known[0]))
         levels.set(tube.pipe, box);
     });
   }
-  for (const { end, thickness } of diagram.outlets) {
-    const [x, y] = end;
-    const half = Math.floor(thickness / 2) + 1;
-    for (let k = -half; k <= half; k++)
-      frame.fillSpan(y + k, x + 1, x + 5, k < 2 - half ? lighten(GREY) : k > half - 2 ? DIM : GREY);
-    boxes.push([x + 1, y - half, x + 5, y + half]);
-  }
+  for (const { box, collector } of diagram.bars)
+    shapes.push({ box, color: collector === null ? GREY : bankColor(scene, collector) });
+  drawShaded(frame, shapes);
+  boxes.push(...shapes.map(({ box }) => box));
 
   for (const { cylinder, collector, row, valve } of diagram.primaries) {
     const { length, diameter } = sound.exhaust.primaries[cylinder]!;
@@ -324,7 +346,7 @@ function drawExhaust(scene: VehiclePageScene) {
         taken.add(`${column},${row}`);
   const pipes = sound.exhaust.pipes
     .map((pipe, index) => ({ pipe, box: levels.get(index) }))
-    .filter((entry): entry is { pipe: (typeof sound.exhaust.pipes)[number]; box: PixelBox } => !!entry.box)
+    .filter((entry): entry is { pipe: (typeof sound.exhaust.pipes)[number]; box: DiagramBox } => !!entry.box)
     .sort((a, b) => b.pipe.length - a.pipe.length);
   for (const { pipe, box } of pipes) {
     const value = `${integer(pipe.length * 100)}/${integer(pipe.diameter * 1000)}`;
@@ -373,10 +395,10 @@ function drawExhaust(scene: VehiclePageScene) {
       [sampleLeft, middle],
       [sampleLeft + exhaustPixelsPerMeter, middle],
     ],
-    tubeThickness(0.05, layout.pixelsPerSquareMeter),
+    tubeThickness(0.05, layout.pixelsAcrossPerMeter),
     [false, false],
   );
-  drawTube(frame, sample, true, GREY);
+  drawShaded(frame, [{ box: sample, color: GREY }]);
 }
 
 /** ENGINE: the engine's curves and values, its firing and its exhaust. */

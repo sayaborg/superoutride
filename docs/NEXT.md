@@ -119,20 +119,16 @@
   (`compressionRatio` joins the mechanics); overrun pops are gone; every engine enters its soft clip at MIX's
   `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
   exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
+- Stage EX2 is complete: the wall loss follows Kirchhoff's `sqrt(f)` through four shelves in parallel form (the
+  engine loudness measured again, `engineDriveLufs` kept at −11.9); the exhaust kernel renders in blocks over flat
+  arrays, its output unchanged; ENGINE draws tubes in proportion to their diameter, each junction as one bar, shaded
+  once as one shape.
 
-Next PR: [EX-9](#stage-ex2--exhaust-wall-loss-computation-and-diagram) and, in parallel,
-[VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage EX2 — Exhaust wall loss, computation and diagram
-
-K's decisions after listening to Stage EX. Each PR proceeds without waiting for approval.
-
-- EX-9: ENGINE's diagram draws tubes in proportion to their diameter, each junction as one bar, and shades the drawn
-  shape once.
 
 ## Stage VC — Courses from footage
 

@@ -343,12 +343,13 @@ at column 20 (DARK) and, at column 26, the valve's diameter to a tenth of a mill
 metre as a WHITE line with end ticks from x 184, and `50mm` at column 28 (DARK) and a 50 mm pipe a metre long from
 x 264.
 
-Every vehicle's exhaust is drawn at one length scale and one cross-section scale (`src/view/exhaust-diagram.ts`; the
+Every vehicle's exhaust is drawn at one length scale and one diameter scale (`src/view/exhaust-diagram.ts`; the
 screen makes the diagram once for each engine sound): the largest whole pixels per metre at which the catalog's
 farthest-reaching exhaust, from its leftmost valve to its farthest open end, fits between x 216 and x 314 (24 px/m for
-GOLF GTI 16V's 4.03 m), and a thickness proportional to the cross-section, a 60 mm pipe 12 pixels and none under 1:
+GOLF GTI 16V's 4.03 m), and a thickness proportional to the diameter, 100 pixels per metre (a 60 mm pipe 6 pixels,
+none under 1):
 
-- Every tube runs level for its own length; uprights join it to the next junction's height and carry no length. Along
+- Every tube runs level for its own length; junctions' bars join tubes at different heights and carry no length. Along
   pipes between junctions, `to` stands its pipe's length after `from` (a loop's closing pipe as it falls), and each
   group of junctions the cylinders reach shifts so its leftmost valve, junction or open end stands at x 216. Junctions
   the cylinders do not reach are not drawn.
@@ -357,13 +358,21 @@ GOLF GTI 16V's 4.03 m), and a thickness proportional to the cross-section, a 60 
   junction (one no pipe leaves for another junction), pipes into a junction before its own primaries, so a merge's
   primaries stand together and a log manifold's ports step down along it. Each primary's length in centimetres stands
   right-aligned in columns 20–22 and its diameter in millimetres in columns 23–25 (WHITE).
-- A junction stands at the mean height of its primaries, or else of the junctions whose pipes enter it. A pipe runs
-  level from its `from` junction, then upright to its `to` junction. The pipes leaving a junction for open ends, or for
-  junctions that pipe alone enters and no primary, stand side by side about its height, each as wide as what it
-  carries, 2 pixels apart; open ends end in a grey outlet 5 pixels wide.
-- Tubes 3 pixels thick or more are shaded: the side above or left halfway to white, the middle in the tube's color, the
-  side below or right at half brightness; thinner ones are a flat band. Primaries are in their bank's color and the
-  other pipes grey. A tube reaches half its thickness past each corner, but not past a valve or an open end.
+- A junction stands at the mean height of its primaries, or else of the junctions whose pipes enter it. The pipes
+  leaving a junction for open ends, or for junctions that pipe alone enters and no primary, stand side by side about
+  its height, each as wide as what it carries, 2 pixels apart; any other pipe runs at its `from` junction's height. An
+  open end is the end of its pipe.
+- Each junction is one upright bar, as wide as its thickest tube and centred on its x, from the top to the bottom of
+  every tube's cross-section where that tube reaches it. A tube `t` pixels thick spans `low = floor((t-1)/2)` pixels
+  above or left of its line and `t-1-low` below or right; an end that joins a bar reaches past its point by that side's
+  part, ending inside the bar, and a valve or an open end does not. Primaries, and the bars of collectors two or more
+  primaries enter, are in their bank's color; the other pipes and bars (a log manifold's ports, a single primary's
+  junction) are grey. Collectors' bars are drawn last.
+- The tubes and bars are painted flat, then shaded once as one shape whatever their colors: a pixel that tops a
+  vertical run of 3 or more drawn pixels, or ends a horizontal run of 3 or more on the left and does not end a vertical
+  run at the bottom, is lit halfway to white; one that ends a vertical run at the bottom, or a horizontal run on the
+  right and does not top a vertical run, is at half brightness; lit wins over both. Parts under 3 pixels are flat, and
+  no line is drawn where colors meet.
 - Each cylinder is a block of 6×7 pixels just before its valve, DIM edged in its bank's color, WHITE while lit.
 - Each pipe's length and diameter, `315/50` (DARK), stands in the text row above, or else below, the rows of its longest
   level piece, over it and as near its centre as columns 26–39 and rows 15–27 allow, in cells holding nothing drawn or

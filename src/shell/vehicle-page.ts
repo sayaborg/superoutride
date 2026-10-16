@@ -126,8 +126,8 @@ export const FIRING_STRIP = Object.freeze({
  * heading the primaries' lengths, right-aligned in columns 20–22, and diameters, in columns 23–25, on `legendRow`; a
  * primary a row from `firstRow`; the pipes' values within columns `pipeFirstColumn`–`pipeLastColumn`; the valve on
  * `valveRow` and the scale marks on `scaleRow`. Tubes run from the leftmost
- * valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsPerSquareMeter` across
- * (a 60 mm pipe 12 pixels), laid `gap` apart where a junction splits.
+ * valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsAcrossPerMeter` of their
+ * diameter across (a 60 mm pipe 6 pixels), laid `gap` apart where a junction splits.
  */
 export const EXHAUST_DIAGRAM = Object.freeze({
   headingRow: 14,
@@ -142,7 +142,7 @@ export const EXHAUST_DIAGRAM = Object.freeze({
   scaleRow: 29,
   left: 216,
   right: 314,
-  pixelsPerSquareMeter: 12 / (Math.PI * 0.03 ** 2),
+  pixelsAcrossPerMeter: 100,
   gap: 2,
 });
 /**
