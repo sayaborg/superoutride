@@ -25,6 +25,7 @@ import type { MusicCatalog } from '../content/recording-catalog.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { Screen } from './screen-host.js';
 import { createVehicleScreen } from './vehicle-screen.js';
+import { exhaustPixelsPerMeter as exhaustScale } from './vehicle-page.js';
 import { showSettings } from './settings-screens.js';
 import { createSeriesScreen, SERIES_SLIDE_STEPS } from './series-screen.js';
 import { createTitleScreen, type TitleBackground, type TitleState } from './title-screen.js';
@@ -106,6 +107,8 @@ export interface SelectionDevices {
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, driving, player, dev, freePlay, music } = catalog;
+  // Every vehicle's exhaust is drawn at the whole catalog's one scale.
+  const exhaustPixelsPerMeter = exhaustScale(vehicles);
   // FREE PLAY's POOL and TRAFFIC choices, in their rules' order; TRAFFIC starts with OFF.
   const pools = freePlay.rivalPools.map((pool) => pool.id);
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
@@ -414,6 +417,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
               entry: last(),
               // In a series the page stands over the series image at quarter brightness.
               background: place === 'SERIES' ? seriesChoice!.image : null,
+              exhaustPixelsPerMeter,
             },
             {
               confirm: (vehicle, chosen) => {

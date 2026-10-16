@@ -4,56 +4,127 @@ import { deepFreeze } from '../core/admission.js';
 /** A point of the diagram, in pixels. */
 export type DiagramPoint = readonly [x: number, y: number];
 
-/** Where and at what scale an exhaust diagram stands. */
+/** Where and at what scales an exhaust diagram stands. */
 export interface ExhaustDiagramPlacement {
-  /** The x at which the longest primary starts. */
+  /** The x of the leftmost valve. */
   readonly left: number;
-  /** The text row of the first primary; each primary takes a row, each junction's group a row apart. */
+  /** The text row of the first primary; each primary takes a row. */
   readonly firstRow: number;
   /** Pixels in a text row; a primary runs along its row's middle. */
   readonly rowHeight: number;
+  /** Pixels along a tube per metre of its length. */
   readonly pixelsPerMeter: number;
-  /** Pixels between the open ends that leave one junction. */
-  readonly outletSpacing: number;
-}
-
-/** A level or upright piece of pipe, from `from` to `to`; `junction` is a primary's cylinder-side junction, else null. */
-export interface DiagramSegment {
-  readonly from: DiagramPoint;
-  readonly to: DiagramPoint;
-  readonly junction: number | null;
+  /** Pixels across a tube per square metre of its cross-section. */
+  readonly pixelsPerSquareMeter: number;
+  /** Pixels left clear between tubes laid side by side where a junction splits. */
+  readonly gap: number;
 }
 
 /**
- * An exhaust drawn from its engine sound: each primary's cylinder, junction, text row and start (where its cylinder
- * stands); the pipe as level and upright segments, primaries last; the open ends; and each cylinder's paths, every way
- * from its primary's start to an open end.
+ * A tube drawn as level and upright pieces through `points`, `thickness` pixels across: a primary, starting at its
+ * valve, with its collector (`exhaustCollectors`), or a pipe with its index, ending at an open end when `open`.
+ */
+export type DiagramTube = {
+  readonly points: readonly DiagramPoint[];
+  readonly thickness: number;
+} & (
+  | { readonly kind: 'primary'; readonly collector: number }
+  | { readonly kind: 'pipe'; readonly pipe: number; readonly open: boolean }
+);
+
+/**
+ * An exhaust drawn from its engine sound: each primary's cylinder, junction, text row and valve (where its cylinder
+ * stands); the tubes, pipes first and primaries last; and the open ends with their thickness.
  */
 export interface ExhaustDiagram {
   readonly primaries: readonly {
     readonly cylinder: number;
-    readonly junction: number;
+    readonly collector: number;
     readonly row: number;
-    readonly start: DiagramPoint;
+    readonly valve: DiagramPoint;
   }[];
-  readonly segments: readonly DiagramSegment[];
-  readonly outlets: readonly DiagramPoint[];
-  readonly paths: readonly (readonly (readonly DiagramPoint[])[])[];
+  readonly tubes: readonly DiagramTube[];
+  readonly outlets: readonly { readonly end: DiagramPoint; readonly thickness: number }[];
+}
+
+/** A tube's thickness in pixels: its cross-section at the placement's scale, at least one pixel. */
+export function tubeThickness(diameter: number, pixelsPerSquareMeter: number): number {
+  return Math.max(1, Math.round(((Math.PI * diameter * diameter) / 4) * pixelsPerSquareMeter));
 }
 
 /**
- * An exhaust's form as its flows stage by stage: the cylinders, the junctions at each depth from them along pipes
- * from `from` to `to`, then the open ends leaving the last; equal neighbours are one stage, and a single stage is
- * written twice (`1-1`).
+ * Each junction's position along the exhaust in metres, every tube level and true to its length: along a spanning
+ * forest of the junctions joined by pipes, `to` stands `length` after `from`; each group the cylinders reach then shifts
+ * so that its leftmost valve, junction or open end stands at 0. Junctions the cylinders do not reach are absent. Returns
+ * the positions and the farthest open end.
+ */
+function exhaustPositions(sound: EngineSound): { readonly at: ReadonlyMap<number, number>; readonly extent: number } {
+  const { primaries, pipes } = sound.exhaust;
+  const at = new Map<number, number>();
+  let extent = 0;
+  for (const seed of primaries.map(({ to }) => to)) {
+    if (at.has(seed)) continue;
+    // One group: its junctions placed from the seed along pipes either way, a loop's closing pipe left as it falls.
+    const group = new Map<number, number>([[seed, 0]]);
+    for (const queue = [seed]; queue.length;) {
+      const junction = queue.shift()!;
+      for (const { from, to, length } of pipes) {
+        if (to === null) continue;
+        const next = from === junction ? to : to === junction ? from : null;
+        if (next === null || group.has(next)) continue;
+        group.set(next, group.get(junction)! + (from === junction ? length : -length));
+        queue.push(next);
+      }
+    }
+    const ends = [...group].flatMap(([junction, x]) => [
+      x,
+      ...primaries.filter(({ to }) => to === junction).map(({ length }) => x - length),
+      ...pipes.filter((pipe) => pipe.from === junction && pipe.to === null).map(({ length }) => x + length),
+    ]);
+    const shift = Math.min(...ends);
+    for (const [junction, x] of group) at.set(junction, x - shift);
+    extent = Math.max(extent, Math.max(...ends) - shift);
+  }
+  return { at, extent };
+}
+
+/** How far the exhaust reaches from its leftmost valve to its farthest open end, in metres. */
+export function exhaustExtent(sound: EngineSound): number {
+  return exhaustPositions(sound).extent;
+}
+
+/**
+ * Each junction a primary enters, by its collector: such junctions joined by a pipe that is all its `from` junction's
+ * outflow are one collector, a log manifold's run of ports. Collectors are numbered from 0 in the order of their lowest
+ * junction.
+ */
+export function exhaustCollectors(sound: EngineSound): ReadonlyMap<number, number> {
+  const { primaries, pipes } = sound.exhaust;
+  const entered = [...new Set(primaries.map(({ to }) => to))].sort((a, b) => a - b);
+  const root = new Map(entered.map((junction) => [junction, junction]));
+  const find = (junction: number): number => (root.get(junction) === junction ? junction : find(root.get(junction)!));
+  for (const { from, to } of pipes)
+    if (to !== null && root.has(from) && root.has(to) && pipes.filter((pipe) => pipe.from === from).length === 1) {
+      const [low, high] = [find(from), find(to)].sort((a, b) => a - b);
+      root.set(high!, low!);
+    }
+  const numbers = new Map<number, number>();
+  for (const junction of entered) if (find(junction) === junction) numbers.set(junction, numbers.size);
+  return new Map(entered.map((junction) => [junction, numbers.get(find(junction))!]));
+}
+
+/**
+ * An exhaust's form as its flows stage by stage: the cylinders, their collectors (`exhaustCollectors`), the junctions at
+ * each depth from them along pipes from `from` to `to`, then the open ends leaving the last; equal neighbours are one
+ * stage, and a single stage is written twice (`1-1`).
  */
 export function exhaustTopology(sound: EngineSound): string {
   const { primaries, pipes } = sound.exhaust;
-  const banks = primaries.map(({ to }) => to);
-  const counts = [banks.length];
-  let stage = new Set(banks);
+  const collectors = exhaustCollectors(sound);
+  const counts = [primaries.length, new Set(collectors.values()).size];
+  let stage: ReadonlySet<number> = new Set(collectors.keys());
   const seen = new Set(stage);
   for (;;) {
-    counts.push(stage.size);
     const next = new Set<number>();
     for (const pipe of pipes) if (stage.has(pipe.from) && pipe.to !== null && !seen.has(pipe.to)) next.add(pipe.to);
     if (next.size === 0) {
@@ -61,6 +132,7 @@ export function exhaustTopology(sound: EngineSound): string {
       break;
     }
     next.forEach((junction) => seen.add(junction));
+    counts.push(next.size);
     stage = next;
   }
   const stages = counts.filter((count, i) => i === 0 || count !== counts[i - 1]);
@@ -69,125 +141,122 @@ export function exhaustTopology(sound: EngineSound): string {
 }
 
 /**
- * The diagram of `sound`'s exhaust, its lengths at `pixelsPerMeter`. The primaries are grouped by junction in
- * junction order, a row apart, one a row in cylinder order. Every cylinder-side junction stands where the longest
- * primary ends, each primary starting its own length before it, at the middle of its primaries' rows. A pipe runs
- * level from its `from` junction, then upright to its `to` junction, which stands at the farthest end of the pipes
- * into it and the mean height of where they come from; a junction is placed once every pipe into it from a placed
- * junction has been, or, in a loop, once any has. Open ends run level for their length, those of one junction
- * `outletSpacing` apart about its height. Junctions the cylinders do not reach along pipes are not drawn.
+ * The diagram of `sound`'s exhaust. Every tube runs level for its own length at `pixelsPerMeter` (junction positions
+ * from `exhaustPositions`, its leftmost valve at `left`), across its cross-section at `pixelsPerSquareMeter`; uprights
+ * join it to the next junction's height and carry no length. Primaries take a row each from `firstRow`, in the order
+ * their junctions are reached going upstream from each last junction (pipes into a junction before its own primaries),
+ * so merges and a log manifold's ports stand together. A junction stands at the mean height of its primaries, or else of
+ * the junctions whose pipes enter it; the pipes leaving a junction for its own downstream junctions (each entered by
+ * that pipe alone) and its open ends stand side by side about its height, each as wide as what it carries, `gap` apart.
+ * Junctions the cylinders do not reach are not drawn.
  */
 export function createExhaustDiagram(sound: EngineSound, placement: ExhaustDiagramPlacement): ExhaustDiagram {
-  const { primaries: tubes, pipes } = sound.exhaust;
-  const banks = tubes.map(({ to }) => to);
-  const lengths = tubes.map(({ length }) => length);
-  const scale = placement.pixelsPerMeter;
-  const end = placement.left + Math.max(...lengths) * scale;
-  const groups = [...new Set(banks)].sort((a, b) => a - b);
-  const primaries: ExhaustDiagram['primaries'][number][] = [];
-  let row = placement.firstRow;
-  for (const [g, junction] of groups.entries()) {
-    if (g > 0) row++;
-    banks.forEach((bank, cylinder) => {
-      if (bank !== junction) return;
-      const y = row * placement.rowHeight + placement.rowHeight / 2;
-      primaries.push({ cylinder, junction, row, start: [Math.round(end - lengths[cylinder]! * scale), y] });
-      row++;
-    });
-  }
+  const { primaries, pipes } = sound.exhaust;
+  const { pixelsPerMeter: scale, gap } = placement;
+  const { at } = exhaustPositions(sound);
+  const thickness = (diameter: number) => tubeThickness(diameter, placement.pixelsPerSquareMeter);
+  const x = (junction: number) => Math.round(placement.left + at.get(junction)! * scale);
 
-  const position = new Map<number, DiagramPoint>();
-  for (const junction of groups) {
-    const ys = primaries.filter((p) => p.junction === junction).map((p) => p.start[1]);
-    position.set(junction, [Math.round(end), (Math.min(...ys) + Math.max(...ys)) / 2]);
-  }
-  const reached = new Set(groups);
-  for (let grown = true; grown;) {
-    grown = false;
-    for (const pipe of pipes)
-      if (reached.has(pipe.from) && pipe.to !== null && !reached.has(pipe.to)) {
-        reached.add(pipe.to);
-        grown = true;
-      }
-  }
-  const place = (junction: number, feeds: readonly (typeof pipes)[number][]) => {
-    const x = Math.max(...feeds.map((pipe) => position.get(pipe.from)![0] + pipe.length * scale));
-    const y = feeds.reduce((sum, pipe) => sum + position.get(pipe.from)![1], 0) / feeds.length;
-    position.set(junction, [Math.round(x), y]);
+  // Rows: going upstream from each last junction, pipes into a junction first, then its own primaries.
+  const order: number[] = [];
+  const visited = new Set<number>();
+  const upstream = (junction: number): void => {
+    if (visited.has(junction)) return;
+    visited.add(junction);
+    for (const pipe of pipes) if (pipe.to === junction && at.has(pipe.from)) upstream(pipe.from);
+    primaries.forEach(({ to }, cylinder) => to === junction && order.push(cylinder));
   };
-  for (;;) {
-    const pending = [...reached].filter((junction) => !position.has(junction)).sort((a, b) => a - b);
-    if (pending.length === 0) break;
-    const feeds = (junction: number) => pipes.filter((pipe) => pipe.to === junction && reached.has(pipe.from));
-    const ready = pending.find((junction) => feeds(junction).every((pipe) => position.has(pipe.from)));
-    const junction = ready ?? pending.find((j) => feeds(j).some((pipe) => position.has(pipe.from)))!;
-    place(
-      junction,
-      feeds(junction).filter((pipe) => position.has(pipe.from)),
+  const last = [...at.keys()].filter((junction) => !pipes.some((pipe) => pipe.from === junction && pipe.to !== null));
+  for (const junction of last.sort((a, b) => a - b)) upstream(junction);
+  for (const junction of [...at.keys()].sort((a, b) => a - b)) upstream(junction);
+  const rowOf = new Map(order.map((cylinder, index) => [cylinder, placement.firstRow + index]));
+  const middle = (row: number) => row * placement.rowHeight + placement.rowHeight / 2;
+
+  // What a junction's own downstream branch needs across: its spread pipes and open ends side by side.
+  const spread = (junction: number) =>
+    pipes
+      .map((pipe, index) => ({ pipe, index }))
+      .filter(
+        ({ pipe }) =>
+          pipe.from === junction &&
+          (pipe.to === null ||
+            (pipes.filter((other) => other.to === pipe.to).length === 1 &&
+              !primaries.some((primary) => primary.to === pipe.to))),
+      );
+  const width = (index: number): number => {
+    const pipe = pipes[index]!;
+    if (pipe.to === null) return thickness(pipe.diameter);
+    const branches = spread(pipe.to);
+    return Math.max(
+      thickness(pipe.diameter),
+      branches.reduce((sum, branch) => sum + width(branch.index), 0) + gap * (branches.length - 1),
     );
+  };
+
+  // Heights: in x order, from primaries, entering junctions or the spread that places them.
+  const height = new Map<number, number>();
+  const lane = new Map<number, number>();
+  for (const junction of [...at.keys()].sort((a, b) => at.get(a)! - at.get(b)! || a - b)) {
+    if (!height.has(junction)) {
+      const rows = primaries.flatMap(({ to }, cylinder) => (to === junction ? [middle(rowOf.get(cylinder)!)] : []));
+      const feeds = pipes
+        .filter((pipe) => pipe.to === junction && height.has(pipe.from))
+        .map((p) => height.get(p.from)!);
+      const sources = rows.length ? rows : feeds;
+      height.set(junction, sources.reduce((sum, y) => sum + y, 0) / Math.max(1, sources.length));
+    }
+    const branches = spread(junction);
+    const total = branches.reduce((sum, branch) => sum + width(branch.index), 0) + gap * (branches.length - 1);
+    let top = height.get(junction)! - total / 2;
+    for (const { pipe, index } of branches) {
+      const y = top + width(index) / 2;
+      lane.set(index, y);
+      if (pipe.to !== null) height.set(pipe.to, y);
+      top += width(index) + gap;
+    }
   }
 
-  // Each pipe's points: level from its start, then upright to its end.
-  const segments: DiagramSegment[] = [];
-  const outlets: DiagramPoint[] = [];
-  const runs = new Map<number, DiagramPoint[]>();
-  const opened = new Map<number, number>();
-  pipes.forEach((pipe, k) => {
-    const from = position.get(pipe.from);
-    if (!from) return;
-    let points: DiagramPoint[];
+  const tubes: DiagramTube[] = [];
+  const outlets: { end: DiagramPoint; thickness: number }[] = [];
+  pipes.forEach((pipe, index) => {
+    if (!at.has(pipe.from)) return;
+    const start: DiagramPoint = [x(pipe.from), Math.round(height.get(pipe.from)!)];
     if (pipe.to === null) {
-      const siblings = pipes.filter((other) => other.from === pipe.from && other.to === null).length;
-      const index = opened.get(pipe.from) ?? 0;
-      opened.set(pipe.from, index + 1);
-      const y = Math.round(from[1] + (index - (siblings - 1) / 2) * placement.outletSpacing);
-      const outlet: DiagramPoint = [Math.round(from[0] + pipe.length * scale), y];
-      points = [from, [from[0], y], outlet];
-      outlets.push(outlet);
-    } else {
-      const to = position.get(pipe.to)!;
-      points = [from, [to[0], from[1]], to];
+      const y = Math.round(lane.get(index) ?? start[1]);
+      const end: DiagramPoint = [Math.round(start[0] + pipe.length * scale), y];
+      tubes.push({
+        points: [start, [start[0], y], end],
+        thickness: thickness(pipe.diameter),
+        kind: 'pipe',
+        pipe: index,
+        open: true,
+      });
+      outlets.push({ end, thickness: thickness(pipe.diameter) });
+      return;
     }
-    runs.set(k, points);
-    for (let i = 1; i < points.length; i++) segments.push({ from: points[i - 1]!, to: points[i]!, junction: null });
-  });
-  const primaryRuns = primaries.map((p) => {
-    const junction = position.get(p.junction)!;
-    const points: DiagramPoint[] = [p.start, [junction[0], p.start[1]], junction];
-    segments.push({ from: points[0]!, to: points[1]!, junction: p.junction });
-    segments.push({ from: points[1]!, to: points[2]!, junction: p.junction });
-    return points;
-  });
-
-  // Every way on from a junction to an open end, never through a junction twice.
-  const onward = (junction: number, through: ReadonlySet<number>): DiagramPoint[][] =>
-    pipes.flatMap((pipe, k) => {
-      if (pipe.from !== junction || !runs.has(k)) return [];
-      const points = runs.get(k)!;
-      if (pipe.to === null) return [points];
-      if (through.has(pipe.to)) return [];
-      return onward(pipe.to, new Set([...through, pipe.to])).map((rest) => [...points, ...rest]);
+    const end: DiagramPoint = [x(pipe.to), Math.round(height.get(pipe.to)!)];
+    const y = Math.round(lane.get(index) ?? start[1]);
+    tubes.push({
+      points: [start, [start[0], y], [end[0], y], end],
+      thickness: thickness(pipe.diameter),
+      kind: 'pipe',
+      pipe: index,
+      open: false,
     });
-  const paths = banks.map((junction, cylinder) => {
-    const head = primaryRuns[primaries.findIndex((p) => p.cylinder === cylinder)]!;
-    return onward(junction, new Set([junction])).map((rest) => [...head, ...rest]);
   });
-  return deepFreeze({ primaries, segments, outlets, paths });
-}
-
-/** The point `distance` along a path of level and upright pieces, or null past its end. */
-export function pointAlong(path: readonly DiagramPoint[], distance: number): DiagramPoint | null {
-  if (distance < 0) return null;
-  let left = distance;
-  for (let i = 1; i < path.length; i++) {
-    const [x0, y0] = path[i - 1]!;
-    const [x1, y1] = path[i]!;
-    const length = Math.abs(x1 - x0) + Math.abs(y1 - y0);
-    if (left <= length) {
-      const t = length === 0 ? 0 : left / length;
-      return [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t];
-    }
-    left -= length;
-  }
-  return null;
+  const collectors = exhaustCollectors(sound);
+  const drawn = primaries.map(({ to, length, diameter }, cylinder) => {
+    const row = rowOf.get(cylinder)!;
+    const collector = collectors.get(to)!;
+    const junction: DiagramPoint = [x(to), Math.round(height.get(to)!)];
+    const valve: DiagramPoint = [Math.round(junction[0] - length * scale), Math.round(middle(row))];
+    tubes.push({
+      points: [valve, [junction[0], valve[1]], junction],
+      thickness: thickness(diameter),
+      kind: 'primary',
+      collector,
+    });
+    return { cylinder, collector, row, valve };
+  });
+  return deepFreeze({ primaries: drawn, tubes, outlets });
 }

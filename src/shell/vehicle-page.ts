@@ -2,6 +2,7 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
+import { exhaustExtent } from '../view/exhaust-diagram.js';
 
 // SELECT VEHICLE's layout: every position, scale and time its frame and pages draw by. Pixel positions are in the
 // 320×240 frame; text positions in the 40×30 text grid, 8 pixels to a cell.
@@ -93,10 +94,7 @@ export const SIDE_VIEW = Object.freeze({
   loadFirstColumn: 22,
   loadLastColumn: 36,
 });
-/**
- * ENGINE's moving drawings run `SLOW_MOTION` times slower than real: the engine turns at idle and the exhaust's
- * pulses travel at the speed of sound, both slowed alike, so their timing keeps its real ratio.
- */
+/** ENGINE's firing runs `SLOW_MOTION` times slower than real, the engine turning at idle. */
 export const SLOW_MOTION = 30;
 /** The bank colors of the firing strip's ticks and the exhaust's primaries, by junction number in turn. */
 export const BANK_PALETTES = Object.freeze([
@@ -124,21 +122,37 @@ export const FIRING_STRIP = Object.freeze({
   noteRow: 28,
 });
 /**
- * The exhaust diagram at the player depth's 40 px/m, its longest primary starting at x `left`, its primaries from
- * text row `firstRow`; the heading on `headingRow` (`EXHAUST` at column 20, the form at `formColumn` and `cm` at
- * `unitColumn`), each primary's length in centimetres at column 20, and `PIPE` with the pipes' lengths on `pipeRow`
- * from `pipeColumn`.
+ * The exhaust diagram in columns 20–39: `EXHAUST` and the form on `headingRow` (the form at `formColumn`); `cm` and `mm`
+ * heading the primaries' lengths, right-aligned in columns 20–22, and diameters, in columns 23–25, on `legendRow`; a
+ * primary a row from `firstRow`; the pipes' values within columns `pipeFirstColumn`–`pipeLastColumn`; the valve on
+ * `valveRow` and the scale marks on `scaleRow`. Tubes run from the leftmost
+ * valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsPerSquareMeter` across
+ * (a 60 mm pipe 12 pixels), laid `gap` apart where a junction splits.
  */
 export const EXHAUST_DIAGRAM = Object.freeze({
-  left: 192,
-  firstRow: 16,
-  outletSpacing: 6,
   headingRow: 14,
   formColumn: 28,
-  unitColumn: 37,
-  pipeRow: 29,
-  pipeColumn: 25,
+  legendRow: 15,
+  lengthColumn: 20,
+  diameterColumn: 23,
+  firstRow: 16,
+  pipeFirstColumn: 26,
+  pipeLastColumn: 39,
+  valveRow: 28,
+  scaleRow: 29,
+  left: 216,
+  right: 314,
+  pixelsPerSquareMeter: 12 / (Math.PI * 0.03 ** 2),
+  gap: 2,
 });
+/**
+ * The one length scale of every vehicle's exhaust diagram: the largest whole pixels per metre at which the catalog's
+ * farthest-reaching exhaust, from its leftmost valve to its farthest open end, fits between `left` and `right`.
+ */
+export function exhaustPixelsPerMeter(vehicles: readonly CompiledVehicleDefinition[]): number {
+  const extent = Math.max(...vehicles.map((vehicle) => exhaustExtent(vehicle.sound)));
+  return Math.floor((EXHAUST_DIAGRAM.right - EXHAUST_DIAGRAM.left) / extent);
+}
 /** The listed era, market and specification: labels at column 0, values at column 5, wrapped by words. */
 export const LISTING_COLUMNS = Object.freeze({ label: 0, value: 5 });
 /** A lighter grey than DARK, for axes (RGB555 22, 22, 22). */
@@ -148,7 +162,8 @@ export const DIM = 12 | (12 << 5) | (12 << 10);
 
 /**
  * What a page draws from: the frame and text under it, the shown vehicle, the fuel-cut entry ratio, the fixed steps
- * since the vehicle was shown, and the free-revving engine's speed (RPM) on a page that revs it, otherwise null.
+ * since the vehicle was shown, the free-revving engine's speed (RPM) on a page that revs it, otherwise null, and the
+ * exhaust diagram's scale.
  */
 export interface VehiclePageScene {
   readonly frame: SoftwareSurface;
@@ -157,6 +172,8 @@ export interface VehiclePageScene {
   readonly fuelCutEnterRedlineRatio: number;
   readonly shownSteps: number;
   readonly engineRpm: number | null;
+  /** The exhaust diagram's one length scale (`exhaustPixelsPerMeter`). */
+  readonly exhaustPixelsPerMeter: number;
 }
 
 /**

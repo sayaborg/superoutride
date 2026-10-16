@@ -142,6 +142,8 @@ export function createVehicleScreen(
     entry: boolean;
     /** A picture the page stands over, shaded by `WALLPAPER_SHADE`; null for the plain background. */
     background: TilePicture | null;
+    /** The exhaust diagram's one length scale, the whole catalog's (`exhaustPixelsPerMeter`). */
+    exhaustPixelsPerMeter: number;
   },
   actions: { confirm(vehicle: CompiledVehicleDefinition, color: string | null): void; back(): void },
 ): Screen {
@@ -273,6 +275,7 @@ export function createVehicleScreen(
         fuelCutEnterRedlineRatio,
         shownSteps,
         engineRpm: engine?.powertrain.engineRpm ?? null,
+        exhaustPixelsPerMeter: choice.exhaustPixelsPerMeter,
       });
       text.draw(frame);
       if (engine) sound(observation);

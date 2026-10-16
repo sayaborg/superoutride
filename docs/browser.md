@@ -319,12 +319,11 @@ it crosses each curve, in the curve's color; they are drawn over the curves and 
 | `IDLE`, `REDLINE` | `1000rpm`    | `idleRpm`, `redlineRpm`                                   |
 | `CUT`             | `7140rpm`    | the fuel-cut entry, `fuelCutEnterRedlineRatio` × redline  |
 
-The firing and the exhaust move in slow motion, 30 times slower than real: the engine turns at `idleRpm`, a cycle
-taking `cycleRevolutions` × 60 × 30 / `idleRpm` seconds, and the exhaust's pulses travel at `ACOUSTICS.waveSpeed`, the
-speed the exhaust's sound uses, slowed alike, so their timing keeps its real ratio. Their time is counted in fixed steps
-since the vehicle was shown, from the cycle's start. A cylinder fires at its `firingPhases` entry and stays lit for
-4 % of a cycle after it. Its bank is its cylinder-side junction (its primary's `to`), colored by junction number YELLOW,
-RED, GREEN and WHITE in turn.
+The firing moves in slow motion, 30 times slower than real: the engine turns at `idleRpm`, a cycle taking
+`cycleRevolutions` × 60 × 30 / `idleRpm` seconds, counted in fixed steps since the vehicle was shown, from the cycle's
+start. A cylinder fires at its `firingPhases` entry and stays lit for 4 % of a cycle after it. Its bank is its
+primary's collector (`exhaustCollectors`: the junction its primary enters, a log manifold's ports one collector),
+colored by collector number YELLOW, RED, GREEN and WHITE in turn.
 
 FIRING: row 22 has `FIRING` (DARK) and, at column 8, the crank degrees between firings in firing order as their
 shortest repeating run: `EVEN 120` when all are equal, the cycle's degrees for a single cylinder (`360`), otherwise the
@@ -334,33 +333,42 @@ color from y 192, and WHITE from y 188 while lit. The engine's place is a dotted
 `CRANK DEG` at column 5 and the cycle's degrees right-aligned in columns 16–18 (DARK), and row 28 has `IDLE x1/30`
 (DARK).
 
-EXHAUST: row 14 has `EXHAUST` at column 20 (DARK), the exhaust's form at column 28 (WHITE) and `cm` at column 37
-(DARK). The form counts the flows stage by stage: the cylinders, then the junctions at each depth reached from them
-along pipes from `from` to `to`, then the open ends leaving the last. Neighbouring stages with equal counts are one
-stage, and a single stage is written twice, so the vehicles read `12-4-2-4`, `6-2-1`, `8-1-2-4`, `4-1`, `4-2-1-2`,
-`4-2-1`, `2-2`, `2-1` and `1-1`. Row 29 has `PIPE` at column 20 (DARK) and each pipe's length in centimetres, joined by
-`/`, at column 25 (WHITE), cut at the grid's last column.
+EXHAUST: row 14 has `EXHAUST` at column 20 (DARK) and the exhaust's form at column 28 (WHITE). The form counts the
+flows stage by stage: the cylinders, their collectors, then the junctions at each depth reached from them along pipes
+from `from` to `to`, then the open ends leaving the last. Neighbouring stages with equal counts are one stage, and a
+single stage is written twice, so the vehicles read `12-4-2-4`, `6-2-1`, `8-2-1-2-4`, `4-1`, `4-2-1-2`, `4-2-1`, `2-2`,
+`2-1` and `1-1`. Row 15 heads the primaries' values, `cm` at column 21 and `mm` at column 24 (DARK). Row 28 has `VALVE`
+at column 20 (DARK) and, at column 26, the valve's diameter to a tenth of a millimetre and its open crank angle,
+`open` × `cycleRevolutions` × 360 (`39.6mm 280DEG`, WHITE). Row 29 has the scale marks: `1m` at column 20 (DARK) and a
+metre as a WHITE line with end ticks from x 184, and `50mm` at column 28 (DARK) and a 50 mm pipe a metre long from
+x 264.
 
-The exhaust is drawn at the player depth's 40 px/m, true to its lengths
-(`src/view/exhaust-diagram.ts`; the screen makes it once for each engine sound):
+Every vehicle's exhaust is drawn at one length scale and one cross-section scale (`src/view/exhaust-diagram.ts`; the
+screen makes the diagram once for each engine sound): the largest whole pixels per metre at which the catalog's
+farthest-reaching exhaust, from its leftmost valve to its farthest open end, fits between x 216 and x 314 (24 px/m for
+GOLF GTI 16V's 4.03 m), and a thickness proportional to the cross-section, a 60 mm pipe 12 pixels and none under 1:
 
-- Primaries take a text row each from row 16, grouped by junction in junction order with an empty row between groups,
-  in cylinder order, each running along its row's middle. Each primary's length in centimetres stands right-aligned in
-  columns 20–22 (WHITE) on the rows above row 29. Exhausts written to their tailpipes run past the screen's edge and
-  rows; [NEXT](NEXT.md) schedules the diagram's redrawing (EX-6).
-- Every cylinder-side junction stands where the longest primary ends (x 192 plus that primary's length), at the middle
-  of its primaries' rows. Each primary starts its own length before it, so unequal primaries show as staggered starts.
-- A pipe runs level from its `from` junction, then upright to its `to` junction. A downstream junction stands at the
-  farthest end of the pipes into it, at the mean height of the junctions they come from. A junction is placed once
-  every pipe into it from a placed junction has been, or, in a loop, once any has. Junctions the cylinders do not
-  reach this way are not drawn.
-- Open ends run level for their length, those leaving one junction 6 pixels apart about its height, each ending in a
-  grey outlet 5 pixels wide.
-- Pipes are tubes 3 pixels thick: the middle in the pipe's color, the side above or left halfway to white, the side
-  below or right at half brightness. Primaries are in their bank's color and the other pipes grey.
-- Each cylinder is a block of 6×7 pixels just before its primary, DIM edged in its bank's color, WHITE while lit.
-- Each firing sends a pulse, a WHITE dot with a grey trail, from the primary's start along every way to an open end,
-  splitting at each branch, never through a junction twice. It is gone past the end.
+- Every tube runs level for its own length; uprights join it to the next junction's height and carry no length. Along
+  pipes between junctions, `to` stands its pipe's length after `from` (a loop's closing pipe as it falls), and each
+  group of junctions the cylinders reach shifts so its leftmost valve, junction or open end stands at x 216. Junctions
+  the cylinders do not reach are not drawn.
+- Primaries take a text row each from row 16, each running along its row's middle from its valve to its junction, so
+  unequal primaries show as staggered valves. Their order is that of their junctions going upstream from each last
+  junction (one no pipe leaves for another junction), pipes into a junction before its own primaries, so a merge's
+  primaries stand together and a log manifold's ports step down along it. Each primary's length in centimetres stands
+  right-aligned in columns 20–22 and its diameter in millimetres in columns 23–25 (WHITE).
+- A junction stands at the mean height of its primaries, or else of the junctions whose pipes enter it. A pipe runs
+  level from its `from` junction, then upright to its `to` junction. The pipes leaving a junction for open ends, or for
+  junctions that pipe alone enters and no primary, stand side by side about its height, each as wide as what it
+  carries, 2 pixels apart; open ends end in a grey outlet 5 pixels wide.
+- Tubes 3 pixels thick or more are shaded: the side above or left halfway to white, the middle in the tube's color, the
+  side below or right at half brightness; thinner ones are a flat band. Primaries are in their bank's color and the
+  other pipes grey. A tube reaches half its thickness past each corner, but not past a valve or an open end.
+- Each cylinder is a block of 6×7 pixels just before its valve, DIM edged in its bank's color, WHITE while lit.
+- Each pipe's length and diameter, `315/50` (DARK), stands in the text row above, or else below, the rows of its longest
+  level piece, over it and as near its centre as columns 26–39 and rows 15–27 allow, in cells holding nothing drawn or
+  written and not just after written text; longest pipes first. A pipe with no such place has no value: the scale marks
+  read it.
 
 #### DRIVETRAIN
 
