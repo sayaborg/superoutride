@@ -34,7 +34,10 @@ export interface RenderMeasurements {
   spriteWrittenPixels: number;
   playerOutputSamples: number;
   playerWrittenPixels: number;
-  /** The player's reference point on screen; the renderer's projection is its one authority. */
+  /**
+   * The player's reference point on screen; the renderer's projection is its one authority. A render without a player
+   * measures NaN here, and -1 for its variants.
+   */
   playerScreenX: number;
   playerScreenY: number;
   playerYawVariant: number;
@@ -71,16 +74,21 @@ interface RenderScene {
   readonly background: { draw(target: SoftwareSurface, camera: PseudoCamera): void };
   readonly guide: { readonly coordinates: PlanCoordinateReader };
   readonly camera: PseudoCamera;
-  readonly vehicle: VehicleRenderRead;
-  /** The player picture's anchor: its base point (`basePoint`). */
-  readonly playerBase: BasePoint;
-  /** The player's shadow place. */
-  readonly playerShadow: SpriteShadowPlace;
+  /** The player, drawn last among world visuals; null draws none (the footage tool's replay). */
+  readonly player: RenderPlayer | null;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: readonly CourseSprite[];
   /** The visible walls on the resident Route. */
   readonly walls: readonly RouteWall[];
-  readonly playerSet: VehicleSpriteImages;
+}
+
+interface RenderPlayer {
+  readonly vehicle: VehicleRenderRead;
+  /** The player picture's anchor: its base point (`basePoint`). */
+  readonly base: BasePoint;
+  /** The player's shadow place. */
+  readonly shadow: SpriteShadowPlace;
+  readonly set: VehicleSpriteImages;
 }
 
 export function createRenderWorkspace() {
@@ -109,18 +117,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  {
-    background,
-    guide,
-    camera,
-    vehicle,
-    playerBase,
-    playerShadow,
-    terrainParameters,
-    worldSprites,
-    walls,
-    playerSet,
-  }: RenderScene,
+  { background, guide, camera, player, terrainParameters, worldSprites, walls }: RenderScene,
   { ground, workspace }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
@@ -129,9 +126,9 @@ export function renderDriving(
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   background.draw(target, renderCamera);
   const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
-  const playerProjection = pseudoProject(playerBase, camera);
-  const relativeYaw = wrapAngle(vehicle.yaw - renderCamera.yaw);
-  const selected = selectVehicleSprite(playerSet, relativeYaw, deriveVehicleLeanRadians(vehicle));
+  const playerProjection = player && pseudoProject(player.base, camera);
+  const relativeYaw = player ? wrapAngle(player.vehicle.yaw - renderCamera.yaw) : NaN;
+  const selected = player && selectVehicleSprite(player.set, relativeYaw, deriveVehicleLeanRadians(player.vehicle));
   // Every drawn picture with a shadow place casts its level's shadow on the road beneath it, drawn into the ground rows.
   const shadows = workspace.shadows,
     pool = workspace.shadowPool,
@@ -148,7 +145,7 @@ export function renderDriving(
   };
   for (const sprite of sprites)
     if (sprite.shadow) cast(sprite.asset, sprite.x, sprite.z, sprite.sRender, sprite.shadow);
-  cast(selected.asset, playerBase.x, playerBase.z, playerBase.s, playerShadow);
+  if (player) cast(selected!.asset, player.base.x, player.base.z, player.base.s, player.shadow);
   // Walls reaching the visible interval; each paints a column after every terrain row at its stations.
   const shownWalls = workspace.walls,
     wallX = workspace.wallX,
@@ -203,13 +200,9 @@ export function renderDriving(
     },
   );
 
-  const playerStats = drawScaledSprite(
-    target,
-    selected.asset,
-    playerProjection.x,
-    playerProjection.y,
-    playerProjection.scale,
-  );
+  const playerStats = selected
+    ? drawScaledSprite(target, selected.asset, playerProjection!.x, playerProjection!.y, playerProjection!.scale)
+    : { outputSamples: 0, writtenPixels: 0 };
 
   // Only a measured render keeps the frame's measurements; the product render leaves them.
   if (!measurements) return;
@@ -222,10 +215,10 @@ export function renderDriving(
   measurements.spriteWrittenPixels = spriteWrittenPixels;
   measurements.playerOutputSamples = playerStats.outputSamples;
   measurements.playerWrittenPixels = playerStats.writtenPixels;
-  measurements.playerScreenX = playerProjection.x;
-  measurements.playerScreenY = playerProjection.y;
-  measurements.playerYawVariant = selected.yawIndex;
-  measurements.playerBankVariant = selected.bankIndex;
+  measurements.playerScreenX = playerProjection?.x ?? NaN;
+  measurements.playerScreenY = playerProjection?.y ?? NaN;
+  measurements.playerYawVariant = selected?.yawIndex ?? -1;
+  measurements.playerBankVariant = selected?.bankIndex ?? -1;
   measurements.playerRelativeYaw = relativeYaw;
   measurements.spriteOutputSamplesIncludingPlayer = spriteOutputSamples + playerStats.outputSamples;
   measurements.spriteWrittenPixelsIncludingPlayer = spriteWrittenPixels + playerStats.writtenPixels;

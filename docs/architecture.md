@@ -537,7 +537,9 @@ frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).
 The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
 Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
 beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites. The player
-is last among world visuals.
+is last among world visuals. A frame may be drawn without a player, its picture and its shadow: the footage tool's
+replay draws the course alone ([Courses from footage](footage.md#replay-comparison)); its measurements then hold NaN
+for the player's point and -1 for its variants.
 
 ### Shadows
 

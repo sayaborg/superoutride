@@ -8,9 +8,12 @@ export interface TileBackground {
   readonly yawOriginRadians: number;
 }
 
-/** The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the focal length. */
+/**
+ * The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the camera's background
+ * scroll, its focal length unless it gives another.
+ */
 export function backgroundPan(background: TileBackground, camera: PseudoCamera): number {
-  return Math.round(camera.focalLength * (camera.yaw - background.yawOriginRadians));
+  return Math.round((camera.backgroundScroll ?? camera.focalLength) * (camera.yaw - background.yawOriginRadians));
 }
 
 /**

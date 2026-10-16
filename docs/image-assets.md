@@ -121,7 +121,8 @@ translation has no effect. Vertically the mapping is linear: the screen horizon 
 ([projection](architecture.md#height-and-projection)) meets the image's horizon row, each screen row shows one
 image row (`imageY = round(imageHorizonY + y - horizonY)`), and rows beyond the image's top or bottom repeat its
 edge row. Horizontally it scrolls at the camera's focal length, `f` pixels per radian of camera yaw from the yaw origin, as
-distant road and sprites do, and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
+distant road and sprites do (a camera may give another rate: only the footage tool's
+[fake footage](footage.md#fake-footage-and-the-round-trip-test) does, as an original's background may scroll at its own), and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
 closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
 

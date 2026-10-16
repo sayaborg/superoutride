@@ -77,12 +77,15 @@ export function createCourseScene(
     },
     render(
       target: Parameters<typeof renderDriving>[0],
-      /** The player the viewer follows, its pictures in its color and lamp state and its body's half diagonal. */
+      /**
+       * The player the viewer follows, its pictures in its color and lamp state and its body's half diagonal; null
+       * draws the course without one.
+       */
       player: {
         readonly vehicle: VehicleRenderRead & BaseBody;
         readonly set: VehicleSpriteImages;
         readonly reach: number;
-      },
+      } | null,
       camera: CameraState,
       /** Every other vehicle's picture, its shadow place included. */
       others: readonly CourseSprite[],
@@ -144,22 +147,25 @@ export function createCourseScene(
             show(occurrence.start + k.at!.s, k.at!.l - occurrence.lateralOrigin, pictures.landed);
       }
       for (const sprite of others) worldSprites.push(sprite);
-      const { vehicle } = player;
-      playerShadow.y = readers.height.sample(vehicle.course.s);
-      playerShadow.reach = player.reach;
+      if (player) {
+        playerShadow.y = readers.height.sample(player.vehicle.course.s);
+        playerShadow.reach = player.reach;
+      }
       return renderDriving(
         target,
         {
           background: backgrounds.frame(renderData.environmentAt(camera.s)),
           guide: readers,
           camera,
-          vehicle,
-          playerBase: basePoint(readers.coordinates, vehicle, playerBase, baseSample),
-          playerShadow,
+          player: player && {
+            vehicle: player.vehicle,
+            base: basePoint(readers.coordinates, player.vehicle, playerBase, baseSample),
+            shadow: playerShadow,
+            set: player.set,
+          },
           terrainParameters,
           worldSprites,
           walls: renderData.walls,
-          playerSet: player.set,
         },
         { ground: renderData.ground, workspace: renderWorkspace },
         measurements,
