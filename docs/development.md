@@ -452,7 +452,9 @@ each takes `--out`, a root in place of `reference-media/`:
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `fake`      | Draw the fake original's videos and truth (`--video` names some; `--seconds` keeps their start; `--exact n` also writes every nth game frame and the next; `--no-video` skips encoding) |
 | `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                                                                                                  |
-| `features`  | Measure each frame's features                                                                                                                                                           |
+| `colors`    | List the colors a video's frames are drawn in, for a person to give the ground's their roles                                                                                            |
+| `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                                                      |
+| `noise`     | For fake footage: each feature's capture noise, the video's frames against the exact ones (`fake --exact`)                                                                              |
 | `calibrate` | Make the original's footage model from its first course's videos, or check a later course's videos against it                                                                           |
 | `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video                                                                             |
 | `replay`    | Draw a video's replay and its side-by-side with the video                                                                                                                               |

@@ -178,43 +178,96 @@ their places and sizes.
 
 ## Capture values
 
-Each video's capture values are numbers saved in the footage observations: the crop and integer or fractional scale
-from video pixels to game pixels (and the black margins), whether the scaling is nearest or smooth (smooth costs
-accuracy, which is reported), the color range (limited or full) and matrix (BT.601 or BT.709), the frame count and
-duration, and the original's update period. A video's frame timestamps stay in `reference-media/`.
+Each video's capture values (`superoutride.footage-capture` version 1, `capture.json` beside its frames, and saved in
+the footage observations) are numbers alone:
+
+- `video`: its file name, SHA-256 and size;
+- `grid`: on each axis the first game pixel's edge in video pixels (`origin`), video pixels per game pixel (`period`,
+  whole or fractional), the game pixels (`count`, so the black margins are what lies outside), and `onGrid`, the share of
+  edge energy on the grid's boundaries: near 1 when scaled by nearest pixels, lower when smoothed, which costs accuracy
+  and is reported;
+- `color`: the range (`limited` or `full`) and matrix (`bt601` or `bt709`) taken, with every candidate's lattice error;
+- `frames`: the count, the duration and the original's update period.
+
+Each frame's timestamp, whether the original updated it and its difference from the frame before stay in `frames.json`
+in `reference-media/`.
 
 ## Ingest
 
-A video is placed at `reference-media/<game>/<course>/<video>/` and cut into game-pixel PNG frames there:
+`ingest` cuts a video at `reference-media/<game>/<course>/<video>/` into game-pixel PNG frames there (`frames/`):
 
-- **Times and size.** ffprobe gives each frame's timestamp and the video's size.
-- **Pixel grid.** The scale and phase of the game pixel grid, and the margins, are estimated and undone.
-- **Update period.** Repeated frames give the original's update period (a game that draws at 30 Hz, say); only frames
-  that update are tracked.
-- **Color decoding.** Of the four range and matrix choices, the one whose color cluster centres fall nearest the RGB555
-  lattice is taken. Thin lines bleed under reduced chroma resolution, so a color is read from inside its area and an
-  edge's position from luminance.
+- **Times and size.** ffprobe gives each frame's timestamp, the video's size and its pixel format; footage is 8-bit
+  4:2:0 (`yuv420p`, or `yuvj420p`), decoded raw, never converted, so range and matrix are measured.
+- **Pixel grid.** From about 120 frames spread over the video: margins are the outer lines whose brightest luma is of
+  the dark kind, when the lines' brightest values are two kinds by BIC. Between them, the period (1.25 to 8 video pixels)
+  and phase are those whose boundaries gather the most luma-change energy beyond an even spread, counted in windows just
+  under one video pixel so that an aliased period cannot gather two boundaries; origin and period are then fitted to
+  the boundary columns by energy-weighted least squares.
+- **Game pixels.** Each game pixel's Y is the mean of its video pixels' interior (its outer ring left out once it is
+  wider than two), its U and V the mean of the chroma samples inside it, or the one nearest its centre: thin features
+  bleed under reduced chroma resolution, and this reads a color from inside its area.
+- **Color decoding.** Of the four ranges and matrices, the one under which game pixels in even areas (whose neighbours
+  share their luma within 2 levels) lie nearest the RGB555 lattice.
+- **Update period.** Frames whose luma differs from the frame before by a repeat's compression noise are repeats when the
+  log differences are two kinds by BIC; the update period is the most frequent spacing between updates (a still
+  original, such as a countdown, also repeats).
 
 ## Features
 
-Features are numbers per frame, saved only in `reference-media/`:
+A person first reads the color census (`colors`): every RGB555 color the frames are drawn in with its share. A decoded
+pixel goes to its nearest lattice color; one within three noise deviations of a more frequent one joins it; what
+remains is kept when BIC prefers it to an even scatter of the rest. The person writes each ground color's roles in the
+footage model (`road`, `line`, `rumble`, `verge`, `ground`, `median` and `shadow`; one color may hold several, as a white
+for lines and rumble stripes), the HUD's readouts and event places with their ink colors, and the masks, and cuts the HUD
+templates (each digit's and event's ink colors by letter, `.` for ground) into `reference-media/<game>/hud-templates.json`.
 
-- **Color clusters.** Ground pixels outside the masks are clustered; the number of clusters is chosen by BIC, and
-  clusters with one RGB555 value merge. Roles are assigned by a person looking at frames and written in the footage
-  model; a game whose colors change along a course may change each role's color.
-- **Masks.** The HUD, the player's vehicle and its shadow, and pixels of no ground cluster (traffic, sprites) are masked;
-  edges touching a mask are not used.
-- **Rows.** From each row's cluster sequence: the road's left and right edges, lane lines (position and width), rumble
-  strips and medians, to a fraction of a pixel by luminance interpolation.
-- **Ground top and horizon.** The row where the ground ends (a crest cuts the road) and the horizon (the background's
-  lower edge, or the edges' meeting point on level ground).
-- **Stripes.** The rows of light–dark changes, followed in time.
-- **Background.** The background's horizontal and vertical shift between frames, by phase correlation.
-- **HUD.** The speed readout read by template matching (the templates are made by a person from frames); the clock,
-  when shown, checks time.
-- **Landmarks.** A background change's passing time, extrapolated to `d → 0` and converted to `s`; the times of HUD events
-  (time added, a new stage shown and so on).
-- **Player.** The row of the player picture's base point, which measures `D′`.
+`features` then measures every frame into `features.jsonl` beside its frames, one JSON line per frame:
+
+- **Rows.** The original draws each row as runs of single colors; the video rings around every edge (H.264 errs by
+  10–20 levels of luma there, against about 1 in even areas) and bleeds chroma across it. A row is therefore read as
+  the piecewise-constant sequence of the model's colors, or no known color, of greatest likelihood (a Viterbi pass): a
+  pixel of a known color lies about it by a Student t of one degree of freedom in luma and color difference at the
+  even-area noise ingest measured (heavy tails take ringing in), a pixel of no known color anywhere in the 255³ cube
+  alike, and each new segment costs its two parameters (where, which color) by BIC. Between road segments, a line color
+  the pixels cannot tell from the segment's own within one more parameter's cost is taken (a white dash and a white
+  rumble stripe may differ only in luma). Each edge between two known colors lies where luma, interpolated between
+  pixel centres, crosses midway between their lumas, so edges are read to a fraction of a pixel; a row index `y` is
+  seen at its centre, `y + 0.5`, and an edge at `x` is the continuous column `x`. Masked pixels are never measured.
+- **Roads.** A road is a sequence of road and line segments with road among them, continuing under a mask; its edge is measured only where the
+  segment beside it is a clean ground color (not unknown, masked, road or line) and its own end segment is road, or a
+  line color that is nothing else (a white that may also be a rumble stripe could lie outside the edge). Each road keeps
+  its most common road color, whose change between rows is a stripe edge. Lines are line segments with road on both
+  sides (centre and width); rumble strips are rumble segments at a road's edge; medians are median segments between two
+  roads.
+- **Ground top.** The topmost row with road pixels (`roadTop`; a crest cuts the road there) and the topmost row whose
+  unmasked pixels are mostly ground colors (`groundTop`).
+- **Background.** The shift from the frame before above the ground (rows above `groundTop` − 2): horizontally the lag of
+  the column profile of luma changes, vertically of the row profile, each the largest cross-correlation within 40
+  (20) game pixels refined by a parabola.
+- **HUD.** Each pixel's ink letter is the ink color nearest its luma (full resolution, where chroma bleeds across thin
+  strokes) within a third of the luma distance at which a pixel stops being likelier a known color than none. Each readout
+  cell is the template nearest its letters; the speed and clock are numbers when every cell reads a digit or blank. An
+  event shows when every ink color of its template is read at more than half of that color's pixels (a misread is the
+  exception, while the scene behind, a white sign or a dark hill, matches one ink at most); of several, the one read at
+  the most pixels.
+- **Pictures.** A pixel is of no ground color when its segment has no known color, or when the segment's pixels two or
+  more pixels from both its ends (past chroma bleed and the strongest ringing) average to another RGB555 color than the
+  segment's: the row reading takes each pixel alone, so a long run of a color close to a known one (a black tyre beside
+  a shadow's dark grey) reads as that color, and its mean tells them apart.
+- **Player.** Within the player mask, the largest 8-connected component of pixels of no ground color (shadows are
+  ground's; strays such as a row the frame's edge bleeds into stand apart): the bottom edge of its lowest row and its
+  leftmost and rightmost columns.
+- **Objects.** Below `groundTop`, each 8-connected component of unmasked pixels of no ground color: its bounding columns
+  and rows, its pixel count, and whether it touches the frame's edge, a mask or the ground top.
+
+The horizon, landmarks and `D′` are measured from these by calibration and the landmark step.
+
+**Noise levels.** For fake footage, `fake --exact n` writes every nth frame and the next as the original drew them,
+and `noise` measures the same features on those frames (`exact-features.jsonl`) and on the video's frames at the same
+indices (`exact-video-features.jsonl`), and writes, per feature, the mean and variance of the video's reading less the
+exact one, with the count of readings the exact frame has and the video lacks (`noise.json`): road edges and lines
+each pair with the video's nearest of their kind within 3 game pixels; the speed's and event's mismatch rates; the
+player's bottom row and width; `roadTop`, `groundTop` and the background's shift.
 
 ## Initial estimate
 
@@ -501,6 +554,10 @@ Before any original's video, the whole procedure passes a round trip on footage 
   | `hills`  |    4 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | hills      |
   | `player` |    5 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | player     |
 
+- **What a person would write.** `fake` also writes, under `reference-media/fake/`, what a person would after looking at
+  the fake original's frames: its footage model draft (every OUTRUN TEST ground color of the truth course with its
+  roles, the halved shadows of them, the HUD's readouts and event places with their ink colors, and the masks) and its
+  HUD templates.
 - **Truth written.** `reference-media/fake/outrun-test-route/` holds the truth course document and, per video,
   `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 1): the stages and their route stations, the
   video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths, the corruption and its
