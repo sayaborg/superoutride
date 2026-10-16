@@ -124,6 +124,10 @@
   draws tubes in proportion to their diameter, each junction as one bar, shaded once as one shape. EX-10 made the
   owner's DEV ENGINE values the defaults, with MIX's `engineDriveLufs` at −24 so that the engines seldom reach the soft
   clip and `clipCeiling` at 1.
+- TN-1 is complete: sliding along a wall makes no sound, only the hit's recording sounds (the walls' sound records and
+  the solid wall's `sound` are gone, course version 52); the tire's friction sound Q follows a physical law: its feedback
+  depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
+  load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
 Next PR: [VC-3](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 

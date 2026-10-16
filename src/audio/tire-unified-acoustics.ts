@@ -1,7 +1,8 @@
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 /**
- * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve, so no value derives from physics:
- * every sound value is a listening setting (`UnifiedSettings`). Only the random seeds are structural constants.
+ * UNIFIED is an authored acoustic surrogate, NOT a local rubber/contact solve. The friction mapping's form follows from
+ * physics (`FrictionSynthesis`); every value is a listening setting (`UnifiedSettings`). Only the random seeds are
+ * structural constants.
  */
 export const UNIFIED_SYNTHESIS = Object.freeze({
   frontSeed: 0x3547ab91,
@@ -14,15 +15,12 @@ export const UNIFIED_SYNTHESIS = Object.freeze({
  */
 export const UNIFIED_SETTING_RANGES = Object.freeze({
   feedbackMaximumPerSecond: { min: 2000, max: 12000, step: 100 },
-  powerReferenceWatts: { min: 3000, max: 30000, step: 500 },
-  // The forcing of the roughest friction input (roughness 1) at full work.
-  noiseForcePerSecond: { min: 0, max: 4800, step: 50 },
+  // The forcing of the roughest friction input (roughness 1) at a friction power per load of 1 m/s.
+  noiseForcePerSecond: { min: 0, max: 15000, step: 50 },
   lowFrequencyHz: { min: 275, max: 600, step: 5 },
   highFrequencyHz: { min: 800, max: 2400, step: 25 },
-  // Displacement pickup gain; normalized modal displacement is not metres or acoustic pressure.
-  outputGainPerSecond: { min: 0, max: 1800, step: 25 },
-  // Cubic feedback dissipation.
-  saturationPerSecond: { min: 3000, max: 12000, step: 100 },
+  // Displacement pickup gain per √(load / 1 kN); modal displacement is not acoustic pressure.
+  outputGainPerSecond: { min: 0, max: 85, step: 0.5 },
   slipHalfMps: { min: 1, max: 12, step: 0.25 },
   slipRolloffMps: { min: 20, max: 80, step: 1 },
   // Colored-force bandwidth.

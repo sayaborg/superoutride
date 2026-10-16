@@ -242,25 +242,26 @@ least value is one step, 0.01, since excitation divides the pulse rise time.
 
 ## UNIFIED tire settings
 
-[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) supplies these friction-model listening settings.
-`powerReferenceWatts` is the accepted-work half-response point; output gain independently sets level.
+[UNIFIED acoustics](../src/audio/tire-unified-acoustics.ts) supplies these friction-model listening settings, for the
+mapping in [Tire audio](tire-audio.md#work-and-slip-mapping). `noiseForcePerSecond` and `outputGainPerSecond` are the
+values of the mapping K chose by listening (TN-1): they match the version 7 sound's level in an ordinary corner (rear
+tire, 1.25 m/s, 15 kW, 10 kN) and its share of squeal in a large slide (12 m/s, 150 kW, 10 kN: about 76 % of the
+20–8000 Hz energy within 700–1400 Hz).
 
-| Key                         | Meaning                                                   | Default               | Range / step         |
-| --------------------------- | --------------------------------------------------------- | --------------------- | -------------------- |
-| `feedbackMaximumPerSecond`  | Maximum positive friction feedback                        | 8500 s⁻¹              | 2000–12000 / 100     |
-| `powerReferenceWatts`       | Work half-response                                        | 12000 W               | 3000–30000 W / 500 W |
-| `noiseForcePerSecond`       | Colored force of the roughest input (roughness 1)         | 2400 s⁻¹              | 0–4800 / 50          |
-| `lowFrequencyHz`            | Low passive-mode frequency                                | 300 Hz                | 275–600 Hz / 5 Hz    |
-| `highFrequencyHz`           | High passive-mode frequency                               | 1000 Hz               | 800–2400 Hz / 25 Hz  |
-| `outputGainPerSecond`       | Displacement-pickup gain                                  | 900 s⁻¹               | 0–1800 / 25          |
-| `saturationPerSecond`       | Cubic feedback dissipation                                | 6000 s⁻¹              | 3000–12000 / 100     |
-| `slipHalfMps`               | Feedback slip half-response                               | 3 m/s                 | 1–12 m/s / 0.25      |
-| `slipRolloffMps`            | High-slip feedback rolloff                                | 45 m/s                | 20–80 m/s / 1        |
-| `noiseBandwidthHz`          | Colored-force bandwidth                                   | 600 Hz                | 100–2000 Hz / 25     |
-| `outputCutoffHz`            | Friction output-filter cutoff                             | 8000 Hz               | 1000–12000 Hz / 100  |
-| `resonanceDampingPerSecond` | Damping of both passive modes                             | `2*pi*500` ≈ 3142 s⁻¹ | 500–12000 / 50       |
-| `lowParticipation`          | Low-mode participation; the high mode uses `sqrt(1-low²)` | 0.45                  | 0.05–0.95 / 0.01     |
-| `dcHz`                      | Friction output DC removal                                | 18 Hz                 | 5–60 Hz / 1          |
+| Key                         | Meaning                                                   | Default               | Range / step        |
+| --------------------------- | --------------------------------------------------------- | --------------------- | ------------------- |
+| `feedbackMaximumPerSecond`  | Maximum positive friction feedback                        | 8500 s⁻¹              | 2000–12000 / 100    |
+| `noiseForcePerSecond`       | Colored force of the roughest input at 1 m/s power/load   | 7450 s⁻¹              | 0–15000 / 50        |
+| `lowFrequencyHz`            | Low passive-mode frequency                                | 300 Hz                | 275–600 Hz / 5 Hz   |
+| `highFrequencyHz`           | High passive-mode frequency                               | 1000 Hz               | 800–2400 Hz / 25 Hz |
+| `outputGainPerSecond`       | Displacement-pickup gain per √(load / 1 kN)               | 42.5 s⁻¹              | 0–85 / 0.5          |
+| `slipHalfMps`               | Feedback slip half-response                               | 3 m/s                 | 1–12 m/s / 0.25     |
+| `slipRolloffMps`            | High-slip feedback rolloff                                | 45 m/s                | 20–80 m/s / 1       |
+| `noiseBandwidthHz`          | Colored-force bandwidth                                   | 600 Hz                | 100–2000 Hz / 25    |
+| `outputCutoffHz`            | Friction output-filter cutoff                             | 8000 Hz               | 1000–12000 Hz / 100 |
+| `resonanceDampingPerSecond` | Damping of both passive modes                             | `2*pi*500` ≈ 3142 s⁻¹ | 500–12000 / 50      |
+| `lowParticipation`          | Low-mode participation; the high mode uses `sqrt(1-low²)` | 0.45                  | 0.05–0.95 / 0.01    |
+| `dcHz`                      | Friction output DC removal                                | 18 Hz                 | 5–60 Hz / 1         |
 
 Resolution also requires `resonanceDampingPerSecond/2 < 2*pi*lowFrequencyHz`, so both modes stay underdamped;
 the DEV slider keeps its previous value when a change would break it. Control following uses the TIMING

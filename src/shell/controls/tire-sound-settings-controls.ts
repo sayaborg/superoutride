@@ -13,12 +13,10 @@ import { createSoundSettingsPanel, mountSoundSettingsPanel } from './sound-setti
 // Labels only: audio owns defaults, bounds and validation. These are not physical tire settings.
 const UNIFIED_LABELS = {
   feedbackMaximumPerSecond: ['Self-excitation strength', '/s'],
-  powerReferenceWatts: ['Friction power reference', 'W'],
-  noiseForcePerSecond: ['Input noise strength', '/s'],
+  noiseForcePerSecond: ['Friction forcing at 1 m/s power per load', '/s'],
   lowFrequencyHz: ['Low mode natural frequency', 'Hz'],
   highFrequencyHz: ['High mode natural frequency', 'Hz'],
-  outputGainPerSecond: ['Friction Q output gain', '/s'],
-  saturationPerSecond: ['Self-excitation saturation (cubic dissipation)', '/s'],
+  outputGainPerSecond: ['Output gain per √kN', '/s'],
   slipHalfMps: ['Slip at half self-excitation', 'm/s'],
   slipRolloffMps: ['Excitation roll-off at high slip', 'm/s'],
   noiseBandwidthHz: ['Input noise bandwidth', 'Hz'],

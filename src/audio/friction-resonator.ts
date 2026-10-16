@@ -8,14 +8,14 @@ interface Resonance {
 interface Parameters {
   readonly resonances: readonly Resonance[];
   readonly feedbackMaximumPerSecond: number;
-  readonly saturationPerSecond: number;
   readonly noiseBandwidthHz: number;
 }
 
 /**
  * One normalized friction port feeding passive resonances, with rank-one nonlinear feedback.
- * x=omega*q, x'=omega*v, v'=-omega*x-d*v+b*F, u=sum(b*v), sum(b²)=1.
- * F=a*u-beta*u³+sigma*noise. Energy=.5*sum(x²+v²) is a model diagnostic, not joules.
+ * x=omega*q, x'=omega*v, v'=-omega*x-d*v+b*F, u=sum(b*v), sum(b²)=1, velocities in m/s.
+ * F=a*u-(a/s²)*u³+sigma*noise: the feedback stops growing where the port's speed u reaches the slip speed s, since
+ * the vibration cannot outrun the sliding without sticking. Energy=.5*sum(x²+v²) is a model diagnostic, not joules.
  * Output is displacement at the SAME port: sum(b*x/omega), not a second oscillator/palette.
  */
 export class FrictionResonator {
@@ -39,8 +39,6 @@ export class FrictionResonator {
       !Number.isFinite(parameters.feedbackMaximumPerSecond) ||
       parameters.feedbackMaximumPerSecond <= 0 ||
       parameters.feedbackMaximumPerSecond / rate >= 1 ||
-      !Number.isFinite(parameters.saturationPerSecond) ||
-      parameters.saturationPerSecond <= 0 ||
       !Number.isFinite(parameters.noiseBandwidthHz) ||
       parameters.noiseBandwidthHz <= 0 ||
       parameters.noiseBandwidthHz >= rate / 2 ||
@@ -103,33 +101,42 @@ export class FrictionResonator {
     }
   }
 
-  private feedback(growth: number, saturation: number): void {
+  /**
+   * The exact half-step of u'=a*u-(a/s²)*u³: u e^(a*dt/2) / sqrt(1 + (u/s)²(e^(a*dt)-1)), whose fixed point is u=s.
+   * Without feedback it is the identity and reads no slip speed.
+   */
+  private feedback(growth: number, rise: number, slip: number): void {
+    if (rise === 0) return;
     let u = 0;
     for (let i = 0; i < this.v.length; i++) u += this.b[i]! * this.v[i]!;
-    // Exact u'=a*u-beta*u³ half-step, including the analytic a=0 limit.
-    const delta = u * (growth / Math.sqrt(1 + saturation * u * u) - 1);
+    const ratio = u / slip;
+    const delta = u * (growth / Math.sqrt(1 + ratio * ratio * rise) - 1);
     for (let i = 0; i < this.v.length; i++) this.v[i] = this.v[i]! + this.b[i]! * delta;
   }
 
-  sample(feedbackPerSecond: number, noiseForcePerSecond: number): number {
+  /**
+   * One sample with feedback `feedbackPerSecond` (a), slip speed `slipSpeed` (s, m/s; read only while a is positive)
+   * and noise forcing `noiseForcePerSecond` (sigma).
+   */
+  sample(feedbackPerSecond: number, slipSpeed: number, noiseForcePerSecond: number): number {
     if (
-      !Number.isFinite(feedbackPerSecond + noiseForcePerSecond) ||
+      !Number.isFinite(feedbackPerSecond + slipSpeed + noiseForcePerSecond) ||
       feedbackPerSecond < 0 ||
       feedbackPerSecond > this.parameters.feedbackMaximumPerSecond ||
+      (feedbackPerSecond > 0 && !(slipSpeed > 0)) ||
       noiseForcePerSecond < 0
     )
       throw new RangeError('invalid friction excitation');
     const exponent = feedbackPerSecond * this.dt;
     const growth = Math.exp(exponent / 2);
-    const saturation =
-      this.parameters.saturationPerSecond * this.dt * (exponent === 0 ? 1 : Math.expm1(exponent) / exponent);
+    const rise = Math.expm1(exponent);
     this.passive();
-    this.feedback(growth, saturation);
+    this.feedback(growth, rise, slipSpeed);
     this.noise = this.noisePole * this.noise + this.noiseInjection * this.random.sample();
     // Colored FORCE is integrated with dt. Applying sqrt(dt) here would count its correlation twice.
     const impulse = noiseForcePerSecond * this.noise * this.dt;
     for (let i = 0; i < this.v.length; i++) this.v[i] = this.v[i]! + this.b[i]! * impulse;
-    this.feedback(growth, saturation);
+    this.feedback(growth, rise, slipSpeed);
     this.passive();
     let displacement = 0;
     for (let i = 0; i < this.x.length; i++) displacement += (this.b[i]! * this.x[i]!) / this.omega[i]!;

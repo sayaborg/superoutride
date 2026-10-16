@@ -26,13 +26,12 @@ export class TireUnifiedSynthesis {
     this.rolling = new TireRollingSynthesis(rate, surfaces, seed, rolling);
   }
 
-  /** The tire's accepted work and slip on its surface excite Q; an unsupported tire releases it. */
+  /** The tire's slip, friction power and load on its surface excite Q; an unsupported tire releases it. */
   update(value: TireSoundObservation, surfaceIndex = 0): void {
     this.rolling.update(value, surfaceIndex);
     const slip = Math.hypot(value.wheelSpeed - value.longitudinalVelocity, value.lateralVelocity);
     const power = value.longitudinalPower + value.lateralPower;
-    if (value.load > 0) this.friction.update(power, slip, this.surfaces[surfaceIndex]!.friction);
-    else this.friction.release();
+    this.friction.update(slip, power, value.load, this.surfaces[surfaceIndex]!.friction);
   }
 
   sample(): number {

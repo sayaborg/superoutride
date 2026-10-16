@@ -12,7 +12,8 @@ const nonnegative = Object.freeze({ min: 0, max: AUDIO_PARAM_MAXIMUM });
 
 /**
  * The acoustic transport: each observation as the AudioParam carries it, any finite float32 value, signed or
- * nonnegative. The synthesis saturates every one of them (`x / (x + reference)`), so none is bounded in transport.
+ * nonnegative. The rolling synthesis saturates its inputs (`x / (x + reference)`) and the friction synthesis reads the
+ * friction power per load and the load's square root, finite for any finite input, so none is bounded in transport.
  */
 export const TIRE_SOUND_INPUTS = Object.freeze({
   longitudinalVelocity: signed,

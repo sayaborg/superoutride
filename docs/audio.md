@@ -380,8 +380,8 @@ A hit is a recording: each contact of the player's that begins plays its counter
 (`impacts/vehicle`, `impacts/wall` for a wall, a course limit or a wall's free end, `impacts/object`,
 `impacts/movable`) once on the `contact` bus, in the fixed step the contact begins, with no lookahead and no waiting
 for the contact to end. Its volume is `W / (W + reference)` of the recording's full volume, from the work `W` the
-contact's damper term dissipated, the same form as the tire's `w = P/(P+powerReferenceWatts)`; the reference work is
-one IMPACT setting ([`ImpactSettings`](../src/audio/impact-acoustics.ts)) per counterpart, since the counterparts'
+contact's damper term dissipated: linear in a small work and approaching the full volume for a large one. The reference
+work is one IMPACT setting ([`ImpactSettings`](../src/audio/impact-acoustics.ts)) per counterpart, since the counterparts'
 masses differ by orders of magnitude. There is no threshold: a small work gives a quiet hit. Impacts are decoded when
 the scene is built.
 
