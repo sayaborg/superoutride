@@ -17,6 +17,11 @@ export interface PseudoCamera {
    * move. Only the footage tool's fake footage gives another.
    */
   backgroundScroll?: number;
+  /**
+   * The background's own pose, a plane apart from the road: the yaw it turns with and the screen row its horizon stands
+   * at; absent, the camera's yaw and horizon row. Only the footage tool's fake footage gives another.
+   */
+  background?: { readonly yaw: number; readonly horizon: number };
 }
 
 interface PseudoAnchor {

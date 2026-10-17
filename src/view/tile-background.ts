@@ -9,11 +9,18 @@ export interface TileBackground {
 }
 
 /**
- * The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the camera's background
- * scroll, its focal length unless it gives another.
+ * The image x the frame's left edge shows: the background's yaw (the camera's unless the camera gives the background its
+ * own pose) from the background's yaw origin at the camera's background scroll, its focal length unless it gives
+ * another.
  */
 export function backgroundPan(background: TileBackground, camera: PseudoCamera): number {
-  return Math.round((camera.backgroundScroll ?? camera.focalLength) * (camera.yaw - background.yawOriginRadians));
+  const yaw = camera.background?.yaw ?? camera.yaw;
+  return Math.round((camera.backgroundScroll ?? camera.focalLength) * (yaw - background.yawOriginRadians));
+}
+
+/** The screen row the background's horizon stands at: the camera's horizon unless it gives the background its own pose. */
+export function backgroundHorizon(camera: PseudoCamera): number {
+  return camera.background?.horizon ?? horizonY(camera);
 }
 
 /**
@@ -41,7 +48,7 @@ export function paintBackgroundSpan(
  * length, as distant road and sprites do, and repeats at its own width.
  */
 export function drawTileBackground(target: SoftwareSurface, background: TileBackground, camera: PseudoCamera): void {
-  const yH = horizonY(camera),
+  const yH = backgroundHorizon(camera),
     pan = backgroundPan(background, camera);
   for (let y = 0; y < target.height; y++) paintBackgroundSpan(target, background, pan, y, yH, 0, 0, target.width);
 }

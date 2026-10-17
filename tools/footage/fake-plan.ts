@@ -72,8 +72,11 @@ export interface FakeVideo {
   /** How RGB became YUV: the range and matrix the ingest must find. */
   readonly range: 'limited' | 'full';
   readonly matrix: 'bt601' | 'bt709';
-  /** A corrupted version: rows moved over hills, or the player laid over at a fixed size. */
-  readonly corruption: 'hills' | 'player' | null;
+  /**
+   * A corrupted version: rows moved over hills, the player laid over at a fixed size, or the background moved as a
+   * pseudo-3D original may move it.
+   */
+  readonly corruption: 'hills' | 'player' | 'background' | null;
 }
 
 export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
@@ -147,12 +150,34 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
     matrix: 'bt709',
     corruption: 'player',
   },
+  {
+    id: 'background',
+    seed: 6,
+    fps: 60,
+    scale: 3,
+    width: 1280,
+    height: 720,
+    left: 160,
+    top: 24,
+    crf: 23,
+    range: 'limited',
+    matrix: 'bt709',
+    corruption: 'background',
+  },
 ]);
 
-/** The corrupted versions' amounts: rows below the horizon moved, and the player's fixed size against the road's. */
+/**
+ * The corrupted versions' amounts: rows below the horizon moved, the player's fixed size against the road's, and the
+ * background's farther layer.
+ */
 export const FAKE_CORRUPTION = Object.freeze({
   /** Rows below the horizon move down by up to this many game pixels while the camera passes a vertical curve. */
   hillRows: 10,
   /** The player's picture drawn this many times the road's scale at its depth, at one fixed size. */
   playerScale: 1.3,
+  /**
+   * The background's farther layer: the screen rows more than `farRows` above its horizon, turning at `farSpeed` times
+   * the nearer layer's rate.
+   */
+  background: Object.freeze({ farRows: 24, farSpeed: 0.5 }),
 });

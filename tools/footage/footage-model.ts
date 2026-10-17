@@ -11,7 +11,7 @@ import {
 import { readRgb555 } from '../../src/image/rgb555.js';
 
 /** The footage model's format ([Footage model](../../docs/footage.md#footage-model)). */
-export const FOOTAGE_MODEL_FORMAT = Object.freeze({ format: 'superoutride.footage-model', version: 1 } as const);
+export const FOOTAGE_MODEL_FORMAT = Object.freeze({ format: 'superoutride.footage-model', version: 2 } as const);
 
 /**
  * The roles a person gives the ground's colors. A color may hold several (the same white for lines and a rumble
@@ -70,9 +70,33 @@ export interface FootageCamera {
   readonly height: Measured;
   readonly centerX: Measured;
   readonly horizonRow: Measured;
-  /** Null until the initial estimate measures it. */
-  readonly backgroundScale: Measured | null;
   readonly playerDistance: Measured;
+}
+
+/** How the camera pitches ([Pitch and grade](../../docs/footage.md#inconsistencies-of-the-original)). */
+export const PITCH_RULES = ['level', 'road'] as const;
+export type PitchRule = (typeof PITCH_RULES)[number];
+
+/** A background layer's rules ([Background rules](../../docs/footage.md#background-rules)). */
+export const VERTICAL_BACKGROUND_RULES = ['pitch', 'fixed', 'road-horizon', 'free'] as const;
+export const HORIZONTAL_BACKGROUND_RULES = ['heading', 'curvature', 'free'] as const;
+
+/**
+ * One direction's rule: its factor (`b` for `pitch`, `a` for `heading`, the curvature factor for `curvature`; null for
+ * a rule without one) and the residual of the motion it explains, in game pixels.
+ */
+export interface BackgroundRule<Rule extends string> {
+  readonly rule: Rule;
+  readonly factor: Measured | null;
+  readonly residual: number;
+}
+
+/** A background layer: its rows, from `top` to `bottom` exclusive, and its rules down and across. */
+export interface BackgroundLayer {
+  readonly top: number;
+  readonly bottom: number;
+  readonly vertical: BackgroundRule<(typeof VERTICAL_BACKGROUND_RULES)[number]>;
+  readonly horizontal: BackgroundRule<(typeof HORIZONTAL_BACKGROUND_RULES)[number]>;
 }
 
 /** A footage model: the draft and, once calibration has measured them, the camera and the rules the original draws by. */
@@ -81,6 +105,9 @@ export interface FootageModel extends FootageModelDraft {
   readonly version: typeof FOOTAGE_MODEL_FORMAT.version;
   /** The camera, null until calibrated. */
   readonly camera: FootageCamera | null;
+  /** The pitch rule and the background's layers, null until the initial estimate judges them. */
+  readonly pitch: PitchRule | null;
+  readonly background: readonly BackgroundLayer[] | null;
 }
 
 const CAMERA_FIELDS = [
@@ -88,7 +115,6 @@ const CAMERA_FIELDS = [
   'height',
   'centerX',
   'horizonRow',
-  'backgroundScale',
   'playerDistance',
 ] as const satisfies readonly (keyof FootageCamera)[];
 
@@ -120,6 +146,8 @@ export function readFootageModel(value: unknown): FootageModel {
     'colors',
     'gauge',
     'camera',
+    'pitch',
+    'background',
   ]);
   requireAdmission(
     record.format === FOOTAGE_MODEL_FORMAT.format && record.version === FOOTAGE_MODEL_FORMAT.version,
@@ -194,20 +222,57 @@ export function readFootageModel(value: unknown): FootageModel {
         : (() => {
             const c = readRecord(record.camera, '/camera', CAMERA_FIELDS);
             return Object.fromEntries(
-              CAMERA_FIELDS.map((field) => {
-                if (field === 'backgroundScale' && c[field] === null) return [field, null];
-                const m = readRecord(c[field], `/camera/${field}`, ['value', 'error']);
-                return [
-                  field,
-                  {
-                    value: readNumber(m.value, `/camera/${field}/value`),
-                    error: readNumber(m.error, `/camera/${field}/error`, { min: 0 }),
-                  },
-                ];
-              }),
+              CAMERA_FIELDS.map((field) => [field, measured(c[field], `/camera/${field}`)]),
             ) as unknown as FootageCamera;
           })(),
+    pitch: record.pitch === null ? null : readEnum(record.pitch, PITCH_RULES, '/pitch'),
+    background:
+      record.background === null
+        ? null
+        : readArray(record.background, '/background', (layer, path) => {
+            const l = readRecord(layer, path, ['top', 'bottom', 'vertical', 'horizontal']);
+            const top = readNumber(l.top, `${path}/top`, { min: 0, integer: true });
+            const bottom = readNumber(l.bottom, `${path}/bottom`, { min: top + 1, max: frame.height, integer: true });
+            return {
+              top,
+              bottom,
+              vertical: backgroundRule(l.vertical, `${path}/vertical`, VERTICAL_BACKGROUND_RULES, ['pitch']),
+              horizontal: backgroundRule(l.horizontal, `${path}/horizontal`, HORIZONTAL_BACKGROUND_RULES, [
+                'heading',
+                'curvature',
+              ]),
+            };
+          }),
   });
+}
+
+/** A measured value: its `value` and standard `error`. */
+function measured(value: unknown, path: string): Measured {
+  const m = readRecord(value, path, ['value', 'error']);
+  return { value: readNumber(m.value, `${path}/value`), error: readNumber(m.error, `${path}/error`, { min: 0 }) };
+}
+
+/** A direction's rule: a factor exactly for the rules that have one. */
+function backgroundRule<Rule extends string>(
+  value: unknown,
+  path: string,
+  rules: readonly Rule[],
+  factored: readonly Rule[],
+): BackgroundRule<Rule> {
+  const r = readRecord(value, path, ['rule', 'factor', 'residual']);
+  const rule = readEnum(r.rule, rules, `${path}/rule`);
+  const hasFactor = factored.includes(rule);
+  requireAdmission(
+    (r.factor !== null) === hasFactor,
+    'invalid_domain',
+    `${path}/factor`,
+    hasFactor ? `The ${rule} rule has a factor` : `The ${rule} rule has no factor`,
+  );
+  return {
+    rule,
+    factor: hasFactor ? measured(r.factor, `${path}/factor`) : null,
+    residual: readNumber(r.residual, `${path}/residual`, { min: 0 }),
+  };
 }
 
 export async function loadFootageModel(file: string): Promise<FootageModel> {

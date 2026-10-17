@@ -662,7 +662,6 @@ export function calibrateCamera(videos: readonly CalibrationVideo[], model: Foot
     height: { value: height, error: height * relativeH },
     centerX,
     horizonRow,
-    backgroundScale: null,
     playerDistance: { value: playerDistance, error: playerDistance * Math.hypot(relativeK, relativeU) },
   };
   return {

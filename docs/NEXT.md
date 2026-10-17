@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5d](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -153,8 +153,6 @@ driving is not fitted to an original's times; every value is derived, set from a
 model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
 the [stopping conditions](footage.md#stopping-conditions).
 
-- VC-5d: the footage model's version 2, recording the pitch rule and the background's rules; the fake `background`
-  video, its background moved as a pseudo-3D original may move it.
 - VC-5e: the profile from the rows ahead under the pitch rule (`level`, or `road` with the least squared grades weighed
   so that the rows' χ² per degree of freedom is 1), and the plan solved again at its depths.
 - VC-5f: the background's rules judged per game (tile jumps cut off, layers apart, the vertical and horizontal

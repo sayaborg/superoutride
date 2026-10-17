@@ -13,8 +13,8 @@ import { atomicWrite, loadCourse } from '../course/authoring-io.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createVehicleSprites } from '../../src/view/vehicle-sprites.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
-import { cameraRightDistance, pseudoProject } from '../../src/view/projection.js';
-import type { CameraState } from '../../src/view/camera.js';
+import { cameraRightDistance, horizonY, pseudoProject } from '../../src/view/projection.js';
+import { RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS, type CameraState } from '../../src/view/camera.js';
 import { createDynamicVehicleCourseSprite } from '../../src/view/dynamic-vehicle-sprite.js';
 import type { CourseSprite } from '../../src/view/course-sprite.js';
 import { drawScaledSprite } from '../../src/view/sprite.js';
@@ -216,7 +216,15 @@ async function writeVideo(
         ? { kind: 'hills', rows: FAKE_CORRUPTION.hillRows, intervals: hills.intervals }
         : video.corruption === 'player'
           ? { kind: 'player', scale: FAKE_CORRUPTION.playerScale }
-          : null,
+          : video.corruption === 'background'
+            ? {
+                kind: 'background',
+                vertical: 'road-horizon',
+                horizontal: 'curvature',
+                factor: FAKE_CAMERA.backgroundScroll,
+                ...FAKE_CORRUPTION.background,
+              }
+            : null,
     landmarks,
     events: drive.events.map((event) => ({ ...event, frame: event.frame / step })),
     hud: FAKE_HUD,
@@ -338,6 +346,7 @@ async function renderAndEncode(
   const reach = new Map(vehicles.map((v) => [v.compiledVehicle.id, v.compiledVehicle.reach] as const));
   const text = createTextLayer(tiles);
   const target = createLogicalFrame();
+  const farTarget = video.corruption === 'background' ? createLogicalFrame() : null;
   const { width, height } = FAKE_CAMERA.frame;
   const rgb = Buffer.alloc(width * height * 3);
   const table = new Uint32Array(0x8000);
@@ -427,7 +436,18 @@ async function renderAndEncode(
       video.corruption === 'player'
         ? null
         : { vehicle: playerVehicle, set: playerSprites.off, reach: player.compiledVehicle.reach };
-    scene.render(target, drawn, camera, others, []);
+    // The background corruption: down, its horizon stuck to the row where the road ahead ends; across, turning with the
+    // road's heading alone, the camera's yaw from the road ignored; its rows well above that horizon a farther layer
+    // turning slower.
+    const pose =
+      video.corruption === 'background' ? { yaw: at.heading, horizon: roadEndRow(world.height, camera) } : null;
+    scene.render(target, drawn, pose ? { ...camera, background: pose } : camera, others, []);
+    if (pose && farTarget) {
+      const { farRows, farSpeed } = FAKE_CORRUPTION.background;
+      scene.render(farTarget, drawn, { ...camera, background: { ...pose, yaw: pose.yaw * farSpeed } }, others, []);
+      const rows = Math.max(0, Math.min(height, Math.floor(pose.horizon) - farRows));
+      target.pixels.set(farTarget.pixels.subarray(0, rows * target.width));
+    }
     if (video.corruption === 'player') {
       // The player laid over at one fixed size, off the road's scale, standing where its base point projects.
       const base = pseudoProject({ x: playerAt.x, y: playerVehicle.renderY, z: playerAt.z, s: frame.playerS }, camera);
@@ -485,6 +505,17 @@ async function renderAndEncode(
 }
 
 /** The frame with rows below the horizon moved down by `shift` (up when negative), the horizon row filling the gap. */
+/** The topmost screen row the road ahead reaches, out to the renderer's far depth (sampled every metre). */
+function roadEndRow(height: { sample(s: number): number }, camera: CameraState) {
+  let top = Infinity;
+  for (let d = RENDER_NEAR_DEPTH_METERS; d <= RENDER_FAR_DEPTH_METERS; d++)
+    top = Math.min(
+      top,
+      horizonY(camera) - (camera.focalLength / d) * (height.sample(camera.s + d) - camera.y) * Math.cos(camera.pitch),
+    );
+  return top;
+}
+
 function shiftGroundRows(
   source: Uint16Array,
   out: Uint16Array,

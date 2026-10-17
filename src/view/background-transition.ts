@@ -1,9 +1,15 @@
 import type { BackgroundArrival } from '../course/course-document.js';
 import type { RouteOccurrence } from '../course/course-route.js';
 import { SIM_DT } from '../race/fixed-step.js';
-import { horizonY, type PseudoCamera } from './projection.js';
+import type { PseudoCamera } from './projection.js';
 import type { SoftwareSurface } from './software-surface.js';
-import { backgroundPan, drawTileBackground, paintBackgroundSpan, type TileBackground } from './tile-background.js';
+import {
+  backgroundHorizon,
+  backgroundPan,
+  drawTileBackground,
+  paintBackgroundSpan,
+  type TileBackground,
+} from './tile-background.js';
 
 /** An environment interval on the route ruler: its background, where its knot lies and how its background arrives. */
 export interface RouteEnvironment {
@@ -89,7 +95,7 @@ function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera) 
   // Screen tile columns on the shared scroll: the first ends at `first` (when it is not empty), each next 16 wide.
   const columns = (first > 0 ? 1 : 0) + Math.ceil((target.width - first) / TILE);
   const revealed = Math.min(columns, Math.ceil((t.steps * columns) / TRANSITION_STEPS));
-  const yH = horizonY(camera);
+  const yH = backgroundHorizon(camera);
   for (let column = 0; column < columns; column++) {
     const left = column === 0 && first > 0 ? 0 : first + (column - (first > 0 ? 1 : 0)) * TILE,
       right = Math.min(target.width, column === 0 && first > 0 ? first : left + TILE);
@@ -104,7 +110,7 @@ function drawWipe(target: SoftwareSurface, t: Transition, camera: PseudoCamera) 
  * rises from it over the second.
  */
 function drawRise(target: SoftwareSurface, t: Transition, camera: PseudoCamera) {
-  const yH = horizonY(camera),
+  const yH = backgroundHorizon(camera),
     rows = Math.max(1, Math.ceil(Math.min(target.height, Math.max(0, yH)) / TILE)),
     half = TRANSITION_STEPS / 2;
   const sinking = t.steps < half;
