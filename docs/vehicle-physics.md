@@ -305,9 +305,15 @@ bracket and at most 60 bisections solve the monotone residual, with early return
 absolute torque residual. Contact reference speed stays fixed during the scalar solve.
 
 The automatic powertrain derives a wheel-derived RPM from drive-split wheel speed and the current
-ratio. Shift decisions use its magnitude: it upshifts one gear when that RPM reaches redline and
-downshifts one gear when the same wheel speed in the next lower ratio would put the engine at or
-below peak-power RPM, the RPM of the torque curve's point D.
+ratio; the clutch, and through it the engine, follow it. Shift decisions read the vehicle's speed alone, through the
+rolling RPM: the current ratio at the driven wheels' rolling speed (`rollingDrivenWheelOmega`), the speed they would
+turn rolling without slip, each wheel's speed along its heading (its contact reach point's velocity along the wheel's
+forward direction) over its rolling radius, mixed by the drive split as the wheel-derived RPM mixes the wheels' own
+speeds. The powertrain upshifts one gear
+when the rolling RPM's magnitude reaches redline and downshifts one gear when the same rolling speed in the next lower
+ratio would put the engine at or below peak-power RPM, the RPM of the torque curve's point D. Driven wheels that spin,
+rev freely in the air or lock under the brake therefore move no shift. The vehicle's limits model turns its speed into
+engine speed by the same rolling speed ([Drivers](content-and-gameplay.md#drivers)).
 One fixed simulation step performs at most one shift across all mechanics substeps; the ratio change is instantaneous and does not interrupt drive.
 A held vehicle does not shift.
 
@@ -322,8 +328,9 @@ read the observation.
 Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
 `redlineRpm * fuelCutEnterRedlineRatio`, clears when RPM returns to `redlineRpm * fuelCutClearRedlineRatio` or
 below, and holds the effective opening's upper bound at 0 while latched. There is no pre-redline torque taper. The
-game-wide driving definition owns the two ratios, 1.05 and 1.03. Upshift stays at redline, so engine RPM passes
-redline only while it revs freely, with the driven wheels airborne, or while held.
+game-wide driving definition owns the two ratios, 1.05 and 1.03. Upshift stays at the rolling RPM's redline, so engine
+RPM passes redline only in top gear, while the driven wheels turn faster than they would roll (spinning on the ground or
+revving freely in the air), where fuel cut limits it, or while held.
 
 Engine friction torque derives from the vehicle's displacement and cycle and the game-wide friction
 mean effective pressure (FMEP):

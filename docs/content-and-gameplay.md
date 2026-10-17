@@ -1469,7 +1469,9 @@ centre of mass). From it:
 
 - Lateral limit: each axle carries the lateral acceleration in proportion to its static share, so the lateral limit is
   the lesser axle's lateral semi-axis at utilization `u` under the longitudinal force the tires carry.
-- Drive: the best full-throttle wheel force over the gears at the speed (a gear whose engine speed would pass redline
+- Drive: the best full-throttle wheel force over the gears at the speed (each gear's engine speed is its rolling RPM,
+  the driven wheels rolling without slip, as the shifts read it
+  ([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)); a gear whose engine speed would pass redline
   is unavailable but the top gear's, up to fuel cut; below the clutch lock first gear's slipping clutch holds the
   engine at its maximum-torque speed), bounded by the driven axles' longitudinal ellipses under the drive split, of
   which each axle's lateral fraction `f` leaves `sqrt(1 − f²)`; a force whose load transfer leaves either axle less

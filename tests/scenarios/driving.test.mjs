@@ -8,6 +8,17 @@ scenarioTests({
     // Stopped a quarter turn toward the left course limit with its front contact past the limit, the player keeps
     // both contacts on ground and does not recover.
     { name: 'stopped broadside against a course limit', policy: 'broadside', ahead: 60, reach: 0.6, seconds: 4 },
+    // Lifted 2 m above the home straight at 12 m/s in first gear with the throttle open, the player's driven wheels
+    // spin the engine up to the fuel cut in the air and its gear holds, for its speed keeps first gear.
+    {
+      name: 'wheels spinning in the air shift no gear',
+      policy: 'airborne',
+      ahead: 60,
+      height: 2,
+      speed: 12,
+      seconds: 2,
+      bounded: true,
+    },
     // A TIME ATTACK on a circuit has no finish: the player laps alone from the last slot until ending the run, here
     // after one lap of TSUKUBA, the quickest lap to drive.
     {

@@ -137,8 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e2b](#stage-vc--courses-from-footage) and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides, then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e2b](#stage-vc--courses-from-footage), [DT-5 and DT-6](#stage-dt--drift-tuned-trial-vehicles) (K's restart
+instructions) and DT-3 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -220,6 +220,8 @@ K's decisions for the stage:
 - Planned drivers always drive with wheel slip protection (TCS, MSR and ABS act on the engine's effective opening and
   the pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's `wheelSlip` holds while the
   player's input reaches it (DT-2b). Physics is the same for the player and the AI. A drifting AI is not made now.
+- Shifts are one rule for every vehicle: they decide by the vehicle's speed, the driven wheels' speed rolling without
+  slip, so wheels that spin, in a jump too, move no shift and the engine follows them to the fuel cut (DT-4).
 
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
 in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX and GY in DEV and

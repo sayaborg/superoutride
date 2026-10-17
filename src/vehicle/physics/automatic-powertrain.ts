@@ -174,19 +174,19 @@ export function createPowertrainStep(): PowertrainStep {
 }
 
 /**
- * First half of one ordinary mechanics step. Shifts follow the wheel-derived RPM, at most one per
- * call. The clutch lock is a latch on the signed wheel-derived RPM: it locks when that RPM reaches
- * engine speed and the idle lock margin, and releases below idle. A clutch without capacity holds
- * no lock. The step's capacity is the constants' fixed capacity unless a caller holding the vehicle
- * passes 0. Fuel cut is a hysteretic latch on engine RPM. The returned map lets torque protection
- * bound drive torque before the opening is chosen.
+ * First half of one ordinary mechanics step. Shifts follow the rolling RPM, the driven wheels' rolling speed
+ * `rollingWheelOmega` through the current ratio, at most one per call; null holds the gear. The clutch lock is a latch
+ * on the signed wheel-derived RPM, from the driven wheels' own speed `drivenWheelOmega`: it locks when that RPM reaches
+ * engine speed and the idle lock margin, and releases below idle. A clutch without capacity holds no lock. The step's
+ * capacity is the constants' fixed capacity unless a caller holding the vehicle passes 0. Fuel cut is a hysteretic
+ * latch on engine RPM. The returned map lets torque protection bound drive torque before the opening is chosen.
  */
 export function prepareAutomaticPowertrain(
   state: AutomaticPowertrainState,
   definition: CompiledAutomaticPowertrainDefinition,
   constants: PowertrainConstants,
   drivenWheelOmega: number,
-  allowShift: boolean,
+  rollingWheelOmega: number | null,
   dt: number,
   step: PowertrainStep,
   clutchCapacityTorque = constants.clutchCapacityTorque,
@@ -195,11 +195,11 @@ export function prepareAutomaticPowertrain(
   if (!Number.isInteger(state.gear) || state.gear < 1 || state.gear > definition.gearRatios.length) {
     throw new RangeError('powertrain gear must index the authored forward ratios');
   }
-  const wheelOmega = Math.abs(drivenWheelOmega);
-  const rpmBeforeShift = coupledEngineRpm(definition, wheelOmega, state.gear);
   const engineRpmBeforeShift = state.engineRpm;
   let shift: 'NONE' | 'UP' | 'DOWN' = 'NONE';
-  if (allowShift) {
+  if (rollingWheelOmega !== null) {
+    assertWheelOmega(rollingWheelOmega);
+    const rpmBeforeShift = coupledEngineRpm(definition, Math.abs(rollingWheelOmega), state.gear);
     if (rpmBeforeShift >= definition.redlineRpm && state.gear < definition.gearRatios.length) {
       state.gear += 1;
       shift = 'UP';

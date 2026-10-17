@@ -279,3 +279,21 @@ export function drivenWheelOmega(
     frontWheelOmega * definition.frontDriveTorqueFraction + rearWheelOmega * (1 - definition.frontDriveTorqueFraction)
   );
 }
+
+/**
+ * The driven wheels' speed (rad/s) were they rolling without slip, with the front and rear wheels moving at
+ * `frontSpeed` and `rearSpeed` (m/s) along their headings: each speed over its station's rolling radius, mixed by the
+ * drive split as `drivenWheelOmega` mixes the wheels' own speeds. Shifts decide by it, and the vehicle's limits model
+ * converts its speed to engine speed by it.
+ */
+export function rollingDrivenWheelOmega(
+  vehicle: Pick<CompiledVehicle, 'frontDriveTorqueFraction' | 'frontStation' | 'rearStation'>,
+  frontSpeed: number,
+  rearSpeed: number,
+): number {
+  const split = vehicle.frontDriveTorqueFraction;
+  return (
+    (split * frontSpeed) / vehicle.frontStation.rollingRadius +
+    ((1 - split) * rearSpeed) / vehicle.rearStation.rollingRadius
+  );
+}

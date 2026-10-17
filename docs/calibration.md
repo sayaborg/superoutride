@@ -202,8 +202,10 @@ Each torque curve has five points of RPM and torque in N m, joined linearly: A a
 C where the slope changes markedly; C, the maximum torque; D, the maximum power; and E at redline. C and D are the
 vehicle's rated figures where they are known (D's torque is rated power / ω); B and the curve's shape follow published
 descriptions of the engine; A and E are estimates, with E low enough that D stays the power peak
-([Vehicle physics](vehicle-physics.md#wheel-and-powertrain) admits the curve). Upshift occurs at redline. Downshift
-occurs when the next lower ratio would place the engine at or below D's RPM. Shift RPM thresholds are not vehicle values.
+([Vehicle physics](vehicle-physics.md#wheel-and-powertrain) admits the curve). Shifts read the vehicle's speed: upshift
+occurs when the driven wheels, rolling without slip at that speed, would turn the engine at redline; downshift occurs
+when the next lower ratio would place the engine at or below D's RPM at the same speed. Wheel spin moves no shift: the
+engine follows the spinning wheels to the fuel cut. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless. The compression
 ratio is the geometric ratio from references; physics does not read it, and the engine sound's blowdown does
 ([Audio](audio.md#derived-values)):

@@ -41,7 +41,7 @@ import { applySuspensionBumpStops, createBumpStopWorkspace } from './suspension-
  */
 const STEERING_LOW_SPEED_REGULARIZATION = 1.0;
 import { WORLD_UP, add3, cross3, dot3, normalize3, scale3, type Vec3 } from '../../core/vector3.js';
-import { drivenWheelOmega } from './vehicle-definitions.js';
+import { drivenWheelOmega, rollingDrivenWheelOmega } from './vehicle-definitions.js';
 import {
   createDriveTorqueBounds,
   solveDriveTorqueBounds,
@@ -181,7 +181,7 @@ export function updateHeldVehicle(vehicle: HeldVehicleState, model: VehicleModel
       compiledVehicle.powertrain,
       model.powertrain,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-      false,
+      null,
       substep,
       workspace.powertrain,
       0,
@@ -276,13 +276,21 @@ export function updateVehicle(
       workspace.rear,
     );
 
+    // Shifts decide by the vehicle's speed alone: each wheel's speed along its heading as it would roll without slip.
+    // The engine follows the driven wheels' own speed through the clutch.
     const gearBefore = vehicle.powertrain.gear;
     const powertrainStep = prepareAutomaticPowertrain(
       vehicle.powertrain,
       compiledVehicle.powertrain,
       model.powertrain,
       drivenWheelOmega(compiledVehicle, vehicle.frontWheelOmega, vehicle.rearWheelOmega),
-      shiftAvailable,
+      shiftAvailable
+        ? rollingDrivenWheelOmega(
+            compiledVehicle,
+            dot3(front.reachVelocity, front.wheelForward),
+            dot3(rear.reachVelocity, rear.wheelForward),
+          )
+        : null,
       substep,
       workspace.powertrain,
     );

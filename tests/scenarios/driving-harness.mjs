@@ -186,6 +186,29 @@ function placeBroadside(scene, vehicle, model, s, reach) {
   publishVehicleRenderY(vehicle, model);
 }
 
+/**
+ * Lifts the player above the road at a route station, its centre `height` metres above its ride height, level with the
+ * road and moving along it at `speed` with its wheels rolling.
+ */
+function placeAirborne(scene, vehicle, model, s, height, speed) {
+  const p = model.compiledVehicle;
+  const surface = supportedTargetSurface(scene.world, s, vehicle.course.l);
+  const lift = p.desiredCgHeight + height;
+  vehicle.x = surface.point.x + surface.normal.x * lift;
+  vehicle.y = surface.point.y + surface.normal.y * lift;
+  vehicle.z = surface.point.z + surface.normal.z * lift;
+  vehicle.yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
+  vehicle.pitch = surface.gradeAngle;
+  vehicle.yawRate = vehicle.pitchRate = 0;
+  vehicle.velocityX = surface.tangent.x * speed;
+  vehicle.velocityY = surface.tangent.y * speed;
+  vehicle.velocityZ = surface.tangent.z * speed;
+  vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
+  vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
+  vehicle.course = initializePlanCoordinateObservation(scene.world.coordinates, vehicle.x, vehicle.z, s);
+  publishVehicleRenderY(vehicle, model);
+}
+
 function pavementBounds(scene, vehicle) {
   const occurrence = scene.runtime.route.at(vehicle.course.s);
   if (!occurrence) return null;
@@ -286,6 +309,9 @@ export async function runScenario({ course }, scenario) {
   // The broadside policy stands the player against the course limit before READY, which holds it there until GO.
   if (scenario.policy === 'broadside')
     placeBroadside(scene, vehicle, actor.model, vehicle.course.s + scenario.ahead, scenario.reach);
+  // The airborne policy lifts the player above the road before READY, which holds it there until GO.
+  if (scenario.policy === 'airborne')
+    placeAirborne(scene, vehicle, actor.model, vehicle.course.s + scenario.ahead, scenario.height, scenario.speed);
   let tick = 0;
   // Scenario seconds count from GO; READY runs through the same product start first.
   const maxTicks = Math.ceil((READY_SECONDS + scenario.seconds) / SIM_DT);
@@ -307,9 +333,12 @@ export async function runScenario({ course }, scenario) {
     }));
     // A step that starts in READY holds the player; its contacts are observed from the first free step on.
     const heldStep = race.outcome.status === 'READY';
+    const shiftBefore = vehicle.powertrain.shift.sequence;
     let input;
     if (race.outcome.status === 'READY') input = idle;
     else if (scenario.policy === 'broadside') input = { ...idle, brake: true };
+    // The throttle open from GO, so the driven wheels spin up in the air.
+    else if (scenario.policy === 'airborne') input = { ...idle, throttle: true };
     // Toward a course limit for a while, then back to the reference line.
     else if (scenario.policy === 'limit' && race.clock.elapsedSeconds < scenario.steerSeconds)
       input = { ...idle, steering: scenario.steering, throttle: true };
@@ -434,6 +463,14 @@ export async function runScenario({ course }, scenario) {
         (evidence.unsupportedTicks ?? 0) +
         (reach.front.load > 0 && reach.rear.load > 0 && reach.front.surface && reach.rear.surface ? 0 : 1);
     }
+    // In the air the driven wheels spin up the engine, which no shift may follow: the flight's steps, the engine's
+    // highest speed over redline and the shifts in it.
+    if (scenario.policy === 'airborne' && !heldStep && !vehicle.supported) {
+      evidence.airborneTicks = (evidence.airborneTicks ?? 0) + 1;
+      const redline = vehicle.powertrain.engineRpm / actor.model.compiledVehicle.powertrain.redlineRpm;
+      evidence.airborneRedline = Math.max(evidence.airborneRedline ?? 0, Number(redline.toFixed(3)));
+      evidence.airShifts = (evidence.airShifts ?? 0) + (vehicle.powertrain.shift.sequence === shiftBefore ? 0 : 1);
+    }
     const ended = ['GOAL', 'GAME_OVER', 'ENDED'].includes(race.outcome.status);
     if (rules) {
       for (const [index, c] of competitors.entries()) {
@@ -516,6 +553,11 @@ export async function runScenario({ course }, scenario) {
   if (scenario.policy === 'broadside') {
     assert.ok(evidence.limitReach.past > 0, 'no contact reached past the course limit');
     assert.equal(evidence.unsupportedTicks, 0, 'a contact lost its support behind the course limit');
+  }
+  if (scenario.policy === 'airborne') {
+    // The gear held while the spinning wheels took the engine past redline in the air: shifts read the vehicle's speed.
+    assert.equal(evidence.airShifts, 0, 'a gear changed in the air');
+    assert.ok(evidence.airborneRedline > 1, 'the engine never passed redline in the air');
   }
   if (scenario.policy === 'branch') {
     // The rival reached the first fork first and took its intended exit, holding its line through it.

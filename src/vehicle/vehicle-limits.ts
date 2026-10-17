@@ -1,5 +1,6 @@
 import { sampleEngineTorque } from './physics/automatic-powertrain.js';
 import { effectiveTireLoad, radialKneeInverse } from './physics/tire-friction-calibration.js';
+import { rollingDrivenWheelOmega } from './physics/vehicle-definitions.js';
 import { VEHICLE_GRAVITY } from './physics/vehicle-state.js';
 import type { VehicleModel } from './physics/vehicle-model.js';
 
@@ -99,8 +100,9 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     rearTransfer = height / (VEHICLE_GRAVITY * vehicle.frontAxle);
   const frontBrake = frontStation.maxBrakeTorque / frontStation.rollingRadius / mass,
     rearBrake = rearStation.maxBrakeTorque / rearStation.rollingRadius / mass;
-  // Driven-wheel speed per unit road speed, which is also the wheel force per unit drive torque.
-  const wheelPerSpeed = split / frontStation.rollingRadius + (1 - split) / rearStation.rollingRadius;
+  // Driven-wheel speed per unit road speed, rolling as the shifts read it, which is also the wheel force per unit drive
+  // torque.
+  const wheelPerSpeed = rollingDrivenWheelOmega(vehicle, 1, 1);
   const top = powertrain.gearRatios.length;
   const rpmPerSpeed = (wheelPerSpeed * powertrain.finalDriveRatio * 60) / (2 * Math.PI);
   const fuelCut = powertrain.redlineRpm * constants.fuelCutEnterRedlineRatio;
