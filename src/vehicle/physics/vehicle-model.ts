@@ -26,6 +26,10 @@ export interface VehicleModel {
   readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
   readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly powertrain: Readonly<PowertrainConstants>;
+  /**
+   * The vehicle's torque protection: its own wheel slip choice (else the game-wide default) and the game-wide pitch
+   * limit. The player's input drives with it; a driver's rule may choose other wheel slip protection.
+   */
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
 }
 

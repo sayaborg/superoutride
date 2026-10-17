@@ -23,7 +23,7 @@ export const PLANNED_DRIVER = Object.freeze({
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
-   * plans speed alone.
+   * plans speed alone. Its rule drives with wheel slip protection on, another aid on its input side.
    */
   steering: createSteeringRule('center', 1),
   /** Metres: how far ahead the speed plan reaches, over cells of `spacing` metres. */
@@ -124,7 +124,8 @@ export function compilePlannedDriver(
     speedCap,
     braking: planningBraking(limits, utilization),
     passes,
-    steering: driverSteering(PLANNED_DRIVER.steering, model),
+    // Planned drivers always drive with wheel slip protection, whatever the vehicle's own choice for the player.
+    steering: driverSteering(PLANNED_DRIVER.steering, model, true),
   });
 }
 

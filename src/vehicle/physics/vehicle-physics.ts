@@ -201,7 +201,7 @@ const NO_EXTERNAL_FORCE: Readonly<Vec3> = Object.freeze({ x: 0, y: 0, z: 0 });
  * `updateHeldVehicle`'s step. The next free step uses the fixed capacity again.
  * `externalForce` is a world force (N) from outside the vehicle, held through the step: it acts at the centre of mass,
  * so it adds no moment, and every substep integrates it with the vehicle's own forces. A held vehicle ignores it.
- * `steering` is the steering rule of whoever drives the vehicle this step.
+ * `steering` is the rule of whoever drives the vehicle this step: its steering and its torque protection.
  */
 export function updateVehicle(
   { coordinates, height, surfaces }: VehicleWorld,
@@ -328,7 +328,7 @@ export function updateVehicle(
       rear,
       frontRequest,
       rearRequest,
-      model.torqueProtection,
+      steering.torqueProtection,
       Math.max(0, powertrainWheelTorque(powertrainStep, boundedOpening(powertrainStep, requestedOpening))),
       powertrainStep.coupledInertia,
       workspace.pair,
@@ -348,7 +348,7 @@ export function updateVehicle(
       rear,
       frontRequest,
       rearRequest,
-      model.torqueProtection,
+      steering.torqueProtection,
       driveTorque,
       powertrainStep.coupledInertia,
       workspace.pair,

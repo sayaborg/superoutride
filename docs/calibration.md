@@ -42,9 +42,11 @@ steps and never rejects a driving definition.
 | Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
 | Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
-| Assists¹   | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
+| Assists¹   | —     | `wheelSlip`                                 | TCS, MSR and ABS with the player's input     | on      | on / off                   |
 
-¹ The driving definition's tire and `wheelSlip` are the game-wide defaults: they serve every vehicle whose
+¹ `wheelSlip` is the protection the player's input drives with; planned drivers always drive with it on
+([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
+game-wide defaults: they serve every vehicle whose
 [mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all six
 values) or `wheelSlip`; a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
 the defaults follows the game-wide tuning, its identity changing with the driving definition's.

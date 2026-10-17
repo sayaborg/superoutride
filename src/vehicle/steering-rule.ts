@@ -24,12 +24,22 @@ export function createSteeringRule(reference: SteeringReference, utilization: nu
 }
 
 /**
- * A steering rule as the step of `model`'s vehicle applies it: the reference's lever (0 at the front wheel, the front
- * axle's distance from the centre of mass at the centre) and its utilization.
+ * A driver's rule as the step of `model`'s vehicle applies it: the steering reference's lever (0 at the front wheel,
+ * the front axle's distance from the centre of mass at the centre), its utilization and the torque protection with
+ * `wheelSlip`, by default the vehicle's own (the player's input drives with it); the pitch limit is the model's.
  */
-export function driverSteering(rule: SteeringRule, model: VehicleModel): Readonly<DriverSteering> {
+export function driverSteering(
+  rule: SteeringRule,
+  model: VehicleModel,
+  wheelSlip = model.torqueProtection.wheelSlip,
+): Readonly<DriverSteering> {
+  const { torqueProtection } = model;
   return Object.freeze({
     lever: rule.reference === 'front' ? 0 : model.compiledVehicle.frontAxle,
     utilization: rule.utilization,
+    torqueProtection:
+      wheelSlip === torqueProtection.wheelSlip
+        ? torqueProtection
+        : Object.freeze({ wheelSlip, pitchLimit: torqueProtection.pitchLimit }),
   });
 }

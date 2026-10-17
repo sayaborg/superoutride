@@ -1296,7 +1296,9 @@ driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's lim
 ([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
 step to the next. Every planned driver steers by one rule, `PLANNED_DRIVER.steering`: the centre reference with full
-input reaching the front tire's whole lateral force bound (CENTER, 100 %). A steering rule is a driver's aid, not
+input reaching the front tire's whole lateral force bound (CENTER, 100 %). Every planned driver also drives with wheel slip
+protection (TCS, MSR and ABS) on, whatever its vehicle's `wheelSlip`, which holds only while the player's input reaches
+the vehicle. A steering rule and wheel slip protection are a driver's aids, not
 physics; the player and the planned drivers share the physics, and the utilization plans speed alone. Its path is its lane's
 centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset

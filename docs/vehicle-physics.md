@@ -458,7 +458,10 @@ signed engine term `clutchTorque * gearRatio * finalDriveRatio * drivelineEffici
 inertia torque. Each bound below is found on the delivered total drive and becomes the engine term that delivers it
 with the locked engine's inertia; the opening's inverse keeps inverting the engine's own torque.
 
-TCS, MSR and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. With
+TCS, MSR and ABS act when the rule of whoever drives the vehicle asks for wheel slip protection
+([Actuators and steering](#actuators-and-steering)): the player's input with the vehicle's `wheelSlip`, every planned
+driver always. They only bound the engine's effective opening and the pedal brake, so they are an aid on the input side;
+pitch protection always acts. TCS, MSR and ABS invert the wheel residual at longitudinal slip boundary `grip*(2-KN)*muX/kX`. With
 the pedal brake request and zero drive:
 
 - TCS gives each forward-moving driven station an upper drive-torque bound: the net torque that
@@ -520,7 +523,11 @@ player's until it chooses its own ([Browser](browser.md#player-record)); the pla
 own input reaches its vehicle. Every planned driver drives by one rule, the centre reference at 100 %, independent of
 its utilization ([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
 reference time or pace schedule.
-The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`; the
+Wheel slip protection belongs to the same rule: the player's input drives with the vehicle's `wheelSlip` (its own, else
+the game-wide default), and every planned driver with protection on, whatever the vehicle's choice
+([Torque protection](#torque-protection)); the vehicle's physics is the same for both.
+The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`, and
+the torque protection it drives with: that wheel slip choice and the model's pitch limit. The
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is
 `frontAxle`, the front axle's distance from the centre of mass. Cars and bikes share the rule and its law.
 

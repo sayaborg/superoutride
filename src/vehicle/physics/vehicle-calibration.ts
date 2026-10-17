@@ -1,4 +1,5 @@
 import { DefinitionDomainError } from '../../core/admission.js';
+import type { TorqueProtectionPolicy } from './torque-protection.js';
 
 /** The steering rack: its bound `M` in road-wheel radians, the one steering limit of the vehicle's mechanism. */
 export interface CompiledVehicleSteeringCalibration {
@@ -18,10 +19,12 @@ export function createVehicleSteeringCalibration(
 }
 
 /**
- * The steering rule of whoever drives the vehicle, as the vehicle step applies it: the lever in metres from the
- * reference position to the front axle and the front tire's utilization `X` at full input.
+ * The rule of whoever drives the vehicle, as the vehicle step applies it: the steering rule's lever in metres from the
+ * reference position to the front axle and the front tire's utilization `X` at full input, and the torque protection it
+ * drives with, whose wheel slip protection the driver's rule decides and whose pitch limit is the model's.
  */
 export interface DriverSteering {
   readonly lever: number;
   readonly utilization: number;
+  readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
 }
