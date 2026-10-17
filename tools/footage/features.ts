@@ -209,7 +209,7 @@ export async function measureFrames({ directory, model, templates, frames, indic
     );
     const background =
       previous?.index === index - 1
-        ? backgroundShift(previous.luma, Y, roles, width, features.groundTop ?? height)
+        ? backgroundShift(previous.luma, Y, roles, width, features.groundTop ?? height, noiseModel.sigma)
         : ([NaN, NaN] as const);
     previous = { index, luma: Y };
     lines.push(
@@ -397,9 +397,12 @@ function rowFeatures(y: number, runs: readonly Segment[]) {
 }
 
 /**
- * The background's shift between two frames over the rows above the ground: horizontal by the column profile of luma
- * changes, vertical by the row profile, each the integer lag of the largest cross-correlation refined by a parabola
- * through its neighbours. Masked and ground pixels are left out.
+ * The background's shift between two frames over the rows above the ground: the shift, within 40 columns and 20 rows,
+ * under which the most pixels match. Each pixel's luma difference is capped at three deviations of the decoding
+ * `noise`, so pictures that move with the road, such as a lamp post's pole rising into the sky, cannot outvote the
+ * background however sharp their edges. Columns and rows are searched in turn from no shift until neither moves, each
+ * then refined by a parabola through its neighbours' costs. NaN when no shift is the one least inside the reach (a flat
+ * or repeating background, or a least at its edge). Masked pixels are left out.
  */
 function backgroundShift(
   before: Float32Array,
@@ -407,55 +410,59 @@ function backgroundShift(
   roles: Uint16Array,
   width: number,
   groundTop: number,
+  noise: number,
 ): readonly [number, number] {
   const top = 0,
     bottom = Math.max(0, groundTop - 2);
   if (bottom - top < 8) return [NaN, NaN];
-  const columns = (luma: Float32Array) => {
-    const profile = new Float32Array(width);
-    for (let y = top; y < bottom; y++)
-      for (let x = 1; x < width; x++) {
-        const k = y * width + x;
-        if (roles[k]! & MASKED || roles[k - 1]! & MASKED) continue;
-        profile[x] = profile[x]! + luma[k]! - luma[k - 1]!;
+  const cap = 3 * noise;
+  // The mean capped difference between `after` at (x, y) and `before` at (x − dx, y − dy).
+  const cost = (dx: number, dy: number) => {
+    let sum = 0,
+      count = 0;
+    for (let y = Math.max(top, top + dy); y < Math.min(bottom, bottom + dy); y++)
+      for (let x = Math.max(0, dx); x < Math.min(width, width + dx); x++) {
+        const k = y * width + x,
+          j = k - dy * width - dx;
+        if (roles[k]! & MASKED || roles[j]! & MASKED) continue;
+        sum += Math.min(cap, Math.abs(after[k]! - before[j]!));
+        count++;
       }
-    return profile;
+    return count ? sum / count : Infinity;
   };
-  const rows = (luma: Float32Array) => {
-    const profile = new Float32Array(bottom - top);
-    for (let y = top + 1; y < bottom; y++)
-      for (let x = 0; x < width; x++) {
-        const k = y * width + x;
-        if (roles[k]! & MASKED || roles[k - width]! & MASKED) continue;
-        profile[y - top] = profile[y - top]! + luma[k]! - luma[k - width]!;
-      }
-    return profile;
+  // The least of one direction's shifts with the other held: its index, and the costs.
+  const least = (reach: number, at: (shift: number) => number) => {
+    const costs = Float64Array.from({ length: 2 * reach + 1 }, (_, i) => at(i - reach));
+    let best = 0;
+    costs.forEach((c, i) => {
+      if (c < costs[best]!) best = i;
+    });
+    // The one least, inside the reach (a least at its edge may lie beyond it).
+    const unique = best > 0 && best < 2 * reach && costs.every((c, i) => Math.abs(i - best) <= 1 || c > costs[best]!);
+    return { shift: best - reach, costs, unique };
   };
-  return [lag(columns(before), columns(after), 40), lag(rows(before), rows(after), 20)];
-}
-
-/** The shift `after` is from `before` (positive: moved toward higher indices), within ±`reach`, to a fraction. */
-function lag(before: Float32Array, after: Float32Array, reach: number): number {
-  const n = before.length;
-  const score = (shift: number) => {
-    let sum = 0;
-    for (let i = Math.max(0, shift); i < Math.min(n, n + shift); i++) sum += after[i]! * before[i - shift]!;
-    return sum / (n - Math.abs(shift));
-  };
-  let best = 0,
-    bestScore = -Infinity;
-  const scores = new Map<number, number>();
-  for (let shift = -reach; shift <= reach; shift++) {
-    const s = score(shift);
-    scores.set(shift, s);
-    if (s > bestScore) [best, bestScore] = [shift, s];
+  let dx = 0,
+    dy = 0;
+  const seen = new Set<string>();
+  for (;;) {
+    dx = least(40, (shift) => cost(shift, dy)).shift;
+    dy = least(20, (shift) => cost(dx, shift)).shift;
+    const key = `${dx} ${dy}`;
+    if (seen.has(key)) break;
+    seen.add(key);
   }
-  if (!(bestScore > 0)) return NaN;
-  const a = scores.get(best - 1),
-    c = scores.get(best + 1);
-  if (a === undefined || c === undefined) return best;
-  const denominator = a - 2 * bestScore + c;
-  return denominator < 0 ? best + (0.5 * (a - c)) / denominator : best;
+  const refine = (reach: number, at: (shift: number) => number) => {
+    const { shift, costs, unique } = least(reach, at);
+    if (!unique) return NaN;
+    const i = shift + reach,
+      a = costs[i - 1],
+      c = costs[i + 1],
+      b = costs[i]!;
+    if (a === undefined || c === undefined) return shift;
+    const curvature = a - 2 * b + c;
+    return curvature > 0 ? shift + (0.5 * (a - c)) / curvature : shift;
+  };
+  return [refine(40, (shift) => cost(shift, dy)), refine(20, (shift) => cost(dx, shift))];
 }
 
 /** A readout's number: each cell matched to the template nearest its ink; null if any cell is no digit or blank. */

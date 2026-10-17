@@ -47,7 +47,7 @@ import {
 } from './fake-drive.js';
 
 /** The truth record's format: everything a round trip compares with, beside the video. */
-export const FAKE_TRUTH_FORMAT = Object.freeze({ format: 'superoutride.fake-footage-truth', version: 1 } as const);
+export const FAKE_TRUTH_FORMAT = Object.freeze({ format: 'superoutride.fake-footage-truth', version: 2 } as const);
 
 /** The HUD the fake original draws in text tiles: its places, in text cells, and how long an event's text stays. */
 export const FAKE_HUD = Object.freeze({
@@ -185,6 +185,13 @@ async function writeVideo(
   const traffic = FAKE_TRAFFIC.map((id) => vehicles.find((v) => v.compiledVehicle.id === id)!);
   const step = 60 / video.fps;
   const kept = drive.frames.filter((_, index) => index % step === 0);
+  // The camera's heading in the world, which the background turns with (its yaw from the road on the road's heading),
+  // on a scene of its own: a scene's resident window only moves forward.
+  const walk = createScene(course, vehicles, stages);
+  const headings = kept.map((frame) => {
+    walk.runtime.refresh(frame.s, frame.playerS);
+    return walk.world.coordinates.toWorld(frame.s, frame.l, sample).heading + frame.yaw;
+  });
   const truth = {
     ...FAKE_TRUTH_FORMAT,
     game: FAKE_GAME,
@@ -219,6 +226,7 @@ async function writeVideo(
       s: kept.map((f) => f.s),
       l: kept.map((f) => f.l),
       yaw: kept.map((f) => f.yaw),
+      heading: headings,
       pitch: kept.map((f) => f.pitch),
       y: kept.map((f) => f.y),
       playerS: kept.map((f) => f.playerS),

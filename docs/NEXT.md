@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5b](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5c](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -158,18 +158,16 @@ only when the stage has a lane `m`, and a median has no id, so every median is a
 lines, and a divided road or fork reads as one wide road. Fixing it changes the course's identity and measured products,
 so it waits for K; the fake footage's truth course draws them.
 
-- VC-5b: the profile, the depth authority and the pitch rule, and the plan solved again at the depths they give (at
-  level-road depth the plan's curvature errs most on hills); the projection-form check; the background scale `a` from
-  the heading changes against the background's shifts. The background shift reads wrongly on some backgrounds (most of
-  the fake original's last stage, a fifth of its first): its measurement is checked there first.
-- VC-5c: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as
+- VC-5c: the profile, the depth authority and the pitch rule, and the plan solved again at the depths they give (at
+  level-road depth the plan's curvature errs most on hills); the projection-form check.
+- VC-5d: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as
   a course document.
 - VC-6: appearance: Strips, color changes, materials and environment knots.
 - VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement; with tracked
   vehicles, the gauge's choice of vehicle (traffic pictures against the player's: its scale factor and a common width),
   which `calibrate` now takes on the player.
 - VC-8: replay and the comparison (`replay`, `solve`'s iteration): each video replayed, every video's residuals updating
-  the course, and leave one out.
+  the course, and leave one out; with them the background scale `a`, which needs the replay's heading.
 - VC-9: the round trip (`roundtrip`) passes, exact and corrupted, at 60 and 30 fps, compressed; the report (lateral
   acceleration, where the vehicle leaves the ground, inconsistency amount, sprite kinds). The frame measurement tool
   (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are

@@ -123,7 +123,9 @@ do not. There is no separate vertical scale.
 - **Results, not assumptions.** Lane and road widths are results. Each is reported beside the motorway lane standard of
   the country it is set in: USA 3.65 m, Germany 3.75 m, UK 3.65 m, Japan 3.5 m.
 - **Background scroll.** `a` is measured once `f` is known, from the background's horizontal motion against `Δθ`: the
-  initial estimate measures it, since `Δθ` needs the road's heading and the camera's yaw.
+  [replay comparison](#replay-comparison) measures it, since it needs the camera's heading consistent over whole runs of
+  frames. The initial estimate's heading drifts over hundreds of frames; frame by frame, a background drawn in whole
+  pixels steps only where its rounding changes, and a step a featureless frame cannot show goes unmeasured.
 - **Closed courses.** On a circuit the headings sum to 2π and the plan closes. Those constraints fix `f` on their own,
   so they test the gauge; their difference from it is reported.
 
@@ -242,9 +244,12 @@ templates (each digit's and event's ink colors by letter, `.` for ground) into `
   roads.
 - **Ground top.** The topmost row with road pixels (`roadTop`; a crest cuts the road there) and the topmost row whose
   unmasked pixels are mostly ground colors (`groundTop`).
-- **Background.** The shift from the frame before above the ground (rows above `groundTop` − 2): horizontally the lag of
-  the column profile of luma changes, vertically of the row profile, each the largest cross-correlation within 40
-  (20) game pixels refined by a parabola.
+- **Background.** The shift from the frame before above the ground (rows above `groundTop` − 2): the shift within 40
+  columns and 20 rows under which the most pixels match, each pixel's luma difference capped at three deviations of
+  the decoding noise, so that pictures moving with the road (a lamp post's pole rising into the sky) cannot outvote the
+  background however sharp their edges. Columns and rows are searched in turn from no shift until neither moves, then
+  each is refined by a parabola; a shift that is not the one least inside the reach (a flat or repeating background,
+  or a least at the reach's edge) is not measured.
 - **HUD.** Each pixel's ink letter is the ink color nearest its luma (full resolution, where chroma bleeds across thin
   strokes) within a third of the luma distance at which a pixel stops being likelier a known color than none. Each readout
   cell is the template nearest its letters; the speed and clock are numbers when every cell reads a digit or blank. An
@@ -311,8 +316,7 @@ writes it into the footage model's `camera`, each value with its standard error;
   chi-square) when they disagree beyond their own errors, so differences between captures enter the errors. The base
   row is a whole row at one depth in every video, so its rounding (1/12 row²) is added after combining. Errors propagate
   to first order.
-- **Background scroll.** `backgroundScale` stays null until the initial estimate measures it, since `Δθ` needs the
-  road's heading and the camera's yaw that it solves.
+- **Background scroll.** `backgroundScale` stays null until the replay comparison measures it.
 
 ## Initial estimate
 
@@ -344,8 +348,6 @@ near, and that redundancy removes the noise.
      overlap. The steps end when none merge and the counted residuals move by less than a tenth of their deviations.
    - **Result.** Per video, `plan.json`: `κ` per cell where counted points lie beyond it, and per frame `s_c`, `θ`, `ψ`
      and `θ`'s standard error.
-
-   The background scale `a` then follows from the frames' heading changes against the background's shifts.
 
 4. **Height.** With `d` from the depth authority, `(y − y_h(t))·d/(f·cos φ) = Y_c(t) − Y(s)` gives `Y(s)`, with `y_h(t)` (or
    `φ(t)`) unknown per frame and the grade's constant from the pitch rule.
@@ -524,7 +526,8 @@ texel of the original picture.
   clusters; each sprite's bounding rectangle, base point and outline agreement (against the product renderer drawing its
   outline board).
 - **Update.** Gauss–Newton (or Levenberg–Marquardt) over every parameter: plan lengths and radii, PVIs, lane widths, each
-  Strip's period, phase and edges, sprite places and sizes, and the poses. A parameter acts only on frames that show it,
+  Strip's period, phase and edges, sprite places and sizes, the poses, and the background scale `a` (the background's
+  position over each run of measured shifts against the replay's heading). A parameter acts only on frames that show it,
   so its Jacobian comes from local differences.
 - **Form changes.** Once the continuous parameters converge, the partition is redone only where residuals along `s`
   keep one sign (elements split or merged), BIC preventing over-division.
@@ -625,12 +628,13 @@ Before any original's video, the whole procedure passes a round trip on footage 
   gauge: TESTAROSSA at the width the fake original draws it, as a person names an original's player vehicle and its
   real width) and its HUD templates.
 - **Truth written.** `reference-media/fake/outrun-test-route/` holds the truth course document and, per video,
-  `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 1): the stages and their route stations, the
+  `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 2): the stages and their route stations, the
   video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths and the widths their
   pictures are drawn at (a picture's width at the road scale of its lowest row, wider than the vehicle since the picture
   is a view in perspective), the corruption and its intervals, the landmarks (start line, pole, checkpoints, fork
   beginnings and finish, in route stations), the HUD's events with their frames and times and its layout, the traffic,
-  and every kept frame's time, pose, player place, speed and displayed km/h.
+  and every kept frame's time, pose, the camera's heading in the world (which the background turns with), player place,
+  speed and displayed km/h.
 
 It passes when:
 
