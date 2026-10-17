@@ -192,6 +192,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 170,
@@ -267,6 +276,22 @@
               "left": { "lane": "w", "side": "left", "offset": 0 },
               "right": { "lane": "e", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 170,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -400,6 +425,42 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "e", "side": "right", "offset": -0.3 },
           "right": { "lane": "e", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "arc-4", "offset": 160 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "arc-4", "offset": 160 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -1953,6 +2014,15 @@
           "material": "GRASS"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 178,
@@ -2028,6 +2098,22 @@
               "left": { "lane": "w", "side": "left", "offset": 0 },
               "right": { "lane": "e", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 178,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -2111,6 +2197,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "e", "side": "right", "offset": -0.3 },
           "right": { "lane": "e", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-15", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-15", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -4280,6 +4384,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 150,
@@ -4355,6 +4468,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 150,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -4497,6 +4626,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -5977,6 +6124,15 @@
           "material": "GRASS"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 185,
@@ -6052,6 +6208,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 185,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -7285,6 +7457,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -9368,6 +9558,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 101,
@@ -9448,6 +9647,22 @@
           ]
         },
         {
+          "kind": "repeat",
+          "every": 40,
+          "count": 101,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
+              "material": null
+            }
+          ]
+        },
+        {
           "kind": "strip",
           "start": { "joint": "straight-11", "offset": 180 },
           "end": { "joint": "straight-13", "offset": 60 },
@@ -9487,6 +9702,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-17", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-17", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -36959,6 +37192,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 128,
@@ -37034,6 +37276,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 128,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -37417,6 +37675,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -39256,6 +39532,15 @@
           "material": "GRASS"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 181,
@@ -39331,6 +39616,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -39620,6 +39921,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-13", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -43943,6 +44262,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 181,
@@ -44018,6 +44346,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 12685,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 181,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -44401,6 +44745,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-9", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-9", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -45942,6 +46304,15 @@
           "material": "SHOULDER"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 98,
@@ -46017,6 +46388,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 98,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -46134,6 +46521,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-19", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-19", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },
@@ -47438,6 +47843,15 @@
           "material": "DIRT"
         },
         {
+          "kind": "strip",
+          "start": { "joint": "straight-1", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": 0 },
+          "right": { "lane": "c", "side": "left", "offset": 0 },
+          "color": 9830,
+          "material": "GRASS"
+        },
+        {
           "kind": "repeat",
           "every": 40,
           "count": 89,
@@ -47513,6 +47927,22 @@
               "left": { "lane": "a", "side": "left", "offset": 0 },
               "right": { "lane": "d", "side": "right", "offset": 0 },
               "color": 14799,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 40,
+          "count": 89,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "straight-1", "offset": 0 },
+              "end": { "joint": "straight-1", "offset": 20 },
+              "left": { "lane": "b", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "left", "offset": 0 },
+              "color": 11943,
               "material": null
             }
           ]
@@ -47650,6 +48080,24 @@
           "end": { "joint": "end", "offset": 0 },
           "left": { "lane": "d", "side": "right", "offset": -0.3 },
           "right": { "lane": "d", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "b", "side": "right", "offset": -0.3 },
+          "right": { "lane": "b", "side": "right", "offset": -0.15 },
+          "color": 30653,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "straight-21", "offset": 150 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "left", "offset": 0.15 },
+          "right": { "lane": "c", "side": "left", "offset": 0.3 },
           "color": 30653,
           "material": null
         },

@@ -634,6 +634,42 @@ function widthOf(width: Width, joints: readonly Joint[], length: number) {
   return values.map(([s, w]) => ({ at: positionOf(joints, s), width: w }));
 }
 
+/**
+ * The stage's median, which has no lane id: the lanes on either side of it in the lanes' order, and the stretches where
+ * it is open (wider than zero). Null when the stage has none.
+ */
+function medianOf(lanes: readonly { kind: string; id?: string }[], width: Width, length: number) {
+  const index = lanes.findIndex((lane) => lane.kind === 'median');
+  if (index < 0) return null;
+  const left = lanes
+    .slice(0, index)
+    .reverse()
+    .find((lane) => lane.id)?.id;
+  const right = lanes.slice(index + 1).find((lane) => lane.id)?.id;
+  if (!left || !right) throw new Error('A median lies between two lanes');
+  const values: readonly (readonly [number, number])[] =
+    typeof width === 'number'
+      ? [
+          [0, width],
+          [length, width],
+        ]
+      : width;
+  // Widths change linearly between their stations, so the median is open between a station where it starts to widen
+  // from zero and the next where it is zero again.
+  const open: [number, number][] = [];
+  let from: number | null = values[0]![1] > 0 ? 0 : null;
+  for (let i = 1; i < values.length; i++) {
+    const [s, w] = values[i]!;
+    if (from === null && w > 0) from = values[i - 1]![0];
+    else if (from !== null && w === 0) {
+      open.push([from, s]);
+      from = null;
+    }
+  }
+  if (from !== null) open.push([from, length]);
+  return { left, right, open: open.map(([a, b]) => [Math.max(0, a), Math.min(length, b)] as const) };
+}
+
 /** The stage's lanes: a and b throughout; c and d appear for the fork; the median opens and the roads part. */
 function lanesOf(design: StageDesign, length: number, entry: boolean, goal: boolean) {
   const fork = length - FINAL;
@@ -855,7 +891,8 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
     entryEnd: ENTRY,
   });
   const ctx = createStageContext(ctxOptions());
-  const { has, edge, roadLeft, roadRight, leftLane, rightLane } = ctx;
+  const { edge, roadLeft, roadRight, leftLane, rightLane } = ctx;
+  const median = medianOf(lanes, widths.m!, length);
   const surfaces = { ...DEFAULT_SURFACES, ...design.surfaces };
   const verge = surfaces.verge.width;
   const whole = (left: Lateral | null, right: Lateral | null) => ({ start: at(0), end: at(length), left, right });
@@ -879,11 +916,11 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
       color: surfaces.verge.colors[0],
       material: surfaces.verge.material,
     },
-    ...(has('m')
+    ...(median
       ? [
           {
             kind: 'strip',
-            ...whole(edge('b', 'right'), edge('c', 'left')),
+            ...whole(edge(median.left, 'right'), edge(median.right, 'left')),
             color: surfaces.median.colors[0],
             material: surfaces.median.material,
           },
@@ -896,7 +933,8 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
   base.bands(0, length, roadLeft(verge), roadLeft(), surfaces.verge.colors[1], BAND);
   base.bands(0, length, roadRight(), roadRight(verge), surfaces.verge.colors[1], BAND);
   base.bands(0, length, roadLeft(), roadRight(), surfaces.road[1], BAND);
-  if (has('m')) base.bands(0, length, edge('b', 'right'), edge('c', 'left'), surfaces.median.colors[1], BAND);
+  if (median)
+    base.bands(0, length, edge(median.left, 'right'), edge(median.right, 'left'), surfaces.median.colors[1], BAND);
   const lines = createStageContext(ctxOptions());
   if (surfaces.rumble) {
     lines.bands(0, length, roadLeft(0.9), roadLeft(), surfaces.rumble[0], 8, 4);
@@ -915,9 +953,10 @@ function buildStage(design: StageDesign, row: number, position: number): Built {
     );
   solid({ lane: leftLane, side: 'left' }, 1);
   solid({ lane: rightLane, side: 'right' }, -1);
-  if (has('m')) {
-    solid({ lane: 'b', side: 'right' }, -1);
-    solid({ lane: 'c', side: 'left' }, 1);
+  // Along each side of the median, where it is open.
+  for (const [start, end] of median?.open ?? []) {
+    lines.strip(start, end, edge(median!.left, 'right', -0.3), edge(median!.left, 'right', -0.15), surfaces.line);
+    lines.strip(start, end, edge(median!.right, 'left', 0.15), edge(median!.right, 'left', 0.3), surfaces.line);
   }
   const dashes = (lane: string, from: number) =>
     lines.bands(from, length, edge(lane, 'right', -0.08), edge(lane, 'right', 0.08), surfaces.line, 12, 6);

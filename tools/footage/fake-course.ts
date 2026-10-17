@@ -15,9 +15,7 @@ const STUB_FINISH = 200;
  * enough for the view past the seam. What the footage procedure does not raise is left out, so the round trip compares
  * only what it raises: walls and course-limit openings (an original's walls are not raised). The checkpoint arches stand
  * at their seams, where timing happens, rather than 12 m past them. A row of cones, movable objects, stands on the goal
- * stage's first lane taper. The medians are drawn as OUTRUN TEST's generator means to (grass in light and dark stripes
- * with an edge line along each side) but does not, since its median has no lane id: footage shows a median only by its
- * color.
+ * stage's first lane taper.
  */
 export function fakeTruthCourse(outrunTest: Json): Json {
   const all = outrunTest.sections as Json[],
@@ -50,49 +48,9 @@ export function fakeTruthCourse(outrunTest: Json): Json {
         : sprite,
     );
     if (section.id === 'interchange') sprites.push(...coneRow(plan));
-    const median = (section.lanes as Json[]).some((lane) => lane.kind === 'median');
-    const strips = [...(section.strips as Json[]), ...(median ? medianStrips(plan) : [])];
-    return { ...section, walls: [], openLimits: [], sprites, strips };
+    return { ...section, walls: [], openLimits: [], sprites };
   });
   return { ...outrunTest, name: 'OUTRUN TEST ROUTE', entry: FAKE_STAGES[0], sections: [...sections, ...stubs], links };
-}
-
-/** OUTRUN TEST's median grass, its two stripe colors, and its line color. */
-const MEDIAN = Object.freeze({ colors: [9830, 11943] as const, line: 30653, stripe: 40 });
-
-/**
- * The median between lanes b and c (zero wide where the roads touch): grass, its second color over the first 20 m of
- * every 40, and a solid line 0.15–0.3 m inside each road's edge along it.
- */
-function medianStrips(plan: readonly Json[]): Json[] {
-  const length = plan.reduce((sum, element) => sum + (element.length as number), 0);
-  const first = plan[0]!.id as string;
-  const at = (offset: number): Position => ({ joint: first, offset });
-  const end: Position = { joint: 'end', offset: 0 };
-  const b = (offset: number) => ({ lane: 'b', side: 'right', offset });
-  const c = (offset: number) => ({ lane: 'c', side: 'left', offset });
-  const half = MEDIAN.stripe / 2;
-  return [
-    { kind: 'strip', start: at(0), end, left: b(0), right: c(0), color: MEDIAN.colors[0], material: 'GRASS' },
-    {
-      kind: 'repeat',
-      every: MEDIAN.stripe,
-      count: Math.floor((length - half) / MEDIAN.stripe) + 1,
-      elements: [
-        {
-          kind: 'strip',
-          start: at(0),
-          end: at(half),
-          left: b(0),
-          right: c(0),
-          color: MEDIAN.colors[1],
-          material: null,
-        },
-      ],
-    },
-    { kind: 'strip', start: at(0), end, left: b(-0.3), right: b(-0.15), color: MEDIAN.line, material: null },
-    { kind: 'strip', start: at(0), end, left: c(0.15), right: c(0.3), color: MEDIAN.line, material: null },
-  ];
 }
 
 /** A stub: a level straight of two 3.6 m lanes, asphalt between verges of the stage's ground, under the stage's sky. */

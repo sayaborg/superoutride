@@ -589,9 +589,7 @@ Before any original's video, the whole procedure passes a round trip on footage 
     level straight of two lanes ending in a finish, enough for the view past the seam;
   - walls and course-limit openings are left out, since footage does not raise walls;
   - checkpoint arches stand at their seams, where timing happens, not 12 m past them;
-  - a row of cones (movable objects) lines INTERCHANGE's first lane taper;
-  - each median is drawn as OUTRUN TEST's generator means to and does not (grass in 40 m light and dark stripes, a
-    solid line inside each road's edge along it), so that footage shows it.
+  - a row of cones (movable objects) lines INTERCHANGE's first lane taper.
 - **Camera.** The fake original's frame is 320×224 game pixels (the top of the logical frame) seen from `f` = 200 px,
   `h` = 1.6 m, `x₀` = 156, `y₀` = 98, `a` = 150 px/rad and `D′` = 4 m, pitching with the road's chord from the camera
   to the player (pitch rule `road`), the camera `h` above the road beneath it. Each frame's camera stands at its pose

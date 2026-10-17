@@ -153,11 +153,6 @@ driving is not fitted to an original's times; every value is derived, set from a
 model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
 the [stopping conditions](footage.md#stopping-conditions).
 
-Found while making fake footage: OUTRUN TEST draws no medians. Its generator draws the median's grass and edge lines
-only when the stage has a lane `m`, and a median has no id, so every median is asphalt-colored, of `ASPHALT`, without
-lines, and a divided road or fork reads as one wide road. Fixing it changes the course's identity and measured products,
-so it waits for K; the fake footage's truth course draws them.
-
 - VC-5c: the profile, the depth authority and the pitch rule, and the plan solved again at the depths they give (at
   level-road depth the plan's curvature errs most on hills); the projection-form check.
 - VC-5d: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as

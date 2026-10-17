@@ -1697,8 +1697,9 @@ stands 12 m into every stage but the entry, whose start gantry stands over its g
 Each stage's own ground, Boundaries, walls, open limits, sprites and further environments are written by its design
 through a stage context ([`tools/course/outrun-test/`](../tools/course/outrun-test)), with pictures drawn for the
 course ([Image assets](image-assets.md#drawn-pictures)); its base ground is a verge either side of the road over its
-material, the road with rumble strips, edge lines and lane dashes, and the ground beyond, each in light and dark bands
-40 m long.
+material, the road with rumble strips, edge lines and lane dashes, the median between two roads where it is open (wider
+than 0) in grass with a solid edge line along each side, and the ground beyond, each in light and dark bands 40 m long.
+The median's place comes from the lanes' order, between the lanes either side of it, since a median has no id.
 
 Every stage has its own drawn sky and its own cross-section and scenery, so that together they use every capability of
 the format: solid walls above the road (house fronts, high-rise fronts, rock faces, barriers, tunnel bores) and below it
