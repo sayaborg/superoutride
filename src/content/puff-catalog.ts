@@ -116,6 +116,14 @@ export function checkPuffAmounts(record: Pick<PuffSurfaceRecord, 'metersPerPuff'
   }
 }
 
+/** The palettes every picture of a kind has, in its first picture's order: those its surfaces may name. */
+export function puffKindPalettes(sizes: readonly PuffPictureSize[]): string[] {
+  const pictures = sizes.flatMap((size) => size.shapes);
+  return Object.keys(pictures[0]!.palettes).filter((palette) =>
+    pictures.every((picture) => Object.hasOwn(picture.palettes, palette)),
+  );
+}
+
 /** The picture names a puff document names, read leniently: only to find the images to admit with it. */
 export function puffPictureNames(value: unknown): string[] {
   const names = new Set<string>();
@@ -205,7 +213,7 @@ export function compilePuffDocument(
         throw new AdmissionError('unresolved_reference', `${at}/kind`, `Unknown kind: ${kind}`);
       const palette = readString(record.palette, `${at}/palette`);
       requireAdmission(
-        sizes[kind]!.every((size) => size.shapes.every((shape) => Object.hasOwn(shape.palettes, palette))),
+        puffKindPalettes(sizes[kind]!).includes(palette),
         'unresolved_reference',
         `${at}/palette`,
         `Not a palette of every ${kind} picture: ${palette}`,

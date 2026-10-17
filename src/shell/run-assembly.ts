@@ -30,7 +30,7 @@ import type { loadSurfaceMaterials } from '../content/surface-material-catalog.j
 import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
-import type { CompiledPuffs } from '../content/puff-catalog.js';
+import type { CompiledPuffs, PuffDocument } from '../content/puff-catalog.js';
 import { createTirePuffs } from '../view/tire-puffs.js';
 import type { CourseSprite } from '../view/course-sprite.js';
 import type { PlayerRecord } from './player-record.js';
@@ -57,6 +57,8 @@ export interface RunPage {
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   /** The tire puffs' document and pictures, loaded once. */
   readonly puffs: CompiledPuffs;
+  /** The puff records new puffs are thrown with: the delivered document's until DEV's PUFFS changes them. */
+  puffRecords(): PuffDocument;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
@@ -252,7 +254,7 @@ async function assembleCourseRun(
     // The run's records; a DEV-tuned run compares with and records nothing.
     const records = selection && !tuned ? createRunRecords(page.player, selection) : null;
     // The observer's tire puffs on this run's Route.
-    const puffs = createTirePuffs(page.puffs, vehicles);
+    const puffs = createTirePuffs(page.puffs, vehicles, page.puffRecords);
     return { setup, scene, race, records, puffs };
   };
   let active = build(null);

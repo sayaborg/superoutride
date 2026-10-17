@@ -367,7 +367,7 @@ synthesis's sample rates (`SYNTHESIS_RATE_DOMAIN`, 44100 to 192000 Hz, author va
 ## Tire puffs
 
 The [puff document](../content/puffs/default.json) holds the [tire puffs](tire-puffs.md)' values. None has a measured
-basis; they are the implementer's starting points for K to set on devices. Per kind:
+basis; they are the implementer's starting points for K to set with DEV's PUFFS group and adopt by its export. Per kind:
 
 | Kind  | `releaseDegrees` | `responseSeconds` | `riseMps` | `startDiameterMeters` | `growthMps` | `lifeSeconds` |
 | ----- | ---------------- | ----------------- | --------- | --------------------- | ----------- | ------------- |

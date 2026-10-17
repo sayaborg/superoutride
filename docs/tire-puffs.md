@@ -99,6 +99,13 @@ rivals and traffic, with the step's camera, and draws their pictures with the ot
 `others`; each run assembly, a DEV rebuild's included, starts with none. The attract demo runs through the same step.
 The driving scenarios advance them every fixed step and draw them in the frames they render, checking the limit.
 
+## DEV
+
+With `dev=1`, DEV's PUFFS group ([Browser](browser.md#dev-controls)) replaces the records new puffs are thrown with:
+a kind's six values and a surface's kind, palette and amounts, under the same checks as admission. A puff keeps its
+kind's values as they were when it was thrown. Its export saves the records as this document in the saved layout, to
+adopt as content.
+
 ## Pictures
 
 Every puff picture is an opaque course image of at most 16 colors with two-level transparency

@@ -128,9 +128,17 @@
   the solid wall's `sound` are gone, course version 52); the tire's friction sound Q follows a physical law: its feedback
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
+- Stage TP is complete: every vehicle in view throws tire puffs by the surface under it
+  ([Tire puffs](tire-puffs.md)): smoke when sliding on ASPHALT, spray on WET_ASPHALT, dust on SHOULDER, DIRT and SAND
+  when rolling and sliding and on GRASS when sliding. Rolling throws one per distance, sliding one per amount of friction
+  work beyond the start of the tire law's plateau (the tire observation's `slidingPower`, K to confirm this reading of
+  "work on the plateau"), so wheel-slip protection holding a tire there throws none. Puffs move by one law with values
+  the puff document holds and DEV's PUFFS group changes; they are opaque pictures without shadows, ordered by depth with
+  the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
+  four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-8](#stage-tp--tire-puffs) and
-[DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides, then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e](#stage-vc--courses-from-footage) and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides, then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -174,34 +182,14 @@ the [stopping conditions](footage.md#stopping-conditions).
   (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are
   deleted, leaving the footage observations the one observation format.
 
-## Stage TP — Tire puffs
-
-Tires throw puffs by surface: smoke when sliding on ASPHALT; spray on WET_ASPHALT, verge-coloured dust on SHOULDER and
-dirt, sand dust on DIRT and SAND when rolling and sliding; grass-and-dirt dust on GRASS when sliding (K's decision,
-2026-10-18). Rolling throws one puff per distance a tire travels; sliding one per amount of friction work beyond the
-start of the tire law's plateau, so wheel-slip assistance that holds a tire at the plateau's start throws none. Every
-puff kind moves by one law (relaxation toward still air and a vertical speed) with values a puff document holds and DEV
-changes. Pictures are opaque 16-color pictures with two-level transparency, anchored at their base point and casting no
-shadow; pictures are ordered by base-point depth with the player among them. Every vehicle within the drawing depth
-throws puffs, up to a fixed number alive, the oldest replaced first. The new specification `docs/tire-puffs.md` owns the
-model.
-
-K decided Stage TP runs in parallel with Stage VC; they share the renderer, NEXT, the specification index and
-Development, so when main moves the branch is brought up to it and validated again. Each PR proceeds without waiting
-for approval and stops when a re-measurement changes a time, a driving scenario fails, a layer exception would be
-needed, the drawing order conflicts with another contract, or the instructions contradict an owning specification.
-
-- TP-8: DEV's PUFFS group with reset and export; this section leaves NEXT.
-
 ## Stage DT — DRIFT TUNED trial vehicles
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
 are driven in FREE PLAY; FC3S follows once K decides its open points. A series, scoring and series rules for the camera
 or steering are not made in this stage (the Steering row of [Pending product decisions](#pending-product-decisions)).
 
-K decided it runs in parallel with Stage VC, in its own sessions and branches; Stage TP runs beside both. DT touches
-vehicles and physics, which VC does not, so it shares only NEXT and the other shared documents with VC, and the vehicle
-mechanics document and the tire observation with TP: when main moves, the branch is brought up to it and validated
+K decided it runs in parallel with Stage VC, in its own sessions and branches. DT touches
+vehicles and physics, which VC does not, so it shares only NEXT and the other shared documents with VC: when main moves, the branch is brought up to it and validated
 again before main is fast-forwarded.
 
 K's decisions for the stage:

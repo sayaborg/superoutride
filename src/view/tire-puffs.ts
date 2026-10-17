@@ -1,4 +1,4 @@
-import type { CompiledPuffs, PuffKindRecord, PuffPictureSize } from '../content/puff-catalog.js';
+import type { CompiledPuffs, PuffDocument, PuffKindRecord, PuffPictureSize } from '../content/puff-catalog.js';
 import { createPlanCoordinateSample, createPlanProjectionWorkspace } from '../course/geometry/plan-coordinate.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import type { ProfileReader } from '../course/geometry/profile.js';
@@ -46,12 +46,16 @@ interface PuffScene {
 /**
  * The puffs the tires throw ([Tire puffs](../../docs/tire-puffs.md)), owned by the observer like its vehicle sprites. Each
  * fixed step `advance` moves every puff and lets each vehicle within the drawing depth throw new ones from its tire
- * observations; `sprites` gives every puff's picture for the frame, each the size nearest its diameter in the palette
- * its surface names. It draws no randomness.
+ * observations, with the kinds and surfaces of `records` at that step; `sprites` gives every puff's picture for the
+ * frame, each the size nearest its diameter in the palette its surface names. It draws no randomness.
  */
-export function createTirePuffs(puffs: CompiledPuffs, vehicles: readonly CompiledVehicleDefinition[]) {
-  const kinds = puffs.source.kinds,
-    surfaces = puffs.source.surfaces;
+export function createTirePuffs(
+  puffs: CompiledPuffs,
+  vehicles: readonly CompiledVehicleDefinition[],
+  records: () => PuffDocument = () => puffs.source,
+) {
+  // The records each step throws with: the delivered document's, or DEV's; a puff keeps its kind's as it was thrown.
+  let { kinds, surfaces } = puffs.source;
   const compiled = new Map(vehicles.map((vehicle) => [vehicle.compiledVehicle.id, vehicle.compiledVehicle]));
   // Live puffs from the oldest; spent ones wait in the pool.
   const live: Puff[] = [],
@@ -176,6 +180,7 @@ export function createTirePuffs(puffs: CompiledPuffs, vehicles: readonly Compile
         else live[kept++] = puff;
       }
       live.length = kept;
+      ({ kinds, surfaces } = records());
       [patches, seen] = [seen, patches];
       seen.clear();
       for (const actor of actors) {

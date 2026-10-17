@@ -99,6 +99,9 @@
               <span id="tuning-contact-label" class="selector-label">BODY CONTACT · game-wide</span>
               <div id="tuning-contact-buttons" class="selector-buttons tuning-buttons"></div>
             </section>
+            <section class="selector-group selector-group-sound-settings" aria-label="Tire puffs">
+              <div id="puff-settings"></div>
+            </section>
             <section class="selector-group selector-group-tuning" aria-labelledby="tuning-assist-label">
               <span id="tuning-assist-label" class="selector-label">ASSISTS</span>
               <div id="tuning-assist-buttons" class="selector-buttons"></div>
@@ -121,6 +124,9 @@
                   title="Export surface sounds"
                 >
                   surface-sounds/default.json
+                </button>
+                <button id="export-puffs-button" class="selector-button" type="button" title="Export tire puffs">
+                  puffs/default.json
                 </button>
                 <button
                   id="export-engine-sound-button"

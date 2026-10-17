@@ -29,7 +29,9 @@ import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-as
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
-import { loadPuffs } from '../content/puff-catalog.js';
+import { loadPuffs, PUFFS_ID } from '../content/puff-catalog.js';
+import { mountPuffSettings } from './controls/puff-settings-controls.js';
+import { downloadDefinition } from './definition-export.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { loadTextTiles } from '../content/text-tiles-catalog.js';
@@ -102,6 +104,12 @@ async function startPage(): Promise<void> {
     const textLayer = createTextLayer(await loadTextTiles(content));
     const raceSprites = createRaceSprites(vehicles);
     const puffs = await loadPuffs(content, materialIds);
+    // DEV's PUFFS group and its export, for the page's lifetime; new runs throw with its values.
+    const puffSettings = dev ? mountPuffSettings(mustGet('puff-settings'), puffs) : null;
+    if (puffSettings)
+      mustGet('export-puffs-button').addEventListener('click', () =>
+        downloadDefinition(`${PUFFS_ID}.json`, puffSettings.read()),
+      );
     // The one run, which the current run screen shows.
     let run: Run | null = null;
     const audioSettings = await loadAudioSettings(content);
@@ -166,6 +174,7 @@ async function startPage(): Promise<void> {
       driving,
       raceSprites,
       puffs,
+      puffRecords: () => puffSettings?.read() ?? puffs.source,
       shell,
       performanceHud,
       dev,

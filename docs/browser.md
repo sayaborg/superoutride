@@ -845,10 +845,17 @@ its `audio/default.json` button (titled Export sound settings) saves the DEV sou
 [audio document](audio.md#audio-document) (`default.json`), its `surface-sounds/default.json` button the SURFACES
 panel's records as that document, and its
 `engine-sounds/…json` button the ENGINE SOUNDS panel's chosen sound as its document (`<sound id>.json`, its `metadata`
-as written), in the saved layout;
+as written), and its `puffs/default.json` button the PUFFS group's records as the [puff document](tire-puffs.md#puff-document), in the saved layout;
 [Calibration](calibration.md#vehicle-settings) describes adopting them as content. There is one camera; what its yaw
 follows is the player's setting, not a DEV selection.
 [Calibration](calibration.md#vehicle-settings) lists values, units and ranges.
+
+DEV's PUFFS group (`puff-settings`) changes the [tire puffs](tire-puffs.md)' records for the page's lifetime: a chosen
+kind's six values, and a chosen surface's kind, palette (one every picture of that kind has; choosing a kind whose
+pictures lack the surface's palette takes their first) and its rolling and sliding amounts, as number fields where an
+empty amount is null. Each value is the document's one value check's (`checkPuffMotion`, `checkPuffAmounts`); a value
+it refuses leaves the previous one. A change applies to the puffs thrown after it, in the run and in new runs; its
+reset returns to the delivered document's records and a page reload restores them.
 
 ### Sound controls
 
