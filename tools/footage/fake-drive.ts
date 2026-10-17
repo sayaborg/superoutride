@@ -4,6 +4,7 @@ import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { courseLane } from '../../src/course/course-lanes.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { FAKE_CAMERA, FAKE_DRIVING, FAKE_STAGES, FAKE_TRAFFIC } from './fake-plan.js';
+import type { PitchRule } from './footage-model.js';
 
 /** The frame step: the fake original updates at 60 Hz. */
 export const FRAME_SECONDS = 1 / 60;
@@ -153,6 +154,8 @@ export function planDrive(
   finish: number,
   checkpoints: readonly number[],
   seed: number,
+  /** The camera's pitch rule ([FakeVideo]). */
+  pitch: PitchRule,
   /** From the camera to the player picture's base point, m: `playerDistance` plus how far the picture reaches below it. */
   anchorDistance: number,
   /** The road's right-hand distance of the player's base point from a camera at (s, l) facing yaw from the road. */
@@ -242,14 +245,15 @@ export function planDrive(
     // The camera's lateral puts the player's base point on the centre column: right distance is affine in l.
     const r0 = playerRight(sc, l, yaw, s, l);
     const cameraL = l + r0 / Math.cos(yaw);
-    // Pitch follows the road's chord from the camera to the player; the camera stands h above the road under it.
+    // Under `road` the pitch follows the road's chord from the camera to the player, under `level` it stays 0; the camera
+    // stands h above the road under it.
     const rise = interpolate(route.height, s) - interpolate(route.height, sc);
     frames.push({
       t,
       s: sc,
       l: cameraL,
       yaw,
-      pitch: -Math.atan2(rise, D),
+      pitch: pitch === 'road' ? -Math.atan2(rise, D) : 0,
       y: interpolate(route.height, sc) + FAKE_CAMERA.height,
       playerS: s,
       playerL: l,

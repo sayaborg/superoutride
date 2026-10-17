@@ -168,6 +168,7 @@ async function writeVideo(
     landmarks.finish,
     landmarks.checkpoints,
     video.seed,
+    video.pitch,
     anchorDistance,
     playerRight,
   );
@@ -198,7 +199,7 @@ async function writeVideo(
     course: FAKE_COURSE,
     stages: stages.map((stage) => ({ id: stage.section.id, start: stage.start, exit: stage.exit?.id ?? null })),
     video,
-    camera: { ...FAKE_CAMERA, anchorDistance },
+    camera: { ...FAKE_CAMERA, anchorDistance, pitch: video.pitch },
     // Each vehicle's overall width and its picture's gauge width: the width the fake original draws it at the road's
     // scale of its picture's lowest row, which the round trip's gauge takes as the vehicle's width.
     gauge: {

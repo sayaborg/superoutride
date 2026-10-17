@@ -649,8 +649,9 @@ Before any original's video, the whole procedure passes a round trip on footage 
   - a row of cones (movable objects) lines INTERCHANGE's first lane taper.
 - **Camera.** The fake original's frame is 320×224 game pixels (the top of the logical frame) seen from `f` = 200 px,
   `h` = 1.6 m, `x₀` = 156, `y₀` = 98, its background turning with the heading at `a` = 150 px/rad and rising with the
-  pitch at `b` = 1, and `D′` = 4 m, pitching with the road's chord from the camera
-  to the player (pitch rule `road`), the camera `h` above the road beneath it. Each frame's camera stands at its pose
+  pitch at `b` = 1, and `D′` = 4 m, the camera `h` above the road beneath it and pitching by each video's pitch rule:
+  under `road` with the road's chord from the camera to the player, under `level` not at all. The `level` video is an
+  original of its own, its pitch rule judged apart from the others'. Each frame's camera stands at its pose
   `(s_c, l_c, ψ, φ, Y_c)` exactly as replay places it; its lateral puts the player's base point on the centre column.
   As in an original, the player stands where its picture's lowest row meets the road, `D′` from the camera, and timing
   happens there; the product picture's own base point, the footprint's centre, stands 5.19 m from the camera, since
@@ -672,14 +673,15 @@ Before any original's video, the whole procedure passes a round trip on footage 
   - `background`: a background moved as a pseudo-3D original may move it: down, stuck to the row where the road's
     ground ends; across, with `κ·Δs` alone at a factor, ignoring `ψ`; and a farther layer laid over at another speed.
 
-  | Video        | Seed | fps | Scale | Video size | Margins (left, top) | CRF | Range, matrix   | Corruption |
-  | ------------ | ---: | --: | ----: | ---------- | ------------------- | --: | --------------- | ---------- |
-  | `a`          |    1 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
-  | `b`          |    2 |  60 |     2 | 854×480    | 107, 16             |  27 | limited, BT.601 | none       |
-  | `c`          |    3 |  30 |     4 | 1440×1080  | 80, 92              |  25 | full, BT.709    | none       |
-  | `hills`      |    4 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | hills      |
-  | `player`     |    5 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | player     |
-  | `background` |    6 |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | background |
+  | Video        | Seed | Pitch | fps | Scale | Video size | Margins (left, top) | CRF | Range, matrix   | Corruption |
+  | ------------ | ---: | ----- | --: | ----: | ---------- | ------------------- | --: | --------------- | ---------- |
+  | `a`          |    1 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
+  | `b`          |    2 | road  |  60 |     2 | 854×480    | 107, 16             |  27 | limited, BT.601 | none       |
+  | `c`          |    3 | road  |  30 |     4 | 1440×1080  | 80, 92              |  25 | full, BT.709    | none       |
+  | `hills`      |    4 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | hills      |
+  | `player`     |    5 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | player     |
+  | `background` |    6 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | background |
+  | `level`      |    7 | level |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
 
 - **What a person would write.** `fake` also writes, under `reference-media/fake/`, what a person would after looking at
   the fake original's frames: its footage model draft (every OUTRUN TEST ground color of the truth course with its
@@ -700,6 +702,8 @@ It passes when:
 - **Footage model.** `f`, `h`, `y₀`, `x₀` and `D′` equal the truth under the true vehicle's width as the gauge, with
   their errors reported; lane widths, as results, equal the truth. The background's rules are `pitch` and `heading`,
   and `b` and `a` equal the truth.
+- **Pitch rule.** The `road` videos are judged `road` by comparison, not as a tie, and the `level` video `level`, its
+  hills and their grade recovered to the noise level.
 - **Course.** The recovered course and the true one, drawn from the same camera and trajectory, differ in every
   feature by less than one game pixel and by no more than the noise level.
 - **Appearance.** Strip colors equal the truth in RGB555, and periods, phases and edges are confirmed by the agreement of

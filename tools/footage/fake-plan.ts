@@ -4,6 +4,7 @@
  * value here is the truth the round trip must recover, chosen unlike the product's own so that nothing can pass by
  * assuming the product.
  */
+import type { PitchRule } from './footage-model.js';
 
 /** The fake original's frame and camera: unlike the product's 320×240, f 240, h 2, x₀ 160, y₀ 120, D 6 and a = f. */
 export const FAKE_CAMERA = Object.freeze({
@@ -21,8 +22,6 @@ export const FAKE_CAMERA = Object.freeze({
    * farther, by as much as the picture reaches below it.
    */
   playerDistance: 4,
-  /** The pitch rule: the camera pitches with the road's chord from the camera to the player. */
-  pitch: 'road',
 } as const);
 
 /** The truth course: OUTRUN TEST's stages in this order, chained through each stage's left exit lane. */
@@ -54,10 +53,15 @@ export const FAKE_DRIVING = Object.freeze({
   trafficSpeed: Object.freeze([27, 36] as const),
 });
 
-/** One video of the fake original: its trajectory's seed and how it was captured. */
+/** One video of the fake original: its trajectory's seed, its camera's pitch rule and how it was captured. */
 export interface FakeVideo {
   readonly id: string;
   readonly seed: number;
+  /**
+   * The pitch rule: `road`, the camera pitching with the road's chord from the camera to the player; `level`, the
+   * camera kept level. Each stands `h` above the road beneath it.
+   */
+  readonly pitch: PitchRule;
   /** The video's frame rate; the original updates at 60 Hz, so a 30 fps video keeps every other frame. */
   readonly fps: 60 | 30;
   /** Each game pixel becomes `scale` × `scale` video pixels by nearest neighbour. */
@@ -83,6 +87,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'a',
     seed: 1,
+    pitch: 'road',
     fps: 60,
     scale: 3,
     width: 1280,
@@ -97,6 +102,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'b',
     seed: 2,
+    pitch: 'road',
     fps: 60,
     scale: 2,
     width: 854,
@@ -111,6 +117,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'c',
     seed: 3,
+    pitch: 'road',
     fps: 30,
     scale: 4,
     width: 1440,
@@ -125,6 +132,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'hills',
     seed: 4,
+    pitch: 'road',
     fps: 60,
     scale: 3,
     width: 1280,
@@ -139,6 +147,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'player',
     seed: 5,
+    pitch: 'road',
     fps: 60,
     scale: 3,
     width: 1280,
@@ -153,6 +162,7 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
   {
     id: 'background',
     seed: 6,
+    pitch: 'road',
     fps: 60,
     scale: 3,
     width: 1280,
@@ -163,6 +173,21 @@ export const FAKE_VIDEOS: readonly FakeVideo[] = Object.freeze([
     range: 'limited',
     matrix: 'bt709',
     corruption: 'background',
+  },
+  {
+    id: 'level',
+    seed: 7,
+    pitch: 'level',
+    fps: 60,
+    scale: 3,
+    width: 1280,
+    height: 720,
+    left: 160,
+    top: 24,
+    crf: 23,
+    range: 'limited',
+    matrix: 'bt709',
+    corruption: null,
   },
 ]);
 
