@@ -9,7 +9,8 @@ import { FRAMES_DIRECTORY, ingestVideo } from './ingest.js';
 import { colorCensus } from './census.js';
 import { measureFeatures, type HudTemplates } from './features.js';
 import { EXACT_DIRECTORY, exactIndices, measureNoise, readFeatures } from './noise.js';
-import { calibrateCamera } from './calibrate.js';
+import { calibrateCamera, playerColumn } from './calibrate.js';
+import { framePoints, solvePlan } from './plan.js';
 import { loadFootageModel } from './footage-model.js';
 import { writeFakeModelDraft } from './fake-model.js';
 import { access, readFile } from 'node:fs/promises';
@@ -125,6 +126,26 @@ try {
       const { camera, evidence } = calibrateCamera(videos, model);
       await atomicWrite(file, JSON.stringify({ ...model, camera }, null, 2) + '\n');
       console.log(JSON.stringify({ ok: true, camera, evidence }));
+      break;
+    }
+    case 'solve': {
+      // Every named video of the course, with the calibrated footage model: so far each video's plan.
+      const game = options.get('--game')?.[0] ?? '';
+      const names = options.get('--video') ?? [];
+      requireInput(names.length > 0, '/arguments/--video', '--video names one or more videos');
+      const model = await loadFootageModel(await footageModelFile(root, game, options));
+      const camera = model.camera;
+      requireInput(camera, '/camera', 'The footage model is calibrated first (calibrate)');
+      const videos = [];
+      for (const id of names) {
+        const directory = videoDirectory(root, new Map([...options, ['--video', [id]]]));
+        const features = await readFeatures(path.join(directory, 'features.jsonl'));
+        const plan = solvePlan(framePoints(features, camera, playerColumn(model)), camera.focalLength.value);
+        await atomicWrite(path.join(directory, 'plan.json'), JSON.stringify(plan) + '\n');
+        const { cell, residual, rounds, converged } = plan;
+        videos.push({ id, cell, residual, rounds, converged });
+      }
+      console.log(JSON.stringify({ ok: true, videos }));
       break;
     }
     default:

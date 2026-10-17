@@ -316,23 +316,43 @@ writes it into the footage model's `camera`, each value with its standard error;
 
 ## Initial estimate
 
-All frames and rows are solved together as one linear least-squares problem. Each station is seen many times from far
-to near, and that redundancy removes the noise.
+All frames and rows are solved together as one least-squares problem. Each station is seen many times from far to
+near, and that redundancy removes the noise.
 
 1. **Position.** `s_c(t)` is the visual odometry of the nearest rows' stripe motion, scaled so that its total equals the
    integral of the displayed speed; without stripes it is that integral. `s = 0` is where the camera crosses the start
    line.
 2. **Widths and lanes.** Measured on the nearest rows above the player and HUD masks, where curves and hills contribute
    by `d²` least: `W = h·(x_R − x_L)/u` at `s_c + K/u` on level road; elsewhere the depth authority places it.
-3. **Plan.** The centreline's `r = (x_c − x₀)·d/f` is fitted to the forward model: `κ(s)` on a 1 m grid, and `l_c` and `ψ`
-   for every frame, together, with the background's horizontal motion as more equations of the same system. It is
-   linear in `κ`, and each `κ` meets only frames near in time, so the system is sparse.
+3. **Plan.** Each point of a lane line's centre is one equation in game pixels, the pseudo projection itself:
+   `x − x₀ = (f/d)·(∫₀^d sin(H(s_c + σ) − θ) dσ + l·cos(H(s_c + d) − θ))`, with the road's heading `H(s)`, each frame's
+   camera heading `θ` (its yaw `ψ = θ − H(s_c)`) and each line's lateral `l` from the line through the camera along the
+   road, at depth `d = K/u` until the depth authority places it.
+   - **Points.** Lines of the roads connected to the one under the player, of three points or more on rows more than one
+     row below the horizon. Road edges place none: an edge's column moves with depth as its rumble strip falls below a
+     column's width, so it holds no one lateral along its mark.
+   - **Cells.** `H` is linear on cells as long as the frames' median reach (the median of each frame's farthest point's
+     depth), so `κ` is constant on each: a shorter cell's curvature is told apart only by differencing overlapping
+     frames, which multiplies their noise.
+   - **Solving.** Gauss–Newton steps with Marquardt's damping, each taken only when it lowers the weighted squares, from
+     a straight road and level headings. Each frame's `θ` and `l` are eliminated in its own normal equations, which leaves
+     banded normal equations in `H`, solved by Cholesky. `H` is pinned at its first node.
+   - **Weights and rejection.** After each step each octave of depth has its noise, its residuals' robust deviation (no
+     less than a column's rounding), and each point weighs by its inverse variance. Points beyond three deviations, and
+     lines whose normalized root-mean-square residual is (another road's, such as a fork's other branch), are left out.
+     A frame's dashes merge into one line when their laterals agree within three deviations and their depths do not
+     overlap. The steps end when none merge and the counted residuals move by less than a tenth of their deviations.
+   - **Result.** Per video, `plan.json`: `κ` per cell where counted points lie beyond it, and per frame `s_c`, `θ`, `ψ`
+     and `θ`'s standard error.
+
+   The background scale `a` then follows from the frames' heading changes against the background's shifts.
+
 4. **Height.** With `d` from the depth authority, `(y − y_h(t))·d/(f·cos φ) = Y_c(t) − Y(s)` gives `Y(s)`, with `y_h(t)` (or
    `φ(t)`) unknown per frame and the grade's constant from the pitch rule.
 5. **Weights.** Each equation is weighted in game pixels: a lateral error `ΔL` is `(f/d)·ΔL` pixels. The initial
    estimate is thus already a least-squares fit of frame differences.
-6. **Regularization.** Only a weak second difference, to bridge stretches no frame shows. Form comes from the
-   [partition](#partition-into-course-form).
+6. **Regularization.** Only a weak curvature (a millionth of the mean diagonal of the normal equations), to bridge
+   stretches no frame shows. Form comes from the [partition](#partition-into-course-form).
 
 ## Landmarks
 

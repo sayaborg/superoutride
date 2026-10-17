@@ -15,31 +15,34 @@ export interface StraightFrame {
   readonly vanishing: { readonly x: number; readonly y: number; readonly rowError: number };
 }
 
-/** A mark along a road: its points `(y, x)` on consecutive rows. */
-type Mark = { ys: number[]; xs: number[] };
+/** A mark along a road: its points `(y, x)` on consecutive rows, and its kind (a left edge, a right edge, a line). */
+export type Mark = { ys: number[]; xs: number[]; kind: 'left' | 'right' | 'line' };
 
 /**
  * A frame's marks from the ground top down: left road edges, right road edges and line centres, each kind linked row to
  * row on its own, a point to the one on the next row that is its nearest there while it is that one's nearest on its
  * own row. Where a mark's point is missing on a row, its nearest may be another mark's: a mark therefore breaks where
  * its second difference exceeds three deviations of the frame's second differences (their robust spread, no less than
- * that of rounding, √(6/12) px).
+ * that of rounding, √(6/12) px). With a `column`, only the roads connected to the one under it are read
+ * ([connectedRoads]).
  */
-export function frameMarks(features: FrameFeatures): Mark[] {
-  const rows = features.rows.filter((row) => features.groundTop === null || row.y >= features.groundTop);
+export function frameMarks(features: FrameFeatures, column?: number): Mark[] {
+  const below = features.rows.filter((row) => features.groundTop === null || row.y >= features.groundTop);
+  const rows = column === undefined ? below : connectedRoads(below, column);
   const kinds = [
-    (row: (typeof rows)[number]) => row.roads.map((road) => road[0]),
-    (row: (typeof rows)[number]) => row.roads.map((road) => road[1]),
-    (row: (typeof rows)[number]) => row.lines.map((line) => line[0]),
-  ];
-  const linked = kinds.flatMap((kind) =>
+    ['left', (row: (typeof rows)[number]) => row.roads.map((road) => road[0])],
+    ['right', (row: (typeof rows)[number]) => row.roads.map((road) => road[1])],
+    ['line', (row: (typeof rows)[number]) => row.lines.map((line) => line[0])],
+  ] as const;
+  const linked = kinds.flatMap(([kind, xs]) =>
     linkRows(
       rows.map((row) => ({
         y: row.y + 0.5,
-        xs: kind(row)
+        xs: xs(row)
           .filter((x): x is number => x !== null)
           .sort((a, b) => a - b),
       })),
+      kind,
     ),
   );
   const differences: number[] = [];
@@ -47,12 +50,12 @@ export function frameMarks(features: FrameFeatures): Mark[] {
     for (let k = 1; k + 1 < mark.xs.length; k++) differences.push(mark.xs[k + 1]! - 2 * mark.xs[k]! + mark.xs[k - 1]!);
   const limit = 3 * Math.max(Math.sqrt(0.5), differences.length ? robustCentre(differences).sigma : 0);
   return linked.flatMap((mark) => {
-    const pieces: Mark[] = [{ ys: [mark.ys[0]!], xs: [mark.xs[0]!] }];
+    const pieces: Mark[] = [{ ys: [mark.ys[0]!], xs: [mark.xs[0]!], kind: mark.kind }];
     for (let k = 1; k < mark.xs.length; k++) {
       const piece = pieces.at(-1)!;
       const n = piece.xs.length;
       if (n >= 2 && Math.abs(mark.xs[k]! - 2 * piece.xs[n - 1]! + piece.xs[n - 2]!) > limit)
-        pieces.push({ ys: [], xs: [] });
+        pieces.push({ ys: [], xs: [], kind: mark.kind });
       pieces.at(-1)!.ys.push(mark.ys[k]!);
       pieces.at(-1)!.xs.push(mark.xs[k]!);
     }
@@ -60,8 +63,42 @@ export function frameMarks(features: FrameFeatures): Mark[] {
   });
 }
 
+/**
+ * The rows with only the roads connected to the one under `column` at the bottom: going up, a road is kept when it
+ * overlaps a kept road of the row below (an edge not measured reaching to the frame's side), so another road seen apart
+ * from it, or ground of a road color away from it, drops out while both branches of a fork stay. Lines are kept when a
+ * kept road holds them.
+ */
+function connectedRoads(rows: FrameFeatures['rows'], column: number): FrameFeatures['rows'] {
+  const out: FrameFeatures['rows'][number][] = [];
+  let kept: (readonly [number, number])[] | null = null;
+  for (let r = rows.length - 1; r >= 0; r--) {
+    const row = rows[r]!;
+    if (kept && rows[r + 1] && rows[r + 1]!.y !== row.y + 1) kept = null;
+    const spans = row.roads.map((road) => [road[0] ?? -Infinity, road[1] ?? Infinity] as const);
+    const keep = row.roads.map((_, i) => {
+      const [left, right] = spans[i]!;
+      if (!kept) return left <= column && column <= right;
+      return kept.some(([l, rt]) => left <= rt && l <= right);
+    });
+    const roads = row.roads.filter((_, i) => keep[i]);
+    const held = spans.filter((_, i) => keep[i]);
+    if (!held.length && kept) {
+      out.push({ ...row, roads: [], lines: [] });
+      continue;
+    }
+    kept = held.length ? held : kept;
+    out.push({
+      ...row,
+      roads,
+      lines: row.lines.filter(([x]) => held.some(([l, rt]) => l <= x && x <= rt)),
+    });
+  }
+  return out.reverse();
+}
+
 /** Points on rows linked into marks: each to its mutual nearest on the next row. */
-function linkRows(rows: readonly { y: number; xs: readonly number[] }[]): Mark[] {
+function linkRows(rows: readonly { y: number; xs: readonly number[] }[], kind: Mark['kind']): Mark[] {
   const nearest = (xs: readonly number[], x: number) => {
     let best = -1;
     xs.forEach((candidate, i) => {
@@ -80,7 +117,7 @@ function linkRows(rows: readonly { y: number; xs: readonly number[] }[]): Mark[]
         const j = nearest(above.xs, x);
         if (j >= 0 && nearest(row.xs, above.xs[j]!) === i) mark = open.get(j);
       }
-      if (!mark) marks.push((mark = { ys: [], xs: [] }));
+      if (!mark) marks.push((mark = { ys: [], xs: [], kind }));
       mark.ys.push(row.y);
       mark.xs.push(x);
       next.set(i, mark);
