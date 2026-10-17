@@ -35,6 +35,13 @@ const COLOR_NAME_LENGTH = 13;
 const COLOR_NAME = new RegExp(`^[A-Z0-9 .'&/-]{1,${COLOR_NAME_LENGTH}}$`);
 /** The longest word of a listed period, market or specification: SELECT VEHICLE wraps them by words to this width. */
 export const LISTING_LINE_LENGTH = 14;
+/** SELECT VEHICLE's name line, manufacturer and model, fits columns 1–39. */
+const NAME_LINE_LENGTH = 39;
+/**
+ * SELECT VEHICLE's model year line, the year, two spaces and the official label, fits columns 1–20, left of the
+ * page's headings.
+ */
+const YEAR_LINE_LENGTH = 20;
 /** A listed period's, market's or specification's words: the text broken at spaces and after each slash. */
 export function listingWords(value: string): string[] {
   return value.split(/ +|(?<=\/)/).filter((word) => word.length > 0);
@@ -261,6 +268,19 @@ export function compileVehicleListingDocument(
       'invalid_value',
       '/metadata/engine',
       `Expected 1 to ${ENGINE_LABEL_LENGTH} characters`,
+    );
+    requireAdmission(
+      `${metadata.manufacturer} ${metadata.model}`.length <= NAME_LINE_LENGTH,
+      'invalid_value',
+      '/metadata/model',
+      `Expected manufacturer and model of at most ${NAME_LINE_LENGTH} characters with the space between`,
+    );
+    requireAdmission(
+      `${metadata.physicsAnchor.modelYear}  ${metadata.identifier?.officialLabel ?? ''}`.trimEnd().length <=
+        YEAR_LINE_LENGTH,
+      'invalid_value',
+      metadata.identifier ? '/metadata/identifier/officialLabel' : '/metadata/physicsAnchor/modelYear',
+      `Expected the model year, two spaces and the official label in at most ${YEAR_LINE_LENGTH} characters`,
     );
     const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture', 'colorNames']);
     const visuals = {

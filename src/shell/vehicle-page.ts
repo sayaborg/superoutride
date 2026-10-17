@@ -27,6 +27,11 @@ export const PICTURE_BOX = Object.freeze({ x: 0, y: 32, width: 160, height: 56 }
 /** The factor by which a picture too large for its box shrinks from the player depth until it fits. */
 export const PICTURE_SCALE_STEP = 0.99;
 /**
+ * `◀ n/N ▶`, the vehicle among the offered vehicles, on `row`, its last character at `lastColumn` whatever the count's
+ * digits.
+ */
+export const VEHICLE_INDEX = Object.freeze({ row: 0, lastColumn: 38 });
+/**
  * The page tabs on `row`, from `firstColumn` with `gap` columns between names; `PAGE n/N` at `pageColumn`; the shown
  * page's time line under its name on `timeLineY`, and a rule across the frame on `ruleY`.
  */

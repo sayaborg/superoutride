@@ -476,7 +476,9 @@ Skies without a source are left as they are.
 
 `npm test` renders the front end's screens headlessly through the same screens the page shows, from the delivered
 content (`tests/infrastructure/screens-smoke.test.mjs`), and saves each drawn frame to `dist/screens/<name>.png` at
-twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test compares their pixels. A
+twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test compares their pixels.
+FREE PLAY's SELECT VEHICLE is drawn for every offered vehicle, each of its pages, so a catalog that outgrows a line of
+the screen fails there. A
 single file runs after `npm run build` with `node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
 
 ### Listening on devices

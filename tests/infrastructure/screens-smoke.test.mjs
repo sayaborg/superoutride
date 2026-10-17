@@ -220,4 +220,25 @@ test('the front end screens render from the delivered content', async () => {
   commands.push('BACK');
   frames(1);
   assert.deepEqual(brightness, [TRANSITION_STEPS, TRANSITION_STEPS]);
+
+  // FREE PLAY's SELECT VEHICLE offers every vehicle: each one in turn draws each of its pages, so a catalog that grows
+  // past what the screen's lines hold fails here.
+  // Without the screen host, the shown screen is current at once again.
+  host = null;
+  flow.title();
+  send('RIGHT', 'CONFIRM', 'CONFIRM');
+  // CONFIRM records the shown vehicle and BACK returns to it, so each vehicle offered is named once.
+  const shown = new Set();
+  for (let k = 0; k < vehicles.length; k++) {
+    send('CONFIRM', 'BACK');
+    const id = player.settings.latestSelections.vehicle;
+    shown.add(id);
+    for (let page = 0; page < 3; page++) {
+      screen.render();
+      for (let i = 0; i < VEHICLE_PAGE_STEPS; i++) screen.tick();
+    }
+    if (id === vehicles.at(-1).compiledVehicle.id) await capture('select-vehicle-free-play');
+    send('RIGHT');
+  }
+  assert.equal(shown.size, vehicles.length, 'FREE PLAY did not offer every vehicle');
 });

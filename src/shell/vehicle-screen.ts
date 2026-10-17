@@ -29,6 +29,7 @@ import {
   PAGE_TABS,
   PICTURE_BOX,
   PICTURE_SCALE_STEP,
+  VEHICLE_INDEX,
   VEHICLE_PAGE_STEPS,
   WALLPAPER_SHADE,
   YAW_IMAGE_STEPS,
@@ -254,7 +255,8 @@ export function createVehicleScreen(
       const { metadata } = vehicle.listing;
       text.clear();
       text.write(13, 0, 'SELECT VEHICLE', TEXT_PALETTES.WHITE);
-      text.write(32, 0, `${TEXT_MARKS.left} ${index + 1}/${candidates.length} ${TEXT_MARKS.right}`, TEXT_PALETTES.DARK);
+      const position = `${TEXT_MARKS.left} ${index + 1}/${candidates.length} ${TEXT_MARKS.right}`;
+      text.write(VEHICLE_INDEX.lastColumn + 1 - position.length, VEHICLE_INDEX.row, position, TEXT_PALETTES.DARK);
       text.write(1, 2, vehicleName(vehicle), TEXT_PALETTES.YELLOW);
       const label = metadata.identifier ? `  ${metadata.identifier.officialLabel.toUpperCase()}` : '';
       text.write(1, 3, `${metadata.physicsAnchor.modelYear}${label}`, TEXT_PALETTES.DARK);
