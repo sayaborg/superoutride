@@ -8,7 +8,7 @@ import {
   courseImageFile,
   importSprite,
   readSpriteRecipe,
-  recipePalette,
+  recipePalettes,
   SPRITE_RECIPE_FORMAT,
   SPRITE_RECIPE_VERSION,
   SPRITE_SOURCES_DIRECTORY,
@@ -207,8 +207,8 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
       };
       for (const [key, input] of Object.entries(fields))
         if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
-      swatches.replaceChildren(...(image ? recipePalette(image, recipe) : []).map(swatch));
-      automatic.disabled = recipe.palette === null;
+      swatches.replaceChildren(...(image ? Object.values(recipePalettes(image, recipe))[0]! : []).map(swatch));
+      automatic.disabled = recipe.palettes === null;
     }
     // Without an open source there is nothing to show but how to add one.
     panes.hidden = !recipe;
@@ -249,7 +249,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
         widthMeters: decodedNew.width / 40,
         anchor: { x: decodedNew.width / 2 - 0.5, y: decodedNew.height - 1 },
         mask: [],
-        palette: null,
+        palettes: null,
       } satisfies SpriteRecipe,
       `Add recipe ${chosen}`,
     );
@@ -275,10 +275,14 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
   recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
   recipeField(fields.anchorY, finiteNumber, (r, y) => ({ ...r, anchor: { ...r.anchor, y } }), 'Set anchor');
   generate.addEventListener('click', () => {
-    if (recipe && image)
-      save({ ...recipe, palette: recipePalette(image, { ...recipe, palette: null }) }, 'Generate palette');
+    // The generated colors replace the default palette's, keeping its name and the other palettes.
+    if (recipe && image) {
+      const { original } = recipePalettes(image, { ...recipe, palettes: null });
+      const first = recipe.palettes ? Object.keys(recipe.palettes)[0]! : 'original';
+      save({ ...recipe, palettes: { ...recipe.palettes, [first]: original! } }, 'Generate palette');
+    }
   });
-  automatic.addEventListener('click', () => recipe && save({ ...recipe, palette: null }, 'Palette from each import'));
+  automatic.addEventListener('click', () => recipe && save({ ...recipe, palettes: null }, 'Palette from each import'));
   clearMask.addEventListener('click', () => recipe && save({ ...recipe, mask: [] }, 'Clear mask'));
   writeCourse.addEventListener('click', async () => {
     if (!master) return;

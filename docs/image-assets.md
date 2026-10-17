@@ -136,7 +136,7 @@ outlined shapes in three tones of light, at most 15 colors a picture, sprites at
 middle of their bottom row with a flat contact shadow at their foot (fixed objects cast no shadow pictures of their
 own). Each picture is written as a source with its recipe and then made as the picture commands make it: the series
 picture as a [screen picture](#screen-pictures), sprites as `content/sprite-sources/<name>.png` and `.json` (the sprite
-recipe, `palette` null) imported as course images, and skies as `content/sky-sources/<name>.png` with an entry in that
+recipe, `palettes` null) imported as course images, and skies as `content/sky-sources/<name>.png` with an entry in that
 directory's `recipes.json` (the screen picture recipe format, 94 × 40 tiles, `fill`), drawn as course skies by the
 skies command into `content/images/<name>.json`. Replacing any source with another image of the same name and size and
 running its command replaces the picture without touching the course.
@@ -337,19 +337,20 @@ generator ([Vehicle sprite library](#vehicle-sprite-library)).
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
 published with each build, so the workbench reopens them. The master's name is `<name>`. The recipe is
-`superoutride.sprite-recipe` version 2:
+`superoutride.sprite-recipe` version 3:
 
 ```text
 {format, version, crop: {x,y,width,height}, widthMeters, anchor: {x,y},
- mask: [{x,y,width,height,hidden}, ...], palette: [rgb555, ...] | null}
+ mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null}
 ```
 
 `mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
-source alpha back. `palette` has 16 slots; null generates it from the masked crop
+source alpha back. `palettes` names one or more palettes of 16 slots: the first is the default, which the source is
+normalized with, and the others color the same slots otherwise. Null generates one, `original`, from the masked crop
 ([Candidate palettes](#candidate-palettes)) with 15 colors.
 
 **Import.** The masked source is normalized as [External source normalization](#external-source-normalization)
-describes, with the recipe's palette, and written as its named file, `content/images/<name>.json` with the master and
+describes, with the recipe's default palette, carries every named palette of the recipe, and is written as its named file, `content/images/<name>.json` with the master and
 every level compiled from it in the saved layout, `<name>` being the source's name; it replaces an image of that name, so every course naming it shows
 the new image. Naming it in a course is the course's edit.
 

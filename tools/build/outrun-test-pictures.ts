@@ -56,12 +56,12 @@ try {
     await atomicWrite(new URL(`sprite-sources/${name}.png`, content).pathname, encodePng(raster));
     const recipe = {
       format: 'superoutride.sprite-recipe',
-      version: 2,
+      version: 3,
       crop: { x: 0, y: 0, width: raster.width, height: raster.height },
       widthMeters: raster.width / TEXELS_PER_METRE,
       anchor: { x: raster.width / 2 - 0.5, y: raster.height - 1 },
       mask: [],
-      palette: null,
+      palettes: null,
     };
     await atomicWrite(new URL(`sprite-sources/${name}.json`, content).pathname, formatSavedJson(recipe));
     const { master } = await importSpriteSource(store, name, PNG);
