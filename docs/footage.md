@@ -26,7 +26,6 @@ original.
 | footage observations | The committed numeric record of a course raised from footage ([Footage observations](#footage-observations))                                                                    |
 | replay               | The solved course drawn through the product scene and renderer from the original's camera at each frame's solved pose                                                           |
 | gauge                | The one free scale of the footage, fixed by the width of a vehicle the original draws at the road's scale ([What footage measures](#what-footage-measures))                     |
-| depth authority      | The depth cues of the original that agree with each other, which place things in depth ([Inconsistencies](#inconsistencies-of-the-original))                                    |
 | inconsistency amount | How far the original's drawing departs from one consistent world, by station and depth range                                                                                    |
 | outline board        | A course image that keeps an original sprite's outline, filled with one color ([Outline boards](#outline-boards))                                                               |
 | fake footage         | Footage this game draws of one of its own courses with a camera unlike its own, to test the tool against known truth ([Round-trip test](#fake-footage-and-the-round-trip-test)) |
@@ -45,7 +44,6 @@ original.
 | `Y_c(t)`           | The camera's height (absolute)                                                             |
 | `x₀`, `y₀`         | The centre column and the horizon row with a level camera (footage model)                  |
 | `f`, `h`, `K`      | Focal length (px), the level camera's height above the road (m), `K = f·h` (footage model) |
-| `a`, `b`           | Background factors across and down, where its rules verify them (footage model)            |
 | `D′`               | The original's distance from the camera to the player's base point, m (footage model)      |
 | `B`                | The width of the gauge vehicle, m (footage model)                                          |
 | `κ(s)`, `ν(s)`     | Plan curvature (right positive) and vertical curvature                                     |
@@ -76,8 +74,8 @@ r(d, l) = (l − l_c(t)) − ψ(t)·d + ∫₀^d (d − σ)·κ(s_c(t) + σ) dσ
   an exact depth cue.
 - In the forward model the background is a plane at infinity: it turns with the camera's heading
   `θ = road heading + ψ` and rises with its pitch, as the product's does (`f` px/rad across, one row per horizon row
-  down). A pseudo-3D original's background is a separate plane its makers move by a rule of their own, so it is used
-  only as far as its [rules](#background-rules) are verified.
+  down). A pseudo-3D original's background is a separate plane its makers move by a rule of their own, so it shapes
+  nothing ([What footage measures](#what-footage-measures)).
 - The small-angle form serves only the [initial estimate](#initial-estimate). Correctness is decided by the
   [replay comparison](#replay-comparison), which draws through the product renderer itself.
 
@@ -123,8 +121,8 @@ do not. There is no separate vertical scale.
   recorded in the footage model.
 - **Results, not assumptions.** Lane and road widths are results. Each is reported beside the motorway lane standard of
   the country it is set in: USA 3.65 m, Germany 3.75 m, UK 3.65 m, Japan 3.5 m.
-- **Background.** The background measures nothing until its [rules](#background-rules) are verified; then `a` and `b`
-  are their factors.
+- **Background.** The background measures nothing. A pseudo-3D original's background is a separate plane its makers
+  move by a rule of their own, often loosely, so it never shapes the course; it is only shown in the side-by-side.
 - **Closed courses.** On a circuit the headings sum to 2π and the plan closes. Those constraints fix `f` on their own,
   so they test the gauge; their difference from it is reported.
 
@@ -133,75 +131,47 @@ do not. There is no separate vertical scale.
 A depth shows four ways: a row, a width, a stripe spacing and a sprite's size. In the forward model all four agree. An
 original may not.
 
-- **Depth authority.** Over hills and curves the tool finds which cues agree with each other; the agreeing set places
-  everything in depth and is recorded in the footage model. (A common construction moves the rows alone, with widths,
-  stripes and sprites agreeing.)
+- **Residuals per cue.** The residuals are reported per cue (lines, stripe edges, `roadTop`) and per octave of depth, so
+  a cue that disagrees with the others shows where and how far.
 - **Inconsistency amount.** Height and curvature are estimated separately from each depth range (0–25, 25–50, 50–100 and
   100–200 m) at the same station; their differences along `s` are the inconsistency amount.
 - **Solving.** The course is the least-squares fit of frame differences in game pixels, each feature weighted by the
   inverse of its noise level. No weight is chosen per depth range by hand.
-- **Hills.** Height is seen in the rows ahead, and they lead. The background adds to them only where its vertical rule
-  is verified as `pitch` ([Background rules](#background-rules)); a difference between a height that is not seen on
-  screen and the truth is no failure, since the comparison is between drawn features.
+- **Hills.** Height is seen in the rows ahead, and they lead; a difference between a height that is not seen on screen
+  and the truth is no failure, since the comparison is between drawn features.
 - **Pitch and grade.** Camera pitch and the grade ahead move every row alike, so one frame cannot separate them; the
   original's pitch rule can. The rule is the one the rows ahead prefer by BIC (the lines at the depths their rows lie at
   on the profile), a tie taking `road` (no grade the screen does not show), and it is recorded in the footage model:
-  - `level`: the camera stays level, so each row ahead shows the height between the camera and that point directly. The
-    background is not used.
-  - `road`: the camera pitches with the road, so the rows ahead show only vertical curvature. Where the background's
-    vertical rule is `pitch`, its absolute row, measured against the background's mosaic, shows the grade and joins the
-    rows ahead in one least squares, the heights following by one integration. Otherwise the grade's absolute value
-    shows nowhere on the original's screen and is not recovered: among the grades that fit the rows ahead at their noise
-    level, the one with the least sum of squared grades over the frames (the product's background moving least) is
-    taken, weighed so that the rows' χ² per degree of freedom is 1 ([Initial estimate](#initial-estimate)); that weight
-    also holds a long integration's drift.
-
-## Background rules
-
-A pseudo-3D original's background is a separate plane, not tied to a real camera, moved by its makers' rule: across by
-curvature times speed with a factor and no yaw, down stuck to the row where the road's ground ends, not at all, in whole
-tile steps, or in layers at different speeds. The fake original's background is the product's, which follows pitch and
-heading exactly, so a method that leans on the background could pass the round trip and fail on an original. Each
-original's rules are therefore verified per game and recorded in the footage model.
-
-- **Jumps and layers.** Steps of whole background tiles are cut off as jumps before judging. Bands of rows that move
-  apart are layers, each judged on its own.
-- **Vertical.** The candidate with the least BIC that explains the motion to its noise level:
-  - `pitch`: it rises with the camera's pitch at a factor `b`. Over short intervals, its vertical shift is set against
-    the change of grade the rows ahead show over the same interval (their vertical curvature times the distance), which
-    gives `b` and the residual; there is no long integration.
-  - `fixed`: it does not move.
-  - `road-horizon`: it is stuck to the row where the road's ground ends, so it carries only what the rows ahead carry.
-  - `free`: no candidate explains it to the noise level.
-- **Horizontal.** Likewise: `heading` (it turns with the camera's heading `θ` at a factor `a`), `curvature` (with
-  `κ·Δs` alone at a factor, ignoring `ψ`) or `free`.
-- **Use.** The vertical motion joins the profile only as `pitch`, and the horizontal joins the plan as observations of
-  `θ` only as `heading`. Otherwise the background is left out of the estimate and of the comparison, and its difference
-  from the replay is reported as the original's lie amount.
+  - `level`: the camera stays level, so each row ahead shows the height between the camera and that point directly.
+  - `road`: the camera pitches with the road, so the rows ahead show only vertical curvature, and the grade's absolute
+    value shows nowhere on the original's screen and is not recovered: among the grades that fit the rows ahead at
+    their noise level, the one with the least sum of squared grades over the frames is taken, weighed so that the rows'
+    χ² per degree of freedom is 1 ([Initial estimate](#initial-estimate)); that weight also holds a long integration's
+    drift.
 
 ## Footage model
 
 A footage model is `superoutride.footage-model` version 2, at `content/footage/<game>/footage-model.json`
 (`<game>` an id such as `outrun`). It is production-only, like the
 [underlay alignments](content-and-gameplay.md#course-authoring-operations): numbers and names only, which the core
-neither reads nor delivers. It is made from every video of the original's first course, then frozen: later courses only
-check it, and a contradiction stops the work.
+neither reads nor delivers. It stays provisional while the original's first course gathers videos and is made again from
+all of them; it is then frozen: later courses only check it, and a contradiction stops the work. What a person sees in
+frames is written in it by hand (the game, the HUD, masks, colors, the gauge's vehicle); the tool's own judgement of
+such a value only checks it, and a disagreement is reported.
 
-| Field        | Contents                                                                                                                                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `game`       | The original's name, edition and cabinet, as text                                                                                                                                                                            |
-| `frame`      | The game pixel frame's `width` and `height`                                                                                                                                                                                  |
-| `camera`     | `focalLength` (`f`), `height` (`h`), `centerX` (`x₀`), `horizonRow` (`y₀`), `playerDistance` (`D′`), each its `value` and standard `error`                                                                                   |
-| `gauge`      | `vehicle` (a vehicle ID or a named real vehicle), `width` (`B`) and its reference, `measuredOn` (`player`, `traffic` or `rival`), `playerScale` (1 at the road's scale), `commonWidth`                                       |
-| `projection` | The projection-form check: its residual in game pixels                                                                                                                                                                       |
-| `depth`      | The depth authority: the agreeing cues among `row`, `width`, `stripes` and `sprites`                                                                                                                                         |
-| `pitch`      | The pitch rule, `level` or `road`, as the rows ahead decide it                                                                                                                                                               |
-| `background` | Per layer (its rows): the vertical rule (`pitch` with `b`, `fixed`, `road-horizon` or `free`) and the horizontal (`heading` with `a`, `curvature` with its factor, or `free`), each with its factor's error and its residual |
-| `hud`        | The speed readout's place, digit size, spacing and count; the clock's when shown; each timing event's place and kind                                                                                                         |
-| `masks`      | Rectangles never measured: the HUD, and the player's vehicle and shadow                                                                                                                                                      |
-| `colors`     | Each color role (road light/dark, rumble, white line, yellow line, verge light/dark, median and so on) with its RGB555 values, which may change along a course                                                               |
-| `materials`  | Each ground role's surface material (road `ASPHALT`; verges `SAND`, `GRASS`, `DIRT` and so on) and the drivable width beyond the road when no video leaves it                                                                |
-| `noise`      | Each feature's noise level by footage condition                                                                                                                                                                              |
+| Field        | Contents                                                                                                                                                                               |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `game`       | The original's name, edition and cabinet, as text                                                                                                                                      |
+| `frame`      | The game pixel frame's `width` and `height`                                                                                                                                            |
+| `camera`     | `focalLength` (`f`), `height` (`h`), `centerX` (`x₀`), `horizonRow` (`y₀`), `playerDistance` (`D′`), each its `value` and standard `error`                                             |
+| `gauge`      | `vehicle` (a vehicle ID or a named real vehicle), `width` (`B`) and its reference, `measuredOn` (`player`, `traffic` or `rival`), `playerScale` (1 at the road's scale), `commonWidth` |
+| `pitch`      | The pitch rule, `level` or `road`, as the rows ahead decide it                                                                                                                         |
+| `background` | `null`: the background shapes nothing                                                                                                                                                  |
+| `hud`        | The speed readout's place, digit size, spacing and count; the clock's when shown; each timing event's place and kind                                                                   |
+| `masks`      | Rectangles never measured: the HUD, and the player's vehicle and shadow                                                                                                                |
+| `colors`     | Each color role (road light/dark, rumble, white line, yellow line, verge light/dark, median and so on) with its RGB555 values, which may change along a course                         |
+| `materials`  | Each ground role's surface material (road `ASPHALT`; verges `SAND`, `GRASS`, `DIRT` and so on) and the drivable width beyond the road when no video leaves it                          |
+| `noise`      | Each feature's noise level by footage condition                                                                                                                                        |
 
 The HUD digit and event glyph templates are pixels: they are kept in `reference-media/<game>/`, and the model holds only
 their places and sizes.
@@ -343,8 +313,6 @@ writes it into the footage model's `camera`, each value with its standard error;
   chi-square) when they disagree beyond their own errors, so differences between captures enter the errors. The base
   row is a whole row at one depth in every video, so its rounding (1/12 row²) is added after combining. Errors propagate
   to first order.
-- **Background.** Its rules are judged once the initial estimate has the plan and the profile
-  ([Background rules](#background-rules)).
 
 ## Initial estimate
 
@@ -352,10 +320,10 @@ All frames and rows are solved together as one least-squares problem. Each stati
 near, and that redundancy removes the noise.
 
 1. **Position.** `s_c(t)` is the visual odometry of the nearest rows' stripe motion, scaled so that its total equals the
-   integral of the displayed speed; without stripes it is that integral. `s = 0` is where the camera crosses the start
-   line.
+   integral of the displayed speed; without stripes it is that integral. Each video's `s` starts at its own first frame;
+   the course's comes from the [alignment](#several-videos-of-one-course).
 2. **Widths and lanes.** Measured on the nearest rows above the player and HUD masks, where curves and hills contribute
-   by `d²` least: `W = h·(x_R − x_L)/u` at `s_c + K/u` on level road; elsewhere the depth authority places it.
+   by `d²` least: `W = h·(x_R − x_L)/u` at `s_c + K/u` on level road; elsewhere the profile places it.
 3. **Plan and profile.** Each point of a lane line's centre is one equation in game pixels, the pseudo projection
    itself: `x − x₀ = (f/d)·(∫₀^d sin(H(s_c + σ) − θ) dσ + l·cos(H(s_c + d) − θ))`, with the road's heading `H(s)`, each
    frame's camera heading `θ` (its yaw `ψ = θ − H(s_c)`) and each line's lateral `l` from the line through the camera
@@ -364,7 +332,7 @@ near, and that redundancy removes the noise.
    `φ` by the pitch rule ([Pitch and grade](#inconsistencies-of-the-original)), `0` under `level` and
    `−atan((Y(s_c + D′) − Y(s_c))/D′)`, the road's chord from the camera to the player, under `road`. A height the depth
    misplaces scales a line's column by `ΔY/h`, so lines aside from the camera show the profile as far as they reach;
-   until the depth authority places them, rows are depths only through the profile.
+   rows are depths only through the profile.
    - **Points.** Lines of the roads connected to the one under the player, of three points or more on rows more than one
      row below the horizon. Road edges place none: an edge's column moves with depth as its rumble strip falls below a
      column's width, so it holds no one lateral along its mark.
@@ -404,13 +372,9 @@ near, and that redundancy removes the noise.
      beyond it, and `Y` per node where a counted point's camera, chord or depth lies; per frame `s_c`, `θ`, `ψ`, `θ`'s
      standard error and `φ`.
 
-4. **Background.** Where the background's vertical rule is `pitch`, its absolute row joins the same least squares, and
-   where its horizontal rule is `heading`, its shift joins as observations of `θ`
-   ([Background rules](#background-rules)).
-
-5. **Weights.** Each equation is weighted in game pixels: a lateral error `ΔL` is `(f/d)·ΔL` pixels. The initial
+4. **Weights.** Each equation is weighted in game pixels: a lateral error `ΔL` is `(f/d)·ΔL` pixels. The initial
    estimate is thus already a least-squares fit of frame differences.
-6. **Regularization.** Only a weak curvature and grade (a millionth of their mean diagonals in the normal equations), to
+5. **Regularization.** Only a weak curvature and grade (a millionth of their mean diagonals in the normal equations), to
    bridge stretches no frame shows, and under `road` the grades' weight the noise level sets. Form comes from the [partition](#partition-into-course-form).
 
 ## Landmarks
@@ -578,37 +542,37 @@ texel of the original picture.
   argument, a generalization with no branch for an original.
 - **Depths compared.** Only rows the product draws (depths 2.5–200 m) are compared; farther rows serve the initial
   estimate alone.
-- **Features.** The same extractor runs on both frames. Compared: road edges, lane lines and the centreline; the row where
-  a crest cuts the road and stripe-edge rows; the background's position in each direction its rule verifies (`heading`
-  across, `pitch` down); the agreement of color
-  clusters; each sprite's bounding rectangle, base point and outline agreement (against the product renderer drawing its
-  outline board).
-- **Update.** Gauss–Newton (or Levenberg–Marquardt) over every parameter: plan lengths and radii, PVIs, lane widths, each
-  Strip's period, phase and edges, sprite places and sizes, the poses, and the verified background factors. A parameter acts only on frames that show it,
-  so its Jacobian comes from local differences.
-- **Form changes.** Once the continuous parameters converge, the partition is redone only where residuals along `s`
-  keep one sign (elements split or merged), BIC preventing over-division.
-- **End.** The weighted residuals' χ² per degree of freedom cannot be told from 1, and residuals along `s` show no
-  significant structure (their sign changes are as many as noise gives). The noise level comes from the video's
-  calibration intervals and from fake footage under the same conditions. There is no fixed threshold without a basis.
-- **Unexplained.** Residuals that do not converge are set against the inconsistency amount and reported as the
-  original's inconsistency or as unexplained.
+- **Side-by-side and residual map.** Each video's replay is drawn beside the original (in `reference-media/`), and the
+  same extractor runs on both frames: road edges, lane lines and the centreline; the row where a crest cuts the road and
+  stripe-edge rows; the agreement of color clusters; each sprite's bounding rectangle, base point and outline agreement
+  (against the product renderer drawing its outline board). Their residuals make a map along `s`, per cue and octave of
+  depth.
+- **Correction.** The implementer corrects the course with the course commands and the partition, by the map, until the
+  residuals are within the noise level or explained as the original's lies (its inconsistencies, set against the
+  inconsistency amount); there is no optimization through the renderer.
 
 ## Several videos of one course
 
-K supplies two or more videos of each course. The course is one; each video is an independent observation.
+The course is one; each video is an independent observation, and the course's parameters (plan, profile, lanes, Strips,
+sprites) are one set for every video, its poses its own. A video may begin and end anywhere, and may show several
+stages, which are cut apart at their seams (the checkpoints).
 
-- **Parameters.** The course's (plan, profile, lanes, Strips, sprites) are one set for every video; poses are each
-  video's own.
-- **Alignment.** The videos' stations are first matched by the start line and by cross-correlating ground-color maps.
-  After that each video's pose is solved against the course, so videos are never aligned with each other directly.
-- **Comparison.** Each video is replayed and compared on its own; every update is one least-squares problem over all
-  videos' residuals, which are reported per video.
+- **Each video's `s`.** Each video has its own `s` from its first frame ([Initial estimate](#initial-estimate)).
+- **Rough alignment.** Each video's plan curvature `κ(s)` from the initial estimate (and its vertical curvature where it
+  has one) is set against the other videos' at every offset, helped by lanes beginning and ending, the ground beyond
+  the road changing color, and checkpoints and fork beginnings. The best offset is taken only where it fits better than
+  the next best by more than the noise level.
+- **Fine alignment.** The stations of the stripe edges become unknowns common to every video, and one least squares
+  solves each video's offset and scale (the displayed speed's integral's error) with them. Stripes repeat, so every
+  candidate within the rough alignment's error is tried, and the one whose residual is clearly least is taken. A drift
+  that offset and scale do not explain is reported.
+- **A video alone.** A video that overlaps no other is used only where its place on the course is fixed by a start, a
+  checkpoint or a fork beginning it shows; otherwise it is reported and the work stops.
+- **The course's `s`.** It starts at the start line; where no video shows the start, at the nearest place any video
+  shows, and the start's absence is reported. The end likewise. A stretch no frame of any video shows is a hole,
+  reported with its place and length.
 - **Length.** `K` belongs to the original, so every video's displayed speed calibrates it together. The spread of each
   video's start-to-end length (its own integral of displayed speed) is reported.
-- **Leave one out.** After convergence the course is solved again without video `k` and compared with video `k`. If each
-  such prediction's residual lies within the noise level, the course does not depend on the number of videos; a video
-  that does not is reported (over-fitting, or a fault of that video).
 - **Disagreement.** Videos that disagree beyond the noise level (another edition or cabinet, another course) stop the
   work.
 
@@ -700,8 +664,7 @@ Before any original's video, the whole procedure passes a round trip on footage 
 It passes when:
 
 - **Footage model.** `f`, `h`, `y₀`, `x₀` and `D′` equal the truth under the true vehicle's width as the gauge, with
-  their errors reported; lane widths, as results, equal the truth. The background's rules are `pitch` and `heading`,
-  and `b` and `a` equal the truth.
+  their errors reported; lane widths, as results, equal the truth.
 - **Pitch rule.** The `road` videos are judged `road` by comparison, not as a tie, and the `level` video `level`, its
   hills and their grade recovered to the noise level.
 - **Course.** The recovered course and the true one, drawn from the same camera and trajectory, differ in every
@@ -713,13 +676,12 @@ It passes when:
 - **Sprite outlines.** The texel size (1/40 m) and phase are recovered. For things seen magnified at their nearest, each
   board equals the true image's alpha texel for texel; the fraction of texels left undecided is reported.
 - **Sprite kinds.** Things of one picture make one kind, and LOD changes fall at the product's LOD selection distances.
-- **Corrupted versions.** The inconsistency amount rises over the corrupted hills and nowhere else. The player off the
-  road's scale is detected, the gauge taken from traffic, and the footage model still equals the truth. The
-  `background` video's rules come back as `road-horizon` down and `curvature` across, its background is left out of the
-  profile and the plan, the road's features still meet the course condition, and its background's difference is
-  reported as the lie amount.
-- **Several videos.** Solved together they meet every condition above, and each leave-one-out prediction lies within
-  the noise level; differing capture comes back as each video's own capture values.
+- **Corrupted versions.** The player off the road's scale is detected, the gauge taken from traffic, and the footage
+  model still equals the truth. On `hills` the inconsistency amount rising over the corrupted hills and nowhere else,
+  and on `background` the road's features against the course condition, are reported.
+- **Several videos.** Aligned (from feature sequences cut to begin and end mid-course) and solved together, they meet
+  every condition above, each video's offset and scale coming back; differing capture comes back as each video's own
+  capture values.
 - **Landmarks.** Start, checkpoints and goal from shape equal the truth within the noise level, and differ from the
   stations from time by no more than the time's quantization; `D′` equals the truth.
 - **Noise levels.** Each feature's noise level is recorded per footage condition (scale, compression, frame rate) and
@@ -727,24 +689,26 @@ It passes when:
 
 ## Procedure
 
-For each course, K supplies two or more videos, the original's name, and its edition and cabinet.
+For each course, K supplies one or more videos (a second may come later), the original's name, and its edition and
+cabinet where known.
 
 1. **Ingest** each video into `reference-media/<game>/<course>/<video>/`, as game-pixel PNG frames, with its capture values.
 2. **Footage model.** The original's first course makes it from all its videos: color clusters and roles, HUD templates
-   and timing events, masks, calibration (`D′` included), the projection-form check, the depth authority, the pitch rule
-   and the gauge (`B`, the vehicle measured, the player's scale factor, whether every vehicle is one width). Its numbers
-   are saved at `content/footage/<game>/footage-model.json`. Later courses keep it frozen and check it; a contradiction
+   and timing events, masks, calibration (`D′` included), the pitch rule and the gauge (`B`, the vehicle measured, the
+   player's scale factor, whether every vehicle is one width), provisional until every video has come. Its numbers are
+   saved at `content/footage/<game>/footage-model.json`. Later courses keep it frozen and check it; a contradiction
    stops the work.
 3. **Features** of each video.
-4. **Initial estimate and inconsistency amount,** over all videos together.
+4. **Initial estimate** of each video, the videos' [alignment](#several-videos-of-one-course), then the initial
+   estimate and the inconsistency amount over all videos together.
 5. **Landmarks:** start, forks, checkpoints and goals.
 6. **Partition** into the course document's draft. Seams are at checkpoints; gate structures (fork parts, goals, grids)
    follow the format's rules and OUTRUN TEST's construction at the measured stations. A fork's parted roads are not taken
    from the footage, so two roads are never drawn in one frame.
 7. **Appearance.**
 8. **Sprites,** their outline boards made and placed on the course.
-9. **Replay comparison,** each video replayed and the course updated from every video's residuals until it ends, then
-   leave one out.
+9. **Replay comparison:** each video replayed beside the original, and the course corrected by its residual map
+   ([Replay comparison](#replay-comparison)).
 10. **Product checks:** the course compiles; the course report; `npm run measure` (racing lines and reference times).
 11. **Report** ([below](#report)).
 
@@ -754,16 +718,15 @@ turn) is not used; the lateral acceleration each curve needs at the original's d
 
 ## Report
 
-- Each video's residuals, each leave-one-out prediction's residual and the spread of the videos' lengths.
+- Each video's residuals, per cue (lines, stripe edges, `roadTop`) and octave of depth; each video's offset, scale and
+  the stretch it shows; the spread of the videos' lengths; the course's holes, and a missing start or end.
 - Landmarks: each one's station from shape, from time and their difference, per video; the order of forks and
   checkpoints.
 - Gauge: `B` and the vehicle that measured it, the player's scale factor, whether every vehicle is one width; lane and
   road widths beside the country's lane standard.
 - The lateral acceleration each curve needs at the original's displayed speed.
 - Where the vehicle leaves the ground at the original's speed (`v²·ν` beyond gravity over a crest).
-- The inconsistency amount along `s`, and residuals that did not converge.
-- The background's rules per layer with their factors and residuals, and its lie amount: its difference from the
-  replay in each direction its rules do not verify.
+- The inconsistency amount along `s`, and residuals not brought within the noise level, with how they are explained.
 - The time the procedure took per minute of video, run per video in parallel and one video at a time.
 - Sprite kinds: count, world size (`w × H`), texel size and resolution reached, the largest outline shift at
   40 texels/m, LOD, animation, mirroring, color, body proposal, and the sprites' scale factor to the road.
@@ -780,7 +743,9 @@ The work stops and reports when:
 - the round trip on fake footage does not pass after fixing the tool, for no understood reason;
 - the renderer or projection needs a change that is not a generalization;
 - on a real video: the speed readout cannot be read or is absent; there is no level straight to calibrate on; the
-  projection form fails with no agreeing set of depth cues; no vehicle is drawn at the road's scale, so there is no
-  gauge; a later course contradicts the original's footage model; videos of one course disagree beyond the noise
-  level; the order of forks and checkpoints does not fit the format; the comparison does not converge to the noise
-  level (reported with its residual map); or the course exceeds a format limit such as `activeStrips`.
+  original draws in another projection form (its cues disagree with the forward model beyond the noise level); no
+  vehicle is drawn at the road's scale, so there is no gauge; the road has no stripes; a later course contradicts the
+  original's footage model; videos of one course disagree beyond the noise level; a video overlaps no other and shows
+  no start, checkpoint or fork beginning; the order of forks and checkpoints does not fit the format; the residuals can
+  be neither brought within the noise level nor explained as the original's lies (reported with the residual map); or
+  the course exceeds a format limit such as `activeStrips`.

@@ -158,9 +158,12 @@ Development with other work: when main moves, the branch is brought up to it and
 fast-forwarded.
 
 Rules of the stage: the trial courses (OUTRUN TRIAL A and A STEEP) and the driving scenarios do not change; reference
-driving is not fitted to an original's times; every value is derived, set from a noise level or recorded in the footage
-model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
-the [stopping conditions](footage.md#stopping-conditions).
+driving is not fitted to an original's times. The tool is kept simple so that real footage passes early: what a person
+sees in frames (color roles, the HUD, masks, the gauge, the pitch rule, the draw distance) is written in the footage
+model, and the tool's own judgement of it only checks it and reports a disagreement; thresholds inside the tool are
+named defaults (the rule against constants without a basis stays the product code's); the background never shapes the
+course. Development checks run on one stage of the fake videos; the full round trip runs once, in VC-9. Each PR
+proceeds without waiting for approval and stops at the [stopping conditions](footage.md#stopping-conditions).
 
 - VC-5e2: the hills in the initial estimate, as far as the footage shows them:
   - VC-5e2b: stripe edges as profile observations: the main road's stripe edges followed through every frame at the rows
@@ -171,28 +174,38 @@ the [stopping conditions](footage.md#stopping-conditions).
   - VC-5e2c: `roadTop` as a profile observation where a crest cuts the road off: the row of the point where the line of
     sight touches the road, entered through its derivative there (the envelope theorem), only where the ground or
     background lies above it and no picture or other road hides it, and never where the road reaches the draw distance,
-    which the footage model records from `roadTop` on level straights. The grade's weight and the pitch rule stay as in
-    VC-5e: the `road` videos are judged `road` by comparison, not as a tie, and the `level` video `level`, its hills and
-    their grade recovered to the noise level. Its report: per video, the profile's vertical curvature error per 50 m
-    window (median), the crests' and jump's place errors and the rule judged; on `hills`, the inconsistency amount
-    rising over the corrupted stretches and nowhere else; the plan no worse than VC-5e's (20 m windows' median).
-- VC-5f: the background's rules judged per game (tile jumps cut off, layers apart, the vertical and horizontal
-  candidates by BIC); the background's mosaic and absolute row, joining the profile only as `pitch` and the plan only
-  as `heading`.
-- VC-5g: the projection-form check and the depth authority.
-- VC-5h: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as
-  a course document.
+    which a person writes in the footage model (checked against `roadTop` on level straights). Its report, on one stage
+    of each fake video: the profile's vertical curvature error per 50 m window (median), the crests' and jump's place
+    errors, the pitch rule's check; on `hills`, the inconsistency amount rising over the corrupted stretches and nowhere
+    else; the plan no worse than VC-5e's (20 m windows' median).
+- VC-T: a trial on OUTRUN's first stage (COCONUT BEACH), when K's video arrives, after the PR then in hand. Ingest,
+  census, features, calibrate and solve (plan, and the profile as far as it then goes), video by video, on the stretch of
+  the stage where the player drives, which the implementer writes in the capture values with the start's and
+  checkpoints' times where they show. The implementer writes what a person writes (color roles, HUD templates and timing
+  events, masks, the gauge TESTAROSSA, the pitch rule, the draw distance, the edition where known) in a provisional
+  footage model, made again from every video when a second arrives and not frozen until then. Faults a generalization
+  of the tool fixes are fixed; a matter of course (another projection form, the player off the road's scale, no stripes)
+  is reported with numbers and product-side diagrams, and the work stops. The report: whether each step passed, the
+  footage model's values and errors, the lane widths beside the US standard 3.65 m, the plan's and profile's residuals
+  per octave of depth, the stretch each video shows and the time taken. No course is raised yet.
+- VC-5h: the course document: widths and lanes, start, fork beginnings, checkpoints and goals, the partition, and several
+  videos together: their [alignment](footage.md#several-videos-of-one-course) and one solve over all of them. On fake
+  footage, feature sequences are cut to begin and end mid-course (the videos are not made again); with two or more of
+  K's videos, the alignment is checked on them too.
 - VC-6: appearance: Strips, color changes, materials and environment knots.
-- VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement; with tracked
-  vehicles, the gauge's choice of vehicle (traffic pictures against the player's: its scale factor and a common width),
-  which `calibrate` now takes on the player.
-- VC-8: replay and the comparison (`replay`, `solve`'s iteration): each video replayed, every video's residuals updating
-  the course, and leave one out; the background compared only in the directions its rules verify, its difference
-  otherwise reported as the lie amount.
-- VC-9: the round trip (`roundtrip`) passes, exact and corrupted, at 60 and 30 fps, compressed; the report (lateral
-  acceleration, where the vehicle leaves the ground, inconsistency amount, sprite kinds). The frame measurement tool
-  (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are
-  deleted, leaving the footage observations the one observation format.
+- VC-7: sprites: tracking, place and size, kinds and rows, outline boards and their placement, the outline taken from the
+  nearest frame that shows the thing unhidden. Refining over several frames, and finding pictures that change with
+  distance, animation and mirroring, only where the implementer sees in frames that a kind needs it. The gauge's check on
+  traffic pictures stays.
+- VC-8: replay and the comparison (`replay`): each video replayed beside the original, and a map of the residuals along
+  `s`, per cue (lines, stripe edges, `roadTop`) and octave of depth. The implementer corrects the course with the course
+  commands and the partition, until the residuals are within the noise level or explained as the original's lies; no
+  optimization through the renderer, no leave one out.
+- VC-9: the full round trip (`roundtrip`) once: `a`, `b` and `c` (60 and 30 fps, compressed), `player` and `level`
+  pass; `hills` and `background` are reported only. What is no longer used (the background's rules and their record, the
+  frame measurement tool `tools/course/measure.ts` and its formats `superoutride.frame-measurement` and
+  `superoutride.course-observations`) is deleted in a PR of deletions alone; whether the background's shift leaves the
+  features is the implementer's call, weighed against measuring again.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
