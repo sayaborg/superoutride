@@ -47,6 +47,11 @@ export interface EngineLoudnessSources {
   readonly vehicles: readonly Omit<EngineLoudnessEntry, 'lufs'>[];
 }
 
+function deliveredMechanics(vehicle: CompiledVehicleDefinition): string {
+  if (vehicle.mechanicsSha256 === null) throw new Error('A mechanics document outside delivery has no identity');
+  return vehicle.mechanicsSha256;
+}
+
 export function engineLoudnessSources(
   vehicles: readonly CompiledVehicleDefinition[],
   audioSha256: string,
@@ -55,7 +60,7 @@ export function engineLoudnessSources(
     audioSha256,
     vehicles: vehicles.map((vehicle) => ({
       vehicleId: vehicle.compiledVehicle.id,
-      vehicleSha256: vehicle.mechanicsSha256,
+      vehicleSha256: deliveredMechanics(vehicle),
       soundSha256: vehicle.sound.sha256,
     })),
   };

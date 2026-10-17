@@ -1,10 +1,27 @@
 import type { DrivingDefinition, DrivingDocument } from '../vehicle/driving-definition.js';
+import type { VehicleMechanicsDocument } from '../vehicle/definition-document.js';
 
 /**
- * DEV tuning of the game-wide driving definition, in its saved units. Only author-facing design
- * values are listed; numerical margins (fuel-cut and clutch-lock idle margins) stay file-only.
+ * DEV tuning of the game-wide driving definition and the player vehicle's own tire and wheel slip, in their saved
+ * units. Only author-facing design values are listed; numerical margins (fuel-cut and clutch-lock idle margins) stay
+ * file-only.
  */
 export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN' | 'RIVALS' | 'CONTACT';
+
+/**
+ * The two documents DEV tunes: the game-wide driving definition and the player vehicle's mechanics. TIRES and the wheel
+ * slip switch tune the vehicle's own tire and wheel slip where its mechanics give them, as its model uses them, else
+ * the driving definition's; every other value is the driving definition's.
+ */
+export interface TuningDocuments {
+  readonly driving: DrivingDocument;
+  readonly mechanics: VehicleMechanicsDocument;
+}
+
+/** Which document holds the tire or the wheel slip switch DEV tunes. */
+export function tuningOwner(documents: TuningDocuments, key: 'tire' | 'wheelSlip'): 'VEHICLE' | 'DRIVING' {
+  return documents.mechanics[key] === undefined ? 'DRIVING' : 'VEHICLE';
+}
 
 interface NumericTuningItem {
   readonly id: string;
@@ -20,40 +37,51 @@ interface NumericTuningItem {
   readonly step: number;
   /** Displayed as a percentage of the definition value. */
   readonly percent?: boolean;
-  read(definition: DrivingDefinition): number;
-  write(definition: DrivingDocument, value: number): DrivingDocument;
+  read(documents: TuningDocuments): number;
+  write(documents: TuningDocuments, value: number): TuningDocuments;
 }
 
 const item = (value: NumericTuningItem): NumericTuningItem => Object.freeze(value);
+/** A driving definition value: read and written in the driving document. */
+const driving = (
+  read: (d: DrivingDefinition) => number,
+  write: (d: DrivingDocument, value: number) => DrivingDocument,
+) => ({
+  read: (documents: TuningDocuments) => read(documents.driving),
+  write: (documents: TuningDocuments, value: number): TuningDocuments => ({
+    ...documents,
+    driving: write(documents.driving, value),
+  }),
+});
 const tire = (key: keyof DrivingDefinition['tire']) => ({
-  read: (d: DrivingDefinition) => d.tire[key],
-  write: (d: DrivingDocument, value: number): DrivingDocument => ({ ...d, tire: { ...d.tire, [key]: value } }),
+  read: ({ driving, mechanics }: TuningDocuments) => (mechanics.tire ?? driving.tire)[key],
+  write: (documents: TuningDocuments, value: number): TuningDocuments => {
+    const { driving, mechanics } = documents;
+    return mechanics.tire === undefined
+      ? { ...documents, driving: { ...driving, tire: { ...driving.tire, [key]: value } } }
+      : { ...documents, mechanics: { ...mechanics, tire: { ...mechanics.tire, [key]: value } } };
+  },
 });
-const pedal = (pedalKey: 'throttle' | 'brake', key: 'applySeconds' | 'releaseSeconds') => ({
-  read: (d: DrivingDefinition) => d[pedalKey][key],
-  write: (d: DrivingDocument, value: number): DrivingDocument => ({
-    ...d,
-    [pedalKey]: { ...d[pedalKey], [key]: value },
-  }),
-});
-const rivalPace = (key: keyof DrivingDefinition['rivalPace']) => ({
-  read: (d: DrivingDefinition) => d.rivalPace[key],
-  write: (d: DrivingDocument, value: number): DrivingDocument => ({
-    ...d,
-    rivalPace: { ...d.rivalPace, [key]: value },
-  }),
-});
-const bodyContact = (key: keyof DrivingDefinition['bodyContact']) => ({
-  read: (d: DrivingDefinition) => d.bodyContact[key],
-  write: (d: DrivingDocument, value: number): DrivingDocument => ({
-    ...d,
-    bodyContact: { ...d.bodyContact, [key]: value },
-  }),
-});
-const field = <K extends keyof DrivingDefinition>(key: K) => ({
-  read: (d: DrivingDefinition) => d[key] as number,
-  write: (d: DrivingDocument, value: number): DrivingDocument => ({ ...d, [key]: value }),
-});
+const pedal = (pedalKey: 'throttle' | 'brake', key: 'applySeconds' | 'releaseSeconds') =>
+  driving(
+    (d) => d[pedalKey][key],
+    (d, value) => ({ ...d, [pedalKey]: { ...d[pedalKey], [key]: value } }),
+  );
+const rivalPace = (key: keyof DrivingDefinition['rivalPace']) =>
+  driving(
+    (d) => d.rivalPace[key],
+    (d, value) => ({ ...d, rivalPace: { ...d.rivalPace, [key]: value } }),
+  );
+const bodyContact = (key: keyof DrivingDefinition['bodyContact']) =>
+  driving(
+    (d) => d.bodyContact[key],
+    (d, value) => ({ ...d, bodyContact: { ...d.bodyContact, [key]: value } }),
+  );
+const field = <K extends keyof DrivingDefinition>(key: K) =>
+  driving(
+    (d) => d[key] as number,
+    (d, value) => ({ ...d, [key]: value }),
+  );
 
 /** One registry for DEV buttons, HUD lines and step positions. */
 const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
@@ -136,7 +164,7 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     description: 'longitudinal reference friction',
     unit: '',
     scale: 100,
-    min: 200,
+    min: 50,
     max: 800,
     step: 5,
     ...tire('gripX'),
@@ -161,7 +189,7 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     description: 'lateral reference friction',
     unit: '',
     scale: 100,
-    min: 100,
+    min: 50,
     max: 400,
     step: 5,
     ...tire('gripY'),
@@ -377,29 +405,37 @@ const TICK_TOLERANCE = 1e-9;
 /**
  * One grid step from any finite value: +1 moves to the smallest grid value above it, -1 to the largest
  * below it, wrapping from the last to the first grid value and back, including from outside the range.
- * The grid only places steps; driving compilation admits the result. It is an unadmitted saved-form document.
+ * The grid only places steps; the documents' compilers admit the result. Its documents are unadmitted saved forms.
  */
-export function stepDrivingTuning(definition: DrivingDocument, id: string, direction: -1 | 1): DrivingDocument {
+export function stepDrivingTuning(documents: TuningDocuments, id: string, direction: -1 | 1): TuningDocuments {
   const entry = tuningItem(id);
   const last = (entry.max - entry.min) / entry.step;
-  const ticks = entry.read(definition) * entry.scale;
+  const ticks = entry.read(documents) * entry.scale;
   let index =
     direction > 0
       ? Math.max(0, Math.floor((ticks + TICK_TOLERANCE - entry.min) / entry.step) + 1)
       : Math.min(last, Math.ceil((ticks - TICK_TOLERANCE - entry.min) / entry.step) - 1);
   if (index > last) index = 0;
   if (index < 0) index = last;
-  return entry.write(definition, (entry.min + index * entry.step) / entry.scale);
+  return entry.write(documents, (entry.min + index * entry.step) / entry.scale);
 }
 
-/** Wheel slip protection (TCS, MSR and ABS) is the one switch. */
-export function toggleDrivingWheelSlip(definition: DrivingDocument): DrivingDocument {
-  return { ...definition, wheelSlip: !definition.wheelSlip };
+/** The wheel slip protection DEV tunes, the vehicle's own or the driving definition's. */
+export function tunedWheelSlip({ driving, mechanics }: TuningDocuments): boolean {
+  return mechanics.wheelSlip ?? driving.wheelSlip;
 }
 
-export function formatDrivingTuningValue(id: string, definition: DrivingDefinition): string {
+/** Wheel slip protection (TCS, MSR and ABS) is the one switch, in the document that holds it. */
+export function toggleDrivingWheelSlip(documents: TuningDocuments): TuningDocuments {
+  const wheelSlip = !tunedWheelSlip(documents);
+  return tuningOwner(documents, 'wheelSlip') === 'VEHICLE'
+    ? { ...documents, mechanics: { ...documents.mechanics, wheelSlip } }
+    : { ...documents, driving: { ...documents.driving, wheelSlip } };
+}
+
+export function formatDrivingTuningValue(id: string, documents: TuningDocuments): string {
   const entry = tuningItem(id);
-  const value = entry.read(definition);
+  const value = entry.read(documents);
   // Grid values use the grid's decimals; any other value is shown exactly, never rounded onto the grid.
   if (entry.percent) {
     const percent = Number((value * 100).toFixed(2));

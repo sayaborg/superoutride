@@ -1,11 +1,12 @@
-import type { DrivingDocument } from '../vehicle/driving-definition.js';
 import {
   DRIVING_TUNING_GROUPS,
   drivingTuningItems,
   formatDrivingTuningValue,
   stepDrivingTuning,
   toggleDrivingWheelSlip,
+  tunedWheelSlip,
   type DrivingTuningGroup,
+  type TuningDocuments,
 } from './driving-tuning.js';
 
 /** Compact minus/value/plus presentation shared by DEV tuning items. */
@@ -29,16 +30,16 @@ export function createCalibrationStepper(label: string, onStep: (direction: -1 |
   return { group, value };
 }
 
-/** The player's tuned driving definition; `set` admits a candidate and rebuilds the model. */
+/** The player's tuned driving definition and vehicle mechanics; `set` admits a candidate and rebuilds the model. */
 export interface DrivingTuningTarget {
-  get(): DrivingDocument;
-  /** False when admission rejects the candidate; the current definition then stays. */
-  set(definition: DrivingDocument): boolean;
+  get(): TuningDocuments;
+  /** False when admission rejects the candidate; the current documents then stay. */
+  set(documents: TuningDocuments): boolean;
 }
 
 type DrivingTuningContainers = Readonly<Record<DrivingTuningGroup | 'ASSIST', HTMLElement>>;
 
-/** DEV buttons edit the driving definition in its saved units, one grid step at a time. */
+/** DEV buttons edit the tuned documents in their saved units, one grid step at a time. */
 export function mountDrivingTuningControls(
   containers: DrivingTuningContainers,
   target: DrivingTuningTarget,
@@ -46,15 +47,16 @@ export function mountDrivingTuningControls(
 ): void {
   const outputs: { readonly id: string; readonly value: HTMLElement; readonly description: string }[] = [];
   const refresh = () => {
-    const definition = target.get();
+    const documents = target.get();
     for (const output of outputs) {
-      const text = `${output.id} ${formatDrivingTuningValue(output.id, definition)}`;
+      const text = `${output.id} ${formatDrivingTuningValue(output.id, documents)}`;
       output.value.textContent = text;
       output.value.setAttribute('title', `${text}: ${output.description}`);
       output.value.setAttribute('aria-label', `${text}: ${output.description}`);
     }
-    assist.textContent = `WHEEL SLIP ${definition.wheelSlip ? 'ON' : 'OFF'}`;
-    assist.setAttribute('aria-pressed', String(definition.wheelSlip));
+    const wheelSlip = tunedWheelSlip(documents);
+    assist.textContent = `WHEEL SLIP ${wheelSlip ? 'ON' : 'OFF'}`;
+    assist.setAttribute('aria-pressed', String(wheelSlip));
   };
   for (const group of DRIVING_TUNING_GROUPS) {
     const steppers = drivingTuningItems(group).map((entry) => {

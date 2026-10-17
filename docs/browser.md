@@ -826,15 +826,21 @@ permits it: in a course run, only while it is running and the race clock is RUNN
 the player's input only; it reads the run vehicle for HUD and export and each competitor's vehicle for sound, and the race owns all mechanics.
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE, BODY CONTACT and ASSISTS. Each value uses a
-minus/value/plus control in the driving definition's units, wrapping at range endpoints; STEERING holds the rack bound
-(M) and the traversal time (ACT), and ASSISTS toggles wheel slip protection. RIVAL PACE drives no vehicle in a tuned run, which has no rivals: it takes effect once the exported definition
+minus/value/plus control in its document's units, wrapping at range endpoints; STEERING holds the rack bound
+(M) and the traversal time (ACT), and ASSISTS toggles wheel slip protection. TIRES F/R and ASSISTS tune the run
+vehicle's own tire and wheel slip where its mechanics document gives them, as its model uses them, and the driving
+definition's game-wide defaults otherwise; each group's label names which (the vehicle ID or `game-wide`). Every other
+group tunes the driving definition. RIVAL PACE drives no vehicle in a tuned run, which has no rivals: it takes effect once the exported definition
 is adopted as content. BODY CONTACT is the rebuilt run's own: its walls, course limits and objects push with the
-tuned values at once. An admitted adjustment rebuilds the
-Run through the same assembly as startup: a new run vehicle with the same vehicle definition and materials
-drives the tuned definition, in a FREE PLAY run with no rivals, the current lap count, no time limit, start speed 0
+tuned values at once. Each adjustment is admitted by the
+compiler of the document it changed, the driving document's or the vehicle mechanics document's; a rejected one changes
+nothing. An admitted adjustment rebuilds the
+Run through the same assembly as startup: a new run vehicle of the tuned definitions, with the same listing and
+materials, in a FREE PLAY run with no rivals, the current lap count, no time limit, start speed 0
 and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own rules (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
-tuned definition for further adjustments and export. Reloading the page restores the product run. EXPORT saves the tuned
-driving definition (`default.json`) and the run vehicle's definition (`<vehicle id>.json`) as browser downloads in the saved layout;
+tuned definitions for further adjustments and export. Reloading the page restores the product run. EXPORT saves the tuned
+driving definition (`default.json`) and the run vehicle's tuned mechanics document (`<vehicle id>.json`) as browser
+downloads in the saved layout;
 its `audio/default.json` button (titled Export sound settings) saves the DEV sound panels' current values as the
 [audio document](audio.md#audio-document) (`default.json`), its `surface-sounds/default.json` button the SURFACES
 panel's records as that document, and its

@@ -38,8 +38,8 @@ input. Creation, updates and recovery receive the vehicle state and its model se
 nothing copies a model value into state. Updates take no step argument; they integrate the
 model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire, and so do the
 vehicle's limits model, planned drivers, steering rules, torque protection, the tire observations and their sound and
-the HUD's tire gauge. DEV tuning edits the driving definition and rebuilds the player's model from it;
-the next step uses the replacement.
+the HUD's tire gauge. DEV tuning edits the driving definition, or the vehicle's own tire or `wheelSlip` in its mechanics document, and
+rebuilds the player's model from them; the next step uses the replacement.
 
 `RunVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
 vehicle's listing. Its reference identity `vehicleSha256` (`runVehicleSha256`, with the surface material catalog it

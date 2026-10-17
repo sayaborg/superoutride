@@ -19,7 +19,7 @@ import { prepareRun } from '../race/run-preparation.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
-import { createRunVehicle, type RunVehicle } from '../content/run-vehicle.js';
+import type { RunVehicle } from '../content/run-vehicle.js';
 import { isFreePlay, RULES_NAMES, rulesRequest, type RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
@@ -267,12 +267,12 @@ async function assembleCourseRun(
             active.race.recoverPlayer();
             lifecycle.reset();
           },
-          // A tuned driving definition has no delivered identity, so the rebuilt run has no
+          // Tuned definitions have no delivered identity, so the rebuilt run has no
           // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-          // product run and the delivered definition.
-          rebuildRun: (driving) => {
+          // product run and the delivered definitions.
+          rebuildRun: (tunedVehicle) => {
             active = build({
-              vehicle: createRunVehicle(entry, driving),
+              vehicle: tunedVehicle,
               configuration: compileRunConfiguration(
                 {
                   mode: 'FREE_PLAY',

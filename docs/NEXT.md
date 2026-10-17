@@ -130,7 +130,7 @@
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
 Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-3](#stage-tp--tire-puffs) and
-[DT-1b](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
+[DT-2](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -223,9 +223,6 @@ K's decisions for the stage:
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
   October 1985 – April 1989, 13B turbo, 5MT).
 
-- DT-1b: DEV tunes a vehicle's own tire and `wheelSlip`: TIRES and ASSISTS replace the vehicle's mechanics document
-  when the vehicle has its own (admitted by the mechanics compiler; a rejected candidate is dropped), else the driving
-  definition as today, and DEV shows which; EXPORT writes the tuned document. GX's and GY's DEV ranges start at 0.5.
 - DT-2: S13 and AE86 DRIFT TUNED in the catalog, with the drift tire and `wheelSlip` off, borrowing GOLF GTI 16V's
   pictures and the DELTA HF INTEGRALE and GOLF GTI 16V engine sounds until their own GLB pictures and exhausts are made;
   checked with FREE PLAY rivals, traffic and the takeover after GOAL (braking without ABS).

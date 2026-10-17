@@ -24,8 +24,10 @@ export function createRunVehicle(
 export function runVehicleSha256(vehicle: RunVehicle, surfaceMaterials: SurfaceMaterialCatalog): Promise<string> {
   const driving = vehicle.drivingDefinition.sha256;
   if (driving === null) throw new Error('A driving definition outside delivery has no reference identity');
+  const mechanics = vehicle.vehicleDefinition.mechanicsSha256;
+  if (mechanics === null) throw new Error('A vehicle mechanics document outside delivery has no reference identity');
   const identity = JSON.stringify({
-    vehicle: vehicle.vehicleDefinition.mechanicsSha256,
+    vehicle: mechanics,
     driving,
     surfaceMaterials: surfaceMaterials.sha256,
   });

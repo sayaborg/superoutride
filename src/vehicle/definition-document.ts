@@ -77,8 +77,8 @@ export interface VehicleListingDocument {
 }
 export interface CompiledVehicleMechanics {
   readonly source: VehicleMechanicsDocument;
-  /** SHA-256 of the delivered document, supplied by its catalog. */
-  readonly sha256: string;
+  /** SHA-256 of the delivered document, supplied by its catalog; null for a document outside delivery. */
+  readonly sha256: string | null;
   readonly compiledVehicle: CompiledVehicle;
 }
 /**
@@ -99,7 +99,8 @@ export interface CompiledVehicleListing {
  */
 export interface CompiledVehicleDefinition {
   readonly mechanics: VehicleMechanicsDocument;
-  readonly mechanicsSha256: string;
+  /** The delivered mechanics document's SHA-256; null for a DEV-tuned one. */
+  readonly mechanicsSha256: string | null;
   readonly listing: VehicleListingDocument;
   readonly spriteSet: VehicleSpriteSet;
   readonly steeringPicture: HudPicture;
@@ -147,7 +148,7 @@ export function compileVehicleMechanicsDocument(
   value: unknown,
   id: string,
   document: string,
-  sha256: string,
+  sha256: string | null,
 ): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
     // A vehicle's own wheel-slip choice and tire are optional; the driving definition's serve a vehicle without them.
@@ -332,6 +333,30 @@ export function createVehicleDefinition(
     steeringPicture: listing.steeringPicture,
     compiledVehicle: mechanics.compiledVehicle,
     sound: compileVehicleEngineSound(listing.sound, mechanics.compiledVehicle.powertrain),
+  });
+}
+
+/**
+ * `definition` with another mechanics document, admitted by the mechanics compiler under `document`: a DEV-tuned
+ * document outside delivery, so without an identity. The listing's facts stay; the engine sound follows the new
+ * mechanics.
+ */
+export function retuneVehicleMechanics(
+  definition: CompiledVehicleDefinition,
+  value: unknown,
+  document: string,
+): AdmissionResult<CompiledVehicleDefinition> {
+  const mechanics = compileVehicleMechanicsDocument(value, definition.compiledVehicle.id, document, null);
+  if (!mechanics.ok) return mechanics;
+  return Object.freeze({
+    ok: true as const,
+    value: createVehicleDefinition(mechanics.value, {
+      source: definition.listing,
+      spriteSet: definition.spriteSet,
+      steeringPicture: definition.steeringPicture,
+      // The vehicle's sound is the listing's sound with facts derived from the mechanics, which this derives again.
+      sound: definition.sound,
+    }),
   });
 }
 

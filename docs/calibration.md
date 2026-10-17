@@ -23,9 +23,9 @@ steps and never rejects a driving definition.
 | Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
 | Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
 | Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s     |
-| Tires¹     | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 2–8 / 0.05                 |
+| Tires¹     | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 0.5–8 / 0.05               |
 | Tires¹     | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
-| Tires¹     | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
+| Tires¹     | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 0.5–4 / 0.05               |
 | Tires¹     | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
 | Tires¹     | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
 | Tires¹     | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
@@ -64,12 +64,13 @@ authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns o
 step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the
-player's tuned driving definition, admits it with the driving-document compiler (a rejected candidate
-leaves the definition unchanged) and rebuilds the run around a run vehicle driving it
-([Browser](browser.md#dev-controls)).
+player's tuned driving definition, or, for TIRES and the wheel-slip switch of a vehicle whose mechanics document gives
+its own tire or `wheelSlip`, the player's tuned mechanics document, as its model uses them; it admits the stepped
+document with that document's compiler (a rejected candidate leaves both documents unchanged) and rebuilds the run
+around a run vehicle of the tuned documents ([Browser](browser.md#dev-controls)).
 
 Tuned values reach the product only through the definition files. DEV EXPORT downloads the tuned
-driving source document as `default.json` and the selected vehicle's source document as
+driving source document as `default.json` and the selected vehicle's tuned mechanics source document as
 `<vehicle id>.json`, written from the admitted documents, never from runtime values. Both use the
 saved layout of [`formatSavedJson`](../src/content/saved-json.ts), which Prettier leaves unchanged: admission's field
 order, two-space indentation, 120 columns, a below-root value on one line when it fits unless it is an object holding
