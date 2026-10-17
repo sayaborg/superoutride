@@ -74,7 +74,10 @@ interface RenderScene {
   readonly background: { draw(target: SoftwareSurface, camera: PseudoCamera): void };
   readonly guide: { readonly coordinates: PlanCoordinateReader };
   readonly camera: PseudoCamera;
-  /** The player, drawn last among world visuals; null draws none (the footage tool's replay). */
+  /**
+   * The player, drawn after the ground and walls and among the pictures by its base point's depth, before the nearer
+   * ones; null draws none (the footage tool's replay).
+   */
   readonly player: RenderPlayer | null;
   readonly terrainParameters: TerrainRenderParameters;
   readonly worldSprites: readonly CourseSprite[];
@@ -165,6 +168,14 @@ export function renderDriving(
 
   const stripStats = workspace.strips;
   stripStats.activeStrips = stripStats.outputPixels = 0;
+  // The pictures at the player's depth or beyond join the terrain merge; the nearer ones follow the player.
+  let nearSprites = sprites.length;
+  if (playerProjection) while (nearSprites > 0 && sprites[nearSprites - 1]!.d < playerProjection.depth) nearSprites--;
+  const drawSprite = (sprite: VisibleCourseSprite) => {
+    const stats = drawWorldSprite(target, sprite);
+    spriteOutputSamples += stats.outputSamples;
+    spriteWrittenPixels += stats.writtenPixels;
+  };
   mergeTerrainAndSprites(
     terrain,
     sprites,
@@ -193,16 +204,14 @@ export function renderDriving(
           wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallWorkspace);
       }
     },
-    (sprite) => {
-      const stats = drawWorldSprite(target, sprite);
-      spriteOutputSamples += stats.outputSamples;
-      spriteWrittenPixels += stats.writtenPixels;
-    },
+    drawSprite,
+    nearSprites,
   );
 
   const playerStats = selected
     ? drawScaledSprite(target, selected.asset, playerProjection!.x, playerProjection!.y, playerProjection!.scale)
     : { outputSamples: 0, writtenPixels: 0 };
+  for (let i = nearSprites; i < sprites.length; i++) drawSprite(sprites[i]!);
 
   // Only a measured render keeps the frame's measurements; the product render leaves them.
   if (!measurements) return;
