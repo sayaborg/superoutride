@@ -144,8 +144,8 @@ original may not.
   is verified as `pitch` ([Background rules](#background-rules)); a difference between a height that is not seen on
   screen and the truth is no failure, since the comparison is between drawn features.
 - **Pitch and grade.** Camera pitch and the grade ahead move every row alike, so one frame cannot separate them; the
-  original's pitch rule can. The rule is the one the rows ahead prefer by BIC, a tie taking `road` (no grade the screen
-  does not show), and it is recorded in the footage model:
+  original's pitch rule can. The rule is the one the rows ahead prefer by BIC (the lines at the depths their rows lie at
+  on the profile), a tie taking `road` (no grade the screen does not show), and it is recorded in the footage model:
   - `level`: the camera stays level, so each row ahead shows the height between the camera and that point directly. The
     background is not used.
   - `road`: the camera pitches with the road, so the rows ahead show only vertical curvature. Where the background's
@@ -153,7 +153,8 @@ original may not.
     rows ahead in one least squares, the heights following by one integration. Otherwise the grade's absolute value
     shows nowhere on the original's screen and is not recovered: among the grades that fit the rows ahead at their noise
     level, the one with the least sum of squared grades over the frames (the product's background moving least) is
-    taken, weighed so that the rows' χ² per degree of freedom is 1; that weight also holds a long integration's drift.
+    taken, weighed so that the rows' χ² per degree of freedom is 1 ([Initial estimate](#initial-estimate)); that weight
+    also holds a long integration's drift.
 
 ## Background rules
 
@@ -355,35 +356,62 @@ near, and that redundancy removes the noise.
    line.
 2. **Widths and lanes.** Measured on the nearest rows above the player and HUD masks, where curves and hills contribute
    by `d²` least: `W = h·(x_R − x_L)/u` at `s_c + K/u` on level road; elsewhere the depth authority places it.
-3. **Plan.** Each point of a lane line's centre is one equation in game pixels, the pseudo projection itself:
-   `x − x₀ = (f/d)·(∫₀^d sin(H(s_c + σ) − θ) dσ + l·cos(H(s_c + d) − θ))`, with the road's heading `H(s)`, each frame's
-   camera heading `θ` (its yaw `ψ = θ − H(s_c)`) and each line's lateral `l` from the line through the camera along the
-   road, at depth `d = K/u` until the depth authority places it.
+3. **Plan and profile.** Each point of a lane line's centre is one equation in game pixels, the pseudo projection
+   itself: `x − x₀ = (f/d)·(∫₀^d sin(H(s_c + σ) − θ) dσ + l·cos(H(s_c + d) − θ))`, with the road's heading `H(s)`, each
+   frame's camera heading `θ` (its yaw `ψ = θ − H(s_c)`) and each line's lateral `l` from the line through the camera
+   along the road, at the depth `d` where its row lies on the profile,
+   `y = y₀ − f·sin φ + (f/d)·(Y(s_c) + h − Y(s_c + d))·cos φ`: the camera `h` above the road beneath it, and its pitch
+   `φ` by the pitch rule ([Pitch and grade](#inconsistencies-of-the-original)), `0` under `level` and
+   `−atan((Y(s_c + D′) − Y(s_c))/D′)`, the road's chord from the camera to the player, under `road`. A height the depth
+   misplaces scales a line's column by `ΔY/h`, so lines aside from the camera show the profile as far as they reach;
+   until the depth authority places them, rows are depths only through the profile.
    - **Points.** Lines of the roads connected to the one under the player, of three points or more on rows more than one
      row below the horizon. Road edges place none: an edge's column moves with depth as its rumble strip falls below a
      column's width, so it holds no one lateral along its mark.
-   - **Cells.** `H` is linear on cells as long as the frames' median reach (the median of each frame's farthest point's
-     depth), so `κ` is constant on each: a shorter cell's curvature is told apart only by differencing overlapping
-     frames, which multiplies their noise.
-   - **Solving.** Gauss–Newton steps with Marquardt's damping, each taken only when it lowers the weighted squares, from
-     a straight road and level headings. Each frame's `θ` and `l` are eliminated in its own normal equations, which leaves
-     banded normal equations in `H`, solved by Cholesky. `H` is pinned at its first node.
+   - **Cells.** `H` and `Y` are linear on cells as long as the frames' median reach (the median of each frame's farthest
+     point's depth on level road), so `κ` and the grade are constant on each: a shorter cell's curvature is told apart
+     only by differencing overlapping frames, which multiplies their noise.
+   - **Depths.** Each point's depth is the root of `d·(y − y_h) − f·(Y(s_c) + h − Y(s_c + d))·cos φ` by Newton's steps
+     from level road; a row above its frame's horizon, or on road that faces away past a crest, has none.
+   - **Solving.** Gauss–Newton steps with Marquardt's damping, each taken only when it lowers the weighted squares over
+     the points both it and the estimate place, from a straight, level road and level headings. `Y` moves a point
+     through its depth, `∂d/∂Y = −(∂g/∂Y)/g′`. Each frame's `θ` and `l` are eliminated in its own normal equations,
+     which leaves banded normal equations in `H` and `Y`, solved by Cholesky. Both are pinned at their first node, `κ`
+     and the grade are weighed weakly (a millionth of their mean diagonals) to bridge stretches no frame shows, and an
+     unknown no equation touches is held.
    - **Weights and rejection.** After each step each octave of depth has its noise, its residuals' robust deviation (no
-     less than a column's rounding), and each point weighs by its inverse variance. Points beyond three deviations, and
-     lines whose normalized root-mean-square residual is (another road's, such as a fork's other branch), are left out.
-     A frame's dashes merge into one line when their laterals agree within three deviations and their depths do not
-     overlap. The steps end when none merge and the counted residuals move by less than a tenth of their deviations.
-   - **Result.** Per video, `plan.json`: `κ` per cell where counted points lie beyond it, and per frame `s_c`, `θ`, `ψ`
-     and `θ`'s standard error.
+     less than a column's rounding), and each point weighs by its inverse variance. Points beyond three deviations,
+     points with no depth, and lines whose normalized root-mean-square residual is (another road's, such as a fork's
+     other branch), are left out. A frame's dashes merge into one line when their laterals agree within three
+     deviations and their depths do not overlap. The steps end when none merge and the counted residuals move by less
+     than a tenth of their deviations at no more than the first damping.
+   - **Pitch rule.** Where `road` takes the heaviest grade weight (below), the plan alone (heights held level, which
+     both rules share) fits the points at their noise level and the screen shows no grade there: the rules do not
+     differ. Where it takes less, both rules are set against each other at that weight, on the same points and weights:
+     their unknowns and their grades' weight are alike, so BIC compares their χ². Frames along one stretch of road share
+     their errors, so the difference's standard error over every such video is clustered by the cell under the camera
+     (Vuong's test of two models that do not nest); a difference within three standard errors, or no video showing a
+     grade, is a tie. A fit under `road` with every height free settles nowhere: heights that only the vertical
+     curvature of near rows shows leave its steps wandering. The footage model records the rule, and a later course that
+     prefers the other stops the work.
+   - **Grade.** Under `level` the fit with every height free stands. Under `road` the noise level is that fit's (the
+     rows with every height free), scaled so that its χ² per degree of freedom (counted points less the frames' `θ`, the lines' `l`, the shown cells' `κ` and
+     the shown nodes' `Y`) is 1; from the plan alone, the frames' squared grades are weighed as heavily as keeps the χ²
+     within the degrees of freedom without the nodes' `Y`: of the profiles that fit the points at their noise level, the
+     one with the least sum of squared grades over the frames. The weight is found by bisecting its logarithm to a tenth
+     of a decade.
+   - **Result.** Per video, `plan.json`: the pitch rule and the grades' weight; `κ` per cell where counted points lie
+     beyond it, and `Y` per node where a counted point's camera, chord or depth lies; per frame `s_c`, `θ`, `ψ`, `θ`'s
+     standard error and `φ`.
 
-4. **Height.** With `d` from the depth authority, `(y − y_h(t))·d/(f·cos φ) = Y_c(t) − Y(s)` gives `Y(s)`, the rows ahead
-   leading and the grade taken by the pitch rule ([Pitch and grade](#inconsistencies-of-the-original)): under `level`
-   `y_h = y₀`; under `road` `φ` follows the road's chord from the camera to the player, and the grade's absolute value
-   comes from the background only where its vertical rule is `pitch`.
+4. **Background.** Where the background's vertical rule is `pitch`, its absolute row joins the same least squares, and
+   where its horizontal rule is `heading`, its shift joins as observations of `θ`
+   ([Background rules](#background-rules)).
+
 5. **Weights.** Each equation is weighted in game pixels: a lateral error `ΔL` is `(f/d)·ΔL` pixels. The initial
    estimate is thus already a least-squares fit of frame differences.
-6. **Regularization.** Only a weak curvature (a millionth of the mean diagonal of the normal equations), to bridge
-   stretches no frame shows. Form comes from the [partition](#partition-into-course-form).
+6. **Regularization.** Only a weak curvature and grade (a millionth of their mean diagonals in the normal equations), to
+   bridge stretches no frame shows, and under `road` the grades' weight the noise level sets. Form comes from the [partition](#partition-into-course-form).
 
 ## Landmarks
 

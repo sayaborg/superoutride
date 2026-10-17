@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage) and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides, then
+Next PR: [VC-5e2](#stage-vc--courses-from-footage) and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides, then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -162,8 +162,19 @@ driving is not fitted to an original's times; every value is derived, set from a
 model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
 the [stopping conditions](footage.md#stopping-conditions).
 
-- VC-5e: the profile from the rows ahead under the pitch rule (`level`, or `road` with the least squared grades weighed
-  so that the rows' χ² per degree of freedom is 1), and the plan solved again at its depths.
+- VC-5e2: the hills in the initial estimate, as far as the footage shows them:
+  - stripe edges as profile observations: the main road's stripe edges followed through every frame at the rows the
+    current profile predicts, each edge a station `s_m` of its own, each reading one equation of the plan and profile's
+    least squares under the pitch rule, `y = y₀ − f·sin φ + (f/d)·(Y(s_c) + h − Y(s_m))·cos φ` with `d = s_m − s_c`,
+    weighed like the lines by each octave's noise; rows where one row spans more than half a stripe period are left out
+    (`calibrate`'s stripe following, generalized from level straights to the profile);
+  - `roadTop` as a profile observation where a crest cuts the road off: the row of the point where the line of sight
+    touches the road, entered through its derivative there (the envelope theorem), only where the ground or background
+    lies above it and no picture or other road hides it, and never where the road reaches the draw distance, which the
+    footage model records from `roadTop` on level straights;
+  - the grade's weight and the pitch rule as in VC-5e, `road` now chosen by comparison rather than as a tie;
+  - a `level` fake video (shot as `a`, a seed of its own, the camera level and `h` above the road; the generator's pitch
+    rule chosen per video), judged `level`, its hills and their grade recovered to the noise level.
 - VC-5f: the background's rules judged per game (tile jumps cut off, layers apart, the vertical and horizontal
   candidates by BIC); the background's mosaic and absolute row, joining the profile only as `pitch` and the plan only
   as `heading`.

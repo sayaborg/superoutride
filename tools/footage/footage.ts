@@ -10,8 +10,8 @@ import { colorCensus } from './census.js';
 import { measureFeatures, type HudTemplates } from './features.js';
 import { EXACT_DIRECTORY, exactIndices, measureNoise, readFeatures } from './noise.js';
 import { calibrateCamera, playerColumn } from './calibrate.js';
-import { framePoints, solvePlan } from './plan.js';
-import { loadFootageModel } from './footage-model.js';
+import { fitPlan, framePoints, solvePlans } from './plan.js';
+import { loadFootageModel, type PitchRule } from './footage-model.js';
 import { writeFakeModelDraft } from './fake-model.js';
 import { access, readFile } from 'node:fs/promises';
 
@@ -129,23 +129,39 @@ try {
       break;
     }
     case 'solve': {
-      // Every named video of the course, with the calibrated footage model: so far each video's plan.
+      // Every named video of the course, with the calibrated footage model: so far the pitch rule (into the model, or
+      // checked against the rule it holds) and each video's plan and profile under it.
       const game = options.get('--game')?.[0] ?? '';
       const names = options.get('--video') ?? [];
       requireInput(names.length > 0, '/arguments/--video', '--video names one or more videos');
-      const model = await loadFootageModel(await footageModelFile(root, game, options));
+      const file = await footageModelFile(root, game, options);
+      const model = await loadFootageModel(file);
       const camera = model.camera;
       requireInput(camera, '/camera', 'The footage model is calibrated first (calibrate)');
-      const videos = [];
+      const column = playerColumn(model);
+      const fits = [];
       for (const id of names) {
         const directory = videoDirectory(root, new Map([...options, ['--video', [id]]]));
         const features = await readFeatures(path.join(directory, 'features.jsonl'));
-        const plan = solvePlan(framePoints(features, camera, playerColumn(model)), camera.focalLength.value);
-        await atomicWrite(path.join(directory, 'plan.json'), JSON.stringify(plan) + '\n');
-        const { cell, residual, rounds, converged } = plan;
-        videos.push({ id, cell, residual, rounds, converged });
+        const fit = (rule: PitchRule | null) => fitPlan(framePoints(features, camera, column), camera, rule);
+        fits.push({ id, directory, flat: fit(null), level: fit('level') });
       }
-      console.log(JSON.stringify({ ok: true, videos }));
+      const { plans, ...judged } = solvePlans(fits, camera);
+      // A frozen model's rule is checked: a contradiction stops the work.
+      requireInput(
+        model.pitch === null || model.pitch === judged.rule,
+        '/pitch',
+        `The rows prefer the pitch rule ${judged.rule}, the footage model holds ${model.pitch}`,
+      );
+      if (!model.pitch) await atomicWrite(file, JSON.stringify({ ...model, pitch: judged.rule }, null, 2) + '\n');
+      const videos = [];
+      for (const [v, { id, directory }] of fits.entries()) {
+        const plan = plans[v]!;
+        await atomicWrite(path.join(directory, 'plan.json'), JSON.stringify(plan) + '\n');
+        const { cell, gradeWeight, residual, rounds, converged } = plan;
+        videos.push({ id, cell, gradeWeight, residual, rounds, converged });
+      }
+      console.log(JSON.stringify({ ok: true, ...judged, videos }));
       break;
     }
     default:
