@@ -439,6 +439,20 @@ environment within it, and for each Link named after
 `--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
 transition shows; nothing reads them.
 
+### Puff pictures command
+
+The [tire puffs](tire-puffs.md)' pictures come from a production-only generator, deterministic, printing one JSON
+result or its diagnostics:
+
+```sh
+npm run puff-pictures
+```
+
+It draws every puff picture's source with the raster of [`tools/graphics/drawn/`](../tools/graphics/drawn)
+([Image assets](image-assets.md#drawn-pictures)), writes it with its recipe and named palettes to
+`content/sprite-sources/`, and makes its course image as `npm run sprite -- import <name>` does. Any source can be
+replaced by another image of the same name and size and made by the sprite command without this one.
+
 ### Footage commands
 
 The footage tool raises a course from videos of an original game ([Courses from footage](footage.md)). It runs as

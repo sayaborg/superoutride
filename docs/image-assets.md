@@ -141,6 +141,17 @@ directory's `recipes.json` (the screen picture recipe format, 94 × 40 tiles, `f
 skies command into `content/images/<name>.json`. Replacing any source with another image of the same name and size and
 running its command replaces the picture without touching the course.
 
+The [tire puffs](tire-puffs.md)' pictures are drawn by the same program, `npm run puff-pictures`
+([Development](development.md#puff-pictures-command)), in the same look: clouds of overlapping lumps, each lump lit as a
+sphere from the upper left in three tones over a darker outline, opaque, standing on the middle of their bottom row
+and casting no shadow. A picture is as wide and as tall as the diameter it shows, at 40 texels per metre, for nine sizes
+from 0.25 m to 4 m in steps of √2 (`k` 0 to 8, widths rounded to whole texels). Each size has two cloud shapes,
+`puff-cloud-<k>-a` and `-b`, with the named palettes `smoke` (white to grey, the default), `dirt`, `sand`, `verge` and
+`grass` (grass and earth), and spray's two shapes, the mist `puff-mist-<k>` and the drops `puff-drops-<k>`, with the
+palette `spray`. Every palette uses slots 1 (outline), 2 (shade), 3 (middle) and 4 (light). Each is saved as a sprite
+source with its recipe naming its palettes and imported as a course image; replacing a source with another of the same
+name and size and importing it with the sprite command replaces the picture.
+
 ## Background transitions
 
 The background shown is the one of the environment interval at `camera.s`. When `camera.s` crosses a knot, its

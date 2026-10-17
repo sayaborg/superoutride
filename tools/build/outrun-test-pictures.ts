@@ -2,11 +2,11 @@ import { readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
-import { encodePng, type Raster } from '../graphics/drawn/raster.js';
+import { encodePng } from '../graphics/drawn/raster.js';
 import { drawSeriesPicture } from '../graphics/drawn/series-picture.js';
-import { SKIES, SPRITES, TEXELS_PER_METRE } from '../graphics/drawn/scenery.js';
+import { SKIES, SPRITES } from '../graphics/drawn/scenery.js';
 import { createNodeContentStore } from './node-content-store.js';
-import { courseImageFile, importSpriteSource } from '../graphics/sprite-import.js';
+import { writeDrawnSprite } from './drawn-sprite.js';
 import { drawTilePictures } from '../graphics/screen-pictures.js';
 import { replaceDocument } from '../authoring/content-store.js';
 
@@ -50,25 +50,8 @@ try {
     await replaceDocument(store, `screen-pictures/${SERIES}.json`, document);
     written.push(`content/screen-pictures/${SERIES}.json`);
   }
-  for (const [name, draw] of Object.entries(SPRITES)) {
-    if (!wanted(name)) continue;
-    const raster: Raster = draw();
-    await atomicWrite(new URL(`sprite-sources/${name}.png`, content).pathname, encodePng(raster));
-    const recipe = {
-      format: 'superoutride.sprite-recipe',
-      version: 3,
-      crop: { x: 0, y: 0, width: raster.width, height: raster.height },
-      widthMeters: raster.width / TEXELS_PER_METRE,
-      anchor: { x: raster.width / 2 - 0.5, y: raster.height - 1 },
-      mask: [],
-      palettes: null,
-    };
-    await atomicWrite(new URL(`sprite-sources/${name}.json`, content).pathname, formatSavedJson(recipe));
-    const { master } = await importSpriteSource(store, name, PNG);
-    const file = courseImageFile(master);
-    await store.write(file.path, file.bytes);
-    written.push(`content/${file.path}`);
-  }
+  for (const [name, draw] of Object.entries(SPRITES))
+    if (wanted(name)) written.push(await writeDrawnSprite(content, store, PNG, name, draw(), null));
   const skies = Object.entries(SKIES).filter(([name]) => wanted(name));
   for (const [name, draw] of skies) {
     const raster = draw();
