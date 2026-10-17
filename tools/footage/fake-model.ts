@@ -115,7 +115,9 @@ export async function writeFakeModelDraft(root: string, gaugeWidth: number) {
       reference: "The width the fake original draws TESTAROSSA at the road scale of its picture's lowest row",
     },
     camera: null,
-    pitch: null,
+    // As a person writes it from the frames, where the horizon moves on hills: the `level` video is an original of
+    // its own, its model written apart.
+    pitch: 'road',
     background: null,
   };
   await atomicWrite(path.join(directory, 'footage-model.json'), JSON.stringify(model, null, 2) + '\n');

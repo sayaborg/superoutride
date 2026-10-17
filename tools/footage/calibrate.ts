@@ -384,19 +384,33 @@ export function travelled(features: readonly FrameFeatures[], speeds: Float64Arr
 }
 
 /**
- * The stripe edges of a frame's main road: the continuous rows where its road color changes from one row to the next
- * (both rows reading the main road), below the horizon. Rows are seen at their centres, so a change between rows `y − 1`
- * and `y` lies at the boundary between them, the continuous row `y`.
+ * The stripe edges of a frame's main road: the continuous rows where its road color changes, below the horizon. The
+ * light and dark road colors may lie one step apart, so a run of one row is not told from a row read wrongly: such runs
+ * are dropped, and an edge lies between two runs of two rows or more of different colors, on consecutive rows of the
+ * main road. Rows are seen at their centres, so a change between rows `y − 1` and `y` lies at the boundary between them,
+ * the continuous row `y`; across a dropped row `y`, at its middle, `y + ½`.
  */
 export function stripeEdges(features: FrameFeatures, column: number, horizon: number): number[] {
-  const edges: number[] = [];
-  let previous: { y: number; color: number } | null = null;
+  // Runs of consecutive rows reading the main road in one color.
+  const runs: { first: number; last: number; color: number }[] = [];
   for (const row of features.rows) {
     if (row.y + 0.5 <= horizon) continue;
-    const road = mainRoad(row, column);
-    const color = road?.[2] ?? null;
-    if (color !== null && previous && previous.y === row.y - 1 && previous.color !== color) edges.push(row.y);
-    previous = color === null ? null : { y: row.y, color };
+    const color = mainRoad(row, column)?.[2] ?? null;
+    const run = runs.at(-1);
+    if (color === null) continue;
+    if (run && run.color === color && run.last === row.y - 1) run.last = row.y;
+    else runs.push({ first: row.y, last: row.y, color });
+  }
+  const edges: number[] = [];
+  let previous: (typeof runs)[number] | null = null;
+  for (const run of runs) {
+    if (run.last === run.first) continue;
+    const gap = previous ? run.first - previous.last - 1 : Infinity;
+    if (previous && previous.color === run.color && gap <= 1) previous.last = run.last;
+    else {
+      if (previous && gap <= 1) edges.push(run.first - gap / 2);
+      previous = run;
+    }
   }
   return edges;
 }

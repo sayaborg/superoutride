@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e2b](#stage-vc--courses-from-footage), and [DT-5, DT-6](#stage-dt--drift-tuned-trial-vehicles) and DT-3
+Next PR: [VC-T, then VC-5e2c](#stage-vc--courses-from-footage), and [DT-5, DT-6](#stage-dt--drift-tuned-trial-vehicles) and DT-3
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -165,22 +165,9 @@ named defaults (the rule against constants without a basis stays the product cod
 course. Development checks run on one stage of the fake videos; the full round trip runs once, in VC-9. Each PR
 proceeds without waiting for approval and stops at the [stopping conditions](footage.md#stopping-conditions).
 
-- VC-5e2: the hills in the initial estimate, as far as the footage shows them:
-  - VC-5e2b: stripe edges as profile observations: the main road's stripe edges followed through every frame at the rows
-    the current profile predicts, each edge a station `s_m` of its own, each reading one equation of the plan and
-    profile's least squares under the pitch rule, `y = y₀ − f·sin φ + (f/d)·(Y(s_c) + h − Y(s_m))·cos φ` with
-    `d = s_m − s_c`, weighed like the lines by each octave's noise; rows where one row spans more than half a stripe
-    period are left out (`calibrate`'s stripe following, generalized from level straights to the profile).
-  - VC-5e2c: `roadTop` as a profile observation where a crest cuts the road off: the row of the point where the line of
-    sight touches the road, entered through its derivative there (the envelope theorem), only where the ground or
-    background lies above it and no picture or other road hides it, and never where the road reaches the draw distance,
-    which a person writes in the footage model (checked against `roadTop` on level straights). Its report, on one stage
-    of each fake video: the profile's vertical curvature error per 50 m window (median), the crests' and jump's place
-    errors, the pitch rule's check; on `hills`, the inconsistency amount rising over the corrupted stretches and nowhere
-    else; the plan no worse than VC-5e's (20 m windows' median).
-- VC-T: a trial on OUTRUN's first stage (COCONUT BEACH), when K's video arrives, after the PR then in hand. Ingest,
-  census, features, calibrate and solve (plan, and the profile as far as it then goes), video by video, on the stretch of
-  the stage where the player drives, which the implementer writes in the capture values with the start's and
+- VC-T: a trial on OUTRUN's first stage (COCONUT BEACH), on K's video, before VC-5e2c. Ingest, census, features,
+  calibrate and solve (plan, and the profile as far as it then goes), video by video, on the stretch of the stage where
+  the player drives, which the implementer writes in the capture values with the start's and
   checkpoints' times where they show. The implementer writes what a person writes (color roles, HUD templates and timing
   events, masks, the gauge TESTAROSSA, the pitch rule, the draw distance, the edition where known) in a provisional
   footage model, made again from every video when a second arrives and not frozen until then. Faults a generalization
@@ -188,6 +175,19 @@ proceeds without waiting for approval and stops at the [stopping conditions](foo
   is reported with numbers and product-side diagrams, and the work stops. The report: whether each step passed, the
   footage model's values and errors, the lane widths beside the US standard 3.65 m, the plan's and profile's residuals
   per octave of depth, the stretch each video shows and the time taken. No course is raised yet.
+- VC-5e2c: the hills in the initial estimate, as far as the footage shows them: `roadTop` as a profile observation
+  where a crest cuts the road off: the row of the point where the line of sight touches the road, entered through its
+  derivative there (the envelope theorem), only where the ground or background lies above it and no picture or other
+  road hides it, and never where the road reaches the draw distance, which a person writes in the footage model
+  (checked against `roadTop` on level straights). Its report, on one stage of each fake video: the profile's vertical
+  curvature error per 50 m window (median), the crests' and jump's place errors, the pitch rule's check; on `hills`,
+  the inconsistency amount rising over the corrupted stretches and nowhere else; the plan no worse than VC-5e's (20 m
+  windows' median).
+- VC-5e2d: the grades' weight and the pitch check count the readings the fit with every height free counts. The plan
+  alone leaves out, as outliers, the readings a level road cannot fit, so it fits the rest at their noise level: under
+  `road` the grades take the heaviest weight on COASTLINE and FARMLAND (`a`, `c`) and the profile stays level, and on
+  the `level` video's COASTLINE the check finds no grade and takes `road`, while the fit under `level` recovers the
+  hills (the hill windows' vertical curvature error 1.7e-5 against the truth's 6.4e-5).
 - VC-5h: the course document: widths and lanes, start, fork beginnings, checkpoints and goals, the partition, and several
   videos together: their [alignment](footage.md#several-videos-of-one-course) and one solve over all of them. On fake
   footage, feature sequences are cut to begin and end mid-course (the videos are not made again); with two or more of

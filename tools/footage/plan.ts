@@ -1,8 +1,9 @@
 import type { FrameFeatures } from './features.js';
 import type { FootageCamera, PitchRule } from './footage-model.js';
-import { displayedSpeeds, frameMarks, travelled } from './calibrate.js';
+import { displayedSpeeds, frameMarks, stripeEdges, travelled } from './calibrate.js';
 import { BandedMatrix } from './banded-matrix.js';
 import { median, robustCentre } from './statistics.js';
+import { followStripes, type StripeTrack } from './stripes.js';
 
 /**
  * The road's plan and profile as one video's frames show them ([Initial estimate](../../docs/footage.md#initial-estimate)):
@@ -17,6 +18,8 @@ export interface PlanEstimate {
   readonly start: number;
   readonly cell: number;
   readonly curvature: readonly number[];
+  /** The heights' cells, from `start`. */
+  readonly heightCell: number;
   readonly height: readonly number[];
   /** The weight of the frames' squared grades, px² per grade² (0 for none beyond the weak grade differences). */
   readonly gradeWeight: number;
@@ -31,14 +34,25 @@ export interface PlanEstimate {
   }[];
   /** The counted points' root-mean-square residual (px) and their count. */
   readonly residual: { readonly rms: number; readonly points: number };
+  /** The stripe edges: the counted readings' root-mean-square residual (rows), their count, the tracks, the half period. */
+  readonly stripes: {
+    readonly rms: number;
+    readonly readings: number;
+    readonly tracks: number;
+    readonly halfPeriod: number;
+  };
   readonly rounds: number;
   readonly converged: boolean;
 }
 
-/** One frame's mark points: each point's mark, row and column from `x₀`, and whether it counts. */
+/**
+ * One frame's mark points: each point's mark, row and column from `x₀`, and whether it counts; and the rows of its main
+ * road's stripe edges.
+ */
 export interface FramePoints {
   readonly frame: number;
   readonly s: number;
+  readonly edges: Float64Array;
   /** How many marks: marks of one line merge as the estimate shows them one ([mergeMarks]). */
   marks: number;
   readonly mark: Int32Array;
@@ -53,7 +67,8 @@ export interface FramePoints {
  * rejection needs two more to judge it). A row less than one row below the horizon spans more depth than it stands at
  * (`K/u² > K/u`) and places no point. `s_c` is the displayed speed's integral from the first frame. Road edges place no
  * point: an edge's column moves with depth as its rumble strip falls below a column's width (the asphalt's edge near,
- * the strip's outer edge far), so an edge holds no one lateral along its mark.
+ * the strip's outer edge far), so an edge holds no one lateral along its mark. The stripe edges ([stripeEdges]) are read
+ * on the same rows, on the frames the original drew anew (a repeated frame shows its edges where they were).
  */
 export function framePoints(features: readonly FrameFeatures[], camera: FootageCamera, column: number): FramePoints[] {
   const x0 = camera.centerX.value,
@@ -70,6 +85,7 @@ export function framePoints(features: readonly FrameFeatures[], camera: FootageC
     const out: FramePoints = {
       frame: frame.frame,
       s: sc[t]!,
+      edges: frame.updated ? Float64Array.from(stripeEdges(frame, column, y0 + 1)) : new Float64Array(0),
       marks: marks.length,
       mark: new Int32Array(count),
       y: new Float64Array(count),
@@ -88,14 +104,24 @@ export function framePoints(features: readonly FrameFeatures[], camera: FootageC
   });
 }
 
-/** The unknowns: the road's heading and height at the nodes, and each frame's heading and its marks' laterals. */
+/**
+ * The unknowns: the road's heading and height at the nodes, each frame's heading and its marks' laterals, and each
+ * stripe edge's station.
+ */
 interface Estimate {
   readonly heading: Float64Array;
   readonly height: Float64Array;
   readonly thetas: Float64Array;
   readonly laterals: Float64Array[];
+  readonly stations: Float64Array;
   /** Each point's depth, as its row lies on the profile (NaN where it lies on none). */
   readonly depths: readonly Float64Array[];
+}
+
+/** The residuals: each frame's points' (columns) and each stripe track's readings' (rows). */
+interface Residuals {
+  readonly lines: Float64Array[];
+  readonly stripes: Float64Array[];
 }
 
 /**
@@ -116,8 +142,19 @@ interface Estimate {
  * and `Y` (a frame reaches from `s_c` to its farthest point), solved by Cholesky. `H` and `Y` are pinned at their first
  * node, and `κ` and the grade are weighed weakly (a millionth of their mean diagonals), to bridge stretches no frame
  * shows.
+ *
+ * Each stripe edge is fixed at a station `s_m` of its own, and each of its readings is one equation in rows:
+ * `y = y₀ − f·sin φ + (f/d)·(Y(s_c) + h − Y(s_m))·cos φ`, `d = s_m − s_c`. Its station is set mostly by its near rows,
+ * where hills add little, and its far rows show the hills. The edges are followed ([followStripes]) on the profile
+ * `follow` (level when none), or `follow` gives the tracks themselves. Each track's station touches only its own
+ * equations and is eliminated in its normal equations, as a frame's unknowns are.
  */
-function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule: PitchRule | null) {
+function planProblem(
+  frames: readonly FramePoints[],
+  camera: FootageCamera,
+  rule: PitchRule | null,
+  follow: Float64Array | { readonly tracks: readonly StripeTrack[]; readonly halfPeriod: number } | null = null,
+) {
   const f = camera.focalLength.value,
     h = camera.height.value,
     y0 = camera.horizonRow.value,
@@ -128,28 +165,44 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
   if (!reaches.length) throw new RangeError('No frame shows a line');
   const cell = median(reaches);
   const start = Math.floor(frames[0]!.s);
-  // Nodes through each frame's farthest point, a profile placing it at most twice as far as level road does.
-  const nodes = Math.max(
-    2,
-    ...frames.map((frame) => Math.floor((frame.s + 2 * (frame.y.length ? levelReach(frame) : D) - start) / cell) + 2),
-  );
-  const node = (x: number) => {
-    const q = (x - start) / cell,
-      j = Math.min(nodes - 2, Math.max(0, Math.floor(q)));
-    return { j, a: q - j };
+  // Nodes through each frame's farthest point or stripe edge, a profile placing it at most twice as far as level road
+  // does.
+  const extent =
+    Math.max(
+      ...frames.map(
+        (frame) =>
+          frame.s +
+          2 * Math.max(D, frame.y.length ? levelReach(frame) : 0, ...Array.from(frame.edges, (y) => K / (y - y0))),
+      ),
+    ) - start;
+  const grid = (size: number) => {
+    const count = Math.max(2, Math.floor(extent / size) + 2);
+    return {
+      size,
+      count,
+      at(x: number) {
+        const q = (x - start) / size,
+          j = Math.min(count - 2, Math.max(0, Math.floor(q)));
+        return { j, a: q - j };
+      },
+    };
   };
+  const plan = grid(cell);
+  // The heights' grid: the plan's while the stripe edges are first followed on level road, then their own.
+  let profile = plan;
+  const node = (x: number) => plan.at(x);
   const heightAt = (height: Float64Array, x: number) => {
-    const { j, a } = node(x);
+    const { j, a } = profile.at(x);
     return height[j]! * (1 - a) + height[j + 1]! * a;
   };
-  const slopeAt = (values: Float64Array, x: number) => {
-    const { j } = node(x);
-    return (values[j + 1]! - values[j]!) / cell;
+  const slopeAt = (height: Float64Array, x: number) => {
+    const { j } = profile.at(x);
+    return (height[j + 1]! - height[j]!) / profile.size;
   };
-  /** The camera's grade over its chord to the player, `(Y(s_c + D′) − Y(s_c))/D′`, as its nodes' coefficients. */
+  /** The camera's grade over its chord to the player, `(Y(s_c + D′) − Y(s_c))/D′`, as its height nodes' coefficients. */
   const chord = (s: number) => {
-    const near = node(s),
-      far = node(s + D);
+    const near = profile.at(s),
+      far = profile.at(s + D);
     return [
       [near.j, -(1 - near.a) / D],
       [near.j + 1, -near.a / D],
@@ -159,76 +212,167 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
   };
   const grade = (height: Float64Array, s: number) => chord(s).reduce((sum, [j, c]) => sum + c * height[j]!, 0);
   const pitchOf = (height: Float64Array, s: number) => (rule === 'road' ? -Math.atan(grade(height, s)) : 0);
-  const inRange = (x: number) => x >= start && x <= start + (nodes - 1) * cell;
+  const inRange = (x: number) => x >= start && x <= start + extent;
 
   /**
    * Each of a frame's points' depth on the profile: the root of `g(d) = d·(y − y_h) − f·(Y(s_c) + h − Y(s_c + d))·cos φ`
    * by Newton's steps from level road, until a step moves it by less than a millionth; NaN where the row lies above
    * the frame's horizon, the steps leave the nodes or the road there faces away (`g′ ≤ 0`, past a crest).
    */
-  const frameDepths = (frame: FramePoints, height: Float64Array) => {
+  const depthAt = (frame: FramePoints, height: Float64Array, y: number) => {
     const phi = pitchOf(height, frame.s),
       cos = Math.cos(phi),
-      horizon = y0 - f * Math.sin(phi),
+      u = y - (y0 - f * Math.sin(phi)),
       cameraHeight = heightAt(height, frame.s) + h;
-    return Float64Array.from(frame.y, (y) => {
-      const u = y - horizon;
-      if (!(u > 0)) return NaN;
-      let d = (f * (cameraHeight - heightAt(height, frame.s)) * cos) / u;
-      for (let step = 0; step < 50; step++) {
-        if (!(d > 0) || !inRange(frame.s + d)) return NaN;
-        const g = d * u - f * (cameraHeight - heightAt(height, frame.s + d)) * cos,
-          slope = u + f * cos * slopeAt(height, frame.s + d);
-        if (!(slope > 0)) return NaN;
-        const next = d - g / slope;
-        if (Math.abs(next - d) < 1e-6 * d) return next > 0 && inRange(frame.s + next) ? next : NaN;
-        d = next;
-      }
-      return NaN;
-    });
+    if (!(u > 0)) return NaN;
+    let d = (f * (cameraHeight - heightAt(height, frame.s)) * cos) / u;
+    for (let step = 0; step < 50; step++) {
+      if (!(d > 0) || !inRange(frame.s + d)) return NaN;
+      const g = d * u - f * (cameraHeight - heightAt(height, frame.s + d)) * cos,
+        slope = u + f * cos * slopeAt(height, frame.s + d);
+      if (!(slope > 0)) return NaN;
+      const next = d - g / slope;
+      if (Math.abs(next - d) < 1e-6 * d) return next > 0 && inRange(frame.s + next) ? next : NaN;
+      d = next;
+    }
+    return NaN;
   };
+  const frameDepths = (frame: FramePoints, height: Float64Array) =>
+    Float64Array.from(frame.y, (y) => depthAt(frame, height, y));
+  /** The row a station stands at in a frame on the profile (NaN behind the camera or beyond the nodes). */
+  const rowAt = (frame: FramePoints, height: Float64Array, station: number) => {
+    const d = station - frame.s;
+    if (!(d > 0) || !inRange(station)) return NaN;
+    const phi = pitchOf(height, frame.s);
+    return (
+      y0 - f * Math.sin(phi) + (f / d) * (heightAt(height, frame.s) + h - heightAt(height, station)) * Math.cos(phi)
+    );
+  };
+  const followOn = (height: Float64Array) =>
+    followStripes(
+      frames.map((frame) => frame.edges),
+      frames.map((frame) => frame.s),
+      {
+        station: (t, y) => frames[t]!.s + depthAt(frames[t]!, height, y),
+        row: (t, station) => rowAt(frames[t]!, height, station),
+      },
+    );
+  // The heights are linear on cells as long as the frames' median reach over the points and the stripe edges followed
+  // on level road: a frame's readings show the road's rise only as far as they reach.
+  const level = followOn(new Float64Array(plan.count));
+  const reach = new Float64Array(frames.length);
+  frames.forEach((frame, t) => (reach[t] = frame.y.length ? levelReach(frame) : 0));
+  for (const track of level.tracks)
+    track.frames.forEach((t, k) => (reach[t] = Math.max(reach[t]!, K / (track.rows[k]! - y0))));
+  profile = grid(median(Array.from(reach).filter((d) => d > 0)));
+  const followed = follow instanceof Float64Array ? followOn(follow) : (follow ?? level);
+  const { tracks, halfPeriod } = followed;
+  // The unknowns' order: the heading's and the heights' nodes merged by station, so that each frame's and each track's
+  // equations touch a band.
+  const headingIndex = new Int32Array(plan.count),
+    heightIndex = new Int32Array(profile.count);
+  for (let i = 0, j = 0, k = 0; j < plan.count || k < profile.count; i++)
+    if (k >= profile.count || (j < plan.count && j * plan.size <= k * profile.size)) headingIndex[j++] = i;
+    else heightIndex[k++] = i;
+  const size = plan.count + profile.count;
+  /** Each track's station on the profile, where its nearest reading lies. */
+  const stationsOn = (height: Float64Array) =>
+    Float64Array.from(tracks, (track) => {
+      const last = track.frames.length - 1;
+      return frames[track.frames[last]!]!.s + depthAt(frames[track.frames[last]!]!, height, track.rows[last]!);
+    });
   const estimateOf = (
     heading: Float64Array,
     height: Float64Array,
     thetas: Float64Array,
     laterals: Float64Array[],
-  ): Estimate => ({ heading, height, thetas, laterals, depths: frames.map((frame) => frameDepths(frame, height)) });
+    stations: Float64Array,
+  ): Estimate => ({
+    heading,
+    height,
+    thetas,
+    laterals,
+    stations,
+    depths: frames.map((frame) => frameDepths(frame, height)),
+  });
 
-  const residualsOf = (e: Estimate) =>
-    frames.map(
+  const residualsOf = (e: Estimate): Residuals => ({
+    lines: frames.map(
       (frame, t) => frameModel(frame, e.depths[t]!, e.heading, e.thetas[t]!, e.laterals[t]!, f, start, cell).residual,
-    );
-  /** The counted points' weighted squares, over the points `other` also places when given. */
-  const squares = (residuals: readonly Float64Array[], other?: readonly Float64Array[]) => {
-    let sum = 0;
+    ),
+    stripes: tracks.map((track, m) =>
+      Float64Array.from(track.rows, (y, k) => y - rowAt(frames[track.frames[k]!]!, e.height, e.stations[m]!)),
+    ),
+  });
+  /** Each counted residual with its weight, over the ones `other` also places when given. */
+  const eachCounted = (
+    residuals: Residuals,
+    visit: (r: number, w: number, at: { t: number; stripe: boolean; i: number }) => void,
+    other?: Residuals,
+  ) => {
     frames.forEach((frame, t) =>
-      residuals[t]!.forEach((r, i) => {
-        if (frame.weight[i] && Number.isFinite(r) && (!other || Number.isFinite(other[t]![i]!)))
-          sum += frame.weight[i]! * r * r;
+      residuals.lines[t]!.forEach((r, i) => {
+        if (frame.weight[i] && Number.isFinite(r) && (!other || Number.isFinite(other.lines[t]![i]!)))
+          visit(r, frame.weight[i]!, { t, stripe: false, i });
       }),
     );
+    tracks.forEach((track, m) =>
+      residuals.stripes[m]!.forEach((r, k) => {
+        if (track.weight[k] && Number.isFinite(r) && (!other || Number.isFinite(other.stripes[m]![k]!)))
+          visit(r, track.weight[k]!, { t: track.frames[k]!, stripe: true, i: m });
+      }),
+    );
+  };
+  /** How far the counted residuals moved, their weighted squared differences, and how many count. */
+  const movedBetween = (before: Residuals, after: Residuals) => {
+    let moved = 0,
+      counted = 0;
+    const each = (r: Float64Array, previous: Float64Array, weight: Float64Array) =>
+      r.forEach((v, i) => {
+        if (!weight[i]) return;
+        moved += weight[i]! * (v - previous[i]!) ** 2;
+        counted++;
+      });
+    frames.forEach((frame, t) => each(after.lines[t]!, before.lines[t]!, frame.weight));
+    tracks.forEach((track, m) => each(after.stripes[m]!, before.stripes[m]!, track.weight));
+    return { moved, counted };
+  };
+  /** The counted residuals' weighted squares, over the ones `other` also places when given. */
+  const squares = (residuals: Residuals, other?: Residuals) => {
+    let sum = 0;
+    eachCounted(residuals, (r, w) => (sum += w * r * r), other);
     return sum;
   };
   const gradeSquares = (height: Float64Array) => frames.reduce((sum, frame) => sum + grade(height, frame.s) ** 2, 0);
 
   /**
    * One Gauss–Newton step at the estimate with Marquardt's damping: the counted points' equations linearized in the
-   * nodes' `H` and `Y` (interleaved, `H_j` at `2j` and `Y_j` at `2j + 1`), each frame's `θ` and its marks' `l` (the
+   * nodes' `H` and `Y` (in the order of their stations), each frame's `θ` and its marks' `l` (the
    * integrals taken metre by metre), the frame unknowns eliminated frame by frame, the banded equations solved, and the
    * frame unknowns' steps recovered. `Y` moves a point through its depth: `∂d/∂Y = −(∂g/∂Y)/g′`.
    */
   const step = (e: Estimate, damping: number, gradeWeight: number): Estimate => {
+    // Each frame's unknowns: the heading's nodes `first`–`last` and the heights' `low`–`high`, at `offset` + 0…`span`.
     const windows = frames.map((frame, t) => {
       const depths = e.depths[t]!;
       let far = D;
       depths.forEach((d, i) => frame.weight[i] && Number.isFinite(d) && (far = Math.max(far, d)));
-      return { first: node(frame.s).j, last: node(frame.s + far).j + 1 };
+      const first = node(frame.s).j,
+        last = node(frame.s + far).j + 1;
+      const low = profile.at(frame.s).j,
+        high = profile.at(frame.s + far).j + 1;
+      const offset = Math.min(headingIndex[first]!, heightIndex[low]!);
+      return { first, last, offset, span: Math.max(headingIndex[last]!, heightIndex[high]!) - offset + 1 };
     });
-    const width = 2 * Math.max(...windows.map((w) => w.last - w.first)) + 1;
-    const normal = new BandedMatrix(2 * nodes, width);
+    const trackSpans = tracks.map((track, m) => {
+      const low = profile.at(frames[track.frames[0]!]!.s).j;
+      const high = Math.max(profile.at(e.stations[m]!).j, profile.at(frames[track.frames.at(-1)!]!.s + D).j) + 1;
+      return heightIndex[high]! - heightIndex[low]! + 1;
+    });
+    const width = Math.max(...windows.map((w) => w.span), ...trackSpans) - 1;
+    const normal = new BandedMatrix(size, width);
     const eliminations = frames.map((frame, t) => {
-      const { first, last } = windows[t]!,
-        span = 2 * (last - first + 1);
+      const { first, last, offset, span } = windows[t]!;
       const depths = e.depths[t]!;
       const theta = e.thetas[t]!,
         lateral = e.laterals[t]!;
@@ -259,7 +403,7 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         sin = Math.sin(pitch);
       const pitchChord = rule === 'road' ? chord(frame.s) : [];
       const byGrade = -1 / (1 + Math.tan(pitch) ** 2);
-      const cameraNode = node(frame.s),
+      const cameraNode = profile.at(frame.s),
         cameraHeight = heightAt(e.height, frame.s) + h,
         horizon = y0 - f * sin;
       const block = new Float64Array(span * span),
@@ -269,9 +413,9 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
       let tt = 0,
         tr = 0;
       const g = new Float64Array(span);
-      const addY = (j: number, v: number) => {
-        const a = 2 * (j - first) + 1;
-        if (rule && a > 0 && a < span) g[a] = g[a]! + v;
+      const at = (j: number) => headingIndex[first + j]! - offset;
+      const addY = (k: number, v: number) => {
+        if (rule) g[heightIndex[k]! - offset] = g[heightIndex[k]! - offset]! + v;
       };
       for (let i = 0; i < frame.y.length; i++) {
         const w = frame.weight[i]!,
@@ -290,20 +434,20 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         const residual = frame.x[i]! - model;
         g.fill(0);
         // ∂/∂H_j: ∫ cos Φ·hat_j − l·sin Φ(d)·hat_j(d); ∂/∂θ: −∫ cos Φ + l·sin Φ(d); ∂/∂l: cos Φ(d).
-        for (let j = 0; j < nodesHere; j++) g[2 * j] = scale * nodePrefix[m * nodesHere + j]!;
+        for (let j = 0; j < nodesHere; j++) g[at(j)] = scale * nodePrefix[m * nodesHere + j]!;
         const jm = nodeOf[mm]! - first,
           cm = Math.cos(phi[mm]!) * part;
-        if (jm >= 0 && jm < nodesHere) g[2 * jm] = g[2 * jm]! + scale * cm * (1 - weight[mm]!);
-        if (jm + 1 >= 0 && jm + 1 < nodesHere) g[2 * jm + 2] = g[2 * jm + 2]! + scale * cm * weight[mm]!;
+        if (jm >= 0 && jm < nodesHere) g[at(jm)] = g[at(jm)]! + scale * cm * (1 - weight[mm]!);
+        if (jm + 1 >= 0 && jm + 1 < nodesHere) g[at(jm + 1)] = g[at(jm + 1)]! + scale * cm * weight[mm]!;
         const je = end.j - first;
-        if (je >= 0 && je < nodesHere) g[2 * je] = g[2 * je]! - scale * l * sinEnd * (1 - end.a);
-        if (je + 1 >= 0 && je + 1 < nodesHere) g[2 * je + 2] = g[2 * je + 2]! - scale * l * sinEnd * end.a;
+        if (je >= 0 && je < nodesHere) g[at(je)] = g[at(je)]! - scale * l * sinEnd * (1 - end.a);
+        if (je + 1 >= 0 && je + 1 < nodesHere) g[at(je + 1)] = g[at(je + 1)]! - scale * l * sinEnd * end.a;
         // ∂/∂Y_j through the depth: ∂x/∂d·∂d/∂Y_j, with ∂d/∂Y_j = −(∂g/∂Y_j)/g′.
         const curvatureEnd = (e.heading[end.j + 1]! - e.heading[end.j]!) / cell;
         const byDepth = -model / d + scale * sinEnd * (1 - l * curvatureEnd);
         const drop = cameraHeight - heightAt(e.height, frame.s + d);
         const slope = frame.y[i]! - horizon + f * cos * slopeAt(e.height, frame.s + d);
-        const along = node(frame.s + d);
+        const along = profile.at(frame.s + d);
         const factor = -byDepth / slope;
         addY(cameraNode.j, factor * -f * cos * (1 - cameraNode.a));
         addY(cameraNode.j + 1, factor * -f * cos * cameraNode.a);
@@ -351,36 +495,94 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
           rhs[a] = rhs[a]! - v * tr;
           for (let b = 0; b <= a; b++) block[a * span + b] = block[a * span + b]! - v * th[b]!;
         }
-      const offset = 2 * first;
       for (let a = 0; a < span; a++) {
         normal.rhs[offset + a] = normal.rhs[offset + a]! + rhs[a]!;
         for (let b = 0; b <= a; b++) if (block[a * span + b]) normal.add(offset + a, offset + b, block[a * span + b]!);
       }
       return { offset, marks, tt, tr, th };
     });
+    // Each stripe track's readings, its station eliminated: a rank-one correction to the heights.
+    const stripeEliminations = tracks.map((track, m) => {
+      const station = e.stations[m]!;
+      const coupling = new Map<number, number>();
+      let pivot = 0,
+        target = 0;
+      const entries = new Map<number, number>();
+      track.frames.forEach((t, k) => {
+        const w = track.weight[k]!;
+        const frame = frames[t]!,
+          d = station - frame.s;
+        if (!w || !(d > 0)) return;
+        const pitch = pitchOf(e.height, frame.s),
+          cos = Math.cos(pitch),
+          sin = Math.sin(pitch);
+        const drop = heightAt(e.height, frame.s) + h - heightAt(e.height, station);
+        const value = (f / d) * drop * cos;
+        const residual = track.rows[k]! - (y0 - f * sin + value);
+        entries.clear();
+        const add = (k: number, v: number) => entries.set(heightIndex[k]!, (entries.get(heightIndex[k]!) ?? 0) + v);
+        if (rule) {
+          const camera = profile.at(frame.s),
+            at = profile.at(station);
+          add(camera.j, (f / d) * cos * (1 - camera.a));
+          add(camera.j + 1, (f / d) * cos * camera.a);
+          add(at.j, -(f / d) * cos * (1 - at.a));
+          add(at.j + 1, -(f / d) * cos * at.a);
+          if (rule === 'road') {
+            const byPitch = (-f * cos - (f / d) * drop * sin) * (-1 / (1 + Math.tan(pitch) ** 2));
+            for (const [j, c] of chord(frame.s)) add(j, byPitch * c);
+          }
+        }
+        const byStation = -(f / d) * cos * slopeAt(e.height, station) - value / d;
+        const list = [...entries];
+        for (let a = 0; a < list.length; a++) {
+          const [i, g] = list[a]!;
+          normal.rhs[i] = normal.rhs[i]! + w * g * residual;
+          for (let b = 0; b <= a; b++) normal.add(i, list[b]![0], w * g * list[b]![1]);
+          coupling.set(i, (coupling.get(i) ?? 0) + w * byStation * g);
+        }
+        pivot += w * byStation * byStation;
+        target += w * byStation * residual;
+      });
+      pivot *= 1 + damping;
+      if (!(pivot > 0)) return null;
+      const sorted = [...coupling].sort((a, b) => a[0] - b[0]);
+      normal.subtractOuter(
+        Int32Array.from(sorted, ([i]) => i),
+        Float64Array.from(sorted, ([, v]) => v),
+        sorted.length,
+        pivot,
+        target,
+      );
+      return { sorted, pivot, target };
+    });
     // Marquardt's damping on the nodes; the frames' grades weighed by `gradeWeight`; κ and the grade weighed weakly,
     // and the pins on the first nodes, all on the estimate the step leads to.
-    const means = [0, 0];
-    for (let i = 0; i < 2 * nodes; i++) means[i % 2] = means[i % 2]! + normal.diagonal(i) / nodes;
-    for (let i = 0; i < 2 * nodes; i++) normal.add(i, i, damping * normal.diagonal(i));
+    const kinds = [
+      { index: headingIndex, values: e.heading, mean: 0 },
+      { index: heightIndex, values: e.height, mean: 0 },
+    ];
+    for (const kind of kinds)
+      kind.mean = kind.index.reduce((sum, i) => sum + normal.diagonal(i), 0) / kind.index.length;
+    for (let i = 0; i < size; i++) normal.add(i, i, damping * normal.diagonal(i));
     if (gradeWeight > 0)
       for (const frame of frames) {
         const coefficients = chord(frame.s),
           value = grade(e.height, frame.s);
         for (let a = 0; a < 4; a++) {
           const [ja, ca] = coefficients[a]!;
-          normal.rhs[2 * ja + 1] = normal.rhs[2 * ja + 1]! - gradeWeight * ca * value;
+          normal.rhs[heightIndex[ja]!] = normal.rhs[heightIndex[ja]!]! - gradeWeight * ca * value;
           for (let b = 0; b <= a; b++) {
             const [jb, cb] = coefficients[b]!;
-            normal.add(2 * ja + 1, 2 * jb + 1, gradeWeight * ca * cb * (ja === jb && a !== b ? 2 : 1));
+            normal.add(heightIndex[ja]!, heightIndex[jb]!, gradeWeight * ca * cb * (ja === jb && a !== b ? 2 : 1));
           }
         }
       }
-    [e.heading, e.height].forEach((values, kind) => {
-      const weak = 1e-6 * means[kind]!;
-      for (let j = 0; j + 1 < nodes; j++) {
-        const a = 2 * j + kind,
-          b = a + 2,
+    for (const { index, values, mean } of kinds) {
+      const weak = 1e-6 * mean;
+      for (let j = 0; j + 1 < index.length; j++) {
+        const a = index[j]!,
+          b = index[j + 1]!,
           gap = values[j + 1]! - values[j]!;
         normal.add(a, a, weak);
         normal.add(b, b, weak);
@@ -388,11 +590,11 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         normal.rhs[a] = normal.rhs[a]! + weak * gap;
         normal.rhs[b] = normal.rhs[b]! - weak * gap;
       }
-      normal.add(kind, kind, means[kind]!);
-      normal.rhs[kind] = normal.rhs[kind]! - means[kind]! * values[0]!;
-    });
+      normal.add(index[0]!, index[0]!, mean);
+      normal.rhs[index[0]!] = normal.rhs[index[0]!]! - mean * values[0]!;
+    }
     // An unknown no equation touches (the heights, while every column is the camera's own) is held.
-    for (let i = 0; i < 2 * nodes; i++) if (!(normal.diagonal(i) > 0)) normal.add(i, i, 1);
+    for (let i = 0; i < size; i++) if (!(normal.diagonal(i) > 0)) normal.add(i, i, 1);
     const delta = normal.solve();
     if (!delta) throw new Error('The plan’s normal equations are not positive definite');
     const thetas = Float64Array.from(e.thetas);
@@ -407,11 +609,18 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         if (mark.ll > 0) laterals[t]![k] = laterals[t]![k]! + (mark.r - mark.lt * dt - dot(mark.h)) / mark.ll;
       });
     });
+    const stations = e.stations.map((station, m) => {
+      const elimination = stripeEliminations[m];
+      if (!elimination) return station;
+      const { sorted, pivot, target } = elimination;
+      return station + (target - sorted.reduce((sum, [i, v]) => sum + v * delta[i]!, 0)) / pivot;
+    });
     return estimateOf(
-      e.heading.map((v, j) => v + delta[2 * j]!),
-      e.height.map((v, j) => v + delta[2 * j + 1]!),
+      e.heading.map((v, j) => v + delta[headingIndex[j]!]!),
+      e.height.map((v, k) => v + delta[heightIndex[k]!]!),
       thetas,
       laterals,
+      stations,
     );
   };
 
@@ -421,7 +630,7 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
    * One Levenberg–Marquardt step at the points' current weights: damped until it lowers the weighted squares over the
    * points both the estimate and the step place (a row the step lifts above its frame's horizon has no depth).
    */
-  const descend = (e: Estimate, residuals: Float64Array[], gradeWeight: number) => {
+  const descend = (e: Estimate, residuals: Residuals, gradeWeight: number) => {
     const grades = gradeWeight * gradeSquares(e.height);
     for (; damping < 1e12; damping *= 10) {
       const trial = step(e, damping, gradeWeight);
@@ -438,47 +647,74 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
 
   /**
    * After a step: each octave of depth has its own noise, its residuals' robust deviation, no less than a column's
-   * rounding. A point weighs by its octave's inverse variance; points beyond three of their deviations, points with no
-   * depth, and marks whose normalized root-mean-square residual is (another road's), are left out. Returns whether the
-   * counted residuals moved by less than a tenth of their deviations (root mean square), and the octaves' noise.
+   * rounding for the points and a row's for the stripe edges. A reading weighs by its octave's inverse variance; readings
+   * beyond three of their deviations, readings with no depth, and marks and tracks whose normalized root-mean-square
+   * residual is beyond three (another road's, an edge read wrongly), are left out. Returns whether the counted residuals
+   * moved by less than a tenth of their deviations (root mean square), and the octaves' noise.
    */
-  const reweigh = (e: Estimate, residuals: readonly Float64Array[], before: readonly Float64Array[]) => {
-    const samples = new Map<number, number[]>();
-    frames.forEach((_, t) =>
-      residuals[t]!.forEach((r, i) => {
-        if (!Number.isFinite(r)) return;
-        const k = octave(e.depths[t]![i]!);
-        if (!samples.has(k)) samples.set(k, []);
-        samples.get(k)!.push(r);
-      }),
-    );
-    const noise = new Map(
-      [...samples].map(([k, values]) => [k, Math.max(Math.sqrt(1 / 12), robustCentre(values).sigma)]),
-    );
+  const reweigh = (e: Estimate, residuals: Residuals, before: Residuals) => {
+    const stripeDepth = (m: number, k: number) => e.stations[m]! - frames[tracks[m]!.frames[k]!]!.s;
+    const noiseOf = (samples: Map<number, number[]>) =>
+      new Map([...samples].map(([k, values]) => [k, Math.max(Math.sqrt(1 / 12), robustCentre(values).sigma)]));
+    const sample = (into: Map<number, number[]>, d: number, r: number) => {
+      if (!Number.isFinite(r)) return;
+      const k = octave(d);
+      if (!into.has(k)) into.set(k, []);
+      into.get(k)!.push(r);
+    };
+    const lineSamples = new Map<number, number[]>(),
+      stripeSamples = new Map<number, number[]>();
+    frames.forEach((_, t) => residuals.lines[t]!.forEach((r, i) => sample(lineSamples, e.depths[t]![i]!, r)));
+    tracks.forEach((_, m) => residuals.stripes[m]!.forEach((r, k) => sample(stripeSamples, stripeDepth(m, k), r)));
+    const noise = { lines: noiseOf(lineSamples), stripes: noiseOf(stripeSamples) };
     let moved = 0,
       counted = 0;
-    frames.forEach((frame, t) => {
-      const r = residuals[t]!;
-      const deviation = Float64Array.from(r, (_, i) => noise.get(octave(e.depths[t]![i]!)) ?? NaN);
-      const sums = new Float64Array(frame.marks),
-        counts = new Float64Array(frame.marks);
+    // A group's readings (a frame's marks, a track): their weights, after the group's normalized squares.
+    const weigh = (
+      r: Float64Array,
+      previous: Float64Array,
+      weight: Float64Array,
+      deviation: (i: number) => number,
+      group: (i: number) => number,
+      groups: number,
+    ) => {
+      const sums = new Float64Array(groups),
+        counts = new Float64Array(groups);
       r.forEach((v, i) => {
         if (!Number.isFinite(v)) return;
-        sums[frame.mark[i]!] = sums[frame.mark[i]!]! + (v / deviation[i]!) ** 2;
-        counts[frame.mark[i]!] = counts[frame.mark[i]!]! + 1;
+        sums[group(i)] = sums[group(i)]! + (v / deviation(i)) ** 2;
+        counts[group(i)] = counts[group(i)]! + 1;
       });
       r.forEach((v, i) => {
-        if (frame.weight[i] && Number.isFinite(v) && Number.isFinite(before[t]![i]!)) {
-          moved += ((v - before[t]![i]!) / deviation[i]!) ** 2;
+        if (weight[i] && Number.isFinite(v) && Number.isFinite(previous[i]!)) {
+          moved += ((v - previous[i]!) / deviation(i)) ** 2;
           counted++;
         }
-        const k = frame.mark[i]!;
-        frame.weight[i] =
-          Number.isFinite(v) && Math.abs(v) <= 3 * deviation[i]! && sums[k]! <= 9 * counts[k]!
-            ? deviation[i]! ** -2
-            : 0;
+        const k = group(i);
+        weight[i] =
+          Number.isFinite(v) && Math.abs(v) <= 3 * deviation(i) && sums[k]! <= 9 * counts[k]! ? deviation(i) ** -2 : 0;
       });
-    });
+    };
+    frames.forEach((frame, t) =>
+      weigh(
+        residuals.lines[t]!,
+        before.lines[t]!,
+        frame.weight,
+        (i) => noise.lines.get(octave(e.depths[t]![i]!)) ?? NaN,
+        (i) => frame.mark[i]!,
+        frame.marks,
+      ),
+    );
+    tracks.forEach((track, m) =>
+      weigh(
+        residuals.stripes[m]!,
+        before.stripes[m]!,
+        track.weight,
+        (k) => noise.stripes.get(octave(stripeDepth(m, k))) ?? NaN,
+        () => 0,
+        1,
+      ),
+    );
     return { settled: moved < 0.01 * counted, noise };
   };
 
@@ -489,23 +725,15 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
    * line ([mergeMarks]), and the steps end only when none merge.
    */
   const fit = (e: Estimate, gradeWeight: number, reweighing: boolean, limit: number) => {
-    let residuals: Float64Array[] = residualsOf(e);
+    let residuals = residualsOf(e);
     let rounds = 0,
       converged = false,
-      noise = new Map<number, number>();
+      noise = { lines: new Map<number, number>(), stripes: new Map<number, number>() };
     for (; rounds < limit; rounds++) {
       const before = residuals;
       ({ estimate: e, residuals } = descend(e, residuals, gradeWeight));
       if (!reweighing) {
-        let moved = 0,
-          counted = 0;
-        frames.forEach((frame, t) =>
-          residuals[t]!.forEach((r, i) => {
-            if (!frame.weight[i]) return;
-            moved += frame.weight[i]! * (r - before[t]![i]!) ** 2;
-            counted++;
-          }),
-        );
+        const { moved, counted } = movedBetween(before, residuals);
         if (moved < 0.01 * counted && damping <= DAMPING) {
           converged = true;
           break;
@@ -540,8 +768,8 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
 
   /** The counted points, frames' and marks' unknowns, and the cells and nodes some counted point shows. */
   const counts = (e: Estimate) => {
-    const curvature = new Uint8Array(nodes),
-      height = new Uint8Array(nodes);
+    const curvature = new Uint8Array(plan.count),
+      height = new Uint8Array(profile.count);
     let points = 0,
       frameUnknowns = 0;
     frames.forEach((frame, t) => {
@@ -553,12 +781,25 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         marks[frame.mark[i]!] = 1;
         for (let q = node(frame.s).j; q < node(frame.s + d).j; q++) curvature[q] = 1;
         for (const x of [frame.s, frame.s + D, frame.s + d]) {
-          const { j } = node(x);
+          const { j } = profile.at(x);
           height[j] = height[j + 1] = 1;
         }
       });
       const seen = marks.reduce((sum, v) => sum + v, 0);
       if (seen) frameUnknowns += 1 + seen;
+    });
+    tracks.forEach((track, m) => {
+      let seen = false;
+      track.frames.forEach((t, k) => {
+        if (!track.weight[k]) return;
+        points++;
+        seen = true;
+        for (const x of [frames[t]!.s, frames[t]!.s + D, e.stations[m]!]) {
+          const { j } = profile.at(x);
+          height[j] = height[j + 1] = 1;
+        }
+      });
+      if (seen) frameUnknowns++;
     });
     return { points, frameUnknowns, curvature, height };
   };
@@ -568,33 +809,52 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
     rule,
     start,
     cell,
-    /** A straight, level road and level headings. */
+    followed,
+    /** A straight, level road and level headings, and the stations where the stripe edges' nearest readings lie on it. */
     initial: () =>
       estimateOf(
-        new Float64Array(nodes),
-        new Float64Array(nodes),
+        new Float64Array(plan.count),
+        new Float64Array(profile.count),
         new Float64Array(frames.length),
         frames.map((frame) => new Float64Array(frame.marks)),
+        stationsOn(new Float64Array(profile.count)),
       ),
     residualsOf,
     squares,
+    eachCounted,
     fit,
-    /** An estimate of another problem over the same frames, its depths placed on this one's profile. */
-    restart: (e: Estimate) => estimateOf(e.heading, e.height, e.thetas, e.laterals),
+    /**
+     * An estimate of another problem over the same frames, its depths and its stripe edges' stations placed on this
+     * one's profile.
+     */
+    restart: (e: Estimate) => estimateOf(e.heading, e.height, e.thetas, e.laterals, stationsOn(e.height)),
     counts,
-    octave: (e: Estimate, t: number, i: number) => octave(e.depths[t]![i]!),
+    /** A reading's octave of depth: a frame's point, or a track's reading. */
+    octave: (e: Estimate, at: { t: number; stripe: boolean; i: number }) =>
+      octave(at.stripe ? e.stations[at.i]! - frames[at.t]!.s : e.depths[at.t]![at.i]!),
     /** The estimate as a [PlanEstimate]. */
-    result(e: Estimate, residuals: readonly Float64Array[], gradeWeight: number, rounds: number, converged: boolean) {
+    result(e: Estimate, residuals: Residuals, gradeWeight: number, rounds: number, converged: boolean) {
       if (!rule) throw new Error('A plan with its heights held is no estimate under a pitch rule');
       const shown = counts(e);
-      let sum = 0,
-        points = 0;
-      frames.forEach((frame, t) =>
-        residuals[t]!.forEach((r, i) => {
-          if (!frame.weight[i]) return;
-          sum += r * r;
-          points++;
-        }),
+      const rms = (r: readonly Float64Array[], weights: readonly Float64Array[]) => {
+        let sum = 0,
+          points = 0;
+        r.forEach((values, g) =>
+          values.forEach((v, i) => {
+            if (!weights[g]![i]) return;
+            sum += v * v;
+            points++;
+          }),
+        );
+        return { rms: Math.sqrt(sum / points), points };
+      };
+      const lines = rms(
+        residuals.lines,
+        frames.map((frame) => frame.weight),
+      );
+      const stripes = rms(
+        residuals.stripes,
+        tracks.map((track) => track.weight),
       );
       const headingAt = (s: number) => {
         const { j, a } = node(s);
@@ -604,9 +864,10 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
         rule,
         start,
         cell,
-        curvature: Array.from({ length: nodes - 1 }, (_, q) =>
+        curvature: Array.from({ length: plan.count - 1 }, (_, q) =>
           shown.curvature[q] ? (e.heading[q + 1]! - e.heading[q]!) / cell : NaN,
         ),
+        heightCell: profile.size,
         height: Array.from(e.height, (y, j) => (shown.height[j] ? y : NaN)),
         gradeWeight,
         frames: frames.map((frame, t) => {
@@ -624,7 +885,8 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
             pitch: pitchOf(e.height, frame.s),
           };
         }),
-        residual: { rms: Math.sqrt(sum / points), points },
+        residual: lines,
+        stripes: { rms: stripes.rms, readings: stripes.points, tracks: tracks.length, halfPeriod },
         rounds,
         converged,
       } satisfies PlanEstimate;
@@ -633,28 +895,34 @@ function planProblem(frames: readonly FramePoints[], camera: FootageCamera, rule
 }
 
 /**
- * A fit to one video's points under a pitch rule, the grades weighed only weakly, or with no rule the plan alone, its
- * heights held level: from a straight, level road and level headings by Gauss–Newton steps with Marquardt's damping,
- * each taken only when it lowers the weighted squares, each followed by new weights and merged marks ([planProblem]),
- * until none merge and the counted residuals move by less than a tenth of their deviations, or after `limit` steps,
- * unconverged. The fits are the points' evidence for the rule ([judgePitchRule]) and the start of the estimate under it
- * ([solvePlan]).
+ * A fit to one video's points and stripe edges under a pitch rule, the grades weighed only weakly, or with no rule the
+ * plan alone, its heights held level: from a straight, level road and level headings by Gauss–Newton steps with
+ * Marquardt's damping, each taken only when it lowers the weighted squares, each followed by new weights and merged
+ * marks ([planProblem]), until none merge and the counted residuals move by less than a tenth of their deviations, or
+ * after `limit` steps, unconverged. The stripe edges are followed on level road first; under a rule they are followed
+ * again on the fit's profile, and the fit goes on from there. The fits are the points' evidence for the rule and the
+ * start of the estimate under it ([solvePlans]).
  */
 export function fitPlan(frames: readonly FramePoints[], camera: FootageCamera, rule: PitchRule | null, limit = 100) {
-  const problem = planProblem(frames, camera, rule);
-  return { problem, ...problem.fit(problem.initial(), 0, true, limit) };
+  const first = planProblem(frames, camera, rule);
+  const fit = first.fit(first.initial(), 0, true, limit);
+  if (!rule) return { problem: first, ...fit };
+  const problem = planProblem(frames, camera, rule, fit.estimate.height);
+  const again = problem.fit(problem.restart(fit.estimate), 0, true, limit);
+  return { problem, ...again, rounds: fit.rounds + again.rounds };
 }
 
 export type PlanFit = ReturnType<typeof fitPlan>;
 
 /**
  * A video's estimate under `road` from its plan alone (`flat`) and its fit with every height free under `level`, and the
- * same frames under `level` at the grade weight `road` takes. The points' noise level is the free fit's, each octave's
- * deviation scaled so that its χ² per degree of freedom (counted points less the frames' `θ`, the lines' `l`, the shown
- * cells' `κ` and the shown nodes' `Y`) is 1. From the plan alone, the frames' squared grades are weighed as heavily as
- * keeps the χ² within the degrees of freedom without the nodes' `Y`: of the profiles that fit the points at their noise
- * level, the one with the least sum of squared grades over the frames. The weight is found by bisecting its logarithm
- * to a tenth of a decade, each weight's estimate stepped from the plan alone at fixed weights.
+ * same points and stripe edges under `level` at the grade weight `road` takes. The noise level is the free fit's: each
+ * octave's deviation, of the points and of the stripe edges, scaled so that its χ² per degree of freedom (counted
+ * readings less the frames' `θ`, the lines' `l`, the edges' stations, the shown cells' `κ` and the shown nodes' `Y`) is
+ * 1. From the plan alone, the frames' squared grades are weighed as heavily as keeps the χ² within the degrees of
+ * freedom without the nodes' `Y`: of the profiles that fit the readings at their noise level, the one with the least sum
+ * of squared grades over the frames. The weight is found by bisecting its logarithm to a tenth of a decade, each
+ * weight's estimate stepped from the plan alone at fixed weights.
  */
 function weighedGrades(
   fits: { readonly flat: PlanFit; readonly level: PlanFit },
@@ -667,21 +935,32 @@ function weighedGrades(
   const scale =
     level.problem.squares(level.residuals) /
     (free.points - free.frameUnknowns - sum(free.curvature) - sum(free.height));
+  const deviation = (stripe: boolean, k: number) => {
+    const noise = stripe ? level.noise.stripes : level.noise.lines;
+    return noise.get(k) ?? (stripe ? flat.noise.stripes : flat.noise.lines).get(k)!;
+  };
+  const setWeight = (weights: Float64Array, i: number, stripe: boolean, k: number) =>
+    (weights[i] = 1 / (scale * deviation(stripe, k) ** 2));
+  flat.problem.eachCounted(flat.residuals, (_, __, at) => {
+    const k = flat.problem.octave(flat.estimate, at);
+    if (at.stripe) {
+      const track = flat.problem.followed.tracks[at.i]!;
+      setWeight(track.weight, track.frames.indexOf(at.t), true, k);
+    }
+  });
   flat.problem.frames.forEach((frame, t) =>
     frame.weight.forEach((w, i) => {
-      if (!w) return;
-      const k = flat.problem.octave(flat.estimate, t, i);
-      const sigma = level.noise.get(k) ?? flat.noise.get(k)!;
-      frame.weight[i] = 1 / (scale * sigma * sigma);
+      if (w) setWeight(frame.weight, i, false, flat.problem.octave(flat.estimate, { t, stripe: false, i }));
     }),
   );
   const shown = flat.problem.counts(flat.estimate);
   const target = shown.points - shown.frameUnknowns - sum(shown.curvature);
-  // A unit weight weighs a frame's grade as its counted points' mean weight weighs a column.
-  const unit =
-    flat.problem.frames.reduce((total, frame) => total + frame.weight.reduce((a, w) => a + w, 0), 0) / shown.points;
+  // A unit weight weighs a frame's grade as its counted readings' mean weight weighs a reading.
+  let weights = 0;
+  flat.problem.eachCounted(flat.residuals, (_, w) => (weights += w));
+  const unit = weights / shown.points;
   const atWeight = (rule: PitchRule, gradeWeight: number) => {
-    const problem = planProblem(flat.problem.frames, camera, rule);
+    const problem = planProblem(flat.problem.frames, camera, rule, flat.problem.followed);
     return { problem, gradeWeight, ...problem.fit(problem.restart(flat.estimate), gradeWeight, false, limit) };
   };
   const at = (exponent: number) => {
@@ -704,31 +983,23 @@ function weighedGrades(
 }
 
 /**
- * The pitch rule the rows ahead prefer by BIC over every video, and each video's estimate under it
- * ([Pitch and grade](../../docs/footage.md#inconsistencies-of-the-original)). Where `road` takes the heaviest grade
- * weight, the plan alone fits the points at their noise level and the screen shows no grade there: the rules do not
- * differ. Where it takes less, both rules are set against each other at that weight ([weighedGrades]), on the same
- * points and weights: their unknowns and their grades' weight are alike, so BIC compares their χ². Frames along one
- * stretch of road share their errors, so the difference's standard error over every such video is clustered by the
- * cell under the camera (Vuong's test of two models that do not nest), and a difference within three standard errors,
- * or no video showing a grade, is a tie, which takes `road`. Under `level` each video's estimate is its fit with every
- * height free; under `road` its weighed grades.
+ * Each video's estimate under the footage model's pitch `rule` ([Pitch and grade](../../docs/footage.md#inconsistencies-of-the-original)):
+ * under `level` its fit with every height free, under `road` its weighed grades ([weighedGrades]). The rule a person
+ * wrote is checked against the one the rows ahead prefer by BIC over every video. Where `road` takes the heaviest grade
+ * weight, the plan alone fits the readings at their noise level and the screen shows no grade there: the rules do not
+ * differ. Where it takes less, both rules are set against each other at that weight, on the same readings and weights:
+ * their unknowns and their grades' weight are alike, so BIC compares their χ². Frames along one stretch of road share
+ * their errors, so the difference's standard error over every such video is clustered by the cell under the camera of
+ * each reading's frame (Vuong's test of two models that do not nest), and a difference within three standard errors,
+ * or no video showing a grade, is a tie, which takes `road`.
  */
 export function solvePlans(
   videos: readonly { readonly flat: PlanFit; readonly level: PlanFit }[],
   camera: FootageCamera,
+  rule: PitchRule,
   limit = 100,
 ) {
   const weighed = videos.map((fits) => weighedGrades(fits, camera, limit));
-  const roads = weighed.map(({ road }, v) =>
-    road.problem.result(
-      road.estimate,
-      road.residuals,
-      road.gradeWeight,
-      videos[v]!.flat.rounds + road.rounds,
-      road.converged,
-    ),
-  );
   let difference = 0,
     variance = 0,
     shown = 0;
@@ -738,28 +1009,35 @@ export function solvePlans(
     const level = atLevel();
     const { start, cell, frames } = road.problem;
     const clusters = new Map<number, number>();
-    frames.forEach((frame, t) => {
-      const q = Math.floor((frame.s - start) / cell);
-      let sum = 0;
-      frame.weight.forEach((w, i) => {
-        const r = road.residuals[t]![i]!,
-          l = level.residuals[t]![i]!;
-        if (w && Number.isFinite(r) && Number.isFinite(l)) sum += 0.5 * w * (r * r - l * l);
-      });
-      difference += sum;
-      clusters.set(q, (clusters.get(q) ?? 0) + sum);
+    const other = new Map<string, number>();
+    level.problem.eachCounted(level.residuals, (r, _, at) => other.set(`${at.stripe} ${at.t} ${at.i}`, r));
+    road.problem.eachCounted(road.residuals, (r, w, at) => {
+      const l = other.get(`${at.stripe} ${at.t} ${at.i}`);
+      if (l === undefined) return;
+      const q = Math.floor((frames[at.t]!.s - start) / cell);
+      const value = 0.5 * w * (r * r - l * l);
+      difference += value;
+      clusters.set(q, (clusters.get(q) ?? 0) + value);
     });
     for (const sum of clusters.values()) variance += sum * sum;
   });
-  const evidence = { shown, difference, standardError: Math.sqrt(variance) };
-  if (!shown || difference <= 3 * evidence.standardError) return { rule: 'road' as PitchRule, evidence, plans: roads };
-  return {
-    rule: 'level' as PitchRule,
-    evidence,
-    plans: videos.map(({ level }) =>
-      level.problem.result(level.estimate, level.residuals, 0, level.rounds, level.converged),
-    ),
-  };
+  const standardError = Math.sqrt(variance);
+  const judged: PitchRule = shown && difference > 3 * standardError ? 'level' : 'road';
+  const plans =
+    rule === 'level'
+      ? videos.map(({ level }) =>
+          level.problem.result(level.estimate, level.residuals, 0, level.rounds, level.converged),
+        )
+      : weighed.map(({ road }, v) =>
+          road.problem.result(
+            road.estimate,
+            road.residuals,
+            road.gradeWeight,
+            videos[v]!.flat.rounds + road.rounds,
+            road.converged,
+          ),
+        );
+  return { plans, check: { rule: judged, agrees: judged === rule, shown, difference, standardError } };
 }
 
 /** A point's class: its octave of depth in metres (1–2 m, 2–4 m and so on). */

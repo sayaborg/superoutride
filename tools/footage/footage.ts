@@ -129,8 +129,8 @@ try {
       break;
     }
     case 'solve': {
-      // Every named video of the course, with the calibrated footage model: so far the pitch rule (into the model, or
-      // checked against the rule it holds) and each video's plan and profile under it.
+      // Every named video of the course, with the calibrated footage model: so far each video's plan and profile under
+      // the model's pitch rule, and the rows' check of that rule.
       const game = options.get('--game')?.[0] ?? '';
       const names = options.get('--video') ?? [];
       requireInput(names.length > 0, '/arguments/--video', '--video names one or more videos');
@@ -146,14 +146,9 @@ try {
         const fit = (rule: PitchRule | null) => fitPlan(framePoints(features, camera, column), camera, rule);
         fits.push({ id, directory, flat: fit(null), level: fit('level') });
       }
-      const { plans, ...judged } = solvePlans(fits, camera);
-      // A frozen model's rule is checked: a contradiction stops the work.
-      requireInput(
-        model.pitch === null || model.pitch === judged.rule,
-        '/pitch',
-        `The rows prefer the pitch rule ${judged.rule}, the footage model holds ${model.pitch}`,
-      );
-      if (!model.pitch) await atomicWrite(file, JSON.stringify({ ...model, pitch: judged.rule }, null, 2) + '\n');
+      // The pitch rule is the person's, written in the footage model; the rows' own preference checks it.
+      requireInput(model.pitch, '/pitch', 'The footage model names the pitch rule (level or road) before solve');
+      const { plans, check } = solvePlans(fits, camera, model.pitch);
       const videos = [];
       for (const [v, { id, directory }] of fits.entries()) {
         const plan = plans[v]!;
@@ -161,7 +156,7 @@ try {
         const { cell, gradeWeight, residual, rounds, converged } = plan;
         videos.push({ id, cell, gradeWeight, residual, rounds, converged });
       }
-      console.log(JSON.stringify({ ok: true, ...judged, videos }));
+      console.log(JSON.stringify({ ok: true, pitch: { rule: model.pitch, check }, videos }));
       break;
     }
     default:
