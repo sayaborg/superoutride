@@ -1,9 +1,11 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 3,
+  "version": 4,
   "overallLength": 4.291,
   "overallWidth": 1.775,
   "overallHeight": 1.31,
+  "frontTrack": 1.432,
+  "rearTrack": 1.492,
   "mass": 1410,
   "yawInertia": 2400,
   "pitchInertia": 2250,

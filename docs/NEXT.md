@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e](#stage-vc--courses-from-footage) and [TP-2](#stage-tp--tire-puffs), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -172,6 +172,32 @@ the [stopping conditions](footage.md#stopping-conditions).
   acceleration, where the vehicle leaves the ground, inconsistency amount, sprite kinds). The frame measurement tool
   (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are
   deleted, leaving the footage observations the one observation format.
+
+## Stage TP — Tire puffs
+
+Tires throw puffs by surface: smoke when sliding on ASPHALT; spray on WET_ASPHALT, verge-coloured dust on SHOULDER and
+dirt, sand dust on DIRT and SAND when rolling and sliding; grass-and-dirt dust on GRASS when sliding (K's decision,
+2026-10-18). Rolling throws one puff per distance a tire travels; sliding one per amount of friction work beyond the
+start of the tire law's plateau, so wheel-slip assistance that holds a tire at the plateau's start throws none. Every
+puff kind moves by one law (relaxation toward still air and a vertical speed) with values a puff document holds and DEV
+changes. Pictures are opaque 16-color pictures with two-level transparency, anchored at their base point and casting no
+shadow; pictures are ordered by base-point depth with the player among them. Every vehicle within the drawing depth
+throws puffs, up to a fixed number alive, the oldest replaced first. The new specification `docs/tire-puffs.md` owns the
+model.
+
+K decided Stage TP runs in parallel with Stage VC; they share the renderer, NEXT, the specification index and
+Development, so when main moves the branch is brought up to it and validated again. Each PR proceeds without waiting
+for approval and stops when a re-measurement changes a time, a driving scenario fails, a layer exception would be
+needed, the drawing order conflicts with another contract, or the instructions contradict an owning specification.
+
+- TP-2: SELECT VEHICLE's CHASSIS shows a four-wheeler's TRACK (front/rear, mm).
+- TP-3: the tire observation's `slidingPower`, the friction power beyond the plateau's start.
+- TP-4: the drawing order: pictures by base-point depth with the player among them; nearer pictures over the player.
+- TP-5: the puff pictures and their command (sizes 0.25–4 m in √2 steps, two shapes each, palettes by surface).
+- TP-6: the puff document (`superoutride.puffs`): kinds and surface records, admission, delivery and loading.
+- TP-7: puffs: emission, motion, size, limit and drawing in the run and the driving scenarios; the performance HUD
+  counts them.
+- TP-8: DEV's PUFFS group with reset and export; this section leaves NEXT.
 
 ## Audit 2 leftovers
 

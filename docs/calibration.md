@@ -169,6 +169,20 @@ same rigid body. Car CG heights are provisional estimates. These values are game
 not claims of measured physical specifications.
 Overall length, width and height are the real vehicle's body dimensions (mirrors excluded), not tuning values; the
 width is also the side of the vehicle's square footprint ([Vehicle physics](vehicle-physics.md)).
+The front and rear tracks are published figures; no primary source was found, so each value is one that two or more
+sources agree on. A two-wheeler's tracks are 0, its wheels in one line. Physics does not read them:
+
+| Vehicle            | Front track | Rear track | Sources                                                                                                                                   |
+| ------------------ | ----------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| TESTAROSSA         | 1.518 m     | 1.660 m    | ultimatespecs (Europe 1986–89, 151.8 / 166.0 cm); conceptcarz 1989 (59.8 / 65.4 in)                                                       |
+| 911_TURBO_3_3      | 1.432 m     | 1.492 m    | auto-data (3.3 Turbo 300 PS 5-speed 1987–89); automoli                                                                                    |
+| CORVETTE_C4        | 1.514 m     | 1.534 m    | 59.6 / 60.4 in: corvetteactioncenter 1989 specifications; vetteregistry 1989                                                              |
+| DELTA_HF_INTEGRALE | 1.426 m     | 1.406 m    | carsales (1988 HF Integrale); sportscarlegends (8V). auto-data gives the rear as 1426 and encycarpedia 55.5 / 55.3 in, which do not agree |
+| GOLF_GTI_16V       | 1.427 m     | 1.422 m    | auto-data (GTI 16V 1987–91); carsales 1988 GTI                                                                                            |
+| VFR750R            | 0           | 0          | Single track                                                                                                                              |
+| FXRT_SPORT_GLIDE   | 0           | 0          | Single track                                                                                                                              |
+| R80_GS_PARIS_DAKAR | 0           | 0          | Single track                                                                                                                              |
+| PX200E_ARCOBALENO  | 0           | 0          | Single track                                                                                                                              |
 
 Each torque curve has five points of RPM and torque in N m, joined linearly: A at idle; B, the knee between A and
 C where the slope changes markedly; C, the maximum torque; D, the maximum power; and E at redline. C and D are the
@@ -319,8 +333,8 @@ changes ([Browser](browser.md#sound-controls)). Friction roughness and susceptib
 | DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 0.75               | 0.12                    |
 | SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 0.55               | 0.02                    |
 
-WET_ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
-about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, _Tyre/Road Noise Reference Book_, 2002), taken
+WET*ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
+about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, \_Tyre/Road Noise Reference Book*, 2002), taken
 as 6 dB on the high band (0.18 × 2); and its friction susceptibility, the tendency of sliding to excite the tire,
 scales with the friction it lubricates away, by the wet-road friction ratio 0.7 ([Surface materials](#surface-materials)).
 The texture, a property of the asphalt under the water, is unchanged. The document keeps this derivation; a DEV change
@@ -346,8 +360,8 @@ law's friction) and rolling resistance coefficient.
 | DIRT        | 0.52        | 0.045              |
 | SAND        | 0.33        | 0.11               |
 
-WET_ASPHALT is ASPHALT with a water film: its grip factor is the wet-road friction ratio, 0.7, from the typical peak
-adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, _Theory of Ground Vehicles_, 4th ed., 2008, Table 1.1),
+WET*ASPHALT is ASPHALT with a water film: its grip factor is the wet-road friction ratio, 0.7, from the typical peak
+adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, \_Theory of Ground Vehicles*, 4th ed., 2008, Table 1.1),
 the ratio of the ranges' midpoints (0.6 / 0.85 ≈ 0.71) rounded. Its rolling resistance is ASPHALT's: the film's extra
 resistance at speed is not modelled.
 

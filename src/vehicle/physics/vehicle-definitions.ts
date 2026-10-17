@@ -44,6 +44,12 @@ export interface VehicleDefinition {
   readonly overallLength: number;
   readonly overallWidth: number;
   readonly overallHeight: number;
+  /**
+   * The distances between the left and right tire centres at the front and rear axles in metres, 0 for a single-track
+   * vehicle. Physics does not read them.
+   */
+  readonly frontTrack: number;
+  readonly rearTrack: number;
   readonly mass: number;
   readonly yawInertia: number;
   readonly pitchInertia: number;
@@ -78,6 +84,8 @@ export interface CompiledVehicle extends Pick<
   | 'overallLength'
   | 'overallWidth'
   | 'overallHeight'
+  | 'frontTrack'
+  | 'rearTrack'
   | 'mass'
   | 'yawInertia'
   | 'pitchInertia'
@@ -132,6 +140,10 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
       'overallLength',
       'overallLength / 2 must be at least max(frontAxle, rearAxle) so the body contains both contact stations',
     );
+  for (const field of ['frontTrack', 'rearTrack'] as const) {
+    if (!(definition[field] >= 0 && definition[field] <= definition.overallWidth))
+      throw new DefinitionDomainError(field, `${field} must be finite and lie in [0, overallWidth]`);
+  }
   const reach = Math.hypot(definition.overallLength / 2, definition.overallWidth / 2);
   if (!(reach <= MAXIMUM_VEHICLE_REACH))
     throw new DefinitionDomainError(
@@ -217,6 +229,8 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     overallLength: definition.overallLength,
     overallWidth: definition.overallWidth,
     overallHeight: definition.overallHeight,
+    frontTrack: definition.frontTrack,
+    rearTrack: definition.rearTrack,
     reach,
     footprint: definition.overallWidth,
     mass: definition.mass,

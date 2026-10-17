@@ -50,7 +50,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 3;
+export const VEHICLE_MECHANICS_VERSION = 4;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -109,6 +109,8 @@ const mechanicalNumbers = [
   'overallLength',
   'overallWidth',
   'overallHeight',
+  'frontTrack',
+  'rearTrack',
   'mass',
   'yawInertia',
   'pitchInertia',

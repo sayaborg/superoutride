@@ -622,7 +622,7 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 3 document: the vehicle's physical description — the values
+`superoutride.vehicle-mechanics` version 4 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
@@ -642,7 +642,7 @@ admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engin
 
 | Mechanics field     | Contract                                                                        |
 | ------------------- | ------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `3`                                           |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `4`                                           |
 | Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -672,6 +672,9 @@ road; it does not turn with the vehicle. Physics does not read the dimensions. T
 nothing in the race reads `overallLength`, which stays the vehicle's recorded size and bounds its reach and stations.
 A body that does not contain both contact stations points to `overallLength`. The compiled vehicle publishes the three
 dimensions and its derived `reach` and `footprint`.
+`frontTrack` and `rearTrack` are the distances in metres between the left and right tire centres at the front and rear
+axles, finite and in [0, `overallWidth`]; a single-track vehicle's are 0. Physics does not read them; the compiled vehicle
+publishes them.
 
 The driving document has `format`, `version` and the current `DrivingDefinition`
 fields: `maxRoadWheelSteerDegrees`,
