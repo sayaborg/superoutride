@@ -188,7 +188,11 @@ the footage observations) are numbers alone:
   edge energy on the grid's boundaries: near 1 when scaled by nearest pixels, lower when smoothed, which costs accuracy
   and is reported;
 - `color`: the range (`limited` or `full`) and matrix (`bt601` or `bt709`) taken, with every candidate's lattice error;
-- `frames`: the count, the duration and the original's update period.
+- `frames`: the count, the duration and the original's update period;
+- `drive`, once a person marks it from the frames (`drive`): the stretch where the player drives, `from` and `to`, and
+  the times of the timing events the HUD does not read (`go`, `checkpoint`, `goal`), seconds on the frames' timestamps.
+  Calibration and the initial estimate read the frames within the stretch alone, the whole video while it is unmarked;
+  ingesting the same video again keeps it.
 
 Each frame's timestamp, whether the original updated it and its difference from the frame before stay in `frames.json`
 in `reference-media/`.

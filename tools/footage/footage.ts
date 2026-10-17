@@ -5,17 +5,25 @@
 import path from 'node:path';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { writeFakeFootage } from './fake-footage.js';
-import { FRAMES_DIRECTORY, ingestVideo } from './ingest.js';
+import { FRAMES_DIRECTORY, ingestVideo, type CaptureValues } from './ingest.js';
 import { colorCensus } from './census.js';
 import { measureFeatures, type HudTemplates } from './features.js';
 import { EXACT_DIRECTORY, exactIndices, measureNoise, readFeatures } from './noise.js';
 import { calibrateCamera, playerColumn } from './calibrate.js';
 import { fitPlan, framePoints, solvePlans } from './plan.js';
-import { loadFootageModel, type PitchRule } from './footage-model.js';
+import { loadFootageModel, TIMING_KINDS, type PitchRule } from './footage-model.js';
 import { writeFakeModelDraft } from './fake-model.js';
 import { access, readFile } from 'node:fs/promises';
 
 const [command, ...rest] = process.argv.slice(2);
+
+/** A video's features within the stretch its capture values mark where the player drives: all of them when unmarked. */
+async function drivenFeatures(directory: string) {
+  const capture = JSON.parse(await readFile(path.join(directory, 'capture.json'), 'utf8')) as CaptureValues;
+  const features = await readFeatures(path.join(directory, 'features.jsonl'));
+  const drive = capture.drive;
+  return drive ? features.filter((f) => f.t >= drive.from && f.t <= drive.to) : features;
+}
 /** Options as `--name value...`: every value up to the next option. */
 function parse(args: readonly string[]) {
   const options = new Map<string, string[]>();
@@ -75,6 +83,35 @@ try {
       console.log(JSON.stringify({ ok: true, capture: await ingestVideo(file, directory) }));
       break;
     }
+    case 'drive': {
+      // What a person marks in the frames: the stretch where the player drives and the timing events the HUD does not
+      // read, seconds on the frames' timestamps.
+      const directory = videoDirectory(root, options);
+      const file = path.join(directory, 'capture.json');
+      const capture = JSON.parse(await readFile(file, 'utf8')) as CaptureValues;
+      const { duration } = capture.frames;
+      const times = (option: string) =>
+        (options.get(option) ?? []).map((value) => {
+          const t = Number(value);
+          requireInput(t >= 0 && t <= duration, `/arguments/${option}`, `${option} takes times within 0–${duration} s`);
+          return t;
+        });
+      const [from = 0] = times('--from'),
+        [to = duration] = times('--to');
+      requireInput(from < to, '/arguments/--to', '--to lies after --from');
+      const events = TIMING_KINDS.flatMap((kind) => times(`--${kind}`).map((t) => ({ kind, t }))).sort(
+        (a, b) => a.t - b.t,
+      );
+      requireInput(
+        events.every(({ t }) => t >= from && t <= to),
+        '/arguments',
+        'Timing events lie within the stretch',
+      );
+      const drive = { from, to, events };
+      await atomicWrite(file, JSON.stringify({ ...capture, drive }, null, 2) + '\n');
+      console.log(JSON.stringify({ ok: true, drive }));
+      break;
+    }
     case 'colors': {
       const directory = videoDirectory(root, options);
       const colors = await colorCensus(directory, Number(options.get('--step')?.[0] ?? 30));
@@ -120,7 +157,7 @@ try {
       const videos = await Promise.all(
         names.map(async (id) => {
           const directory = videoDirectory(root, new Map([...options, ['--video', [id]]]));
-          return { id, features: await readFeatures(path.join(directory, 'features.jsonl')) };
+          return { id, features: await drivenFeatures(directory) };
         }),
       );
       const { camera, evidence } = calibrateCamera(videos, model);
@@ -142,7 +179,7 @@ try {
       const fits = [];
       for (const id of names) {
         const directory = videoDirectory(root, new Map([...options, ['--video', [id]]]));
-        const features = await readFeatures(path.join(directory, 'features.jsonl'));
+        const features = await drivenFeatures(directory);
         const fit = (rule: PitchRule | null) => fitPlan(framePoints(features, camera, column), camera, rule);
         fits.push({ id, directory, flat: fit(null), level: fit('level') });
       }

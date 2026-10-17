@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 
 /**
@@ -11,6 +11,7 @@ import { PNG } from 'pngjs';
 const rgbPng = () => ({ colorType: 2, inputColorType: 2, inputHasAlpha: false }) as const;
 import { decodeYuv, probeVideo, YUV420_FORMATS, type YuvFrame } from './video.js';
 import { splitTwo } from './statistics.js';
+import type { TimingKind } from './footage-model.js';
 
 /** The capture values' format: what is true of one video alone ([Capture values](../../docs/footage.md#capture-values)). */
 export const CAPTURE_FORMAT = Object.freeze({ format: 'superoutride.footage-capture', version: 1 } as const);
@@ -25,6 +26,16 @@ export interface GridAxis {
   readonly count: number;
   /** The share of the axis's edge energy that lies on the grid's boundaries: near 1 when scaled by nearest pixels. */
   readonly onGrid: number;
+}
+
+/**
+ * What a person marks in a video's frames: the stretch where the player drives, and the times of the timing events the
+ * HUD does not read, seconds on the frames' timestamps.
+ */
+export interface Drive {
+  readonly from: number;
+  readonly to: number;
+  readonly events: readonly { readonly kind: TimingKind; readonly t: number }[];
 }
 
 export interface CaptureValues {
@@ -44,6 +55,8 @@ export interface CaptureValues {
     /** The original's update period, seconds: the most frequent spacing of frames that differ from the one before. */
     readonly updatePeriod: number;
   };
+  /** The stretch a person marked (`drive`); absent until then, when the whole video counts. */
+  readonly drive?: Drive;
 }
 
 /** The game frames and their per-frame record, beside the capture values, under `<video directory>`. */
@@ -93,12 +106,22 @@ export async function ingestVideo(file: string, directory: string): Promise<Capt
   await Promise.all(writes);
   const updated = updatedFrames(differences);
   const updatePeriod = mostFrequentSpacing(probe.times, updated);
+  const video = { file: path.basename(file), sha256: await sha256(file), width, height };
+  // The stretch a person marked stays while the video is the same one.
+  const drive = await readFile(path.join(directory, 'capture.json'), 'utf8').then(
+    (text) => {
+      const before = JSON.parse(text) as CaptureValues;
+      return before.video.sha256 === video.sha256 ? before.drive : undefined;
+    },
+    () => undefined,
+  );
   const capture: CaptureValues = {
     ...CAPTURE_FORMAT,
-    video: { file: path.basename(file), sha256: await sha256(file), width, height },
+    video,
     grid,
     color,
     frames: { count, duration: probe.times.at(-1)! - probe.times[0]!, updatePeriod },
+    ...(drive && { drive }),
   };
   await writeFile(path.join(directory, 'capture.json'), JSON.stringify(capture, null, 2) + '\n');
   await writeFile(

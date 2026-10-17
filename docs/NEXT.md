@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-T, then VC-5e2c](#stage-vc--courses-from-footage), [DT-6](#stage-dt--drift-tuned-trial-vehicles), and DT-3
+Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, [DT-6](#stage-dt--drift-tuned-trial-vehicles), and DT-3
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -167,14 +167,21 @@ proceeds without waiting for approval and stops at the [stopping conditions](foo
 
 - VC-T: a trial on OUTRUN's first stage (COCONUT BEACH), on K's video, before VC-5e2c. Ingest, census, features,
   calibrate and solve (plan, and the profile as far as it then goes), video by video, on the stretch of the stage where
-  the player drives, which the implementer writes in the capture values with the start's and
-  checkpoints' times where they show. The implementer writes what a person writes (color roles, HUD templates and timing
-  events, masks, the gauge TESTAROSSA, the pitch rule, the draw distance, the edition where known) in a provisional
-  footage model, made again from every video when a second arrives and not frozen until then. Faults a generalization
-  of the tool fixes are fixed; a matter of course (another projection form, the player off the road's scale, no stripes)
-  is reported with numbers and product-side diagrams, and the work stops. The report: whether each step passed, the
-  footage model's values and errors, the lane widths beside the US standard 3.65 m, the plan's and profile's residuals
-  per octave of depth, the stretch each video shows and the time taken. No course is raised yet.
+  the player drives, which the implementer marks in the capture values with the start's and checkpoints' times where
+  they show. The implementer writes what a person writes (color roles, HUD templates and timing events, masks, the
+  gauge TESTAROSSA, the pitch rule, the draw distance, the edition where known) in a provisional footage model, made
+  again from every video when a second arrives and not frozen until then. Faults a generalization of the tool fixes are
+  fixed; a matter of course is reported with numbers and product-side diagrams, and the work stops.
+  - Done on K's video `k1` (1440×1080, 60 fps, 65 s): ingest finds the whole 320×224 frame (VC-T1); the speed is read
+    though the HUD is drawn over the picture (VC-T2); the stretch from GO (4.55 s) to the fork's beginning (53.33 s) is
+    marked (VC-T3); the provisional footage model and the speed templates are in `reference-media/outrun/`.
+  - Stopped at calibration, for K to decide. The video was scaled smoothly (`onGrid` 0.40 on both axes), and the road's
+    light and dark colors are one RGB555 step apart (`8c8c8c`, `949494`), so each row where the stripes change is a
+    blend of the two and reads as no known color. `K` moved from 748 ± 8 to 1194 ± 19 when the player's column moved
+    by 4 px, and the player's picture joins such rows to its mask's edges (its width is the mask's, 100–104 px), so
+    `f`, `h` and `D′` are not measured; the plan under `road` does not converge (112 rounds). The ways on: a video
+    scaled by nearest pixels; or stripe edges and the player's picture read from luma changes rather than from color
+    classes, a generalization of the tool.
 - VC-5e2c: the hills in the initial estimate, as far as the footage shows them: `roadTop` as a profile observation
   where a crest cuts the road off: the row of the point where the line of sight touches the road, entered through its
   derivative there (the envelope theorem), only where the ground or background lies above it and no picture or other

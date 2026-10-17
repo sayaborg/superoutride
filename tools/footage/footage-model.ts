@@ -20,6 +20,10 @@ export const FOOTAGE_MODEL_FORMAT = Object.freeze({ format: 'superoutride.footag
 export const COLOR_ROLES = ['road', 'line', 'rumble', 'verge', 'ground', 'median', 'shadow'] as const;
 export type ColorRole = (typeof COLOR_ROLES)[number];
 
+/** The timing events: GO, each checkpoint and the goal. */
+export const TIMING_KINDS = ['go', 'checkpoint', 'goal'] as const;
+export type TimingKind = (typeof TIMING_KINDS)[number];
+
 /** A rectangle of game pixels. */
 export interface Rectangle {
   readonly x: number;
@@ -48,7 +52,7 @@ export interface FootageModelDraft {
     /** Where each timing event shows, and what kind of event it is. */
     readonly events: readonly (Rectangle & {
       readonly name: string;
-      readonly kind: 'go' | 'checkpoint' | 'goal';
+      readonly kind: TimingKind;
       readonly ink: readonly number[];
     })[];
   };
@@ -186,7 +190,7 @@ export function readFootageModel(value: unknown): FootageModel {
         const e = readRecord(event, path, ['name', 'kind', 'x', 'y', 'width', 'height', 'ink']);
         return {
           name: readString(e.name, `${path}/name`),
-          kind: readEnum(e.kind, ['go', 'checkpoint', 'goal'] as const, `${path}/kind`),
+          kind: readEnum(e.kind, TIMING_KINDS, `${path}/kind`),
           ink: readArray(e.ink, `${path}/ink`, readRgb555, { min: 1 }),
           ...rectangle({ x: e.x, y: e.y, width: e.width, height: e.height }, path, frame),
         };
