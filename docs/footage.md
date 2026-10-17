@@ -250,11 +250,12 @@ templates (each digit's and event's ink colors by letter, `.` for ground) into `
   each is refined by a parabola; a shift that is not the one least inside the reach (a flat or repeating background,
   or a least at the reach's edge) is not measured.
 - **HUD.** Each pixel's ink letter is the ink color nearest its luma (full resolution, where chroma bleeds across thin
-  strokes) within a third of the luma distance at which a pixel stops being likelier a known color than none. Each readout
-  cell is the template nearest its letters; the speed and clock are numbers when every cell reads a digit or blank. An
-  event shows when every ink color of its template is read at more than half of that color's pixels (a misread is the
-  exception, while the scene behind, a white sign or a dark hill, matches one ink at most); of several, the one read at
-  the most pixels.
+  strokes) within 20 levels: past a stroke's ringing, short of the scene a HUD drawn over the picture shows behind it.
+  Each readout cell is the template nearest its letters, when they differ at no more than a fifth of its pixels; the
+  speed and clock are numbers when every cell reads a digit or blank; between readings, the displayed speed is linear in
+  time over frames it could not be read in. An event shows when every ink color of its template is read at more than
+  half of that color's pixels (a misread is the exception, while the scene behind, a white sign or a dark hill, matches
+  one ink at most); of several, the one read at the most pixels.
 - **Pictures.** A pixel is of no ground color when its segment has no known color, or when the segment's pixels two or
   more pixels from both its ends (past chroma bleed and the strongest ringing) average to another RGB555 color than the
   segment's: the row reading takes each pixel alone, so a long run of a color close to a known one (a black tyre beside

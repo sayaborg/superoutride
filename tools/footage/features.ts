@@ -9,7 +9,7 @@ import { PNG } from 'pngjs';
 import type { ColorRole, FootageModel, Readout } from './footage-model.js';
 import { COLOR_ROLES } from './footage-model.js';
 import { FRAMES_DIRECTORY, type CaptureValues } from './ingest.js';
-import { glyphReach, knownColor, meanIsColor, rowSegments, ycc, type Segment } from './runs.js';
+import { knownColor, meanIsColor, rowSegments, ycc, type Segment } from './runs.js';
 
 /** One role as a bit, so a color holding several roles is their union. */
 const ROLE_BIT = Object.fromEntries(COLOR_ROLES.map((role, i) => [role, 1 << i])) as Record<ColorRole, number>;
@@ -159,13 +159,10 @@ export async function measureFrames({ directory, model, templates, frames, indic
   };
   // The even-area noise of the decoding, as ingest measured it.
   const noiseModel = { sigma: Math.max(noise, 0.5) };
-  // Glyph strokes are edges throughout: their luma rings as far as a pixel of known color may lie and still be likelier
-  // that color than none.
-  const glyphNoise = glyphReach(noiseModel.sigma) / 3;
   const inks = {
-    speed: inkReader(model.hud.speed.ink, glyphNoise),
-    clock: model.hud.clock && inkReader(model.hud.clock.ink, glyphNoise),
-    events: model.hud.events.map((event) => inkReader(event.ink, glyphNoise)),
+    speed: inkReader(model.hud.speed.ink),
+    clock: model.hud.clock && inkReader(model.hud.clock.ink),
+    events: model.hud.events.map((event) => inkReader(event.ink)),
   };
   const lines: string[] = [];
   const first = indices[0];
@@ -228,16 +225,27 @@ export async function measureFrames({ directory, model, templates, frames, indic
 }
 
 /**
- * A HUD ink reader: a pixel's ink letter, `a` for the first of `ink`'s colors and so on, or `.` for none, as HUD
- * templates write them: the ink color whose luma is nearest the pixel's, within three deviations of `noise`.
- * Luma keeps the video's full resolution, where chroma bleeds across a glyph's thin strokes.
+ * How far in luma a HUD pixel may lie from its ink color: past a glyph stroke's ringing, short of the scene a HUD drawn
+ * over the picture shows behind it (OUTRUN's crowd at the start).
  */
-function inkReader(ink: readonly number[], noise: number) {
+const INK_REACH = 20;
+
+/**
+ * A readout cell reads as its nearest template only when they differ at no more than this share of its pixels: a scene
+ * behind the HUD can otherwise make a blank cell nearest a digit.
+ */
+const CELL_MISMATCH = 1 / 5;
+
+/**
+ * A HUD ink reader: a pixel's ink letter, `a` for the first of `ink`'s colors and so on, or `.` for none, as HUD
+ * templates write them: the ink color whose luma is nearest the pixel's, within `INK_REACH`. Luma keeps the video's full
+ * resolution, where chroma bleeds across a glyph's thin strokes.
+ */
+function inkReader(ink: readonly number[]) {
   const levels = ink.map((c) => knownColor(c, 0).y);
-  const reach = 3 * Math.max(noise, 1);
   return (luma: number) => {
     let best = '.',
-      bestDistance = reach;
+      bestDistance = INK_REACH;
     levels.forEach((level, i) => {
       const d = Math.abs(level - luma);
       if (d <= bestDistance) [best, bestDistance] = [String.fromCharCode(97 + i), d];
@@ -465,7 +473,10 @@ function backgroundShift(
   return [refine(40, (shift) => cost(shift, dy)), refine(20, (shift) => cost(dx, shift))];
 }
 
-/** A readout's number: each cell matched to the template nearest its ink; null if any cell is no digit or blank. */
+/**
+ * A readout's number: each cell matched to the template nearest its ink; null if any cell differs from its nearest
+ * template at more than `CELL_MISMATCH` of its pixels, or is no digit or blank.
+ */
 function readReadout(
   readout: Readout,
   digits: HudTemplates['digits'],
@@ -485,6 +496,7 @@ function readReadout(
           if (rows[r]![c] !== ink(luma[(readout.y + r) * width + x + c]!)) distance++;
       if (distance < bestDistance) [best, bestDistance] = [glyph, distance];
     }
+    if (bestDistance > CELL_MISMATCH * readout.width * readout.height) return null;
     text += best;
   }
   const trimmed = text.trim();

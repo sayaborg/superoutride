@@ -361,17 +361,24 @@ export interface CalibrationVideo {
   readonly features: readonly FrameFeatures[];
 }
 
-/** The speed shown at each frame, m/s: the HUD's km/h, carried over frames it could not be read in. */
+/**
+ * The speed shown at each frame, m/s: the HUD's km/h, and between readings over frames it could not be read in, linear in
+ * time; frames before the first reading and after the last take it.
+ */
 export function displayedSpeeds(features: readonly FrameFeatures[]): Float64Array {
   const speeds = new Float64Array(features.length).fill(NaN);
-  let last = NaN;
+  let previous = -1;
   features.forEach((f, i) => {
-    if (f.speed !== null) last = f.speed / 3.6;
-    speeds[i] = last;
+    if (f.speed === null) return;
+    speeds[i] = f.speed / 3.6;
+    for (let j = previous + 1; j < i; j++) {
+      // The earlier reading's share: all of it before the first reading has none.
+      const earlier = previous < 0 ? 0 : (f.t - features[j]!.t) / (f.t - features[previous]!.t);
+      speeds[j] = earlier * (speeds[previous] ?? 0) + (1 - earlier) * speeds[i]!;
+    }
+    previous = i;
   });
-  // Frames before the first reading take it.
-  const first = speeds.findIndex(Number.isFinite);
-  for (let i = 0; i < first; i++) speeds[i] = speeds[first]!;
+  if (previous >= 0) speeds.fill(speeds[previous]!, previous + 1);
   return speeds;
 }
 
