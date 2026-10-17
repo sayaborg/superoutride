@@ -113,7 +113,10 @@ function writeListing({ text, vehicle }: VehiclePageScene) {
   writeValues(text, LISTING_COLUMNS.label, row, listed.slice(0, TEXT_ROWS - row), LISTING_COLUMNS.value);
 }
 
-/** The body's values in the right column; values with a front and a rear are written `front/rear`. */
+/**
+ * The body's values in the right column; values with a front and a rear are written `front/rear`. A four-wheeler adds its
+ * tracks.
+ */
 function writeBody({ text, vehicle }: VehiclePageScene) {
   const { mechanics: m, compiledVehicle: v } = vehicle;
   writeValues(text, VALUE_COLUMNS.right, VALUE_COLUMNS.firstRow, [
@@ -130,6 +133,10 @@ function writeBody({ text, vehicle }: VehiclePageScene) {
     ['TRAVEL', `${integer(m.frontQTravel * 1000)}/${integer(m.rearQTravel * 1000)}mm`],
     ['BRAKE', `${integer(v.frontStation.maxBrakeTorque)}/${integer(v.rearStation.maxBrakeTorque)}Nm`],
     ['DRAG', `${twoDecimals(v.quadraticDrag)}kg/m`],
+    // A single-track vehicle has no track to show.
+    ...(vehicle.listing.form === 'car'
+      ? ([['TRACK', `${integer(v.frontTrack * 1000)}/${integer(v.rearTrack * 1000)}mm`]] as const)
+      : []),
   ]);
 }
 

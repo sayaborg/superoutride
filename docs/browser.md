@@ -425,7 +425,7 @@ labels at column 0 and values at column 5, in upper case. Each is wrapped to lin
 the text breaks at spaces and after each slash, a line takes words while they fit, a space between them except after a
 slash, and further lines have no label. Lines past row 29 are not shown.
 
-| Rows 14–26, right           | Example       | Source                         |
+| Rows 14–27, right           | Example       | Source                         |
 | --------------------------- | ------------- | ------------------------------ |
 | `LENGTH`, `WIDTH`, `HEIGHT` | `4485mm`      | overall dimensions             |
 | `W/BASE`                    | `2550mm`      | `frontAxle + rearAxle`         |
@@ -437,6 +437,7 @@ slash, and further lines have no label. Lines past row 29 are not shown.
 | `TRAVEL`                    | `300/300mm`   | front/rear `qTravel`           |
 | `BRAKE`                     | `4800/3000Nm` | front/rear brake torque maxima |
 | `DRAG`                      | `0.44kg/m`    | `quadraticDrag`                |
+| `TRACK` (four-wheelers)     | `1518/1660mm` | front/rear track               |
 
 ## Selection and URL parameters
 

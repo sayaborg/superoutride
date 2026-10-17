@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage) and [TP-2](#stage-tp--tire-puffs), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e](#stage-vc--courses-from-footage) and [TP-3](#stage-tp--tire-puffs), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -190,7 +190,6 @@ Development, so when main moves the branch is brought up to it and validated aga
 for approval and stops when a re-measurement changes a time, a driving scenario fails, a layer exception would be
 needed, the drawing order conflicts with another contract, or the instructions contradict an owning specification.
 
-- TP-2: SELECT VEHICLE's CHASSIS shows a four-wheeler's TRACK (front/rear, mm).
 - TP-3: the tire observation's `slidingPower`, the friction power beyond the plateau's start.
 - TP-4: the drawing order: pictures by base-point depth with the player among them; nearer pictures over the player.
 - TP-5: the puff pictures and their command (sizes 0.25–4 m in √2 steps, two shapes each, palettes by surface).
