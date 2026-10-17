@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5c](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5d](#stage-vc--courses-from-footage), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -153,16 +153,23 @@ driving is not fitted to an original's times; every value is derived, set from a
 model as a named assumption, never a constant without a basis. Each PR proceeds without waiting for approval and stops at
 the [stopping conditions](footage.md#stopping-conditions).
 
-- VC-5c: the profile, the depth authority and the pitch rule, and the plan solved again at the depths they give (at
-  level-road depth the plan's curvature errs most on hills); the projection-form check.
-- VC-5d: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as
+- VC-5d: the footage model's version 2, recording the pitch rule and the background's rules; the fake `background`
+  video, its background moved as a pseudo-3D original may move it.
+- VC-5e: the profile from the rows ahead under the pitch rule (`level`, or `road` with the least squared grades weighed
+  so that the rows' χ² per degree of freedom is 1), and the plan solved again at its depths.
+- VC-5f: the background's rules judged per game (tile jumps cut off, layers apart, the vertical and horizontal
+  candidates by BIC); the background's mosaic and absolute row, joining the profile only as `pitch` and the plan only
+  as `heading`.
+- VC-5g: the projection-form check and the depth authority.
+- VC-5h: widths and lanes, start, forks, checkpoints and goals, the partition and several videos together, written as
   a course document.
 - VC-6: appearance: Strips, color changes, materials and environment knots.
 - VC-7: sprites: tracking, place and size, outlines, kinds and rows, outline boards and their placement; with tracked
   vehicles, the gauge's choice of vehicle (traffic pictures against the player's: its scale factor and a common width),
   which `calibrate` now takes on the player.
 - VC-8: replay and the comparison (`replay`, `solve`'s iteration): each video replayed, every video's residuals updating
-  the course, and leave one out; with them the background scale `a`, which needs the replay's heading.
+  the course, and leave one out; the background compared only in the directions its rules verify, its difference
+  otherwise reported as the lie amount.
 - VC-9: the round trip (`roundtrip`) passes, exact and corrupted, at 60 and 30 fps, compressed; the report (lateral
   acceleration, where the vehicle leaves the ground, inconsistency amount, sprite kinds). The frame measurement tool
   (`tools/course/measure.ts`) and its formats (`superoutride.frame-measurement`, `superoutride.course-observations`) are
