@@ -29,6 +29,7 @@ import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-as
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
+import { loadPuffs } from '../content/puff-catalog.js';
 import { loadAudioSettings } from '../content/audio-catalog.js';
 import { browserStorage, openPlayerRecord } from './player-record.js';
 import { loadTextTiles } from '../content/text-tiles-catalog.js';
@@ -100,6 +101,7 @@ async function startPage(): Promise<void> {
     const player = openPlayerRecord(browserStorage());
     const textLayer = createTextLayer(await loadTextTiles(content));
     const raceSprites = createRaceSprites(vehicles);
+    const puffs = await loadPuffs(content, materialIds);
     // The one run, which the current run screen shows.
     let run: Run | null = null;
     const audioSettings = await loadAudioSettings(content);
@@ -163,6 +165,7 @@ async function startPage(): Promise<void> {
       vehicles,
       driving,
       raceSprites,
+      puffs,
       shell,
       performanceHud,
       dev,

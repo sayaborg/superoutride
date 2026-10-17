@@ -20,6 +20,7 @@ export type ContentKind =
   | 'surface-sound'
   | 'audio'
   | 'free-play'
+  | 'puffs'
   | 'recording'
   | 'music';
 

@@ -1,7 +1,32 @@
 # Tire puffs
 
-A puff is one cloud a tire throws from the road: smoke, spray or dust. This document owns the puffs' pictures and how
-a puff picks one.
+A puff is one cloud a tire throws from the road: smoke, spray or dust. This document owns the puff document, the puffs'
+pictures and how a puff picks one.
+
+## Puff document
+
+`content/puffs/default.json` is the one `superoutride.puffs` version 1 document (manifest kind `puffs`, ID `default`):
+
+```text
+{format, version,
+ kinds:    {<kind>: {pictures: [[<image>, ...], ...], releaseDegrees, responseSeconds, riseMps,
+                     startDiameterMeters, growthMps, lifeSeconds}, ...},
+ surfaces: {<material ID>: {kind, palette, metersPerPuff | null, joulesPerPuff | null}, ...}}
+```
+
+The kinds are content data like material IDs (`smoke`, `spray` and `dust` today); code names none of them. A kind's
+`pictures` are its sizes from the smallest, each one or more shapes named by course image. Its six values say how its
+puffs move, grow and end: `releaseDegrees` in [0, 90), positive `responseSeconds`, finite `riseMps`, positive
+`startDiameterMeters`, `growthMps` at least 0 and positive `lifeSeconds`. Every surface material of the
+[material catalog](vehicle-physics.md#material-vehicle-and-driving-documents) has exactly one surface record and no other
+material has one: its `kind`, one of the document's kinds; its `palette`, a named palette of every picture of that kind;
+and how many puffs it throws, `metersPerPuff` and `joulesPerPuff`, each positive or null for none. One function checks
+a kind's six values and one a surface's two amounts; admission and DEV use them.
+
+Every shape of a size is as wide as the others and saved with every level of its LOD, and the sizes increase in
+diameter. Admission resolves the pictures among the saved course images; an unknown picture, kind or palette is an
+`unresolved_reference`. The build delivers the document as authored with the pictures it names (manifest kind `image`,
+by name), and the game loads the document and decodes its pictures once, at startup.
 
 ## Pictures
 

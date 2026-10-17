@@ -21,6 +21,8 @@ import type { CompiledAudioSettings } from '../../src/audio/audio-document.js';
 import { ENGINE_LOUDNESS_ID, engineLoudnessSources, readEngineLoudness } from '../../src/content/engine-loudness.js';
 import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256 } from './engine-loudness.js';
 import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free-play-rules.js';
+import { admitPuffPicture, compilePuffs, puffPictureNames } from '../../src/content/puff-catalog.js';
+import type { SpriteLodAsset } from '../../src/image/sprite.js';
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
@@ -88,7 +90,7 @@ export type ContentCompilation = (
 
 /**
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
- * one pass: vehicle sprite library, text tiles, materials, surface sounds, wall sounds, audio settings, recordings and
+ * one pass: vehicle sprite library, text tiles, materials, surface sounds, puffs, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
  * the wall sounds) and their images, the course index, series, then the measured products: each course's racing lines
  * and each series course's time budgets and pace schedules from the saved measurements, which must be current.
@@ -225,6 +227,37 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     );
     return delivered('surface-sound', documents);
   });
+
+  // The puffs, admitted against the material catalog with the pictures they name; delivered with those pictures.
+  const puffFiles = await read('puffs');
+  // A picture the store does not hold is left to the document's admission, which names it.
+  const puffPictures = new Map<string, Uint8Array<ArrayBuffer> | null>();
+  for (const name of new Set(puffFiles.flatMap((file) => puffPictureNames(parseJsonLeniently(file.bytes)))))
+    puffPictures.set(name, await store.read(`images/${name}.json`).catch(() => null));
+  const puffs = await stage(
+    'puffs',
+    [materials.key, ...inputs(puffFiles), ...[...puffPictures].flat().map((input) => input ?? '')],
+    async () => {
+      const documents = await sources('puffs', puffFiles);
+      const pictures = new Map<string, SpriteLodAsset>();
+      const pictureFiles: DeliveredFile[] = [];
+      for (const [name, bytes] of puffPictures) {
+        if (!bytes) continue;
+        const document = `content/images/${name}.json`;
+        const value = parseJson(bytes, document);
+        pictures.set(name, requireLoaded(admitPuffPicture(value, document)));
+        pictureFiles.push(deliveredFile('image', name, encodeContentJson(value)));
+      }
+      requireLoaded(
+        compilePuffs(
+          documents,
+          materials.value.catalog.source.materials.map((material) => material.id),
+          pictures,
+        ),
+      );
+      return [...delivered('puffs', documents), ...pictureFiles];
+    },
+  );
 
   const audioFiles = await read('audio');
   const audio = await stage('audio', inputs(audioFiles), async () => {
@@ -377,6 +410,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...screenPictures.value.files,
     ...materials.value.files,
     ...surfaceSounds.value,
+    ...puffs.value,
     ...audio.value.files,
     ...recordings.value.files,
     ...freePlay.value.files,
@@ -424,6 +458,15 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     courses: Object.freeze(compiledCourses),
     seriesClasses: series.value.seriesClasses,
   });
+}
+
+/** A saved document's JSON value, or null for bytes that are not: only to find what a stage reads. */
+function parseJsonLeniently(bytes: Uint8Array): unknown {
+  try {
+    return parseJson(bytes, '');
+  } catch {
+    return null;
+  }
 }
 
 /** The image names a course document's bytes use, read leniently: only to key the course's stage. */

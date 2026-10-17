@@ -1,0 +1,71 @@
+{
+  "format": "superoutride.puffs",
+  "version": 1,
+  "kinds": {
+    "smoke": {
+      "pictures": [
+        ["puff-cloud-0-a", "puff-cloud-0-b"],
+        ["puff-cloud-1-a", "puff-cloud-1-b"],
+        ["puff-cloud-2-a", "puff-cloud-2-b"],
+        ["puff-cloud-3-a", "puff-cloud-3-b"],
+        ["puff-cloud-4-a", "puff-cloud-4-b"],
+        ["puff-cloud-5-a", "puff-cloud-5-b"],
+        ["puff-cloud-6-a", "puff-cloud-6-b"],
+        ["puff-cloud-7-a", "puff-cloud-7-b"],
+        ["puff-cloud-8-a", "puff-cloud-8-b"]
+      ],
+      "releaseDegrees": 0,
+      "responseSeconds": 0.05,
+      "riseMps": 0.5,
+      "startDiameterMeters": 0.5,
+      "growthMps": 1.5,
+      "lifeSeconds": 1.5
+    },
+    "spray": {
+      "pictures": [
+        ["puff-mist-0", "puff-drops-0"],
+        ["puff-mist-1", "puff-drops-1"],
+        ["puff-mist-2", "puff-drops-2"],
+        ["puff-mist-3", "puff-drops-3"],
+        ["puff-mist-4", "puff-drops-4"],
+        ["puff-mist-5", "puff-drops-5"],
+        ["puff-mist-6", "puff-drops-6"],
+        ["puff-mist-7", "puff-drops-7"],
+        ["puff-mist-8", "puff-drops-8"]
+      ],
+      "releaseDegrees": 20,
+      "responseSeconds": 0.1,
+      "riseMps": -1,
+      "startDiameterMeters": 0.5,
+      "growthMps": 1,
+      "lifeSeconds": 1
+    },
+    "dust": {
+      "pictures": [
+        ["puff-cloud-0-a", "puff-cloud-0-b"],
+        ["puff-cloud-1-a", "puff-cloud-1-b"],
+        ["puff-cloud-2-a", "puff-cloud-2-b"],
+        ["puff-cloud-3-a", "puff-cloud-3-b"],
+        ["puff-cloud-4-a", "puff-cloud-4-b"],
+        ["puff-cloud-5-a", "puff-cloud-5-b"],
+        ["puff-cloud-6-a", "puff-cloud-6-b"],
+        ["puff-cloud-7-a", "puff-cloud-7-b"],
+        ["puff-cloud-8-a", "puff-cloud-8-b"]
+      ],
+      "releaseDegrees": 30,
+      "responseSeconds": 0.15,
+      "riseMps": -0.3,
+      "startDiameterMeters": 0.6,
+      "growthMps": 1.2,
+      "lifeSeconds": 2
+    }
+  },
+  "surfaces": {
+    "ASPHALT": { "kind": "smoke", "palette": "smoke", "metersPerPuff": null, "joulesPerPuff": 10000 },
+    "WET_ASPHALT": { "kind": "spray", "palette": "spray", "metersPerPuff": 3, "joulesPerPuff": 10000 },
+    "SHOULDER": { "kind": "dust", "palette": "verge", "metersPerPuff": 3, "joulesPerPuff": 10000 },
+    "GRASS": { "kind": "dust", "palette": "grass", "metersPerPuff": null, "joulesPerPuff": 10000 },
+    "DIRT": { "kind": "dust", "palette": "dirt", "metersPerPuff": 2, "joulesPerPuff": 10000 },
+    "SAND": { "kind": "dust", "palette": "sand", "metersPerPuff": 2, "joulesPerPuff": 10000 }
+  }
+}

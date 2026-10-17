@@ -30,6 +30,7 @@ import type { loadSurfaceMaterials } from '../content/surface-material-catalog.j
 import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
+import type { CompiledPuffs } from '../content/puff-catalog.js';
 import type { PlayerRecord } from './player-record.js';
 import { createRunRecords, type RecordSelection } from './run-records.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
@@ -52,6 +53,8 @@ export interface RunPage {
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
   readonly driving: Awaited<ReturnType<typeof loadVehicleDefinitions>>['driving'];
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
+  /** The tire puffs' document and pictures, loaded once. */
+  readonly puffs: CompiledPuffs;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
