@@ -583,7 +583,8 @@ Columns clip to the frame; a wall beside
 the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
 measured render counts the painted wall pixels.
 
-Course sprites enter the render as one array of world sprites (`RenderScene.worldSprites`). Each frame the renderer
+Course sprites enter the render as one array of world sprites (`RenderScene.worldSprites`), with the other vehicles'
+pictures and the [tire puffs](tire-puffs.md#drawing)', which are world pictures that cast no shadow. Each frame the renderer
 keeps those whose pseudo depth lies in the visible depth interval, projects each through the frame's camera and draws
 them far to near.
 

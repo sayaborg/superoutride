@@ -129,7 +129,7 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-7](#stage-tp--tire-puffs) and
+Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-8](#stage-tp--tire-puffs) and
 [DT-2b](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -191,8 +191,6 @@ Development, so when main moves the branch is brought up to it and validated aga
 for approval and stops when a re-measurement changes a time, a driving scenario fails, a layer exception would be
 needed, the drawing order conflicts with another contract, or the instructions contradict an owning specification.
 
-- TP-7: puffs: emission, motion, size, limit and drawing in the run and the driving scenarios; the performance HUD
-  counts them.
 - TP-8: DEV's PUFFS group with reset and export; this section leaves NEXT.
 
 ## Stage DT — DRIFT TUNED trial vehicles

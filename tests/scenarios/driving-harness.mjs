@@ -16,6 +16,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { DEFAULT_CAMERAS } from '../../src/shell/player-record.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
+import { createTirePuffs, PUFF_LIMIT } from '../../src/view/tire-puffs.js';
+import { loadPuffs } from '../../src/content/puff-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
@@ -39,6 +41,10 @@ const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+const puffDocument = await loadPuffs(
+  content,
+  materials.source.materials.map((material) => material.id),
+);
 
 const idle = { steering: 0, throttle: false, brake: false };
 // The player's vehicle: a RACE class's first vehicle, TESTAROSSA otherwise.
@@ -238,6 +244,8 @@ export async function runScenario({ course }, scenario) {
   const target = createLogicalFrame();
   const visual = createVehicleSprites(entry);
   const sprites = createRaceSprites(definitions.vehicles);
+  // The tire puffs advance every fixed step as the run's do, and are drawn with the other vehicles.
+  const puffs = createTirePuffs(puffDocument, definitions.vehicles);
   const digest = createHash('sha256');
   const evidence = {
     outsideDomain: false,
@@ -251,6 +259,8 @@ export async function runScenario({ course }, scenario) {
     recoveries: [],
     choices: [],
     frames: 0,
+    /** The most tire puffs alive at once. */
+    maxPuffs: 0,
   };
   let camera;
   // Display and camera read only the race's borrowed competitor observations, as the browser does.
@@ -264,7 +274,10 @@ export async function runScenario({ course }, scenario) {
         reach: entry.compiledVehicle.reach,
       },
       camera,
-      sprites([...observed.rivals, ...observed.traffic], camera, scene.world),
+      [
+        ...sprites([...observed.rivals, ...observed.traffic], camera, scene.world),
+        ...puffs.sprites(scene.world.coordinates),
+      ],
       observed.knocked,
     );
     evidence.frames++;
@@ -334,6 +347,12 @@ export async function runScenario({ course }, scenario) {
       DEFAULT_CAMERAS[entry.listing.form],
     );
     finiteState(camera, 'camera');
+    {
+      const observed = race.observe();
+      puffs.advance([observed.player, ...observed.rivals, ...observed.traffic], camera, scene);
+      assert.ok(puffs.count <= PUFF_LIMIT, 'more puffs than the limit');
+      evidence.maxPuffs = Math.max(evidence.maxPuffs, puffs.count);
+    }
     for (const [index, c] of competitors.entries()) {
       const v = c.actor.vehicle;
       finiteState(v, c.id);

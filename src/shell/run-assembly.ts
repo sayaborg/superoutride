@@ -31,6 +31,8 @@ import { compileRunConfiguration, type RunConfiguration } from '../race/run-conf
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { CompiledPuffs } from '../content/puff-catalog.js';
+import { createTirePuffs } from '../view/tire-puffs.js';
+import type { CourseSprite } from '../view/course-sprite.js';
 import type { PlayerRecord } from './player-record.js';
 import { createRunRecords, type RecordSelection } from './run-records.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
@@ -249,7 +251,9 @@ async function assembleCourseRun(
     });
     // The run's records; a DEV-tuned run compares with and records nothing.
     const records = selection && !tuned ? createRunRecords(page.player, selection) : null;
-    return { setup, scene, race, records };
+    // The observer's tire puffs on this run's Route.
+    const puffs = createTirePuffs(page.puffs, vehicles);
+    return { setup, scene, race, records, puffs };
   };
   let active = build(null);
   report?.progress(LOADING_SHARES.prepared);
@@ -342,6 +346,8 @@ async function assembleCourseRun(
   }
   // DEV only: the frame's render measurements and the performance HUD's timings; the product path takes neither.
   const measurements = page.dev ? createRenderMeasurements() : null;
+  // Every vehicle of a step, reused step to step.
+  const stepVehicles: CompetitorObservation[] = [];
   const tick = () => {
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
@@ -350,6 +356,11 @@ async function assembleCourseRun(
     lifecycle.update(step.recovered);
     // The background's transitions run in the screen's fixed steps, from the camera's station.
     active.scene.advance(lifecycle.camera);
+    // Every vehicle within the drawing depth throws its puffs, as the camera of this step sees it.
+    const observed = race.observe();
+    stepVehicles.length = 0;
+    stepVehicles.push(observed.player, ...observed.rivals, ...observed.traffic);
+    active.puffs.advance(stepVehicles, lifecycle.camera, active.scene);
     // A lap that set a record sounds NEW RECORD as it completes.
     if (active.records?.step(race.events, race.player.id, routeGoal)) effects.newRecord();
     if (!demo) {
@@ -393,13 +404,19 @@ async function assembleCourseRun(
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every
   // vehicle, the player included, casts its picture's shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
+  // The other vehicles' pictures and the puffs', reused frame to frame.
+  const others: CourseSprite[] = [];
   const draw = () => {
-    const { scene, race } = active;
+    const { scene, race, puffs } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
-    const others = raceSprites(otherVehicles, lifecycle.camera, scene.world);
+    others.length = 0;
+    others.push(
+      ...raceSprites(otherVehicles, lifecycle.camera, scene.world),
+      ...puffs.sprites(scene.world.coordinates),
+    );
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
@@ -440,7 +457,13 @@ async function assembleCourseRun(
             : undefined,
         );
         if (performanceHud && measurements)
-          performanceHud.frame(started, measurements.stripGround, renderMilliseconds, measurements.wallPixels);
+          performanceHud.frame(
+            started,
+            measurements.stripGround,
+            renderMilliseconds,
+            measurements.wallPixels,
+            active.puffs.count,
+          );
       },
     };
   };

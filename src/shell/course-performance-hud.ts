@@ -34,9 +34,9 @@ export function createCoursePerformanceHud(lines: HTMLElement) {
     },
     /**
      * `render` is the scene render's CPU milliseconds, timed by the caller around the renderer; `walls` the pixels the
-     * frame's walls painted.
+     * frame's walls painted; `puffs` the tire puffs alive.
      */
-    frame(started: number, observation: StripObservation | null = null, render = 0, walls = 0) {
+    frame(started: number, observation: StripObservation | null = null, render = 0, walls = 0, puffs = 0) {
       strip = observation;
       renderMilliseconds = render;
       wallPixels = walls;
@@ -54,7 +54,7 @@ export function createCoursePerformanceHud(lines: HTMLElement) {
       if (reported && now - first < 500) return;
       reported = true;
       const fps = (frames * 1000) / Math.max(1, now - first);
-      const detail = `Strips · active ${activeMax} visible / ${ground.maxActiveStrips} course max / ${STRIP_ACTIVE_LIMIT} limit · render ${renderMilliseconds.toFixed(2)} ms / max120 ${Math.max(...recentRenderTimes).toFixed(2)} ms · walls ${wallPixels} px`;
+      const detail = `Strips · active ${activeMax} visible / ${ground.maxActiveStrips} course max / ${STRIP_ACTIVE_LIMIT} limit · render ${renderMilliseconds.toFixed(2)} ms / max120 ${Math.max(...recentRenderTimes).toFixed(2)} ms · walls ${wallPixels} px · puffs ${puffs}`;
       output.textContent = `${fps.toFixed(0)} fps · frame ${frameMax.toFixed(1)} ms · step ${stepMax.toFixed(1)} ms · interval ${intervalMax.toFixed(1)} ms · ${detail}`;
       activeMax = 0;
       first = now;

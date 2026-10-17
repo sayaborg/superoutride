@@ -362,6 +362,36 @@ and the internal rolling control rate (`ROLLING_SYNTHESIS`), the noise band's nu
 bound included) and the
 synthesis's sample rates (`SYNTHESIS_RATE_DOMAIN`, 44100 to 192000 Hz, author values).
 
+## Tire puffs
+
+The [puff document](../content/puffs/default.json) holds the [tire puffs](tire-puffs.md)' values. None has a measured
+basis; they are the implementer's starting points for K to set on devices. Per kind:
+
+| Kind  | `releaseDegrees` | `responseSeconds` | `riseMps` | `startDiameterMeters` | `growthMps` | `lifeSeconds` |
+| ----- | ---------------- | ----------------- | --------- | --------------------- | ----------- | ------------- |
+| smoke | 0                | 0.05              | 0.5       | 0.5                   | 1.5         | 1.5           |
+| spray | 20               | 0.1               | −1.0      | 0.5                   | 1.0         | 1.0           |
+| dust  | 30               | 0.15              | −0.3      | 0.6                   | 1.2         | 2.0           |
+
+Smoke particles are held by the air almost at once and rise slowly with their heat. Spray is drops of about 0.1–0.2 mm:
+their Stokes response time is about 0.03–0.12 s and their terminal speed about 0.3–0.7 m/s, the larger the faster; at
+30 m/s and φ = 20° a drop rises to about 0.8 m in 0.24 s and would reach the road at about 1.15 s, after its 1.0 s life.
+Dust is fine and settles slowly. Per surface:
+
+| Material    | Kind  | Palette | `metersPerPuff` | `joulesPerPuff` |
+| ----------- | ----- | ------- | --------------- | --------------- |
+| ASPHALT     | smoke | smoke   | null            | 10000           |
+| WET_ASPHALT | spray | spray   | 3               | 10000           |
+| SHOULDER    | dust  | verge   | 3               | 10000           |
+| GRASS       | dust  | grass   | null            | 10000           |
+| DIRT        | dust  | dirt    | 2               | 10000           |
+| SAND        | dust  | sand    | 2               | 10000           |
+
+With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the plateau starts at a
+lateral slip speed of 3 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of about 170 kW, about
+17 puffs a second, and a light slide at 5 m/s about 5 a second. Rolling at 30 m/s throws 10 a second per axle on a
+surface of 3 m per puff.
+
 ## Surface materials
 
 The [material catalog](../content/materials/surface.json) holds each surface's grip factor (its scale on the tire

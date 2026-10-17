@@ -726,7 +726,7 @@ The first frame reports immediately, then approximately every half second.
 
 The ground detail shows the reporting window's maximum visible active Strip count,
 the compiled course maximum and active limit, the latest frame's scene-render CPU milliseconds,
-and the maximum over the most recent 120 rendered frames (`max120`), then the pixels the latest frame's walls painted. The renderer reads no clock: its
+and the maximum over the most recent 120 rendered frames (`max120`), then the pixels the latest frame's walls painted and the [tire puffs](tire-puffs.md) alive (`puffs`). The renderer reads no clock: its
 caller times the scene render. The active count includes
 hidden declarations in each contributing source slab; it is a maximum, not a sum over pixels or
 Sections. These observations are measurements, not device-capacity verdicts.
