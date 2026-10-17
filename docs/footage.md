@@ -199,11 +199,12 @@ in `reference-media/`.
 
 - **Times and size.** ffprobe gives each frame's timestamp, the video's size and its pixel format; footage is 8-bit
   4:2:0 (`yuv420p`, or `yuvj420p`), decoded raw, never converted, so range and matrix are measured.
-- **Pixel grid.** From about 120 frames spread over the video: margins are the outer lines whose brightest luma is of
-  the dark kind, when the lines' brightest values are two kinds by BIC. Between them, the period (1.25 to 8 video pixels)
-  and phase are those whose boundaries gather the most luma-change energy beyond an even spread, counted in windows just
-  under one video pixel so that an aliased period cannot gather two boundaries; origin and period are then fitted to
-  the boundary columns by energy-weighted least squares.
+- **Pixel grid.** From about 120 frames spread over the video: margins are the outer lines whose brightest luma stays
+  black (below 48, limited range's black with compression's ringing beside the frame's edge); a game frame's dim lines,
+  such as sky above the HUD, are not margins. Between them, the period (1.25 to 8 video pixels) and phase are those
+  whose boundaries gather the most luma-change energy beyond an even spread, counted in windows just under one video
+  pixel so that an aliased period cannot gather two boundaries; origin and period are then fitted to the boundary
+  columns by energy-weighted least squares.
 - **Game pixels.** Each game pixel's Y is the mean of its video pixels' interior (its outer ring left out once it is
   wider than two), its U and V the mean of the chroma samples inside it, or the one nearest its centre: thin features
   bleed under reduced chroma resolution, and this reads a color from inside its area.

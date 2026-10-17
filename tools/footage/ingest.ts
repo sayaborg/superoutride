@@ -143,19 +143,22 @@ export function measureGrid(sample: readonly YuvFrame[], width: number, height: 
 }
 
 /**
- * One axis's grid. Margins are the outer lines whose brightest value over the sampled frames is of the dark kind, when
- * the lines' brightest values are two kinds; the game frame lies between the first and last line of the bright kind.
- * The period is sought from 1.25 to 8 video pixels per game pixel.
+ * Margins are black: a margin line's brightest luma over the sampled frames stays below this, limited range's black (16)
+ * with the ringing compression leaves beside the game frame's edge. A game frame's own dim lines, such as sky above the
+ * HUD, are brighter.
+ */
+const MARGIN_LUMA = 48;
+
+/**
+ * One axis's grid. Margins are the outer lines whose brightest value over the sampled frames is black
+ * (`MARGIN_LUMA`); the game frame lies between them. The period is sought from 1.25 to 8 video pixels per game pixel.
  */
 function fitAxis(energy: Float64Array, peak: Uint8Array): GridAxis {
   const n = energy.length;
-  // 8-bit values: their quantization variance is 1/12.
-  const kinds = splitTwo(Array.from(peak), 1 / 12);
-  const dark = kinds ? kinds.threshold : -Infinity;
   let first = 0,
     last = n - 1;
-  while (first < n && peak[first]! <= dark) first++;
-  while (last > first && peak[last]! <= dark) last--;
+  while (first < n && peak[first]! < MARGIN_LUMA) first++;
+  while (last > first && peak[last]! < MARGIN_LUMA) last--;
   // Boundaries are at the left edge of each line: energy[c] measures the change between c - 1 and c.
   let best = { period: 1, phase: 0, score: -Infinity, onGrid: 0 };
   let total = 0;
