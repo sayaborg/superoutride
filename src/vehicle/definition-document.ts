@@ -3,6 +3,7 @@ import { HUD_PICTURES, TEXT_CHARACTERS, type HudPicture } from '../image/text-ti
 import { spriteSetColors, spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
+import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
 import {
   AdmissionError,
   admit,
@@ -50,7 +51,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 4;
+export const VEHICLE_MECHANICS_VERSION = 5;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -149,13 +150,21 @@ export function compileVehicleMechanicsDocument(
   sha256: string,
 ): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
+    // A vehicle's own wheel-slip choice and tire are optional; the driving definition's serve a vehicle without them.
+    const own = (['wheelSlip', 'tire'] as const).filter(
+      (key) => typeof value === 'object' && value !== null && Object.hasOwn(value, key),
+    );
     const v = readDocument(
       value,
-      ['format', 'version', ...mechanicalNumbers, 'powertrain'],
+      ['format', 'version', ...mechanicalNumbers, ...own, 'powertrain'],
       VEHICLE_MECHANICS_FORMAT,
       VEHICLE_MECHANICS_VERSION,
     );
     const mechanics = Object.fromEntries(mechanicalNumbers.map((key) => [key, readNumber(v[key], `/${key}`)]));
+    const owned = {
+      ...(own.includes('wheelSlip') ? { wheelSlip: readBoolean(v.wheelSlip, '/wheelSlip') } : {}),
+      ...(own.includes('tire') ? { tire: readTire(v.tire, '/tire') } : {}),
+    };
     const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
     const powertrain = {
       ...Object.fromEntries(powertrainNumbers.map((key) => [key, readNumber(p[key], `/powertrain/${key}`)])),
@@ -168,7 +177,7 @@ export function compileVehicleMechanicsDocument(
         };
       }),
     };
-    const definition = { ...mechanics, powertrain } as unknown as Omit<VehicleDefinition, 'id'>;
+    const definition = { ...mechanics, ...owned, powertrain } as unknown as Omit<VehicleDefinition, 'id'>;
     const source: VehicleMechanicsDocument = deepFreeze({
       format: VEHICLE_MECHANICS_FORMAT,
       version: VEHICLE_MECHANICS_VERSION,
@@ -331,6 +340,13 @@ function readNumbers<K extends string>(record: Record<string, unknown>, keys: re
   return Object.fromEntries(keys.map((key) => [key, readNumber(record[key], `${path}/${key}`)])) as Record<K, number>;
 }
 
+const TIRE_KEYS = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity'] as const;
+
+/** A tire's six values, all of them: the driving definition's and a vehicle's alike. */
+function readTire(value: unknown, path: string): TireCharacteristics {
+  return readNumbers(readRecord(value, path, TIRE_KEYS), TIRE_KEYS, path);
+}
+
 export function compileDrivingDocument(
   value: unknown,
   document: string,
@@ -376,8 +392,7 @@ export function compileDrivingDocument(
         releaseSeconds: readNumber(p.releaseSeconds, `/${key}/releaseSeconds`),
       };
     };
-    const keys = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity'] as const;
-    const tire = readNumbers(readRecord(v.tire, '/tire', keys), keys, '/tire');
+    const tire = readTire(v.tire, '/tire');
     const paceKeys = [
       'minimumUtilization',
       'maximumUtilization',

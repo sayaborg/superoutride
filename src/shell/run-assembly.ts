@@ -28,6 +28,7 @@ import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
+import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { PlayerRecord } from './player-record.js';
 import { createRunRecords, type RecordSelection } from './run-records.js';
@@ -363,23 +364,26 @@ async function assembleCourseRun(
   };
   // The scene is drawn first; presenting follows the run screen's text.
   // The run's course and the name of its rules, which the HUD shows during READY, and the player vehicle's
-  // tachometer scale, steering picture and tire knee from its definitions; a DEV rebuild's run gives its own rules and
-  // tuned definition.
+  // tachometer scale and steering picture from its definitions and its tire knee from its model; a DEV rebuild's run
+  // gives its own rules and tuned definition.
   const hudRun = ({
     configuration,
     entries,
+    mechanicsOf,
   }: {
     readonly configuration: RunConfiguration;
     readonly entries: readonly { readonly vehicle: RunVehicle }[];
+    readonly mechanicsOf: (vehicle: RunVehicle) => { readonly model: VehicleModel };
   }) => {
-    const { vehicleDefinition, drivingDefinition } = entries[0]!.vehicle;
+    const { vehicle } = entries[0]!;
+    const { vehicleDefinition } = vehicle;
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: course.name,
       rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
-      tireKnee: drivingDefinition.compiledDriving.tire.rhoKnee,
+      tireKnee: mechanicsOf(vehicle).model.tire.rhoKnee,
       slowDown: page.player.settings.slowDown,
     };
   };

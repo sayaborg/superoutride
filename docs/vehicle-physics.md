@@ -3,16 +3,18 @@
 CAR and BIKE use one two-station vehicle solver with yaw and pitch. Contact and control constraints
 use a local heightfield approximation. The model separates these inputs:
 
-| Boundary           | Parameters                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain |
-| Driving definition | M/ACT steering, pedal actuators, TCS/ABS, pitch limit and the game-wide per-load tire      |
-| Composition policy | Fixed update step                                                                          |
+| Boundary           | Parameters                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Compiled vehicle   | Mass, geometry, inertia, suspension, wheel/brake data, drag, fixed drive split, powertrain; optionally its own tire and TCS/ABS |
+| Driving definition | M/ACT steering, pedal actuators, pitch limit, and the game-wide default per-load tire and TCS/ABS                               |
+| Composition policy | Fixed update step                                                                                                               |
 
 The [driving definition](../content/driving/default.json) holds the game-wide driving values
 ([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
 M=65 degrees, ACT=0.3 seconds, throttle/brake traversal times,
-`wheelSlip=true` and one game-wide tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15).
+and the game-wide defaults `wheelSlip=true` and one tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15), which
+serve every vehicle whose mechanics document does not give its own `wheelSlip` or `tire`
+([documents](#material-vehicle-and-driving-documents)).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
 Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
@@ -22,10 +24,11 @@ single traversal time makes steering response symmetric by construction), steeri
 torque-protection policy `{wheelSlip, pitchLimit}`.
 [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
 from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
-(`SIM_DT`). The step must be finite and positive. The model is one immutable value, frozen throughout: the compiled
-vehicle, the step and its integration substep (step divided by the mechanics substep count), the driving product's
-actuator, steering, tire, suspension-progression and torque-protection values unchanged, and the powertrain
-constants. It reads no driving source field. Model construction admits [suspension stability](#suspension-stability)
+(`SIM_DT`). The step must be finite and positive. It is also the one place that chooses each vehicle's tire and
+`wheelSlip`: the compiled vehicle's own where it has them, else the driving product's; the pitch limit is always the
+driving product's. The model is one immutable value, frozen throughout: the compiled vehicle, the step and its
+integration substep (step divided by the mechanics substep count), the driving product's actuator, steering and
+suspension-progression values unchanged, the chosen tire and torque-protection policy, and the powertrain constants. It reads no driving source field. Model construction admits [suspension stability](#suspension-stability)
 for both stations and revalidates no admitted value. Updates never recheck compiled values (step, actuator rates,
 steering, tires, stations, materials or numerical constants). They check the canonical pedal input once per update
 and the finiteness of wheel state, contact observations and torque requests once per wheel and substep; numerical
@@ -33,7 +36,9 @@ solvers keep guards on the values they generate.
 Browser, race, reference tools, scenarios, startup smoke and image generation use the same
 input. Creation, updates and recovery receive the vehicle state and its model separately;
 nothing copies a model value into state. Updates take no step argument; they integrate the
-model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire. DEV tuning edits the driving definition and rebuilds the player's model from it;
+model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire, and so do the
+vehicle's limits model, planned drivers, steering rules, torque protection, the tire observations and their sound and
+the HUD's tire gauge. DEV tuning edits the driving definition and rebuilds the player's model from it;
 the next step uses the replacement.
 
 `RunVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
@@ -622,7 +627,7 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 4 document: the vehicle's physical description — the values
+`superoutride.vehicle-mechanics` version 5 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
@@ -640,10 +645,12 @@ vehicle definition publishes each fact once: its two admitted documents (`mechan
 and metadata are read), the vehicle the mechanics compile to (`compiledVehicle`), and what the listing's IDs name (the
 admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engine sound `sound`).
 
-| Mechanics field     | Contract                                                                        |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `4`                                           |
-| Remaining fields    | All `VehicleDefinition` fields except `id`, including `powertrain`, at the root |
+| Mechanics field     | Contract                                                                                                                                                                                                             |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `5`                                                                                                                                                                                |
+| `wheelSlip`         | Optional boolean: the vehicle's own TCS, MSR and ABS choice; absent, the driving definition's                                                                                                                        |
+| `tire`              | Optional: the vehicle's own tire, all six values (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity) in the driving definition's domains, compiled once at admission; absent, the driving definition's whole tire |
+| Remaining fields    | All other `VehicleDefinition` fields except `id`, including `powertrain`, at the root                                                                                                                                |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -717,7 +724,7 @@ Only `definition-document.ts` converts these relative paths into document JSON P
 (for example `/mass`). Driving paths start at the
 driving document's fields. Unsupported earlier versions have no migration reader.
 Nested arrays and records are
-copied and frozen, including powertrain gears/curve points, metadata and the driving tire/pedals.
+copied and frozen, including powertrain gears/curve points, metadata, a vehicle's own tire and the driving tire/pedals.
 The shared vehicle loader verifies manifest SHA-256 before decoding and admission, checks
 selection-order uniqueness, then exposes the sorted immutable
 collection. Surface-material diagnostics likewise carry the source document and exact JSON Pointer;

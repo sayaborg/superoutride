@@ -129,7 +129,8 @@
   depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
-Next PR: [VC-5e](#stage-vc--courses-from-footage) and [TP-3](#stage-tp--tire-puffs), then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-3](#stage-tp--tire-puffs) and
+[DT-1b](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -197,6 +198,40 @@ needed, the drawing order conflicts with another contract, or the instructions c
 - TP-7: puffs: emission, motion, size, limit and drawing in the run and the driving scenarios; the performance HUD
   counts them.
 - TP-8: DEV's PUFFS group with reset and export; this section leaves NEXT.
+
+## Stage DT — DRIFT TUNED trial vehicles
+
+Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
+are driven in FREE PLAY; FC3S follows once K decides its open points. A series, scoring and series rules for the camera
+or steering are not made in this stage (the Steering row of [Pending product decisions](#pending-product-decisions)).
+
+K decided it runs in parallel with Stage VC, in its own sessions and branches; Stage TP runs beside both. DT touches
+vehicles and physics, which VC does not, so it shares only NEXT and the other shared documents with VC, and the vehicle
+mechanics document and the tire observation with TP: when main moves, the branch is brought up to it and validated
+again before main is fast-forwarded.
+
+K's decisions for the stage:
+
+- A vehicle may give its own tire and `wheelSlip` (TCS, MSR and ABS); a vehicle that does not uses the driving
+  definition's game-wide defaults, which stay there while the game-wide tuning is unfinished. Neither is a difficulty
+  or player choice ([Vehicle identity](product.md#vehicle-identity)).
+- A DRIFT TUNED vehicle is a vehicle of its own (another specification of the same model): its pictures are the real
+  car's, its tires and engine need not be. DRIFT TUNED vehicles have `wheelSlip` off (one switch for TCS, MSR and ABS).
+- Drifting needs the tire's grip level, the same for all three: `gripX=1.1`, `peakSlipX=0.1`, `gripY=1.1`,
+  `peakSlipY=0.1`, `knee=0.74` and `loadSensitivity=0.15`.
+- `AE86_DRIFT_TUNED` (Corolla Levin 3-door GT-APEX, early, May 1983 – May 1985, 4A-GEU, 5MT), `S13_DRIFT_TUNED`
+  (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
+  October 1985 – April 1989, 13B turbo, 5MT).
+
+- DT-1b: DEV tunes a vehicle's own tire and `wheelSlip`: TIRES and ASSISTS replace the vehicle's mechanics document
+  when the vehicle has its own (admitted by the mechanics compiler; a rejected candidate is dropped), else the driving
+  definition as today, and DEV shows which; EXPORT writes the tuned document. GX's and GY's DEV ranges start at 0.5.
+- DT-2: S13 and AE86 DRIFT TUNED in the catalog, with the drift tire and `wheelSlip` off, borrowing GOLF GTI 16V's
+  pictures and the DELTA HF INTEGRALE and GOLF GTI 16V engine sounds until their own GLB pictures and exhausts are made;
+  checked with FREE PLAY rivals, traffic and the takeover after GOAL (braking without ABS).
+- DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (a rotary engine kind: the 2-stroke volume
+  rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
+  are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
 ## Audit 2 leftovers
 
@@ -316,8 +351,9 @@ works from a checkout; until then its changes leave as an archive.
 If a later course admits both a cycle and branches (for example a pit lane), generalize the
 cycle-closure check from walking the single circuit cycle to every directed cycle.
 
-Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings;
-reintroduce per-vehicle or per-axle tire parameters only when this tuning needs them. Add asymmetric
+Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings: a vehicle's
+mechanics document may give its own tire and `wheelSlip` (Stage DT); introduce per-axle tire parameters only when
+this tuning needs them. Add asymmetric
 (rebound-only) suspension damping only if landings bounce. Size terminal runouts for paced rivals at the minimum pace
 utilization; runout admission still checks the fixed 0.75.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities

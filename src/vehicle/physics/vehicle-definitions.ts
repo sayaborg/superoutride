@@ -5,6 +5,11 @@ import {
   type AutomaticPowertrainDefinition,
   type CompiledAutomaticPowertrainDefinition,
 } from './automatic-powertrain.js';
+import {
+  compileTireCharacteristics,
+  type CompiledTireCharacteristics,
+  type TireCharacteristics,
+} from './tire-friction-calibration.js';
 import { VEHICLE_GRAVITY } from './vehicle-state.js';
 import { compileSuspensionStation, type CompiledContactStation } from './vehicle-suspension.js';
 
@@ -74,6 +79,10 @@ export interface VehicleDefinition {
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
   readonly quadraticDrag: number;
+  /** The vehicle's own TCS, MSR and ABS choice; the driving definition's when absent. */
+  readonly wheelSlip?: boolean;
+  /** The vehicle's own tire, every value of it; the driving definition's when absent. */
+  readonly tire?: TireCharacteristics;
   readonly powertrain: AutomaticPowertrainDefinition;
 }
 
@@ -103,6 +112,10 @@ export interface CompiledVehicle extends Pick<
    * the body's.
    */
   readonly footprint: number;
+  /** The vehicle's own wheel-slip choice; null leaves the driving definition's. */
+  readonly wheelSlip: boolean | null;
+  /** The vehicle's own compiled tire; null leaves the driving definition's. */
+  readonly tire: Readonly<CompiledTireCharacteristics> | null;
   readonly powertrain: CompiledAutomaticPowertrainDefinition;
   readonly frontStation: CompiledContactStation;
   readonly rearStation: CompiledContactStation;
@@ -162,6 +175,13 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
   if (!(definition.quadraticDrag >= 0) || !Number.isFinite(definition.quadraticDrag)) {
     throw new DefinitionDomainError('quadraticDrag', 'vehicle quadratic drag must be finite and >= 0');
   }
+  const tire =
+    definition.tire === undefined
+      ? null
+      : withDefinitionPath(
+          () => compileTireCharacteristics(definition.tire!),
+          (path) => `tire/${path}`,
+        );
   const powertrain = withDefinitionPath(
     () => compileAutomaticPowertrainDefinition(definition.powertrain),
     (path) => `powertrain/${path}`,
@@ -241,6 +261,8 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     desiredCgHeight: definition.desiredCgHeight,
     frontDriveTorqueFraction: definition.frontDriveTorqueFraction,
     quadraticDrag: definition.quadraticDrag,
+    wheelSlip: definition.wheelSlip ?? null,
+    tire,
     powertrain,
     frontStation,
     rearStation,

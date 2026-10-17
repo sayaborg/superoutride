@@ -7,8 +7,8 @@ These tables describe the authored settings. [Vehicle physics](vehicle-physics.m
 ## Vehicle settings
 
 The [game-wide driving definition](../content/driving/default.json) is the sole value authority
-for cars and bikes in browser, race and tools. The table documents that definition; it does not
-supply another set of defaults. The immutable record contains only authored numbers and choices,
+for cars and bikes in browser, race and tools, except that a vehicle's mechanics document may give its own tire and
+`wheelSlip`. The table documents that definition; it does not supply another set of defaults. The immutable record contains only authored numbers and choices,
 stored as versioned JSON. Derived radians, actuator rates and tire coefficients belong to admission.
 [Vehicle mechanics documents](../content/vehicles/) contain the per-vehicle mechanical data.
 
@@ -23,12 +23,12 @@ steps and never rejects a driving definition.
 | Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
 | Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
 | Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s     |
-| Tires      | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 2–8 / 0.05                 |
-| Tires      | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
-| Tires      | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
-| Tires      | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
-| Tires      | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
-| Tires      | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
+| Tires¹     | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 2–8 / 0.05                 |
+| Tires¹     | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
+| Tires¹     | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 1–4 / 0.05                 |
+| Tires¹     | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
+| Tires¹     | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
+| Tires¹     | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
 | Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar      |
 | Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar      |
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
@@ -42,7 +42,12 @@ steps and never rejects a driving definition.
 | Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
 | Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
-| Assists    | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
+| Assists¹   | —     | `wheelSlip`                                 | TCS, MSR and ABS                             | on      | on / off                   |
+
+¹ The driving definition's tire and `wheelSlip` are the game-wide defaults: they serve every vehicle whose
+[mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all six
+values) or `wheelSlip`; a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
+the defaults follows the game-wide tuning, its identity changing with the driving definition's.
 
 `fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
 latches' thresholds and keep them from chattering; they are edited only in the file.
@@ -74,11 +79,11 @@ each line, and JSON's own number and string spelling. The files in
 byte-identical to its content file. To adopt tuned values, replace `content/driving/default.json`
 (or a vehicle file) with the export and rebuild; admission, identity and generated references follow
 the new file. Tires are dimensionless
-coefficients per unit normal load; one game-wide set serves both stations. Driving assists are
-not difficulty controls.
+coefficients per unit normal load; one set serves both stations of a vehicle, the vehicle's own or the game-wide
+default. Driving assists are not difficulty controls.
 
-The same definition selects `wheelSlip=true` (TCS, MSR and
-ABS). TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
+The same definition selects the default `wheelSlip=true` (TCS, MSR and
+ABS), which a vehicle's own `wheelSlip` replaces. TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
 engine's effective opening; ABS and the nose-down side of pitch protection act on the pedal brake. The
 driver's throttle actuator keeps its traversal time as the requested opening, and the opening's
 bounds take effect within each mechanics substep. Drive is split by the fixed front drive fraction,
@@ -160,7 +165,8 @@ screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 ## Vehicle values
 
 The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
-are the sole authority for per-vehicle values. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
+are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
+in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)); no delivered vehicle gives either yet. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.
 
 Mass (kg) and CG height (m) describe one running rigid body including a 75 kg occupant and fuel.

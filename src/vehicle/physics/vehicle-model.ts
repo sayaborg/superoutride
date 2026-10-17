@@ -12,8 +12,9 @@ export const VEHICLE_SUBSTEPS = 12;
 
 /**
  * The final Vehicle×Driving mechanics product: the compiled vehicle, the compiled driving facts it
- * runs with, its powertrain under the game-wide rules and the fixed integration step. Every update
- * receives it beside the vehicle state; DEV tuning builds a new model from a tuned definition.
+ * runs with, the tire and torque protection resolved between the two, its powertrain under the game-wide
+ * rules and the fixed integration step. Every update receives it beside the vehicle state; DEV tuning
+ * builds a new model from a tuned definition.
  */
 export interface VehicleModel {
   readonly compiledVehicle: CompiledVehicle;
@@ -46,14 +47,20 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
   const substep = step / VEHICLE_SUBSTEPS;
   for (const station of [compiledVehicle.frontStation, compiledVehicle.rearStation])
     assertSuspensionStability(compiledVehicle.id, station, substep);
+  // The one choice between the vehicle's own tire and wheel-slip choice and the driving definition's game-wide ones:
+  // the vehicle's where it has them. The pitch limit stays game-wide.
+  const { wheelSlip } = compiledVehicle;
   return Object.freeze({
     compiledVehicle,
     step,
     substep,
     actuator: driving.actuator,
     steering: driving.steering,
-    tire: driving.tire,
+    tire: compiledVehicle.tire ?? driving.tire,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
-    torqueProtection: driving.torqueProtection,
+    torqueProtection:
+      wheelSlip === null
+        ? driving.torqueProtection
+        : Object.freeze({ wheelSlip, pitchLimit: driving.torqueProtection.pitchLimit }),
   });
 }
