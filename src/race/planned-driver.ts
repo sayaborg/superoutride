@@ -85,7 +85,7 @@ export const PLANNED_DRIVER = Object.freeze({
     saturatedSeconds: 0.3,
     recovery: 0.01,
     resolution: 0.01,
-    /** A tire utilization within this of 1 is at 1: the plateau's force fraction is 1 up to rounding. */
+    /** A tire utilization within this of 1 is at 1: at and past the peak it is 1 up to rounding. */
     saturation: 1e-6,
   }),
 });

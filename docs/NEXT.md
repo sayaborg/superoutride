@@ -131,13 +131,13 @@
 - Stage TP is complete: every vehicle in view throws tire puffs by the surface under it
   ([Tire puffs](tire-puffs.md)): smoke when sliding on ASPHALT, spray on WET_ASPHALT, dust on SHOULDER, DIRT and SAND
   when rolling and sliding and on GRASS when sliding. Rolling throws one per distance, sliding one per amount of friction
-  work beyond the start of the tire law's plateau (the tire observation's `slidingPower`, K to confirm this reading of
+  work beyond the tire law's peak (the tire observation's `slidingPower`, K to confirm this reading of
   "work on the plateau"), so wheel-slip protection holding a tire there throws none. Puffs move by one law with values
   the puff document holds and DEV's PUFFS group changes; they are opaque pictures without shadows, ordered by depth with
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-T, then VC-5e2c](#stage-vc--courses-from-footage), and [DT-5, DT-6](#stage-dt--drift-tuned-trial-vehicles) and DT-3
+Next PR: [VC-T, then VC-5e2c](#stage-vc--courses-from-footage), [DT-6](#stage-dt--drift-tuned-trial-vehicles), and DT-3
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -237,8 +237,10 @@ K's decisions for the stage:
   slip, so wheels that spin, in a jump too, move no shift and the engine follows them to the fuel cut (DT-4).
 - A tire has a sliding ratio, its force sliding far past the peak over the peak's force, held by the driving
   definition's tire and by every vehicle's own tire: 1 (the force holds the peak, as today) on all but the DRIFT TUNED
-  tires (DT-5). The DRIFT TUNED tires then start at S13 `gripX=gripY=0.8` and AE86 0.7, both with the sliding ratio
-  0.85 and their other values unchanged, for K to tune in DEV (DT-6).
+  tires. The wheel solve takes the force's fall past the peak at the substep's starting wheel speed, so it keeps one
+  root at any sliding ratio (K's choice of the DT-5 report's options; DT-5). The DRIFT TUNED tires then start at S13
+  `gripX=gripY=0.8` and AE86 0.7, both with the sliding ratio 0.85 and their other values unchanged, for K to tune in
+  DEV (DT-6).
 
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
 in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX and GY in DEV and
@@ -253,15 +255,6 @@ adopting the exported mechanics document. Until their own pictures and exhausts 
 - DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (a rotary engine kind: the 2-stroke volume
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
-
-DT-5 and DT-6 wait for K. With a force falling past the peak the wheel's backward-Euler residual stops increasing with
-wheel speed where `I/h < r²·Ne·kX·|H′|/U`, at low speed under load, so its root is no longer unique: with DT-6's values
-S13's front wheel braked at 0.3 m/s under 1.5 times its static load has three wheel speeds that solve its substep, and
-braking it to a stop already holds it at the edge. The TCS, MSR and ABS bounds and the locked engine's root search lose
-the uniqueness they rely on with it. K decides how the solve stays unique: the fall taken at the substep's starting wheel
-speed with the plateau law solved implicitly (recommended; the residual then increases at any sliding ratio), more
-wheel steps where the bound fails, or only the falls the bound admits (a sliding ratio of about 0.97 and above). The
-DT-5 report PR holds the analysis.
 
 ## Audit 2 leftovers
 

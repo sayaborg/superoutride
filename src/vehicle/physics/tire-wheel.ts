@@ -28,6 +28,8 @@ interface TireForceResult extends TireDemand {
   readonly capacityY: number;
   /** Demand in the capacity ellipse, not a force magnitude or a stored contact phase. */
   readonly rho: number;
+  /** The fall past the peak the force carries, taken at the substep's starting wheel speed; 1 up to the peak. */
+  readonly sliding: number;
 }
 
 export interface WheelSolveInput {
@@ -55,10 +57,35 @@ export interface WheelSolveResult {
 // One caller-owned numerical trial; published results retain their existing fields.
 type TireForceScratch = ReturnType<typeof createTireForceScratch>;
 export function createTireForceScratch() {
-  return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0, omega: 0 };
+  return {
+    sx: 0,
+    sy: 0,
+    referenceSpeed: 0,
+    dx: 0,
+    dy: 0,
+    fx: 0,
+    fy: 0,
+    capacityX: 0,
+    capacityY: 0,
+    rho: 0,
+    sliding: 1,
+    omega: 0,
+  };
 }
 function createTireForceResult() {
-  return { sx: 0, sy: 0, referenceSpeed: 0, dx: 0, dy: 0, fx: 0, fy: 0, capacityX: 0, capacityY: 0, rho: 0 };
+  return {
+    sx: 0,
+    sy: 0,
+    referenceSpeed: 0,
+    dx: 0,
+    dy: 0,
+    fx: 0,
+    fy: 0,
+    capacityX: 0,
+    capacityY: 0,
+    rho: 0,
+    sliding: 1,
+  };
 }
 function readTireForce(s: TireForceScratch, out: Writable<TireForceResult>): TireForceResult {
   out.sx = s.sx;
@@ -71,6 +98,7 @@ function readTireForce(s: TireForceScratch, out: Writable<TireForceResult>): Tir
   out.capacityX = s.capacityX;
   out.capacityY = s.capacityY;
   out.rho = s.rho;
+  out.sliding = s.sliding;
   return out;
 }
 function writeSlip(
@@ -124,11 +152,11 @@ function forceFromDemand(
   if (length === 0) return;
   out.rho = rho;
   if (rho <= characteristics.rhoKnee) {
-    out.fx = out.dx;
-    out.fy = out.dy;
+    out.fx = out.dx * out.sliding;
+    out.fy = out.dy * out.sliding;
     return;
   }
-  const h = radialC1Magnitude(rho, characteristics.rhoKnee);
+  const h = radialC1Magnitude(rho, characteristics.rhoKnee) * out.sliding;
   out.fx = capacityX * h * (x / length);
   out.fy = capacityY * h * (y / length);
 }
@@ -140,6 +168,37 @@ function radialC1Magnitude(rho: number, a: number): number {
   if (rho <= a) return rho;
   if (rho >= 2 - a) return 1;
   return rho - (rho - a) ** 2 / (4 * (1 - a));
+}
+
+/**
+ * The force's fall past the peak at normalized radial demand `rho`: 1 up to the peak `2-a`, then `s+(1-s)/(1+u^2)` with
+ * `u = (rho-(2-a))/(2(1-a))`, falling from the peak with zero slope toward the sliding ratio `s` over the knee's width.
+ * A sliding ratio of 1 holds it at 1.
+ */
+function slidingFall(rho: number, a: number, s: number): number {
+  if (!(rho > 2 - a)) return 1;
+  const u = (rho - (2 - a)) / (2 * (1 - a));
+  return s + (1 - s) / (1 + u * u);
+}
+
+/**
+ * The fall a substep's wheel solve takes its force with: the fall at the slip of the substep's starting wheel speed under
+ * its contact velocities, held through the solve. The force then grows with the trial wheel speed as the law without
+ * its fall does, so the residual stays monotone; a fall taken at the trial speed itself would let it decrease at low
+ * speed under load and give the solve several roots.
+ */
+function startingFall(input: WheelSolveInput, scratch: TireForceScratch): number {
+  const tire = input.characteristics;
+  writeSlip(
+    input.omegaPrevious,
+    input.rollingRadius,
+    input.longitudinalVelocity,
+    input.lateralVelocity,
+    scratch.referenceSpeed,
+    scratch,
+  );
+  const demand = Math.hypot((tire.kX * scratch.sx) / tire.muX, (tire.kY * scratch.sy) / tire.muY) / input.gripFactor;
+  return slidingFall(demand, tire.rhoKnee, tire.slidingRatio);
 }
 
 /** Surface rolling resistance remains a separate continuous wheel torque. */
@@ -158,8 +217,9 @@ function rollingResistanceTorque(
 
 /**
  * Unique scalar backward-Euler wheel root with a Coulomb brake atom at Omega=0.
- * The no-brake residual stays monotone: the monotone two-axis saturation uses fixed contact data. Bounded tire and rolling torques make the finite bracket explicit rather than
- * heuristic.
+ * The no-brake residual stays monotone: the monotone two-axis saturation uses fixed contact data and the fall past the
+ * peak taken at the substep's starting wheel speed. Bounded tire and rolling torques make the finite bracket explicit
+ * rather than heuristic.
  */
 export function createWheelSolveResult() {
   return { omega: 0, omegaDot: 0, tire: createTireForceResult(), locked: false };
@@ -183,8 +243,9 @@ export function solveWheelOmega(
     brakeTorque,
     dt,
   } = input;
-  // Contact velocity is fixed throughout the scalar solve, including its final force evaluation.
+  // Contact velocity and the fall are fixed throughout the scalar solve, including its final force evaluation.
   scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
+  scratch.sliding = startingFall(input, scratch);
   scratch.omega = 0;
   netTorqueAtOmega(input, scratch, residual);
   const atZero = residual[0]! - driveTorque;
@@ -227,8 +288,9 @@ export function wheelRequiredNetTorque(
   residual: Float64Array,
 ): number {
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  scratch.omega = omega;
   scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
+  scratch.sliding = startingFall(input, scratch);
+  scratch.omega = omega;
   netTorqueAtOmega(input, scratch, residual);
   return residual[0]!;
 }

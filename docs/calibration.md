@@ -24,11 +24,12 @@ steps and never rejects a driving definition.
 | Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
 | Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s     |
 | Tires¹     | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 0.5–8 / 0.05               |
-| Tires¹     | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip plateau start         | 20%     | 2–40% / 1 percentage point |
+| Tires¹     | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip peak                  | 20%     | 2–40% / 1 percentage point |
 | Tires¹     | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 0.5–4 / 0.05               |
-| Tires¹     | PY    | `tire.peakSlipY`                            | Lateral pure-slip plateau start              | 10%     | 2–20% / 1 percentage point |
+| Tires¹     | PY    | `tire.peakSlipY`                            | Lateral pure-slip peak                       | 10%     | 2–20% / 1 percentage point |
 | Tires¹     | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
 | Tires¹     | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
+| Tires¹     | SR    | `tire.slidingRatio`                         | Force far past the peak, × the peak force    | 1       | 0.50–1.00 / 0.01           |
 | Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar      |
 | Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar      |
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
@@ -47,7 +48,7 @@ steps and never rejects a driving definition.
 ¹ `wheelSlip` is the protection the player's input drives with; planned drivers always drive with it on
 ([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
 game-wide defaults: they serve every vehicle whose
-[mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all six
+[mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all seven
 values) or `wheelSlip`; a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
 the defaults follows the game-wide tuning, its identity changing with the driving definition's.
 
@@ -59,7 +60,7 @@ DEV does not tune them, so they too are edited only in the file.
 
 PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
 [tire law](vehicle-physics.md#tire-law). Full steering input sets the front tire's pure-lateral slip at which its lateral force reaches the fraction X of its
-bound on the material under the front wheel (at X = 100%, the plateau's start), measured from the front wheel's travel
+bound on the material under the front wheel (at X = 100%, the peak), measured from the front wheel's travel
 direction turned back by the steering rule's lever times the yaw rate's departure from the steady turn asked for. The
 travel direction has the rest of the rack, `M` minus that slip angle ([Vehicle physics](vehicle-physics.md#actuators-and-steering)); neither angle is an
 authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and
@@ -171,7 +172,7 @@ The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](.
 are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
 in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED
 and AE86_DRIFT_TUNED) give both: `wheelSlip` off and one drift tire (GX=1.1, PX=0.1, GY=1.1, PY=0.1, KN=0.74,
-LS=0.15, so `kX = kY ≈ 13.9`); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
+LS=0.15, SR=1, so `kX = kY ≈ 13.9`); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
 the 75 kg occupant to the notified weight, which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.
 
@@ -391,7 +392,7 @@ Dust is fine and settles slowly. Per surface:
 | DIRT        | dust  | dirt    | 2               | 10000           |
 | SAND        | dust  | sand    | 2               | 10000           |
 
-With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the plateau starts at a
+With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the peak lies at a
 lateral slip speed of 3 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of about 170 kW, about
 17 puffs a second, and a light slide at 5 m/s about 5 a second. Rolling at 30 m/s throws 10 a second per axle on a
 surface of 3 m per puff.

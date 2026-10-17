@@ -45,7 +45,7 @@ export interface DrivingDefinition {
 }
 
 export const DRIVING_DOCUMENT_FORMAT = 'superoutride.driving-definition';
-export const DRIVING_DOCUMENT_VERSION = 20;
+export const DRIVING_DOCUMENT_VERSION = 21;
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: typeof DRIVING_DOCUMENT_FORMAT;

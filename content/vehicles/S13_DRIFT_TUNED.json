@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 5,
+  "version": 6,
   "overallLength": 4.47,
   "overallWidth": 1.69,
   "overallHeight": 1.29,
@@ -27,7 +27,15 @@
   "rearBrakeTorqueMax": 1500,
   "quadraticDrag": 0.33,
   "wheelSlip": false,
-  "tire": { "gripX": 1.1, "peakSlipX": 0.1, "gripY": 1.1, "peakSlipY": 0.1, "knee": 0.74, "loadSensitivity": 0.15 },
+  "tire": {
+    "gripX": 1.1,
+    "peakSlipX": 0.1,
+    "gripY": 1.1,
+    "peakSlipY": 0.1,
+    "knee": 0.74,
+    "loadSensitivity": 0.15,
+    "slidingRatio": 1
+  },
   "powertrain": {
     "displacementCc": 1809,
     "cycle": 4,

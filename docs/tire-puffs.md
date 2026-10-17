@@ -41,8 +41,7 @@ sliding: slidingPower * SIM_DT / joulesPerPuff puffs
 Each patch carries its rolling and its sliding fraction from step to step and throws one puff each time a fraction
 reaches 1. A patch whose surface is null (no force transmitted) throws nothing that step and keeps its fractions; a null
 amount throws nothing of that way. Rolling is one puff per distance the tread travels; sliding one per amount of the
-friction work beyond the start of the tire law's plateau, so a tire the torque protections hold at the plateau's start
-throws no sliding puffs.
+friction work beyond the tire law's peak, so a tire the torque protections hold at the peak throws no sliding puffs.
 
 The vehicles that throw are the player, the rivals and the traffic whose route position lies within the drawing depth
 of that step's camera (`RENDER_NEAR_DEPTH_METERS` to `RENDER_FAR_DEPTH_METERS` ahead of it); the others throw nothing and

@@ -659,7 +659,8 @@ The tire gauge, above the speed, draws the player vehicle's axles from above in 
 its two tires, and a bike's two tires joined by one line. Each axle's tires take one palette of the gauge from the
 player observation's tire on that axle (`tires.front`, `tires.rear`); the vehicle physics solves one tire per axle, so
 a car's left and right tires always share a color. A loaded tire's `utilization`, the fraction of its friction ellipse
-the braking or driving and cornering force together use (clamped to 0–1), picks the nearest of the gauge's tire
+the braking or driving and cornering force together use before the force's fall past the peak (clamped to 0–1, and 1
+at and past the peak, [Vehicle physics](vehicle-physics.md#observations)), picks the nearest of the gauge's tire
 colors: green at 0, yellow at the tire's knee and red at 1, the step `utilization / knee` of the way from green to
 yellow up to the knee and `(utilization - knee) / (1 - knee)` of the way from yellow to red beyond it. The knee is the
 player vehicle's tire `rhoKnee`, where the tire's force stops growing in proportion to its slip; up to the knee the

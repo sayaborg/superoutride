@@ -8,9 +8,11 @@ export interface TireCharacteristics {
   readonly knee: number;
   /** r in [0,1): how much less than in proportion the tire force grows with load (0 is in proportion). */
   readonly loadSensitivity: number;
+  /** s in (0,1]: the force sliding far past the peak over the peak's force (1 holds the peak). */
+  readonly slidingRatio: number;
 }
 
-/** Sole five-coefficient force-law input. G/P/UI IDs are not additional runtime state. */
+/** Sole force-law input. G/P/UI IDs are not additional runtime state. */
 export interface CompiledTireCharacteristics {
   readonly muX: number;
   readonly muY: number;
@@ -18,10 +20,11 @@ export interface CompiledTireCharacteristics {
   readonly kY: number;
   readonly rhoKnee: number;
   readonly loadSensitivity: number;
+  readonly slidingRatio: number;
 }
 
 export function compileTireCharacteristics(input: TireCharacteristics): Readonly<CompiledTireCharacteristics> {
-  const { gripX, peakSlipX, gripY, peakSlipY, knee, loadSensitivity } = input;
+  const { gripX, peakSlipX, gripY, peakSlipY, knee, loadSensitivity, slidingRatio } = input;
   for (const field of ['gripX', 'peakSlipX', 'gripY', 'peakSlipY'] as const) {
     if (!Number.isFinite(input[field]) || !(input[field] > 0))
       throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
@@ -35,6 +38,7 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
     kY: ((2 - knee) * gripY) / peakSlipY,
     rhoKnee: knee,
     loadSensitivity,
+    slidingRatio,
   };
   withDefinitionPath(() => validateTireCharacteristics(compiled), {
     muX: 'gripX',
@@ -43,13 +47,14 @@ export function compileTireCharacteristics(input: TireCharacteristics): Readonly
     kY: 'peakSlipY',
     rhoKnee: 'knee',
     loadSensitivity: 'loadSensitivity',
+    slidingRatio: 'slidingRatio',
   });
   return Object.freeze(compiled);
 }
 
 /**
  * The normalized radial demand `rho` at which the smooth knee `H` of knee start `a` reaches the force fraction `h` in
- * (0,1]: `h` up to the knee, then `2-a-2*sqrt((1-a)*(1-h))`, which is `2-a` (the plateau's start) at `h = 1`.
+ * (0,1]: `h` up to the knee, then `2-a-2*sqrt((1-a)*(1-h))`, which is `2-a` (the peak) at `h = 1`.
  */
 export function radialKneeInverse(a: number, h: number): number {
   return h <= a ? h : 2 - a - 2 * Math.sqrt((1 - a) * (1 - h));
@@ -72,6 +77,8 @@ function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
     throw new DefinitionDomainError('rhoKnee', 'rhoKnee must be finite and lie in (0,1)');
   if (!(tire.loadSensitivity >= 0 && tire.loadSensitivity < 1))
     throw new DefinitionDomainError('loadSensitivity', 'loadSensitivity must lie in [0,1)');
+  if (!(tire.slidingRatio > 0 && tire.slidingRatio <= 1))
+    throw new DefinitionDomainError('slidingRatio', 'slidingRatio must lie in (0,1]');
 }
 
 /**

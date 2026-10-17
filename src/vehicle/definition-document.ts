@@ -58,7 +58,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 5;
+export const VEHICLE_MECHANICS_VERSION = 6;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -385,9 +385,9 @@ function readNumbers<K extends string>(record: Record<string, unknown>, keys: re
   return Object.fromEntries(keys.map((key) => [key, readNumber(record[key], `${path}/${key}`)])) as Record<K, number>;
 }
 
-const TIRE_KEYS = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity'] as const;
+const TIRE_KEYS = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity', 'slidingRatio'] as const;
 
-/** A tire's six values, all of them: the driving definition's and a vehicle's alike. */
+/** A tire's seven values, all of them: the driving definition's and a vehicle's alike. */
 function readTire(value: unknown, path: string): TireCharacteristics {
   return readNumbers(readRecord(value, path, TIRE_KEYS), TIRE_KEYS, path);
 }

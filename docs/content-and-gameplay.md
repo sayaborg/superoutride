@@ -1342,7 +1342,8 @@ yaw rate it inverts through is scaled by the front tire's effective load factor,
 `leastFrontLoadFactor`, 0.25).
 
 The capacity correction `c`, one per driven vehicle in [0.85, 1], starts at 1 and multiplies the utilization the plan
-uses: when either axle's tire utilization observation stays at 1 (within `saturation`, 1e-6, of rounding) for longer
+uses: when either axle's tire utilization observation stays at 1, at or past the tire law's peak (within
+`saturation`, 1e-6, of rounding), for longer
 than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1 at 0.01 per second. The plan reads it in steps of 0.01. It is the only adaptation.
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
