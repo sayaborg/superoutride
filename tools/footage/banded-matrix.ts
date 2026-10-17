@@ -1,5 +1,5 @@
 /** A symmetric positive definite banded matrix: normal equations whose unknowns couple only within `width` of each other. */
-export class BandMatrix {
+export class BandedMatrix {
   /** Row `i`, diagonal offset `k` (0 ≤ k ≤ width) holds entry `(i, i − k)`. */
   readonly entries: Float64Array;
   readonly rhs: Float64Array;
@@ -16,7 +16,7 @@ export class BandMatrix {
   add(i: number, j: number, value: number): void {
     const [row, column] = i >= j ? [i, j] : [j, i];
     const k = row - column;
-    if (k > this.width) throw new RangeError(`Entry (${i}, ${j}) outside the band`);
+    if (k > this.width) throw new RangeError(`Entry (${i}, ${j}) lies beyond the matrix's width`);
     this.entries[row * (this.width + 1) + k] = this.entries[row * (this.width + 1) + k]! + value;
   }
 

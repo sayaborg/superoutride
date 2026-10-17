@@ -1,7 +1,7 @@
 import type { FrameFeatures } from './features.js';
 import type { FootageCamera } from './footage-model.js';
 import { displayedSpeeds, frameMarks, travelled } from './calibrate.js';
-import { BandMatrix } from './band.js';
+import { BandedMatrix } from './banded-matrix.js';
 import { median, robustCentre } from './statistics.js';
 
 /**
@@ -431,8 +431,8 @@ function frameNormals(frame: FramePoints, model: ReturnType<typeof frameModel>) 
 
 /**
  * One Gauss–Newton step at the current estimate: the counted points' equations linearized in `H`'s nodes, each frame's
- * `θ` and its marks' `l` (the integrals taken metre by metre), the frame unknowns eliminated frame by frame, the band
- * in `H` solved, and the frame unknowns' steps recovered.
+ * `θ` and its marks' `l` (the integrals taken metre by metre), the frame unknowns eliminated frame by frame, the banded
+ * equations in `H` solved, and the frame unknowns' steps recovered.
  */
 function gaussNewtonStep(
   frames: readonly FramePoints[],
@@ -446,7 +446,7 @@ function gaussNewtonStep(
 ) {
   const { heading, thetas, laterals } = estimate;
   const nodes = heading.length;
-  const normal = new BandMatrix(nodes, width);
+  const normal = new BandedMatrix(nodes, width);
   const eliminations = frames.map((frame, t) => {
     const window = windows[t];
     if (!window) return null;
