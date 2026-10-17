@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 8,
+  "selectionOrder": 10,
   "visuals": {
     "spriteSet": "fxrt-sport-glide",
     "palette": "black",

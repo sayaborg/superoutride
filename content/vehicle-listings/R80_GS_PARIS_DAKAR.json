@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 7,
+  "selectionOrder": 9,
   "visuals": {
     "spriteSet": "r80-gs-paris-dakar",
     "palette": "yellow",

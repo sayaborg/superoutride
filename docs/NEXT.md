@@ -130,7 +130,7 @@
   load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
 
 Next PR: [VC-5e](#stage-vc--courses-from-footage), [TP-3](#stage-tp--tire-puffs) and
-[DT-2](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
+[DT-2b](#stage-dt--drift-tuned-trial-vehicles), then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -223,9 +223,24 @@ K's decisions for the stage:
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
   October 1985 – April 1989, 13B turbo, 5MT).
 
-- DT-2: S13 and AE86 DRIFT TUNED in the catalog, with the drift tire and `wheelSlip` off, borrowing GOLF GTI 16V's
-  pictures and the DELTA HF INTEGRALE and GOLF GTI 16V engine sounds until their own GLB pictures and exhausts are made;
-  checked with FREE PLAY rivals, traffic and the takeover after GOAL (braking without ABS).
+- Planned drivers always drive with wheel slip protection (TCS, MSR and ABS act on the engine's effective opening and
+  the pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's `wheelSlip` holds while the
+  player's input reaches it. Physics is the same for the player and the AI. A drifting AI is not made now.
+
+S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
+in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX and GY in DEV and
+adopting the exported mechanics document. Until their own pictures and exhausts are made, they borrow:
+
+- Pictures: GOLF GTI 16V's set. Their own come from GLB models, with their own exhausts at the same time. The color
+  names stand for the real paints, the borrowed pictures' colors do not match them: S13 CRANBERRY RED, WARM WHITE,
+  BLUISH SILVER and LIME GREEN (the two-tones named without "two-tone"); AE86 HIGH FLASH, HIGH TECH, HIGH METAL and
+  PENDING. AE86's fourth color awaits K: the early GT-APEX may have had only the three two-tones.
+- Engine sounds: S13 DELTA HF INTEGRALE's (inline four, turbocharged), AE86 GOLF GTI 16V's (inline four, 16 valves)
+  ([exhausts](calibration.md#exhaust-topologies)).
+
+- DT-2b: the driver's rule decides wheel slip protection, as it decides steering: the player's input drives with the
+  vehicle's `wheelSlip` (else the game-wide default), every planned driver with protection on. Until then planned
+  drivers spin DRIFT TUNED vehicles (an S13 rival spins and does not finish on OUTRUN TRIAL A STEEP, seed 9).
 - DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (a rotary engine kind: the 2-stroke volume
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.

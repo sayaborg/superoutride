@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 7,
+  "visuals": {
+    "spriteSet": "golf-gti-16v",
+    "palette": "red",
+    "steeringPicture": "mod02",
+    "colorNames": { "red": "HIGH FLASH", "white": "HIGH TECH", "silver": "HIGH METAL", "black": "PENDING" }
+  },
+  "sound": "GOLF_GTI_16V",
+  "metadata": {
+    "manufacturer": "Toyota",
+    "model": "Corolla Levin",
+    "period": "1983-1985",
+    "mobileLabel": "AE86",
+    "engine": "I4",
+    "identifier": { "officialLabel": "AE86", "shortLabel": "AE86" },
+    "selectedSpecification": ["GT-APEX", "3-door", "DRIFT TUNED"],
+    "physicsAnchor": { "modelYear": "1983", "market": "Japan" }
+  }
+}

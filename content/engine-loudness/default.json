@@ -35,6 +35,18 @@
       "lufs": -18.148500106172808
     },
     {
+      "vehicleId": "S13_DRIFT_TUNED",
+      "vehicleSha256": "f51142969309d084c7e1b6160025d30f9389a2aed11d52e996264f93d0b83eae",
+      "soundSha256": "f1fdc5171ee4af0687d885b11030a5dc1c734443502dd72cdab89ffe45e2c909",
+      "lufs": -18.89382109700604
+    },
+    {
+      "vehicleId": "AE86_DRIFT_TUNED",
+      "vehicleSha256": "2e1a078311ada3d1dfc85a13d605e3ebd220350247035888a72f0afd799cc6af",
+      "soundSha256": "9dfc89d322dec643ad9daf3651c38abb605dddcabba5f45aa584f0b112db18a4",
+      "lufs": -18.702296010786913
+    },
+    {
       "vehicleId": "VFR750R",
       "vehicleSha256": "89a123ea10b2a591349a8769cebaaafb8a78bfc6f6e59bad71fb29ec98371af3",
       "soundSha256": "b2bf0f54d60b73672339edd45954c914daa7adb1ff0601eeb7ef7903f2332213",

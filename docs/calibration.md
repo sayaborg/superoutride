@@ -167,7 +167,10 @@ screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 
 The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
 are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
-in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)); no delivered vehicle gives either yet. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
+in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED
+and AE86_DRIFT_TUNED) give both: `wheelSlip` off and one drift tire (GX=1.1, PX=0.1, GY=1.1, PY=0.1, KN=0.74,
+LS=0.15, so `kX = kY ≈ 13.9`); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
+the 75 kg occupant to the notified weight, which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.
 
 Mass (kg) and CG height (m) describe one running rigid body including a 75 kg occupant and fuel.
@@ -190,6 +193,8 @@ sources agree on. A two-wheeler's tracks are 0, its wheels in one line. Physics 
 | FXRT_SPORT_GLIDE   | 0           | 0          | Single track                                                                                                                              |
 | R80_GS_PARIS_DAKAR | 0           | 0          | Single track                                                                                                                              |
 | PX200E_ARCOBALENO  | 0           | 0          | Single track                                                                                                                              |
+| S13_DRIFT_TUNED    | 1.465 m     | 1.460 m    | DT-2's value table (Silvia K's, early, 5MT)                                                                                               |
+| AE86_DRIFT_TUNED   | 1.355 m     | 1.345 m    | DT-2's value table (Levin 3-door GT-APEX, early)                                                                                          |
 
 Each torque curve has five points of RPM and torque in N m, joined linearly: A at idle; B, the knee between A and
 C where the slope changes markedly; C, the maximum torque; D, the maximum power; and E at redline. C and D are the
@@ -212,6 +217,8 @@ ratio is the geometric ratio from references; physics does not read it, and the 
 | FXRT_SPORT_GLIDE   | 8.5               |
 | R80_GS_PARIS_DAKAR | 8.2               |
 | PX200E_ARCOBALENO  | 9.8               |
+| S13_DRIFT_TUNED    | 8.5               |
+| AE86_DRIFT_TUNED   | 9.4               |
 
 ## Exhaust topologies
 
@@ -235,6 +242,8 @@ wastegates are not represented. DEV's ENGINE SOUNDS panel changes the lengths an
 | FXRT_SPORT_GLIDE   | front and rear head pipes, a crossover, two stacked mufflers with their own outlets                     | 2 × 0.415–0.865 × 41  | crossover 0.10 × 35; 2 × 0.70 × 41; 2 × 0.10 × 35                                                            | 40.9, 0.386       | head pipe size, valve diameter and lift                |
 | R80_GS_PARIS_DAKAR | headers through the collector box, a link pipe, the single high silencer                                | 2 × 0.90–0.92 × 34    | box 0.20 × 34; link 1.00 × 36; outlet 0.10 × 30                                                              | 37.8, 0.428       | header size, valve diameter, cam duration and lift     |
 | PX200E_ARCOBALENO  | port through the cylinder duct, downpipe and box to the small tailpipe                                  | 1 × 0.765 × 33        | tailpipe 0.12 × 18                                                                                           | 29.0, 0.450       | port open duration                                     |
+| S13_DRIFT_TUNED    | borrowed: DELTA_HF_INTEGRALE's engine sound, until its own exhaust is made with its GLB pictures        | —                     | —                                                                                                            | —                 | —                                                      |
+| AE86_DRIFT_TUNED   | borrowed: GOLF_GTI_16V's engine sound, until its own exhaust is made with its GLB pictures              | —                     | —                                                                                                            | —                 | —                                                      |
 
 ## Engine sound settings
 

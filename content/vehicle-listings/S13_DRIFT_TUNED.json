@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 6,
+  "visuals": {
+    "spriteSet": "golf-gti-16v",
+    "palette": "red",
+    "steeringPicture": "mod02",
+    "colorNames": { "red": "CRANBERRY RED", "white": "WARM WHITE", "silver": "BLUISH SILVER", "black": "LIME GREEN" }
+  },
+  "sound": "DELTA_HF_INTEGRALE",
+  "metadata": {
+    "manufacturer": "Nissan",
+    "model": "Silvia",
+    "period": "1988-1991",
+    "mobileLabel": "S13",
+    "engine": "I4T",
+    "identifier": { "officialLabel": "S13", "shortLabel": "S13" },
+    "selectedSpecification": ["K's", "CA18DET", "DRIFT TUNED"],
+    "physicsAnchor": { "modelYear": "1988", "market": "Japan" }
+  }
+}

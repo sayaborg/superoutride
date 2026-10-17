@@ -303,7 +303,7 @@ The lower row, from the left:
   an unused leading digit shows all its segments unlit, and unlit segments are a dark trace of the lit color.
 - **Steering:** a picture of the vehicle's steering wheel (a bike's top bridge), 48 pixels square, turned as the front
   wheel actually is: its listing names the picture (montecarlo for TESTAROSSA and CORVETTE C4, prototipo for 911
-  TURBO 3.3 and DELTA HF INTEGRALE, mod02 for GOLF GTI 16V, top-bridge for the bikes). Under it a white bar grows from
+  TURBO 3.3 and DELTA HF INTEGRALE, mod02 for GOLF GTI 16V and the DRIFT TUNED cars, top-bridge for the bikes). Under it a white bar grows from
   its centre toward the side of the steering actuator, so a key's input grows to full and an analog one follows it.
 - **Tachometer:** 26 italic bars, 2 pixels wide, rising in a quadratic curve from 4 to 24 pixels, from 0 to 110 % of
   the redline; a bar lights once the engine reaches its speed and stays dark otherwise. Bars are green, yellow for the 4
