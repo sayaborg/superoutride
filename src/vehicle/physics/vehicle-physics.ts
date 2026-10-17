@@ -379,7 +379,7 @@ export function updateVehicle(
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       vehicle.control.frontBrakeApplied = appliedShare(resolved.frontInput.brakeTorque, frontRequest.brakeTorque);
       vehicle.control.rearBrakeApplied = appliedShare(resolved.rearInput.brakeTorque, rearRequest.brakeTorque);
-      recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
+      recordVehicleTireObservation(vehicle.tires, model.tire.rhoKnee, front, frontWheel, rear, rearWheel);
     }
   }
   const velocityDelta = workspace.velocityDelta;

@@ -604,12 +604,24 @@ are chosen by the body's yaw as seen along the direction of view ([Architecture]
 
 Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
 substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and
-lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power, the utilization (the
-tire force's fraction of its friction ellipse, `hypot(fx/capacityX, fy/capacityY)`, 1 on the plateau) and the surface
-material ID, all zero (surface null) when the contact transmits no force or has no valid tire frame, and the
+lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power, the sliding power, the
+utilization (the tire force's fraction of its friction ellipse, `hypot(fx/capacityX, fy/capacityY)`, 1 on the plateau)
+and the surface material ID, all zero (surface null) when the contact transmits no force or has no valid tire frame, and the
 contact normal load in every case. Spawn starts every value at zero; recovery initializes the loads to the
 static axle loads and every other value to zero. Graphics, HUD and sound consume
 mechanical observations without contributing forces or alternate mechanical state.
+
+The sliding power `slidingPower` is the slip power beyond the start of the [tire law](#tire-law)'s plateau:
+
+```text
+slidingPower = (longitudinalPower + lateralPower) * max(0, 1 - (2-KN)/rho)
+```
+
+It is what the dissipation would lose were the slip brought back along its own direction to the plateau's start
+(`rho = 2-KN`): zero before the plateau and at its start, where the torque protections hold a tire, and approaching the
+whole slip power as the slip grows. It reads the accepted solve's `rho` rather than the utilization, whose `hypot`
+need not reach exactly 1 where a protection holds the tire. Physics does not read it; the competitor observations copy
+it with the other tire observations.
 
 ## Material, vehicle and driving documents
 

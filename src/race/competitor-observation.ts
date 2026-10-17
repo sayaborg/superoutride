@@ -76,6 +76,7 @@ export function createCompetitorObservation(
     load: 0,
     longitudinalPower: 0,
     lateralPower: 0,
+    slidingPower: 0,
     utilization: 0,
     surface: null,
   });

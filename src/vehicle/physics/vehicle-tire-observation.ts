@@ -13,6 +13,12 @@ export interface TireObservation {
   /** Dissipated longitudinal/lateral slip power in watts, from the accepted tire solve. */
   readonly longitudinalPower: number;
   readonly lateralPower: number;
+  /**
+   * The slip power beyond the start of the tire law's plateau (W): the total slip power times
+   * `max(0, 1 - (2 - KN) / rho)`, the share the dissipation would lose were the slip brought back along its own
+   * direction to the plateau's start. Zero before the plateau and at its start.
+   */
+  readonly slidingPower: number;
   /** The tire force's fraction of its friction ellipse, `hypot(fx/capacityX, fy/capacityY)`: 1 when saturated. */
   readonly utilization: number;
   readonly surface: string | null;
@@ -34,6 +40,7 @@ export function createVehicleTireObservation(): VehicleTireObservation {
     load: 0,
     longitudinalPower: 0,
     lateralPower: 0,
+    slidingPower: 0,
     utilization: 0,
     surface: null,
   });
@@ -58,23 +65,28 @@ function initialize(tire: MutableTire, load: number): void {
   tire.load = load;
   tire.longitudinalPower = 0;
   tire.lateralPower = 0;
+  tire.slidingPower = 0;
   tire.utilization = 0;
   tire.surface = null;
 }
 
-/** Record the accepted final wheel result, never trial solves or reconstructed physics. */
+/**
+ * Record the accepted final wheel result, never trial solves or reconstructed physics; `rhoKnee` is the tire law's knee
+ * start `KN`, whose plateau begins at `2 - KN`.
+ */
 export function recordVehicleTireObservation(
   tires: VehicleTireObservation,
+  rhoKnee: number,
   front: ContactObservation,
   frontWheel: WheelSolveResult,
   rear: ContactObservation,
   rearWheel: WheelSolveResult,
 ): void {
-  record(tires.front as MutableTire, front, frontWheel);
-  record(tires.rear as MutableTire, rear, rearWheel);
+  record(tires.front as MutableTire, front, frontWheel, rhoKnee);
+  record(tires.rear as MutableTire, rear, rearWheel, rhoKnee);
 }
 
-function record(result: MutableTire, contact: ContactObservation, wheel: WheelSolveResult): void {
+function record(result: MutableTire, contact: ContactObservation, wheel: WheelSolveResult, rhoKnee: number): void {
   const loaded = contact.forceTransmitting && contact.tireFrameValid;
   result.longitudinalVelocity = loaded ? contact.longitudinalVelocity : 0;
   result.lateralVelocity = loaded ? contact.lateralVelocity : 0;
@@ -84,7 +96,9 @@ function record(result: MutableTire, contact: ContactObservation, wheel: WheelSo
   // sx/sy use the force direction convention, so these products are nonnegative.
   result.longitudinalPower = loaded ? Math.max(0, wheel.tire.fx * wheel.tire.sx * wheel.tire.referenceSpeed) : 0;
   result.lateralPower = loaded ? Math.max(0, wheel.tire.fy * wheel.tire.sy * wheel.tire.referenceSpeed) : 0;
-  const { fx, fy, capacityX, capacityY } = wheel.tire;
+  const { fx, fy, capacityX, capacityY, rho } = wheel.tire;
+  const beyond = rho > 0 ? Math.max(0, 1 - (2 - rhoKnee) / rho) : 0;
+  result.slidingPower = (result.longitudinalPower + result.lateralPower) * beyond;
   result.utilization = loaded && capacityX > 0 && capacityY > 0 ? Math.hypot(fx / capacityX, fy / capacityY) : 0;
   result.surface = loaded ? (contact.surface.material?.id ?? null) : null;
 }
