@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-1](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -146,73 +146,152 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage VC — Courses from footage
 
-Stage VC builds the footage tool ([Courses from footage](footage.md)) and proves it on fake footage of OUTRUN TEST
-against known truth. Afterwards, each time K supplies videos of an original's course, the implementer raises the course
-by the [procedure](footage.md#procedure) alone. It ends before Stage 16 produces the OUTRUN, SUPER HANG-ON and CHASE H.Q.
-courses, and it raises none of them itself.
+K stopped Stage VC on 2026-10-18: OUTRUN's courses are raised from the original's road data
+([Stage RD](#stage-rd--outrun-from-the-originals-road-data)). The footage tool stays as built; its ingest, speed
+readout and `drive` serve Stage RD's checks on K's video.
 
-K decided it runs in parallel with other stages, in its own sessions and branches. It touches the tools, the
-specifications and, where replay needs it, a generalization of the renderer (a frame size or pose as an argument, never a
-branch for an original); never audio, vehicles or physics, so it shares only NEXT, the specification index and
-Development with other work: when main moves, the branch is brought up to it and validated again before main is
-fast-forwarded.
+## Stage RD — OUTRUN from the original's road data
 
-Rules of the stage: the trial courses (OUTRUN TRIAL A and A STEEP) and the driving scenarios do not change; reference
-driving is not fitted to an original's times. The tool is kept simple so that real footage passes early: what a person
-sees in frames (color roles, the HUD, masks, the gauge, the pitch rule, the draw distance) is written in the footage
-model, and the tool's own judgement of it only checks it and reports a disagreement; thresholds inside the tool are
-named defaults (the rule against constants without a basis stays the product code's); the background never shapes the
-course. Development checks run on one stage of the fake videos; the full round trip runs once, in VC-9. Each PR
-proceeds without waiting for approval and stops at the [stopping conditions](footage.md#stopping-conditions).
+OUTRUN's courses are raised from the road data in the original's program ROMs (MAME's `outrun`, Rev. B, every CRC
+matching); K's video `k1` of COCONUT BEACH only calibrates and checks. The constants are one set for the game, fixed on
+`k1`; other stages need no video. The hills are the original's: the profile matches the road's top on the original's
+screen (`c_look`, below), and a car leaving the road at a crest is not suppressed. The course documents and outline
+boards raised from the ROMs are committed and delivered as product.
 
-- VC-T: a trial on OUTRUN's first stage (COCONUT BEACH), on K's video, before VC-5e2c. Ingest, census, features,
-  calibrate and solve (plan, and the profile as far as it then goes), video by video, on the stretch of the stage where
-  the player drives, which the implementer marks in the capture values with the start's and checkpoints' times where
-  they show. The implementer writes what a person writes (color roles, HUD templates and timing events, masks, the
-  gauge TESTAROSSA, the pitch rule, the draw distance, the edition where known) in a provisional footage model, made
-  again from every video when a second arrives and not frozen until then. Faults a generalization of the tool fixes are
-  fixed; a matter of course is reported with numbers and product-side diagrams, and the work stops.
-  - Done on K's video `k1` (1440×1080, 60 fps, 65 s): ingest finds the whole 320×224 frame (VC-T1); the speed is read
-    though the HUD is drawn over the picture (VC-T2); the stretch from GO (4.55 s) to the fork's beginning (53.33 s) is
-    marked (VC-T3); the provisional footage model and the speed templates are in `reference-media/outrun/`.
-  - Stopped at calibration, for K to decide. The video was scaled smoothly (`onGrid` 0.40 on both axes), and the road's
-    light and dark colors are one RGB555 step apart (`8c8c8c`, `949494`), so each row where the stripes change is a
-    blend of the two and reads as no known color. `K` moved from 748 ± 8 to 1194 ± 19 when the player's column moved
-    by 4 px, and the player's picture joins such rows to its mask's edges (its width is the mask's, 100–104 px), so
-    `f`, `h` and `D′` are not measured; the plan under `road` does not converge (112 rounds). The ways on: a video
-    scaled by nearest pixels; or stripe edges and the player's picture read from luma changes rather than from color
-    classes, a generalization of the tool.
-- VC-5e2c: the hills in the initial estimate, as far as the footage shows them: `roadTop` as a profile observation
-  where a crest cuts the road off: the row of the point where the line of sight touches the road, entered through its
-  derivative there (the envelope theorem), only where the ground or background lies above it and no picture or other
-  road hides it, and never where the road reaches the draw distance, which a person writes in the footage model
-  (checked against `roadTop` on level straights). Its report, on one stage of each fake video: the profile's vertical
-  curvature error per 50 m window (median), the crests' and jump's place errors, the pitch rule's check; on `hills`,
-  the inconsistency amount rising over the corrupted stretches and nowhere else; the plan no worse than VC-5e's (20 m
-  windows' median).
-- VC-5e2d: the grades' weight and the pitch check count the readings the fit with every height free counts. The plan
-  alone leaves out, as outliers, the readings a level road cannot fit, so it fits the rest at their noise level: under
-  `road` the grades take the heaviest weight on COASTLINE and FARMLAND (`a`, `c`) and the profile stays level, and on
-  the `level` video's COASTLINE the check finds no grade and takes `road`, while the fit under `level` recovers the
-  hills (the hill windows' vertical curvature error 1.7e-5 against the truth's 6.4e-5).
-- VC-5h: the course document: widths and lanes, start, fork beginnings, checkpoints and goals, the partition, and several
-  videos together: their [alignment](footage.md#several-videos-of-one-course) and one solve over all of them. On fake
-  footage, feature sequences are cut to begin and end mid-course (the videos are not made again); with two or more of
-  K's videos, the alignment is checked on them too.
-- VC-6: appearance: Strips, color changes, materials and environment knots.
-- VC-7: sprites: tracking, place and size, kinds and rows, outline boards and their placement, the outline taken from the
-  nearest frame that shows the thing unhidden. Refining over several frames, and finding pictures that change with
-  distance, animation and mirroring, only where the implementer sees in frames that a kind needs it. The gauge's check on
-  traffic pictures stays.
-- VC-8: replay and the comparison (`replay`): each video replayed beside the original, and a map of the residuals along
-  `s`, per cue (lines, stripe edges, `roadTop`) and octave of depth. The implementer corrects the course with the course
-  commands and the partition, until the residuals are within the noise level or explained as the original's lies; no
-  optimization through the renderer, no leave one out.
-- VC-9: the full round trip (`roundtrip`) once: `a`, `b` and `c` (60 and 30 fps, compressed), `player` and `level`
-  pass; `hills` and `background` are reported only. What is no longer used (the background's rules and their record, the
-  frame measurement tool `tools/course/measure.ts` and its formats `superoutride.frame-measurement` and
-  `superoutride.course-observations`) is deleted in a PR of deletions alone; whether the background's shift leaves the
-  features is the implementer's call, weighed against measuring again.
+Rules of the stage:
+
+- The ROMs and any raw data taken from them stay out of Git, PR bodies and PR images: K's zip lies in
+  `reference-media/outrun/rom/`, the tool's dumps in `reference-media/outrun/rom-data/`.
+- No code of Cannonball (non-commercial licence) or LayOut (no licence) is copied or ported; the formats are read by
+  this project's own code from this stage's description and the ROMs themselves.
+- CI has no ROM, so the conversion's results are committed as course documents and images. The conversion is
+  deterministic: a command rebuilds them from the ROMs locally and checks that they equal the committed ones. The
+  specification records the ROMs' CRCs and the conversion's version.
+- Each PR proceeds without waiting for approval and stops where the ROM disagrees with this description (a stage's
+  length other than its table's, an unknown kind), where a check below fails and no conversion rule brings it within,
+  or where K must decide (a lateral scale that disagrees, a crest no rule fits).
+
+What a trial on K's ROMs and `k1` established:
+
+- Distance: one position is 2.003 m. Each 30 Hz tick the original adds the displayed km/h × 0x12F, 16.16 fixed point,
+  to its road position: 65536 / (3.6 × 30 × 303) = 2.0027 m. On `k1`, with GO at position 0, the displayed speed's
+  integral meets the profile's events within ±3 positions up to about position 600 (scale error under 1 %). Later it
+  lags by up to about 55 positions: on curves the original advances its position by `(R + car_x/40) / R`, so `k1` is
+  compared after re-timing to the ROM's events.
+- COCONUT BEACH (stage number 0x3C): 1948 positions, 19 curve segments, 4 width points, 5 height points, 89 scenery
+  points. The heading measured on the sub CPU's road path changes by 1/R per position on each segment (R 121 measures
+  122, 115 → 116, 104, 63, 60 exactly); kind 3 turns left, 2 right, 1 is straight (seen on `k1`). In all 15 stages the
+  heading sums to 0° or ±360° (COCONUT BEACH turns 360° left). `k1`'s background scroll turns when the ROM's heading
+  does.
+- The hills are built as shapes on the original's screen: the road's top row computed by the original's rule from the
+  ROM's height tables, with nothing fitted, falls on `k1`'s (rows 113, 122, 117, 101 and so on; tables 211, 134 and 213).
+- Colors: palette words converted to RGB555 give COCONUT BEACH's road 156/148 grey and its lines 247; `k1`'s colors are
+  about 4 % darker from its capture, so the ROM's are used.
+
+The ROMs' format (68000, big-endian words and longs; addresses within each CPU's assembled program):
+
+- Main CPU program: epr-10380b.133 even bytes and epr-10382b.118 odd bytes at 0x00000–0x1FFFF, epr-10381b.132 and
+  epr-10383b.117 likewise at 0x20000–0x3FFFF. Sub CPU program: epr-10327a.76 and epr-10329a.58 at 0x00000–0x1FFFF,
+  epr-10328a.75 and epr-10330a.57 at 0x20000–0x3FFFF.
+- Stage numbers (world edition): 1: 0x3C; 2: 0x1E, 0x3B; 3: 0x20, 0x2F, 0x2A; 4: 0x2D, 0x35, 0x33, 0x21; 5: 0x32, 0x23,
+  0x38, 0x22, 0x26. Which number lies past which fork, and the stages' names, are named only once the fork's handling or
+  a video shows them.
+- Main CPU, the long at 0xE528 + number × 4 points to a stage's block: +0 sky, +4 centre line, +8 lane lines, +12
+  edges, +16 road surface, +20 ground (colors' addresses), +24 curves, +28 widths and heights, +32 scenery (tables'
+  addresses). The centre line, lane lines, edges and surface are four palette words each (COCONUT BEACH's surface 156,
+  148, 156, 148; lanes 156, 247, 156, 247); which word is light or dark, and what the first and last pair tell apart,
+  are checked on `k1`. Whether the sky's and ground's words are colors or a color table's numbers is checked too.
+- Curves: {signed word position (−1 ends), word R, word kind}; kind 1 straight, 2 right, 3 left; R a radius in
+  positions.
+- Widths and heights: 8 bytes {position (0x7FFF ends), kind, value, signed speed}. Kind 0 is a height, its value a
+  height table's number; any other kind is a width, its value the target road width, which the road width approaches by
+  `speed × 16 / 303` units per position from 0x1C2 (450). A point acts when the road position reaches it (no look-ahead);
+  a height point reached while the previous height table is still running is dropped.
+- Scenery: 4 bytes {position (0x7FFF ends), u8 count, u8 type}. The type table at 0x1A43C holds longs pointing to
+  {word frequency, word last entry's offset} followed by 8-byte entries {flags (bit 0 mirrored, bit 1 shadow, bits 4–7
+  drawing), x (byte, × 16 road-width units; sign to check), y (word, × 128), unknown, kind (sprite number), unknown,
+  palette}. Each position has two slots at slightly different depths: per slot the frequency rotates left one bit, and a
+  1 shifted out places one entry and counts one down; entries are taken stepping the offset back by 8, wrapping to the
+  last entry below zero, until the count reaches 0.
+- Fork stretch: 0x1DFA4 holds {curves, widths and heights, scenery} addresses (no colors): straight 0–63, left R61
+  63–160, straight 160–265, right R61 265–362; its two roads part from position 63 by 8 units per position. Goal
+  stretches: 0xE514 holds five blocks' addresses (no colors).
+- Sub CPU, the long at 0x1224 + number × 4 points to a stage's road path: 0x904 positions of {signed word x, signed word
+  y}, heading vectors of length 4096 (a few points at segment joins differ in length, so only their direction is used).
+  Past 1948 it looks ahead into the fork. The fork stretch's path is at 0x3A33E, the goal stretches' at 0x3ACA0.
+- Sub CPU, the long at 0x220A + number × 4 points to a height table {u8 kind, u8 step, …}: kind 0 u8 descent factor,
+  u8 ascent factor, then signed words ending at −1; kinds 1 and 2 a word wait, then the words; kind 3 a word, then the
+  words; kind 4 a word, the new horizon value.
+- A palette word w is RGB555: R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1),
+  B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1), used as Strips' RGB555 as it is.
+
+The original's hills (kind 0 checked on `k1`): 512 road lines; level, each line's slope is 576 × 16 (the horizon base
+0x240), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1` 151.4). With the current entry `i` and the share
+`f` of it passed:
+
+1. Segment lengths, near to far: s0 = 255(1 − f), s1 = (256 + 255f)/2, and the rest R = 512 − s0 − s1 halved in turn:
+   s2 = R/2, s3 = R/4, s4 = R/8, s5 = R/16, s6 = R/16.
+2. Slopes: segment 0 the base; segment 1 the base + 16·e[i]·(1 − f); segment k ≥ 2 segment k − 1's + 16·e[i + k − 1].
+3. Summing slope × length from near to far, each line's row is 223 − sum / 65536; the visible top is the least row.
+
+An entry spans 2.125 × step × m positions, m the ascent factor where e > 0, the descent factor where e < 0, 1 where
+e = 0. A table ends when e[i + 6] is its end mark. Kinds 1 and 2 rise (2.125 × step), hold and return (2.125 × step);
+the hold counts its wait down by the whole part of `120 × positions advanced / step` each tick, so it lasts longer the
+slower the car. Kinds 3 and 4 follow the same idea. Kind 1 is checked on COCONUT BEACH's table 32 (position 1600), a
+dip, on `k1`.
+
+Conversion to a course document:
+
+- Plan: a stage is one Section, its curve segments Straights and Arcs, each position 2.003 m long; an Arc's radius is
+  its length over the heading change measured on the sub CPU's path over the segment, its side its kind. A stage's
+  heading sums to 0° or ±360°.
+- Profile: each nonzero entry `k` of a kind 0 table changes the grade by Δg = c_h × e_k / 576, over a vertical curve as
+  long as the entry, ending where the camera passes the entry: the table's start plus entries 0 to k's lengths. Runs of
+  one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade: the original's camera follows the
+  road, so a constant grade looks level; this is the original's and is not cancelled. `c_h` is `c_look`, one value for
+  the game: the least squares match, over the stage, of the road's top in this game's drawing to the original's (the
+  original's hills above), compared as angles from the horizon (rows over focal length) whatever the screen's size. Each crest's
+  difference of top rows is reported, and a rule (a value per height table kind) is proposed and the work stops where a
+  crest differs by more than ±3 rows; each crest's load at 293 km/h is reported, and `c_h` is not lowered where a car
+  leaves the road.
+- Widths and lanes: the original draws two roads centred at ±road width (units), each of three lanes with edges ±236
+  units from its centre. A car leaves the road with one wheel past 212 and two past 260, so 48 units are its track,
+  checked on `k1`. The road width is a polyline approaching each target at its point's rate. While the roads are apart,
+  the median is 2 × road width − 472 units; where they overlap, the outer edges ±(road width + 236) are kept and inner
+  lanes narrow to 0, six lanes becoming three (which lanes is the implementer's choice, stated in the PR). Units become
+  metres by `s_lat`, from the gauge TESTAROSSA: on `k1`'s level straights the player picture's width against the road's
+  on its row. Where a 48-unit track and TESTAROSSA's differ by more than 10 %, the work stops for K.
+- Strips: the surface, centre line, lane lines and edges take the palette's light and dark colors as they are; their
+  period is measured on `k1` by counting stripes passing against s(t). The sky's and ground's colors become the
+  environment's.
+- Start, forks and checkpoints: the road position at GO is 0, the start line's place is checked on `k1`. The fork
+  begins at 1948 and its stretch is 384 positions, its roads parting from the stretch's 63. A checkpoint ends the fork
+  stretch (the next stage's 0).
+
+Checks on `k1`: s(t) is the displayed speed's integral re-timed monotonically to the ROM's events (the background's
+turns beginning and ending, the road top's peaks). Within: curve beginnings and ends ±2 positions; the road top's peaks
+±3 positions in time and ±3 rows; the road's edges on the row behind the car ±3 px once `s_lat` is set. A side-by-side
+every 50 positions (this game's drawing at `k1`'s s(t) and lateral, the car's offset from the road's centre on its row,
+the original's road position as the camera's s, beside `k1`'s frame) is made for K in `reference-media/`, never
+committed. No residual map and no optimization through the renderer.
+
+- RD-1: reading. A command checks the ROM zip's CRCs, reads it and writes every stage's, the fork's and the goals'
+  tables as JSON to `reference-media/outrun/rom-data/`; unit tests on hand-made bytes. On K's ROMs locally: COCONUT
+  BEACH's 19 curves, 4 widths, 5 heights, 89 scenery points, each segment's radius, table 211's entries
+  [0 ×6, 576, 576, −576 ×3, 0 ×6] and so on; in every stage the path's heading sums to 0° or ±360°. The format and
+  addresses move from here to an English specification (`docs/original-road-data.md`).
+- RD-2: the original's hills, kinds 0 to 4, checked against `k1`'s road top.
+- RD-3: COCONUT BEACH, one Section from the start to 1948, by the conversion, in `content/` named by
+  [product.md](product.md)'s rules; `c_look` fixed, built, driven with `drive` and checked. Reference driving and time
+  limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.
+- RD-4: scenery. Outlines (non-transparent pixels) from the sprite ROMs as outline boards of one color (the palette's
+  representative) in `content/images/`, placed at 40 texels/m; the sprite pixels' size in metres from one scenery object
+  measured on `k1`; placement by the scenery rule. Which kinds are solid (body) is proposed per kind for K to decide.
+- RD-5: all of OUTRUN: the 15 stages, the fork stretches and the 5 goals as Sections and Links with the forks' rules
+  (locks and closures). Stage 16's OUTRUN courses use it.
+
+SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
+addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
@@ -352,11 +431,11 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | BIG RUN        | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                               |
 | RALLY STAGE    | Provisional courses: FOREST (tarmac, gravel, tarmac, gravel), MOUNTAIN (narrow tarmac, gravel climb, mountain tarmac), COAST (fast tarmac, dirt, wet tarmac), WINTER (tarmac, snow, packed snow, tarmac). Vehicle years, valve variants and Group A references are open.                                                                                                             |
 
-### Courses from footage
+### Courses of the originals
 
-The OUTRUN, SUPER HANG-ON and CHASE H.Q. courses are raised from K's videos by the
-[footage procedure](footage.md#procedure), two or more videos per course, once Stage VC is complete. Each course's
-footage observations and report go with it; its time limits come from reference driving, as for every course.
+OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
+SUPER HANG-ON's are raised with the same tool once K supplies its ROMs. How CHASE H.Q.'s are raised, K decides then.
+Their time limits come from reference driving, as for every course.
 
 ### Inspection and art
 

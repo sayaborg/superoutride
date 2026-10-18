@@ -457,10 +457,8 @@ replaced by another image of the same name and size and made by the sprite comma
 
 The footage tool raises a course from videos of an original game ([Courses from footage](footage.md)). It runs as
 `npm run footage -- <command>` and needs ffmpeg and ffprobe on the path. It reads videos and writes frames, features,
-evidence and side-by-sides under `reference-media/`, which Git ignores; it commits numbers alone, under
-`content/footage/`, besides the course document and the outline boards (their sprite sources and course images). Stage
-VC adds these commands one PR at a time ([NEXT](NEXT.md#stage-vc--courses-from-footage) lists those still to come);
-each takes `--out`, a root in place of `reference-media/`:
+evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC stopped with these commands built
+([NEXT](NEXT.md#stage-vc--courses-from-footage)); each takes `--out`, a root in place of `reference-media/`:
 
 | Command     | Purpose                                                                                                                                                                                 |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -471,9 +469,7 @@ each takes `--out`, a root in place of `reference-media/`:
 | `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                                                      |
 | `noise`     | For fake footage: each feature's capture noise, the video's frames against the exact ones (`fake --exact`)                                                                              |
 | `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                                                         |
-| `solve`     | Initial estimate, landmarks, partition, appearance and sprites, then the replay comparison over every video                                                                             |
-| `replay`    | Draw a video's replay and its side-by-side with the video                                                                                                                               |
-| `roundtrip` | Run the whole procedure on fake footage and compare every result with its truth                                                                                                         |
+| `solve`     | Each video's plan and profile under the footage model's pitch rule, and the rows' check of that rule                                                                                    |
 
 ### Skies command
 

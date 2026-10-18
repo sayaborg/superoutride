@@ -4,9 +4,9 @@ A course of an original game is raised from videos of it being played. The foota
 one course that, drawn by this game's own scene and renderer from the original's camera, looks as close to the
 original's frames as one consistent course can, and writes it as a course document with its Strips and course-fixed
 sprites. This document owns the footage model, the footage features, the footage observations (sprites included), the
-procedure, the replay comparison and the round-trip test. Stage VC builds the tool
-([NEXT](NEXT.md#stage-vc--courses-from-footage) lists which parts exist); [Development](development.md#footage-commands)
-lists its commands.
+procedure, the replay comparison and the round-trip test. Stage VC stopped on 2026-10-18 with the tool built through the
+plan and profile ([NEXT](NEXT.md#stage-vc--courses-from-footage)); the rest stands as specified and is not scheduled.
+[Development](development.md#footage-commands) lists the commands built.
 
 The original is not assumed to draw a consistent world. What a consistent course cannot explain is the original's
 inconsistency: it is measured and reported, never drawn. Nothing here changes how the product draws, drives or sounds;
