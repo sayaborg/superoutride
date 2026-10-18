@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-5d](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-5e](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -223,8 +223,8 @@ The stage's PRs left:
   over 200 % on other stages; held shapes stop at the steepest slid grade; each stage closes level at height 0. K also
   reviews RD-5c's fork: its lock stands on a 2-position straight the original has not, the stage names were matched
   to the table by their scenery, and the roads beyond a fork's Section are not checked against the stage's crossings.
-  - RD-5d: the scenery of every stage and the strips (drawings 1, 3, 10 and 11); the standalone
-    COCONUT BEACH course is removed once OUTRUN replaces it.
+  - RD-5e: the strips (drawings 1, 3, 10 and 11) as ground or a limit.
+  - RD-5f: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
 addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).

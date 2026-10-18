@@ -220,6 +220,10 @@ try {
         overallWidth: number;
       };
       const courses = [];
+      // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
+      // f × s_lat × 512 / L metres, a road position.
+      const startDepth = (line: number) =>
+        (CAMERA_DEFINITION.focalLength * lateralScale(vehicle.overallWidth) * 512) / line / stationOf(1);
       // A course document normalized and read, written to content or with `--check` compared with the one there.
       const save = async (id: string, document: unknown) => {
         const file = `content/courses/${id}.course.json`;
@@ -253,10 +257,7 @@ try {
                 kmh: TOP_KMH,
                 start: course.start,
                 width,
-                // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
-                // f × s_lat × 512 / L metres.
-                startDepth: (line) =>
-                  (CAMERA_DEFINITION.focalLength * lateralScale(vehicle.overallWidth) * 512) / line / stationOf(1),
+                startDepth,
               },
             ).placements,
         });
@@ -296,6 +297,18 @@ try {
         cameraDistance: cameraDistance(CAMERA_DEFINITION),
         kmh: TOP_KMH,
         sky: OUTRUN_COURSES[0].sky,
+        objects: (stage, width, end) =>
+          stageObjects(
+            programs.main,
+            stage.scenery.filter((p) => p.position < length),
+            {
+              end,
+              kmh: TOP_KMH,
+              start: stage.number === OUTRUN_STAGES[0]![0],
+              width,
+              startDepth,
+            },
+          ).placements,
       });
       const file = await save('outrun', outrun.document);
       const stops = (p: number) => round1(stationOf(p));
@@ -403,8 +416,8 @@ try {
       break;
     }
     case 'boards': {
-      // The outline boards of every sprite the courses' stages show, written to content, or with `--check` compared
-      // with the ones there.
+      // The outline boards of every sprite OUTRUN's stages and start show, written to content, or with `--check`
+      // compared with the ones there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));
       const files = readZip(new Uint8Array(await readFile(zip)));
@@ -415,35 +428,34 @@ try {
       };
       const uses: SpriteUse[] = [];
       const skipped = new Map<number, number>();
-      for (const course of OUTRUN_COURSES) {
-        const stage = readStage(programs, course.stage);
-        const types = [...new Set(stage.scenery.filter((p) => p.position < length).map((p) => p.type))];
-        for (const type of types)
-          for (const e of readSceneryType(programs.main, type).entries) {
-            const shown = sceneryRoutine(e.flags, e.y);
-            if (!shown) {
-              skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
-              continue;
-            }
-            uses.push({
-              sprite: e.sprite,
-              mirrored: (e.flags & 1) !== 0,
-              palette: e.palette,
-              shadow: (e.flags & 2) !== 0,
-              ...shown,
-            });
+      const points = OUTRUN_STAGES.flat().flatMap((n) =>
+        readStage(programs, n).scenery.filter((p) => p.position < length),
+      );
+      const types = [...new Set(points.map((p) => p.type))].sort((a, b) => a - b);
+      for (const type of types)
+        for (const e of readSceneryType(programs.main, type).entries) {
+          const shown = sceneryRoutine(e.flags, e.y);
+          if (!shown) {
+            skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
+            continue;
           }
-        if (course.start)
-          for (const o of readStartObjects(programs.main))
-            uses.push({
-              sprite: o.sprite,
-              mirrored: (o.flags & 1) !== 0,
-              anchor: o.anchor & 15,
-              routine: o.routine,
-              palette: o.palette,
-              shadow: (o.flags & 0x10) !== 0,
-            });
-      }
+          uses.push({
+            sprite: e.sprite,
+            mirrored: (e.flags & 1) !== 0,
+            palette: e.palette,
+            shadow: (e.flags & 2) !== 0,
+            ...shown,
+          });
+        }
+      for (const o of readStartObjects(programs.main))
+        uses.push({
+          sprite: o.sprite,
+          mirrored: (o.flags & 1) !== 0,
+          anchor: o.anchor & 15,
+          routine: o.routine,
+          palette: o.palette,
+          shadow: (o.flags & 0x10) !== 0,
+        });
       const boards = await outlineBoards(programs.main, words, uses, lateralScale(vehicle.overallWidth), PNG);
       for (const board of boards) {
         const written = [

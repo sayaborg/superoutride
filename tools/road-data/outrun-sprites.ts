@@ -202,13 +202,14 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map([
   [0x4828, { pixelUnits: 2, hits: true }],
   [0x492a, { pixelUnits: 2, hits: true }],
   [0x3fe2, { pixelUnits: 1, hits: false }],
-  [0x3fe8, { pixelUnits: 1, hits: true }],
 ]);
 
 /**
- * A scenery entry's routine and anchor by its drawing (flags bits 4–7), mirrored by flags bit 0: kind 0 stands on its
- * foot, hit when on the ground (y 0); kinds 4, 7, 9, 8 and 13 have one routine each. Kinds 1, 3, 10 and 11 draw a strip
- * along the road whose sprite changes with depth, and kinds 2, 5, 6, 12 and 14 move: neither is converted (null).
+ * A scenery entry's routine and anchor by its drawing (flags bits 4–7, dispatched at 0x3D98), mirrored by flags bit 0:
+ * kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A hit sets the
+ * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip along the road whose sprite changes with depth, and kind 13 lays
+ * a patch on the road (DESERT's and DESOLATION HILL's sand), whose hit sets the road's surface effect (0x60C20) as the
+ * strips' do; kinds 2, 5, 6, 12 and 14 move. None of these is an object (null).
  */
 export function sceneryRoutine(flags: number, y: number): { routine: number; anchor: number } | null {
   const mirrored = (flags & 1) !== 0;
@@ -223,8 +224,6 @@ export function sceneryRoutine(flags: number, y: number): { routine: number; anc
       return { routine: 0x3fe2, anchor: 8 };
     case 9:
       return { routine: 0x492a, anchor: 8 };
-    case 13:
-      return { routine: 0x3fe8, anchor: 0 };
     default:
       return null;
   }

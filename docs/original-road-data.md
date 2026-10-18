@@ -129,15 +129,16 @@ largest size spans 2 road units, or 1 where the routine halves the scale twice. 
 | 7       | 0x4828                | bottom right (left) | 2     | by its extents                |
 | 8       | 0x3FE2                | bottom middle       | 1     | never                         |
 | 9       | 0x492A                | bottom middle       | 2     | by its extents                |
-| 13      | 0x3FE8                | middle              | 1     | by its extents                |
 
-Drawings 1, 3, 10 and 11 draw a strip along the road whose sprite changes with depth (1 and 3 stop the car beyond
-its side); 2, 5, 6, 12 and 14 move. Neither is converted yet.
+A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
+and 11 draw a strip along the road whose sprite changes with depth, and drawing 13 (0x3FE8) a patch on the road
+(DESERT's and DESOLATION HILL's sand): a hit on these sets the road's surface effect (the words at 0x60C20 and 0x60C22),
+not the crash. Drawings 2, 5, 6, 12 and 14 move. None of these is converted yet.
 
 ## Outline boards
 
-`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite the courses' stages
-show and the objects standing at the start (of the first stage), mirrored and shadowed as shown: a sprite source
+`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite OUTRUN's stages show
+and the objects standing at the start (of the first stage), mirrored and shadowed as shown: a sprite source
 `content/sprite-sources/outrun-<sprite>[-mirrored][-shadowed].png` and its recipe, made into the course image of that
 name; with `--check` it rebuilds them and fails where one differs. Its master is the largest size's outline, filled: the
 colored pixels, a row mark between two colored ones, and every pixel no transparent path joins to the picture's edge.
@@ -145,8 +146,8 @@ Its width is its pixels × their road units × `s_lat` ([Course documents](#cour
 bottom or middle its anchor gives, across at the middle of the sprite's hit extents (so a solid object's body stands
 there); each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
 one color, the palette's mean over the colored pixels. A shadowed board's shadow is the original's shadow at its scale
-and anchor. COCONUT BEACH and its start show 40 boards; its entries of drawing 3, the sea's edge, are not
-converted.
+and anchor. The stages and start show 86 boards; entries of drawings 1, 3, 10 and 11 (strips, such as
+COCONUT BEACH's sea's edge), 13 (sand on the road) and 2, 12 and 14 (moving objects) are not converted.
 
 ## Placing scenery
 
@@ -371,7 +372,10 @@ these differences:
   after it: its first by its name, later ones `-2`, `-3`, its fork's roads `-left` and `-right`; its finish is
   `<stage>-GOAL` and each fork road's checkpoint `<stage>-<side>-CP`.
 
-Its scenery is not yet placed ([NEXT](NEXT.md#stage-rd--outrun-from-the-originals-road-data)).
+Its scenery is [placed](#placing-scenery) on each stage's road from its scenery points; the start's objects stand on
+COCONUT BEACH. A goal stretch's scenery stands in the ending, whose roads are not raised, and is left out. An object's x is from the middle of the
+roads, the fork's two roads' before its switch; one beyond a switch would be left out, and none is. 17,886 objects
+stand on OUTRUN, 14,105 of them solid.
 
 ## Checks on `k1`
 

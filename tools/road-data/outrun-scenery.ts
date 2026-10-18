@@ -32,7 +32,7 @@ export interface ObjectPlacement {
   readonly y: number;
   readonly image: string;
   readonly palette: string;
-  /** Its hit width, road units, where the car hits it; null where it passes through. */
+  /** Its hit width, road units, where the car hits it; null where it passes through (its extents empty too). */
   readonly hit: number | null;
   /** Its board's width, road units, which bounds the hit width. */
   readonly width: number;
@@ -85,7 +85,7 @@ export function stageObjects(
       y,
       image: boardName(use),
       palette: paletteName(use.palette),
-      hit: routine.hits && !y ? Math.min(width, right - left) : null,
+      hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
       width,
     });
   };

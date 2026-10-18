@@ -483,7 +483,7 @@ runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-med
 | `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                         |
 | `course` | Write each course raised from the ROM zip (`--zip`), OUTRUN's whole course among them, to `content/courses/`, or with `--check` fail where one differs from the committed document       |
 | `look`   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load |
-| `boards` | Write the outline boards of the sprites the courses' stages show from the ROM zip (`--zip`), or with `--check` fail where one differs                                                    |
+| `boards` | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), or with `--check` fail where one differs                                              |
 
 ### Skies command
 

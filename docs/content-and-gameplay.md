@@ -1745,7 +1745,7 @@ development series TRIAL's class COCONUT BEACH times it as A STEEP is timed (TES
 `outrun` (OUTRUN) is the whole of OUTRUN as one BRANCH course, written by the same tool
 ([Original road data](original-road-data.md#outrun)): its 15 stages, each ending in a fork whose lock stands where the
 original chooses the route and whose roads close to the next stage's start, merging where two forks lead to one stage,
-and its 5 goals. It has no scenery yet. The development series TRIAL's class OUTRUN times it as COCONUT BEACH is
+and its 5 goals. Its scenery is outline boards. The development series TRIAL's class OUTRUN times it as COCONUT BEACH is
 timed.
 
 ## Observation formats
