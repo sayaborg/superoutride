@@ -18,10 +18,10 @@ import {
   type Profile,
 } from './outrun-profile.js';
 import type { CurvePoint, HeightTable, Path, Stage, WidthHeightPoint } from './outrun-road.js';
-import type { ObjectPlacement } from './outrun-scenery.js';
+import type { GroundPlacement, ObjectPlacement, StageScenery } from './outrun-scenery.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 5;
+export const CONVERSION_VERSION = 6;
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
@@ -49,6 +49,10 @@ const STRIPE_PERIOD = 6.315;
 const GROUND = [28471, 29528] as const;
 /** The sand beyond each road edge, metres. */
 const VERGE = 40;
+/** A strip's pieces this close, positions, lie in one run of it: the original's runs leave at most 7.6 between. */
+const JOINED = 10;
+/** A ground Strip's edge follows its pieces' within this, metres. */
+const GROUND_TOLERANCE = 1e-4;
 
 /** A stage's turn at a join is spread over a position or two: headings are read this far inside a segment. */
 const JOIN = 2;
@@ -162,6 +166,26 @@ function simplified(knots: readonly [number, number][]): [number, number][] {
   }
   return out;
 }
+
+/** Knots `[station, value]` without those within `tolerance` of the line through their neighbours left in. */
+function within(knots: readonly [number, number][], tolerance: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (const knot of knots) {
+    if (out.length && out.at(-1)![0] === knot[0]) out.pop();
+    const [a, b] = [out.at(-2), out.at(-1)];
+    if (a && b && Math.abs(a[1] + ((knot[1] - a[1]) * (b[0] - a[0])) / (knot[0] - a[0]) - b[1]) <= tolerance) out.pop();
+    out.push(knot);
+  }
+  return out;
+}
+
+/** `color` (RGB555) over `beneath` by `coverage`, channel by channel. */
+const over = (color: number, coverage: number, beneath: number) =>
+  [10, 5, 0].reduce(
+    (c, shift) =>
+      c | (Math.round(((color >> shift) & 31) * coverage + ((beneath >> shift) & 31) * (1 - coverage)) << shift),
+    0,
+  );
 
 /**
  * The lanes, units, at road width `w`: two roads centred at ±w, each of three lanes. While they are apart the median
@@ -341,8 +365,8 @@ export interface StageRoadOptions {
   /** The height tables the stage's height points name; the speed its holds are counted at, km/h. */
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
-  /** The stage's objects, given its road width (units) at a position. */
-  readonly objects: (width: (position: number) => number) => readonly ObjectPlacement[];
+  /** The stage's objects and ground, given its road width (units) at a position. */
+  readonly objects: (width: (position: number) => number) => StageScenery;
   /** The positions its Sections are cut at, where its profile's bends break. */
   readonly cuts: readonly number[];
   /** Where its crossings are looked for to, positions: where its fork's Section ends, else its end. */
@@ -455,6 +479,7 @@ export interface Road {
   readonly overlaps: readonly Crossing[];
   readonly colors: Stage['colors'];
   readonly objects: readonly ObjectPlacement[];
+  readonly grounds: readonly GroundPlacement[];
   /** Metres a road-width unit. */
   readonly metres: number;
 }
@@ -552,6 +577,7 @@ export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
     total,
   ).filter((c) => c.from >= 0 && c.to <= total);
   const profile = profileOf(changes.map(bendOf), options.cuts.map(stationOf));
+  const scenery = options.objects(widthAt);
 
   return {
     end,
@@ -562,7 +588,8 @@ export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
     crossings,
     overlaps,
     colors: stage.colors,
-    objects: options.objects(widthAt),
+    objects: scenery.placements,
+    grounds: scenery.grounds,
     metres,
   };
 }
@@ -683,8 +710,8 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
   const strip = (
     a: number,
     b: number,
-    left: Lateral | null,
-    right: Lateral | null,
+    left: Lateral | number | null,
+    right: Lateral | number | null,
     color: number | null,
     material: string | null,
   ) => ({
@@ -698,6 +725,75 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
   });
   const whole = (left: Lateral | null, right: Lateral | null, color: number | null, material: string | null) =>
     strip(0, size, left, right, color, material);
+
+  // An object's x is from the original's middle, the middle median's centre: its lateral is from the centre lane's.
+  const centerLane = section.centerLane ?? 'b';
+  const middle = medians[Math.floor((medians.length - 1) / 2)]!;
+  const fromCentre = (p: number) => {
+    const all = cross.widthsAt(p);
+    const width = (name: string) => all.get([...names].find(([, n]) => n === name)![0])!;
+    let x = 0,
+      centre = 0,
+      mid = 0;
+    for (const name of order) {
+      if (name === centerLane) centre = x + width(name) / 2;
+      if (name === middle) mid = x + width(name) / 2;
+      x += width(name);
+    }
+    return mid - centre;
+  };
+
+  // The ground the scenery lays (Section metres): each run of a strip's pieces one Strip along a Boundary at its left
+  // edge, each patch one Strip; its color over the sand, or a patch's over the road's surface, by its coverage.
+  const lateralOf = (position: number, units: number) => round((units + fromCentre(position)) * metres);
+  const sectionMetre = (position: number) => round(stationOf(position) - origin);
+  const laid = road.grounds.filter((g) => g.position < to && g.position + g.length > from);
+  const runs: GroundPlacement[][] = [];
+  const open = new Map<string, GroundPlacement[]>();
+  for (const piece of laid.filter((g) => !g.patch)) {
+    const run = open.get(piece.key);
+    if (run && piece.position - run.at(-1)!.position <= JOINED) run.push(piece);
+    else open.set(piece.key, runs[runs.push([piece]) - 1]!);
+  }
+  const groundBoundaries: { id: string; knots: { at: unknown; lateral: number }[] }[] = [];
+  const groundStrips = runs.flatMap((run, k) => {
+    const a = Math.max(from, run[0]!.position),
+      b = Math.min(to, run.at(-1)!.position + run.at(-1)!.length);
+    if (sectionMetre(b) <= sectionMetre(a)) return [];
+    // Its left edge at each piece's start and at the run's ends, each where the piece there lies.
+    const covering = (p: number) => [...run].reverse().find((g) => g.position <= p) ?? run[0]!;
+    const knots = within(
+      [a, ...run.map((g) => g.position).filter((p) => p > a && p < b), b].map(
+        (p) => [sectionMetre(p), lateralOf(p, covering(p).left)] as [number, number],
+      ),
+      GROUND_TOLERANCE,
+    );
+    const id = `ground-${k}`;
+    groundBoundaries.push({
+      id,
+      knots: knots.map(([station, lateral]) => ({ at: { joint: first, offset: station }, lateral })),
+    });
+    const { width, color, coverage } = run[0]!;
+    return [
+      strip(
+        knots[0]![0],
+        knots.at(-1)![0],
+        boundary(id),
+        boundary(id, width * metres),
+        over(color, coverage, GROUND[1]),
+        null,
+      ),
+    ];
+  });
+  const patches = laid
+    .filter((g) => g.patch)
+    .flatMap((g) => {
+      const a = sectionMetre(Math.max(from, g.position)),
+        b = sectionMetre(Math.min(to, g.position + g.length));
+      if (b <= a) return [];
+      const left = lateralOf(g.position, g.left);
+      return [strip(a, b, left, round(left + g.width * metres), over(g.color, g.coverage, surface.rgb555[1]!), null)];
+    });
   // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
   const half = STRIPE_PERIOD / 2;
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
@@ -728,6 +824,7 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
     ...halves(0, 0, size, null, null, GROUND[0]),
     whole(boundary('outer-left'), boundary('road-left'), null, 'SAND'),
     whole(boundary('road-right'), boundary('outer-right'), null, 'SAND'),
+    ...groundStrips,
     whole(boundary('road-left'), boundary('road-right'), surface.rgb555[1]!, 'ASPHALT'),
     ...(surface.rgb555[0] === surface.rgb555[1]
       ? []
@@ -740,6 +837,8 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
           ]
         : [],
     ),
+    // The patches on the road, under its lines and edge bands, which show through their speckles.
+    ...patches,
     // Edge bands: each road's where it is there, outside its outer lanes where they face the sand beyond the roads or
     // a median that holds both roads' bands.
     ...roads.flatMap((lanes, i) => {
@@ -782,23 +881,6 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
         : { kind: gate.kind, at: at(gate.position) },
   );
 
-  // An object's x is from the original's middle, the middle median's centre: its lateral is from the centre lane's.
-  const centerLane = section.centerLane ?? 'b';
-  const middle = medians[Math.floor((medians.length - 1) / 2)]!;
-  const fromCentre = (p: number) => {
-    const all = cross.widthsAt(p);
-    const width = (name: string) => all.get([...names].find(([, n]) => n === name)![0])!;
-    let x = 0,
-      centre = 0,
-      mid = 0;
-    for (const name of order) {
-      if (name === centerLane) centre = x + width(name) / 2;
-      if (name === middle) mid = x + width(name) / 2;
-      x += width(name);
-    }
-    return mid - centre;
-  };
-
   return {
     id,
     plan: elements,
@@ -822,6 +904,7 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
         id: 'outer-right',
         knots: [from, to].map((p) => ({ at: at(p), lateral: lane(lastLane, 'right', band + VERGE) })),
       },
+      ...groundBoundaries,
     ],
     strips,
     walls: [],

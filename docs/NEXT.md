@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-5e](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -235,13 +235,11 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 
 The stage's PRs left:
 
-- RD-4: scenery, done but for the sea's edge (drawing 3, a strip along the road whose sprite changes with depth), which
-  RD-5 converts with the other strips (drawings 1, 10 and 11) as ground or a limit, and the start's objects' depth,
-  which K may decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)).
-- RD-5: all of OUTRUN; left:
-  - RD-5e: the strips (drawings 1, 3, 10 and 11) and drawing 13's sand on the road as ground or a limit.
-- RD-6: local originals (above), one PR each after RD-5e: RD-6b the backgrounds, RD-6c the player's TESTAROSSA, RD-6d
-  voices and effects, RD-6e music once K's recordings come.
+- RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14) and the start's objects' depth, which K may
+  decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)). The ground's spray (the surface
+  effect) is not converted ([Ground](original-road-data.md#ground)).
+- RD-6: local originals (above), one PR each: RD-6b the backgrounds, RD-6c the player's TESTAROSSA, RD-6d voices and
+  effects, RD-6e music once K's recordings come.
 - RD-5f, after RD-6: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown

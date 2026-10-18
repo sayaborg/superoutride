@@ -132,9 +132,8 @@ largest size spans 2 road units, or 1 where the routine halves the scale twice. 
 | 9       | 0x492A                | bottom middle       | 2     | by its extents                |
 
 A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
-and 11 draw a strip along the road whose sprite changes with depth, and drawing 13 (0x3FE8) a patch on the road
-(DESERT's and DESOLATION HILL's sand): a hit on these sets the road's surface effect (the words at 0x60C20 and 0x60C22),
-not the crash. Drawings 2, 5, 6, 12 and 14 move. None of these is converted yet.
+and 11 draw a strip beside the road, and drawing 13 (0x3FE8) a patch on it; they lay [ground](#ground). Drawings 2, 5,
+6, 12 and 14 move and are not converted yet.
 
 ## Outline boards
 
@@ -147,8 +146,8 @@ Its width is its pixels × their road units × `s_lat` ([Course documents](#cour
 bottom or middle its anchor gives, across at the middle of the sprite's hit extents (so a solid object's body stands
 there); each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
 one color, the palette's mean over the colored pixels. A shadowed board's shadow is the original's shadow at its scale
-and anchor. The stages and start show 86 boards; entries of drawings 1, 3, 10 and 11 (strips, such as
-COCONUT BEACH's sea's edge), 13 (sand on the road) and 2, 12 and 14 (moving objects) are not converted.
+and anchor. The stages and start show 86 boards; the entries that lay [ground](#ground) have none, and those of drawings
+2, 12 and 14 (moving objects) are not converted.
 
 ## Placing scenery
 
@@ -172,6 +171,31 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
   its width aside, and its board's base point is its hit extents' middle. Its height is y road units.
 - **Solid.** An object whose routine tests its extents and which stands on the ground gets a body as wide as its
   extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
+
+### Ground
+
+A strip or patch is brought out and approaches as an object does, and lays a piece of ground where the camera passes
+it (`groundDrawing`, `stageObjects`):
+
+- **Strips.** Drawings 1, 3, 10 and 11 draw, whatever sprite their entry names, the sprite of 16 sizes the longs at
+  0x4548, 0x4608, 0x4588 and 0x45C8 point at, a size for each depth, the nearest last (232 or 248 px wide). Its edge
+  nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward, drawn mirrored
+  on the left, a pixel 2 road units as the objects'. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD,
+  VINEYARD and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand
+  and 11 DEATH VALLEY's stones.
+- **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
+  DESOLATION HILL's drifts of sand, 248 by 31 px.
+- **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is
+  on them, near the camera: for 12 frames a spray from the table at 0xAD06 is drawn at the car, by the effect's kind
+  (sea 0, grass 4 or 8, sand 12). Nothing else reads it: the ground changes no driving. Drawings 10 and 11 set
+  nothing.
+
+Each piece is one tick long (1.35 positions at the top speed). A strip's pieces of one drawing, side and palette that
+lie within 10 positions of each other are one run of it (the original leaves at most 7.6 between them), laid as one
+color-only Strip whose left edge follows a Boundary through each piece's; each patch is one color-only Strip. A
+piece's color is its sprite's colored pixels' mean in its palette, over the sand (a patch's over the road's surface)
+by the share of its pixels that are colored. Strips lie under the road and its medians, patches under its lines; no
+material changes, as no driving does. The spray is not converted.
 
 On COCONUT BEACH 1213 objects stand, 1101 of them solid. Six bushes brought out while the roads were apart end on the
 right road where the roads close, as in the original. A beach hut before the finish has hit extents ending 0.6 m
@@ -235,7 +259,7 @@ committed document. CI holds no ROM, so the documents are committed; edit the co
 | `outrun-coconut-beach` (COCONUT BEACH) | 0x3C   | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 5          |
 | `outrun` (OUTRUN)                      | all 15 | [OUTRUN](#outrun)'s                             | 5          |
 
-The conversion, version 5 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
+The conversion, version 6 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 

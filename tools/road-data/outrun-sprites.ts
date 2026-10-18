@@ -70,23 +70,32 @@ export interface SpriteSize {
   readonly bank: number;
   readonly offset: number;
 }
-/** A size list at `address`: five {word width, word height, word words a row, word bank, word offset}. */
-function sizesAt(main: Uint8Array, address: number): SpriteSize[] {
-  return Array.from({ length: SIZES }, (_, k) => {
-    const a = address + 10 * k;
-    return {
-      width: word(main, a),
-      height: word(main, a + 2),
-      stride: word(main, a + 4),
-      bank: main[a + 7]! & 3,
-      offset: word(main, a + 8),
-    };
-  });
-}
+/** A size at `a`: {word width, word height, word words a row, word bank (its low byte), word offset}. */
+const sizeAt = (main: Uint8Array, a: number): SpriteSize => ({
+  width: word(main, a),
+  height: word(main, a + 2),
+  stride: word(main, a + 4),
+  bank: main[a + 7]! & 3,
+  offset: word(main, a + 8),
+});
+/** A size list at `address`: five sizes, one after another. */
+const sizesAt = (main: Uint8Array, address: number) =>
+  Array.from({ length: SIZES }, (_, k) => sizeAt(main, address + 10 * k));
 /** Sprite `index`'s sizes: the long at 0x11ED2 + index × 4 is its size list. */
 export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, long(main, SPRITES + 4 * index));
 /** The shadow every shadowed object casts, drawn at the object's scale: the size list at 0xFF56. */
 export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
+/**
+ * A strip drawing's sprite (drawings 1, 3, 10 and 11), whatever its entry names: 16 sizes for the depths, nearest last,
+ * the longs at 0x4548, 0x4608, 0x4588 and 0x45C8 pointing at them. Its nearest size is drawn at the objects' scale.
+ */
+const STRIP_FAMILIES: ReadonlyMap<number, number> = new Map([
+  [1, 0x4548],
+  [3, 0x4608],
+  [10, 0x4588],
+  [11, 0x45c8],
+]);
+const STRIP_SIZES = 16;
 
 /**
  * A size's pixels, row-major: each word eight 4-bit pixels, the most significant first, `stride` words a row from its
@@ -205,9 +214,8 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map([
 /**
  * A scenery entry's routine and anchor by its drawing (flags bits 4–7, dispatched at 0x3D98), mirrored by flags bit 0:
  * kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A hit sets the
- * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip along the road whose sprite changes with depth, and kind 13 lays
- * a patch on the road (DESERT's and DESOLATION HILL's sand), whose hit sets the road's surface effect (0x60C20) as the
- * strips' do; kinds 2, 5, 6, 12 and 14 move. None of these is an object (null).
+ * crash (0x60C24). Kinds 1, 3, 10, 11 and 13 lay ground (`groundDrawing`); kinds 2, 5, 6, 12 and 14 move. None of
+ * these is an object (null).
  */
 export function sceneryRoutine(flags: number, y: number): { routine: number; anchor: number } | null {
   const mirrored = (flags & 1) !== 0;
@@ -225,6 +233,25 @@ export function sceneryRoutine(flags: number, y: number): { routine: number; anc
     default:
       return null;
   }
+}
+
+/**
+ * The ground a scenery entry lays by its drawing (flags bits 4–7), else null: drawings 1, 3, 10 and 11 a strip beside
+ * the road, the nearest size of its drawing's sprite with its edge nearest the road at the entry's x (its left edge, or
+ * its right drawn mirrored), a pixel 2 road units; drawing 13 (0x3FE8) a patch on the road, the entry's sprite's
+ * largest size with its middle at x, a pixel 1 road unit. Drawings 1, 3 and 13 set the road's surface effect (0x60C20)
+ * where the car is on them, a spray drawn at the car for 12 frames; none sets the crash.
+ */
+export function groundDrawing(
+  main: Uint8Array,
+  flags: number,
+  sprite: number,
+): { readonly size: SpriteSize; readonly pixelUnits: number; readonly patch: boolean } | null {
+  const drawing = flags >> 4;
+  const family = STRIP_FAMILIES.get(drawing);
+  if (family !== undefined)
+    return { size: sizeAt(main, long(main, family + 4 * (STRIP_SIZES - 1))), pixelUnits: 2, patch: false };
+  return drawing === 13 ? { size: spriteSizes(main, sprite)[0]!, pixelUnits: 1, patch: true } : null;
 }
 
 /**

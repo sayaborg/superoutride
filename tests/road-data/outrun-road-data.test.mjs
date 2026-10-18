@@ -371,7 +371,7 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
     sky: { image: 'coast-sky', horizonY: 320 },
     tables: new Map([[7, crest]]),
     kmh: 293,
-    objects: () => [],
+    objects: () => ({ placements: [], grounds: [] }),
   });
   const read = readCourseDocument(normalizeCoursePositions(course).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
