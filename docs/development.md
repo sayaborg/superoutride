@@ -498,6 +498,8 @@ for K's own runs only: they never reach Git, a PR or Pages.
 - **Conversion.** Each conversion is deterministic and is rebuilt by the command that writes the published file:
   `npm run road-data -- boards` writes each outline board and, beside it, its color original, from the same ROM
   words at the same 40 texels/m and nearest-neighbor scale, with the ROM's palette under each palette name.
+  `npm run road-data -- course` writes each OUTRUN stage's sky and its original, the stage's background from the tile
+  ROMs ([Backgrounds](original-road-data.md#backgrounds)).
 - **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
   paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
   authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.

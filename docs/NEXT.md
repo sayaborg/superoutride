@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data); [DT-7](#stage-dt--drift-tuned-trial-vehicles), and
+Next PR: [RD-6c](#stage-rd--outrun-from-the-originals-road-data); [DT-7](#stage-dt--drift-tuned-trial-vehicles), and
 [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -241,8 +241,8 @@ The stage's PRs left:
   decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)). The ground's spray (the surface
   effect) is not converted ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches'
   sizes by depth (flatter far away) need a drawing change: a board is one picture at every depth.
-- RD-6: local originals (above), one PR each: RD-6b the backgrounds (each stage's sky, now its own image, converted
-  from the tile ROMs), RD-6c the player's TESTAROSSA, RD-6d voices and effects, RD-6e music once K's recordings come.
+- RD-6: local originals (above), one PR each: RD-6c the player's TESTAROSSA, RD-6d voices and effects, RD-6e music
+  once K's recordings come.
 - RD-5f, after RD-6: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown

@@ -36,6 +36,10 @@ first (`.12` and `.16` give the most significant byte): `mpr-10371.9` `7cc86208`
 `mpr-10372.13` `b557078c`, `mpr-10374.14` `8051e517`, `mpr-10376.15` `f3b8f318`, `mpr-10378.16` `a1062984`
 (`OUTRUN_SPRITE_ROMS`), checked as the programs are.
 
+The tiles are six 32 KiB ROMs, three bit planes of two ROMs each ([Backgrounds](#backgrounds)): `opr-10268.99`
+`95344b04`, `opr-10232.102` `776ba1eb`, `opr-10267.100` `a85bb823`, `opr-10231.103` `8908bcbf`, `opr-10266.101`
+`9f6f1a74`, `opr-10230.104` `686f5e50` (`OUTRUN_TILE_ROMS`), checked as the programs are.
+
 ## Programs
 
 Both CPUs are 68000s: words and longs are big-endian, and an address is an offset in the CPU's assembled program.
@@ -235,6 +239,34 @@ the original's later in the stage):
 
 Kinds 3 and 4 follow the same idea and are not yet checked against footage; under kind 4's raised base some of
 stage 0x3B's tables put the road's top at or above the screen's top.
+
+## Backgrounds
+
+`npm run road-data -- course` also writes each stage's background, converted from the tile ROMs, as the
+[local original](development.md#local-originals) of its sky (`stageBackground`), at the published sky's size (94 × 40
+tiles) and horizon row (320):
+
+- **Tiles.** The tile ROMs are three bit planes, each two ROMs (`opr-10268.99` and `opr-10232.102` the lowest bit,
+  `opr-10267.100` and `opr-10231.103` the next, `opr-10266.101` and `opr-10230.104` the highest), 8 bytes a tile, a byte
+  a row, its bit 7 the leftmost pixel: 8192 tiles of 8 colors, 0 transparent.
+- **Palettes.** Palette RAM's tile palettes, 8 words each: palettes 0–7 from 0x16ED8, 8–127 each the 8 words at
+  0x17050 + 16 × its byte at 0x16FD8, then the stage's patch: the byte at 0xDDB4 + the stage's place in the stage table
+  chooses a branch at 0xDDDC + 4 × it, whose `lea source, a0` and `lea palette, a1; moveq n, d0; bsr` steps copy one
+  source's 8 words into n + 1 palettes.
+- **Layers.** The byte at 0x17E84 + the stage's place numbers its entry at 0x17EAC, 12 bytes: {u8 front rows, u8 back
+  rows, long front data, long back data, word offset}. The front layer is four pages of 64 × 32 tiles (2048 px), the
+  back three (1536 px); each page's rows are written from its bottom row up, each row's 64 tile words a word each, or
+  0 then {word tile word, word count − 1} for a run. A tile word holds its tile in bits 0–12 and its palette in bits
+  6–12. The page selects at 0x17E4C and 0x17E5C show each page's predecessor to its right, so a layer reads its last
+  page first.
+- **Placement.** The front layer scrolls by the road's heading, a turn its width; the back 3/4 as fast, a turn its
+  width too. Both stand with their bottom `offset` rows (10 on every stage) below the road's top.
+- **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, a row each
+  up from the road's top, the last above.
+
+The picture draws the sky, then the back layer, then the front, each layer across the picture's width once (a turn)
+by nearest pixel, and is drawn as a tile picture as the skies command draws one. The two layers turn together in it:
+this game's sky is one plane, so the back layer's slower turn is not shown.
 
 ## Dump
 

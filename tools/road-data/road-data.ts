@@ -19,7 +19,11 @@ import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
-import { OUTRUN_SKIES, outrunCourse, skyName } from './outrun-branch.js';
+import { OUTRUN_SKIES, outrunCourse, SKY_HORIZON, skyName } from './outrun-branch.js';
+import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
+import { drawScreenPicture } from '../graphics/screen-pictures.js';
+import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
+import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -282,6 +286,7 @@ try {
           metres: round1(document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0)),
         });
       }
+      const tiles = assembleTiles(readZip(new Uint8Array(await readFile(zip))));
       // OUTRUN: every stage, its forks and goals.
       const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
       const fork = readForkStretch(programs);
@@ -321,7 +326,20 @@ try {
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
           requireInput(committed === text, `/${skyFile}`, `${skyFile} is not ${generic} under its name`);
-        } else await atomicWrite(skyFile, text);
+          continue;
+        }
+        await atomicWrite(skyFile, text);
+        // Its local original: the stage's background from the tile ROMs, at the published sky's size and horizon.
+        const columns = sky.columns as number,
+          rows = (sky.tiles as unknown[]).length / columns;
+        const [width, height] = [columns * TILE_PICTURE_TILE_SIZE, rows * TILE_PICTURE_TILE_SIZE];
+        const background = stageBackground(programs.main, tiles, number, width, height, SKY_HORIZON);
+        const channel = (c: number) => Math.round((c * 255) / 31);
+        const pixels = Uint32Array.from(background, (c) =>
+          rgba(channel((c >> 10) & 31), channel((c >> 5) & 31), channel(c & 31)),
+        );
+        const original = drawScreenPicture(name, { width, height, pixels }, { columns, rows, fit: 'fill' });
+        await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), JSON.stringify(original));
       }
       const stops = (p: number) => round1(stationOf(p));
       courses.push({

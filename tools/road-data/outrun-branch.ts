@@ -85,7 +85,7 @@ export const OUTRUN_SKIES: ReadonlyMap<number, string> = new Map([
 /** Stage `number`'s sky image. */
 export const skyName = (number: number) => `outrun-${slug(OUTRUN_NAMES.get(number)!)}-sky`;
 /** The skies' horizon row, the generic skies'. */
-const SKY_HORIZON = 320;
+export const SKY_HORIZON = 320;
 
 /** What OUTRUN's course is raised from beside its stages. */
 export interface OutrunInputs {
