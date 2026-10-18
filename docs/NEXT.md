@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, [DT-6](#stage-dt--drift-tuned-trial-vehicles) and DT-3
+Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -231,8 +231,9 @@ K's decisions for the stage:
   or player choice ([Vehicle identity](product.md#vehicle-identity)).
 - A DRIFT TUNED vehicle is a vehicle of its own (another specification of the same model): its pictures are the real
   car's, its tires and engine need not be. DRIFT TUNED vehicles have `wheelSlip` off (one switch for TCS, MSR and ABS).
-- Drifting needs the tire's grip level, the same for all three: `gripX=1.1`, `peakSlipX=0.1`, `gripY=1.1`,
-  `peakSlipY=0.1`, `knee=0.74` and `loadSensitivity=0.15`.
+- Drifting needs a tire of its own: S13 `gripX=gripY=0.8` and AE86 0.7, both with `peakSlipX=peakSlipY=0.1`,
+  `knee=0.74`, `loadSensitivity=0.15` and the sliding ratio 0.85 (DT-6; DT-2 started both at 1.1 with no fall), which K
+  tunes in DEV; FC3S's is decided with DT-3.
 - `AE86_DRIFT_TUNED` (Corolla Levin 3-door GT-APEX, early, May 1983 – May 1985, 4A-GEU, 5MT), `S13_DRIFT_TUNED`
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
   October 1985 – April 1989, 13B turbo, 5MT).
@@ -245,17 +246,10 @@ K's decisions for the stage:
 - A tire has a sliding ratio, its force sliding far past the peak over the peak's force, held by the driving
   definition's tire and by every vehicle's own tire: 1 (the force holds the peak, as today) on all but the DRIFT TUNED
   tires. The wheel solve takes the force's fall past the peak at the substep's starting wheel speed, so it keeps one
-  root at any sliding ratio (K's choice of the DT-5 report's options; DT-5). The DRIFT TUNED tires then start at S13
-  `gripX=gripY=0.8` and AE86 0.7, both with the sliding ratio 0.85 and their other values unchanged, for K to tune in
-  DEV (DT-6).
-
-DT-6 stopped before adopting those values: with them, planned drivers spin both cars despite wheel slip protection,
-reaching 84–90° in three of ten runs of DT-2b's check (its five runs at LOW and HIGH traffic), where DT-2's tire stays
-within 39° but for one 71° slide a contact began. Braking at the limit in a corner, ABS holds a wheel at the pure
-longitudinal peak, so the wheel's combined slip passes the peak and the rear's falling force lets the car yaw away.
-Neither planning with the sliding force nor protection bounded at the combined peak prevents the spins. K decides among
-the DT-6 report's options: adopting the values and accepting the spins until the drifting AI, keeping the two cars out
-of rivals and traffic, other values, or a slide-catching aid for planned drivers.
+  root at any sliding ratio (K's choice of the DT-5 report's options; DT-5).
+- Planned drivers sometimes spin the DRIFT TUNED cars despite wheel slip protection, which K accepts until the drifting
+  AI, designed to catch a slide past a falling tire's peak: a planned driver catches none, and with the drift tire
+  braking at the limit in a corner takes a wheel past it (K's choice of the DT-6 report's options; DT-6).
 
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
 in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY and SR in DEV

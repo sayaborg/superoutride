@@ -36,13 +36,13 @@
     },
     {
       "vehicleId": "S13_DRIFT_TUNED",
-      "vehicleSha256": "3b7cca1b93c0f2f25b260182101735d352988ae5722a572a676c67b0b83c5e97",
+      "vehicleSha256": "37356a3c780f3ae70347c63163467aef02972902899d9d9aa98b11b1bec7f36a",
       "soundSha256": "f1fdc5171ee4af0687d885b11030a5dc1c734443502dd72cdab89ffe45e2c909",
       "lufs": -18.89382109700604
     },
     {
       "vehicleId": "AE86_DRIFT_TUNED",
-      "vehicleSha256": "6ed5e58693717e90f704bf69ca6cf5f0bb0cbd9b6642ba135a08be8f853bb4a0",
+      "vehicleSha256": "c91c6f7548117d9dcc7572663a72a1b75315e0283b7a0b93ccb9f375f7b6000c",
       "soundSha256": "9dfc89d322dec643ad9daf3651c38abb605dddcabba5f45aa584f0b112db18a4",
       "lufs": -18.702296010786913
     },

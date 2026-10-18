@@ -16,7 +16,8 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { wrapAngle } from '../../src/core/math.js';
 
 // The plan's model against the mechanics, for each catalog vehicle on a flat reference surface of unit grip and no
-// rolling resistance: a steady 100 m circle at the plan's cornering speed, and a straight full stop from 30 m/s.
+// rolling resistance: a steady 100 m circle at the plan's cornering speed, and a straight full stop from 30 m/s. Each
+// drives as planned drivers do, with wheel slip protection whatever the vehicle's own `wheelSlip`.
 const content = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const reference = Object.freeze({ id: 'REFERENCE', gripFactor: 1, rollingResistance: 0 });
@@ -46,7 +47,7 @@ for (const entry of definitions.vehicles) {
 
   test(`${id} holds a 100 m circle at the plan's cornering speed`, () => {
     const world = flatWorld();
-    const steering = driverSteering(createSteeringRule('center', UTILIZATION), model);
+    const steering = driverSteering(createSteeringRule('center', UTILIZATION), model, true);
     const planned = limits.steadySpeed(1 / RADIUS, 0, 0, 1, 0, UTILIZATION);
     const car = createVehicle(model, world, { s: 10000, l: 0, initialSpeed: planned });
     // The circle's centre lies to the right of the start, so the path turns right.
@@ -91,7 +92,7 @@ for (const entry of definitions.vehicles) {
 
   test(`${id} stops from 30 m/s within the plan's braking distance`, () => {
     const world = flatWorld();
-    const steering = driverSteering(createSteeringRule('center', 1), model);
+    const steering = driverSteering(createSteeringRule('center', 1), model, true);
     const car = createVehicle(model, world, { s: 10000, l: 0, initialSpeed: 30 });
     // Measured from the moment the brake actuator is fully applied, as the plan's braking has no actuator response.
     let start = null,

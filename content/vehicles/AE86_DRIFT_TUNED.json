@@ -28,13 +28,13 @@
   "quadraticDrag": 0.37,
   "wheelSlip": false,
   "tire": {
-    "gripX": 1.1,
+    "gripX": 0.7,
     "peakSlipX": 0.1,
-    "gripY": 1.1,
+    "gripY": 0.7,
     "peakSlipY": 0.1,
     "knee": 0.74,
     "loadSensitivity": 0.15,
-    "slidingRatio": 1
+    "slidingRatio": 0.85
   },
   "powertrain": {
     "displacementCc": 1587,

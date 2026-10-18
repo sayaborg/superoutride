@@ -171,8 +171,8 @@ screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
 are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
 in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED
-and AE86_DRIFT_TUNED) give both: `wheelSlip` off and one drift tire (GX=1.1, PX=0.1, GY=1.1, PY=0.1, KN=0.74,
-LS=0.15, SR=1, so `kX = kY ≈ 13.9`); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
+and AE86_DRIFT_TUNED) give both: `wheelSlip` off and a drift tire: S13 GX=GY=0.8 and AE86 GX=GY=0.7, both with
+PX=PY=0.1, KN=0.74, LS=0.15 and SR=0.85 (so `kX = kY ≈ 10.1` and 8.8); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
 the 75 kg occupant to the notified weight, which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.
 

@@ -1299,7 +1299,10 @@ step to the next. Every planned driver steers by one rule, `PLANNED_DRIVER.steer
 input reaching the front tire's whole lateral force bound (CENTER, 100 %). Every planned driver also drives with wheel slip
 protection (TCS, MSR and ABS) on, whatever its vehicle's `wheelSlip`, which holds only while the player's input reaches
 the vehicle. A steering rule and wheel slip protection are a driver's aids, not
-physics; the player and the planned drivers share the physics, and the utilization plans speed alone. Its path is its lane's
+physics; the player and the planned drivers share the physics, and the utilization plans speed alone. A planned driver
+catches no slide past the tire's peak: on a tire whose force falls there (a sliding ratio below 1), braking at the limit
+in a corner, which protection bounds at the peak's longitudinal slip alone, can take a wheel past it and spin the
+vehicle. Its path is its lane's
 centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
 ([Path offsets](#path-offsets)), which starts as its lateral's offset from the line where it takes the line (its grid
@@ -1495,7 +1498,8 @@ asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actu
 tire's effective load factor.
 
 The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
-surface of unit grip and no rolling resistance: driven by this control at utilization 0.9 on a 100 m circle at the
+surface of unit grip and no rolling resistance, with wheel slip protection on, as planned drivers drive: driven by this
+control at utilization 0.9 on a 100 m circle at the
 model's steady speed, the vehicle's mean radius and lateral acceleration lie within 5 % of the circle's and the model's;
 from 30 m/s at full brake, its stopping distance from full application lies within 5 % of the model's at full
 utilization.
