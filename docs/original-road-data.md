@@ -268,6 +268,22 @@ The picture draws the sky, then the back layer, then the front, each layer acros
 by nearest pixel, and is drawn as a tile picture as the skies command draws one. The two layers turn together in it:
 this game's sky is one plane, so the back layer's slower turn is not shown.
 
+## The player's car
+
+`npm run road-data -- player` draws the original's Ferrari into TESTAROSSA's picture set
+(`content/sprites/testarossa.json`) as its [local original](development.md#local-originals) (`playerOriginal`):
+
+- **Frames.** The table at 0x9ECC holds the player's frames, 8 bytes each: {long size, word frame, word x offset}.
+  Three steering levels (under 0x12, under 0x1E, beyond) each have three slopes; the level slope's (the middle) is
+  taken. As stored, a frame shows the car turned left, with x offset +1, −3 and −8; turned right, it is drawn mirrored.
+- **Palettes.** The car's palette is 2 + its wheels' phase (2 or 3), and 2 more while braking (4 or 5). The one color
+  palette 4 changes, slot 11, is the brake lamp.
+- **The set.** Every picture, size, anchor, shadow, palette name and grid cell stays the published set's. A picture
+  shows its yaw's level: straight from behind, mid one or two steps turned, hard beyond. Its frame is scaled by
+  nearest pixel so that its width at that size is the straight picture's, its bottom on the picture's bottom and its
+  middle at the anchor less its x offset. Slots 1–14 are the car's colors in every named palette; the lamp is slot 15,
+  off and on from palettes 2 and 4.
+
 ## Dump
 
 `npm run road-data -- read` ([Development](development.md#road-data-commands)) checks and reads the ROM zip and writes

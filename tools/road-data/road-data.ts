@@ -21,6 +21,7 @@ import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.j
 import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
 import { OUTRUN_SKIES, outrunCourse, SKY_HORIZON, skyName } from './outrun-branch.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
+import { playerOriginal } from './outrun-player.js';
 import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
@@ -51,6 +52,8 @@ const ROM_DIRECTORY = 'reference-media/outrun/rom';
 const DUMP_DIRECTORY = 'reference-media/outrun/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
+/** The player's picture set, which the Ferrari's local original replaces. */
+const PLAYER_SET = 'content/sprites/testarossa.json';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
@@ -443,6 +446,16 @@ try {
         });
       }
       console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
+      break;
+    }
+    case 'player': {
+      // The player's car, the Ferrari, drawn into TESTAROSSA's picture set as its local original.
+      const { zip, programs } = await readPrograms(options.get('--zip'));
+      const words = assembleSprites(readZip(new Uint8Array(await readFile(zip))));
+      const published = JSON.parse(await readFile(PLAYER_SET, 'utf8')) as Parameters<typeof playerOriginal>[2];
+      const file = path.join(ORIGINALS_DIRECTORY, path.relative('content', PLAYER_SET));
+      await atomicWrite(file, formatSavedJson(playerOriginal(programs.main, words, published)));
+      console.log(JSON.stringify({ ok: true, zip, original: file }));
       break;
     }
     case 'boards': {
