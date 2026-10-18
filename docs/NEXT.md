@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-5c](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-5d](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -210,10 +210,8 @@ The ROMs' format and addresses are [Original road data](original-road-data.md)'s
 
 The original's hills are [Original road data](original-road-data.md#hills)'s.
 
-The conversion is [Original road data](original-road-data.md#course-documents)'s. Still to convert:
-
-- Forks and checkpoints: the fork begins at 1948; its stretch is 384 positions long, and its roads part at its
-  position 63. A checkpoint ends the fork stretch (the next stage's 0).
+The conversion is [Original road data](original-road-data.md#course-documents)'s; OUTRUN's whole course is
+[OUTRUN](original-road-data.md#outrun)'s.
 
 The stage's PRs left:
 
@@ -222,11 +220,10 @@ The stage's PRs left:
   which K may decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)).
 - RD-5: all of OUTRUN. K reviews RD-5a's [profile](original-road-data.md#profile): the grades the tables leave are
   returned in full before the next table, not within a row as K decided, which left up to 7 km of height and grades
-  over 200 % on other stages; held shapes stop at the steepest slid grade; each stage closes level at height 0.
-  - RD-5c: OUTRUN as one BRANCH course: the 15 stages, each fork stretch from its stage's end to the switch with its
-    lock and closure, the roads beyond the switch closing to the next stage's width, the 5 goal stretches, the
-    crossings' Sections and the stages' names. Stage 16's OUTRUN courses use it.
-  - RD-5d: the scenery of every stage, the strips (drawings 1, 3, 10 and 11) and TRIAL's timing; the standalone
+  over 200 % on other stages; held shapes stop at the steepest slid grade; each stage closes level at height 0. K also
+  reviews RD-5c's fork: its lock stands on a 2-position straight the original has not, the stage names were matched
+  to the table by their scenery, and the roads beyond a fork's Section are not checked against the stage's crossings.
+  - RD-5d: the scenery of every stage and the strips (drawings 1, 3, 10 and 11); the standalone
     COCONUT BEACH course is removed once OUTRUN replaces it.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown

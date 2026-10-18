@@ -204,14 +204,16 @@ const cutAt = (c: Change, end: number): Change | null =>
       : { from: c.from, to: end, change: (c.change * (end - c.from)) / (c.to - c.from) };
 
 /**
- * A stage's grade changes from its table runs at `look`, to `end` (stations by `stationOf`): each table's, a held
- * shape's ending where the grade reaches ±`STEEPEST`, then the grade the table leaves returned to 0 over the stretch to
- * the next table's start (the last's to `end`); where that stretch is empty, the grade is carried to the next.
+ * A stage's grade changes from its table runs at `look`, cut where the stage ends at `cut`, to the road's `end`
+ * (stations by `stationOf`): each table's, a held shape's ending where the grade reaches ±`STEEPEST`, then the grade the
+ * table leaves returned to 0 over the stretch to the next table's start (the last's to `end`); where that stretch is
+ * empty, the grade is carried to the next.
  */
 export function stageGrades(
   runs: readonly TableRun[],
   look: Readonly<Record<0 | 1, number>>,
   stationOf: (position: number) => number,
+  cut: number,
   end: number,
 ): Change[] {
   const out: Change[] = [];
@@ -220,7 +222,7 @@ export function stageGrades(
   };
   runs.forEach((run, i) => {
     for (const r of gradeRamps(run)) {
-      const c = cutAt({ from: stationOf(r.from), to: stationOf(r.to), change: r.change * look[r.held ? 1 : 0] }, end);
+      const c = cutAt({ from: stationOf(r.from), to: stationOf(r.to), change: r.change * look[r.held ? 1 : 0] }, cut);
       if (!c || !r.held) {
         add(c);
         continue;
@@ -234,7 +236,7 @@ export function stageGrades(
           : { from: c.from, to: c.from + ((c.to - c.from) * room) / c.change, change: room },
       );
     }
-    const from = stationOf(run.end),
+    const from = Math.min(stationOf(run.end), cut),
       to = Math.min(end, stationOf(runs[i + 1]?.start ?? Infinity));
     if (to > from) add({ from, to, change: -profileOf(out.map(bendOf)).grade(from) });
   });

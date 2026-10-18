@@ -399,7 +399,7 @@ test("a stage's grades: a table's leftover returned before the next, a held shap
     { table: slid, start: 0, rise: 0, holdEnd: 0, end: 17 },
     { table: held, start: 40, rise: 82.5, holdEnd: 125, end: 167.5 },
   ];
-  const changes = stageGrades(runs, look, (p) => p, 300);
+  const changes = stageGrades(runs, look, (p) => p, 300, 300);
   const profile = profileOf(changes.map(bendOf));
   assert.ok(Math.abs(profile.grade(17) - 0.1) < 1e-12);
   // The grade it leaves is returned by the next table's start.

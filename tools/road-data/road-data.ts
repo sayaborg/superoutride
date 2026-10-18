@@ -19,6 +19,7 @@ import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
+import { outrunCourse } from './outrun-branch.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -219,6 +220,19 @@ try {
         overallWidth: number;
       };
       const courses = [];
+      // A course document normalized and read, written to content or with `--check` compared with the one there.
+      const save = async (id: string, document: unknown) => {
+        const file = `content/courses/${id}.course.json`;
+        const normalized = normalizeCoursePositions(document as Json).document;
+        const read = readCourseDocument(normalized, file);
+        if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
+        const text = formatSavedJson(normalized);
+        if (check) {
+          const committed = await readFile(file, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
+        } else await atomicWrite(file, text);
+        return file;
+      };
       for (const course of OUTRUN_COURSES) {
         const stage = readStage(programs, course.stage);
         const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
@@ -246,15 +260,7 @@ try {
               },
             ).placements,
         });
-        const file = `content/courses/${course.id}.course.json`;
-        const normalized = normalizeCoursePositions(document as unknown as Json).document;
-        const read = readCourseDocument(normalized, file);
-        if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
-        const text = formatSavedJson(normalized);
-        if (check) {
-          const committed = await readFile(file, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
-        } else await atomicWrite(file, text);
+        const file = await save(course.id, document);
         // The profile's extremes, and each crossing's passages' least height apart.
         const total = document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0);
         const heights = Array.from({ length: Math.floor(total) + 1 }, (_, s) => profile.height(s));
@@ -273,6 +279,51 @@ try {
           metres: round1(document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0)),
         });
       }
+      // OUTRUN: every stage, its forks and goals.
+      const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
+      const fork = readForkStretch(programs);
+      const goals = readGoalStretches(programs);
+      const names = new Set(
+        [...stages.values()].flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value)),
+      );
+      const outrun = outrunCourse({
+        stages,
+        fork,
+        goals,
+        length,
+        tables: new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)])),
+        carWidth: vehicle.overallWidth,
+        cameraDistance: cameraDistance(CAMERA_DEFINITION),
+        kmh: TOP_KMH,
+        sky: OUTRUN_COURSES[0].sky,
+      });
+      const file = await save('outrun', outrun.document);
+      const stops = (p: number) => round1(stationOf(p));
+      courses.push({
+        course: file,
+        sections: outrun.document.sections.length,
+        links: outrun.document.links.length,
+        stages: outrun.reports.map(({ stage, name, cuts, road }) => {
+          const stations = Array.from({ length: Math.floor(stationOf(road.end)) + 1 }, (_, s) => s);
+          return {
+            stage: `0x${stage.toString(16)}`,
+            name,
+            cuts: cuts.map(stops),
+            heights: [
+              round1(Math.min(...stations.map(road.profile.height))),
+              round1(Math.max(...stations.map(road.profile.height))),
+            ],
+            steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
+            crossings: road.crossings.map((pairs) => ({
+              at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
+              apart: round1(
+                Math.min(...pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b)))),
+              ),
+            })),
+            metres: stops(road.end),
+          };
+        }),
+      });
       console.log(JSON.stringify({ ok: true, zip, conversion: CONVERSION_VERSION, checked: check, courses }));
       break;
     }

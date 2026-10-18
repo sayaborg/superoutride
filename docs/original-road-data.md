@@ -173,7 +173,7 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
 
 On COCONUT BEACH 1213 objects stand, 1101 of them solid. Six bushes brought out while the roads were apart end on the
 right road where the roads close, as in the original. A beach hut before the finish has hit extents ending 0.6 m
-beyond the road's edge band, as the original's; TRIAL's reference run passes it and takes 80.3 s.
+beyond the road's edge band, as the original's; TRIAL's reference run passes it and takes 86.5 s.
 
 ## Hills
 
@@ -228,11 +228,12 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 stage raised as a course to `content/courses/`; with `--check` it rebuilds them and fails where one differs from the
 committed document. CI holds no ROM, so the documents are committed; edit the conversion, not a document.
 
-| Course                                 | Stage | Sections (from position)                        | Conversion |
-| -------------------------------------- | ----- | ----------------------------------------------- | ---------- |
-| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 4          |
+| Course                                 | Stage  | Sections (from position)                        | Conversion |
+| -------------------------------------- | ------ | ----------------------------------------------- | ---------- |
+| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C   | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 5          |
+| `outrun` (OUTRUN)                      | all 15 | [OUTRUN](#outrun)'s                             | 5          |
 
-The conversion, version 4 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
+The conversion, version 5 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 
@@ -280,7 +281,9 @@ A stage's profile turns its height tables' look on the original's screen into gr
 (`npm run road-data -- look` reports it for every stage):
 
 - **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the top
-  speed, 293 km/h. A road position is the camera's station.
+  speed, 293 km/h. A road position is the camera's station. A table still running at the stage's end ends there, and
+  the road beyond the stage is level but for the grades returned: in the original it runs on into the fork, where on
+  COCONUT BEACH its crest throws the car into the air at 200 km/h just before the fork's curve.
 - **Grades.** Each entry slid past the camera changes the grade by `c_look` × entry / 576 over its span, ending where
   the camera passes it: kind 0's entries, and kind 3's while they slide in. A shape held on the nearest segment changes
   it by `c_look` × entry / 576 for each 2.125 × step positions it is held at full share, half over its rise and its
@@ -300,12 +303,13 @@ A stage's profile turns its height tables' look on the original's screen into gr
   empty, it is carried to the next.
 - **Closed.** The road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it
   ends level at height 0 as it begins, where its ends join other roads.
-- **Crossings.** Where a plan passes over itself (pairs of stations at least 200 m apart whose roads, measured to the
-  edge bands, overlap), its passages are kept at least 6 m apart: where nearer, the higher is raised and the lower
+- **Crossings.** Where a plan passes over itself (pairs of stations at least 200 m apart whose cross-sections, to the
+  edge bands, overlap between them and the next position), its passages are kept at least 6 m apart: where nearer, the higher is raised and the lower
   lowered by one smooth bump each, over the shortest stretch from 100 m by 20 m that moves this game's top by at most
   1 row, grown until every overlapping pair is apart (K's decision).
-- **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its curve
-  2 µm shorter at each end so curves that meet stay apart; stretches break at the Sections' cuts, and a knot next to a
+- **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
+  1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
+  that meet stay apart; stretches break at the Sections' cuts, and a knot next to a
   cut lies on the cut's tangent, so joined Sections' heights and grades agree.
 
 On COCONUT BEACH the road's top is 12 rows from the original's on average (in the original's rows). The tables'
@@ -313,18 +317,61 @@ highest and lowest tops, and the least load at 293 km/h over each table (below 0
 
 | Table at | Kind | Original's tops | This game's tops | Least load |
 | -------- | ---- | --------------- | ---------------- | ---------- |
-| 1        | 0    | 112.5 to 191.6  | 120 to 170.8     | −1.3 g     |
-| 360      | 0    | 116.9 to 179.9  | 121.7 to 165.1   | −0.2 g     |
+| 1        | 0    | 112.5 to 191.6  | 120.5 to 170.8   | −1.3 g     |
+| 360      | 0    | 116.9 to 179.9  | 121.8 to 165.1   | −0.2 g     |
 | 1044     | 0    | 101.4 to 187.1  | 111.6 to 170.2   | −1.3 g     |
-| 1600     | 1    | 151 to 169.1    | 112.8 to 166.8   | −0.5 g     |
-| 1824     | 0    | 110.2 to 191.4  | 112.8 to 170.7   | −1.3 g     |
+| 1600     | 1    | 151 to 169.1    | 112.9 to 166.8   | −0.5 g     |
+| 1824     | 0    | 110.2 to 191.4  | 112.9 to 170.7   | −1.3 g     |
 
 Kind 0's crests ahead fall 15 to 21 rows short of the original's and their rises 5 to 12; no rule of one value per
 kind brings them within 3 rows, so they are built by the least squares match (K's decision); the kind 1 table's look
 is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131; the kind 1 table's,
 returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
-The road lies from −55.7 m to 102.5 m, its steepest grade 39.3 %; the crossing's passages are 75.4 m apart without a
-bump.
+The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
+passages are 57.3 m apart without a bump.
+
+## OUTRUN
+
+`outrun` (OUTRUN) is the whole game as one BRANCH course: the 15 stages of the stage table (0xE49C, row r from 8r),
+each a road raised as a [course document](#course-documents)'s is, from GO through what follows the stage's end, with
+these differences:
+
+- **Start.** COCONUT BEACH, the entry, starts at road width 450 with the grid; every other stage at 0xD4 (212), the
+  width the roads close to at a fork. Its sky is `coast-sky` on every stage until the stages' skies are drawn.
+- **Fork.** A stage of rows 1 to 4 ends in the fork stretch (its tables at 0x1DFA4: a straight to its position 63, a
+  left curve to 160, a straight to 265, a right curve to 362 and a straight to 384), run as the main CPU's program runs
+  it (0x8780 to 0x89B6): the road width the stage ends at is kept; from 63 the roads part by 8 units a position; beyond
+  0x168 (360) the route is the side of the roads' middle the car is on (its x positive to the left); beyond 0x300 (768)
+  the roads switch, the car carried to the other road's place, and the roads close by 8 a position to 212; the next
+  stage begins at 384. Left leads to the next row's stage one to the right in the table, right to the one below it
+  (from COCONUT BEACH left to 0x3B, right to 0x1E).
+- **Choice.** Where the width reaches 360, a straight of 2 positions holds it (the format's fork zone, which the
+  original has not; the curve's pieces either side turn the whole curve's turn): the fork's lock stands 0.5 position
+  into it, its closure 1. The roads then part to 768 and switch.
+- **Switch.** The stage's last Section runs to the stretch's last straight (362), at least 484 m beyond its lock as
+  the Route requires: beyond the switch a road appears beside each, on its far side, where the other stood
+  (g, h, i | a, b, c | d, e, f | j, k, l), growing from 0 over a position, and each pair closes to 212 while the two
+  pairs keep their median. A Section for each pair then carries it on to the next stage's start, its checkpoint at its
+  end (the original's time extension): the left road on its lane b, as the right road of the next stage's pair (its
+  centre lane e), the right road on its lane e, as the left (its centre lane b), each joined to the next stage on lane
+  b. A stage entered from two forks merges there.
+- **Goal.** A stage of row 5 ends in the goal stretch its column names (0xE4EC, its tables by the blocks at 0xE514),
+  its road to 600 the runout past the finish at the stage's end, its road width from its own width point; the ending's
+  parting of the roads beyond its 182 is not raised.
+- **Profile.** Each stage's road, from GO to the next stage's start or the goal stretch's 600, has one
+  [profile](#profile), closed level at height 0 at both ends, so the stages a merge joins meet at one height.
+- **Sections.** Where a road's coordinate domain (the sand's outer edges and 4 m beyond) passes over itself before its
+  fork's Section ends, its passages lie in different Sections: each cut at the last joint before the later passage,
+  after the earlier and before the fork's choice, where the road is one (its width under 236). Crossings are looked
+  for, and kept 6 m apart, to the same end; the roads beyond it are not checked against the stage's.
+- **Names.** The stages are named as the original's map names them, matched to the table by their scenery (K to
+  confirm): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY MOUNTAIN, 0x2F
+  ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5 0x32
+  LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD. Each stage's Sections are named
+  after it: its first by its name, later ones `-2`, `-3`, its fork's roads `-left` and `-right`; its finish is
+  `<stage>-GOAL` and each fork road's checkpoint `<stage>-<side>-CP`.
+
+Its scenery is not yet placed ([NEXT](NEXT.md#stage-rd--outrun-from-the-originals-road-data)).
 
 ## Checks on `k1`
 

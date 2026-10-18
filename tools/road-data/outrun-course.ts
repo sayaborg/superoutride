@@ -4,6 +4,8 @@
  * fitted; the constants measured on `k1` are named below.
  */
 import { requireInput } from '../course/authoring-io.js';
+import { computedValue } from '../authoring/course-joints.js';
+import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { POSITION_PER_KMH, tableRuns, TICKS } from './outrun-hills.js';
 import {
   bendOf,
@@ -19,17 +21,17 @@ import type { CurvePoint, HeightTable, Path, Stage, WidthHeightPoint } from './o
 import type { ObjectPlacement } from './outrun-scenery.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 4;
+export const CONVERSION_VERSION = 5;
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
 
 /** Each road's edges lie this many units from its centre; its three lanes are equal. */
-const ROAD_EDGE = 236;
+export const ROAD_EDGE = 236;
 const LANE = (2 * ROAD_EDGE) / 3;
 const HALF_LANE = LANE / 2;
-/** The road width at a stage's start, units. */
-const START_WIDTH = 0x1c2;
+/** The road width at the game's start, units. */
+export const START_WIDTH = 0x1c2;
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
 const WIDTH_RATE = 16 / 303;
 
@@ -123,13 +125,13 @@ export function stagePlan(curves: readonly CurvePoint[], path: Path, offset: num
 }
 
 /**
- * The road width along a stage, units, as knots `[position, width]` to `end`: from 450 at 0, each width point
- * approaches its target from its position at its rate until it is reached or the next point begins.
+ * The road width along a stage, units, as knots `[position, width]` to `end`: from `start` at 0 (450 at the game's start),
+ * each width point approaches its target from its position at its rate until it is reached or the next point begins.
  */
-export function roadWidths(points: readonly WidthHeightPoint[], end: number): [number, number][] {
+export function roadWidths(points: readonly WidthHeightPoint[], end: number, start = START_WIDTH): [number, number][] {
   const targets = points.filter((p) => p.kind !== 0 && p.position < end);
-  const knots: [number, number][] = [[0, START_WIDTH]];
-  let width = START_WIDTH;
+  const knots: [number, number][] = [[0, start]];
+  let width = start;
   targets.forEach((p, i) => {
     const next = targets[i + 1]?.position ?? end;
     knots.push([p.position, width]);
@@ -171,10 +173,6 @@ export function lanesAt(w: number) {
   if (w >= HALF_LANE) return { a: LANE, b: LANE, c: w - HALF_LANE, m: 0, d: w - HALF_LANE, e: LANE, f: LANE };
   return { a: LANE, b: w + HALF_LANE, c: 0, m: 0, d: 0, e: w + HALF_LANE, f: LANE };
 }
-/** Lane b's centre, the plan's centreline, across from the two roads' middle at road width `w`. */
-export const centreLaneX = (w: number) => (w >= HALF_LANE ? -w : -(w + HALF_LANE) / 2);
-type LaneId = keyof ReturnType<typeof lanesAt>;
-const LANE_IDS: readonly LaneId[] = ['a', 'b', 'c', 'm', 'd', 'e', 'f'];
 
 /** The knots with a knot added wherever the width crosses `w`, where the lanes' rule changes. */
 const crossing = (knots: readonly [number, number][], w: number): [number, number][] =>
@@ -210,11 +208,9 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
   const knots = [{ s: from, y: profile.height(from), curveLength: 0 }];
   for (const { from: a, to: b } of profile.bends) {
     if (a < from || b > to) continue;
-    knots.push({
-      s: round((a + b) / 2),
-      y: profile.height(a) + (profile.grade(a) * (b - a)) / 2,
-      curveLength: round(b - a - 2 * CURVE_GAP),
-    });
+    // To the step of computed values, finer than a station's, so that its tangents' grades hold at both its ends.
+    const s = computedValue((a + b) / 2);
+    knots.push({ s, y: profile.height(a) + profile.grade(a) * (s - a), curveLength: round(b - a - 2 * CURVE_GAP) });
   }
   knots.push({ s: to, y: profile.height(to), curveLength: 0 });
   const n = knots.length;
@@ -223,44 +219,121 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
   return knots;
 }
 
-/**
- * Where the plan passes over itself: pairs of positions at least 200 m apart along it whose roads, each `extent(p)`
- * metres either side of its centreline at most, overlap; a crossing's pairs as stations, grouped where their earlier
- * positions run on.
- */
-export function crossingsOf(plan: readonly PlanSegment[], extent: (position: number) => number): Crossing[] {
+/** The plan's centreline at road positions 0, 1, … to its end: each point, metres, and heading, radians. */
+function planPoses(plan: readonly PlanSegment[]) {
   const x: number[] = [],
-    y: number[] = [];
-  let px = 0,
-    py = 0,
-    heading = 0;
+    y: number[] = [],
+    h: number[] = [];
+  let x0 = 0,
+    y0 = 0,
+    h0 = 0;
   for (const { from, to, turn } of plan) {
-    const step = turn / (to - from);
-    for (let p = from; p < to; p++) {
-      x[p] = px;
-      y[p] = py;
-      px += POSITION_METRES * Math.cos(heading + step / 2);
-      py += POSITION_METRES * Math.sin(heading + step / 2);
-      heading += step;
+    const k = turn / ((to - from) * POSITION_METRES);
+    for (let p = Math.ceil(from); p < to || (p === to && to === plan.at(-1)!.to); p++) {
+      const d = (p - from) * POSITION_METRES;
+      x[p] = x0 + (k === 0 ? d * Math.cos(h0) : (Math.sin(h0 + k * d) - Math.sin(h0)) / k);
+      y[p] = y0 + (k === 0 ? d * Math.sin(h0) : (Math.cos(h0) - Math.cos(h0 + k * d)) / k);
+      h[p] = h0 + k * d;
     }
+    const d = (to - from) * POSITION_METRES;
+    x0 += k === 0 ? d * Math.cos(h0) : (Math.sin(h0 + turn) - Math.sin(h0)) / k;
+    y0 += k === 0 ? d * Math.sin(h0) : (Math.cos(h0) - Math.cos(h0 + turn)) / k;
+    h0 += turn;
   }
+  return { x, y, h };
+}
+
+type Point = readonly [number, number];
+/** Whether two convex polygons overlap: no edge of either separates them. */
+function overlap(a: readonly Point[], b: readonly Point[]): boolean {
+  for (const polygon of [a, b])
+    for (let i = 0; i < polygon.length; i++) {
+      const [x0, y0] = polygon[i]!,
+        [x1, y1] = polygon[(i + 1) % polygon.length]!;
+      const nx = y0 - y1,
+        ny = x1 - x0;
+      const span = (q: readonly Point[]) => q.map(([x, y]) => nx * x + ny * y);
+      const pa = span(a),
+        pb = span(b);
+      if (Math.max(...pa) <= Math.min(...pb) || Math.max(...pb) <= Math.min(...pa)) return false;
+    }
+  return true;
+}
+
+/**
+ * Where the plan passes over itself: pairs of road positions at least 200 m apart along it whose cross-sections, each
+ * from `sides(p)` metres left of the centreline to its right (`[left, right]`), overlap between them and the next
+ * position; a crossing's pairs as stations, grouped where their earlier positions run on.
+ */
+export function crossingsOf(plan: readonly PlanSegment[], sides: (position: number) => readonly [number, number]) {
+  const { x, y, h } = planPoses(plan);
+  const corners = x.map((_, p) => {
+    const [left, right] = sides(p);
+    const nx = -Math.sin(h[p]!),
+      ny = Math.cos(h[p]!);
+    return [
+      [x[p]! + left * nx, y[p]! + left * ny],
+      [x[p]! - right * nx, y[p]! - right * ny],
+    ] as const;
+  });
+  const cells = corners.slice(0, -1).map(([l0, r0], p) => {
+    const [l1, r1] = corners[p + 1]!;
+    return [l0, r0, r1, l1] as Point[];
+  });
+  // A grid of 50 m squares over the cells' bounds, each listing the cells that reach it.
+  const SQUARE = 50;
+  const grid = new Map<string, number[]>();
+  const squares = (cell: readonly Point[]) => {
+    const xs = cell.map(([cx]) => Math.floor(cx / SQUARE)),
+      ys = cell.map(([, cy]) => Math.floor(cy / SQUARE));
+    const keys: string[] = [];
+    for (let i = Math.min(...xs); i <= Math.max(...xs); i++)
+      for (let j = Math.min(...ys); j <= Math.max(...ys); j++) keys.push(`${i},${j}`);
+    return keys;
+  };
+  cells.forEach((cell, p) => {
+    for (const key of squares(cell)) grid.set(key, [...(grid.get(key) ?? []), p]);
+  });
   const apart = Math.ceil(200 / POSITION_METRES);
   const groups: [number, number][][] = [];
-  for (let i = 0; i < x.length; i++)
-    for (let j = i + apart; j < x.length; j++) {
-      if (Math.hypot(x[i]! - x[j]!, y[i]! - y[j]!) >= extent(i) + extent(j)) continue;
+  cells.forEach((cell, i) => {
+    const near = new Set(squares(cell).flatMap((key) => grid.get(key)!.filter((j) => j >= i + apart)));
+    for (const j of [...near].sort((a, b) => a - b)) {
+      if (!overlap(cell, cells[j]!)) continue;
       const last = groups.at(-1);
       if (last && i - last.at(-1)![0] <= 1 && Math.abs(j - last.at(-1)![1]) < apart) last.push([i, j]);
       else groups.push([[i, j]]);
     }
+  });
   return groups.map((pairs) => pairs.map(([i, j]) => [stationOf(i), stationOf(j)] as const));
 }
 
+/**
+ * What follows a stage's end on its road, level, positions from there to `end`: its plan, beginning on a straight that
+ * carries on the stage's last; its road width knots, given the width the stage ends at.
+ */
+export interface RoadAfter {
+  readonly end: number;
+  readonly plan: readonly PlanSegment[];
+  widths(width: number): [number, number][];
+}
+
+/** A runout of `runout` positions on the stage's path's look-ahead, the road width held. */
+export const runoutAfter = (runout: number): RoadAfter => ({
+  end: runout,
+  plan: [{ from: 0, to: runout, turn: 0 }],
+  widths: (width) => [
+    [0, width],
+    [runout, width],
+  ],
+});
+
 /** What a stage's road takes beside its tables. */
 export interface StageRoadOptions {
-  /** The stage's length and its finish, positions; the runout past it, positions, on the path's look-ahead. */
+  /** The stage's length and its finish, positions; what follows it, and the road width at its start, units. */
   readonly length: number;
-  readonly runout: number;
+  readonly after: RoadAfter;
+  readonly startWidth: number;
   /** The path's offset against the curves (`pathOffset`). */
   readonly offset: number;
   /** TESTAROSSA's width, metres. */
@@ -272,6 +345,98 @@ export interface StageRoadOptions {
   readonly objects: (width: (position: number) => number) => readonly ObjectPlacement[];
   /** The positions its Sections are cut at, where its profile's bends break. */
   readonly cuts: readonly number[];
+  /** Where its crossings are looked for to, positions: where its fork's Section ends, else its end. */
+  readonly crossingsTo?: number;
+  /** Where its roads switch at a fork, positions: beyond, the roads beside each appear (`CrossSection`). */
+  readonly fork?: number;
+}
+
+/**
+ * A road's cross-section, left to right: its roads of three lanes and the medians between them, `m0`, `m1`, … Its
+ * widths (units) at a position, and the positions where a width changes slope.
+ */
+export interface CrossSection {
+  readonly roads: readonly (readonly [string, string, string])[];
+  widthsAt(position: number): ReadonlyMap<string, number>;
+  readonly knots: readonly number[];
+}
+
+/** The positions over which a road that appears at a fork's switch grows to its width. */
+const PHANTOM = 1;
+
+/**
+ * The cross-section of a road of road width `widthAt`: two roads, a, b, c | m0 | d, e, f (`lanesAt`). Beyond a fork's
+ * switch the original carries the car to the other road's place, so beside each road another appears on its far side,
+ * the two closing as the road width falls: g, h, i | m0 | a, b, c | m1 | d, e, f | m2 | j, k, l, the roads' median m1
+ * held from the switch, the roads appearing there growing from 0 over `PHANTOM` positions; before it m0 and m2 grow as
+ * m1 does, so that the roads appear where they stand.
+ */
+function crossSection(widthAt: (p: number) => number, knots: readonly number[], fork?: number): CrossSection {
+  if (fork === undefined)
+    return {
+      roads: [
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+      ],
+      widthsAt: (p) => {
+        const { a, b, c, m, d, e, f } = lanesAt(widthAt(p));
+        return new Map(Object.entries({ a, b, c, m0: m, d, e, f }));
+      },
+      knots,
+    };
+  const apart = lanesAt(widthAt(fork)).m;
+  return {
+    roads: [
+      ['g', 'h', 'i'],
+      ['a', 'b', 'c'],
+      ['d', 'e', 'f'],
+      ['j', 'k', 'l'],
+    ],
+    widthsAt: (p) => {
+      const w = lanesAt(widthAt(p));
+      if (p < fork)
+        return new Map(
+          Object.entries({
+            g: 0,
+            h: 0,
+            i: 0,
+            m0: w.m,
+            a: w.a,
+            b: w.b,
+            c: w.c,
+            m1: w.m,
+            d: w.d,
+            e: w.e,
+            f: w.f,
+            m2: w.m,
+            j: 0,
+            k: 0,
+            l: 0,
+          }),
+        );
+      const grown = Math.min(1, (p - fork) / PHANTOM);
+      return new Map(
+        Object.entries({
+          g: w.a * grown,
+          h: w.b * grown,
+          i: w.c * grown,
+          m0: w.m,
+          a: w.d,
+          b: w.e,
+          c: w.f,
+          m1: apart,
+          d: w.a,
+          e: w.b,
+          f: w.c,
+          m2: w.m,
+          j: w.d * grown,
+          k: w.e * grown,
+          l: w.f * grown,
+        }),
+      );
+    },
+    knots: [...new Set([...knots, fork, fork + PHANTOM])].sort((x, y) => x - y),
+  };
 }
 
 /**
@@ -282,10 +447,12 @@ export interface StageRoadOptions {
 export interface Road {
   readonly end: number;
   readonly plan: readonly PlanSegment[];
-  readonly widths: readonly [number, number][];
   widthAt(position: number): number;
+  readonly crossSection: CrossSection;
   readonly profile: Profile;
   readonly crossings: readonly Crossing[];
+  /** Where its coordinate domain overlaps itself, which its Sections must part. */
+  readonly overlaps: readonly Crossing[];
   readonly colors: Stage['colors'];
   readonly objects: readonly ObjectPlacement[];
   /** Metres a road-width unit. */
@@ -293,20 +460,41 @@ export interface Road {
 }
 
 /**
- * `stage`'s road: its plan, its road width and its profile from its tables, to its length and the runout past it. The
+ * `stage`'s road: its plan, its road width and its profile from its tables, to its length and what follows it. The
  * surface's, lines' and edges' colors must each be two halves repeated, and the centre line the surface.
  */
 export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
-  const { length, runout } = options;
-  const end = length + runout;
-  const plan = stagePlan(stage.curves, stage.path, options.offset, end);
-  // The look-ahead past the stage carries on the stage's last segment, which must be straight.
-  requireInput(plan.at(-1)!.turn === 0, '/curves', 'The stage does not end on a straight');
+  const { length, after } = options;
+  const end = length + after.end;
+  // The stage's last segment, a straight, carries on over the first of what follows on the path's look-ahead.
+  const [lead, ...rest] = after.plan;
+  requireInput(lead?.turn === 0, '/after', 'What follows the stage does not begin on a straight');
+  const plan = [
+    ...stagePlan(stage.curves, stage.path, options.offset, length + lead.to),
+    ...rest.map((s) => ({ from: length + s.from, to: length + s.to, turn: s.turn })),
+  ];
+  requireInput(
+    plan.find((s) => s.from < length && s.to > length)?.turn === 0,
+    '/curves',
+    'The stage does not end on a straight',
+  );
   const metres = lateralScale(options.carWidth);
 
-  // The road width, held past the stage; a knot wherever the lanes' rule changes.
-  const widths = crossing(crossing(roadWidths(stage.widthsHeights, length), ROAD_EDGE), HALF_LANE);
-  if (runout > 0) widths.push([end, widths.at(-1)![1]]);
+  // The road width, and what follows from the width the stage ends at; a knot wherever the lanes' rule changes.
+  const own = roadWidths(stage.widthsHeights, length, options.startWidth);
+  const widths = crossing(
+    crossing(
+      [
+        ...own,
+        ...after
+          .widths(own.at(-1)![1])
+          .filter(([at]) => at > 0)
+          .map(([at, w]) => [length + at, w] as [number, number]),
+      ],
+      ROAD_EDGE,
+    ),
+    HALF_LANE,
+  );
   const widthAt = (p: number) => {
     const i = widths.findIndex(([at]) => at >= p);
     const [a, wa] = widths[Math.max(0, i - 1)]!,
@@ -336,13 +524,30 @@ export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
     options.tables,
     () => options.kmh,
   );
-  const extent = (p: number) => {
-    const w = lanesAt(widthAt(p));
-    return (Math.max(w.b / 2 + w.a, w.b / 2 + w.c + w.m + w.d + w.e + w.f) + EDGE_BAND) * metres;
-  };
-  const crossings = crossingsOf(plan, extent);
+  const section = crossSection(
+    widthAt,
+    widths.map(([at]) => at),
+    options.fork,
+  );
+  // Its roads' sides, metres left and right of lane b's centre (the centreline) to the edge bands, and more.
+  const sides =
+    (more: number) =>
+    (p: number): [number, number] => {
+      const widths = [...section.widthsAt(p)];
+      const k = widths.findIndex(([id]) => id === 'b');
+      const sum = (list: typeof widths) => list.reduce((total, [, w]) => total + w, 0);
+      const half = widths[k]![1] / 2;
+      return [
+        (sum(widths.slice(0, k)) + half + EDGE_BAND) * metres + more,
+        (sum(widths.slice(k + 1)) + half + EDGE_BAND) * metres + more,
+      ];
+    };
+  const looked = plan.filter((s) => s.to <= (options.crossingsTo ?? end));
+  const crossings = crossingsOf(looked, sides(0));
+  // Where its coordinate domain, to the sand's outer edges and the vehicles' reach beyond, overlaps itself.
+  const overlaps = crossingsOf(looked, sides(VERGE + MAXIMUM_VEHICLE_REACH));
   const changes = separatedCrossings(
-    closedGrades(stageGrades(runs, LOOK, stationOf, total), total),
+    closedGrades(stageGrades(runs, LOOK, stationOf, stationOf(length), total), total),
     crossings,
     total,
   ).filter((c) => c.from >= 0 && c.to <= total);
@@ -351,10 +556,11 @@ export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
   return {
     end,
     plan,
-    widths,
     widthAt,
+    crossSection: section,
     profile,
     crossings,
+    overlaps,
     colors: stage.colors,
     objects: options.objects(widthAt),
     metres,
@@ -379,6 +585,12 @@ export interface RoadSection {
   readonly joinsBefore: boolean;
   readonly joinsAfter: boolean;
   readonly gates: readonly RoadGate[];
+  /**
+   * Two consecutive roads of the cross-section it holds, as lanes a, b, c | m | d, e, f; else all of them, as named
+   * there. Its centre lane, b by default.
+   */
+  readonly roads?: readonly [number, number];
+  readonly centerLane?: string;
 }
 
 type Lateral = Record<string, unknown>;
@@ -395,14 +607,26 @@ const planElement = (s: PlanSegment) => {
     : { kind: 'arc', id, length, radius: round(length / Math.abs(s.turn)), turn: s.turn > 0 ? 'left' : 'right' };
 };
 
+/** The stretches, `[from, to]`, where piecewise linear `values` (knots `[position, value]`) are at least `least`. */
+const where = (values: readonly [number, number][], least: number) => stretchesFrom(values, least);
+/** The stretches two lists of stretches share. */
+const shared = (x: readonly [number, number][], y: readonly [number, number][]) =>
+  x.flatMap(([a, b]) =>
+    y.flatMap(([c, d]) =>
+      Math.min(b, d) > Math.max(a, c) ? [[Math.max(a, c), Math.min(b, d)] as [number, number]] : [],
+    ),
+  );
+/** A width is there where it is wider than this, units. */
+const THERE = 1e-9;
+
 /**
- * `section` of `road` as a Section document, its Positions measured from its first joint: the lanes a, b, c | median |
- * d, e, f, b the centre lane, from the road width; the strips from the palette, the surface's halves keeping their phase
- * from GO; the profile; the objects beside the road; the sky facing the heading the plan reaches.
+ * `section` of `road` as a Section document, its Positions measured from its first joint: the lanes and medians of its
+ * roads; the strips from the palette, the surface's halves keeping their phase from GO; the profile; the objects beside
+ * the road; the sky facing the heading the plan reaches.
  */
 export function roadSection(road: Road, section: RoadSection, cameraDistance: number) {
   const { id, from, to } = section;
-  const { metres, widths, widthAt, profile } = road;
+  const { metres, profile } = road;
   const { surface, laneLines, edges } = road.colors;
   const m = (units: number) => round(units * metres);
   const band = m(EDGE_BAND),
@@ -420,20 +644,41 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
     if (e.kind === 'arc') heading += (((e.turn === 'left' ? 1 : -1) * e.length) / e.radius!) * (180 / Math.PI);
   const yawOrigin = round(wrapDegrees(heading));
 
-  const knots: [number, number][] = [
-    [from, widthAt(from)],
-    ...widths.filter(([at]) => at > from && at < to),
-    [to, widthAt(to)],
-  ];
-  const lanes = LANE_IDS.flatMap((id) => {
-    const values = knots.map(([position, w]) => [position, m(lanesAt(w)[id])] as const);
+  // Its roads, as the cross-section names them or as a, b, c | m | d, e, f, and the medians between them.
+  const { crossSection: cross } = road;
+  const picked = section.roads ? cross.roads.slice(section.roads[0], section.roads[1] + 1) : cross.roads;
+  const names = new Map<string, string>(
+    section.roads
+      ? [
+          ...picked.flat().map((source, i) => [source, 'abcdef'[i]!] as [string, string]),
+          [`m${section.roads[0]}`, 'm0'],
+        ]
+      : [...cross.roads.flat(), ...cross.roads.slice(1).map((_, i) => `m${i}`)].map((n) => [n, n] as [string, string]),
+  );
+  const named = picked.map((lanes) => lanes.map((l) => names.get(l)!));
+  const knots = [from, ...cross.knots.filter((p) => p > from && p < to), to];
+  const widths = knots.map((p) => {
+    const all = cross.widthsAt(p);
+    return new Map([...names].map(([source, name]) => [name, all.get(source)!]));
+  });
+  // The knots of a width, or of a sum of widths, `[position, units]`.
+  const valuesOf = (...ids: string[]) =>
+    knots.map((p, k) => [p, ids.reduce((sum, i) => sum + widths[k]!.get(i)!, 0)] as [number, number]);
+  const sectionMetres = (list: readonly [number, number][]) =>
+    list.map(([a, b]) => [stationOf(a) - origin, stationOf(b) - origin] as const);
+  // The roads there in this Section and the medians between them: a road that appears beyond it is left out.
+  const kept = named.flatMap((lanes, i) => (lanes.some((l) => valuesOf(l).some(([, v]) => v > THERE)) ? [i] : []));
+  const roads = kept.map((i) => named[i]!);
+  const medians = kept.slice(1).map((i) => `m${i - 1}`);
+  const order = roads.flatMap((lanes, i) => [...lanes, ...(i < medians.length ? [medians[i]!] : [])]);
+  const lanes = order.flatMap((name) => {
+    const values = valuesOf(name).map(([p, v]) => [p, m(v)] as [number, number]);
     if (values.every(([, v]) => v === 0)) return [];
     const width = values.every(([, v]) => v === values[0]![1])
       ? values[0]![1]
-      : simplified(values.map(([p, v]) => [p, v])).map(([position, v]) => ({ at: at(position), width: v }));
-    return [id === 'm' ? { kind: 'median', width } : { kind: 'lane', id, width }];
+      : simplified(values).map(([position, v]) => ({ at: at(position), width: v }));
+    return [medians.includes(name) ? { kind: 'median', width } : { kind: 'lane', id: name, width }];
   });
-  const has = (id: LaneId) => lanes.some((l) => ('id' in l ? l.id === id : id === 'm'));
 
   const strip = (
     a: number,
@@ -463,17 +708,20 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
     const element = strip(start, start + half, left, right, color, null);
     return [count === 1 ? element : { kind: 'repeat', every: STRIPE_PERIOD, count, elements: [element] }];
   };
-  // A line's color over each half where it differs from the surface's.
-  const line = (colors: readonly number[], a: number, b: number, left: Lateral, right: Lateral) =>
-    ([0, 1] as const).flatMap((h) => (colors[h] === surface.rgb555[h] ? [] : halves(h, a, b, left, right, colors[h]!)));
-  // The stretches of this Section, Section metres, where the road width is at least `w`.
-  const stretches = (w: number) =>
-    stretchesFrom(knots, w).map(([a, b]) => [stationOf(a) - origin, stationOf(b) - origin] as const);
-  const lineAt = (id: string, stretch: readonly (readonly [number, number])[]) =>
-    stretch.flatMap(([a, b]) =>
-      line(laneLines.rgb555, a, b, lane(id, 'right', -lineHalf), lane(id, 'right', lineHalf)),
+  // A line's color over each half where it differs from the surface's, over stretches (Section metres).
+  const line = (
+    colors: readonly number[],
+    stretches: readonly (readonly [number, number])[],
+    left: Lateral,
+    right: Lateral,
+  ) =>
+    stretches.flatMap(([a, b]) =>
+      ([0, 1] as const).flatMap((h) =>
+        colors[h] === surface.rgb555[h] ? [] : halves(h, a, b, left, right, colors[h]!),
+      ),
     );
-  const everywhere = [[0, size]] as const;
+  const firstLane = roads[0]![0]!,
+    lastLane = roads.at(-1)![2]!;
   const strips = [
     // The ground, sand beside the roads and between them, and the surface, each by half.
     whole(null, null, GROUND[1], null),
@@ -484,25 +732,38 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
     ...(surface.rgb555[0] === surface.rgb555[1]
       ? []
       : halves(0, 0, size, boundary('road-left'), boundary('road-right'), surface.rgb555[0]!)),
-    ...(has('m')
-      ? [
-          whole(lane('c', 'right'), lane('d', 'left'), GROUND[1], 'SAND'),
-          ...halves(0, 0, size, lane('c', 'right'), lane('d', 'left'), GROUND[0]),
-        ]
-      : []),
-    // Edge bands: outside the outer lanes, and inside the median where it holds both roads' bands.
-    ...line(edges.rgb555, 0, size, boundary('road-left'), lane('a', 'left')),
-    ...line(edges.rgb555, 0, size, lane('f', 'right'), boundary('road-right')),
-    ...(has('m')
-      ? stretches(ROAD_EDGE + EDGE_BAND).flatMap(([a, b]) => [
-          ...line(edges.rgb555, a, b, lane('c', 'right'), lane('c', 'right', band)),
-          ...line(edges.rgb555, a, b, lane('d', 'left', -band), lane('d', 'left')),
-        ])
-      : []),
-    // Lane lines: each road's, while its inner lane is there.
-    ...lineAt('a', everywhere),
-    ...lineAt('e', everywhere),
-    ...(has('c') ? [...lineAt('b', stretches(HALF_LANE)), ...lineAt('d', stretches(HALF_LANE))] : []),
+    ...medians.flatMap((median, i) =>
+      valuesOf(median).some(([, v]) => v > THERE)
+        ? [
+            whole(lane(roads[i]![2]!, 'right'), lane(roads[i + 1]![0]!, 'left'), GROUND[1], 'SAND'),
+            ...halves(0, 0, size, lane(roads[i]![2]!, 'right'), lane(roads[i + 1]![0]!, 'left'), GROUND[0]),
+          ]
+        : [],
+    ),
+    // Edge bands: each road's where it is there, outside its outer lanes where they face the sand beyond the roads or
+    // a median that holds both roads' bands.
+    ...roads.flatMap((lanes, i) => {
+      const there = where(valuesOf(...lanes), THERE);
+      const facing = (median: string | undefined) =>
+        sectionMetres(median === undefined ? there : shared(there, where(valuesOf(median), 2 * EDGE_BAND)));
+      return [
+        ...line(edges.rgb555, facing(medians[i - 1]), lane(lanes[0]!, 'left', -band), lane(lanes[0]!, 'left')),
+        ...line(edges.rgb555, facing(medians[i]), lane(lanes[2]!, 'right'), lane(lanes[2]!, 'right', band)),
+      ];
+    }),
+    // Lane lines: between each road's lanes where both are there.
+    ...roads.flatMap((lanes) =>
+      lanes
+        .slice(0, -1)
+        .flatMap((left, k) =>
+          line(
+            laneLines.rgb555,
+            sectionMetres(shared(where(valuesOf(left), THERE), where(valuesOf(lanes[k + 1]!), THERE))),
+            lane(left, 'right', -lineHalf),
+            lane(left, 'right', lineHalf),
+          ),
+        ),
+    ),
   ];
 
   const gates = section.gates.map((gate) =>
@@ -521,23 +782,46 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
         : { kind: gate.kind, at: at(gate.position) },
   );
 
+  // An object's x is from the original's middle, the middle median's centre: its lateral is from the centre lane's.
+  const centerLane = section.centerLane ?? 'b';
+  const middle = medians[Math.floor((medians.length - 1) / 2)]!;
+  const fromCentre = (p: number) => {
+    const all = cross.widthsAt(p);
+    const width = (name: string) => all.get([...names].find(([, n]) => n === name)![0])!;
+    let x = 0,
+      centre = 0,
+      mid = 0;
+    for (const name of order) {
+      if (name === centerLane) centre = x + width(name) / 2;
+      if (name === middle) mid = x + width(name) / 2;
+      x += width(name);
+    }
+    return mid - centre;
+  };
+
   return {
     id,
     plan: elements,
     profile: sectionProfile(profile, origin, origin + size, section.joinsBefore, section.joinsAfter).map(
       ({ s, y, curveLength }) => ({
-        at: { joint: first, offset: round(s - origin) },
+        at: { joint: first, offset: computedValue(s - origin) },
         y,
         curveLength,
       }),
     ),
     lanes,
-    centerLane: 'b',
+    centerLane,
     boundaries: [
-      { id: 'outer-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band - VERGE) })) },
-      { id: 'road-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band) })) },
-      { id: 'road-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band) })) },
-      { id: 'outer-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band + VERGE) })) },
+      {
+        id: 'outer-left',
+        knots: [from, to].map((p) => ({ at: at(p), lateral: lane(firstLane, 'left', -band - VERGE) })),
+      },
+      { id: 'road-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane(firstLane, 'left', -band) })) },
+      { id: 'road-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane(lastLane, 'right', band) })) },
+      {
+        id: 'outer-right',
+        knots: [from, to].map((p) => ({ at: at(p), lateral: lane(lastLane, 'right', band + VERGE) })),
+      },
     ],
     strips,
     walls: [],
@@ -550,7 +834,7 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
         image: o.image,
         palette: o.palette,
         at: at(o.position),
-        lateral: round((o.x - centreLaneX(widthAt(o.position))) * metres),
+        lateral: round((o.x + fromCentre(o.position)) * metres),
         groundOffset: round(o.y * metres),
         unselectedLink: null,
         body: o.hit === null ? null : { width: round(o.hit * metres), movable: null },
@@ -568,8 +852,10 @@ export function roadSection(road: Road, section: RoadSection, cameraDistance: nu
 }
 
 /** What a stage's course takes beside its road's. */
-export interface StageCourseOptions extends Omit<StageRoadOptions, 'cuts'> {
+export interface StageCourseOptions extends Omit<StageRoadOptions, 'cuts' | 'after' | 'startWidth'> {
   readonly name: string;
+  /** The runout past the stage's length, positions, on the path's look-ahead. */
+  readonly runout: number;
   /** The Sections from their first positions, the first from 0: where the plan passes over itself, its passages lie in
    * different Sections (an overpass), each cut at a joint where the road is one. */
   readonly sections: readonly { readonly id: string; readonly from: number }[];
@@ -586,7 +872,12 @@ export interface StageCourseOptions extends Omit<StageRoadOptions, 'cuts'> {
  */
 export function stageCourse(stage: Stage, options: StageCourseOptions) {
   const { length, sections: cuts } = options;
-  const road = stageRoad(stage, { ...options, cuts: cuts.map(({ from }) => from) });
+  const road = stageRoad(stage, {
+    ...options,
+    after: runoutAfter(options.runout),
+    startWidth: START_WIDTH,
+    cuts: cuts.map(({ from }) => from),
+  });
   const sections = cuts.map(({ id, from }, k) => {
     const to = cuts[k + 1]?.from ?? road.end;
     const gates: RoadGate[] = [
