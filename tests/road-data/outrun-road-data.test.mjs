@@ -20,7 +20,13 @@ import {
   stageGrades,
   STEEPEST,
 } from '../../tools/road-data/outrun-profile.ts';
-import { anchorPoint, outline, representative, spritePixels } from '../../tools/road-data/outrun-sprites.ts';
+import {
+  anchorPoint,
+  outline,
+  representative,
+  spritePixels,
+  spriteWords,
+} from '../../tools/road-data/outrun-sprites.ts';
 import {
   lanesAt,
   lateralScale,
@@ -441,13 +447,18 @@ test("a table's grades: kind 0's entries where the camera passes them, kind 1's 
 });
 
 test("a sprite's pixels, its filled outline, its anchor and its palette's representative color", () => {
-  // One row of two words: seven transparent pixels and a row mark, then 1, 2, 15 (a mark between colors), 3 and four 0.
+  // A set's four ROMs give a word's bytes from the least significant: .9's byte is its low byte, .12's its high one.
+  const roms = [[0x78], [0x56], [0x34], [0x12]].map((bytes) => Uint8Array.from(bytes));
+  assert.deepEqual([...spriteWords(roms)], [0x12345678]);
+  // Rows of three words, its pixels from each word's high bits: 1, 2, 15 (transparent), 3, then 0s; the next word, whose
+  // bits 4–7 are 15, ends the row, and the third word is not drawn.
   const words = new Uint32Array(0x40000);
-  words[5] = 0x0000000f;
-  words[6] = 0x12f30000;
-  const pixels = spritePixels(words, { width: 16, height: 1, stride: 2, bank: 0, offset: 5 });
-  assert.deepEqual([...pixels], [0, 0, 0, 0, 0, 0, 0, 15, 1, 2, 15, 3, 0, 0, 0, 0]);
-  assert.deepEqual([...outline(pixels, 16)], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]);
+  words[5] = 0x12f30000;
+  words[6] = 0x400000f0;
+  words[7] = 0x55555555;
+  const pixels = spritePixels(words, { width: 24, height: 1, stride: 3, bank: 0, offset: 5 });
+  assert.deepEqual([...pixels], [1, 2, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, ...Array(8).fill(0)]);
+  assert.deepEqual([...outline(pixels, 24)].slice(0, 9), [1, 1, 0, 1, 0, 0, 0, 0, 1]);
   // A hole no transparent path joins to the edge is filled.
   const ring = Uint8Array.from([1, 1, 1, 1, 0, 1, 1, 1, 1]);
   assert.deepEqual([...outline(ring, 3)], [1, 1, 1, 1, 1, 1, 1, 1, 1]);
@@ -456,5 +467,5 @@ test("a sprite's pixels, its filled outline, its anchor and its palette's repres
   assert.deepEqual(anchorPoint(10, 10, 20), { x: 9.5, y: 19.5 });
   // The mean of the colored pixels' colors by channel.
   const palette = [0, (10 << 10) | (20 << 5) | 30, (20 << 10) | (10 << 5) | 0];
-  assert.equal(representative(Uint8Array.from([1, 2, 0, 15]), palette), (15 << 10) | (15 << 5) | 15);
+  assert.equal(representative(Uint8Array.from([1, 2, 0]), palette), (15 << 10) | (15 << 5) | 15);
 });

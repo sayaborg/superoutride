@@ -31,8 +31,8 @@ archive records; another ROM set is refused. K's set matches:
 | `epr-10381b.132` | `be8c412b` | `epr-10328a.75` | `d5ec5e5d` |
 | `epr-10383b.117` | `10a2014a` | `epr-10330a.57` | `ba9ec82a` |
 
-The sprites are eight 128 KiB ROMs in two sets of four, each ROM one byte of a 32-bit word, the most significant
-first: `mpr-10371.9` `7cc86208`, `mpr-10373.10` `b0d26ac9`, `mpr-10375.11` `59b60bd7`, `mpr-10377.12` `17a1b04a`, then
+The sprites are eight 128 KiB ROMs in two sets of four, each ROM one byte of a 32-bit word, the least significant
+first (`.12` and `.16` give the most significant byte): `mpr-10371.9` `7cc86208`, `mpr-10373.10` `b0d26ac9`, `mpr-10375.11` `59b60bd7`, `mpr-10377.12` `17a1b04a`, then
 `mpr-10372.13` `b557078c`, `mpr-10374.14` `8051e517`, `mpr-10376.15` `f3b8f318`, `mpr-10378.16` `a1062984`
 (`OUTRUN_SPRITE_ROMS`), checked as the programs are.
 
@@ -103,9 +103,10 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
 
 - **Sizes.** The long at 0x11ED2 + sprite × 4 addresses its five sizes, the largest first, each {word width, word height,
   word words a row, word bank (its low byte), word first word in the bank}.
-- **Pixels.** Each word holds eight 4-bit pixels, the most significant first. 0 is transparent; 15 marks where a row
-  may end, at the end of each word left of a picture's middle and the start of each right of it, and covers the pixel
-  there.
+- **Pixels.** Each word holds eight 4-bit pixels, the most significant first. 0 and 15 are transparent. Read from the
+  left, a row ends with the word whose bits 4–7 are 15; drawn mirrored, its words are read the other way, the least
+  significant pixel first, and the row ends with the word whose bits 24–27 are 15. So COCONUT BEACH's signs read
+  "DIVING SCHOOL", "OUTRUN" and "Vulture St. / Dalton Bayside".
 - **Palettes.** Palette p is the 16 palette words ([Palette words](#palette-words)) at 0x14ED8 + p × 32, slot 0
   transparent.
 - **Hit extents.** The signed words at 0x1212A + sprite × 4: how far left and right of its object, in road units, the
@@ -141,7 +142,7 @@ not the crash. Drawings 2, 5, 6, 12 and 14 move. None of these is converted yet.
 and the objects standing at the start (of the first stage), mirrored and shadowed as shown: a sprite source
 `content/sprite-sources/outrun-<sprite>[-mirrored][-shadowed].png` and its recipe, made into the course image of that
 name; with `--check` it rebuilds them and fails where one differs. Its master is the largest size's outline, filled: the
-colored pixels, a row mark between two colored ones, and every pixel no transparent path joins to the picture's edge.
+colored pixels and every pixel no transparent path joins to the picture's edge.
 Its width is its pixels × their road units × `s_lat` ([Course documents](#course-documents)); its base point at the
 bottom or middle its anchor gives, across at the middle of the sprite's hit extents (so a solid object's body stands
 there); each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),

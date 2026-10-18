@@ -7,7 +7,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './outrun-road.js';
 import type { ZipFile } from './zip.js';
 
-/** The sprite ROMs: two sets of four, each ROM one byte of a 32-bit word, the most significant first. */
+/** The sprite ROMs: two sets of four, each ROM one byte of a 32-bit word, the least significant first. */
 export const OUTRUN_SPRITE_ROMS = Object.freeze([
   [
     { name: 'mpr-10371.9', crc: 0x7cc86208 },
@@ -33,7 +33,13 @@ const START_OBJECTS = 0x2b6e;
 /** A sprite lists five sizes, the largest first. */
 const SIZES = 5;
 
-/** The sprite ROMs' words: a set's ROM `k` gives byte `k` of each word, set 1's words after set 0's. */
+/** A set of four ROMs' words: ROM `k` gives byte `k` of each word, counted from the least significant. */
+export function spriteWords(roms: readonly Uint8Array[]): Uint32Array {
+  const [b0, b1, b2, b3] = roms;
+  return Uint32Array.from(b0!, (low, i) => ((b3![i]! << 24) | (b2![i]! << 16) | (b1![i]! << 8) | low) >>> 0);
+}
+
+/** The sprite ROMs' words (`spriteWords`: .9 and .13 the lowest bytes, .12 and .16 the highest), set 1's after set 0's. */
 export function assembleSprites(files: ReadonlyMap<string, ZipFile>): Uint32Array {
   const words = new Uint32Array(OUTRUN_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
   OUTRUN_SPRITE_ROMS.forEach((set, s) => {
@@ -47,9 +53,7 @@ export function assembleSprites(files: ReadonlyMap<string, ZipFile>): Uint32Arra
       );
       return file.data;
     });
-    for (let i = 0; i < SPRITE_ROM_SIZE; i++)
-      words[s * SPRITE_ROM_SIZE + i] =
-        ((data[0]![i]! << 24) | (data[1]![i]! << 16) | (data[2]![i]! << 8) | data[3]![i]!) >>> 0;
+    words.set(spriteWords(data), s * SPRITE_ROM_SIZE);
   });
   return words;
 }
@@ -86,30 +90,24 @@ export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
 
 /**
  * A size's pixels, row-major: each word eight 4-bit pixels, the most significant first, `stride` words a row from its
- * bank's offset. 0 is transparent; 15 marks where a row may end, at the end of each word left of the picture's middle
- * and the start of each right of it, and covers the pixel there.
+ * bank's offset. 0 and 15 are transparent; a row ends with the word whose bits 4–7 are 15, and is transparent beyond.
  */
 export function spritePixels(words: Uint32Array, size: SpriteSize): Uint8Array {
   const out = new Uint8Array(size.width * size.height);
   for (let y = 0; y < size.height; y++)
-    for (let x = 0; x < size.width; x++) {
+    for (let x = 0, ended = false; x < size.width && !ended; x++) {
       const w = words[size.bank * 0x10000 + ((size.offset + y * size.stride + (x >> 3)) & 0xffff)]!;
-      out[y * size.width + x] = (w >>> (28 - 4 * (x & 7))) & 15;
+      const v = (w >>> (28 - 4 * (x & 7))) & 15;
+      out[y * size.width + x] = v === 15 ? 0 : v;
+      if ((x & 7) === 7 && ((w >>> 4) & 15) === 15) ended = true;
     }
   return out;
 }
 
-/**
- * A size's outline, filled: its colored pixels (1–14), each marked pixel (15) between two colored ones in its row, and
- * every other pixel no path of transparent pixels joins to the picture's edge.
- */
+/** A size's outline, filled: its colored pixels, and every other pixel no path of transparent pixels joins to its edge. */
 export function outline(pixels: Uint8Array, width: number): Uint8Array {
   const height = pixels.length / width;
-  const colored = (i: number) => pixels[i]! > 0 && pixels[i]! < 15;
-  const shape = pixels.map((v, i) => {
-    const x = i % width;
-    return colored(i) || (v === 15 && x > 0 && x < width - 1 && colored(i - 1) && colored(i + 1)) ? 1 : 0;
-  });
+  const shape = pixels.map((v) => (v > 0 ? 1 : 0));
   // The outside: transparent pixels reached from the edge.
   const outside = new Uint8Array(shape.length);
   const stack: number[] = [];
@@ -250,7 +248,7 @@ export function representative(pixels: Uint8Array, palette: readonly number[]): 
     b = 0,
     n = 0;
   for (const v of pixels) {
-    if (!v || v === 15) continue;
+    if (!v) continue;
     const c = palette[v]!;
     r += (c >> 10) & 31;
     g += (c >> 5) & 31;

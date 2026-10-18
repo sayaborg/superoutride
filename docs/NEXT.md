@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-5e](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-6a](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -187,6 +187,23 @@ K's decisions for the conversion (2026-10-18):
   otherwise the reading is used and reported. Stages are named by [product.md](product.md)'s rules.
 - K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides are
   checked again.
+- The hills keep the current `c_look`; their height is not exaggerated in the drawing. The grades the tables leave are
+  returned in full before the next table (RD-5a's rule stands).
+- Local originals: run on K's machine, everything the ROMs hold is converted from them and used in place of what is
+  published; what is published (Git, PRs, Pages) holds no pixel or sound of the ROMs, only course documents and
+  one-color outline boards. An asset of the same name under `reference-media/originals/` replaces the published one in
+  a local build, with every value identities depend on (size in texels, base point, palette names, picture count,
+  length) the same, so runs and measured values agree; only pixels, colors and sound differ. CI and the Pages build
+  refuse the replacement; a local build marks DEV. Every conversion is deterministic and rebuilt by a command,
+  documented in [Development](development.md). In order: scenery sprites as colored pictures (40 texels/m, nearest
+  neighbor, a named palette per palette number); each stage's two background tile layers and sky color (tile ROMs
+  `opr-10268.99`, `opr-10232.102`, `opr-10267.100`, `opr-10231.103`, `opr-10266.101`, `opr-10230.104`; the front layer
+  scrolls 2048 px a turn of the road, the back 3/4 of it, rows tied to the road's top), published as the generic
+  backgrounds; voices and effects from the PCM ROMs (`opr-10188.71` to `opr-10193.66`), placed by the sound ROM's
+  (`epr-10187.88`) tables on the nearest effects; music from K's four MAME recordings when they come. The player's car
+  and traffic keep this game's vehicles. `k1`'s side-by-sides are drawn with the local pictures.
+- Order (K, 2026-10-18): each piece goes into TRIAL runnable and to main at green CI, not batched; a report begins
+  with one line saying where K can see it (Pages or local, series and class).
 
 What a trial on K's ROMs and `k1` established:
 
@@ -223,8 +240,11 @@ The stage's PRs left:
   over 200 % on other stages; held shapes stop at the steepest slid grade; each stage closes level at height 0. K also
   reviews RD-5c's fork: its lock stands on a 2-position straight the original has not, the stage names were matched
   to the table by their scenery, and the roads beyond a fork's Section are not checked against the stage's crossings.
-  - RD-5e: the strips (drawings 1, 3, 10 and 11) as ground or a limit.
+  - RD-5e: the strips (drawings 1, 3, 10 and 11) and drawing 13's sand on the road as ground or a limit.
   - RD-5f: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
+- RD-6: local originals (above), one PR each: RD-6a the scenery's colored pictures and the replacing build (the build,
+  the development server and the workbench take the option; the manifest's digests are the replacing assets'), RD-6b
+  the backgrounds, RD-6c voices and effects, RD-6d music once K's recordings come. RD-6 goes before RD-5e and RD-5f.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
 addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).
