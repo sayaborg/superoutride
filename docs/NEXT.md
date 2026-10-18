@@ -137,8 +137,9 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
-once K decides, then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data); [DT-8](#stage-dt--drift-tuned-trial-vehicles) once K
+confirms where the drift style is used, and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -269,9 +270,13 @@ K's decisions for the stage:
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
   October 1985 – April 1989, 13B turbo, 5MT).
 
-- Planned drivers always drive with wheel slip protection (TCS, MSR and ABS act on the engine's effective opening and
-  the pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's `wheelSlip` holds while the
-  player's input reaches it (DT-2b). Physics is the same for the player and the AI. A drifting AI is not made now.
+- Grip drivers always drive with wheel slip protection (TCS, MSR and ABS act on the engine's effective opening and the
+  pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's `wheelSlip` holds while the
+  player's input reaches it (DT-2b). Physics is the same for the player and the AI.
+- The drifting AI is made now, before any series, as a driving style (DT-7): a planned driver is a grip or a drift
+  driver, which its builder decides as it decides whether it passes. The grip style is the planned driver as before; the
+  drift style drifts the corners its plan drifts, by its own rule (FRONT, 95 %) without wheel slip protection
+  ([Drift style](content-and-gameplay.md#drift-style)). Where it is used is DT-8.
 - Shifts are one rule for every vehicle: they decide by the vehicle's speed, the driven wheels' speed rolling without
   slip, so wheels that spin, in a jump too, move no shift and the engine follows them to the fuel cut (DT-4).
 - A tire has a sliding ratio, its force sliding far past the peak over the peak's force, held by the driving
@@ -279,8 +284,8 @@ K's decisions for the stage:
   tires. The wheel solve takes the force's fall past the peak at the substep's starting wheel speed, so it keeps one
   root at any sliding ratio (K's choice of the DT-5 report's options; DT-5).
 - Planned drivers sometimes spin the DRIFT TUNED cars despite wheel slip protection, which K accepts until the drifting
-  AI, designed to catch a slide past a falling tire's peak: a planned driver catches none, and with the drift tire
-  braking at the limit in a corner takes a wheel past it (K's choice of the DT-6 report's options; DT-6).
+  AI drives them (DT-8): a grip driver catches no slide past a falling tire's peak, and with the drift tire braking at
+  the limit in a corner takes a wheel past it (K's choice of the DT-6 report's options; DT-6).
 
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
 in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY and SR in DEV
@@ -292,6 +297,12 @@ and adopting the exported mechanics document. Until their own pictures and exhau
   PENDING. AE86's fourth color awaits K: the early GT-APEX may have had only the three two-tones.
 - Engine sounds: S13 DELTA HF INTEGRALE's (inline four, turbocharged), AE86 GOLF GTI 16V's (inline four, 16 valves)
   ([exhausts](calibration.md#exhaust-topologies)).
+- DT-8, after K confirms: where the drift style is used. K's recommendation: a vehicle specifies its drivers' style,
+  preferably in its listing, and S13 and AE86 DRIFT TUNED specify drift; their rivals (fixed and paced drivers) and the
+  player's run driver (the attract demo and the takeover after GOAL) drive it, traffic does not, which also closes
+  DT-6's acceptance. Checks: FREE PLAY seeds 0–9 on TSUKUBA (3 laps) and A STEEP with 7 CARS rivals and HIGH traffic,
+  a takeover at large angles, and a short TSUKUBA scenario in which the S13 run driver drifts hairpin 1 at 30° or more
+  without leaving the pavement or recovering.
 - DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (a rotary engine kind: the 2-stroke volume
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
@@ -487,7 +498,7 @@ and switching is a cut.
 | Steering         | Whether the default steering rule keeps a 7 m lane change at 240 km/h from overshooting: the cone-row scenario approaching from 120 m knocks 7 of its 10 objects, so it approaches from 160 m (real devices)                                                                                                                                                                             |
 | Steering         | Which one front tire use at full steering the product keeps (real devices); SETTINGS then drops the choice. Until then the three choices move a player's cornering speed by about ±2.6% against the AI                                                                                                                                                                                   |
 | Steering         | Whether the steering lever takes other lengths (such as the wheelbase, a rear-wheel reference) or is fixed at one design value                                                                                                                                                                                                                                                           |
-| Steering         | Future, not built now: if a DRIFT series is made, series-level rules for scoring, steering and camera open then, by which the series guarantees its experience; until then SETTINGS alone owns them. A drifting AI is designed with the series' scoring as one stage: a driver whose target sideslip angle and throttle follow from steady-drift equilibrium, steering by the FRONT rule |
+| Steering         | Future, not built now: if a DRIFT series is made, series-level rules for scoring, steering and camera open then, by which the series guarantees its experience; until then SETTINGS alone owns them. The drifting AI is the drift style (DT-7), made before any series: its drivers drift the corners their plans drift by the FRONT rule, and a series designs its own scoring for them |
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                                                                                                                                                                                             |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                                                                                                                                                                                     |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                                                                                                                                                                                                  |

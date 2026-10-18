@@ -12,6 +12,15 @@ import { effectiveTireLoad } from '../vehicle/physics/tire-friction-calibration.
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 import { createSteeringRule, driverSteering } from '../vehicle/steering-rule.js';
 import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
+import {
+  compileDriftDriving,
+  createDriftState,
+  DRIFT_DRIVER,
+  driftDrivingInput,
+  resetDriftState,
+  type DriftDriving,
+  type DriftSteer,
+} from './drift-driving.js';
 
 /**
  * The planned driver's policy values ([Content and gameplay](../../docs/content-and-gameplay.md#drivers)). `version`
@@ -91,11 +100,17 @@ export const PLANNED_DRIVER = Object.freeze({
 });
 
 /**
+ * How a planned driver drives: `grip` keeps its tires within their peak, steering by `PLANNED_DRIVER.steering` with
+ * wheel slip protection; `drift` drifts the tight corners by the drift style's own rule (`DRIFT_DRIVER.steering`)
+ * without protection, controlling its wheels' slip itself, and grips elsewhere.
+ */
+export type DrivingStyle = 'grip' | 'drift';
+
+/**
  * A planned driver: its vehicle's model and limits, its utilization, speed cap, planning braking (the braking limit at
  * its utilization on level ground of unit grip, which other drivers' judgements read), whether it passes slower
  * vehicles (`passes`, by its path offsets; a driver that does not only follows them, though it still merges where its
- * lane ends), and the planned drivers' one steering rule (`PLANNED_DRIVER.steering`) on its vehicle. Its builder
- * decides the rest.
+ * lane ends), its driving style and its style's steering rule on its vehicle. Its builder decides the rest.
  */
 export interface PlannedDriver {
   readonly model: VehicleModel;
@@ -104,6 +119,8 @@ export interface PlannedDriver {
   readonly speedCap: number;
   readonly braking: number;
   readonly passes: boolean;
+  /** A drift driver's values from its vehicle; null for a grip driver. */
+  readonly drift: DriftDriving | null;
   readonly steering: Readonly<DriverSteering>;
 }
 
@@ -116,6 +133,7 @@ export function compilePlannedDriver(
   utilization: number,
   speedCap: number,
   passes: boolean,
+  style: DrivingStyle = 'grip',
 ): PlannedDriver {
   return Object.freeze({
     model,
@@ -124,8 +142,13 @@ export function compilePlannedDriver(
     speedCap,
     braking: planningBraking(limits, utilization),
     passes,
-    // Planned drivers always drive with wheel slip protection, whatever the vehicle's own choice for the player.
-    steering: driverSteering(PLANNED_DRIVER.steering, model, true),
+    drift: style === 'drift' ? compileDriftDriving(model) : null,
+    // A grip driver always drives with wheel slip protection, whatever the vehicle's own choice for the player; a drift
+    // driver never does.
+    steering:
+      style === 'grip'
+        ? driverSteering(PLANNED_DRIVER.steering, model, true)
+        : driverSteering(DRIFT_DRIVER.steering, model, false),
   });
 }
 
@@ -139,8 +162,9 @@ export function createVariablePlannedDriver(
   utilization: number,
   speedCap: number,
   passes: boolean,
+  style: DrivingStyle = 'grip',
 ) {
-  const driver = { ...compilePlannedDriver(model, limits, utilization, speedCap, passes) };
+  const driver = { ...compilePlannedDriver(model, limits, utilization, speedCap, passes, style) };
   return Object.freeze({
     driver: driver as PlannedDriver,
     set(nextUtilization: number, nextSpeedCap: number) {
@@ -203,16 +227,19 @@ const cells = () => new Float64Array(CELLS);
 
 /**
  * A plan's cornering speeds, cached by cell: each depends on the cell's geometry and also on the limits, the planned
- * utilization, the speed cap (together its key) and the curvature and grip it reads. Plans of several utilizations over
- * one workspace's cells each keep their own.
+ * utilization, the speed cap, the drift values (together its key) and the curvature and grip it reads. Plans of several
+ * utilizations over one workspace's cells each keep their own.
  */
 export function createPlannedCornering() {
   return {
     limits: null as VehicleLimits | null,
     planned: NaN,
     speedCap: NaN,
+    drift: null as DriftDriving | null,
     key: 0,
     squared: cells(),
+    /** A drift driver's drift speeds squared: each cell cornered on its tires' sliding force. */
+    drifts: cells(),
     curvatures: cells().fill(NaN),
     grips: cells().fill(NaN),
     keys: cells().fill(NaN),
@@ -257,6 +284,9 @@ export function createPlannedDriverWorkspace() {
     distances: nodes(),
     segmentCells: new Int32Array(CELLS + 1),
     flight: new Uint8Array(CELLS + 1),
+    /** Each segment's cornering speed squared, which the forward pass keeps within, and whether it is drifted. */
+    corners: nodes(),
+    drifted: new Uint8Array(CELLS + 1),
     forward: nodes(),
     free: nodes(),
     constrained: nodes(),
@@ -271,9 +301,20 @@ export function createPlannedDriverWorkspace() {
     /** The latest plan: its speed now without the vehicle ahead (`free`) and with it (`target`), in m/s. */
     plan: { free: 0, target: 0 },
     input: { steering: 0, throttle: 0 as number | boolean, brake: 0 as number | boolean },
+    /** A drift driver's state, its vehicle's own, and the path following its steering asks this step. */
+    drift: createDriftState(),
+    steer: { lateral: 0, frontLoad: 1, grip: 1 } as DriftSteer,
   };
 }
 type Workspace = ReturnType<typeof createPlannedDriverWorkspace>;
+
+/**
+ * Forget a driver's own state of its vehicle, which then drives on afresh: after a recovery places it elsewhere, or
+ * when the driver takes it over. The capacity correction, the driver's reading of its vehicle's grip, holds.
+ */
+export function resetPlannedDriving(ws: Workspace): void {
+  resetDriftState(ws.drift);
+}
 
 /**
  * Write the cells from the one holding station `s` through the lookahead, within `domain`: geometry where the cache
@@ -379,16 +420,23 @@ function readCells(
 }
 
 /**
- * Write the cornering speeds of the cells read into `ws` for `driver` at `utilization` (its own, corrected), where
- * `cornering`'s cache misses.
+ * Write the cornering speeds of the cells read into `ws` for `driver` at `utilization` (its own, corrected), and a
+ * drift driver's drift speeds, where `cornering`'s cache misses.
  */
 function readCornering(driver: PlannedDriver, planned: number, ws: Workspace, cornering: Cornering) {
-  if (cornering.limits !== driver.limits || cornering.planned !== planned || cornering.speedCap !== driver.speedCap) {
+  if (
+    cornering.limits !== driver.limits ||
+    cornering.planned !== planned ||
+    cornering.speedCap !== driver.speedCap ||
+    cornering.drift !== driver.drift
+  ) {
     cornering.limits = driver.limits;
     cornering.planned = planned;
     cornering.speedCap = driver.speedCap;
+    cornering.drift = driver.drift;
     cornering.key++;
   }
+  const { drift } = driver;
   for (let j = 1; j <= ws.count; j++) {
     const i = ws.segmentCells[j]!,
       curvature = ws.curvatures[i]!,
@@ -404,6 +452,21 @@ function readCornering(driver: PlannedDriver, planned: number, ws: Workspace, co
       planned * PLANNED_DRIVER.lateralMargin,
     );
     cornering.squared[i] = Math.min(driver.speedCap, speed) ** 2;
+    // A drift is planned on the tires' sliding force, within the lateral margin, whatever the utilization: a steady
+    // drift's lateral acceleration is its sliding rear tire's.
+    if (drift !== null)
+      cornering.drifts[i] =
+        Math.min(
+          driver.speedCap,
+          driver.limits.corneringSpeed(
+            curvature,
+            ws.grades[i]!,
+            ws.verticals[i]!,
+            grip,
+            ws.rollings[i]!,
+            PLANNED_DRIVER.lateralMargin * drift.slidingRatio,
+          ),
+        ) ** 2;
     cornering.keys[i] = cornering.key;
     cornering.curvatures[i] = curvature;
     cornering.grips[i] = grip;
@@ -430,11 +493,61 @@ function cellAcceleration(limits: VehicleLimits, ws: Workspace, i: number, v: nu
 }
 
 /**
- * The forward pass from speed `speed` at the vehicle's station: each node the faster of nothing and the previous node's
- * speed driven over the segment, within the cell's cornering speed. Where the load factor reaches 0 the vehicle takes
- * off, and the profile is traced under its ballistic flight to its landing: the segments crossed in flight carry speed.
+ * Write each segment's cornering speed into `ws.corners`: its cell's. A drift driver drifts a corner, a run of segments
+ * curving one way tighter than the drift style's `cornerRadius`, where the corner holds a segment whose drift speed
+ * lies below the speed a drift starts at (`entry`) and whose grade's pull at that speed is no more than the drag and
+ * rolling resistance, so that a drift driving its rear wheels holds its speed there; the corner it drifts now stays
+ * drifted past its slowest drift, which the plan has left behind. Over a drifted corner it plans each segment's drift
+ * speed, and no faster than `entry` up to the corner's slowest drift, so that it starts the drift in first gear.
  */
-function forwardPass(limits: VehicleLimits, ws: Workspace, cornering: Cornering, speed: number, u: number) {
+function readCorners(driver: PlannedDriver, ws: Workspace, cornering: Cornering) {
+  for (let j = 1; j <= ws.count; j++) {
+    ws.corners[j] = cornering.squared[ws.segmentCells[j]!]!;
+    ws.drifted[j] = 0;
+  }
+  const { drift, limits } = driver;
+  if (drift === null) return;
+  const entry = drift.entry ** 2;
+  const curving = (j: number, side: number) => {
+    const curvature = ws.curvatures[ws.segmentCells[j]!]!;
+    return Math.sign(curvature) === side && Math.abs(curvature) >= 1 / DRIFT_DRIVER.cornerRadius;
+  };
+  for (let start = 1; start <= ws.count;) {
+    const side = Math.sign(ws.curvatures[ws.segmentCells[start]!]!);
+    if (side === 0 || !curving(start, side)) {
+      start++;
+      continue;
+    }
+    let end = start,
+      slowest = start,
+      drifted = start === 1 && side === ws.drift.side;
+    for (; end <= ws.count && curving(end, side); end++) {
+      const i = ws.segmentCells[end]!,
+        squared = cornering.drifts[i]!;
+      if (squared < cornering.drifts[ws.segmentCells[slowest]!]!) slowest = end;
+      if (drifted || squared >= entry) continue;
+      const v = Math.sqrt(squared);
+      drifted =
+        limits.drag(v) +
+          VEHICLE_GRAVITY * (Math.sin(ws.grades[i]!) + ws.rollings[i]! * Math.max(0, loadFactor(ws, i, v))) >=
+        0;
+    }
+    if (drifted)
+      for (let j = start; j < end; j++) {
+        ws.corners[j] = Math.min(cornering.drifts[ws.segmentCells[j]!]!, j <= slowest ? entry : Infinity);
+        ws.drifted[j] = 1;
+      }
+    start = end;
+  }
+}
+
+/**
+ * The forward pass from speed `speed` at the vehicle's station: each node the faster of nothing and the previous node's
+ * speed driven over the segment, within the segment's cornering speed (`ws.corners`). Where the load factor reaches 0
+ * the vehicle takes off, and the profile is traced under its ballistic flight to its landing: the segments crossed in
+ * flight carry speed.
+ */
+function forwardPass(limits: VehicleLimits, ws: Workspace, speed: number, u: number) {
   ws.forward[0] = speed * speed;
   let flightFrom = -1,
     takeOffS = 0,
@@ -462,7 +575,7 @@ function forwardPass(limits: VehicleLimits, ws: Workspace, cornering: Cornering,
     ws.flight[j] = 0;
     const a = cellAcceleration(limits, ws, i, v, u, true);
     const segment = ws.distances[j]! - ws.distances[j - 1]!;
-    ws.forward[j] = Math.max(0, Math.min(cornering.squared[i]!, ws.forward[j - 1]! + 2 * segment * a));
+    ws.forward[j] = Math.max(0, Math.min(ws.corners[j]!, ws.forward[j - 1]! + 2 * segment * a));
   }
 }
 
@@ -533,10 +646,13 @@ function backwardPass(
   return Math.sqrt(allowed);
 }
 
-/** Follow the tires' saturation: the correction drops while either axle's tire stays at its limit, else recovers. */
-function correct(car: VehicleDrivingRead, ws: Workspace, seconds: number) {
+/**
+ * Follow the tires' saturation: the correction drops while either axle's tire stays at its limit, else recovers. A
+ * drift driver's saturation while it drifts is intended and counts as none.
+ */
+function correct(car: VehicleDrivingRead, ws: Workspace, seconds: number, intended: boolean) {
   const { least, drop, saturatedSeconds, recovery, saturation } = PLANNED_DRIVER.correction;
-  if (Math.max(car.tires.front.utilization, car.tires.rear.utilization) >= 1 - saturation) {
+  if (!intended && Math.max(car.tires.front.utilization, car.tires.rear.utilization) >= 1 - saturation) {
     ws.saturated += seconds;
     if (ws.saturated > saturatedSeconds) {
       ws.correction = Math.max(least, ws.correction - drop);
@@ -569,7 +685,8 @@ function plan(
   const { resolution } = PLANNED_DRIVER.correction;
   const u = driver.utilization * Math.round(ws.correction / resolution) * resolution;
   readCornering(driver, u, ws, ws.cornering);
-  forwardPass(limits, ws, ws.cornering, speed, u);
+  readCorners(driver, ws, ws.cornering);
+  forwardPass(limits, ws, speed, u);
   const { terminalClearance, responseSeconds, followSeconds } = PLANNED_DRIVER;
   const response = speed * responseSeconds;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - response;
@@ -602,7 +719,7 @@ export function planDriving(
   leader: DriverLeader | null,
   smooth = false,
 ): { readonly free: number; readonly target: number } {
-  correct(car, ws, driver.model.step);
+  correct(car, ws, driver.model.step, driver.drift !== null && ws.drift.side !== 0);
   const { s, l } = car.course;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   return plan(road, s, speed, driver, lane, ws, domain, leader, l - lateralOf(lane, s), smooth);
@@ -638,7 +755,8 @@ export function plannedSpeedAhead(
   distance: number,
 ): number {
   readCornering(driver, driver.utilization, ws, cornering);
-  forwardPass(driver.limits, ws, cornering, speed, driver.utilization);
+  readCorners(driver, ws, cornering);
+  forwardPass(driver.limits, ws, speed, driver.utilization);
   const { terminalClearance, responseSeconds } = PLANNED_DRIVER;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - speed * responseSeconds;
   backwardPass(driver.limits, ws, driver.utilization, ws.free, terminal, 0, Infinity, Infinity);
@@ -786,10 +904,33 @@ export function plannedPedals(
 }
 
 /**
+ * The lateral acceleration (m/s², positive to the right) that follows a path of signed curvature `curvature` (1/m,
+ * positive to the right) at `speed` with the path-following error closed: `lateralError` (m, positive right of the
+ * path) and `headingError` (rad, the travel direction's, positive right of the path's).
+ */
+function pathLateral(speed: number, curvature: number, lateralError: number, headingError: number) {
+  const { pathFrequency: w, pathDamping: z, pathErrorLimit } = PLANNED_DRIVER;
+  const error = clamp(lateralError, -pathErrorLimit, pathErrorLimit);
+  return speed * speed * curvature - w * w * error - 2 * z * w * speed * Math.sin(headingError);
+}
+
+/**
+ * The front tire's load factor the steering reads: the input sets the front tire's slip, so the force it asks follows
+ * the front axle's effective load over its static load, at least `leastFrontLoadFactor`.
+ */
+function frontLoadFactor(model: VehicleModel, car: VehicleDrivingRead) {
+  const { staticLoad } = model.compiledVehicle.frontStation.suspension;
+  return Math.max(
+    PLANNED_DRIVER.leastFrontLoadFactor,
+    effectiveTireLoad(model.tire, car.tires.front.load, staticLoad) / staticLoad,
+  );
+}
+
+/**
  * The steering input that asks the yaw rate of a path of signed curvature `curvature` (1/m, positive to the right) with
  * the path-following error closed: `lateralError` (m, positive right of the path) and `headingError` (rad, the travel
  * direction's, positive right of the path's). The yaw rate is inverted through the steering rule's full-input yaw rate
- * on a front surface of `grip`.
+ * on a front surface of `grip`, which scales with the front load factor the tire law reads.
  */
 export function plannedSteering(
   model: VehicleModel,
@@ -802,17 +943,9 @@ export function plannedSteering(
 ): number {
   if (car.longitudinalSpeed <= 0) return 0;
   const speed = Math.max(PLANNED_DRIVER.minimumSteeringSpeed, Math.hypot(car.longitudinalSpeed, car.lateralSpeed));
-  const { pathFrequency: w, pathDamping: z, pathErrorLimit } = PLANNED_DRIVER;
-  const error = clamp(lateralError, -pathErrorLimit, pathErrorLimit);
-  const lateral = speed * speed * curvature - w * w * error - 2 * z * w * speed * Math.sin(headingError);
-  // The input sets the front tire's slip, so the force it asks follows the front axle's effective load: the full input's
-  // yaw rate scales with the front load factor the tire law reads.
-  const { staticLoad } = model.compiledVehicle.frontStation.suspension;
-  const front = Math.max(
-    PLANNED_DRIVER.leastFrontLoadFactor,
-    effectiveTireLoad(model.tire, car.tires.front.load, staticLoad) / staticLoad,
-  );
-  const full = front * fullSteeringYawRate(model, steering, grip, car.longitudinalSpeed, car.lateralSpeed);
+  const lateral = pathLateral(speed, curvature, lateralError, headingError);
+  const full =
+    frontLoadFactor(model, car) * fullSteeringYawRate(model, steering, grip, car.longitudinalSpeed, car.lateralSpeed);
   return clamp(lateral / speed / full, -1, 1);
 }
 
@@ -867,16 +1000,21 @@ export function plannedDrivingInput(
     const curvature =
       ws.count === 0 ? 0 : ws.curvatures[ws.segmentCells[segmentAt(ws, speed * PLANNED_DRIVER.curvatureSeconds)]!]!;
     const grip = road.surfaces.sample(s, car.course.l)?.gripFactor ?? 1;
-    input.steering = plannedSteering(
-      model,
-      driver.steering,
-      car,
-      grip,
-      curvature,
-      car.course.l - lateralOf(lane, s),
-      wrapAngle(travelYaw(car) - heading),
-    );
+    const lateralError = car.course.l - lateralOf(lane, s),
+      headingError = wrapAngle(travelYaw(car) - heading);
+    input.steering = plannedSteering(model, driver.steering, car, grip, curvature, lateralError, headingError);
+    if (driver.drift !== null) {
+      ws.steer.lateral = pathLateral(
+        Math.max(PLANNED_DRIVER.minimumSteeringSpeed, speed),
+        curvature,
+        lateralError,
+        headingError,
+      );
+      ws.steer.frontLoad = frontLoadFactor(model, car);
+      ws.steer.grip = grip;
+    }
   }
+  if (driver.drift !== null) driftDrivingInput(model, driver.drift, car, ws, ws.drift, travelYaw(car), input);
   return input;
 }
 

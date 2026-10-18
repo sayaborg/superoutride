@@ -45,8 +45,8 @@ steps and never rejects a driving definition.
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
 | Assists¹   | —     | `wheelSlip`                                 | TCS, MSR and ABS with the player's input     | on      | on / off                   |
 
-¹ `wheelSlip` is the protection the player's input drives with; planned drivers always drive with it on
-([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
+¹ `wheelSlip` is the protection the player's input drives with; grip drivers always drive with it on and drift drivers
+with it off ([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
 game-wide defaults: they serve every vehicle whose
 [mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all seven
 values) or `wheelSlip`; a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
@@ -122,8 +122,9 @@ The full driving source document participates in vehicle identity for reference 
 
 A driver's utilization is the fraction of its tires' friction ellipses it plans to use: it scales the lateral and
 longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and acceleration
-alike. It plans speed alone: every planned driver steers by one rule, CENTER at 100 %
-([Drivers](content-and-gameplay.md#drivers)). Rival pace reads it as before. A vehicle's speed cap
+alike. It plans speed alone: a planned driver steers by its driving style's one rule, a grip driver by CENTER at
+100 % ([Drivers](content-and-gameplay.md#drivers)), and a drift driver plans the corners it drifts on its tires' sliding
+force whatever its utilization ([Drift style](content-and-gameplay.md#drift-style)). Rival pace reads it as before. A vehicle's speed cap
 is its steady speed on a level straight of unit grip without rolling resistance, at full utilization.
 
 | Setting               | Value | Meaning                                                                                             |
@@ -149,6 +150,18 @@ frequency, 1.2 rad/s, and damping ratio, 0.8; the pedals' speed-closing time, 0.
 0.45 s; an offset change's least blend distance, 30 m, and the offset's resolution, 0.25 m; and the capacity
 correction's least value, 0.85, its drop, 0.02, after 0.3 s at saturation, and its recovery, 0.01 per second. Changing
 any of them changes drivers' inputs, so `PLANNED_DRIVER.version` rises with it.
+
+`DRIFT_DRIVER.version` identifies the drift style ([Drift style](content-and-gameplay.md#drift-style)): its values
+([`DRIFT_DRIVER`](../src/race/drift-driving.ts)) and the drift law that reads them, apart from the planned driver's
+policy, whose plan and path following it shares. It rises by one with every change that alters a drift driver's input
+for the same vehicle state and observations, and with every field added to or removed from the record. It is 1. No
+reference run drives the drift style, so the reference driver's record does not contain it. Its values are author
+values, each one's meaning written beside it: among them the corner radius, 160 m; the steering rule, FRONT at 95 %
+without wheel slip protection; the start within 1.08 of the speeds at hand or past 12° of sideslip; the asked angle
+within 8° and 50°; the throttle's angle feedback, 1.6 per radian with 0.35 s of damping and an integral of 2.5 per
+second within 0.6; the scrub beyond 1.12 of the plan's speed; the countersteer of at most 0.3; and the own slip control
+past 0.12 of slip. The rest follows from the vehicle's model: the angle a steady drift asks, the throttle that drives
+it, the front share that holds it and the front tire's authority through which the steering closes its error.
 
 ## Camera settings
 

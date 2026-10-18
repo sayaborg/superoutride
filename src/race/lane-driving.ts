@@ -9,6 +9,7 @@ import {
   planDriving,
   plannedDrivingInput,
   plannedSpeed,
+  resetPlannedDriving,
   routeSpeed,
   speedBehind,
   travelYaw,
@@ -196,6 +197,8 @@ export function createLaneDriving(options: {
      */
     drive(driven: PresentVehicle, domain: DrivingDomain = window): DrivingInput {
       const driving = driven.driving!;
+      // A vehicle the previous step recovered to another place is driven on from there afresh.
+      if (driven.recovered) resetPlannedDriving(driving.workspace);
       if (driving.offset) return driveLine(driven, driving.offset, domain);
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
