@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-3](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-3b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -193,11 +193,9 @@ The ROMs' format and addresses are [Original road data](original-road-data.md)'s
 
 The original's hills are [Original road data](original-road-data.md#hills)'s.
 
-Conversion to a course document:
+The conversion's plan, lanes, strips, start and finish are
+[Original road data](original-road-data.md#course-documents)'s. Still to convert:
 
-- Plan: a stage is one Section, its curve segments Straights and Arcs, each position 2.003 m long; an Arc's radius is
-  its length over the heading change measured on the sub CPU's path over the segment, its side its kind. A stage's
-  heading sums to 0° or ±360°.
 - Profile: each nonzero entry `k` of a kind 0 table changes the grade by Δg = c_h × e_k / 576, over a vertical curve as
   long as the entry, ending where the camera passes the entry: the table's start plus entries 0 to k's lengths. Runs of
   one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade: the original's camera follows the
@@ -207,25 +205,7 @@ Conversion to a course document:
   rows), never as angles over a focal length. Each crest's difference of top rows is reported, and a rule (a value per
   height table kind) is proposed and the work stops where a crest differs by more than ±3 rows; each crest's load at 293
   km/h is reported, and `c_h` is not lowered where a car leaves the road.
-- Widths and lanes: the original draws two roads centred at ±road width (units), each of three lanes with edges ±236
-  units from its centre (the 48 units between the collision limits 212 and 260 are the game's rule, not the car's shape,
-  and are not taken as its track). The road width is a polyline approaching each target at its point's rate. While the
-  roads are apart, the median is 2 × road width − 472 units; where they overlap, the outer edges ±(road width + 236) are
-  kept and inner lanes narrow to 0, six lanes becoming three (which lanes is the implementer's choice, stated in the
-  PR). Units become metres by `s_lat`, measured on `k1` where the roads are apart (road width 300, positions 150–500):
-  px per unit from the 600 units between the two roads' centres on one row, which turns one road's width (about 472
-  units, three lanes expected), the lane lines' spacing and the player picture's width into units; `s_lat` is
-  TESTAROSSA's real width over the picture's width in units. It is reported beside the Beetle's (the player drawn at
-  1.05 times the road's scale) and the 3.45 m lanes; where they differ by more than 10 %, the work stops for K. Stage RD
-  uses on `k1` only ratios within one row and time × speed: never the original's `K`, a horizon or reference row, or a
-  focal length.
-- Strips: the surface, centre line, lane lines and edges take the palette's light and dark colors as they are; their
-  period is counted on `k1` from stripes passing against time × displayed speed (6.315 m measured so, independent of
-  any `K`). The sky's and ground's colors become the
-  environment's.
-- Start, forks and checkpoints: the road position at GO is 0, the start line's place is checked on `k1`. The fork
-  begins at 1948 and its stretch is 384 positions, its roads parting from the stretch's 63. A checkpoint ends the fork
-  stretch (the next stage's 0).
+- Forks and checkpoints: the fork begins at 1948 and its stretch is 384 positions, its roads parting from the stretch's 63. A checkpoint ends the fork stretch (the next stage's 0).
 
 Checks on `k1`: s(t) is the displayed speed's integral re-timed monotonically to the ROM's events (the background's
 turns beginning and ending, the road top's peaks). Within: curve beginnings and ends ±2 positions; the road top's peaks
@@ -234,9 +214,11 @@ every 50 positions (this game's drawing at `k1`'s s(t) and lateral, the car's of
 the original's road position as the camera's s, beside `k1`'s frame) is made for K in `reference-media/`, never
 committed. No residual map and no optimization through the renderer.
 
-- RD-3: COCONUT BEACH, one Section from the start to 1948, by the conversion, in `content/` named by
-  [product.md](product.md)'s rules; `c_look` fixed, built, driven with `drive` and checked. Reference driving and time
-  limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.
+- RD-3: COCONUT BEACH by the conversion. RD-3a wrote its document, level: its plan passes over itself, so it is two
+  Sections whose passages cross at grade at the finish, which K may decide otherwise. Left:
+  - RD-3b: `c_look` fixed and the profile by the conversion; each crest's rows and load reported.
+  - RD-3c: driven with `drive` and checked on `k1`, the start line's place too; a series class with reference driving
+    and time limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.
 - RD-4: scenery. Outlines (non-transparent pixels) from the sprite ROMs as outline boards of one color (the palette's
   representative) in `content/images/`, placed at 40 texels/m; the sprite pixels' size in metres from one scenery object
   measured on `k1`; placement by the scenery rule. Which kinds are solid (body) is proposed per kind for K to decide.

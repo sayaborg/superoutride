@@ -5,8 +5,15 @@
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
+import { normalizeCoursePositions } from '../authoring/course-joints.js';
+import type { Json } from '../authoring/json-pointer.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
+import { formatSavedJson } from '../../src/content/saved-json.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { cameraDistance } from '../../src/view/camera.js';
 import { readZip } from './zip.js';
 import { hillsAlong } from './outrun-hills.js';
+import { CONVERSION_VERSION, OUTRUN_COURSES, stageCourse } from './outrun-course.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -37,9 +44,25 @@ const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', ver
 
 const [command, ...rest] = process.argv.slice(2);
 
+/** The programs from the ROM zip `zip`, else the one zip in the ROM directory, checked. */
+async function readPrograms(zip: string | undefined) {
+  if (!zip) {
+    const zips = (await readdir(ROM_DIRECTORY).catch(() => [])).filter((name) => name.endsWith('.zip'));
+    requireInput(zips.length === 1, '/arguments/--zip', `--zip names the ROM zip, or ${ROM_DIRECTORY} holds one`);
+    zip = path.join(ROM_DIRECTORY, zips[0]!);
+  }
+  return { zip, programs: assemblePrograms(readZip(new Uint8Array(await readFile(zip)))) };
+}
+
+/** Flags take no value; every other option is `--name value`. */
+const FLAGS = new Set(['--check']);
 function parse(args: readonly string[]) {
   const options = new Map<string, string>();
   for (let i = 0; i < args.length; i += 2) {
+    if (FLAGS.has(args[i]!)) {
+      options.set(args[i--]!, 'yes');
+      continue;
+    }
     requireInput(args[i]?.startsWith('--') && args[i + 1] !== undefined, '/arguments', 'Options are --name value');
     options.set(args[i]!, args[i + 1]!);
   }
@@ -50,14 +73,8 @@ try {
   const options = parse(rest);
   switch (command) {
     case 'read': {
-      // The ROM zip (`--zip`, else the one zip in the ROM directory), checked and read; every table to the dump.
-      let zip = options.get('--zip');
-      if (!zip) {
-        const zips = (await readdir(ROM_DIRECTORY).catch(() => [])).filter((name) => name.endsWith('.zip'));
-        requireInput(zips.length === 1, '/arguments/--zip', `--zip names the ROM zip, or ${ROM_DIRECTORY} holds one`);
-        zip = path.join(ROM_DIRECTORY, zips[0]!);
-      }
-      const programs = assemblePrograms(readZip(new Uint8Array(await readFile(zip))));
+      // The ROM zip checked and read; every table to the dump.
+      const { zip, programs } = await readPrograms(options.get('--zip'));
       const length = stageLength(programs.main);
       const stages = OUTRUN_STAGES.flat().map((number) => readStage(programs, number));
       const fork = readForkStretch(programs);
@@ -186,6 +203,42 @@ try {
         });
       }
       console.log(JSON.stringify({ ok: true, kmh, stages }));
+      break;
+    }
+    case 'course': {
+      // Each stage's course document from the ROMs, written to content, or with `--check` compared with the one there.
+      const check = options.has('--check');
+      const { zip, programs } = await readPrograms(options.get('--zip'));
+      const length = stageLength(programs.main);
+      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
+        overallWidth: number;
+      };
+      const courses = [];
+      for (const course of OUTRUN_COURSES) {
+        const stage = readStage(programs, course.stage);
+        const document = stageCourse(stage, {
+          ...course,
+          length,
+          offset: pathOffset(stage.curves, stage.path, length),
+          carWidth: vehicle.overallWidth,
+          cameraDistance: cameraDistance(CAMERA_DEFINITION),
+        });
+        const file = `content/courses/${course.id}.course.json`;
+        const normalized = normalizeCoursePositions(document as unknown as Json).document;
+        const read = readCourseDocument(normalized, file);
+        if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
+        const text = formatSavedJson(normalized);
+        if (check) {
+          const committed = await readFile(file, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
+        } else await atomicWrite(file, text);
+        courses.push({
+          course: file,
+          stage: `0x${course.stage.toString(16)}`,
+          metres: round1(document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0)),
+        });
+      }
+      console.log(JSON.stringify({ ok: true, zip, conversion: CONVERSION_VERSION, checked: check, courses }));
       break;
     }
     default:

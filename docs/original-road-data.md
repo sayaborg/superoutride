@@ -1,9 +1,9 @@
 # Original road data
 
 OUTRUN's courses are raised from the road data in the original's program ROMs. This document owns how those ROMs are
-read: the ROM set, its programs, the tables' format and addresses, and the dump the road data tool writes. Which ROMs a
-course was raised from, and how the tables become a course document, are added here with the conversion
-([NEXT](NEXT.md#stage-rd--outrun-from-the-originals-road-data)).
+read: the ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how a
+stage's tables become a course document. What the conversion does not yet cover is
+[NEXT](NEXT.md#stage-rd--outrun-from-the-originals-road-data)'s.
 
 The ROMs and any raw data taken from them are not committed and appear in no PR: K's zip lies in
 `reference-media/outrun/rom/`, the tool's dumps in `reference-media/outrun/rom-data/`. The formats are read by this
@@ -137,3 +137,54 @@ against its curves, and each curve's radius against the one its aligned path mea
 change two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- hills`
 writes each stage's road top by the [hills](#hills) at every quarter position, `hills-<stage>.json` beside the dump,
 the holds counted at `--kmh` (293 unless told), and prints each height point's highest and lowest top.
+
+## Course documents
+
+`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes each
+stage raised as a course to `content/courses/`; with `--check` it rebuilds them and fails where one differs from the
+committed document. CI holds no ROM, so the documents are committed; edit the conversion, not a document.
+
+| Course                                 | Stage | Sections (from position)                        | Conversion |
+| -------------------------------------- | ----- | ----------------------------------------------- | ---------- |
+| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 1          |
+
+The conversion, version 1 (`CONVERSION_VERSION`), fits nothing; the constants measured on `k1` use only ratios within
+one row and time × displayed speed:
+
+- **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](#hills)'s advance per tick). Position 0 is GO,
+  the camera's station. The stage's 1948 positions end at its finish; a runout of 225 positions follows on the path's
+  look-ahead, which carries on the stage's last segment, a straight.
+- **Plan.** Each curve segment, moved back by the path's offset, is a Straight or an Arc over the same positions of the
+  path. A straight's heading is the path's two positions inside its ends, where it varies by no more than 0.1°. An Arc
+  turns, the side its kind says, from the heading at its start to the heading at its end, each a neighbouring
+  straight's or, between two arcs, the path's at their join; its radius is its length over that turn. So the arcs turn
+  as the path does between its straights, COCONUT BEACH 360° left; an Arc's radius differs from its curve's R by a few
+  percent where a join spreads its turn.
+- **Overpass.** COCONUT BEACH's plan passes over itself: its finish crosses its curve from 795, about 1740 m before,
+  nearly square. The passages lie in different Sections ([Architecture](architecture.md#plan-authority)), cut at a joint
+  between them where the road is one and joined by a Link on lane b; each later Section's sky keeps its direction by the
+  heading its frame faces. While the profile is level the passages cross at grade.
+- **Road width.** From 0x1C2 (450) at position 0, each width point approaches its target from its position by
+  |speed| × 16 / 303 units a position until it is reached or the next point begins; the runout keeps the last width.
+- **Lanes.** Each road has three lanes of 472/3 units, its edges ±236 from its centre; the two roads are centred at
+  ±road width. The lanes are a, b, c (the left road), a median, and d, e, f (the right road); b, always wider than 0,
+  is the centre lane, so the plan's centreline is the left road's centre lane and the original's centre lies one road
+  width to its right. At a road width w ≥ 236 every lane is 472/3 and the median 2(w − 236); at 78.67 ≤ w < 236 the
+  roads overlap, their outer edges kept, and c and d narrow to w − 78.67, meeting at the original's centre; at
+  w < 78.67 c and d are 0 and b and e w + 78.67. A lane or median 0 throughout a Section is left out.
+- **Lateral scale.** A unit is `s_lat` = TESTAROSSA's width (its vehicle document's) / (0.5743 × 472/3) = 0.02187 m;
+  0.5743 is the player picture's width over the lane spacing on its own row on `k1`. A lane is 3.44 m, against the
+  3.45 m lanes (−0.3 %) and 3.30 m by the Beetle's 1.05 (+4.3 %).
+- **Strips.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1
+  (another pattern is refused); each half is 3.158 m of a 6.315 m period counted from GO across the Sections (`k1`'s
+  stripes against time × displayed speed). The road is half 1's surface with half 0's over its halves. A line or edge
+  is drawn over each half where its color differs from the surface's: on COCONUT BEACH the lane lines in half 1 and the
+  edges in half 0. The lane lines are 8 units wide, centred between a and b, e and f, and while c and d are there b
+  and c, d and e; the edge bands are 20 units wide outside each road's outer lanes and, where the median holds both
+  (w ≥ 256), inside it (both measured on `k1`). A centre line that differs from the surface is refused: its place is
+  not yet read.
+- **Ground.** SAND 40 m beyond each edge band and in the median. Its colors are provisional until the ground's word is
+  read: `k1`'s two sands with its capture's darkening undone by the road's ratio (156 over 148), 28471 in half 0 and
+  29528 in half 1 (`k1` pairs the darker sand with the lighter road). The sky is `coast-sky`.
+- **Start and finish.** The grid is 16 slots 12 m apart alternating lanes b and c, its last, the player's, in lane c
+  (`k1`'s start) the camera's distance (6 m) ahead of GO. The finish is at the stage's length. The profile is level.

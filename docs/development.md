@@ -475,12 +475,13 @@ evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC
 
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
 runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` and writes dumps under
-`reference-media/outrun/rom-data/`, which Git ignores:
+`reference-media/outrun/rom-data/`, which Git ignores, and the course documents raised from the ROMs under `content/`:
 
-| Command | Purpose                                                                                                                                            |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read`  | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`) |
-| `hills` | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                   |
+| Command  | Purpose                                                                                                                                            |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`) |
+| `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                   |
+| `course` | Write each course raised from the ROM zip (`--zip`) to `content/courses/`, or with `--check` fail where one differs from the committed document    |
 
 ### Skies command
 

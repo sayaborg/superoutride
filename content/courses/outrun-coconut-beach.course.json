@@ -1,0 +1,849 @@
+{
+  "format": "superoutride.course",
+  "version": 52,
+  "name": "COCONUT BEACH",
+  "entry": "coconut-beach-1",
+  "maxLaps": 1,
+  "bearing": 0,
+  "sections": [
+    {
+      "id": "coconut-beach-1",
+      "plan": [
+        { "kind": "straight", "id": "s0", "length": 322.432954 },
+        { "kind": "arc", "id": "c161", "length": 232.311943, "radius": 247.367489, "turn": "left" },
+        { "kind": "straight", "id": "s277", "length": 164.220511 },
+        { "kind": "arc", "id": "c359", "length": 214.28774, "radius": 228.175183, "turn": "right" },
+        { "kind": "straight", "id": "s466", "length": 242.325388 },
+        { "kind": "arc", "id": "c587", "length": 190.25547, "radius": 217.191593, "turn": "left" },
+        { "kind": "straight", "id": "s682", "length": 226.303874 },
+        { "kind": "arc", "id": "c795", "length": 172.231268, "radius": 124.593137, "turn": "left" },
+        { "kind": "straight", "id": "s881", "length": 234.314631 },
+        { "kind": "arc", "id": "c998", "length": 128.172107, "radius": 121.099248, "turn": "right" },
+        { "kind": "straight", "id": "s1062", "length": 124.166727 },
+        { "kind": "arc", "id": "c1124", "length": 238.32001, "radius": 122.739793, "turn": "left" }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 3.44071 },
+        { "kind": "lane", "id": "b", "width": 3.44071 },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "c587", "offset": -93.325315 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "c587", "offset": -62.984574 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 2.915856
+            }
+          ]
+        },
+        {
+          "kind": "median",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 9.359899
+            },
+            {
+              "at": { "joint": "s0", "offset": 100.134458 },
+              "width": 9.359899
+            },
+            {
+              "at": { "joint": "c161", "offset": -32.668866 },
+              "width": 2.799222
+            },
+            {
+              "at": { "joint": "s466", "offset": 68.091431 },
+              "width": 2.799222
+            },
+            {
+              "at": { "joint": "c587", "offset": -93.325315 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "d",
+          "width": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "c587", "offset": -93.325315 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "c587", "offset": -62.984574 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 2.915856
+            }
+          ]
+        },
+        { "kind": "lane", "id": "e", "width": 3.44071 },
+        { "kind": "lane", "id": "f", "width": 3.44071 }
+      ],
+      "centerLane": "b",
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -40.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -40.437378 }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -0.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -0.437378 }
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 0.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 0.437378 }
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s0", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 40.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 40.437378 }
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": null,
+          "color": 29528,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": null,
+              "right": null,
+              "color": 28471,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 },
+              "color": 20083,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "lane": "c", "side": "right", "offset": 0 },
+          "right": { "lane": "d", "side": "left", "offset": 0 },
+          "color": 29528,
+          "material": "SAND"
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "lane": "c", "side": "right", "offset": 0 },
+              "right": { "lane": "d", "side": "left", "offset": 0 },
+              "color": 28471,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "lane": "f", "side": "right", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 167,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "lane": "c", "side": "right", "offset": 0 },
+              "right": { "lane": "c", "side": "right", "offset": 0.437378 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 167,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 0 },
+              "end": { "joint": "s0", "offset": 3.1575 },
+              "left": { "lane": "d", "side": "left", "offset": -0.437378 },
+              "right": { "lane": "d", "side": "left", "offset": 0 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 3.1575 },
+              "end": { "joint": "s0", "offset": 6.315 },
+              "left": { "lane": "a", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "a", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 3.1575 },
+              "end": { "joint": "s0", "offset": 6.315 },
+              "left": { "lane": "e", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "e", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 3.1575 },
+              "end": { "joint": "s0", "offset": 6.315 },
+              "left": { "lane": "b", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "b", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 394,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s0", "offset": 3.1575 },
+              "end": { "joint": "s0", "offset": 6.315 },
+              "left": { "lane": "d", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "d", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s0", "offset": 0 },
+          "name": "COCONUT BEACH",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 0 },
+          "arrival": "cut"
+        }
+      ],
+      "gates": [
+        {
+          "kind": "start",
+          "grid": [
+            {
+              "at": { "joint": "c161", "offset": -136.432954 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "c161", "offset": -148.432954 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "c161", "offset": -160.432954 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 150 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 138 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 126 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 114 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 102 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 90 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 78 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 66 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 54 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 42 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 30 },
+              "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 18 },
+              "lane": "b"
+            },
+            {
+              "at": { "joint": "s0", "offset": 6 },
+              "lane": "c"
+            }
+          ],
+          "bikeGrid": null
+        }
+      ]
+    },
+    {
+      "id": "coconut-beach-2",
+      "plan": [
+        { "kind": "straight", "id": "s1243", "length": 234.314632 },
+        { "kind": "arc", "id": "c1360", "length": 206.276983, "radius": 131.320006, "turn": "left" },
+        { "kind": "straight", "id": "s1463", "length": 226.303875 },
+        { "kind": "arc", "id": "c1576", "length": 122.164038, "radius": 130.226786, "turn": "left" },
+        { "kind": "arc", "id": "c1637", "length": 72.09681, "radius": 115.558019, "turn": "right" },
+        { "kind": "arc", "id": "c1673", "length": 146.196309, "radius": 116.341752, "turn": "left" },
+        { "kind": "straight", "id": "s1746", "length": 855.14827 }
+      ],
+      "profile": [
+        {
+          "at": { "joint": "s1243", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": 0 },
+          "y": 0,
+          "curveLength": 0
+        }
+      ],
+      "lanes": [
+        { "kind": "lane", "id": "a", "width": 3.44071 },
+        {
+          "kind": "lane",
+          "id": "b",
+          "width": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "s1746", "offset": 13.017479 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "s1746", "offset": 108.145214 },
+              "width": 2.892183
+            },
+            {
+              "at": { "joint": "s1746", "offset": 311.368096 },
+              "width": 1.720355
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 1.720355
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "c",
+          "width": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "s1463", "offset": 74.099499 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "s1746", "offset": 13.017479 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "d",
+          "width": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "s1463", "offset": 74.099499 },
+              "width": 2.915856
+            },
+            {
+              "at": { "joint": "s1746", "offset": 13.017479 },
+              "width": 0
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 0
+            }
+          ]
+        },
+        {
+          "kind": "lane",
+          "id": "e",
+          "width": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "s1746", "offset": 13.017479 },
+              "width": 3.44071
+            },
+            {
+              "at": { "joint": "s1746", "offset": 108.145214 },
+              "width": 2.892183
+            },
+            {
+              "at": { "joint": "s1746", "offset": 311.368096 },
+              "width": 1.720355
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "width": 1.720355
+            }
+          ]
+        },
+        { "kind": "lane", "id": "f", "width": 3.44071 }
+      ],
+      "centerLane": "b",
+      "boundaries": [
+        {
+          "id": "outer-left",
+          "knots": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -40.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -40.437378 }
+            }
+          ]
+        },
+        {
+          "id": "road-left",
+          "knots": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -0.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "a", "side": "left", "offset": -0.437378 }
+            }
+          ]
+        },
+        {
+          "id": "road-right",
+          "knots": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 0.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 0.437378 }
+            }
+          ]
+        },
+        {
+          "id": "outer-right",
+          "knots": [
+            {
+              "at": { "joint": "s1243", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 40.437378 }
+            },
+            {
+              "at": { "joint": "end", "offset": 0 },
+              "lateral": { "lane": "f", "side": "right", "offset": 40.437378 }
+            }
+          ]
+        }
+      ],
+      "strips": [
+        {
+          "kind": "strip",
+          "start": { "joint": "s1243", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": null,
+          "color": 29528,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 294,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 5.082377 },
+              "end": { "joint": "s1243", "offset": 8.239877 },
+              "left": null,
+              "right": null,
+              "color": 28471,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s1243", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "outer-left", "offset": 0 },
+          "right": { "boundary": "road-left", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s1243", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-right", "offset": 0 },
+          "right": { "boundary": "outer-right", "offset": 0 },
+          "color": null,
+          "material": "SAND"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s1243", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-left", "offset": 0 },
+          "right": { "boundary": "road-right", "offset": 0 },
+          "color": 19026,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 294,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 5.082377 },
+              "end": { "joint": "s1243", "offset": 8.239877 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 },
+              "color": 20083,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 294,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 5.082377 },
+              "end": { "joint": "s1243", "offset": 8.239877 },
+              "left": { "boundary": "road-left", "offset": 0 },
+              "right": { "lane": "a", "side": "left", "offset": 0 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 294,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 5.082377 },
+              "end": { "joint": "s1243", "offset": 8.239877 },
+              "left": { "lane": "f", "side": "right", "offset": 0 },
+              "right": { "boundary": "road-right", "offset": 0 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 295,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 1.924877 },
+              "end": { "joint": "s1243", "offset": 5.082377 },
+              "left": { "lane": "a", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "a", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 295,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 1.924877 },
+              "end": { "joint": "s1243", "offset": 5.082377 },
+              "left": { "lane": "e", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "e", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 161,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 1.924877 },
+              "end": { "joint": "s1243", "offset": 5.082377 },
+              "left": { "lane": "b", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "b", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.315,
+          "count": 161,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s1243", "offset": 1.924877 },
+              "end": { "joint": "s1243", "offset": 5.082377 },
+              "left": { "lane": "d", "side": "right", "offset": -0.087475 },
+              "right": { "lane": "d", "side": "right", "offset": 0.087476 },
+              "color": 31710,
+              "material": null
+            }
+          ]
+        }
+      ],
+      "walls": [],
+      "openLimits": [],
+      "sprites": [],
+      "environments": [
+        {
+          "at": { "joint": "s1243", "offset": 0 },
+          "name": "COCONUT BEACH",
+          "background": { "image": "coast-sky", "horizonY": 320, "yawOrigin": 180 },
+          "arrival": "cut"
+        }
+      ],
+      "gates": [
+        {
+          "kind": "finish",
+          "id": "coconut-beach-2-FINISH",
+          "at": { "joint": "s1746", "offset": 404.543209 }
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "coconut-beach-1-coconut-beach-2",
+      "from": { "section": "coconut-beach-1", "lane": "b" },
+      "to": "coconut-beach-2"
+    }
+  ]
+}
