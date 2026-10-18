@@ -4,11 +4,21 @@
  * fitted; the constants measured on `k1` are named below.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { POSITION_PER_KMH, TICKS } from './outrun-hills.js';
-import type { CurvePoint, Path, Stage, WidthHeightPoint } from './outrun-road.js';
+import { POSITION_PER_KMH, tableRuns, TICKS } from './outrun-hills.js';
+import {
+  bendOf,
+  LOOK,
+  profileOf,
+  returnedGrades,
+  separatedCrossings,
+  tableChanges,
+  type Crossing,
+  type Profile,
+} from './outrun-profile.js';
+import type { CurvePoint, HeightTable, Path, Stage, WidthHeightPoint } from './outrun-road.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 1;
+export const CONVERSION_VERSION = 2;
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
@@ -185,6 +195,64 @@ function stretchesFrom(knots: readonly [number, number][], w: number): [number, 
   return out;
 }
 
+/** A curve is written this much shorter at each end, so curves that meet stay apart through rounding, metres. */
+const CURVE_GAP = 2e-6;
+
+/**
+ * A Section's profile knots, stations `[from, to]`: its ends, and a PVI for each of the profile's bends within, at the
+ * intersection of the tangents at the bend's ends. A knot next to an end that joins another Section lies on that end's
+ * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`).
+ */
+export function sectionProfile(profile: Profile, from: number, to: number, joinsBefore: boolean, joinsAfter: boolean) {
+  const knots = [{ s: from, y: profile.height(from), curveLength: 0 }];
+  for (const { from: a, to: b } of profile.bends) {
+    if (a < from || b > to) continue;
+    knots.push({
+      s: round((a + b) / 2),
+      y: profile.height(a) + (profile.grade(a) * (b - a)) / 2,
+      curveLength: round(b - a - 2 * CURVE_GAP),
+    });
+  }
+  knots.push({ s: to, y: profile.height(to), curveLength: 0 });
+  const n = knots.length;
+  if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * (knots[1]!.s - from);
+  if (n > 2 && joinsAfter) knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (to - knots[n - 2]!.s);
+  return knots;
+}
+
+/**
+ * Where the plan passes over itself: pairs of positions at least 200 m apart along it whose roads, each `extent(p)`
+ * metres either side of its centreline at most, overlap; a crossing's pairs as stations, grouped where their earlier
+ * positions run on.
+ */
+export function crossingsOf(plan: readonly PlanSegment[], extent: (position: number) => number): Crossing[] {
+  const x: number[] = [],
+    y: number[] = [];
+  let px = 0,
+    py = 0,
+    heading = 0;
+  for (const { from, to, turn } of plan) {
+    const step = turn / (to - from);
+    for (let p = from; p < to; p++) {
+      x[p] = px;
+      y[p] = py;
+      px += POSITION_METRES * Math.cos(heading + step / 2);
+      py += POSITION_METRES * Math.sin(heading + step / 2);
+      heading += step;
+    }
+  }
+  const apart = Math.ceil(200 / POSITION_METRES);
+  const groups: [number, number][][] = [];
+  for (let i = 0; i < x.length; i++)
+    for (let j = i + apart; j < x.length; j++) {
+      if (Math.hypot(x[i]! - x[j]!, y[i]! - y[j]!) >= extent(i) + extent(j)) continue;
+      const last = groups.at(-1);
+      if (last && i - last.at(-1)![0] <= 1 && Math.abs(j - last.at(-1)![1]) < apart) last.push([i, j]);
+      else groups.push([[i, j]]);
+    }
+  return groups.map((pairs) => pairs.map(([i, j]) => [stationOf(i), stationOf(j)] as const));
+}
+
 /** What a stage's course takes beside its tables. */
 export interface StageCourseOptions {
   readonly name: string;
@@ -201,6 +269,9 @@ export interface StageCourseOptions {
   readonly cameraDistance: number;
   /** The sky's background image and its horizon row. */
   readonly sky: { readonly image: string; readonly horizonY: number };
+  /** The height tables the stage's height points name; the speed its holds are counted at, km/h. */
+  readonly tables: ReadonlyMap<number, HeightTable>;
+  readonly kmh: number;
 }
 
 type Lateral = Record<string, unknown>;
@@ -209,9 +280,10 @@ const boundary = (id: string, offset = 0): Lateral => ({ boundary: id, offset: r
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
 
 /**
- * `stage` as a course document, its Positions still measured from each Section's first joint: Sections from road position 0 (GO, the camera's) to the stage's length, the finish, and
- * the runout past it, joined by Links on lane b; the lanes a, b, c | median | d, e, f, b the centre lane; a level
- * profile. The surface's halves keep their phase across the Sections.
+ * `stage` as a course document, its Positions still measured from each Section's first joint: Sections from road
+ * position 0 (GO, the camera's) to the stage's length, the finish, and the runout past it, joined by Links on lane b;
+ * the lanes a, b, c | median | d, e, f, b the centre lane; the profile from its height tables. The surface's halves keep
+ * their phase across the Sections. Returns the document and its profile.
  */
 export function stageCourse(stage: Stage, options: StageCourseOptions) {
   const { length, runout } = options;
@@ -246,6 +318,30 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
     centreLine.rgb555[0] === surface.rgb555[0] && centreLine.rgb555[1] === surface.rgb555[1],
     '/colors/centreLine',
     'The centre line differs from the surface, and its place is not yet read',
+  );
+
+  // The profile: the tables' grades, the grades they leave returned, the plan's crossings kept apart; bends break at
+  // the Sections' cuts, where Sections join on a tangent or within one bend.
+  const total = stationOf(end);
+  const runs = tableRuns(
+    stage.widthsHeights.filter((p) => p.position < length),
+    options.tables,
+    () => options.kmh,
+  );
+  const gaps = runs.map((r, i) => [stationOf(r.end), stationOf(runs[i + 1]?.start ?? end)] as [number, number]);
+  const extent = (p: number) => {
+    const w = lanesAt(widthAt(p));
+    return (Math.max(w.b / 2 + w.a, w.b / 2 + w.c + w.m + w.d + w.e + w.f) + EDGE_BAND) * metres;
+  };
+  const crossings = crossingsOf(plan, extent);
+  const changes = separatedCrossings(
+    returnedGrades(tableChanges(runs, LOOK, stationOf), gaps, total),
+    crossings,
+    total,
+  ).filter((c) => c.from >= 0 && c.to <= total);
+  const profile = profileOf(
+    changes.map(bendOf),
+    options.sections.map(({ from }) => stationOf(from)),
   );
 
   const elementId = (s: PlanSegment) => (s.turn === 0 ? 's' : 'c') + s.from;
@@ -377,10 +473,13 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
     return {
       id,
       plan: elements,
-      profile: [
-        { at: at(from), y: 0, curveLength: 0 },
-        { at: at(to), y: 0, curveLength: 0 },
-      ],
+      profile: sectionProfile(profile, origin, origin + size, k > 0, k + 1 < options.sections.length).map(
+        ({ s, y, curveLength }) => ({
+          at: { joint: first, offset: round(s - origin) },
+          y,
+          curveLength,
+        }),
+      ),
       lanes,
       centerLane: 'b',
       boundaries: [
@@ -405,7 +504,7 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
     };
   });
 
-  return {
+  const document = {
     format: 'superoutride.course',
     version: 52,
     name: options.name,
@@ -419,6 +518,7 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
       to: id,
     })),
   };
+  return { document, profile, crossings };
 }
 
 /** The stages raised as courses: their course IDs, names, Sections, skies and runouts (positions on the look-ahead). */

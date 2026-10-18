@@ -10,10 +10,11 @@ import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
-import { cameraDistance } from '../../src/view/camera.js';
 import { readZip } from './zip.js';
-import { hillsAlong } from './outrun-hills.js';
-import { CONVERSION_VERSION, OUTRUN_COURSES, stageCourse } from './outrun-course.js';
+import { hillsAlong, tableRuns } from './outrun-hills.js';
+import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
+import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
+import { CONVERSION_VERSION, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -216,12 +217,15 @@ try {
       const courses = [];
       for (const course of OUTRUN_COURSES) {
         const stage = readStage(programs, course.stage);
-        const document = stageCourse(stage, {
+        const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
+        const { document, profile, crossings } = stageCourse(stage, {
           ...course,
           length,
           offset: pathOffset(stage.curves, stage.path, length),
           carWidth: vehicle.overallWidth,
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
+          tables: new Map(names.map((n) => [n, readHeightTable(programs.sub, n)])),
+          kmh: TOP_KMH,
         });
         const file = `content/courses/${course.id}.course.json`;
         const normalized = normalizeCoursePositions(document as unknown as Json).document;
@@ -232,13 +236,79 @@ try {
           const committed = await readFile(file, 'utf8').catch(() => null);
           requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
         } else await atomicWrite(file, text);
+        // The profile's extremes, and each crossing's passages' least height apart.
+        const total = document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0);
+        const heights = Array.from({ length: Math.floor(total) + 1 }, (_, s) => profile.height(s));
+        const grades = Array.from({ length: Math.floor(total) + 1 }, (_, s) => Math.abs(profile.grade(s)));
         courses.push({
           course: file,
           stage: `0x${course.stage.toString(16)}`,
+          heights: [round1(Math.min(...heights)), round1(Math.max(...heights))],
+          steepest: Math.round(Math.max(...grades) * 1000) / 1000,
+          crossings: crossings.map((pairs) => ({
+            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
+            apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
+          })),
           metres: round1(document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0)),
         });
       }
       console.log(JSON.stringify({ ok: true, zip, conversion: CONVERSION_VERSION, checked: check, courses }));
+      break;
+    }
+    case 'look': {
+      // `c_look` refitted on each course's stage, and each table's road top on both screens and least load at the top
+      // speed with the course's profile.
+      const { programs } = await readPrograms(options.get('--zip'));
+      const length = stageLength(programs.main);
+      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
+        overallWidth: number;
+      };
+      const reports = [];
+      for (const course of OUTRUN_COURSES) {
+        const stage = readStage(programs, course.stage);
+        const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
+        const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
+        const { profile } = stageCourse(stage, {
+          ...course,
+          length,
+          offset: pathOffset(stage.curves, stage.path, length),
+          carWidth: vehicle.overallWidth,
+          cameraDistance: cameraDistance(CAMERA_DEFINITION),
+          tables,
+          kmh: TOP_KMH,
+        });
+        const positions = Array.from({ length }, (_, p) => p);
+        const points = stage.widthsHeights.filter((p) => p.position < length);
+        const original = hillsAlong(points, tables, positions, () => TOP_KMH);
+        const end = stationOf(length + course.runout);
+        const runs = tableRuns(points, tables, () => TOP_KMH);
+        const ahead = Math.ceil(RENDER_FAR_DEPTH_METERS / stationOf(1));
+        // Rows on the original's screen: this game's top as the original's row of the same look.
+        const game = positions.map((p) => ORIGINAL_LEVEL_TOP - gameLook(roadTopRow(profile, stationOf(p), end)) * 224);
+        reports.push({
+          stage: `0x${course.stage.toString(16)}`,
+          look: LOOK,
+          refitted: fitLook(runs, (p) => original[p]!, positions, stationOf, end),
+          rmsRows: round1(Math.sqrt(positions.reduce((sum, p) => sum + (game[p]! - original[p]!) ** 2, 0) / length)),
+          tables: runs.map((run) => {
+            const from = Math.max(0, Math.floor(run.start - ahead)),
+              to = Math.min(length, Math.ceil(run.end));
+            const span = positions.slice(from, to);
+            const extremes = (rows: readonly number[]) => [
+              round1(Math.min(...span.map((p) => rows[p]!))),
+              round1(Math.max(...span.map((p) => rows[p]!))),
+            ];
+            return {
+              position: run.start,
+              kind: run.table.kind,
+              original: extremes(Array.from(original)),
+              game: extremes(game),
+              load: round1(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 10) / 10,
+            };
+          }),
+        });
+      }
+      console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
       break;
     }
     default:

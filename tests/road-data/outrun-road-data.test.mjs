@@ -12,6 +12,7 @@ import {
   readStage,
   stageLength,
 } from '../../tools/road-data/outrun-road.ts';
+import { gradeRamps, LOOK } from '../../tools/road-data/outrun-profile.ts';
 import {
   lanesAt,
   lateralScale,
@@ -341,7 +342,11 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
       edges: grey(31710, 19026),
     },
   };
-  const course = stageCourse(stage, {
+  // A table [0 ×6, 576, −576, 0 ×6] from position 20: level entries 3 × 2.125 positions each, the others 3 × 3 ×
+  // 2.125 (its factors): a rise and a crest.
+  const crest = { kind: 0, step: 3, descent: 3, ascent: 3, entries: [0, 0, 0, 0, 0, 0, 576, -576, 0, 0, 0, 0, 0, 0] };
+  stage.widthsHeights = [...width, { position: 20, kind: 0, value: 7, speed: 0 }];
+  const { document: course, profile } = stageCourse(stage, {
     name: 'TEST',
     sections: [{ id: 'stage', from: 0 }],
     length: 250,
@@ -350,6 +355,8 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
     carWidth: 1.976,
     cameraDistance: 6,
     sky: { image: 'coast-sky', horizonY: 320 },
+    tables: new Map([[7, crest]]),
+    kmh: 293,
   });
   const read = readCourseDocument(normalizeCoursePositions(course).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
@@ -361,4 +368,39 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
   // The player's slot is the last, the camera at GO behind it; the finish at the stage's length.
   assert.equal(section.gates[0].grid.at(-1).at.offset, 6);
   assert.equal(section.gates[1].at.offset, stationOf(250));
+  // The crest: the grade rises by c_look over the first entry's span and falls back over the second's; the profile's
+  // knots are its ends and one PVI a bend, the tangents' intersection.
+  const span = 3 * 3 * 2.125,
+    first = 20 + 6 * 3 * 2.125;
+  assert.ok(Math.abs(profile.grade(stationOf(first + span)) - LOOK[0]) < 1e-9);
+  assert.ok(Math.abs(profile.grade(stationOf(first + 2 * span))) < 1e-9);
+  assert.equal(section.profile.length, 4);
+  const [, up] = section.profile;
+  assert.ok(Math.abs(up.curveLength - (stationOf(first + span) - stationOf(first))) < 1e-5);
+});
+
+test("a table's grades: kind 0's entries where the camera passes them, kind 1's shape held on the nearest segment", () => {
+  const slid = gradeRamps({
+    table: { kind: 0, step: 2, descent: 1, ascent: 2, entries: [0, 0, 0, 0, 0, 0, 288, -576, 0, 0, 0, 0, 0, 0] },
+    start: 10,
+    rise: 10 + 8 * 4.25 + 2 * 8.5,
+    holdEnd: 0,
+    end: 0,
+  });
+  // Six level entries of 4.25 positions, then 288 over 2 × 4.25 (its ascent) and −576 over 4.25 (its descent).
+  assert.deepEqual(slid, [
+    { from: 35.5, to: 44, change: 0.5, held: false },
+    { from: 44, to: 48.25, change: -1, held: false },
+  ]);
+  // Kind 1: −192 held at full share over the hold, half over the rise and return, per 2.125 × step positions.
+  const held = gradeRamps({
+    table: { kind: 1, step: 20, wait: 255, entries: [-192, -192] },
+    start: 0,
+    rise: 42.5,
+    holdEnd: 85,
+    end: 127.5,
+  });
+  const total = held.reduce((sum, r) => sum + r.change, 0);
+  assert.ok(Math.abs(total - (-192 / 576) * 2) < 1e-12);
+  assert.ok(held.every((r) => r.held));
 });
