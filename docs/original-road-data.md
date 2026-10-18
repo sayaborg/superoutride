@@ -363,7 +363,13 @@ each a road raised as a [course document](#course-documents)'s is, from GO throu
 these differences:
 
 - **Start.** COCONUT BEACH, the entry, starts at road width 450 with the grid; every other stage at 0xD4 (212), the
-  width the roads close to at a fork. Its sky is `coast-sky` on every stage until the stages' skies are drawn.
+  width the roads close to at a fork.
+- **Sky.** Each stage's Sections show its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it
+  is a copy of the generic sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast
+  (COCONUT BEACH), sky-cliff (DEVIL'S CANYON), sky-country (GATEWAY, WILDERNESS), sky-overcast (CLOUDY MOUNTAIN),
+  sky-mountain (ALPS), sky-desert (DESERT, DEATH VALLEY), sky-seafront (SEASIDE TOWN), sky-farm (WHEAT FIELD,
+  VINEYARD), sky-town (OLD CAPITAL), sky-lake (LAKESIDE), sky-forest (AUTOBAHN) and sky-alpine-dark (DESOLATION HILL).
+  A [local original](development.md#local-originals) of its name replaces it.
 - **Fork.** A stage of rows 1 to 4 ends in the fork stretch (its tables at 0x1DFA4: a straight to its position 63, a
   left curve to 160, a straight to 265, a right curve to 362 and a straight to 384), run as the main CPU's program runs
   it (0x8780 to 0x89B6): the road width the stage ends at is kept; from 63 the roads part by 8 units a position; beyond

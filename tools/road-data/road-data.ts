@@ -19,7 +19,7 @@ import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
-import { outrunCourse } from './outrun-branch.js';
+import { OUTRUN_SKIES, outrunCourse, skyName } from './outrun-branch.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -300,7 +300,6 @@ try {
         carWidth: vehicle.overallWidth,
         cameraDistance: cameraDistance(CAMERA_DEFINITION),
         kmh: TOP_KMH,
-        sky: OUTRUN_COURSES[0].sky,
         objects: (stage, width, end) =>
           stageObjects(
             programs.main,
@@ -316,6 +315,17 @@ try {
           ),
       });
       const file = await save('outrun', outrun.document);
+      // Each stage's sky as published: its generic sky under its own name.
+      for (const [number, generic] of OUTRUN_SKIES) {
+        const name = skyName(number);
+        const sky = JSON.parse(await readFile(`content/images/${generic}.json`, 'utf8')) as Record<string, unknown>;
+        const text = JSON.stringify({ ...sky, name });
+        const skyFile = `content/images/${name}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not ${generic} under its name`);
+        } else await atomicWrite(skyFile, text);
+      }
       const stops = (p: number) => round1(stationOf(p));
       courses.push({
         course: file,

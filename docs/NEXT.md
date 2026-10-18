@@ -238,8 +238,8 @@ The stage's PRs left:
 - RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14) and the start's objects' depth, which K may
   decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)). The ground's spray (the surface
   effect) is not converted ([Ground](original-road-data.md#ground)).
-- RD-6: local originals (above), one PR each: RD-6b the backgrounds, RD-6c the player's TESTAROSSA, RD-6d voices and
-  effects, RD-6e music once K's recordings come.
+- RD-6: local originals (above), one PR each: RD-6b the backgrounds (each stage's sky, now its own image, converted
+  from the tile ROMs), RD-6c the player's TESTAROSSA, RD-6d voices and effects, RD-6e music once K's recordings come.
 - RD-5f, after RD-6: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown

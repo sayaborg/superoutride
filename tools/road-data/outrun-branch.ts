@@ -61,6 +61,32 @@ export const OUTRUN_NAMES: ReadonlyMap<number, string> = new Map([
 ]);
 const slug = (name: string) => name.toLowerCase().replace(/'/g, '').replace(/ /g, '-');
 
+/**
+ * Each stage's sky, `outrun-<stage>-sky`, as published: a copy of the generic sky most like the stage's scenery, which a
+ * [local original](../../docs/development.md#local-originals) of its name replaces.
+ */
+export const OUTRUN_SKIES: ReadonlyMap<number, string> = new Map([
+  [0x3c, 'sky-coast'],
+  [0x1e, 'sky-cliff'],
+  [0x3b, 'sky-country'],
+  [0x20, 'sky-overcast'],
+  [0x2f, 'sky-mountain'],
+  [0x2a, 'sky-desert'],
+  [0x2d, 'sky-seafront'],
+  [0x35, 'sky-farm'],
+  [0x33, 'sky-town'],
+  [0x21, 'sky-country'],
+  [0x32, 'sky-lake'],
+  [0x23, 'sky-forest'],
+  [0x38, 'sky-alpine-dark'],
+  [0x22, 'sky-desert'],
+  [0x26, 'sky-farm'],
+]);
+/** Stage `number`'s sky image. */
+export const skyName = (number: number) => `outrun-${slug(OUTRUN_NAMES.get(number)!)}-sky`;
+/** The skies' horizon row, the generic skies'. */
+const SKY_HORIZON = 320;
+
 /** What OUTRUN's course is raised from beside its stages. */
 export interface OutrunInputs {
   readonly stages: ReadonlyMap<number, Stage>;
@@ -72,7 +98,6 @@ export interface OutrunInputs {
   readonly carWidth: number;
   readonly cameraDistance: number;
   readonly kmh: number;
-  readonly sky: { readonly image: string; readonly horizonY: number };
   /** A stage's objects and ground, given its road width (units) at a road position and its road's end, positions. */
   readonly objects: (stage: Stage, width: (position: number) => number, end: number) => StageScenery;
 }
@@ -218,7 +243,13 @@ export function outrunCourse(inputs: OutrunInputs) {
       const starts = [0, ...cuts.filter((c) => c !== last)];
       const ids = starts.map((_, k) => (k === 0 ? id : `${id}-${k + 1}`));
       const section = (spec: Omit<RoadSection, 'name' | 'sky'>) =>
-        sections.push(roadSection(road, { ...spec, name, sky: inputs.sky }, inputs.cameraDistance));
+        sections.push(
+          roadSection(
+            road,
+            { ...spec, name, sky: { image: skyName(number), horizonY: SKY_HORIZON } },
+            inputs.cameraDistance,
+          ),
+        );
       starts.forEach((from, k) => {
         const to = starts[k + 1] ?? last ?? road.end;
         const gates: RoadGate[] = [];
