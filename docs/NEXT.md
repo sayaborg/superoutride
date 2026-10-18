@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6a](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -242,9 +242,8 @@ The stage's PRs left:
   to the table by their scenery, and the roads beyond a fork's Section are not checked against the stage's crossings.
   - RD-5e: the strips (drawings 1, 3, 10 and 11) and drawing 13's sand on the road as ground or a limit.
   - RD-5f: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
-- RD-6: local originals (above), one PR each: RD-6a the scenery's colored pictures and the replacing build (the build,
-  the development server and the workbench take the option; the manifest's digests are the replacing assets'), RD-6b
-  the backgrounds, RD-6c voices and effects, RD-6d music once K's recordings come. RD-6 goes before RD-5e and RD-5f.
+- RD-6: local originals (above, [Development](development.md#local-originals)), one PR each: RD-6b the backgrounds,
+  RD-6c voices and effects, RD-6d music once K's recordings come. RD-6 goes before RD-5e and RD-5f.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
 addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).

@@ -1,13 +1,19 @@
 import { compileContent } from '../authoring/compile-content.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { layoutDelivery } from '../authoring/delivery-layout.js';
+import { createLayeredStore } from '../authoring/layered-store.js';
 import { createNodeContentStore } from './node-content-store.js';
+import { ORIGINALS_INDEX, originalsRequested, readOriginals } from './originals.js';
 
 /**
  * The content build: the authoring core compiles `content/` into every delivered file, the saved measured products'
- * included, which this script writes to `dist/delivery` in the delivery layout. It runs no driving.
+ * included, which this script writes to `dist/delivery` in the delivery layout. It runs no driving. A local build with
+ * the originals (`npm run build:originals`) compiles them in place of the published files of their paths, and lists
+ * them in `dist/originals.json`.
  */
-const compiled = await compileContent(createNodeContentStore());
+const published = createNodeContentStore();
+const originals = originalsRequested() ? await readOriginals(published) : null;
+const compiled = await compileContent(originals ? createLayeredStore(published, originals) : published);
 // An expected content error prints its diagnostics alone; internal faults keep their stack.
 if (!compiled.ok) {
   console.error(JSON.stringify(compiled.diagnostics));
@@ -32,5 +38,12 @@ for (const [path, bytes] of await layoutDelivery(content.files)) {
   const target = new URL(path, root);
   await mkdir(new URL('./', target), { recursive: true });
   await writeFile(target, bytes);
+}
+if (originals) {
+  await writeFile(
+    new URL(`../../dist/${ORIGINALS_INDEX}`, import.meta.url),
+    JSON.stringify({ format: 'superoutride.local-originals', version: 1, files: [...originals.keys()] }) + '\n',
+  );
+  console.log(`Compiled ${originals.size} local originals in place of the published files`);
 }
 console.log('Validated and staged manifest content');

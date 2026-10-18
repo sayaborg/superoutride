@@ -477,13 +477,34 @@ The road data tool reads an original's road data from its program ROMs ([Origina
 runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` and writes dumps under
 `reference-media/outrun/rom-data/`, which Git ignores, and the course documents raised from the ROMs under `content/`:
 
-| Command  | Purpose                                                                                                                                                                                  |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read`   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                       |
-| `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                         |
-| `course` | Write each course raised from the ROM zip (`--zip`), OUTRUN's whole course among them, to `content/courses/`, or with `--check` fail where one differs from the committed document       |
-| `look`   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load |
-| `boards` | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), or with `--check` fail where one differs                                              |
+| Command  | Purpose                                                                                                                                                                                        |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                             |
+| `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                               |
+| `course` | Write each course raised from the ROM zip (`--zip`), OUTRUN's whole course among them, to `content/courses/`, or with `--check` fail where one differs from the committed document             |
+| `look`   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load       |
+| `boards` | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), and their [local originals](#local-originals), or with `--check` fail where a board differs |
+
+### Local originals
+
+A local build can show an original's own pictures, converted from its ROMs, in place of the published ones. They are
+for K's own runs only: they never reach Git, a PR or Pages.
+
+- **Where.** A local original is a file under `reference-media/originals/` (which Git ignores) at the path, under
+  `content/`, of the published file it replaces. A file with no published counterpart is left out.
+- **Identity.** An original keeps everything the course identity reads: the same name, size in texels, foot position,
+  palette names and level count as the published file. Only its pixels and colors differ, so the measured products
+  saved for the published content stay valid.
+- **Conversion.** Each conversion is deterministic and is rebuilt by the command that writes the published file:
+  `npm run road-data -- boards` writes each outline board and, beside it, its color original, from the same ROM
+  words at the same 40 texels/m and nearest-neighbor scale, with the ROM's palette under each palette name.
+- **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
+  paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
+  authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.
+
+To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- boards`, then
+`npm run build:originals`, serve the repository root (`python3 -m http.server 8000`) and open the game with `dev=1`.
+`npm run build` returns to the published files.
 
 ### Skies command
 

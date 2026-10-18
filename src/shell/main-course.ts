@@ -1,5 +1,5 @@
 import { createAudioTimingHud } from './audio-timing-hud.js';
-import { browserContent, isWorkbenchRun } from './browser-content.js';
+import { browserContent, isOriginalsBuild, isWorkbenchRun } from './browser-content.js';
 import { createRaceSprites } from '../view/race-sprites.js';
 import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result-delay-controls.js';
 import { mountSlowDownControls } from './slow-down-controls.js';
@@ -92,6 +92,8 @@ async function startPage(): Promise<void> {
       template.replaceWith(template.content.cloneNode(true));
       // A run of the workbench's build says so on its DEV toggle: its products are that compile's, not the published.
       if (isWorkbenchRun()) mustGet('dev-panel').querySelector('summary')!.prepend('WORKBENCH BUILD · ');
+      // So does a local build with the originals: its pictures are the original's, which are never published.
+      else if (await isOriginalsBuild()) mustGet('dev-panel').querySelector('summary')!.prepend('LOCAL ORIGINALS · ');
     }
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;

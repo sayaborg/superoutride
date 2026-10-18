@@ -45,6 +45,8 @@ const TOP_KMH = 293;
 /** Where K's ROM zip and the tool's dumps lie: never committed. */
 const ROM_DIRECTORY = 'reference-media/outrun/rom';
 const DUMP_DIRECTORY = 'reference-media/outrun/rom-data';
+/** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
+const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
@@ -472,11 +474,14 @@ try {
               `${file} is not the ROMs' board`,
             );
           } else await atomicWrite(file, bytes);
+        // The original's picture of the same name, local: Git ignores the originals' directory.
+        if (!check) await atomicWrite(path.join(ORIGINALS_DIRECTORY, board.original.path), board.original.bytes);
       }
       console.log(
         JSON.stringify({
           ok: true,
           checked: check,
+          originals: check ? null : ORIGINALS_DIRECTORY,
           boards: boards.map((b) => b.name),
           notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
         }),

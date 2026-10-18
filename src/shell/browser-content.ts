@@ -15,6 +15,18 @@ export function browserContent() {
   return (delivery ??= loadContentManifest(root, isWorkbenchRun() ? workbenchTransport(root) : undefined));
 }
 
+/**
+ * Whether this page runs a local build with the originals ([Development](../../docs/development.md#local-originals)):
+ * such a build lists them in `originals.json` beside its delivery. A published build has no such file.
+ */
+export async function isOriginalsBuild(): Promise<boolean> {
+  try {
+    return (await fetch(new URL('../originals.json', import.meta.url), { cache: 'no-store' })).ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Whether this page runs the workbench's build. */
 export function isWorkbenchRun(): boolean {
   return new URLSearchParams(location.search).has('workbench');

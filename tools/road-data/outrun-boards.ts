@@ -12,6 +12,7 @@ import {
   type SpriteRecipe,
 } from '../graphics/sprite-import.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
+import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import {
   anchorPoint,
@@ -41,12 +42,16 @@ export const boardName = (use: Pick<SpriteUse, 'sprite' | 'mirrored' | 'shadow'>
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 
-/** The files of one board: its source picture and recipe, and its course image. */
+/**
+ * The files of one board: its source picture and recipe, its course image, and the original's picture in its place (the
+ * same name, size, base point, palette names and shadow; the sprite's own pixels and palettes), which stays local.
+ */
 export interface BoardFiles {
   readonly name: string;
   readonly source: Uint8Array;
   readonly recipe: string;
   readonly image: { readonly path: string; readonly bytes: Uint8Array };
+  readonly original: { readonly path: string; readonly bytes: Uint8Array };
 }
 
 /**
@@ -120,7 +125,25 @@ export async function outlineBoards(
           ),
         }
       : master;
-    boards.push({ name, source, recipe: formatSavedJson(recipe), image: courseImageFile(withShadow) });
+    // The original's picture: each texel the sprite's pixel nearest its centre, in each palette's own colors.
+    const romPalettes = palettes.map((p) => [paletteName(p), [0, ...spritePalette(main, p).slice(1)]] as const);
+    const indices = Array.from({ length: master.width * master.height }, (_, t) => {
+      const x = Math.min(size.width - 1, Math.floor((((t % master.width) + 0.5) * size.width) / master.width));
+      const y = Math.floor(((Math.floor(t / master.width) + 0.5) * size.width) / master.width);
+      return y < size.height ? pixels[y * size.width + x]! : 0;
+    });
+    const original = {
+      ...withShadow,
+      palettes: Object.fromEntries(romPalettes.map(([palette, colors]) => [palette, { colors }])),
+      levels: [{ paletteRgb555: romPalettes[0]![1], indices, mixtures: spriteIdentityMixtures() }],
+    };
+    boards.push({
+      name,
+      source,
+      recipe: formatSavedJson(recipe),
+      image: courseImageFile(withShadow),
+      original: courseImageFile(original),
+    });
   }
   return boards;
 }
