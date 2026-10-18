@@ -237,3 +237,29 @@ kind brings them within 3 rows, so they are built by the least squares match (K'
 is within 3 rows. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131, little of which returns within a
 row: the road falls from 20 m to −291 m, its steepest grade 34 % and −32 % at the road's end. The crossing's passages
 are 30.7 m apart without a bump.
+
+## Checks on `k1`
+
+`k1` checks COCONUT BEACH against the ROM's events, using only time × the displayed speed and ratios within a row. Its
+position is the displayed speed's integral from GO, re-timed monotonically through the events matched below. The
+analysis and its side-by-sides, `k1`'s frame beside this game's drawing every 50 positions, lie in `reference-media/`
+and are not committed.
+
+- **Curves.** The background stands still on a straight. The still stretches matched to the ROM's straights in turn
+  give 16 joins of a curve and a straight. The integral's lag behind the ROM grows from 0 to about −55 positions over
+  the stage. Through the others, a join is predicted within 0.6 to 17 positions (median 9; the last, 30), not 2: the
+  original advances its position by `(R + car_x/40) / R` on a curve, which the integral does not follow.
+- **Hills.** `k1`'s road top, climbed from the bottom, against the [hills](#hills)' extremes:
+
+  | Table at | Kind | Rule's top   | `k1`'s   |
+  | -------- | ---- | ------------ | -------- |
+  | 1        | 0    | 112.5, 191.6 | 107, 199 |
+  | 360      | 0    | 116.9, 179.9 | 120, 181 |
+  | 1044     | 0    | 101.4, 187.1 | 100, 187 |
+  | 1600     | 1    | 169.1        | 163      |
+
+  Four of the seven extremes are within 3 rows. `k1` ends before table 1824.
+
+- **Width.** The road's edges lie off the screen on the car's row: the road there is 10.3 m, about 410 px. The lane
+  lines either side of the car stand `k1`'s median 136.0 px apart there, this game's lane 137.6 px at its 40 px/m.
+- **Start.** The start line's place is checked with the scenery, which places the start gantry.

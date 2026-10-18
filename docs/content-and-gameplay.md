@@ -1739,8 +1739,8 @@ the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
 `outrun-coconut-beach` (COCONUT BEACH) is OUTRUN's first stage, written by the road data tool from the original's road
 data ([Original road data](original-road-data.md#course-documents)), which owns its plan, lanes, strips, start and
-finish; run the conversion rather than editing the document. It has no scenery yet, and no series times it, so it runs in
-FREE PLAY.
+finish; run the conversion rather than editing the document. It has no scenery yet. The development series TRIAL's class
+COCONUT BEACH times it as A STEEP is timed (TESTAROSSA, a margin of 1.35).
 
 ## Observation formats
 

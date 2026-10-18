@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-3c](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-4](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -215,19 +215,12 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 - Forks and checkpoints: the fork begins at 1948; its stretch is 384 positions long, and its roads part at its
   position 63. A checkpoint ends the fork stretch (the next stage's 0).
 
-Checks on `k1`: s(t) is the displayed speed's integral re-timed monotonically to the ROM's events (the background's
-turns beginning and ending, the road top's peaks). Within: curve beginnings and ends ±2 positions; the road top's peaks
-±3 positions in time and ±3 rows; the road's edges on the row behind the car ±3 px once `s_lat` is set. A side-by-side
-every 50 positions (this game's drawing at `k1`'s s(t) and lateral, the car's offset from the road's centre on its row,
-the original's road position as the camera's s, beside `k1`'s frame) is made for K in `reference-media/`, never
-committed. No residual map and no optimization through the renderer.
+The stage's PRs left:
 
-- RD-3: COCONUT BEACH by the conversion, its hills by `c_look` (RD-3a, RD-3b). Left:
-  - RD-3c: driven with `drive` and checked on `k1`, the start line's place too; a series class with reference driving
-    and time limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.
 - RD-4: scenery. Outlines (non-transparent pixels) from the sprite ROMs as outline boards of one color (the palette's
   representative) in `content/images/`, placed at 40 texels/m; the sprite pixels' size in metres from one scenery object
-  measured on `k1`; placement by the scenery rule; solid types as K decided above.
+  measured on `k1`; placement by the scenery rule; solid types as K decided above. The start line's place is checked
+  on `k1` with the start gantry.
 - RD-5: all of OUTRUN: the 15 stages, the fork stretches and the 5 goals as Sections and Links with the forks' rules
   (locks and closures). Stage 16's OUTRUN courses use it.
 
