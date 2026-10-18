@@ -252,9 +252,9 @@ Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チー
 are driven in FREE PLAY; FC3S follows once K decides its open points. A series, scoring and series rules for the camera
 or steering are not made in this stage (the Steering row of [Pending product decisions](#pending-product-decisions)).
 
-K decided it runs in parallel with Stage VC, in its own sessions and branches. DT touches
-vehicles and physics, which VC does not, so it shares only NEXT and the other shared documents with VC: when main moves, the branch is brought up to it and validated
-again before main is fast-forwarded.
+K decided it runs in parallel with Stage RD, in its own sessions and branches. DT touches vehicles and physics, which
+RD does not, so it shares only NEXT and the other shared documents with RD: when main moves, the branch is brought up to
+it and validated again before main is fast-forwarded.
 
 K's decisions for the stage:
 

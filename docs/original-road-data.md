@@ -73,7 +73,10 @@ fork's handling or a video shows them.
 - **Paths against curves.** Over each curve the path turns by 1/R a position, left where kind 3 says, right where 2
   says (the measured radius within 2.3 % of R in every stage). Every stage's path turns 0° or ±360° over its 1948
   positions and lines up with its curves (`pathOffset`), but for stage 0x38's, which runs 48 positions ahead of them
-  (0x2A's by 1).
+  (0x2A's by 1). The plan follows the path, the road the original draws; the curves, moved back by the path's offset,
+  only check its headings and radii. Widths, heights and scenery keep their positions: the original draws them at the
+  same road positions as the path. The original's curves push the car outward, so on stage 0x38 the curves the player
+  sees and the curves that push the car lie 48 positions apart.
 - **Height tables.** The long at 0x220A + number × 4 is a height table: {u8 kind, u8 step}, then by kind:
   - 0: u8 descent factor, u8 ascent factor;
   - 1 and 2: word wait;
