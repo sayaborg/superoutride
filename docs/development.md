@@ -18,6 +18,7 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles              |
 | `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator              |
 | `npm run skies`               | Draw the course skies that have sources into course images            |
+| `npm run drift-evaluation`    | Drive the drift style alone beside the run driver; CI does not run it |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                    |
 
 ### Driving scenarios
