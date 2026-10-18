@@ -31,6 +31,11 @@ archive records; another ROM set is refused. K's set matches:
 | `epr-10381b.132` | `be8c412b` | `epr-10328a.75` | `d5ec5e5d` |
 | `epr-10383b.117` | `10a2014a` | `epr-10330a.57` | `ba9ec82a` |
 
+The sprites are eight 128 KiB ROMs in two sets of four, each ROM one byte of a 32-bit word, the most significant
+first: `mpr-10371.9` `7cc86208`, `mpr-10373.10` `b0d26ac9`, `mpr-10375.11` `59b60bd7`, `mpr-10377.12` `17a1b04a`, then
+`mpr-10372.13` `b557078c`, `mpr-10374.14` `8051e517`, `mpr-10376.15` `f3b8f318`, `mpr-10378.16` `a1062984`
+(`OUTRUN_SPRITE_ROMS`), checked as the programs are.
+
 ## Programs
 
 Both CPUs are 68000s: words and longs are big-endian, and an address is an offset in the CPU's assembled program.
@@ -58,7 +63,8 @@ fork's handling or a video shows them.
 - **Scenery.** {word position, u8 count, u8 type}, ending at position 0x7FFF.
 - **Scenery types.** The long at 0x1A43C + type × 4 is a type: {word frequency, word last entry's offset}, then 8-byte
   entries up to that offset, {u8 flags, s8 x, signed word y, u8 unknown, u8 sprite, u8 unknown, u8 palette}. Flags bit 0
-  mirrors, bit 1 casts a shadow, bits 4–7 choose the drawing; x is in 16 road-width units, y in 128.
+  mirrors, bit 1 casts a shadow, bits 4–7 choose the drawing ([Sprites](#sprites)); x is in 16 road units, y in road
+  units above the road.
 - **Fork stretch.** Three longs at 0x1DFA4: its curves', widths and heights', and scenery's addresses.
 - **Goal stretches.** Five longs at 0xE514, each a block of three longs: a goal stretch's curves', widths and heights',
   and scenery's addresses. Each goal has three curve segments, the last from 312.
@@ -90,6 +96,56 @@ fork's handling or a video shows them.
 A palette word `w` is RGB555, each channel four bits over a low bit shared from bits 12–14:
 R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1), B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1).
 Strips take it as their RGB555 as it is.
+
+## Sprites
+
+A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's after set 0's, in banks of 0x10000 words:
+
+- **Sizes.** The long at 0x11ED2 + sprite × 4 addresses its five sizes, the largest first, each {word width, word height,
+  word words a row, word bank (its low byte), word first word in the bank}.
+- **Pixels.** Each word holds eight 4-bit pixels, the most significant first. 0 is transparent; 15 marks where a row
+  may end, at the end of each word left of a picture's middle and the start of each right of it, and covers the pixel
+  there.
+- **Palettes.** Palette p is the 16 palette words ([Palette words](#palette-words)) at 0x14ED8 + p × 32, slot 0
+  transparent.
+- **Hit extents.** The signed words at 0x1212A + sprite × 4: how far left and right of its object, in road units, the
+  car hits it.
+- **Shadow.** A shadowed object casts the size list at 0xFF56 (192 × 7 pixels at its largest), drawn at the object's
+  scale and anchor.
+- **Objects.** A scenery entry's drawing chooses its routine, which sets its anchor, its scale and whether the car hits
+  it; a routine also draws the sprite's size its scale selects. The objects standing at the game's start are the
+  16-byte records counted by the word at 0x2B6E, {u8 flags, u8 anchor, u8 priority, u8 palette, word sprite × 4, signed
+  word x in road units, word y × 128, word depth, long routine}.
+
+An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre unless
+the road width exceeds the word at 0xE308 (280) where it appears. Its anchor byte: bits 0–1 put its sprite's left edge
+(1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the
+largest size spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
+
+| Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               |
+| ------- | --------------------- | ------------------- | ----- | ----------------------------- |
+| 0       | 0x4048, raised 0x4042 | bottom middle       | 2     | by its extents, on the ground |
+| 4       | 0x4658                | bottom middle       | 2     | by its extents                |
+| 7       | 0x4828                | bottom right (left) | 2     | by its extents                |
+| 8       | 0x3FE2                | bottom middle       | 1     | never                         |
+| 9       | 0x492A                | bottom middle       | 2     | by its extents                |
+| 13      | 0x3FE8                | middle              | 1     | by its extents                |
+
+Drawings 1, 3, 10 and 11 draw a strip along the road whose sprite changes with depth (1 and 3 stop the car beyond
+its side); 2, 5, 6, 12 and 14 move. Neither is converted yet.
+
+## Outline boards
+
+`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite the courses' stages
+show and the objects standing at the start (of the first stage), mirrored and shadowed as shown: a sprite source
+`content/sprite-sources/outrun-<sprite>[-mirrored][-shadowed].png` and its recipe, made into the course image of that
+name; with `--check` it rebuilds them and fails where one differs. Its master is the largest size's outline, filled: the
+colored pixels, a row mark between two colored ones, and every pixel no transparent path joins to the picture's edge.
+Its width is its pixels × their road units × `s_lat` ([Course documents](#course-documents)); its base point the
+object's anchor; each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
+one color, the palette's mean over the colored pixels. A shadowed board's shadow is the original's shadow at its scale
+and anchor. COCONUT BEACH and its start show 40 boards; its 114 entries of drawing 3, the sea's edge, are not
+converted.
 
 ## Hills
 

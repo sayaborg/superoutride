@@ -13,6 +13,7 @@ import {
   stageLength,
 } from '../../tools/road-data/outrun-road.ts';
 import { gradeRamps, LOOK } from '../../tools/road-data/outrun-profile.ts';
+import { anchorPoint, outline, representative, spritePixels } from '../../tools/road-data/outrun-sprites.ts';
 import {
   lanesAt,
   lateralScale,
@@ -403,4 +404,23 @@ test("a table's grades: kind 0's entries where the camera passes them, kind 1's 
   const total = held.reduce((sum, r) => sum + r.change, 0);
   assert.ok(Math.abs(total - (-192 / 576) * 2) < 1e-12);
   assert.ok(held.every((r) => r.held));
+});
+
+test("a sprite's pixels, its filled outline, its anchor and its palette's representative color", () => {
+  // One row of two words: seven transparent pixels and a row mark, then 1, 2, 15 (a mark between colors), 3 and four 0.
+  const words = new Uint32Array(0x40000);
+  words[5] = 0x0000000f;
+  words[6] = 0x12f30000;
+  const pixels = spritePixels(words, { width: 16, height: 1, stride: 2, bank: 0, offset: 5 });
+  assert.deepEqual([...pixels], [0, 0, 0, 0, 0, 0, 0, 15, 1, 2, 15, 3, 0, 0, 0, 0]);
+  assert.deepEqual([...outline(pixels, 16)], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]);
+  // A hole no transparent path joins to the edge is filled.
+  const ring = Uint8Array.from([1, 1, 1, 1, 0, 1, 1, 1, 1]);
+  assert.deepEqual([...outline(ring, 3)], [1, 1, 1, 1, 1, 1, 1, 1, 1]);
+  // Bottom middle, and the right edge at the object's x.
+  assert.deepEqual(anchorPoint(8, 10, 20), { x: 4.5, y: 19.5 });
+  assert.deepEqual(anchorPoint(10, 10, 20), { x: 9.5, y: 19.5 });
+  // The mean of the colored pixels' colors by channel.
+  const palette = [0, (10 << 10) | (20 << 5) | 30, (20 << 10) | (10 << 5) | 0];
+  assert.equal(representative(Uint8Array.from([1, 2, 0, 15]), palette), (15 << 10) | (15 << 5) | 15);
 });

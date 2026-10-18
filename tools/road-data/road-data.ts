@@ -10,11 +10,14 @@ import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { PNG } from 'pngjs';
 import { readZip } from './zip.js';
+import { outlineBoards, type SpriteUse } from './outrun-boards.js';
+import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { CONVERSION_VERSION, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
+import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -309,6 +312,75 @@ try {
         });
       }
       console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
+      break;
+    }
+    case 'boards': {
+      // The outline boards of every sprite the courses' stages show, written to content, or with `--check` compared
+      // with the ones there.
+      const check = options.has('--check');
+      const { zip, programs } = await readPrograms(options.get('--zip'));
+      const files = readZip(new Uint8Array(await readFile(zip)));
+      const words = assembleSprites(files);
+      const length = stageLength(programs.main);
+      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
+        overallWidth: number;
+      };
+      const uses: SpriteUse[] = [];
+      const skipped = new Map<number, number>();
+      for (const course of OUTRUN_COURSES) {
+        const stage = readStage(programs, course.stage);
+        const types = [...new Set(stage.scenery.filter((p) => p.position < length).map((p) => p.type))];
+        for (const type of types)
+          for (const e of readSceneryType(programs.main, type).entries) {
+            const shown = sceneryRoutine(e.flags, e.y);
+            if (!shown) {
+              skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
+              continue;
+            }
+            uses.push({
+              sprite: e.sprite,
+              mirrored: (e.flags & 1) !== 0,
+              palette: e.palette,
+              shadow: (e.flags & 2) !== 0,
+              ...shown,
+            });
+          }
+        if (course.start)
+          for (const o of readStartObjects(programs.main))
+            uses.push({
+              sprite: o.sprite,
+              mirrored: (o.flags & 1) !== 0,
+              anchor: o.anchor & 15,
+              routine: o.routine,
+              palette: o.palette,
+              shadow: (o.flags & 0x10) !== 0,
+            });
+      }
+      const boards = await outlineBoards(programs.main, words, uses, lateralScale(vehicle.overallWidth), PNG);
+      for (const board of boards) {
+        const written = [
+          [`content/sprite-sources/${board.name}.png`, board.source],
+          [`content/sprite-sources/${board.name}.json`, new TextEncoder().encode(board.recipe)],
+          [`content/${board.image.path}`, board.image.bytes],
+        ] as const;
+        for (const [file, bytes] of written)
+          if (check) {
+            const committed = await readFile(file).catch(() => null);
+            requireInput(
+              committed && Buffer.compare(committed, bytes) === 0,
+              `/${file}`,
+              `${file} is not the ROMs' board`,
+            );
+          } else await atomicWrite(file, bytes);
+      }
+      console.log(
+        JSON.stringify({
+          ok: true,
+          checked: check,
+          boards: boards.map((b) => b.name),
+          notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
+        }),
+      );
       break;
     }
     default:
