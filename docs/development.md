@@ -477,13 +477,13 @@ The road data tool reads an original's road data from its program ROMs ([Origina
 runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` and writes dumps under
 `reference-media/outrun/rom-data/`, which Git ignores, and the course documents raised from the ROMs under `content/`:
 
-| Command  | Purpose                                                                                                                                            |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read`   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`) |
-| `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                   |
-| `course` | Write each course raised from the ROM zip (`--zip`) to `content/courses/`, or with `--check` fail where one differs from the committed document    |
-| `look`   | Refit `c_look` on each course's stage from the ROM zip (`--zip`) and report each height table's road top on both screens and least load            |
-| `boards` | Write the outline boards of the sprites the courses' stages show from the ROM zip (`--zip`), or with `--check` fail where one differs              |
+| Command  | Purpose                                                                                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                       |
+| `hills`  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                         |
+| `course` | Write each course raised from the ROM zip (`--zip`) to `content/courses/`, or with `--check` fail where one differs from the committed document                                          |
+| `look`   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load |
+| `boards` | Write the outline boards of the sprites the courses' stages show from the ROM zip (`--zip`), or with `--check` fail where one differs                                                    |
 
 ### Skies command
 

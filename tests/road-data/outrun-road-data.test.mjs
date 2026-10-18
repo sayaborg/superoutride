@@ -12,7 +12,14 @@ import {
   readStage,
   stageLength,
 } from '../../tools/road-data/outrun-road.ts';
-import { gradeRamps, LOOK } from '../../tools/road-data/outrun-profile.ts';
+import {
+  bendOf,
+  closedGrades,
+  gradeRamps,
+  profileOf,
+  stageGrades,
+  STEEPEST,
+} from '../../tools/road-data/outrun-profile.ts';
 import { anchorPoint, outline, representative, spritePixels } from '../../tools/road-data/outrun-sprites.ts';
 import {
   lanesAt,
@@ -370,15 +377,41 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
   // The player's slot is the last, the camera at GO behind it; the finish at the stage's length.
   assert.equal(section.gates[0].grid.at(-1).at.offset, 6);
   assert.equal(section.gates[1].at.offset, stationOf(250));
-  // The crest: the grade rises by c_look over the first entry's span and falls back over the second's; the profile's
-  // knots are its ends and one PVI a bend, the tangents' intersection.
-  const span = 3 * 3 * 2.125,
-    first = 20 + 6 * 3 * 2.125;
-  assert.ok(Math.abs(profile.grade(stationOf(first + span)) - LOOK[0]) < 1e-9);
-  assert.ok(Math.abs(profile.grade(stationOf(first + 2 * span))) < 1e-9);
-  assert.equal(section.profile.length, 4);
+  // The crest, the road tilted to end level at height 0 as it begins; the profile's knots are its ends and one PVI a
+  // bend, the tangents' intersection.
+  const end = stationOf(300);
+  assert.ok(Math.abs(profile.height(end)) < 1e-9 && Math.abs(profile.grade(end)) < 1e-12);
+  assert.equal(section.profile.length, profile.bends.length + 2);
   const [, up] = section.profile;
-  assert.ok(Math.abs(up.curveLength - (stationOf(first + span) - stationOf(first))) < 1e-5);
+  const [bend] = profile.bends;
+  assert.ok(
+    Math.abs(up.y - (profile.height(bend.from) + (profile.grade(bend.from) * (bend.to - bend.from)) / 2)) < 1e-6,
+  );
+});
+
+test("a stage's grades: a table's leftover returned before the next, a held shape stopped at the steepest, the road closed", () => {
+  const look = { 0: 0.1, 1: 0.5 };
+  // Kind 0 at 0: six level entries of 2.125 positions, then 576 over 2.125, leaving the grade at 0.1.
+  const slid = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 576, 0, 0, 0, 0, 0, 0, 0] };
+  // Kind 1 at 40: −576 held, changing the grade by −1 over its rise, hold and return at full look.
+  const held = { kind: 1, step: 20, wait: 255, entries: [-576, -576] };
+  const runs = [
+    { table: slid, start: 0, rise: 0, holdEnd: 0, end: 17 },
+    { table: held, start: 40, rise: 82.5, holdEnd: 125, end: 167.5 },
+  ];
+  const changes = stageGrades(runs, look, (p) => p, 300);
+  const profile = profileOf(changes.map(bendOf));
+  assert.ok(Math.abs(profile.grade(17) - 0.1) < 1e-12);
+  // The grade it leaves is returned by the next table's start.
+  assert.ok(Math.abs(profile.grade(40)) < 1e-12);
+  // The held shape bends the road at its rate until the grade is the steepest, then holds it to its end.
+  const rate = (-0.5 / 42.5) * 0.5;
+  assert.ok(Math.abs(profile.grade(60) - rate * 20) < 1e-12);
+  assert.ok(Math.abs(profile.grade(167.5) + STEEPEST) < 1e-12);
+  // Then returned by the road's end, which the tilt brings to height 0.
+  assert.ok(Math.abs(profile.grade(300)) < 1e-12);
+  const closed = profileOf(closedGrades(changes, 300).map(bendOf));
+  assert.ok(Math.abs(closed.height(300)) < 1e-9 && Math.abs(closed.grade(300)) < 1e-12);
 });
 
 test("a table's grades: kind 0's entries where the camera passes them, kind 1's shape held on the nearest segment", () => {

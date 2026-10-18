@@ -7,11 +7,11 @@ import { requireInput } from '../course/authoring-io.js';
 import { POSITION_PER_KMH, tableRuns, TICKS } from './outrun-hills.js';
 import {
   bendOf,
+  closedGrades,
   LOOK,
   profileOf,
-  returnedGrades,
   separatedCrossings,
-  tableChanges,
+  stageGrades,
   type Crossing,
   type Profile,
 } from './outrun-profile.js';
@@ -19,7 +19,7 @@ import type { CurvePoint, HeightTable, Path, Stage, WidthHeightPoint } from './o
 import type { ObjectPlacement } from './outrun-scenery.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 3;
+export const CONVERSION_VERSION = 4;
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
@@ -327,22 +327,21 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
     'The centre line differs from the surface, and its place is not yet read',
   );
 
-  // The profile: the tables' grades, the grades they leave returned, the plan's crossings kept apart; bends break at
-  // the Sections' cuts, where Sections join on a tangent or within one bend.
+  // The profile: the tables' grades, the grades they leave returned, the road closed at height 0, the plan's crossings
+  // kept apart; bends break at the Sections' cuts, where Sections join on a tangent or within one bend.
   const total = stationOf(end);
   const runs = tableRuns(
     stage.widthsHeights.filter((p) => p.position < length),
     options.tables,
     () => options.kmh,
   );
-  const gaps = runs.map((r, i) => [stationOf(r.end), stationOf(runs[i + 1]?.start ?? end)] as [number, number]);
   const extent = (p: number) => {
     const w = lanesAt(widthAt(p));
     return (Math.max(w.b / 2 + w.a, w.b / 2 + w.c + w.m + w.d + w.e + w.f) + EDGE_BAND) * metres;
   };
   const crossings = crossingsOf(plan, extent);
   const changes = separatedCrossings(
-    returnedGrades(tableChanges(runs, LOOK, stationOf), gaps, total),
+    closedGrades(stageGrades(runs, LOOK, stationOf, total), total),
     crossings,
     total,
   ).filter((c) => c.from >= 0 && c.to <= total);

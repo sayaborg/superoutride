@@ -172,8 +172,8 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
   extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
 
 On COCONUT BEACH 1213 objects stand, 1101 of them solid. Six bushes brought out while the roads were apart end on the
-right road where the roads close, as in the original. TRIAL's reference run hits a beach hut once before the finish,
-whose hit extents end 0.6 m beyond the road's edge band as the original's: 98.5 s, against 79.8 s without scenery.
+right road where the roads close, as in the original. A beach hut before the finish has hit extents ending 0.6 m
+beyond the road's edge band, as the original's; TRIAL's reference run passes it and takes 80.3 s.
 
 ## Hills
 
@@ -230,9 +230,9 @@ committed document. CI holds no ROM, so the documents are committed; edit the co
 
 | Course                                 | Stage | Sections (from position)                        | Conversion |
 | -------------------------------------- | ----- | ----------------------------------------------- | ---------- |
-| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 3          |
+| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 4          |
 
-The conversion, version 3 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
+The conversion, version 4 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 
@@ -277,15 +277,16 @@ as its program draws them:
 ## Profile
 
 A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
-(`npm run road-data -- look` reports it):
+(`npm run road-data -- look` reports it for every stage):
 
 - **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the top
   speed, 293 km/h. A road position is the camera's station.
 - **Grades.** Each entry slid past the camera changes the grade by `c_look` × entry / 576 over its span, ending where
   the camera passes it: kind 0's entries, and kind 3's while they slide in. A shape held on the nearest segment changes
   it by `c_look` × entry / 576 for each 2.125 × step positions it is held at full share, half over its rise and its
-  return: kinds 1's and 2's first entry, kind 3's held entry. Kind 4 changes no grade and the horizon's base is kept
-  (until footage shows kind 4, K's decision).
+  return: kinds 1's and 2's first entry, kind 3's held entry; it stops where the grade reaches ±0.393 (`STEEPEST`), the
+  steepest a slid table reaches from level (0x3C's, 0x3B's, 0x2F's and 0x32's). Kind 4 changes no grade and the
+  horizon's base is kept (until footage shows kind 4, K's decision).
 - **`c_look`.** 0.131 for entries slid past and 0.55 for held shapes (`LOOK`), fitted on COCONUT BEACH by least
   squares of the road's top as rows above each level road's top over the screen's height: the original's level top
   151 of 224 rows, this game's 122.4 of 240. This game's top is the least row of the road from 2.5 m to 200 m ahead of
@@ -294,9 +295,11 @@ A stage's profile turns its height tables' look on the original's screen into gr
   table, the grades left by the tables not returned for the fit. One value cannot serve both: as a crest sharpens, this
   game's top falls by about the square root of its curvature where the original's falls in proportion, so a held
   shape fitted with the slid value shows about 5 of the original's 18 rows.
-- **Grades left.** Where a table's entries do not sum to 0, the grade it leaves is returned toward 0 over the stretch
-  to the next table (the last over the stretch to the road's end), by the largest share that moves this game's top by
-  at most 1 row; what is not returned is carried to the next stretch (K's decision).
+- **Grades left.** The grade a table leaves (where its entries do not sum to 0, and a held shape's) is returned to 0
+  over the stretch to the next table's start, the last's over the stretch to the road's end; where that stretch is
+  empty, it is carried to the next.
+- **Closed.** The road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it
+  ends level at height 0 as it begins, where its ends join other roads.
 - **Crossings.** Where a plan passes over itself (pairs of stations at least 200 m apart whose roads, measured to the
   edge bands, overlap), its passages are kept at least 6 m apart: where nearer, the higher is raised and the lower
   lowered by one smooth bump each, over the shortest stretch from 100 m by 20 m that moves this game's top by at most
@@ -305,22 +308,23 @@ A stage's profile turns its height tables' look on the original's screen into gr
   2 µm shorter at each end so curves that meet stay apart; stretches break at the Sections' cuts, and a knot next to a
   cut lies on the cut's tangent, so joined Sections' heights and grades agree.
 
-On COCONUT BEACH the road's top is 8.6 rows from the original's on average (in the original's rows). The tables'
+On COCONUT BEACH the road's top is 12 rows from the original's on average (in the original's rows). The tables'
 highest and lowest tops, and the least load at 293 km/h over each table (below 0 the car leaves the road):
 
 | Table at | Kind | Original's tops | This game's tops | Least load |
 | -------- | ---- | --------------- | ---------------- | ---------- |
 | 1        | 0    | 112.5 to 191.6  | 120 to 170.8     | −1.3 g     |
-| 360      | 0    | 116.9 to 179.9  | 122.3 to 165.1   | −0.2 g     |
-| 1044     | 0    | 101.4 to 187.1  | 111.7 to 170.4   | −1.3 g     |
-| 1600     | 1    | 151 to 169.1    | 150.1 to 166.9   | −0.5 g     |
-| 1824     | 0    | 110.2 to 191.4  | 122 to 170.7     | −1.3 g     |
+| 360      | 0    | 116.9 to 179.9  | 121.7 to 165.1   | −0.2 g     |
+| 1044     | 0    | 101.4 to 187.1  | 111.6 to 170.2   | −1.3 g     |
+| 1600     | 1    | 151 to 169.1    | 112.8 to 166.8   | −0.5 g     |
+| 1824     | 0    | 110.2 to 191.4  | 112.8 to 170.7   | −1.3 g     |
 
 Kind 0's crests ahead fall 15 to 21 rows short of the original's and their rises 5 to 12; no rule of one value per
 kind brings them within 3 rows, so they are built by the least squares match (K's decision); the kind 1 table's look
-is within 3 rows. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131, little of which returns within a
-row: the road falls from 20 m to −291 m, its steepest grade 34 % and −32 % at the road's end. The crossing's passages
-are 30.7 m apart without a bump.
+is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131; the kind 1 table's,
+returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
+The road lies from −55.7 m to 102.5 m, its steepest grade 39.3 %; the crossing's passages are 75.4 m apart without a
+bump.
 
 ## Checks on `k1`
 

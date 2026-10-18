@@ -277,19 +277,27 @@ try {
       break;
     }
     case 'look': {
-      // `c_look` refitted on each course's stage, and each table's road top on both screens and least load at the top
-      // speed with the course's profile.
+      // For every stage, as its course or else as one Section with the first course's runout: `c_look` refitted on it,
+      // its profile's extremes and crossings, and each table's road top on both screens and least load at the top speed.
       const { programs } = await readPrograms(options.get('--zip'));
       const length = stageLength(programs.main);
       const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
         overallWidth: number;
       };
       const reports = [];
-      for (const course of OUTRUN_COURSES) {
+      for (const number of OUTRUN_STAGES.flat()) {
+        const first = OUTRUN_COURSES[0];
+        const course = OUTRUN_COURSES.find((c) => c.stage === number) ?? {
+          ...first,
+          stage: number,
+          name: `0x${number.toString(16)}`,
+          start: false,
+          sections: [{ id: 'stage', from: 0 }],
+        };
         const stage = readStage(programs, course.stage);
         const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
         const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
-        const { profile } = stageCourse(stage, {
+        const { profile, crossings } = stageCourse(stage, {
           ...course,
           length,
           offset: pathOffset(stage.curves, stage.path, length),
@@ -303,6 +311,7 @@ try {
         const points = stage.widthsHeights.filter((p) => p.position < length);
         const original = hillsAlong(points, tables, positions, () => TOP_KMH);
         const end = stationOf(length + course.runout);
+        const stations = Array.from({ length: Math.floor(end) + 1 }, (_, s) => s);
         const runs = tableRuns(points, tables, () => TOP_KMH);
         const ahead = Math.ceil(RENDER_FAR_DEPTH_METERS / stationOf(1));
         // Rows on the original's screen: this game's top as the original's row of the same look.
@@ -312,6 +321,15 @@ try {
           look: LOOK,
           refitted: fitLook(runs, (p) => original[p]!, positions, stationOf, end),
           rmsRows: round1(Math.sqrt(positions.reduce((sum, p) => sum + (game[p]! - original[p]!) ** 2, 0) / length)),
+          heights: [
+            round1(Math.min(...stations.map(profile.height))),
+            round1(Math.max(...stations.map(profile.height))),
+          ],
+          steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
+          crossings: crossings.map((pairs) => ({
+            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
+            apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
+          })),
           tables: runs.map((run) => {
             const from = Math.max(0, Math.floor(run.start - ahead)),
               to = Math.min(length, Math.ceil(run.end));
@@ -325,7 +343,7 @@ try {
               kind: run.table.kind,
               original: extremes(Array.from(original)),
               game: extremes(game),
-              load: round1(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 10) / 10,
+              load: Math.round(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 100) / 100,
             };
           }),
         });

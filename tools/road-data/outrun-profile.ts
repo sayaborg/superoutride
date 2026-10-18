@@ -17,7 +17,7 @@ const DEPTH = cameraDistance(CAMERA_DEFINITION);
 const ROWS = 2 * CAMERA_DEFINITION.horizonRow;
 const NEAREST = RENDER_NEAR_DEPTH_METERS;
 const READ_STEP = 1;
-/** The look a returned grade or a crossing's separation may change: rows of the road's top on this game's screen. */
+/** The look a crossing's separation may change: rows of the road's top on this game's screen. */
 export const LOOK_ROWS = 1;
 
 /**
@@ -189,38 +189,68 @@ function lookChange(before: Profile, after: Profile, from: number, to: number, e
   return most;
 }
 
-/** The largest share in [0, 1] that keeps `ok`, by bisection (`ok(0)` holds). */
-function largestShare(ok: (share: number) => boolean): number {
-  if (ok(1)) return 1;
-  let lo = 0,
-    hi = 1;
-  for (let i = 0; i < 20; i++) {
-    const mid = (lo + hi) / 2;
-    if (ok(mid)) lo = mid;
-    else hi = mid;
-  }
-  return lo;
-}
+/**
+ * The steepest grade a held shape makes: the steepest a slid table reaches from level, 0.393 (0x3C's, 0x3B's, 0x2F's
+ * and 0x32's tables at the slid `c_look`).
+ */
+export const STEEPEST = 0.393;
+
+/** A change of grade cut to end by `end`, its curvature kept; null where it begins there or beyond. */
+const cutAt = (c: Change, end: number): Change | null =>
+  c.from >= end
+    ? null
+    : c.to <= end
+      ? c
+      : { from: c.from, to: end, change: (c.change * (end - c.from)) / (c.to - c.from) };
 
 /**
- * The grade each table leaves, returned towards 0 over the stretch before the next table (the last's before `end`),
- * as far as the road's top on this game's screen moves by at most `LOOK_ROWS`; what cannot be returned is carried to
- * the next stretch.
+ * A stage's grade changes from its table runs at `look`, to `end` (stations by `stationOf`): each table's, a held
+ * shape's ending where the grade reaches ±`STEEPEST`, then the grade the table leaves returned to 0 over the stretch to
+ * the next table's start (the last's to `end`); where that stretch is empty, the grade is carried to the next.
  */
-export function returnedGrades(changes: readonly Change[], gaps: readonly [number, number][], end: number): Change[] {
-  const out = [...changes];
-  for (const [from, to] of gaps) {
-    if (!(to > from)) continue;
-    const before = profileOf(out.map(bendOf));
-    const left = before.grade(from);
-    if (left === 0) continue;
-    const at = (share: number) => profileOf([...out, { from, to, change: -left * share }].map(bendOf));
-    const share = largestShare(
-      (share) => lookChange(before, at(share), from - RENDER_FAR_DEPTH_METERS, to, end) <= LOOK_ROWS,
-    );
-    if (share > 0) out.push({ from, to, change: -left * share });
-  }
+export function stageGrades(
+  runs: readonly TableRun[],
+  look: Readonly<Record<0 | 1, number>>,
+  stationOf: (position: number) => number,
+  end: number,
+): Change[] {
+  const out: Change[] = [];
+  const add = (c: Change | null) => {
+    if (c && c.to > c.from && c.change !== 0) out.push(c);
+  };
+  runs.forEach((run, i) => {
+    for (const r of gradeRamps(run)) {
+      const c = cutAt({ from: stationOf(r.from), to: stationOf(r.to), change: r.change * look[r.held ? 1 : 0] }, end);
+      if (!c || !r.held) {
+        add(c);
+        continue;
+      }
+      // The room left to the steepest grade, the way the shape bends.
+      const room = Math.sign(c.change) * STEEPEST - profileOf(out.map(bendOf)).grade(c.from);
+      if (Math.sign(room) !== Math.sign(c.change)) continue;
+      add(
+        Math.abs(c.change) <= Math.abs(room)
+          ? c
+          : { from: c.from, to: c.from + ((c.to - c.from) * room) / c.change, change: room },
+      );
+    }
+    const from = stationOf(run.end),
+      to = Math.min(end, stationOf(runs[i + 1]?.start ?? Infinity));
+    if (to > from) add({ from, to, change: -profileOf(out.map(bendOf)).grade(from) });
+  });
   return out;
+}
+
+/** The stretch over which a closed road takes and leaves its tilt, metres. */
+const TILT_RAMP = RENDER_FAR_DEPTH_METERS;
+
+/**
+ * `changes` with the road tilted by one constant grade, taken over its first `TILT_RAMP` metres and left over its last,
+ * so that it ends at height 0 at `end` as it begins: a road's ends join others' at height 0.
+ */
+export function closedGrades(changes: readonly Change[], end: number): Change[] {
+  const tilt = -profileOf(changes.map(bendOf)).height(end) / (end - TILT_RAMP);
+  return [...changes, { from: 0, to: TILT_RAMP, change: tilt }, { from: end - TILT_RAMP, to: end, change: -tilt }];
 }
 
 /** The height two passages of a crossing are kept apart, metres. */
