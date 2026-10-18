@@ -256,50 +256,53 @@ export function crossingsOf(plan: readonly PlanSegment[], extent: (position: num
   return groups.map((pairs) => pairs.map(([i, j]) => [stationOf(i), stationOf(j)] as const));
 }
 
-/** What a stage's course takes beside its tables. */
-export interface StageCourseOptions {
-  readonly name: string;
-  /** The Sections from their first positions, the first from 0: where the plan passes over itself, its passages lie in
-   * different Sections (an overpass), each cut at a joint where the road is one. */
-  readonly sections: readonly { readonly id: string; readonly from: number }[];
+/** What a stage's road takes beside its tables. */
+export interface StageRoadOptions {
   /** The stage's length and its finish, positions; the runout past it, positions, on the path's look-ahead. */
   readonly length: number;
   readonly runout: number;
   /** The path's offset against the curves (`pathOffset`). */
   readonly offset: number;
-  /** TESTAROSSA's width, metres; the camera's distance behind the player, metres. */
+  /** TESTAROSSA's width, metres. */
   readonly carWidth: number;
-  readonly cameraDistance: number;
-  /** The sky's background image and its horizon row. */
-  readonly sky: { readonly image: string; readonly horizonY: number };
   /** The height tables the stage's height points name; the speed its holds are counted at, km/h. */
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
   /** The stage's objects, given its road width (units) at a position. */
   readonly objects: (width: (position: number) => number) => readonly ObjectPlacement[];
+  /** The positions its Sections are cut at, where its profile's bends break. */
+  readonly cuts: readonly number[];
 }
 
-type Lateral = Record<string, unknown>;
-const lane = (id: string, side: string, offset = 0): Lateral => ({ lane: id, side, offset: round(offset) });
-const boundary = (id: string, offset = 0): Lateral => ({ boundary: id, offset: round(offset) });
-const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
+/**
+ * A road raised from the original's tables over road positions `[0, end]` (0 GO, the camera's): its plan, its road
+ * width (knots, units, with one wherever the lanes' rule changes), its profile and the plan's crossings, its palette and
+ * its objects.
+ */
+export interface Road {
+  readonly end: number;
+  readonly plan: readonly PlanSegment[];
+  readonly widths: readonly [number, number][];
+  widthAt(position: number): number;
+  readonly profile: Profile;
+  readonly crossings: readonly Crossing[];
+  readonly colors: Stage['colors'];
+  readonly objects: readonly ObjectPlacement[];
+  /** Metres a road-width unit. */
+  readonly metres: number;
+}
 
 /**
- * `stage` as a course document, its Positions still measured from each Section's first joint: Sections from road
- * position 0 (GO, the camera's) to the stage's length, the finish, and the runout past it, joined by Links on lane b;
- * the lanes a, b, c | median | d, e, f, b the centre lane; the profile from its height tables. The surface's halves keep
- * their phase across the Sections. Returns the document and its profile.
+ * `stage`'s road: its plan, its road width and its profile from its tables, to its length and the runout past it. The
+ * surface's, lines' and edges' colors must each be two halves repeated, and the centre line the surface.
  */
-export function stageCourse(stage: Stage, options: StageCourseOptions) {
+export function stageRoad(stage: Stage, options: StageRoadOptions): Road {
   const { length, runout } = options;
   const end = length + runout;
   const plan = stagePlan(stage.curves, stage.path, options.offset, end);
   // The look-ahead past the stage carries on the stage's last segment, which must be straight.
   requireInput(plan.at(-1)!.turn === 0, '/curves', 'The stage does not end on a straight');
   const metres = lateralScale(options.carWidth);
-  const m = (units: number) => round(units * metres);
-  const band = m(EDGE_BAND),
-    lineHalf = m(LANE_LINE) / 2;
 
   // The road width, held past the stage; a knot wherever the lanes' rule changes.
   const widths = crossing(crossing(roadWidths(stage.widthsHeights, length), ROAD_EDGE), HALF_LANE);
@@ -310,8 +313,6 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
       [b, wb] = widths[i]!;
     return b === a ? wb : wa + ((wb - wa) * (p - a)) / (b - a);
   };
-
-  const objects = options.objects(widthAt);
 
   // The palette's halves: half 0 then half 1 along the road, each half of the period, half 0 from GO.
   const { surface, laneLines, edges, centreLine } = stage.colors;
@@ -345,198 +346,284 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
     crossings,
     total,
   ).filter((c) => c.from >= 0 && c.to <= total);
-  const profile = profileOf(
-    changes.map(bendOf),
-    options.sections.map(({ from }) => stationOf(from)),
+  const profile = profileOf(changes.map(bendOf), options.cuts.map(stationOf));
+
+  return {
+    end,
+    plan,
+    widths,
+    widthAt,
+    profile,
+    crossings,
+    colors: stage.colors,
+    objects: options.objects(widthAt),
+    metres,
+  };
+}
+
+/** A gate of a road's Section: the start, or a line at a road position. */
+export type RoadGate =
+  | { readonly kind: 'start' }
+  | { readonly kind: 'finish' | 'checkpoint'; readonly id: string; readonly position: number }
+  | { readonly kind: 'lock' | 'closure'; readonly position: number };
+
+/** One Section of a road, over road positions `[from, to]`, each a joint of its plan. */
+export interface RoadSection {
+  readonly id: string;
+  readonly from: number;
+  readonly to: number;
+  /** Its environment's name, and the sky's background image and its horizon row. */
+  readonly name: string;
+  readonly sky: { readonly image: string; readonly horizonY: number };
+  /** Whether a Link arrives at its start, and leaves its end: its profile then joins on the tangent there. */
+  readonly joinsBefore: boolean;
+  readonly joinsAfter: boolean;
+  readonly gates: readonly RoadGate[];
+}
+
+type Lateral = Record<string, unknown>;
+const lane = (id: string, side: string, offset = 0): Lateral => ({ lane: id, side, offset: round(offset) });
+const boundary = (id: string, offset = 0): Lateral => ({ boundary: id, offset: round(offset) });
+const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
+const elementId = (s: PlanSegment) => (s.turn === 0 ? 's' : 'c') + s.from;
+/** A plan segment as a plan element, metres. */
+const planElement = (s: PlanSegment) => {
+  const id = elementId(s);
+  const length = round(stationOf(s.to) - stationOf(s.from));
+  return s.turn === 0
+    ? { kind: 'straight', id, length }
+    : { kind: 'arc', id, length, radius: round(length / Math.abs(s.turn)), turn: s.turn > 0 ? 'left' : 'right' };
+};
+
+/**
+ * `section` of `road` as a Section document, its Positions measured from its first joint: the lanes a, b, c | median |
+ * d, e, f, b the centre lane, from the road width; the strips from the palette, the surface's halves keeping their phase
+ * from GO; the profile; the objects beside the road; the sky facing the heading the plan reaches.
+ */
+export function roadSection(road: Road, section: RoadSection, cameraDistance: number) {
+  const { id, from, to } = section;
+  const { metres, widths, widthAt, profile } = road;
+  const { surface, laneLines, edges } = road.colors;
+  const m = (units: number) => round(units * metres);
+  const band = m(EDGE_BAND),
+    lineHalf = m(LANE_LINE) / 2;
+  const own = road.plan.filter((s) => s.from >= from && s.to <= to);
+  requireInput(own[0]?.from === from && own.at(-1)!.to === to, `/sections/${id}`, `Section ${id} is not cut at joints`);
+  const origin = stationOf(from),
+    size = round(stationOf(to) - origin);
+  const first = elementId(own[0]!);
+  const at = (position: number) => ({ joint: first, offset: round(stationOf(position) - origin) });
+  const elements = own.map(planElement);
+  // The sky keeps its direction in the world: the Section's frame faces the heading its plan reaches.
+  let heading = 0;
+  for (const e of road.plan.filter((s) => s.to <= from).map(planElement))
+    if (e.kind === 'arc') heading += (((e.turn === 'left' ? 1 : -1) * e.length) / e.radius!) * (180 / Math.PI);
+  const yawOrigin = round(wrapDegrees(heading));
+
+  const knots: [number, number][] = [
+    [from, widthAt(from)],
+    ...widths.filter(([at]) => at > from && at < to),
+    [to, widthAt(to)],
+  ];
+  const lanes = LANE_IDS.flatMap((id) => {
+    const values = knots.map(([position, w]) => [position, m(lanesAt(w)[id])] as const);
+    if (values.every(([, v]) => v === 0)) return [];
+    const width = values.every(([, v]) => v === values[0]![1])
+      ? values[0]![1]
+      : simplified(values.map(([p, v]) => [p, v])).map(([position, v]) => ({ at: at(position), width: v }));
+    return [id === 'm' ? { kind: 'median', width } : { kind: 'lane', id, width }];
+  });
+  const has = (id: LaneId) => lanes.some((l) => ('id' in l ? l.id === id : id === 'm'));
+
+  const strip = (
+    a: number,
+    b: number,
+    left: Lateral | null,
+    right: Lateral | null,
+    color: number | null,
+    material: string | null,
+  ) => ({
+    kind: 'strip',
+    start: { joint: first, offset: round(a) },
+    end: { joint: first, offset: round(b) },
+    left,
+    right,
+    color,
+    material,
+  });
+  const whole = (left: Lateral | null, right: Lateral | null, color: number | null, material: string | null) =>
+    strip(0, size, left, right, color, material);
+  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
+  const half = STRIPE_PERIOD / 2;
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
+    const phase = h * half - origin;
+    const start = phase + Math.ceil((a - phase) / STRIPE_PERIOD - 1e-9) * STRIPE_PERIOD;
+    const count = Math.floor((b - start - half) / STRIPE_PERIOD + 1e-9) + 1;
+    if (count < 1) return [];
+    const element = strip(start, start + half, left, right, color, null);
+    return [count === 1 ? element : { kind: 'repeat', every: STRIPE_PERIOD, count, elements: [element] }];
+  };
+  // A line's color over each half where it differs from the surface's.
+  const line = (colors: readonly number[], a: number, b: number, left: Lateral, right: Lateral) =>
+    ([0, 1] as const).flatMap((h) => (colors[h] === surface.rgb555[h] ? [] : halves(h, a, b, left, right, colors[h]!)));
+  // The stretches of this Section, Section metres, where the road width is at least `w`.
+  const stretches = (w: number) =>
+    stretchesFrom(knots, w).map(([a, b]) => [stationOf(a) - origin, stationOf(b) - origin] as const);
+  const lineAt = (id: string, stretch: readonly (readonly [number, number])[]) =>
+    stretch.flatMap(([a, b]) =>
+      line(laneLines.rgb555, a, b, lane(id, 'right', -lineHalf), lane(id, 'right', lineHalf)),
+    );
+  const everywhere = [[0, size]] as const;
+  const strips = [
+    // The ground, sand beside the roads and between them, and the surface, each by half.
+    whole(null, null, GROUND[1], null),
+    ...halves(0, 0, size, null, null, GROUND[0]),
+    whole(boundary('outer-left'), boundary('road-left'), null, 'SAND'),
+    whole(boundary('road-right'), boundary('outer-right'), null, 'SAND'),
+    whole(boundary('road-left'), boundary('road-right'), surface.rgb555[1]!, 'ASPHALT'),
+    ...(surface.rgb555[0] === surface.rgb555[1]
+      ? []
+      : halves(0, 0, size, boundary('road-left'), boundary('road-right'), surface.rgb555[0]!)),
+    ...(has('m')
+      ? [
+          whole(lane('c', 'right'), lane('d', 'left'), GROUND[1], 'SAND'),
+          ...halves(0, 0, size, lane('c', 'right'), lane('d', 'left'), GROUND[0]),
+        ]
+      : []),
+    // Edge bands: outside the outer lanes, and inside the median where it holds both roads' bands.
+    ...line(edges.rgb555, 0, size, boundary('road-left'), lane('a', 'left')),
+    ...line(edges.rgb555, 0, size, lane('f', 'right'), boundary('road-right')),
+    ...(has('m')
+      ? stretches(ROAD_EDGE + EDGE_BAND).flatMap(([a, b]) => [
+          ...line(edges.rgb555, a, b, lane('c', 'right'), lane('c', 'right', band)),
+          ...line(edges.rgb555, a, b, lane('d', 'left', -band), lane('d', 'left')),
+        ])
+      : []),
+    // Lane lines: each road's, while its inner lane is there.
+    ...lineAt('a', everywhere),
+    ...lineAt('e', everywhere),
+    ...(has('c') ? [...lineAt('b', stretches(HALF_LANE)), ...lineAt('d', stretches(HALF_LANE))] : []),
+  ];
+
+  const gates = section.gates.map((gate) =>
+    gate.kind === 'start'
+      ? {
+          // The start grid: the player in the last slot, the camera at GO; the slots ahead alternate lanes c and b.
+          kind: 'start',
+          grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
+            at: { joint: first, offset: round(cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING) },
+            lane: i % 2 ? 'c' : 'b',
+          })),
+          bikeGrid: null,
+        }
+      : 'id' in gate
+        ? { kind: gate.kind, id: gate.id, at: at(gate.position) }
+        : { kind: gate.kind, at: at(gate.position) },
   );
 
-  const elementId = (s: PlanSegment) => (s.turn === 0 ? 's' : 'c') + s.from;
-  let heading = 0;
-  const sections = options.sections.map(({ id, from }, k) => {
-    const to = options.sections[k + 1]?.from ?? end;
-    const own = plan.filter((s) => s.from >= from && s.to <= to);
-    requireInput(
-      own[0]?.from === from && own.at(-1)!.to === to,
-      `/sections/${k}`,
-      `Section ${id} is not cut at joints`,
+  return {
+    id,
+    plan: elements,
+    profile: sectionProfile(profile, origin, origin + size, section.joinsBefore, section.joinsAfter).map(
+      ({ s, y, curveLength }) => ({
+        at: { joint: first, offset: round(s - origin) },
+        y,
+        curveLength,
+      }),
+    ),
+    lanes,
+    centerLane: 'b',
+    boundaries: [
+      { id: 'outer-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band - VERGE) })) },
+      { id: 'road-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band) })) },
+      { id: 'road-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band) })) },
+      { id: 'outer-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band + VERGE) })) },
+    ],
+    strips,
+    walls: [],
+    openLimits: [],
+    // Each object where the camera passes it, its board standing beside the road; the car hits those with a width.
+    sprites: road.objects
+      .filter((o) => o.position >= from && o.position < to)
+      .map((o) => ({
+        kind: 'sprite',
+        image: o.image,
+        palette: o.palette,
+        at: at(o.position),
+        lateral: round((o.x - centreLaneX(widthAt(o.position))) * metres),
+        groundOffset: round(o.y * metres),
+        unselectedLink: null,
+        body: o.hit === null ? null : { width: round(o.hit * metres), movable: null },
+      })),
+    environments: [
+      {
+        at: at(from),
+        name: section.name,
+        background: { image: section.sky.image, horizonY: section.sky.horizonY, yawOrigin },
+        arrival: 'cut',
+      },
+    ],
+    gates,
+  };
+}
+
+/** What a stage's course takes beside its road's. */
+export interface StageCourseOptions extends Omit<StageRoadOptions, 'cuts'> {
+  readonly name: string;
+  /** The Sections from their first positions, the first from 0: where the plan passes over itself, its passages lie in
+   * different Sections (an overpass), each cut at a joint where the road is one. */
+  readonly sections: readonly { readonly id: string; readonly from: number }[];
+  /** The camera's distance behind the player, metres. */
+  readonly cameraDistance: number;
+  /** The sky's background image and its horizon row. */
+  readonly sky: { readonly image: string; readonly horizonY: number };
+}
+
+/**
+ * `stage` as a course document, its Positions still measured from each Section's first joint: its road's Sections from
+ * road position 0 (GO, the camera's) to the stage's length, the finish, and the runout past it, joined by Links on lane
+ * b. Returns the document, its profile, crossings and objects.
+ */
+export function stageCourse(stage: Stage, options: StageCourseOptions) {
+  const { length, sections: cuts } = options;
+  const road = stageRoad(stage, { ...options, cuts: cuts.map(({ from }) => from) });
+  const sections = cuts.map(({ id, from }, k) => {
+    const to = cuts[k + 1]?.from ?? road.end;
+    const gates: RoadGate[] = [
+      ...(k === 0 ? [{ kind: 'start' } as const] : []),
+      ...(from < length && length <= to ? [{ kind: 'finish', id: `${id}-FINISH`, position: length } as const] : []),
+    ];
+    return roadSection(
+      road,
+      {
+        id,
+        from,
+        to,
+        name: options.name,
+        sky: options.sky,
+        joinsBefore: k > 0,
+        joinsAfter: k + 1 < cuts.length,
+        gates,
+      },
+      options.cameraDistance,
     );
-    const origin = stationOf(from),
-      size = round(stationOf(to) - origin);
-    const first = elementId(own[0]!);
-    const at = (position: number) => ({ joint: first, offset: round(stationOf(position) - origin) });
-    const elements = own.map((s) => {
-      const id = elementId(s);
-      const length = round(stationOf(s.to) - stationOf(s.from));
-      return s.turn === 0
-        ? { kind: 'straight', id, length }
-        : { kind: 'arc', id, length, radius: round(length / Math.abs(s.turn)), turn: s.turn > 0 ? 'left' : 'right' };
-    });
-    // The sky keeps its direction in the world: each Section's frame faces the heading its plan reaches.
-    const yawOrigin = round(wrapDegrees(heading));
-    for (const e of elements)
-      if (e.kind === 'arc') heading += (((e.turn === 'left' ? 1 : -1) * e.length) / e.radius!) * (180 / Math.PI);
-
-    const knots: [number, number][] = [
-      [from, widthAt(from)],
-      ...widths.filter(([at]) => at > from && at < to),
-      [to, widthAt(to)],
-    ];
-    const lanes = LANE_IDS.flatMap((id) => {
-      const values = knots.map(([position, w]) => [position, m(lanesAt(w)[id])] as const);
-      if (values.every(([, v]) => v === 0)) return [];
-      const width = values.every(([, v]) => v === values[0]![1])
-        ? values[0]![1]
-        : simplified(values.map(([p, v]) => [p, v])).map(([position, v]) => ({ at: at(position), width: v }));
-      return [id === 'm' ? { kind: 'median', width } : { kind: 'lane', id, width }];
-    });
-    const has = (id: LaneId) => lanes.some((l) => ('id' in l ? l.id === id : id === 'm'));
-
-    const strip = (
-      a: number,
-      b: number,
-      left: Lateral | null,
-      right: Lateral | null,
-      color: number | null,
-      material: string | null,
-    ) => ({
-      kind: 'strip',
-      start: { joint: first, offset: round(a) },
-      end: { joint: first, offset: round(b) },
-      left,
-      right,
-      color,
-      material,
-    });
-    const whole = (left: Lateral | null, right: Lateral | null, color: number | null, material: string | null) =>
-      strip(0, size, left, right, color, material);
-    // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
-    const half = STRIPE_PERIOD / 2;
-    const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
-      const phase = h * half - origin;
-      const start = phase + Math.ceil((a - phase) / STRIPE_PERIOD - 1e-9) * STRIPE_PERIOD;
-      const count = Math.floor((b - start - half) / STRIPE_PERIOD + 1e-9) + 1;
-      if (count < 1) return [];
-      const element = strip(start, start + half, left, right, color, null);
-      return [count === 1 ? element : { kind: 'repeat', every: STRIPE_PERIOD, count, elements: [element] }];
-    };
-    // A line's color over each half where it differs from the surface's.
-    const line = (colors: readonly number[], a: number, b: number, left: Lateral, right: Lateral) =>
-      ([0, 1] as const).flatMap((h) =>
-        colors[h] === surface.rgb555[h] ? [] : halves(h, a, b, left, right, colors[h]!),
-      );
-    // The stretches of this Section, Section metres, where the road width is at least `w`.
-    const stretches = (w: number) =>
-      stretchesFrom(knots, w).map(([a, b]) => [stationOf(a) - origin, stationOf(b) - origin] as const);
-    const lineAt = (id: string, stretch: readonly (readonly [number, number])[]) =>
-      stretch.flatMap(([a, b]) =>
-        line(laneLines.rgb555, a, b, lane(id, 'right', -lineHalf), lane(id, 'right', lineHalf)),
-      );
-    const everywhere = [[0, size]] as const;
-    const strips = [
-      // The ground, sand beside the roads and between them, and the surface, each by half.
-      whole(null, null, GROUND[1], null),
-      ...halves(0, 0, size, null, null, GROUND[0]),
-      whole(boundary('outer-left'), boundary('road-left'), null, 'SAND'),
-      whole(boundary('road-right'), boundary('outer-right'), null, 'SAND'),
-      whole(boundary('road-left'), boundary('road-right'), surface.rgb555[1]!, 'ASPHALT'),
-      ...(surface.rgb555[0] === surface.rgb555[1]
-        ? []
-        : halves(0, 0, size, boundary('road-left'), boundary('road-right'), surface.rgb555[0]!)),
-      ...(has('m')
-        ? [
-            whole(lane('c', 'right'), lane('d', 'left'), GROUND[1], 'SAND'),
-            ...halves(0, 0, size, lane('c', 'right'), lane('d', 'left'), GROUND[0]),
-          ]
-        : []),
-      // Edge bands: outside the outer lanes, and inside the median where it holds both roads' bands.
-      ...line(edges.rgb555, 0, size, boundary('road-left'), lane('a', 'left')),
-      ...line(edges.rgb555, 0, size, lane('f', 'right'), boundary('road-right')),
-      ...(has('m')
-        ? stretches(ROAD_EDGE + EDGE_BAND).flatMap(([a, b]) => [
-            ...line(edges.rgb555, a, b, lane('c', 'right'), lane('c', 'right', band)),
-            ...line(edges.rgb555, a, b, lane('d', 'left', -band), lane('d', 'left')),
-          ])
-        : []),
-      // Lane lines: each road's, while its inner lane is there.
-      ...lineAt('a', everywhere),
-      ...lineAt('e', everywhere),
-      ...(has('c') ? [...lineAt('b', stretches(HALF_LANE)), ...lineAt('d', stretches(HALF_LANE))] : []),
-    ];
-
-    const gates = [];
-    // The start grid: the player in the last slot, the camera at GO; the slots ahead alternate lanes c and b.
-    if (k === 0)
-      gates.push({
-        kind: 'start',
-        grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
-          at: { joint: first, offset: round(options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING) },
-          lane: i % 2 ? 'c' : 'b',
-        })),
-        bikeGrid: null,
-      });
-    if (from < length && length <= to) gates.push({ kind: 'finish', id: `${id}-FINISH`, at: at(length) });
-
-    return {
-      id,
-      plan: elements,
-      profile: sectionProfile(profile, origin, origin + size, k > 0, k + 1 < options.sections.length).map(
-        ({ s, y, curveLength }) => ({
-          at: { joint: first, offset: round(s - origin) },
-          y,
-          curveLength,
-        }),
-      ),
-      lanes,
-      centerLane: 'b',
-      boundaries: [
-        { id: 'outer-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band - VERGE) })) },
-        { id: 'road-left', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('a', 'left', -band) })) },
-        { id: 'road-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band) })) },
-        { id: 'outer-right', knots: [from, to].map((p) => ({ at: at(p), lateral: lane('f', 'right', band + VERGE) })) },
-      ],
-      strips,
-      walls: [],
-      openLimits: [],
-      // Each object where the camera passes it, its board standing beside the road; the car hits those with a width.
-      sprites: objects
-        .filter((o) => o.position >= from && o.position < to)
-        .map((o) => ({
-          kind: 'sprite',
-          image: o.image,
-          palette: o.palette,
-          at: at(o.position),
-          lateral: round((o.x - centreLaneX(widthAt(o.position))) * metres),
-          groundOffset: round(o.y * metres),
-          unselectedLink: null,
-          body: o.hit === null ? null : { width: round(o.hit * metres), movable: null },
-        })),
-      environments: [
-        {
-          at: at(from),
-          name: options.name,
-          background: { image: options.sky.image, horizonY: options.sky.horizonY, yawOrigin },
-          arrival: 'cut',
-        },
-      ],
-      gates,
-    };
   });
 
   const document = {
     format: 'superoutride.course',
     version: 52,
     name: options.name,
-    entry: options.sections[0]!.id,
+    entry: cuts[0]!.id,
     maxLaps: 1,
     bearing: 0,
     sections,
-    links: options.sections.slice(1).map(({ id }, k) => ({
-      id: `${options.sections[k]!.id}-${id}`,
-      from: { section: options.sections[k]!.id, lane: 'b' },
+    links: cuts.slice(1).map(({ id }, k) => ({
+      id: `${cuts[k]!.id}-${id}`,
+      from: { section: cuts[k]!.id, lane: 'b' },
       to: id,
     })),
   };
-  return { document, profile, crossings, objects };
+  return { document, profile: road.profile, crossings: road.crossings, objects: road.objects };
 }
 
 /** The stages raised as courses: their course IDs, names, Sections, skies and runouts (positions on the look-ahead). */
