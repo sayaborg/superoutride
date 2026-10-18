@@ -137,8 +137,9 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-5f](#stage-rd--outrun-from-the-originals-road-data); [DT-7](#stage-dt--drift-tuned-trial-vehicles), and
-[DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+[DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -242,7 +243,6 @@ The stage's PRs left:
   effect) is not converted ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches'
   sizes by depth (flatter far away) need a drawing change: a board is one picture at every depth.
 - RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
-- RD-5f: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
 addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).

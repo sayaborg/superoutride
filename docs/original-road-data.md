@@ -208,7 +208,7 @@ A strip or patch is brought out, approaches and stands as an object does (`stage
 
 On COCONUT BEACH 1507 objects stand, 1101 of them solid, 294 of the rest the sea's edge. Six bushes brought out while the roads were apart end on the
 right road where the roads close, as in the original. A beach hut before the finish has hit extents ending 0.6 m
-beyond the road's edge band, as the original's; TRIAL's reference run passes it and takes 86.5 s.
+beyond the road's edge band, as the original's.
 
 ## Hills
 
@@ -338,22 +338,19 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 
 ## Course documents
 
-`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes each
-stage raised as a course to `content/courses/`; with `--check` it rebuilds them and fails where one differs from the
-committed document. CI holds no ROM, so the documents are committed; edit the conversion, not a document.
+`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes
+`outrun` (OUTRUN, [OUTRUN](#outrun)), every stage raised as a road, to `content/courses/`; with `--check` it rebuilds
+it and fails where it differs from the committed document. CI holds no ROM, so the document is committed; edit the
+conversion, not the document.
 
-| Course                                 | Stage  | Sections (from position)                        | Conversion |
-| -------------------------------------- | ------ | ----------------------------------------------- | ---------- |
-| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C   | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 5          |
-| `outrun` (OUTRUN)                      | all 15 | [OUTRUN](#outrun)'s                             | 5          |
-
-The conversion, version 6 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
+The conversion, version 7 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](#hills)'s advance per tick). Position 0 is GO,
-  the camera's station. The stage's 1948 positions end at its finish; a runout of 225 positions follows on the path's
-  look-ahead, which carries on the stage's last segment, a straight.
+  the camera's station. The stage's 1948 positions end at its fork or goal stretch ([OUTRUN](#outrun)); the `look`
+  command takes a stage alone, a runout of 225 positions following on the path's look-ahead, which carries on the
+  stage's last segment, a straight.
 - **Plan.** Each curve segment, moved back by the path's offset, is a Straight or an Arc over the same positions of the
   path. A straight's heading is the path's two positions inside its ends, where it varies by no more than 0.1°. An Arc
   turns, the side its kind says, from the heading at its start to the heading at its end, each a neighbouring

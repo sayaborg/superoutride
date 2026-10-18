@@ -19,7 +19,7 @@ import { stageObjects } from './outrun-scenery.js';
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationOf } from './outrun-course.js';
+import { CONVERSION_VERSION, lateralScale, stageCourse, stationOf } from './outrun-course.js';
 import { OUTRUN_SKIES, outrunCourse, SKY_HORIZON, skyName } from './outrun-branch.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
 import { playerOriginal } from './outrun-player.js';
@@ -57,6 +57,8 @@ const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The player's picture set, which the Ferrari's local original replaces. */
 const PLAYER_SET = 'content/sprites/testarossa.json';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
+/** The runout past a stage's length, positions on its path's look-ahead, its look is taken over. */
+const LOOK_RUNOUT = 225;
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
 const [command, ...rest] = process.argv.slice(2);
@@ -248,49 +250,6 @@ try {
         } else await atomicWrite(file, text);
         return file;
       };
-      for (const course of OUTRUN_COURSES) {
-        const stage = readStage(programs, course.stage);
-        const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
-        const { document, profile, crossings, objects } = stageCourse(stage, {
-          ...course,
-          length,
-          offset: pathOffset(stage.curves, stage.path, length),
-          carWidth: vehicle.overallWidth,
-          cameraDistance: cameraDistance(CAMERA_DEFINITION),
-          tables: new Map(names.map((n) => [n, readHeightTable(programs.sub, n)])),
-          kmh: TOP_KMH,
-          objects: (width) =>
-            stageObjects(
-              programs.main,
-              stage.scenery.filter((p) => p.position < length),
-              {
-                end: length + course.runout,
-                kmh: TOP_KMH,
-                start: course.start,
-                width,
-                startDepth,
-              },
-            ).placements,
-        });
-        const file = await save(course.id, document);
-        // The profile's extremes, and each crossing's passages' least height apart.
-        const total = document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0);
-        const heights = Array.from({ length: Math.floor(total) + 1 }, (_, s) => profile.height(s));
-        const grades = Array.from({ length: Math.floor(total) + 1 }, (_, s) => Math.abs(profile.grade(s)));
-        courses.push({
-          course: file,
-          stage: `0x${course.stage.toString(16)}`,
-          heights: [round1(Math.min(...heights)), round1(Math.max(...heights))],
-          steepest: Math.round(Math.max(...grades) * 1000) / 1000,
-          objects: objects.length,
-          solid: objects.filter((o) => o.hit !== null).length,
-          crossings: crossings.map((pairs) => ({
-            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
-            apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
-          })),
-          metres: round1(document.sections.flatMap((section) => section.plan).reduce((sum, e) => sum + e.length, 0)),
-        });
-      }
       const tiles = assembleTiles(readZip(new Uint8Array(await readFile(zip))));
       // OUTRUN: every stage, its forks and goals.
       const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
@@ -385,13 +344,13 @@ try {
       };
       const reports = [];
       for (const number of OUTRUN_STAGES.flat()) {
-        const first = OUTRUN_COURSES[0];
-        const course = OUTRUN_COURSES.find((c) => c.stage === number) ?? {
-          ...first,
+        // The stage alone, one Section on its runout.
+        const course = {
           stage: number,
           name: `0x${number.toString(16)}`,
-          start: false,
           sections: [{ id: 'stage', from: 0 }],
+          runout: LOOK_RUNOUT,
+          sky: { image: skyName(number), horizonY: SKY_HORIZON },
         };
         const stage = readStage(programs, course.stage);
         const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];

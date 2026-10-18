@@ -45,23 +45,6 @@
       "fixedColors": false
     },
     {
-      "id": "coconut-beach",
-      "title": "COCONUT BEACH",
-      "course": "outrun-coconut-beach",
-      "laps": 1,
-      "vehicles": ["TESTAROSSA"],
-      "entries": [{ "vehicle": "TESTAROSSA", "color": "yellow", "pace": 1, "stages": null, "slot": 14, "ahead": null }],
-      "playerSlot": "last",
-      "rankLimits": {},
-      "traffic": {
-        "density": 6,
-        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
-        "speedKilometersPerHour": 120
-      },
-      "timeMargin": 1.35,
-      "fixedColors": false
-    },
-    {
       "id": "outrun",
       "title": "OUTRUN",
       "course": "outrun",

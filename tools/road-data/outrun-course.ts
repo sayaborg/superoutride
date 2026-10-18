@@ -954,21 +954,3 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
   };
   return { document, profile: road.profile, crossings: road.crossings, objects: road.objects };
 }
-
-/** The stages raised as courses: their course IDs, names, Sections, skies and runouts (positions on the look-ahead). */
-export const OUTRUN_COURSES = Object.freeze([
-  {
-    id: 'outrun-coconut-beach',
-    stage: 0x3c,
-    name: 'COCONUT BEACH',
-    // The game's first stage: the objects standing at its start are its.
-    start: true,
-    // The plan passes over itself, the stage's end over its curve at 795: the Sections part between the passages.
-    sections: [
-      { id: 'coconut-beach-1', from: 0 },
-      { id: 'coconut-beach-2', from: 1243 },
-    ],
-    runout: 225,
-    sky: { image: 'coast-sky', horizonY: 320 },
-  },
-] as const);
