@@ -16,14 +16,14 @@ import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import {
   anchorPoint,
-  hitMiddle,
   OBJECT_ROUTINES,
+  objectAside,
+  objectSize,
   outline,
   representative,
   shadowSizes,
   spritePalette,
   spritePixels,
-  spriteSizes,
 } from './outrun-sprites.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
@@ -36,9 +36,12 @@ export interface SpriteUse {
   readonly shadow: boolean;
 }
 
-/** A board's image name: the sprite's number, then whether mirrored and shadowed. */
-export const boardName = (use: Pick<SpriteUse, 'sprite' | 'mirrored' | 'shadow'>) =>
-  `outrun-${String(use.sprite).padStart(3, '0')}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
+/** A board's image name: the sprite's number, or a strip's family's address, then whether mirrored and shadowed. */
+export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow'>) {
+  const { family } = OBJECT_ROUTINES.get(use.routine)!;
+  const shown = family === undefined ? String(use.sprite).padStart(3, '0') : `strip-${family.toString(16)}`;
+  return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
+}
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 
@@ -83,7 +86,7 @@ export async function outlineBoards(
       )
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
-    const size = spriteSizes(main, first!.sprite)[0]!;
+    const size = objectSize(main, first!);
     const raw = spritePixels(words, size);
     const pixels = first!.mirrored ? mirror(raw, size.width) : raw;
     const shape = outline(pixels, size.width);
@@ -99,7 +102,7 @@ export async function outlineBoards(
     // Its base point at its bottom or middle, across at its hit extents' middle, where a solid object's body stands: an
     // object anchored by an edge stands half its width aside, and one hit off its middle that far.
     const middle = anchorPoint(first!.anchor & 12, size.width, size.height);
-    const aside = hitMiddle(main, first!.sprite, first!.mirrored) / routine.pixelUnits;
+    const aside = objectAside(main, first!) / routine.pixelUnits;
     const anchor = { x: middle.x + aside, y: middle.y };
     const recipe: SpriteRecipe = {
       format: SPRITE_RECIPE_FORMAT,

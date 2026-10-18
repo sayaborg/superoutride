@@ -217,7 +217,6 @@ try {
       // Each stage's course document from the ROMs, written to content, or with `--check` compared with the one there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));
-      const words = assembleSprites(readZip(new Uint8Array(await readFile(zip))));
       const length = stageLength(programs.main);
       const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
         overallWidth: number;
@@ -254,7 +253,6 @@ try {
           objects: (width) =>
             stageObjects(
               programs.main,
-              words,
               stage.scenery.filter((p) => p.position < length),
               {
                 end: length + course.runout,
@@ -263,7 +261,7 @@ try {
                 width,
                 startDepth,
               },
-            ),
+            ).placements,
         });
         const file = await save(course.id, document);
         // The profile's extremes, and each crossing's passages' least height apart.
@@ -303,7 +301,6 @@ try {
         objects: (stage, width, end) =>
           stageObjects(
             programs.main,
-            words,
             stage.scenery.filter((p) => p.position < length),
             {
               end,
@@ -312,7 +309,7 @@ try {
               width,
               startDepth,
             },
-          ),
+          ).placements,
       });
       const file = await save('outrun', outrun.document);
       // Each stage's sky as published: its generic sky under its own name.
@@ -384,7 +381,7 @@ try {
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
           tables,
           kmh: TOP_KMH,
-          objects: () => ({ placements: [], grounds: [] }),
+          objects: () => [],
         });
         const positions = Array.from({ length }, (_, p) => p);
         const points = stage.widthsHeights.filter((p) => p.position < length);

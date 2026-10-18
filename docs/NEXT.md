@@ -205,6 +205,8 @@ K's decisions for the conversion (2026-10-18):
   effects from the PCM ROMs (`opr-10188.71` to `opr-10193.66`), where they sound read from the sound ROM's
   (`epr-10187.88`) tables. Traffic keeps this game's vehicles; music comes from K's MAME recordings when they come.
   `k1`'s side-by-sides are drawn with the local pictures.
+- What the original draws as a sprite is made as a sprite (K, 2026-10-18), never replaced by colors or Strips; where a
+  replacement cannot be avoided, the report says so first.
 - Order (K, 2026-10-18): each piece goes into TRIAL runnable and to main at green CI, not batched; a report begins
   with one line saying where K can see it (Pages or local, series and class).
 
@@ -237,7 +239,8 @@ The stage's PRs left:
 
 - RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14) and the start's objects' depth, which K may
   decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)). The ground's spray (the surface
-  effect) is not converted ([Ground](original-road-data.md#ground)).
+  effect) is not converted ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches'
+  sizes by depth (flatter far away) need a drawing change: a board is one picture at every depth.
 - RD-6: local originals (above), one PR each: RD-6b the backgrounds (each stage's sky, now its own image, converted
   from the tile ROMs), RD-6c the player's TESTAROSSA, RD-6d voices and effects, RD-6e music once K's recordings come.
 - RD-5f, after RD-6: the standalone COCONUT BEACH course and its TRIAL class are removed, OUTRUN replacing them.

@@ -18,7 +18,7 @@ import {
   type RoadSection,
 } from './outrun-course.js';
 import { OUTRUN_STAGES, pathOffset, type HeightTable, type Path, type Stage, type Stretch } from './outrun-road.js';
-import type { StageScenery } from './outrun-scenery.js';
+import type { ObjectPlacement } from './outrun-scenery.js';
 
 /**
  * The fork, as the main CPU's program runs it (0x8780 to 0x89B6): at the stage's end the road width is kept and the
@@ -98,8 +98,8 @@ export interface OutrunInputs {
   readonly carWidth: number;
   readonly cameraDistance: number;
   readonly kmh: number;
-  /** A stage's objects and ground, given its road width (units) at a road position and its road's end, positions. */
-  readonly objects: (stage: Stage, width: (position: number) => number, end: number) => StageScenery;
+  /** A stage's objects, given its road width (units) at a road position and its road's end, positions. */
+  readonly objects: (stage: Stage, width: (position: number) => number, end: number) => readonly ObjectPlacement[];
 }
 
 /**
@@ -222,12 +222,9 @@ export function outrunCourse(inputs: OutrunInputs) {
         carWidth: inputs.carWidth,
         tables: inputs.tables,
         kmh: inputs.kmh,
-        // Its objects and ground, but those beyond the switch, where the roads beside them are no longer theirs.
-        objects: (width: (position: number) => number) => {
-          const { placements, grounds } = inputs.objects(stage, width, length + after.end);
-          const before = (o: { readonly position: number }) => !fork || o.position < length + fork.switch;
-          return { placements: placements.filter(before), grounds: grounds.filter(before) };
-        },
+        // Its objects, but those standing beyond the switch, where the roads beside them are no longer theirs.
+        objects: (width: (position: number) => number) =>
+          inputs.objects(stage, width, length + after.end).filter((o) => !fork || o.position < length + fork.switch),
         ...(fork ? { fork: length + fork.switch, crossingsTo: last! } : {}),
       };
       const fixed = last === null ? [] : [last];

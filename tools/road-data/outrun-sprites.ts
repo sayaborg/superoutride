@@ -85,16 +85,7 @@ const sizesAt = (main: Uint8Array, address: number) =>
 export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, long(main, SPRITES + 4 * index));
 /** The shadow every shadowed object casts, drawn at the object's scale: the size list at 0xFF56. */
 export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
-/**
- * A strip drawing's sprite (drawings 1, 3, 10 and 11), whatever its entry names: 16 sizes for the depths, nearest last,
- * the longs at 0x4548, 0x4608, 0x4588 and 0x45C8 pointing at them. Its nearest size is drawn at the objects' scale.
- */
-const STRIP_FAMILIES: ReadonlyMap<number, number> = new Map([
-  [1, 0x4548],
-  [3, 0x4608],
-  [10, 0x4588],
-  [11, 0x45c8],
-]);
+/** A strip routine's sprite: 16 sizes for the depths, the longs at its family's address pointing at them, nearest last. */
 const STRIP_SIZES = 16;
 
 /**
@@ -200,22 +191,48 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 export interface ObjectRoutine {
   readonly pixelUnits: 1 | 2;
   readonly hits: boolean;
+  /**
+   * A strip's routine draws, whatever sprite its entry names, the sizes its family's 16 longs point at, choosing one by
+   * depth: the address of those longs.
+   */
+  readonly family?: number;
 }
 /** The routines read so far, by address: the others are not converted. */
-export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map([
+export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
   [0x4042, { pixelUnits: 2, hits: false }],
   [0x4048, { pixelUnits: 2, hits: true }],
   [0x4658, { pixelUnits: 2, hits: true }],
   [0x4828, { pixelUnits: 2, hits: true }],
   [0x492a, { pixelUnits: 2, hits: true }],
   [0x3fe2, { pixelUnits: 1, hits: false }],
+  [0x3fe8, { pixelUnits: 1, hits: false }],
+  [0x4416, { pixelUnits: 2, hits: false, family: 0x4548 }],
+  [0x4408, { pixelUnits: 2, hits: false, family: 0x4608 }],
+  [0x443c, { pixelUnits: 2, hits: false, family: 0x4588 }],
+  [0x4432, { pixelUnits: 2, hits: false, family: 0x45c8 }],
 ]);
+
+/** The largest size an object shows: its family's nearest, or its sprite's first. */
+export function objectSize(main: Uint8Array, use: { readonly sprite: number; readonly routine: number }): SpriteSize {
+  const { family } = OBJECT_ROUTINES.get(use.routine)!;
+  return family === undefined
+    ? spriteSizes(main, use.sprite)[0]!
+    : sizeAt(main, long(main, family + 4 * (STRIP_SIZES - 1)));
+}
+
+/** Where an object's board stands across from its anchor, road units: its hit extents' middle, a strip's at 0. */
+export const objectAside = (
+  main: Uint8Array,
+  use: { readonly sprite: number; readonly routine: number; readonly mirrored: boolean },
+) => (OBJECT_ROUTINES.get(use.routine)!.family === undefined ? hitMiddle(main, use.sprite, use.mirrored) : 0);
 
 /**
  * A scenery entry's routine and anchor by its drawing (flags bits 4–7, dispatched at 0x3D98), mirrored by flags bit 0:
  * kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A hit sets the
- * crash (0x60C24). Kinds 1, 3, 10, 11 and 13 lay ground (`groundDrawing`); kinds 2, 5, 6, 12 and 14 move. None of
- * these is an object (null).
+ * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432), its edge nearest
+ * the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its middle at x. They
+ * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kinds
+ * 2, 5, 6, 12 and 14 move and are no object (null).
  */
 export function sceneryRoutine(flags: number, y: number): { routine: number; anchor: number } | null {
   const mirrored = (flags & 1) !== 0;
@@ -230,28 +247,19 @@ export function sceneryRoutine(flags: number, y: number): { routine: number; anc
       return { routine: 0x3fe2, anchor: 8 };
     case 9:
       return { routine: 0x492a, anchor: 8 };
+    case 1:
+      return { routine: 0x4416, anchor: mirrored ? 2 : 1 };
+    case 3:
+      return { routine: 0x4408, anchor: mirrored ? 2 : 1 };
+    case 10:
+      return { routine: 0x443c, anchor: mirrored ? 2 : 1 };
+    case 11:
+      return { routine: 0x4432, anchor: mirrored ? 2 : 1 };
+    case 13:
+      return { routine: 0x3fe8, anchor: 0 };
     default:
       return null;
   }
-}
-
-/**
- * The ground a scenery entry lays by its drawing (flags bits 4–7), else null: drawings 1, 3, 10 and 11 a strip beside
- * the road, the nearest size of its drawing's sprite with its edge nearest the road at the entry's x (its left edge, or
- * its right drawn mirrored), a pixel 2 road units; drawing 13 (0x3FE8) a patch on the road, the entry's sprite's
- * largest size with its middle at x, a pixel 1 road unit. Drawings 1, 3 and 13 set the road's surface effect (0x60C20)
- * where the car is on them, a spray drawn at the car for 12 frames; none sets the crash.
- */
-export function groundDrawing(
-  main: Uint8Array,
-  flags: number,
-  sprite: number,
-): { readonly size: SpriteSize; readonly pixelUnits: number; readonly patch: boolean } | null {
-  const drawing = flags >> 4;
-  const family = STRIP_FAMILIES.get(drawing);
-  if (family !== undefined)
-    return { size: sizeAt(main, long(main, family + 4 * (STRIP_SIZES - 1))), pixelUnits: 2, patch: false };
-  return drawing === 13 ? { size: spriteSizes(main, sprite)[0]!, pixelUnits: 1, patch: true } : null;
 }
 
 /**
