@@ -167,9 +167,34 @@ Rules of the stage:
 - CI has no ROM, so the conversion's results are committed as course documents and images. The conversion is
   deterministic: a command rebuilds them from the ROMs locally and checks that they equal the committed ones. The
   specification records the ROMs' CRCs and the conversion's version.
-- Each PR proceeds without waiting for approval and stops where the ROM disagrees with this description (a stage's
-  length other than its table's, an unknown kind), where a check below fails and no conversion rule brings it within,
-  or where K must decide (a lateral scale that disagrees, a crest no rule fits).
+- The stage does not stop for decisions (K, 2026-10-18): each PR decides an open point by its default, implements it
+  and states the choice, its reason and its numbers in the PR; K reviews afterwards, and no PR waits for a reply. Work
+  stops only where it would break the rules above (ROMs, raw data or the original's pixels in Git; Cannonball's or
+  LayOut's code), change behaviour outside Stage RD (drawing, physics, vehicles, other courses) or break main's
+  history. RD-3b, RD-3c, RD-4 and RD-5 follow one another, main advancing at each green CI.
+
+K's decisions for the conversion (2026-10-18):
+
+- A plan that passes over itself never crosses at grade: its passages lie in separate Sections (RD-3a's cut stands).
+  Where, with the hills, the two road surfaces at a crossing differ in height by less than 6 m, a gentle grade added
+  before and after the crossing, within ±1 row of the road's top on screen, makes them 6 m apart. The road below may be
+  seen; no bridge is drawn yet. Every stage's crossings follow the same rule.
+- A grade left by a table whose entries do not sum to 0 is returned to 0 before the next table, within ±1 row of the
+  road's top; only what cannot be returned so is kept. The original's hills do not act on the car's speed: kept, a
+  grade at a `c_look` of a few percent would become a slope of 1–2 km and a rise of over 100 m that drives unlike the
+  original. Where the look is the same, the smaller grade and rise are chosen.
+- A crest no rule brings within ±3 rows is built in its best-fitting form and its difference reported.
+- Kind 4 tables (stages 0x3B and 0x20): until K's video shows them, the horizon's base is not changed and only the kind
+  0 tables over it are used; the original's road top and this game's are reported side by side.
+- Kind 3 tables (stages 0x21 and 0x38) are built by RD-2's model and reported.
+- Solid scenery (RD-4): a collision mark found in the original's tables decides; failing one, the look does: trees,
+  posts, signs, rocks and buildings are solid; bushes, flowers, people, clouds and spray are passed through. The PR
+  lists each type.
+- Forks (RD-5): by the reading, the left road at a fork leads to the next number in the stage table (stage 2: left
+  0x3B, right 0x1E). Where `k1` shows a fork's road beyond, its heading and background confirm which path it follows;
+  otherwise the reading is used and reported. Stages are named by [product.md](product.md)'s rules.
+- K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides are
+  checked again.
 
 What a trial on K's ROMs and `k1` established:
 
@@ -198,14 +223,14 @@ The conversion's plan, lanes, strips, start and finish are
 
 - Profile: each nonzero entry `k` of a kind 0 table changes the grade by Δg = c_h × e_k / 576, over a vertical curve as
   long as the entry, ending where the camera passes the entry: the table's start plus entries 0 to k's lengths. Runs of
-  one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade: the original's camera follows the
-  road, so a constant grade looks level; this is the original's and is not cancelled. `c_h` is `c_look`, one value for
-  the game: the least squares match, over the stage, of the road's top in this game's drawing to the original's
-  ([hills](original-road-data.md#hills)), compared as rows from the horizon over the screen's height (the original's 224
-  rows), never as angles over a focal length. Each crest's difference of top rows is reported, and a rule (a value per
-  height table kind) is proposed and the work stops where a crest differs by more than ±3 rows; each crest's load at 293
-  km/h is reported, and `c_h` is not lowered where a car leaves the road.
-- Forks and checkpoints: the fork begins at 1948 and its stretch is 384 positions, its roads parting from the stretch's 63. A checkpoint ends the fork stretch (the next stage's 0).
+  one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade, returned as K decided above. `c_h`
+  is `c_look`, one value for the game: the least squares match, over the stage, of the road's top in this game's
+  drawing to the original's ([hills](original-road-data.md#hills)), compared as rows from the horizon over the screen's
+  height (the original's 224 rows), never as angles over a focal length. Each crest's difference of top rows is reported, and a rule (a value per
+  height table kind) is proposed where a crest differs by more than ±3 rows; each crest's load at 293 km/h is reported,
+  and `c_h` is not lowered where a car leaves the road.
+- Forks and checkpoints: the fork begins at 1948 and its stretch is 384 positions, its roads parting at
+  its position 63. A checkpoint ends the fork stretch (the next stage's 0).
 
 Checks on `k1`: s(t) is the displayed speed's integral re-timed monotonically to the ROM's events (the background's
 turns beginning and ending, the road top's peaks). Within: curve beginnings and ends ±2 positions; the road top's peaks
@@ -215,13 +240,14 @@ the original's road position as the camera's s, beside `k1`'s frame) is made for
 committed. No residual map and no optimization through the renderer.
 
 - RD-3: COCONUT BEACH by the conversion. RD-3a wrote its document, level: its plan passes over itself, so it is two
-  Sections whose passages cross at grade at the finish, which K may decide otherwise. Left:
-  - RD-3b: `c_look` fixed and the profile by the conversion; each crest's rows and load reported.
+  Sections whose passages still cross at grade at the finish. Left:
+  - RD-3b: `c_look` fixed and the profile by the conversion, the crossing 6 m apart; each crest's rows and load
+    reported.
   - RD-3c: driven with `drive` and checked on `k1`, the start line's place too; a series class with reference driving
     and time limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.
 - RD-4: scenery. Outlines (non-transparent pixels) from the sprite ROMs as outline boards of one color (the palette's
   representative) in `content/images/`, placed at 40 texels/m; the sprite pixels' size in metres from one scenery object
-  measured on `k1`; placement by the scenery rule. Which kinds are solid (body) is proposed per kind for K to decide.
+  measured on `k1`; placement by the scenery rule; solid types as K decided above.
 - RD-5: all of OUTRUN: the 15 stages, the fork stretches and the 5 goals as Sections and Links with the forks' rules
   (locks and closures). Stage 16's OUTRUN courses use it.
 
