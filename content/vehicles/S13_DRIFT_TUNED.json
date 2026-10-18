@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 6,
+  "version": 7,
   "overallLength": 4.47,
   "overallWidth": 1.69,
   "overallHeight": 1.29,
@@ -26,7 +26,7 @@
   "frontBrakeTorqueMax": 2750,
   "rearBrakeTorqueMax": 1500,
   "quadraticDrag": 0.33,
-  "wheelSlip": false,
+  "wheelSlip": { "drive": false, "brake": true },
   "tire": {
     "gripX": 0.8,
     "peakSlipX": 0.1,

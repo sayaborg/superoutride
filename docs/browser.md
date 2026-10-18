@@ -828,9 +828,10 @@ the player's input only; it reads the run vehicle for HUD and export and each co
 
 Driving tuning is grouped as STEERING, PEDALS, TIRES F/R, POWERTRAIN, RIVAL PACE, BODY CONTACT and ASSISTS. Each value uses a
 minus/value/plus control in its document's units, wrapping at range endpoints; STEERING holds the rack bound
-(M) and the traversal time (ACT), and ASSISTS toggles wheel slip protection. TIRES F/R and ASSISTS tune the run
-vehicle's own tire and wheel slip where its mechanics document gives them, as its model uses them, and the driving
-definition's game-wide defaults otherwise; each group's label names which (the vehicle ID or `game-wide`). Every other
+(M) and the traversal time (ACT), and ASSISTS toggles each side of wheel slip protection, TCS/MSR and ABS. TIRES F/R
+and ASSISTS tune the run vehicle's own tire and wheel slip where its mechanics document gives them, as its model uses
+them, and the driving definition's game-wide defaults otherwise; each group's label names which (the vehicle ID or
+`game-wide`). Every other
 group tunes the driving definition. RIVAL PACE drives no vehicle in a tuned run, which has no rivals: it takes effect once the exported definition
 is adopted as content. BODY CONTACT is the rebuilt run's own: its walls, course limits and objects push with the
 tuned values at once. Each adjustment is admitted by the

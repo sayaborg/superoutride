@@ -4,6 +4,7 @@ import { spriteSetColors, spriteSetHasColor, type VehicleSpriteSet } from './veh
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
 import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
+import type { WheelSlipProtection } from './physics/torque-protection.js';
 import {
   AdmissionError,
   admit,
@@ -58,7 +59,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 6;
+export const VEHICLE_MECHANICS_VERSION = 7;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -158,7 +159,7 @@ export function compileVehicleMechanicsDocument(
   sha256: string | null,
 ): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
-    // A vehicle's own wheel-slip choice and tire are optional; the driving definition's serve a vehicle without them.
+    // Its own wheel slip protection and tire are optional; the driving definition's serve a vehicle without them.
     const own = (['wheelSlip', 'tire'] as const).filter(
       (key) => typeof value === 'object' && value !== null && Object.hasOwn(value, key),
     );
@@ -170,7 +171,7 @@ export function compileVehicleMechanicsDocument(
     );
     const mechanics = Object.fromEntries(mechanicalNumbers.map((key) => [key, readNumber(v[key], `/${key}`)]));
     const owned = {
-      ...(own.includes('wheelSlip') ? { wheelSlip: readBoolean(v.wheelSlip, '/wheelSlip') } : {}),
+      ...(own.includes('wheelSlip') ? { wheelSlip: readWheelSlip(v.wheelSlip, '/wheelSlip') } : {}),
       ...(own.includes('tire') ? { tire: readTire(v.tire, '/tire') } : {}),
     };
     const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
@@ -392,6 +393,12 @@ function readTire(value: unknown, path: string): TireCharacteristics {
   return readNumbers(readRecord(value, path, TIRE_KEYS), TIRE_KEYS, path);
 }
 
+/** Wheel slip protection's two sides, both of them: the driving definition's and a vehicle's alike. */
+function readWheelSlip(value: unknown, path: string): WheelSlipProtection {
+  const record = readRecord(value, path, ['drive', 'brake']);
+  return { drive: readBoolean(record.drive, `${path}/drive`), brake: readBoolean(record.brake, `${path}/brake`) };
+}
+
 export function compileDrivingDocument(
   value: unknown,
   document: string,
@@ -429,7 +436,7 @@ export function compileDrivingDocument(
       DRIVING_DOCUMENT_FORMAT,
       DRIVING_DOCUMENT_VERSION,
     );
-    const wheelSlip = readBoolean(v.wheelSlip, '/wheelSlip');
+    const wheelSlip = readWheelSlip(v.wheelSlip, '/wheelSlip');
     const pedal = (key: string) => {
       const p = readRecord(v[key], `/${key}`, ['applySeconds', 'releaseSeconds']);
       return {

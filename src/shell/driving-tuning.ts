@@ -1,5 +1,6 @@
 import type { DrivingDefinition, DrivingDocument } from '../vehicle/driving-definition.js';
 import type { VehicleMechanicsDocument } from '../vehicle/definition-document.js';
+import type { WheelSlipProtection } from '../vehicle/physics/torque-protection.js';
 
 /**
  * DEV tuning of the game-wide driving definition and the player vehicle's own tire and wheel slip, in their saved
@@ -18,7 +19,7 @@ export interface TuningDocuments {
   readonly mechanics: VehicleMechanicsDocument;
 }
 
-/** Which document holds the tire or the wheel slip switch DEV tunes. */
+/** Which document holds the tire or the wheel slip switches DEV tunes. */
 export function tuningOwner(documents: TuningDocuments, key: 'tire' | 'wheelSlip'): 'VEHICLE' | 'DRIVING' {
   return documents.mechanics[key] === undefined ? 'DRIVING' : 'VEHICLE';
 }
@@ -433,13 +434,17 @@ export function stepDrivingTuning(documents: TuningDocuments, id: string, direct
 }
 
 /** The wheel slip protection DEV tunes, the vehicle's own or the driving definition's. */
-export function tunedWheelSlip({ driving, mechanics }: TuningDocuments): boolean {
+export function tunedWheelSlip({ driving, mechanics }: TuningDocuments): Readonly<WheelSlipProtection> {
   return mechanics.wheelSlip ?? driving.wheelSlip;
 }
 
-/** Wheel slip protection (TCS, MSR and ABS) is the one switch, in the document that holds it. */
-export function toggleDrivingWheelSlip(documents: TuningDocuments): TuningDocuments {
-  const wheelSlip = !tunedWheelSlip(documents);
+/**
+ * Wheel slip protection's two sides are two switches, TCS and MSR (`drive`) and ABS (`brake`), in the document that
+ * holds them.
+ */
+export function toggleDrivingWheelSlip(documents: TuningDocuments, side: keyof WheelSlipProtection): TuningDocuments {
+  const tuned = tunedWheelSlip(documents);
+  const wheelSlip = { ...tuned, [side]: !tuned[side] };
   return tuningOwner(documents, 'wheelSlip') === 'VEHICLE'
     ? { ...documents, mechanics: { ...documents.mechanics, wheelSlip } }
     : { ...documents, driving: { ...documents.driving, wheelSlip } };

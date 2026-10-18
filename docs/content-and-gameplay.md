@@ -1297,8 +1297,8 @@ driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's lim
 is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
 step to the next. Every planned driver steers by one rule, `PLANNED_DRIVER.steering`: the centre reference with full
 input reaching the front tire's whole lateral force bound (CENTER, 100 %). Every planned driver also drives with wheel slip
-protection (TCS, MSR and ABS) on, whatever its vehicle's `wheelSlip`, which holds only while the player's input reaches
-the vehicle. A steering rule and wheel slip protection are a driver's aids, not
+protection on both sides (TCS and MSR, and ABS), whatever its vehicle's `wheelSlip`, which holds only while the
+player's input reaches the vehicle. A steering rule and wheel slip protection are a driver's aids, not
 physics; the player and the planned drivers share the physics, and the utilization plans speed alone. A planned driver
 catches no slide past the tire's peak: on a tire whose force falls there (a sliding ratio below 1), braking at the limit
 in a corner, which protection bounds at the peak's longitudinal slip alone, can take a wheel past it and spin the
@@ -1498,9 +1498,9 @@ asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actu
 tire's effective load factor.
 
 The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
-surface of unit grip and no rolling resistance, with wheel slip protection on, as planned drivers drive: driven by this
-control at utilization 0.9 on a 100 m circle at the
-model's steady speed, the vehicle's mean radius and lateral acceleration lie within 5 % of the circle's and the model's;
+surface of unit grip and no rolling resistance, with wheel slip protection on both sides, as planned drivers drive:
+driven by this control at utilization 0.9 on a 100 m circle at the model's steady speed, the vehicle's mean radius and
+lateral acceleration lie within 5 % of the circle's and the model's;
 from 30 m/s at full brake, its stopping distance from full application lies within 5 % of the model's at full
 utilization.
 

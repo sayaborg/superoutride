@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 21,
+  "version": 22,
   "maxRoadWheelSteerDegrees": 65,
   "steeringTraversalSeconds": 0.3,
   "steeringReference": "center",
@@ -16,7 +16,7 @@
   "pitchLimitDegrees": 15,
   "throttle": { "applySeconds": 0.25, "releaseSeconds": 0.125 },
   "brake": { "applySeconds": 0.15, "releaseSeconds": 0.1 },
-  "wheelSlip": true,
+  "wheelSlip": { "drive": true, "brake": true },
   "tire": {
     "gripX": 5,
     "peakSlipX": 0.2,

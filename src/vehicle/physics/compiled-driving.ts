@@ -139,7 +139,7 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
     ),
     tire,
     torqueProtection: Object.freeze({
-      wheelSlip: definition.wheelSlip,
+      wheelSlip: Object.freeze({ drive: definition.wheelSlip.drive, brake: definition.wheelSlip.brake }),
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
     }),
     rivalPace: Object.freeze({

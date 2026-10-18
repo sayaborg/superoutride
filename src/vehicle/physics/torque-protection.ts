@@ -22,9 +22,18 @@ import { cross3, dot3, normalize3, sub3, type Vec3 } from '../../core/vector3.js
 import type { CompiledVehicle } from './vehicle-definitions.js';
 import { createWrenchWorkspace, evaluateVehicleWrench, type VehicleWrench } from './vehicle-wrench.js';
 
+/**
+ * Wheel slip protection by side: `drive`, TCS and MSR, bounds the engine's effective opening, and `brake`, ABS, bounds
+ * the pedal brake.
+ */
+export interface WheelSlipProtection {
+  readonly drive: boolean;
+  readonly brake: boolean;
+}
+
 /** Composition policy, not controller memory and not a tire coefficient. */
 export interface TorqueProtectionPolicy {
-  readonly wheelSlip: boolean;
+  readonly wheelSlip: Readonly<WheelSlipProtection>;
   /** Radians: nose-up and nose-down pitch limit against the road line under the wheels. */
   readonly pitchLimit: number;
 }
@@ -56,10 +65,21 @@ function absBrakeTorque(
   return Math.max(0, Math.min(brake, direction * (driveTorque - boundary)));
 }
 
+/** The brake a station takes at zero drive: its ABS-limited brake where ABS acts (`abs`), else its pedal brake. */
+function zeroDriveBrake(
+  input: WheelSolveInput,
+  abs: boolean,
+  scratch: ReturnType<typeof createTireForceScratch>,
+  residual: Float64Array,
+): number {
+  return abs ? absBrakeTorque(input, 0, scratch, residual) : input.brakeTorque;
+}
+
 /** TCS: the largest drive torque keeping a forward-moving station at or below its maximum rolling
- * speed, against the station's ABS-limited brake at zero drive. Unbounded without force. */
+ * speed, against the brake it takes at zero drive. Unbounded without force. */
 function tcsDriveTorqueBound(
   input: WheelSolveInput,
+  abs: boolean,
   scratch: ReturnType<typeof createTireForceScratch>,
   residual: Float64Array,
 ): number {
@@ -68,14 +88,15 @@ function tcsDriveTorqueBound(
   const referenceSpeed = Math.hypot(vx, TIRE_LOW_SPEED_REGULARIZATION);
   const upper = (vx + boundarySlip(input) * referenceSpeed) / input.rollingRadius;
   const torqueUpper = wheelRequiredNetTorque(input, upper, scratch, residual);
-  return Math.max(0, torqueUpper + absBrakeTorque(input, 0, scratch, residual));
+  return Math.max(0, torqueUpper + zeroDriveBrake(input, abs, scratch, residual));
 }
 
 /** MSR: the most negative drive torque keeping a forward-moving station at or above its minimum
- * rolling speed, after its ABS-limited brake at zero drive takes its share first. Unbounded at or
+ * rolling speed, after the brake it takes at zero drive takes its share first. Unbounded at or
  * below tire v0 and without force. */
 function msrDriveTorqueBound(
   input: WheelSolveInput,
+  abs: boolean,
   scratch: ReturnType<typeof createTireForceScratch>,
   residual: Float64Array,
 ): number {
@@ -85,7 +106,7 @@ function msrDriveTorqueBound(
   const minimumRolling = (vx - boundarySlip(input) * referenceSpeed) / input.rollingRadius;
   if (!(minimumRolling > 0)) return -Infinity;
   const boundary = wheelRequiredNetTorque(input, minimumRolling, scratch, residual);
-  return Math.min(0, boundary + absBrakeTorque(input, 0, scratch, residual));
+  return Math.min(0, boundary + zeroDriveBrake(input, abs, scratch, residual));
 }
 
 /** Total drive-wheel torque bounds; each only limits the effective opening. */
@@ -224,7 +245,7 @@ function prepareWheel(
   out.driveTorque = driveTorque;
   out.brakeTorque = input.brakeTorque * brakeScale;
   out.dt = input.dt;
-  if (policy.wheelSlip) out.brakeTorque = absBrakeTorque(out, driveTorque, scratch, residual);
+  if (policy.wheelSlip.brake) out.brakeTorque = absBrakeTorque(out, driveTorque, scratch, residual);
   return out;
 }
 function evaluatePair(
@@ -462,11 +483,18 @@ export function solveDriveTorqueBounds(
   const slot = workspace.first;
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
   let lower = -Infinity;
-  if (policy.wheelSlip) {
+  const { wheelSlip } = policy;
+  if (wheelSlip.drive) {
     if (frontFraction > 0)
-      lower = Math.max(lower, msrDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
+      lower = Math.max(
+        lower,
+        msrDriveTorqueBound(frontRequest, wheelSlip.brake, slot.tire, slot.residual) / frontFraction,
+      );
     if (frontFraction < 1)
-      lower = Math.max(lower, msrDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction));
+      lower = Math.max(
+        lower,
+        msrDriveTorqueBound(rearRequest, wheelSlip.brake, slot.tire, slot.residual) / (1 - frontFraction),
+      );
   }
   out.lower = engineTorqueForDrive(
     compiledVehicle,
@@ -513,13 +541,17 @@ function driveTorqueUpperBound(
 ): number {
   const frontFraction = compiledVehicle.frontDriveTorqueFraction;
   let upperDrive = Infinity;
-  if (policy.wheelSlip) {
+  const { wheelSlip } = policy;
+  if (wheelSlip.drive) {
     if (frontFraction > 0)
-      upperDrive = Math.min(upperDrive, tcsDriveTorqueBound(frontRequest, slot.tire, slot.residual) / frontFraction);
+      upperDrive = Math.min(
+        upperDrive,
+        tcsDriveTorqueBound(frontRequest, wheelSlip.brake, slot.tire, slot.residual) / frontFraction,
+      );
     if (frontFraction < 1)
       upperDrive = Math.min(
         upperDrive,
-        tcsDriveTorqueBound(rearRequest, slot.tire, slot.residual) / (1 - frontFraction),
+        tcsDriveTorqueBound(rearRequest, wheelSlip.brake, slot.tire, slot.residual) / (1 - frontFraction),
       );
   }
   const engineTorqueFor = (drive: number) =>

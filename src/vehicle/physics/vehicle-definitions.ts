@@ -10,6 +10,7 @@ import {
   type CompiledTireCharacteristics,
   type TireCharacteristics,
 } from './tire-friction-calibration.js';
+import type { WheelSlipProtection } from './torque-protection.js';
 import { VEHICLE_GRAVITY } from './vehicle-state.js';
 import { compileSuspensionStation, type CompiledContactStation } from './vehicle-suspension.js';
 
@@ -79,8 +80,8 @@ export interface VehicleDefinition {
   readonly frontBrakeTorqueMax: number;
   readonly rearBrakeTorqueMax: number;
   readonly quadraticDrag: number;
-  /** The vehicle's own TCS, MSR and ABS choice; the driving definition's when absent. */
-  readonly wheelSlip?: boolean;
+  /** The vehicle's own wheel slip protection, both sides of it; the driving definition's when absent. */
+  readonly wheelSlip?: Readonly<WheelSlipProtection>;
   /** The vehicle's own tire, every value of it; the driving definition's when absent. */
   readonly tire?: TireCharacteristics;
   readonly powertrain: AutomaticPowertrainDefinition;
@@ -112,8 +113,8 @@ export interface CompiledVehicle extends Pick<
    * the body's.
    */
   readonly footprint: number;
-  /** The vehicle's own wheel-slip choice; null leaves the driving definition's. */
-  readonly wheelSlip: boolean | null;
+  /** The vehicle's own wheel slip protection; null leaves the driving definition's. */
+  readonly wheelSlip: Readonly<WheelSlipProtection> | null;
   /** The vehicle's own compiled tire; null leaves the driving definition's. */
   readonly tire: Readonly<CompiledTireCharacteristics> | null;
   readonly powertrain: CompiledAutomaticPowertrainDefinition;
@@ -261,7 +262,10 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
     desiredCgHeight: definition.desiredCgHeight,
     frontDriveTorqueFraction: definition.frontDriveTorqueFraction,
     quadraticDrag: definition.quadraticDrag,
-    wheelSlip: definition.wheelSlip ?? null,
+    wheelSlip:
+      definition.wheelSlip === undefined
+        ? null
+        : Object.freeze({ drive: definition.wheelSlip.drive, brake: definition.wheelSlip.brake }),
     tire,
     powertrain,
     frontStation,

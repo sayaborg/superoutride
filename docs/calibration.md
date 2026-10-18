@@ -43,13 +43,14 @@ steps and never rejects a driving definition.
 | Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
 | Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
-| Assists¹   | —     | `wheelSlip`                                 | TCS, MSR and ABS with the player's input     | on      | on / off                   |
+| Assists¹   | —     | `wheelSlip.drive`                           | TCS and MSR with the player's input          | on      | on / off                   |
+| Assists¹   | —     | `wheelSlip.brake`                           | ABS with the player's input                  | on      | on / off                   |
 
-¹ `wheelSlip` is the protection the player's input drives with; planned drivers always drive with it on
-([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
+¹ `wheelSlip` is the protection the player's input drives with, each side its own switch; planned drivers always drive
+with both sides on ([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
 game-wide defaults: they serve every vehicle whose
 [mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all seven
-values) or `wheelSlip`; a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
+values) or `wheelSlip` (both sides); a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
 the defaults follows the game-wide tuning, its identity changing with the driving definition's.
 
 `fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
@@ -67,7 +68,7 @@ authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns o
 step positions. From any finite value, + moves to the smallest grid value above it and − to the largest below
 it, wrapping from the last grid value to the first and back, also from outside the range; values off the grid are
 shown exactly. A DEV adjustment steps the
-player's tuned driving definition, or, for TIRES and the wheel-slip switch of a vehicle whose mechanics document gives
+player's tuned driving definition, or, for TIRES and the wheel slip switches of a vehicle whose mechanics document gives
 its own tire or `wheelSlip`, the player's tuned mechanics document, as its model uses them; it admits the stepped
 document with that document's compiler (a rejected candidate leaves both documents unchanged) and rebuilds the run
 around a run vehicle of the tuned documents ([Browser](browser.md#dev-controls)).
@@ -86,8 +87,8 @@ the new file. Tires are dimensionless
 coefficients per unit normal load; one set serves both stations of a vehicle, the vehicle's own or the game-wide
 default. Driving assists are not difficulty controls.
 
-The same definition selects the default `wheelSlip=true` (TCS, MSR and
-ABS), which a vehicle's own `wheelSlip` replaces. TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
+The same definition selects the default `wheelSlip`, both sides on: `drive` (TCS and MSR) and `brake` (ABS), which a
+vehicle's own `wheelSlip` replaces whole. TCS, MSR (engine-braking slip) and the nose-up side of pitch protection act only through the
 engine's effective opening; ABS and the nose-down side of pitch protection act on the pedal brake. The
 driver's throttle actuator keeps its traversal time as the requested opening, and the opening's
 bounds take effect within each mechanics substep. Drive is split by the fixed front drive fraction,
@@ -171,7 +172,7 @@ screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
 are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
 in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED
-and AE86_DRIFT_TUNED) give both: `wheelSlip` off and a drift tire: S13 GX=GY=0.8 and AE86 GX=GY=0.7, both with
+and AE86_DRIFT_TUNED) give both: `wheelSlip` with its drive side (TCS and MSR) off and ABS on, and a drift tire: S13 GX=GY=0.8 and AE86 GX=GY=0.7, both with
 PX=PY=0.1, KN=0.74, LS=0.15 and SR=0.85 (so `kX = kY ≈ 10.1` and 8.8); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
 the 75 kg occupant to the notified weight, which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
 owns document admission and structural/domain validation.

@@ -1,4 +1,5 @@
 import { DefinitionDomainError } from '../core/admission.js';
+import type { WheelSlipProtection } from './physics/torque-protection.js';
 import type { DriverSteering } from './physics/vehicle-calibration.js';
 import type { VehicleModel } from './physics/vehicle-model.js';
 
@@ -31,15 +32,16 @@ export function createSteeringRule(reference: SteeringReference, utilization: nu
 export function driverSteering(
   rule: SteeringRule,
   model: VehicleModel,
-  wheelSlip = model.torqueProtection.wheelSlip,
+  wheelSlip: Readonly<WheelSlipProtection> = model.torqueProtection.wheelSlip,
 ): Readonly<DriverSteering> {
   const { torqueProtection } = model;
+  const { drive, brake } = wheelSlip;
   return Object.freeze({
     lever: rule.reference === 'front' ? 0 : model.compiledVehicle.frontAxle,
     utilization: rule.utilization,
     torqueProtection:
-      wheelSlip === torqueProtection.wheelSlip
+      drive === torqueProtection.wheelSlip.drive && brake === torqueProtection.wheelSlip.brake
         ? torqueProtection
-        : Object.freeze({ wheelSlip, pitchLimit: torqueProtection.pitchLimit }),
+        : Object.freeze({ wheelSlip: Object.freeze({ drive, brake }), pitchLimit: torqueProtection.pitchLimit }),
   });
 }

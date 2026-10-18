@@ -55,8 +55,10 @@ export function mountDrivingTuningControls(
       output.value.setAttribute('aria-label', `${text}: ${output.description}`);
     }
     const wheelSlip = tunedWheelSlip(documents);
-    assist.textContent = `WHEEL SLIP ${wheelSlip ? 'ON' : 'OFF'}`;
-    assist.setAttribute('aria-pressed', String(wheelSlip));
+    for (const { side, label, button } of assists) {
+      button.textContent = `${label} ${wheelSlip[side] ? 'ON' : 'OFF'}`;
+      button.setAttribute('aria-pressed', String(wheelSlip[side]));
+    }
   };
   for (const group of DRIVING_TUNING_GROUPS) {
     const steppers = drivingTuningItems(group).map((entry) => {
@@ -73,14 +75,23 @@ export function mountDrivingTuningControls(
     });
     containers[group].replaceChildren(...steppers);
   }
-  const assist = documentRef.createElement('button');
-  assist.type = 'button';
-  assist.className = 'selector-button';
-  assist.title = 'Wheel slip protection: TCS, MSR and ABS';
-  assist.addEventListener('click', () => {
-    target.set(toggleDrivingWheelSlip(target.get()));
-    refresh();
+  // Wheel slip protection's two sides, each its own switch.
+  const assists = (
+    [
+      { side: 'drive', label: 'TCS/MSR', title: 'Wheel slip protection, drive side: TCS and MSR' },
+      { side: 'brake', label: 'ABS', title: 'Wheel slip protection, brake side: ABS' },
+    ] as const
+  ).map(({ side, label, title }) => {
+    const button = documentRef.createElement('button');
+    button.type = 'button';
+    button.className = 'selector-button';
+    button.title = title;
+    button.addEventListener('click', () => {
+      target.set(toggleDrivingWheelSlip(target.get(), side));
+      refresh();
+    });
+    return { side, label, button };
   });
-  containers.ASSIST.replaceChildren(assist);
+  containers.ASSIST.replaceChildren(...assists.map(({ button }) => button));
   refresh();
 }

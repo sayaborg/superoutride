@@ -27,7 +27,7 @@ export interface VehicleModel {
   readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly powertrain: Readonly<PowertrainConstants>;
   /**
-   * The vehicle's torque protection: its own wheel slip choice (else the game-wide default) and the game-wide pitch
+   * The vehicle's torque protection: its own wheel slip protection (else the game-wide default) and the game-wide pitch
    * limit. The player's input drives with it; a driver's rule may choose other wheel slip protection.
    */
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
@@ -51,8 +51,8 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
   const substep = step / VEHICLE_SUBSTEPS;
   for (const station of [compiledVehicle.frontStation, compiledVehicle.rearStation])
     assertSuspensionStability(compiledVehicle.id, station, substep);
-  // The one choice between the vehicle's own tire and wheel-slip choice and the driving definition's game-wide ones:
-  // the vehicle's where it has them. The pitch limit stays game-wide.
+  // The one choice between the vehicle's own tire and wheel slip protection and the driving definition's game-wide
+  // ones: the vehicle's where it has them. The pitch limit stays game-wide.
   const { wheelSlip } = compiledVehicle;
   return Object.freeze({
     compiledVehicle,

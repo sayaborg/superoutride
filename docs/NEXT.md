@@ -137,8 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
-once K decides, then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [RD-6b](#stage-rd--outrun-from-the-originals-road-data); [DT-7](#stage-dt--drift-tuned-trial-vehicles), and
+[DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -257,11 +257,14 @@ it and validated again before main is fast-forwarded.
 
 K's decisions for the stage:
 
-- A vehicle may give its own tire and `wheelSlip` (TCS, MSR and ABS); a vehicle that does not uses the driving
+- A vehicle may give its own tire and `wheelSlip` (wheel slip protection); a vehicle that does not uses the driving
   definition's game-wide defaults, which stay there while the game-wide tuning is unfinished. Neither is a difficulty
   or player choice ([Vehicle identity](product.md#vehicle-identity)).
 - A DRIFT TUNED vehicle is a vehicle of its own (another specification of the same model): its pictures are the real
-  car's, its tires and engine need not be. DRIFT TUNED vehicles have `wheelSlip` off (one switch for TCS, MSR and ABS).
+  car's, its tires and engine need not be. DRIFT TUNED vehicles have TCS and MSR off and ABS on (DT-6b).
+- Wheel slip protection has two sides, each its own switch: the drive side, TCS and MSR (both bound the engine's
+  effective opening), and the brake side, ABS (it bounds the pedal brake). A drift series too keeps ABS and drops TCS
+  (DT-6b, in place of one switch for all three).
 - Drifting needs a tire of its own: S13 `gripX=gripY=0.8` and AE86 0.7, both with `peakSlipX=peakSlipY=0.1`,
   `knee=0.74`, `loadSensitivity=0.15` and the sliding ratio 0.85 (DT-6; DT-2 started both at 1.1 with no fall), which K
   tunes in DEV; FC3S's is decided with DT-3.
@@ -269,9 +272,13 @@ K's decisions for the stage:
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
   October 1985 – April 1989, 13B turbo, 5MT).
 
-- Planned drivers always drive with wheel slip protection (TCS, MSR and ABS act on the engine's effective opening and
-  the pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's `wheelSlip` holds while the
-  player's input reaches it (DT-2b). Physics is the same for the player and the AI. A drifting AI is not made now.
+- Planned drivers always drive with wheel slip protection on both sides (TCS, MSR and ABS act on the engine's
+  effective opening and the pedal brake alone, so they are an input-side aid like the steering rule); a vehicle's
+  `wheelSlip` holds while the player's input reaches it (DT-2b). Physics is the same for the player and the AI. The
+  drifting AI is made now, before any series, as a planned driver's driving style (DT-7).
+- A handbrake may come later: a brake on the rear wheels alone that ABS does not limit, so it locks them, with its key
+  and SETTINGS, the HUD's input display, and planned drivers able to use it (a way to start a drift). It is not made
+  in this stage, and driving input and brake handling stay open to it.
 - Shifts are one rule for every vehicle: they decide by the vehicle's speed, the driven wheels' speed rolling without
   slip, so wheels that spin, in a jump too, move no shift and the engine follows them to the fuel cut (DT-4).
 - A tire has a sliding ratio, its force sliding far past the peak over the peak's force, held by the driving
@@ -282,9 +289,10 @@ K's decisions for the stage:
   AI, designed to catch a slide past a falling tire's peak: a planned driver catches none, and with the drift tire
   braking at the limit in a corner takes a wheel past it (K's choice of the DT-6 report's options; DT-6).
 
-S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
-in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY and SR in DEV
-and adopting the exported mechanics document. Until their own pictures and exhausts are made, they borrow:
+S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire, TCS and MSR off and ABS on. K
+tries them in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY
+and SR in DEV and adopting the exported mechanics document. Until their own pictures and exhausts are made, they
+borrow:
 
 - Pictures: GOLF GTI 16V's set. Their own come from GLB models, with their own exhausts at the same time. The color
   names stand for the real paints, the borrowed pictures' colors do not match them: S13 CRANBERRY RED, WARM WHITE,

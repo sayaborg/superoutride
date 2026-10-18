@@ -12,8 +12,8 @@ use a local heightfield approximation. The model separates these inputs:
 The [driving definition](../content/driving/default.json) holds the game-wide driving values
 ([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
 M=65 degrees, ACT=0.3 seconds, throttle/brake traversal times,
-and the game-wide defaults `wheelSlip=true` and one tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15, SR=1), which
-serve every vehicle whose mechanics document does not give its own `wheelSlip` or `tire`
+and the game-wide defaults `wheelSlip` with both sides on and one tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15,
+SR=1), which serve every vehicle whose mechanics document does not give its own `wheelSlip` or `tire`
 ([documents](#material-vehicle-and-driving-documents)).
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
@@ -21,7 +21,7 @@ Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.
 traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
 converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
 single traversal time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics and the
-torque-protection policy `{wheelSlip, pitchLimit}`.
+torque-protection policy `{wheelSlip: {drive, brake}, pitchLimit}`.
 [`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
 from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
 (`SIM_DT`). The step must be finite and positive. It is also the one place that chooses each vehicle's tire and
@@ -485,17 +485,19 @@ signed engine term `clutchTorque * gearRatio * finalDriveRatio * drivelineEffici
 inertia torque. Each bound below is found on the delivered total drive and becomes the engine term that delivers it
 with the locked engine's inertia; the opening's inverse keeps inverting the engine's own torque.
 
-TCS, MSR and ABS act when the rule of whoever drives the vehicle asks for wheel slip protection
-([Actuators and steering](#actuators-and-steering)): the player's input with the vehicle's `wheelSlip`, every planned
-driver always. They only bound the engine's effective opening and the pedal brake, so they are an aid on the input side;
-pitch protection always acts. TCS, MSR and ABS invert the wheel residual at the peak's longitudinal slip `grip*(2-KN)*muX/kX`. With
-the pedal brake request and zero drive:
+Wheel slip protection has two sides, each acting when the rule of whoever drives the vehicle asks for it
+([Actuators and steering](#actuators-and-steering)): the drive side, TCS and MSR, which bounds the engine's effective
+opening, and the brake side, ABS, which bounds the pedal brake. The player's input drives with the vehicle's
+`wheelSlip`, every planned driver with both sides on. They only bound the opening and the pedal brake, so they are an
+aid on the input side; pitch protection always acts. TCS, MSR and ABS invert the wheel residual at the peak's longitudinal slip `grip*(2-KN)*muX/kX`. With
+the pedal brake request and zero drive, a station's brake at zero drive is its ABS-limited brake where ABS acts, else
+its pedal brake:
 
 - TCS gives each forward-moving driven station an upper drive-torque bound: the net torque that
-  reaches maximum rolling speed in the step, plus that station's ABS-limited brake at zero drive.
+  reaches maximum rolling speed in the step, plus that station's brake at zero drive.
 - MSR gives each driven station moving forward faster than tire v0 a lower drive-torque bound
-  (engine braking): the net torque that reaches minimum rolling speed, plus the same ABS-limited
-  brake, capped at zero. The pedal brake takes its ABS share first; engine braking gets the rest.
+  (engine braking): the net torque that reaches minimum rolling speed, plus the same brake, capped at zero. The pedal
+  brake takes its share first; engine braking gets the rest.
 
 Each total bound is the station bound divided by its fixed drive fraction, taking the tighter
 station; one opening drives both axles, so a limit on either axle changes drive to both. Stations
@@ -550,11 +552,12 @@ player's until it chooses its own ([Browser](browser.md#player-record)); the pla
 own input reaches its vehicle. Every planned driver drives by one rule, the centre reference at 100 %, independent of
 its utilization ([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
 reference time or pace schedule.
-Wheel slip protection belongs to the same rule: the player's input drives with the vehicle's `wheelSlip` (its own, else
-the game-wide default), and every planned driver with protection on, whatever the vehicle's choice
-([Torque protection](#torque-protection)); the vehicle's physics is the same for both.
+Wheel slip protection belongs to the same rule, each of its two sides, TCS and MSR (`drive`) and ABS (`brake`), its own
+choice: the player's input drives with the vehicle's `wheelSlip` (its own, else the game-wide default), and every
+planned driver with both sides on, whatever the vehicle's choice ([Torque protection](#torque-protection)); the
+vehicle's physics is the same for both.
 The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`, and
-the torque protection it drives with: that wheel slip choice and the model's pitch limit. The
+the torque protection it drives with: that wheel slip protection and the model's pitch limit. The
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is
 `frontAxle`, the front axle's distance from the centre of mass. Cars and bikes share the rule and its law.
 
@@ -677,12 +680,12 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 6 document: the vehicle's physical description — the values
+`superoutride.vehicle-mechanics` version 7 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 21.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 22.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -697,8 +700,8 @@ admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engin
 
 | Mechanics field     | Contract                                                                                                                                                                                                                            |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `6`                                                                                                                                                                                               |
-| `wheelSlip`         | Optional boolean: the vehicle's own TCS, MSR and ABS choice; absent, the driving definition's                                                                                                                                       |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `7`                                                                                                                                                                                               |
+| `wheelSlip`         | Optional: the vehicle's own wheel slip protection, `drive` (TCS and MSR) and `brake` (ABS), both boolean; absent, the driving definition's                                                                                          |
 | `tire`              | Optional: the vehicle's own tire, all seven values (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio) in the driving definition's domains, compiled once at admission; absent, the driving definition's whole tire |
 | Remaining fields    | All other `VehicleDefinition` fields except `id`, including `powertrain`, at the root                                                                                                                                               |
 
@@ -741,8 +744,8 @@ fields: `maxRoadWheelSteerDegrees`,
 `drivelineEfficiency` in (0,1], positive `engineInertiaKilogramSquareMetersPerLitre`, positive
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1,
 `pitchLimitDegrees` in (0,45], `throttle`
-and `brake` (each applySeconds/releaseSeconds), boolean
-`wheelSlip`, `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio), `rivalPace`
+and `brake` (each applySeconds/releaseSeconds),
+`wheelSlip` (drive/brake, both boolean), `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio), `rivalPace`
 (minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
 maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
 (frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: RACE rivals read it

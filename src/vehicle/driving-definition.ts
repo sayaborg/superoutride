@@ -1,4 +1,5 @@
 import type { TireCharacteristics } from './physics/tire-friction-calibration.js';
+import type { WheelSlipProtection } from './physics/torque-protection.js';
 import type { SteeringReference } from './steering-rule.js';
 
 /** Saved-form game-wide design data; no converted angles, rates or force-law coefficients. */
@@ -23,7 +24,8 @@ export interface DrivingDefinition {
   readonly pitchLimitDegrees: number;
   readonly throttle: Readonly<{ applySeconds: number; releaseSeconds: number }>;
   readonly brake: Readonly<{ applySeconds: number; releaseSeconds: number }>;
-  readonly wheelSlip: boolean;
+  /** The game-wide wheel slip protection: TCS and MSR (`drive`) and ABS (`brake`). */
+  readonly wheelSlip: Readonly<WheelSlipProtection>;
   readonly tire: Readonly<TireCharacteristics>;
   /**
    * RACE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
@@ -45,7 +47,7 @@ export interface DrivingDefinition {
 }
 
 export const DRIVING_DOCUMENT_FORMAT = 'superoutride.driving-definition';
-export const DRIVING_DOCUMENT_VERSION = 21;
+export const DRIVING_DOCUMENT_VERSION = 22;
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: typeof DRIVING_DOCUMENT_FORMAT;
