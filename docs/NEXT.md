@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-1](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-2](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -178,52 +178,18 @@ What a trial on K's ROMs and `k1` established:
   integral meets the profile's events within ±3 positions up to about position 600 (scale error under 1 %). Later it
   lags by up to about 55 positions: on curves the original advances its position by `(R + car_x/40) / R`, so `k1` is
   compared after re-timing to the ROM's events.
-- COCONUT BEACH (stage number 0x3C): 1948 positions, 19 curve segments, 4 width points, 5 height points, 89 scenery
-  points. The heading measured on the sub CPU's road path changes by 1/R per position on each segment (R 121 measures
-  122, 115 → 116, 104, 63, 60 exactly); kind 3 turns left, 2 right, 1 is straight (seen on `k1`). In all 15 stages the
-  heading sums to 0° or ±360° (COCONUT BEACH turns 360° left). `k1`'s background scroll turns when the ROM's heading
-  does.
+- COCONUT BEACH (stage number 0x3C): 1948 positions (every stage's, a constant of the program), 19 curve segments, 4
+  width points, 5 height points, 89 scenery points (RD-1 confirmed these on K's ROMs). The heading measured on the sub
+  CPU's road path changes by 1/R per position on each segment (R 121 measures 122, 115 → 116, 104, 63, 60 exactly); kind
+  3 turns left, 2 right, 1 is straight (seen on `k1`). In all 15 stages the heading sums to 0° or ±360° (COCONUT BEACH
+  turns 360° left). `k1`'s background scroll turns when the ROM's heading does.
 - The hills are built as shapes on the original's screen: the road's top row computed by the original's rule from the
-  ROM's height tables, with nothing fitted, falls on `k1`'s (rows 113, 122, 117, 101 and so on; tables 211, 134 and 213).
+  ROM's height tables, with nothing fitted, falls on `k1`'s (rows 113, 122, 117, 101 and so on; tables 211, 134 and
+  213).
 - Colors: palette words converted to RGB555 give COCONUT BEACH's road 156/148 grey and its lines 247; `k1`'s colors are
   about 4 % darker from its capture, so the ROM's are used.
 
-The ROMs' format (68000, big-endian words and longs; addresses within each CPU's assembled program):
-
-- Main CPU program: epr-10380b.133 even bytes and epr-10382b.118 odd bytes at 0x00000–0x1FFFF, epr-10381b.132 and
-  epr-10383b.117 likewise at 0x20000–0x3FFFF. Sub CPU program: epr-10327a.76 and epr-10329a.58 at 0x00000–0x1FFFF,
-  epr-10328a.75 and epr-10330a.57 at 0x20000–0x3FFFF.
-- Stage numbers (world edition): 1: 0x3C; 2: 0x1E, 0x3B; 3: 0x20, 0x2F, 0x2A; 4: 0x2D, 0x35, 0x33, 0x21; 5: 0x32, 0x23,
-  0x38, 0x22, 0x26. Which number lies past which fork, and the stages' names, are named only once the fork's handling or
-  a video shows them.
-- Main CPU, the long at 0xE528 + number × 4 points to a stage's block: +0 sky, +4 centre line, +8 lane lines, +12
-  edges, +16 road surface, +20 ground (colors' addresses), +24 curves, +28 widths and heights, +32 scenery (tables'
-  addresses). The centre line, lane lines, edges and surface are four palette words each (COCONUT BEACH's surface 156,
-  148, 156, 148; lanes 156, 247, 156, 247); which word is light or dark, and what the first and last pair tell apart,
-  are checked on `k1`. Whether the sky's and ground's words are colors or a color table's numbers is checked too.
-- Curves: {signed word position (−1 ends), word R, word kind}; kind 1 straight, 2 right, 3 left; R a radius in
-  positions.
-- Widths and heights: 8 bytes {position (0x7FFF ends), kind, value, signed speed}. Kind 0 is a height, its value a
-  height table's number; any other kind is a width, its value the target road width, which the road width approaches by
-  `speed × 16 / 303` units per position from 0x1C2 (450). A point acts when the road position reaches it (no look-ahead);
-  a height point reached while the previous height table is still running is dropped.
-- Scenery: 4 bytes {position (0x7FFF ends), u8 count, u8 type}. The type table at 0x1A43C holds longs pointing to
-  {word frequency, word last entry's offset} followed by 8-byte entries {flags (bit 0 mirrored, bit 1 shadow, bits 4–7
-  drawing), x (byte, × 16 road-width units; sign to check), y (word, × 128), unknown, kind (sprite number), unknown,
-  palette}. Each position has two slots at slightly different depths: per slot the frequency rotates left one bit, and a
-  1 shifted out places one entry and counts one down; entries are taken stepping the offset back by 8, wrapping to the
-  last entry below zero, until the count reaches 0.
-- Fork stretch: 0x1DFA4 holds {curves, widths and heights, scenery} addresses (no colors): straight 0–63, left R61
-  63–160, straight 160–265, right R61 265–362; its two roads part from position 63 by 8 units per position. Goal
-  stretches: 0xE514 holds five blocks' addresses (no colors).
-- Sub CPU, the long at 0x1224 + number × 4 points to a stage's road path: 0x904 positions of {signed word x, signed word
-  y}, heading vectors of length 4096 (a few points at segment joins differ in length, so only their direction is used).
-  Past 1948 it looks ahead into the fork. The fork stretch's path is at 0x3A33E, the goal stretches' at 0x3ACA0.
-- Sub CPU, the long at 0x220A + number × 4 points to a height table {u8 kind, u8 step, …}: kind 0 u8 descent factor,
-  u8 ascent factor, then signed words ending at −1; kinds 1 and 2 a word wait, then the words; kind 3 a word, then the
-  words; kind 4 a word, the new horizon value.
-- A palette word w is RGB555: R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1),
-  B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1), used as Strips' RGB555 as it is.
+The ROMs' format and addresses are [Original road data](original-road-data.md)'s.
 
 The original's hills (kind 0 checked on `k1`): 512 road lines; level, each line's slope is 576 × 16 (the horizon base
 0x240), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1` 151.4). With the current entry `i` and the share
@@ -250,19 +216,26 @@ Conversion to a course document:
   one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade: the original's camera follows the
   road, so a constant grade looks level; this is the original's and is not cancelled. `c_h` is `c_look`, one value for
   the game: the least squares match, over the stage, of the road's top in this game's drawing to the original's (the
-  original's hills above), compared as angles from the horizon (rows over focal length) whatever the screen's size. Each crest's
+  original's hills above), compared as rows from the horizon over the screen's height (the original's 224 rows), never
+  as angles over a focal length. Each crest's
   difference of top rows is reported, and a rule (a value per height table kind) is proposed and the work stops where a
   crest differs by more than ±3 rows; each crest's load at 293 km/h is reported, and `c_h` is not lowered where a car
   leaves the road.
 - Widths and lanes: the original draws two roads centred at ±road width (units), each of three lanes with edges ±236
-  units from its centre. A car leaves the road with one wheel past 212 and two past 260, so 48 units are its track,
-  checked on `k1`. The road width is a polyline approaching each target at its point's rate. While the roads are apart,
-  the median is 2 × road width − 472 units; where they overlap, the outer edges ±(road width + 236) are kept and inner
-  lanes narrow to 0, six lanes becoming three (which lanes is the implementer's choice, stated in the PR). Units become
-  metres by `s_lat`, from the gauge TESTAROSSA: on `k1`'s level straights the player picture's width against the road's
-  on its row. Where a 48-unit track and TESTAROSSA's differ by more than 10 %, the work stops for K.
+  units from its centre (the 48 units between the collision limits 212 and 260 are the game's rule, not the car's shape,
+  and are not taken as its track). The road width is a polyline approaching each target at its point's rate. While the
+  roads are apart, the median is 2 × road width − 472 units; where they overlap, the outer edges ±(road width + 236) are
+  kept and inner lanes narrow to 0, six lanes becoming three (which lanes is the implementer's choice, stated in the
+  PR). Units become metres by `s_lat`, measured on `k1` where the roads are apart (road width 300, positions 150–500):
+  px per unit from the 600 units between the two roads' centres on one row, which turns one road's width (about 472
+  units, three lanes expected), the lane lines' spacing and the player picture's width into units; `s_lat` is
+  TESTAROSSA's real width over the picture's width in units. It is reported beside the Beetle's (the player drawn at
+  1.05 times the road's scale) and the 3.45 m lanes; where they differ by more than 10 %, the work stops for K. Stage RD
+  uses on `k1` only ratios within one row and time × speed: never the original's `K`, a horizon or reference row, or a
+  focal length.
 - Strips: the surface, centre line, lane lines and edges take the palette's light and dark colors as they are; their
-  period is measured on `k1` by counting stripes passing against s(t). The sky's and ground's colors become the
+  period is counted on `k1` from stripes passing against time × displayed speed (6.315 m measured so, independent of
+  any `K`). The sky's and ground's colors become the
   environment's.
 - Start, forks and checkpoints: the road position at GO is 0, the start line's place is checked on `k1`. The fork
   begins at 1948 and its stretch is 384 positions, its roads parting from the stretch's 63. A checkpoint ends the fork
@@ -275,11 +248,6 @@ every 50 positions (this game's drawing at `k1`'s s(t) and lateral, the car's of
 the original's road position as the camera's s, beside `k1`'s frame) is made for K in `reference-media/`, never
 committed. No residual map and no optimization through the renderer.
 
-- RD-1: reading. A command checks the ROM zip's CRCs, reads it and writes every stage's, the fork's and the goals'
-  tables as JSON to `reference-media/outrun/rom-data/`; unit tests on hand-made bytes. On K's ROMs locally: COCONUT
-  BEACH's 19 curves, 4 widths, 5 heights, 89 scenery points, each segment's radius, table 211's entries
-  [0 ×6, 576, 576, −576 ×3, 0 ×6] and so on; in every stage the path's heading sums to 0° or ±360°. The format and
-  addresses move from here to an English specification (`docs/original-road-data.md`).
 - RD-2: the original's hills, kinds 0 to 4, checked against `k1`'s road top.
 - RD-3: COCONUT BEACH, one Section from the start to 1948, by the conversion, in `content/` named by
   [product.md](product.md)'s rules; `c_look` fixed, built, driven with `drive` and checked. Reference driving and time

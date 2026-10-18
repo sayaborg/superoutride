@@ -18,6 +18,7 @@
     "course": "node --import tsx tools/course/course.ts",
     "measure": "node --import tsx tools/course/measure-products.ts",
     "footage": "node --import tsx tools/footage/footage.ts",
+    "road-data": "node --import tsx tools/road-data/road-data.ts",
     "sprite": "node --import tsx tools/build/sprite.ts",
     "pictures": "node --import tsx tools/build/pictures.ts",
     "hud-tiles": "node --import tsx tools/build/hud-tiles.ts",

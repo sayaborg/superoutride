@@ -471,6 +471,16 @@ evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC
 | `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                                                         |
 | `solve`     | Each video's plan and profile under the footage model's pitch rule, and the rows' check of that rule                                                                                    |
 
+### Road data commands
+
+The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
+runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` and writes dumps under
+`reference-media/outrun/rom-data/`, which Git ignores:
+
+| Command | Purpose                                                                                                                                            |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`  | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`) |
+
 ### Skies command
 
 The skies command draws every course sky that has a source, `content/sky-sources/<name>.png` with its entry in that
