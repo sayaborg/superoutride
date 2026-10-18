@@ -488,8 +488,8 @@ with the locked engine's inertia; the opening's inverse keeps inverting the engi
 Wheel slip protection has two sides, each acting when the rule of whoever drives the vehicle asks for it
 ([Actuators and steering](#actuators-and-steering)): the drive side, TCS and MSR, which bounds the engine's effective
 opening, and the brake side, ABS, which bounds the pedal brake. The player's input drives with the vehicle's
-`wheelSlip`, every planned driver with both sides on. They only bound the opening and the pedal brake, so they are an
-aid on the input side; pitch protection always acts. TCS, MSR and ABS invert the wheel residual at the peak's longitudinal slip `grip*(2-KN)*muX/kX`. With
+`wheelSlip`, a grip driver with both sides on and a drift driver with ABS alone. They only bound the opening and the
+pedal brake, so they are an aid on the input side; pitch protection always acts. TCS, MSR and ABS invert the wheel residual at the peak's longitudinal slip `grip*(2-KN)*muX/kX`. With
 the pedal brake request and zero drive, a station's brake at zero drive is its ABS-limited brake where ABS acts, else
 its pedal brake:
 
@@ -549,13 +549,14 @@ Steering is a rule of whoever drives the vehicle at the time, not a mechanism of
 is the vehicle's, and the driver's rule says how input moves it. A rule is a reference position and a utilization `X`
 (`0 < X <= 1`). The game-wide driving definition's `steeringReference` and `steeringUtilization` are the default rule, the
 player's until it chooses its own ([Browser](browser.md#player-record)); the player drives by its rule only while its
-own input reaches its vehicle. Every planned driver drives by one rule, the centre reference at 100 %, independent of
-its utilization ([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity,
-reference time or pace schedule.
+own input reaches its vehicle. A planned driver drives by its driving style's one rule, independent of its
+utilization: a grip driver by the centre reference at 100 %, a drift driver by the front reference at 95 %
+([Content and gameplay](content-and-gameplay.md#drivers)). The player's rule changes no vehicle identity, reference time
+or pace schedule.
 Wheel slip protection belongs to the same rule, each of its two sides, TCS and MSR (`drive`) and ABS (`brake`), its own
-choice: the player's input drives with the vehicle's `wheelSlip` (its own, else the game-wide default), and every
-planned driver with both sides on, whatever the vehicle's choice ([Torque protection](#torque-protection)); the
-vehicle's physics is the same for both.
+choice: the player's input drives with the vehicle's `wheelSlip` (its own, else the game-wide default), a grip driver
+with both sides on and a drift driver with ABS alone, whatever the vehicle's choice
+([Torque protection](#torque-protection)); the vehicle's physics is the same for all.
 The vehicle step receives a rule as the lever in metres from its reference position to the front axle, with `X`, and
 the torque protection it drives with: that wheel slip protection and the model's pitch limit. The
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is

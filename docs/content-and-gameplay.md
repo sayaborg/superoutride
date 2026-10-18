@@ -1294,15 +1294,17 @@ once; the runout check, the race's unpaced rivals and the player's run driver us
 Every driver — rivals, traffic, reference runs, the attract demo and the player's run driver — is the planned
 driver (`src/race/planned-driver.ts`): it plans its speed with its vehicle's limits
 ([Vehicle limits and planned control](#vehicle-limits-and-planned-control)) and drives by the planned control. A driver
-is its vehicle's model and limits, a utilization, a speed cap and whether it passes; the utilization may change from one
-step to the next. Every planned driver steers by one rule, `PLANNED_DRIVER.steering`: the centre reference with full
-input reaching the front tire's whole lateral force bound (CENTER, 100 %). Every planned driver also drives with wheel slip
-protection on both sides (TCS and MSR, and ABS), whatever its vehicle's `wheelSlip`, which holds only while the
-player's input reaches the vehicle. A steering rule and wheel slip protection are a driver's aids, not
-physics; the player and the planned drivers share the physics, and the utilization plans speed alone. A planned driver
-catches no slide past the tire's peak: on a tire whose force falls there (a sliding ratio below 1), braking at the limit
-in a corner, which protection bounds at the peak's longitudinal slip alone, can take a wheel past it and spin the
-vehicle. Its path is its lane's
+is its vehicle's model and limits, a utilization, a speed cap, whether it passes and its driving style, grip or drift;
+the utilization may change from one step to the next. Its builder decides its style, as it decides whether it passes;
+every driver the game builds has the grip style, and the drift style ([Drift style](#drift-style)) is evaluated alone
+(DRIFT EVALUATION, [Development](development.md#commands)). A grip driver steers by one rule, `PLANNED_DRIVER.steering`:
+the centre reference with full input reaching the front tire's whole lateral force bound (CENTER, 100 %). It also drives
+with wheel slip protection on both sides (TCS and MSR, and ABS), whatever its vehicle's `wheelSlip`, which holds only
+while the player's input reaches the vehicle. A steering rule and wheel slip protection are a driver's aids, not physics;
+the player and the planned drivers share the physics, and the utilization plans speed alone. A grip driver catches no
+slide past the tire's peak: on a tire whose force falls there (a sliding ratio below 1), braking at the limit in a
+corner, which protection bounds at the peak's longitudinal slip alone, can take a wheel past it and spin the vehicle.
+Its path is its lane's
 centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
 ([Path offsets](#path-offsets)), which starts as its lateral's offset from the line where it takes the line (its grid
@@ -1347,7 +1349,10 @@ yaw rate it inverts through is scaled by the front tire's effective load factor,
 The capacity correction `c`, one per driven vehicle in [0.85, 1], starts at 1 and multiplies the utilization the plan
 uses: when either axle's tire utilization observation stays at 1, at or past the tire law's peak (within
 `saturation`, 1e-6, of rounding), for longer
-than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1 at 0.01 per second. The plan reads it in steps of 0.01. It is the only adaptation.
+than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1 at 0.01 per second; a drift driver's saturation while it
+drifts is intended and counts as none. The plan reads it in steps of 0.01. It is the plan's only adaptation, and it holds
+when the driver's vehicle is recovered or taken over, which a drift driver's own state of its vehicle does not
+([Drift style](#drift-style)).
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
 The Route exposes that terminal station only when its tail is such a Section; loaded tails
@@ -1498,7 +1503,7 @@ asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actu
 tire's effective load factor.
 
 The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
-surface of unit grip and no rolling resistance, with wheel slip protection on both sides, as planned drivers drive:
+surface of unit grip and no rolling resistance, with wheel slip protection on both sides, as grip drivers drive:
 driven by this control at utilization 0.9 on a 100 m circle at the model's steady speed, the vehicle's mean radius and
 lateral acceleration lie within 5 % of the circle's and the model's;
 from 30 m/s at full brake, its stopping distance from full application lies within 5 % of the model's at full
@@ -1507,6 +1512,63 @@ utilization.
 The same driver serves reference runs and live rivals. Generated runs contain precise landmark times
 and optional 10 Hz position/speed/utilization traces. The browser loads generated racing lines and compact
 integer-millisecond budgets. [Development](development.md#build-outputs) owns generated file locations.
+
+#### Drift style
+
+A drift driver drifts the tight corners it can drift and grips elsewhere (`src/race/drift-driving.ts`, its values
+`DRIFT_DRIVER`). It steers by its own rule, `DRIFT_DRIVER.steering`: the front reference with full input reaching 95 %
+of the front tire's lateral bound (FRONT, 95 %), so no input aligns the front wheels with their own travel and the input
+is the front tire's share of its bound. It drives with ABS but without TCS and MSR (`DRIFT_DRIVER.wheelSlip`), whatever
+its vehicle's `wheelSlip`, so its driven wheels can spin, and controls their spin itself. Its other values follow from its vehicle's model (`compileDriftDriving`): the band
+speed, first gear's rolling speed midway between the engine's peak power and its redline; the entry speed, first gear's
+rolling speed at the engine's peak power over one plus the tire's peak longitudinal slip, the fastest at which the spinning
+driven wheels pass the peak at the engine's peak power; and the engine speeds between which its throttle closes.
+
+It plans as a grip driver does but over the corners it drifts. Each cell also has a drift speed: the cornering speed
+within the lateral margin of the tires' sliding force (the lateral limit at full utilization times the tire's sliding
+ratio), whatever the planned utilization, since a steady drift's lateral acceleration is its sliding rear tire's. A
+corner is a run of segments curving one way tighter than `cornerRadius` (160 m). The driver drifts a corner that holds a
+segment whose drift speed lies below the entry speed and whose grade's pull at that speed is no more than the drag and
+rolling resistance, where a drift driving its rear wheels holds its speed (on a steeper downhill it would have to brake);
+the corner it drifts now stays drifted to its end. Over a drifted corner the plan's cornering speed is the drift speed,
+no faster than the entry speed up to the corner's slowest drift, so the drift starts in first gear, below the automatic's
+downshift into it. A grip driver's plan reads its cells' cornering speeds exactly as before.
+
+A drift starts in first gear where the plan drifts the corner `lookSeconds` (0.35 s, at least 4 m) ahead, once the
+speed is within `enterOver` (1.08) of that curvature's drift speed, so the rear tire nears its sliding force, and no more
+than `enterOver` above the plan's least speed `planSeconds` (1.2 s) plus 10 m ahead; or once the vehicle already slides
+past `startAngle` (12°). While it drifts:
+
+- It asks the sideslip `b` of a steady drift at the corner's drift speed `v` at hand whose driven wheels roll at the band
+  speed: with the rear tire's sliding force across the travel the wheels roll at `v(1/cos b + l_r·κ·tan b)` (`l_r` the
+  rear axle's distance behind the centre of mass, `κ` the curvature). K's steady drifts on a flat circle, S13 37° at
+  46 km/h on R 23 m and AE86 37° at 39 km/h on R 19 m, lie on it within their spread. The asked angle lies within 8° and
+  50° and moves at most 50° in 0.35 s.
+- The throttle holds the angle: the opening that drives the steady drift's rear tire, its sliding force's part along the
+  body at the asked angle, at the engine's speed and gear, plus feedback on the angle's error whose integral holds while
+  the throttle is bounded. While the angle builds below `startAngle` the throttle alone acts and spins the rear tire
+  loose. Faster than `capOver` (1.12) of the plan's speed now the throttle is capped at 0.3 and the brake scrubs while
+  the angle allows. The throttle closes from the redline to the speed at which the fuel cut clears, so the spinning
+  wheels keep the engine off the fuel cut.
+- The steering keeps the path: the steady drift's front share, the tire's sliding ratio over the rule's utilization,
+  closing the error between the path's lateral acceleration `a*` and the measured one (the speed times the travel
+  direction's rate over 50 ms) through the front tire's authority, its lateral force per unit input over the mass, with
+  an integral, damping of the angle's rate, at most 0.3 of countersteer, and taking back over-rotation beyond the asked
+  angle and 8°.
+- It leaves when no drifted segment of the corner lies at hand or the slowest point ahead lies past the corner, and grips
+  once the angle is below 8°; it swings into a corner the other way close ahead when its speed allows; and it gives up a
+  corner whose angle stays below 6° after 1.2 s until that corner ends.
+
+Elsewhere it drives the grip input under its own spin control: the throttle's cap falls at 4 per second while the rear
+wheels spin past 0.12 of slip and recovers at 2 per second, and away from a drifted corner the steering damps the
+sideslip's rate. It catches no slide past the tire's peak in grip driving either: ABS bounds the brakes' longitudinal
+slip alone, so braking hard into a drifted corner at a high utilization can still take the rear tire past its peak and
+slide the vehicle.
+
+The driver reads only its plan's workspace and its vehicle's driving observation. Its state of its vehicle (the corner
+it drifts, the controllers' memory, the previous step's observations, the throttle's cap) lives in that workspace, the
+vehicle's own: a recovery that places the vehicle elsewhere, and the run driver's taking it over, forget it, and an
+appearing vehicle's workspace is new.
 
 ## Traffic
 
