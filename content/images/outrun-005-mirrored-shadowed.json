@@ -4,7 +4,7 @@
   "name": "outrun-005-mirrored-shadowed",
   "width": 112,
   "height": 195,
-  "anchorX": 55.5,
+  "anchorX": 97.5,
   "anchorY": 193.75,
   "defaultPalette": "p034",
   "palettes": {
@@ -884,7 +884,7 @@
   "shadow": {
     "width": 336,
     "height": 12,
-    "anchorX": 167.5,
+    "anchorX": 209.5,
     "anchorY": 11.5,
     "levels": [
       {

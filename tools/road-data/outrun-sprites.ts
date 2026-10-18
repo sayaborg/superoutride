@@ -148,6 +148,12 @@ export const hitExtents = (main: Uint8Array, index: number): [number, number] =>
   sword(main, EXTENTS + 4 * index + 2),
 ];
 
+/** The middle of sprite `index`'s hit extents, road units right of its object's x as shown, mirrored or not. */
+export function hitMiddle(main: Uint8Array, index: number, mirrored: boolean): number {
+  const [left, right] = hitExtents(main, index);
+  return ((mirrored ? -1 : 1) * (left + right)) / 2;
+}
+
 /** An object standing at a stage's start: as a scenery entry, at depth `line` of the road's 512, and its routine. */
 export interface StartObject {
   readonly flags: number;
@@ -254,4 +260,30 @@ export function representative(pixels: Uint8Array, palette: readonly number[]): 
   }
   requireInput(n > 0, '/sprites', 'A sprite without opaque pixels has no outline');
   return (Math.round(r / n) << 10) | (Math.round(g / n) << 5) | Math.round(b / n);
+}
+
+/** An object's approach: the main CPU's table at 0x28000, a long a road line for each advance of 0 to 15 a tick. */
+const APPROACH = 0x28000;
+/** The road's lines: an object passes the camera at the last. */
+const LINES = 512;
+/** The advance counter gains the displayed km/h / 64 a tick, its remainder carried: a unit is 64 × 0x12F / 65536 positions. */
+export const ADVANCE_POSITIONS = (64 * 0x12f) / 65536;
+
+/**
+ * The road positions an object travels at `kmh` from depth `depth` (16.16 lines) until it passes the camera: each tick
+ * the advance counter gains km/h / 64 units, its remainder carried, and the object's depth the table's step for its
+ * line and that advance (at most 15).
+ */
+export function approach(main: Uint8Array, depth: number, kmh: number): number {
+  let z = depth,
+    carried = 0,
+    units = 0;
+  while (z >>> 16 < LINES) {
+    carried += kmh;
+    const advance = Math.min(15, Math.floor(carried / 64));
+    carried -= 64 * advance;
+    units += advance;
+    z += long(main, APPROACH + (advance << 11) + 4 * (z >>> 16));
+  }
+  return units * ADVANCE_POSITIONS;
 }

@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-4b](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-5](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -217,10 +217,9 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 
 The stage's PRs left:
 
-- RD-4: scenery. RD-4a made the outline boards ([Original road data](original-road-data.md#outline-boards)). Left,
-  RD-4b: the objects placed by the scenery rule, the start's included, with K's solid types (the original's hit
-  routines are such a mark), the sea's edge (drawing 3) as the course's own ground or a limit, and the start line's
-  place checked on `k1` with the start gantry.
+- RD-4: scenery, done but for the sea's edge (drawing 3, a strip along the road whose sprite changes with depth), which
+  RD-5 converts with the other strips (drawings 1, 10 and 11) as ground or a limit, and the start's objects' depth,
+  which K may decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)).
 - RD-5: all of OUTRUN: the 15 stages, the fork stretches and the 5 goals as Sections and Links with the forks' rules
   (locks and closures). Stage 16's OUTRUN courses use it.
 

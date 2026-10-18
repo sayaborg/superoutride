@@ -14,6 +14,7 @@ import { PNG } from 'pngjs';
 import { readZip } from './zip.js';
 import { outlineBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
+import { stageObjects } from './outrun-scenery.js';
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
@@ -221,7 +222,7 @@ try {
       for (const course of OUTRUN_COURSES) {
         const stage = readStage(programs, course.stage);
         const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
-        const { document, profile, crossings } = stageCourse(stage, {
+        const { document, profile, crossings, objects } = stageCourse(stage, {
           ...course,
           length,
           offset: pathOffset(stage.curves, stage.path, length),
@@ -229,6 +230,21 @@ try {
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
           tables: new Map(names.map((n) => [n, readHeightTable(programs.sub, n)])),
           kmh: TOP_KMH,
+          objects: (width) =>
+            stageObjects(
+              programs.main,
+              stage.scenery.filter((p) => p.position < length),
+              {
+                end: length + course.runout,
+                kmh: TOP_KMH,
+                start: course.start,
+                width,
+                // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
+                // f × s_lat × 512 / L metres.
+                startDepth: (line) =>
+                  (CAMERA_DEFINITION.focalLength * lateralScale(vehicle.overallWidth) * 512) / line / stationOf(1),
+              },
+            ).placements,
         });
         const file = `content/courses/${course.id}.course.json`;
         const normalized = normalizeCoursePositions(document as unknown as Json).document;
@@ -248,6 +264,8 @@ try {
           stage: `0x${course.stage.toString(16)}`,
           heights: [round1(Math.min(...heights)), round1(Math.max(...heights))],
           steepest: Math.round(Math.max(...grades) * 1000) / 1000,
+          objects: objects.length,
+          solid: objects.filter((o) => o.hit !== null).length,
           crossings: crossings.map((pairs) => ({
             at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
             apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
@@ -279,6 +297,7 @@ try {
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
           tables,
           kmh: TOP_KMH,
+          objects: () => [],
         });
         const positions = Array.from({ length }, (_, p) => p);
         const points = stage.widthsHeights.filter((p) => p.position < length);

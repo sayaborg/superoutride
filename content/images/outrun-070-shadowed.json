@@ -4,7 +4,7 @@
   "name": "outrun-070-shadowed",
   "width": 182,
   "height": 175,
-  "anchorX": 90.5,
+  "anchorX": 85.25,
   "anchorY": 174.5,
   "defaultPalette": "p027",
   "palettes": {
@@ -1241,7 +1241,7 @@
   "shadow": {
     "width": 336,
     "height": 12,
-    "anchorX": 167.5,
+    "anchorX": 162.25,
     "anchorY": 11.5,
     "levels": [
       {

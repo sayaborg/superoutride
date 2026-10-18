@@ -15,6 +15,7 @@ import { decodeSpritePng } from '../graphics/sprite-png.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import {
   anchorPoint,
+  hitMiddle,
   OBJECT_ROUTINES,
   outline,
   representative,
@@ -71,7 +72,10 @@ export async function outlineBoards(
     const [first] = group;
     const routine = OBJECT_ROUTINES.get(first!.routine)!;
     if (
-      group.some((u) => u.anchor !== first!.anchor || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits)
+      group.some(
+        (u) =>
+          (u.anchor & 12) !== (first!.anchor & 12) || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits,
+      )
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
     const size = spriteSizes(main, first!.sprite)[0]!;
@@ -87,7 +91,11 @@ export async function outlineBoards(
     );
     shape.forEach((v, i) => png.data.set(v ? [r!, g!, b!, 255] : [0, 0, 0, 0], 4 * i));
     const source = new Uint8Array(PNG.sync.write(png));
-    const anchor = anchorPoint(first!.anchor, size.width, size.height);
+    // Its base point at its bottom or middle, across at its hit extents' middle, where a solid object's body stands: an
+    // object anchored by an edge stands half its width aside, and one hit off its middle that far.
+    const middle = anchorPoint(first!.anchor & 12, size.width, size.height);
+    const aside = hitMiddle(main, first!.sprite, first!.mirrored) / routine.pixelUnits;
+    const anchor = { x: middle.x + aside, y: middle.y };
     const recipe: SpriteRecipe = {
       format: SPRITE_RECIPE_FORMAT,
       version: SPRITE_RECIPE_VERSION,
@@ -102,7 +110,14 @@ export async function outlineBoards(
     const withShadow = first!.shadow
       ? {
           ...master,
-          shadow: scaledFrame(shadowPixels, shadow.width, shadow.height, master.width / size.width, first!.anchor),
+          shadow: scaledFrame(
+            shadowPixels,
+            shadow.width,
+            shadow.height,
+            master.width / size.width,
+            first!.anchor & 12,
+            -aside,
+          ),
         }
       : master;
     boards.push({ name, source, recipe: formatSavedJson(recipe), image: courseImageFile(withShadow) });
@@ -113,8 +128,11 @@ export async function outlineBoards(
 const mirror = (pixels: Uint8Array, width: number) =>
   pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
 
-/** A binary frame scaled by `scale`, a texel opaque where its centre lies on an opaque pixel, anchored as `anchor`. */
-function scaledFrame(pixels: Uint8Array, width: number, height: number, scale: number, anchor: number) {
+/**
+ * A binary frame scaled by `scale`, a texel opaque where its centre lies on an opaque pixel, anchored as `anchor`, its
+ * base point `aside` source pixels across from there (the frame then stands that far the other way).
+ */
+function scaledFrame(pixels: Uint8Array, width: number, height: number, scale: number, anchor: number, aside: number) {
   const w = Math.max(1, Math.round(width * scale)),
     h = Math.max(1, Math.round(height * scale));
   const indices = Array.from({ length: w * h }, (_, i) => {
@@ -123,5 +141,5 @@ function scaledFrame(pixels: Uint8Array, width: number, height: number, scale: n
     return pixels[y * width + x] ? 1 : 0;
   });
   const point = anchorPoint(anchor, w, h);
-  return { width: w, height: h, anchorX: point.x, anchorY: point.y, levels: [{ indices }] };
+  return { width: w, height: h, anchorX: point.x - aside * scale, anchorY: point.y, levels: [{ indices }] };
 }

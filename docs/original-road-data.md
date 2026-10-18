@@ -141,11 +141,39 @@ show and the objects standing at the start (of the first stage), mirrored and sh
 `content/sprite-sources/outrun-<sprite>[-mirrored][-shadowed].png` and its recipe, made into the course image of that
 name; with `--check` it rebuilds them and fails where one differs. Its master is the largest size's outline, filled: the
 colored pixels, a row mark between two colored ones, and every pixel no transparent path joins to the picture's edge.
-Its width is its pixels × their road units × `s_lat` ([Course documents](#course-documents)); its base point the
-object's anchor; each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
+Its width is its pixels × their road units × `s_lat` ([Course documents](#course-documents)); its base point at the
+bottom or middle its anchor gives, across at the middle of the sprite's hit extents (so a solid object's body stands
+there); each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
 one color, the palette's mean over the colored pixels. A shadowed board's shadow is the original's shadow at its scale
-and anchor. COCONUT BEACH and its start show 40 boards; its 114 entries of drawing 3, the sea's edge, are not
+and anchor. COCONUT BEACH and its start show 40 boards; its entries of drawing 3, the sea's edge, are not
 converted.
+
+## Placing scenery
+
+A stage's objects stand where the camera passes them at the top speed, 293 km/h (`stageObjects`):
+
+- **Points.** A scenery point is taken when the road position reaches it and replaces the one before. Each tick after,
+  its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from the last
+  back, until its count is spent. A tick advances the road `km/h × 0x12F / 65536` positions, 1.35 at the top speed.
+- **Approach.** An object brought out appears on the road's first line (the second of a tick's two a 1/64 line nearer)
+  and comes nearer by the table at 0x28000: each tick the advance counter gains km/h / 64 units, its remainder carried
+  (a unit 64 × 0x12F / 65536 positions), and the object's depth the table's step for its line and that advance. It
+  passes the camera at line 512, 134 positions after it appeared at the top speed, and stands there.
+- **The start.** An object standing at the start at line L is drawn L / 512 px a road unit: as large as this game's
+  camera shows it at f × `s_lat` × 512 / L metres (2687 / L m). It stands there, or where the camera would pass it
+  by its approach where that is nearer (lines below about 20). `k1`'s start gantry (line 160, 16.8 m) leaves the top of
+  the screen about 5 positions after GO, as it does at that depth; by its approach it would stand 48 m away. The
+  original's objects move faster than they look near the start: no one depth fits both.
+- **Across.** An object's x is from the left road's centre; a right-side one's from the right road's, unless the road
+  width where it appears exceeds 280. Its lateral is that point across from the roads' middle, at the road width where
+  it stands, less lane b's centre there (−w, or −(w + 78.67) / 2 below 78.67). An object anchored by an edge stands half
+  its width aside, and its board's base point is its hit extents' middle. Its height is y road units.
+- **Solid.** An object whose routine tests its extents and which stands on the ground gets a body as wide as its
+  extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
+
+On COCONUT BEACH 1213 objects stand, 1101 of them solid. Six bushes brought out while the roads were apart end on the
+right road where the roads close, as in the original. TRIAL's reference run hits a beach hut once before the finish,
+whose hit extents end 0.6 m beyond the road's edge band as the original's: 98.5 s, against 79.8 s without scenery.
 
 ## Hills
 
@@ -202,9 +230,9 @@ committed document. CI holds no ROM, so the documents are committed; edit the co
 
 | Course                                 | Stage | Sections (from position)                        | Conversion |
 | -------------------------------------- | ----- | ----------------------------------------------- | ---------- |
-| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 2          |
+| `outrun-coconut-beach` (COCONUT BEACH) | 0x3C  | `coconut-beach-1` (0), `coconut-beach-2` (1243) | 3          |
 
-The conversion, version 2 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
+The conversion, version 3 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 

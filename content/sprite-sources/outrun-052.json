@@ -3,7 +3,7 @@
   "version": 3,
   "crop": { "x": 0, "y": 0, "width": 192, "height": 64 },
   "widthMeters": 8.39766613445403,
-  "anchor": { "x": 191.5, "y": 63.5 },
+  "anchor": { "x": 91.5, "y": 63.5 },
   "mask": [],
   "palettes": {
     "p103": [

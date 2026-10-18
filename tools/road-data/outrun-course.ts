@@ -16,9 +16,10 @@ import {
   type Profile,
 } from './outrun-profile.js';
 import type { CurvePoint, HeightTable, Path, Stage, WidthHeightPoint } from './outrun-road.js';
+import type { ObjectPlacement } from './outrun-scenery.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 2;
+export const CONVERSION_VERSION = 3;
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
@@ -170,6 +171,8 @@ export function lanesAt(w: number) {
   if (w >= HALF_LANE) return { a: LANE, b: LANE, c: w - HALF_LANE, m: 0, d: w - HALF_LANE, e: LANE, f: LANE };
   return { a: LANE, b: w + HALF_LANE, c: 0, m: 0, d: 0, e: w + HALF_LANE, f: LANE };
 }
+/** Lane b's centre, the plan's centreline, across from the two roads' middle at road width `w`. */
+export const centreLaneX = (w: number) => (w >= HALF_LANE ? -w : -(w + HALF_LANE) / 2);
 type LaneId = keyof ReturnType<typeof lanesAt>;
 const LANE_IDS: readonly LaneId[] = ['a', 'b', 'c', 'm', 'd', 'e', 'f'];
 
@@ -272,6 +275,8 @@ export interface StageCourseOptions {
   /** The height tables the stage's height points name; the speed its holds are counted at, km/h. */
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
+  /** The stage's objects, given its road width (units) at a position. */
+  readonly objects: (width: (position: number) => number) => readonly ObjectPlacement[];
 }
 
 type Lateral = Record<string, unknown>;
@@ -305,6 +310,8 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
       [b, wb] = widths[i]!;
     return b === a ? wb : wa + ((wb - wa) * (p - a)) / (b - a);
   };
+
+  const objects = options.objects(widthAt);
 
   // The palette's halves: half 0 then half 1 along the road, each half of the period, half 0 from GO.
   const { surface, laneLines, edges, centreLine } = stage.colors;
@@ -491,7 +498,19 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
       strips,
       walls: [],
       openLimits: [],
-      sprites: [],
+      // Each object where the camera passes it, its board standing beside the road; the car hits those with a width.
+      sprites: objects
+        .filter((o) => o.position >= from && o.position < to)
+        .map((o) => ({
+          kind: 'sprite',
+          image: o.image,
+          palette: o.palette,
+          at: at(o.position),
+          lateral: round((o.x - centreLaneX(widthAt(o.position))) * metres),
+          groundOffset: round(o.y * metres),
+          unselectedLink: null,
+          body: o.hit === null ? null : { width: round(o.hit * metres), movable: null },
+        })),
       environments: [
         {
           at: at(from),
@@ -518,7 +537,7 @@ export function stageCourse(stage: Stage, options: StageCourseOptions) {
       to: id,
     })),
   };
-  return { document, profile, crossings };
+  return { document, profile, crossings, objects };
 }
 
 /** The stages raised as courses: their course IDs, names, Sections, skies and runouts (positions on the look-ahead). */
