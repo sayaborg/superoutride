@@ -40,6 +40,11 @@ The tiles are six 32 KiB ROMs, three bit planes of two ROMs each ([Backgrounds](
 `95344b04`, `opr-10232.102` `776ba1eb`, `opr-10267.100` `a85bb823`, `opr-10231.103` `8908bcbf`, `opr-10266.101`
 `9f6f1a74`, `opr-10230.104` `686f5e50` (`OUTRUN_TILE_ROMS`), checked as the programs are.
 
+The sound program is `epr-10187.88` `a10abaa9`, and the PCM samples six 32 KiB ROMs, banks 0–5
+([Voices and effects](#voices-and-effects)): `opr-10193.66` `bcd10dde`, `opr-10192.67` `770f1270`, `opr-10191.68`
+`20a284ab`, `opr-10190.69` `7cab70e2`, `opr-10189.70` `01366b54`, `opr-10188.71` `bad30ad9` (`OUTRUN_SOUND_ROMS`),
+checked as the programs are.
+
 ## Programs
 
 Both CPUs are 68000s: words and longs are big-endian, and an address is an offset in the CPU's assembled program.
@@ -283,6 +288,41 @@ this game's sky is one plane, so the back layer's slower turn is not shown.
   nearest pixel so that its width at that size is the straight picture's, its bottom on the picture's bottom and its
   middle at the anchor less its x offset. Slots 1–14 are the car's colors in every named palette; the lamp is slot 15,
   off and on from palettes 2 and 4.
+
+## Voices and effects
+
+`npm run road-data -- sounds` writes the original's PCM voices and effects as the
+[local originals](development.md#local-originals) of this game's recordings (AAC-LC, 44.1 kHz, mono, by ffmpeg,
+bit-exact):
+
+- **Commands.** The main program sends sound commands through 0x56D4. A command from 0x81 starts the sequence its
+  handler names, the word at 0xBC7 + 2 × (command − 0x81) (`ld a, track; ld hl, sequence`). A sequence's byte 8 counts
+  its channels, whose headers' words follow; a header's word at 7 is its data. A PCM channel's data sets its step
+  (opcode 0x93), its left and right volumes (0x82) and plays notes; a note from 0xD0 plays the sample at
+  0xDDD + 4 × (note − 0xD0): {start low, start high, end high, control}, its bank control bits 4–6
+  (`commandSample`).
+- **Samples.** The PCM ROMs are banks 0–5 (`opr-10193.66` to `opr-10188.71`), each 32 KiB filling its bank twice. A
+  sample's bytes, unsigned about 0x80, run from its start through its end page. The chip outputs 31,250 Hz (a 4 MHz
+  clock over 128), each output taking the byte its position has reached, the position advancing `step / 256` an
+  output (`samplePcm`).
+- **Which.** The main program's places name them: 0x9D after a checkpoint's time bonus (0x8FFC, after the extend
+  jingle 0x86), 0x9E at the goal (0x5B30), 0x9F at the race's start (0xB418), 0x92 where a hit takes the car's speed
+  (0x13EC), 0x8F and 0x90 when the car crashes fast or slow (0x1B12, 0x19EE). The voices play at step 0x48
+  (8,789 Hz): "Checkpoint!" 0.64 s, "Congratulations!" 1.11 s, "Get ready!" 0.50 s.
+
+| Recording              | Command | Sample (bank, start, end page) | Step |
+| ---------------------- | ------- | ------------------------------ | ---- |
+| `effects/checkpoint`   | 0x9D    | 0, 0x6700, 0x7C                | 0x48 |
+| `effects/goal`         | 0x9E    | 3, 0x0000, 0x25                | 0x48 |
+| `effects/countdown-go` | 0x9F    | 0, 0x5600, 0x66                | 0x48 |
+| `impacts/vehicle`      | 0x92    | 2, 0x3C00, 0x5B                | 0x80 |
+| `impacts/movable`      | 0x92    | 2, 0x3C00, 0x5B                | 0x80 |
+| `impacts/object`       | 0x8F    | 2, 0x0900, 0x1F                | 0x40 |
+| `impacts/wall`         | 0x90    | 2, 0x2000, 0x3B                | 0xA0 |
+
+Each recording is its command's first sample played once at its step; a crash's sequence goes on to play it again
+softer, which is left out. The other effects (the jingles, menus and lamps) are the FM chip's, not PCM, and stay this
+game's.
 
 ## Dump
 

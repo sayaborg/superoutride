@@ -485,6 +485,7 @@ runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-med
 | `look`   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load              |
 | `boards` | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), and their [local originals](#local-originals), or with `--check` fail where a board differs        |
 | `player` | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                              |
+| `sounds` | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                             |
 
 ### Local originals
 
@@ -501,13 +502,15 @@ for K's own runs only: they never reach Git, a PR or Pages.
   words at the same 40 texels/m and nearest-neighbor scale, with the ROM's palette under each palette name.
   `npm run road-data -- course` writes each OUTRUN stage's sky and its original, the stage's background from the tile
   ROMs ([Backgrounds](original-road-data.md#backgrounds)). `npm run road-data -- player` writes the original of TESTAROSSA's picture set, the original's Ferrari
-  ([The player's car](original-road-data.md#the-players-car)).
+  ([The player's car](original-road-data.md#the-players-car)). `npm run road-data -- sounds` writes the originals of the recordings the original
+  plays from its PCM ROMs, with ffmpeg ([Voices and effects](original-road-data.md#voices-and-effects)).
 - **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
   paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
   authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.
 
-To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- boards`, `course` and
-`player`, then `npm run build:originals`, serve the repository root (`python3 -m http.server 8000`) and open the game with `dev=1`.
+To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- boards`, `course`,
+`player` and `sounds`, then `npm run build:originals`, serve the repository root (`python3 -m http.server 8000`)
+and open the game with `dev=1`.
 `npm run build` returns to the published files.
 
 ### Skies command

@@ -3,7 +3,8 @@
  * Each command prints one JSON result, or its diagnostics and exits 1.
  */
 import path from 'node:path';
-import { readdir, readFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
@@ -22,6 +23,7 @@ import { CONVERSION_VERSION, lateralScale, OUTRUN_COURSES, stageCourse, stationO
 import { OUTRUN_SKIES, outrunCourse, SKY_HORIZON, skyName } from './outrun-branch.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
 import { playerOriginal } from './outrun-player.js';
+import { assembleSound, commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
@@ -456,6 +458,33 @@ try {
       const file = path.join(ORIGINALS_DIRECTORY, path.relative('content', PLAYER_SET));
       await atomicWrite(file, formatSavedJson(playerOriginal(programs.main, words, published)));
       console.log(JSON.stringify({ ok: true, zip, original: file }));
+      break;
+    }
+    case 'sounds': {
+      // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
+      const { zip } = await readPrograms(options.get('--zip'));
+      const { program, banks } = assembleSound(readZip(new Uint8Array(await readFile(zip))));
+      const written: string[] = [];
+      for (const [recording, command] of OUTRUN_SOUNDS) {
+        const sample = commandSample(program, command);
+        const pcm = samplePcm(banks, sample);
+        const file = path.join(ORIGINALS_DIRECTORY, `${recording}.m4a`);
+        await mkdir(path.dirname(file), { recursive: true });
+        // ffmpeg resamples the chip's output and encodes it, bit-exact so the same ROMs give the same file.
+        const result = spawnSync(
+          'ffmpeg',
+          [
+            ...['-v', 'error', '-y', '-f', 's16le', '-ar', String(PCM_OUTPUT_RATE)],
+            ...['-ac', '1', '-i', 'pipe:0', '-ar', '44100', '-c:a', 'aac', '-b:a', '96k'],
+            ...['-fflags', '+bitexact', '-flags:a', '+bitexact', '-map_metadata', '-1', file],
+          ],
+          { input: new Uint8Array(pcm.buffer) },
+        );
+        requireInput(result.error === undefined, '/ffmpeg', 'The sounds command needs ffmpeg on the path');
+        requireInput(result.status === 0, '/ffmpeg', `ffmpeg did not encode ${recording}: ${String(result.stderr)}`);
+        written.push(file);
+      }
+      console.log(JSON.stringify({ ok: true, zip, originals: written }));
       break;
     }
     case 'boards': {
