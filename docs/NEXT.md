@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, [DT-6](#stage-dt--drift-tuned-trial-vehicles), and DT-3
+Next PR: [VC-5e2c](#stage-vc--courses-from-footage) while VC-T waits on K, [DT-6](#stage-dt--drift-tuned-trial-vehicles) and DT-3
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -249,9 +249,17 @@ K's decisions for the stage:
   `gripX=gripY=0.8` and AE86 0.7, both with the sliding ratio 0.85 and their other values unchanged, for K to tune in
   DEV (DT-6).
 
+DT-6 stopped before adopting those values: with them, planned drivers spin both cars despite wheel slip protection,
+reaching 84–90° in three of ten runs of DT-2b's check (its five runs at LOW and HIGH traffic), where DT-2's tire stays
+within 39° but for one 71° slide a contact began. Braking at the limit in a corner, ABS holds a wheel at the pure
+longitudinal peak, so the wheel's combined slip passes the peak and the rear's falling force lets the car yaw away.
+Neither planning with the sliding force nor protection bounded at the combined peak prevents the spins. K decides among
+the DT-6 report's options: adopting the values and accepting the spins until the drifting AI, keeping the two cars out
+of rivals and traffic, other values, or a slide-catching aid for planned drivers.
+
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire and `wheelSlip` off. K tries them
-in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX and GY in DEV and
-adopting the exported mechanics document. Until their own pictures and exhausts are made, they borrow:
+in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY and SR in DEV
+and adopting the exported mechanics document. Until their own pictures and exhausts are made, they borrow:
 
 - Pictures: GOLF GTI 16V's set. Their own come from GLB models, with their own exhausts at the same time. The color
   names stand for the real paints, the borrowed pictures' colors do not match them: S13 CRANBERRY RED, WARM WHITE,
@@ -442,6 +450,7 @@ and switching is a cut.
 | Traffic          | Whether traffic speeds vary or density changes: one speed lets it fill both lanes of a two-lane road; lane drivers never pass                                                                                                                                                                                                                                                            |
 | Interaction      | Whether a slight front-face overlap with a solid object deflects the vehicle instead of stopping it (real devices)                                                                                                                                                                                                                                                                       |
 | Interaction      | How far a vehicle rebounds from a solid object (about 7 m/s back from 40 m/s today; real devices)                                                                                                                                                                                                                                                                                        |
+| Interaction      | Whether a vehicle stopped against a wall or course limit recovers as one held by a fixed object does: a spun S13 DRIFT TUNED came to rest nose-in against TSUKUBA's course limit, its rear wheels spinning on the grass, and no input moved it (no reverse gear; manual recovery is DEV's)                                                                                               |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                                                                                                                                                                                         |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
 | Test course      | Stage OT "Decisions for K" ([below](#stage-ot-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
