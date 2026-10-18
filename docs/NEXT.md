@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-2](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
+Next PR: [RD-3](#stage-rd--outrun-from-the-originals-road-data), and [DT-3](#stage-dt--drift-tuned-trial-vehicles)
 once K decides, then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -191,20 +191,7 @@ What a trial on K's ROMs and `k1` established:
 
 The ROMs' format and addresses are [Original road data](original-road-data.md)'s.
 
-The original's hills (kind 0 checked on `k1`): 512 road lines; level, each line's slope is 576 × 16 (the horizon base
-0x240), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1` 151.4). With the current entry `i` and the share
-`f` of it passed:
-
-1. Segment lengths, near to far: s0 = 255(1 − f), s1 = (256 + 255f)/2, and the rest R = 512 − s0 − s1 halved in turn:
-   s2 = R/2, s3 = R/4, s4 = R/8, s5 = R/16, s6 = R/16.
-2. Slopes: segment 0 the base; segment 1 the base + 16·e[i]·(1 − f); segment k ≥ 2 segment k − 1's + 16·e[i + k − 1].
-3. Summing slope × length from near to far, each line's row is 223 − sum / 65536; the visible top is the least row.
-
-An entry spans 2.125 × step × m positions, m the ascent factor where e > 0, the descent factor where e < 0, 1 where
-e = 0. A table ends when e[i + 6] is its end mark. Kinds 1 and 2 rise (2.125 × step), hold and return (2.125 × step);
-the hold counts its wait down by the whole part of `120 × positions advanced / step` each tick, so it lasts longer the
-slower the car. Kinds 3 and 4 follow the same idea. Kind 1 is checked on COCONUT BEACH's table 32 (position 1600), a
-dip, on `k1`.
+The original's hills are [Original road data](original-road-data.md#hills)'s.
 
 Conversion to a course document:
 
@@ -215,12 +202,11 @@ Conversion to a course document:
   long as the entry, ending where the camera passes the entry: the table's start plus entries 0 to k's lengths. Runs of
   one sign may form one PVI. A table whose entries do not sum to 0 leaves a grade: the original's camera follows the
   road, so a constant grade looks level; this is the original's and is not cancelled. `c_h` is `c_look`, one value for
-  the game: the least squares match, over the stage, of the road's top in this game's drawing to the original's (the
-  original's hills above), compared as rows from the horizon over the screen's height (the original's 224 rows), never
-  as angles over a focal length. Each crest's
-  difference of top rows is reported, and a rule (a value per height table kind) is proposed and the work stops where a
-  crest differs by more than ±3 rows; each crest's load at 293 km/h is reported, and `c_h` is not lowered where a car
-  leaves the road.
+  the game: the least squares match, over the stage, of the road's top in this game's drawing to the original's
+  ([hills](original-road-data.md#hills)), compared as rows from the horizon over the screen's height (the original's 224
+  rows), never as angles over a focal length. Each crest's difference of top rows is reported, and a rule (a value per
+  height table kind) is proposed and the work stops where a crest differs by more than ±3 rows; each crest's load at 293
+  km/h is reported, and `c_h` is not lowered where a car leaves the road.
 - Widths and lanes: the original draws two roads centred at ±road width (units), each of three lanes with edges ±236
   units from its centre (the 48 units between the collision limits 212 and 260 are the game's rule, not the car's shape,
   and are not taken as its track). The road width is a polyline approaching each target at its point's rate. While the
@@ -248,7 +234,6 @@ every 50 positions (this game's drawing at `k1`'s s(t) and lateral, the car's of
 the original's road position as the camera's s, beside `k1`'s frame) is made for K in `reference-media/`, never
 committed. No residual map and no optimization through the renderer.
 
-- RD-2: the original's hills, kinds 0 to 4, checked against `k1`'s road top.
 - RD-3: COCONUT BEACH, one Section from the start to 1948, by the conversion, in `content/` named by
   [product.md](product.md)'s rules; `c_look` fixed, built, driven with `drive` and checked. Reference driving and time
   limits as for OUTRUN TRIAL A STEEP, with margins where a crest lifts the car.

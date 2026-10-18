@@ -223,3 +223,49 @@ test('a path running ahead of its curves is found by the shift that matches thei
   const later = stage.curves.map((c) => (c.position ? { ...c, position: c.position + 20 } : c));
   assert.equal(pathOffset(later, stage.path, 1948, 40), 20);
 });
+
+test("the original's hills: level road tops at row 151, a crest's window raises it, and holds count down by tick", async () => {
+  const { roadTop, hillsAlong, holdLength, LEVEL_HORIZON } = await import('../../tools/road-data/outrun-hills.ts');
+  // Level: 223 − 512 × 576 × 16 / 65536.
+  assert.equal(roadTop(LEVEL_HORIZON, [], 0), 151);
+  // A raised horizon of 864: 223 − 108.
+  assert.equal(roadTop(864, [], 0), 115);
+  // Kind 1's two entries of −192 on segments 1 and 2: the road falls away ahead, its top at row 169.1.
+  assert.ok(Math.abs(roadTop(LEVEL_HORIZON, [16 * -192, 16 * -192], 0) - 169.09) < 0.01);
+  // At 293 km/h a tick advances 1.3547 positions and counts a wait of 255 down by 8: 32 ticks.
+  const valley = { kind: 1, step: 20, wait: 255, entries: [-192, -192] };
+  assert.ok(Math.abs(holdLength(valley, 293) - 32 * ((293 * 0x12f) / 65536)) < 1e-9);
+  // A kind 0 table [0 ×6, 576, 576, −576 ×3, 0 ×6] from position 1: its crest at row 112.5 near 40; level after.
+  const crest = {
+    kind: 0,
+    step: 3,
+    descent: 3,
+    ascent: 3,
+    entries: [0, 0, 0, 0, 0, 0, 576, 576, -576, -576, -576, 0, 0, 0, 0, 0, 0],
+  };
+  const positions = Array.from({ length: 800 }, (_, i) => i / 4);
+  const tops = hillsAlong(
+    [{ position: 1, kind: 0, value: 211, speed: 0 }],
+    new Map([[211, crest]]),
+    positions,
+    () => 293,
+  );
+  const least = Math.min(...tops);
+  assert.ok(Math.abs(least - 112.5) < 0.1);
+  assert.ok(Math.abs(positions[tops.indexOf(least)] - 40.5) <= 0.5);
+  assert.equal(tops.at(-1), 151);
+  // A point reached while a table runs is dropped.
+  const dropped = hillsAlong(
+    [
+      { position: 1, kind: 0, value: 211, speed: 0 },
+      { position: 50, kind: 0, value: 1, speed: 0 },
+    ],
+    new Map([
+      [211, crest],
+      [1, valley],
+    ]),
+    positions,
+    () => 293,
+  );
+  assert.deepEqual(dropped, tops);
+});

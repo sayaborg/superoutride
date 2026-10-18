@@ -88,6 +88,41 @@ A palette word `w` is RGB555, each channel four bits over a low bit shared from 
 R = (w & 0xF) << 1 | (w >> 12 & 1), G = (w >> 4 & 0xF) << 1 | (w >> 13 & 1), B = (w >> 8 & 0xF) << 1 | (w >> 14 & 1).
 Strips take it as their RGB555 as it is.
 
+## Hills
+
+The original builds its hills as shapes on its screen. Its road is 512 lines; level, each line's slope is the horizon's
+base 0x240 × 16 (16.16 rows), so the road's top is row 223 − 512 × 9216 / 65536 = 151 (`k1`'s 151.4). The road's top
+along a stage (`hillsAlong`) follows from its height points and tables alone; nothing is fitted:
+
+- **The shape.** The lines form seven segments, near to far: s0 = 255(1 − f), s1 = (256 + 255f)/2, and the rest
+  R = 512 − s0 − s1 halved in turn, R/2, R/4, R/8, R/16, R/16. Segment 0's slope is the base; each further segment's is
+  its predecessor's plus an increment. Each line's row is 223 − the slopes summed from the nearest line ÷ 65536; the
+  road's top is the least row.
+- **Points.** A height point starts its table when the road position reaches it; one reached while a table runs is
+  dropped.
+- **Kind 0** slides its entries through the segments: at entry `i`, a share `f` of it passed, segment 1's increment is
+  16·e[i]·(1 − f) and segment k's (k ≥ 2) 16·e[i + k − 1]. An entry spans 2.125 × step × m positions, m the ascent
+  factor where e > 0, the descent factor where e < 0, 1 where e = 0. The table ends when e[i + 6] is its end mark.
+- **Kinds 1 and 2** rise over 2.125 × step positions, hold, and return over 2.125 × step: their two entries are segments
+  1's and 2's increments (×16) at the rise's share. The hold counts the wait down by the whole part of
+  `120 × positions advanced ÷ step` each tick, so it lasts longer the slower the car (`holdLength`).
+- **Kind 3** slides its entries in as kind 0 does (each over 2.125 × step), holds the full window by its word as kinds 1
+  and 2 hold, and returns it at a falling share over 2.125 × step.
+- **Kind 4** moves the horizon's base to its word over 2.125 × step positions, and it stays.
+
+Kinds 0 and 1 are checked on `k1` (COCONUT BEACH, no fit; `k1`'s position is the displayed speed's integral, which lags
+the original's later in the stage):
+
+| Table (kind) | Rule's road top      | `k1`'s     |
+| ------------ | -------------------- | ---------- |
+| 211 (0)      | row 112.5 at 40.5    | 107 to 113 |
+| 134 (0)      | row 122.2 at 462     | 121        |
+| 213 (0)      | rows 101.4 and 109.4 | 100, 107   |
+| 32 (1)       | hold at row 169.1    | 166 to 173 |
+
+Kinds 3 and 4 follow the same idea and are not yet checked against footage; under kind 4's raised base some of
+stage 0x3B's tables put the road's top at or above the screen's top.
+
 ## Dump
 
 `npm run road-data -- read` ([Development](development.md#road-data-commands)) checks and reads the ROM zip and writes
@@ -96,4 +131,6 @@ Strips take it as their RGB555 as it is.
 goal stretches with their paths; the height tables and scenery types their points name. It refuses a stage whose path
 does not turn 0° or ±360° over its length, and prints each stage's counts, points past its end, its path's offset
 against its curves, and each curve's radius against the one its aligned path measures, positions over its heading
-change two positions in from either end (a join spreads its turn over a position or two).
+change two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- hills`
+writes each stage's road top by the [hills](#hills) at every quarter position, `hills-<stage>.json` beside the dump,
+the holds counted at `--kmh` (293 unless told), and prints each height point's highest and lowest top.

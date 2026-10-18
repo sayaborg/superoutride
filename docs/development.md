@@ -480,6 +480,7 @@ runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-med
 | Command | Purpose                                                                                                                                            |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read`  | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`) |
+| `hills` | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                   |
 
 ### Skies command
 

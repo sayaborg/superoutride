@@ -6,6 +6,7 @@ import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { readZip } from './zip.js';
+import { hillsAlong } from './outrun-hills.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import {
   OUTRUN_STAGES,
@@ -17,12 +18,16 @@ import {
   readSceneryType,
   readStage,
   stageLength,
+  type HeightTable,
+  type Stage,
   type Stretch,
 } from './outrun-road.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
 const round1 = (value: number) => Math.round(value * 10) / 10;
+/** The top speed, km/h: the holds of the hills are counted at it unless told otherwise. */
+const TOP_KMH = 293;
 
 /** Where K's ROM zip and the tool's dumps lie: never committed. */
 const ROM_DIRECTORY = 'reference-media/outrun/rom';
@@ -132,6 +137,55 @@ try {
           stages: summary,
         }),
       );
+      break;
+    }
+    case 'hills': {
+      // The road's top row along each stage by the original's rule, from the dump, at a quarter position's spacing;
+      // the holds counted at `--kmh` (default the top speed, 293).
+      const out = options.get('--out') ?? DUMP_DIRECTORY;
+      const dump = JSON.parse(await readFile(path.join(out, 'outrun.json'), 'utf8')) as {
+        stageLength: number;
+        stages: Stage[];
+        heightTables: Record<string, HeightTable>;
+      };
+      const kmh = Number(options.get('--kmh') ?? TOP_KMH);
+      requireInput(kmh > 0, '/arguments/--kmh', '--kmh is a speed above 0');
+      const only = options.get('--stage');
+      const tables = new Map(Object.entries(dump.heightTables).map(([n, table]) => [Number(n), table]));
+      const positions = Array.from({ length: dump.stageLength * 4 }, (_, i) => i / 4);
+      const stages = [];
+      for (const stage of dump.stages) {
+        const name = `0x${stage.number.toString(16)}`;
+        if (only && only !== name) continue;
+        const tops = hillsAlong(stage.widthsHeights, tables, positions, () => kmh);
+        await atomicWrite(
+          path.join(out, `hills-${name}.json`),
+          JSON.stringify({ kmh, step: 0.25, tops: Array.from(tops, (t) => round1(t)) }) + '\n',
+        );
+        // Each height point's table and the extremes of the top until the next point.
+        const points = stage.widthsHeights.filter((p) => p.kind === 0);
+        stages.push({
+          stage: name,
+          points: points.map((p, k) => {
+            const from = p.position * 4,
+              to = Math.min(tops.length, (points[k + 1]?.position ?? dump.stageLength) * 4);
+            let least = from,
+              most = from;
+            for (let i = from; i < to; i++) {
+              if (tops[i]! < tops[least]!) least = i;
+              if (tops[i]! > tops[most]!) most = i;
+            }
+            return {
+              position: p.position,
+              table: p.value,
+              kind: tables.get(p.value)?.kind,
+              highest: { row: round1(tops[least]!), at: least / 4 },
+              lowest: { row: round1(tops[most]!), at: most / 4 },
+            };
+          }),
+        });
+      }
+      console.log(JSON.stringify({ ok: true, kmh, stages }));
       break;
     }
     default:
