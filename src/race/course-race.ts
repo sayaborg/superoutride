@@ -24,7 +24,12 @@ import {
 } from './present-vehicle.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { createRivalPace } from './rival-pace.js';
-import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
+import {
+  createPlannedDriverWorkspace,
+  createVariablePlannedDriver,
+  drivingDomainBefore,
+  resetPlannedDriving,
+} from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
@@ -507,6 +512,8 @@ export function createCourseRace(options: {
     if (player.body.driving) return;
     const { s, l } = player.actor.vehicle.course;
     const offset = takeLine(playerIntent, s, l);
+    // The run driver takes the vehicle over afresh.
+    resetPlannedDriving(playerWorkspace);
     player.body.driving = {
       driver: takeoverDriver,
       intent: playerIntent,
