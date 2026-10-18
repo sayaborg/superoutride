@@ -366,8 +366,8 @@ these differences:
   fork's Section ends, its passages lie in different Sections: each cut at the last joint before the later passage,
   after the earlier and before the fork's choice, where the road is one (its width under 236). Crossings are looked
   for, and kept 6 m apart, to the same end; the roads beyond it are not checked against the stage's.
-- **Names.** The stages are named as the original's map names them, matched to the table by their scenery (K to
-  confirm): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY MOUNTAIN, 0x2F
+- **Names.** The stages are named as the original's map names them, matched to the table by their scenery (K
+  accepted the match): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY MOUNTAIN, 0x2F
   ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5 0x32
   LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD. Each stage's Sections are named
   after it: its first by its name, later ones `-2`, `-3`, its fork's roads `-left` and `-right`; its finish is
