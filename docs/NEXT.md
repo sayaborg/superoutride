@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-9](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
+Next PR: [RD-10](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -237,8 +237,8 @@ The ROMs' format and addresses are [Original road data](original-road-data.md)'s
 
 The original's hills are [Original road data](original-road-data.md#hills)'s.
 
-The conversion is [Original road data](original-road-data.md#course-documents)'s; OUTRUN's whole course is
-[OUTRUN](original-road-data.md#outrun)'s.
+The conversion is [Original road data](original-road-data.md#course-documents)'s; OUTRUN's stages are
+[OUTRUN's stages](original-road-data.md#outruns-stages)'.
 
 The stage's PRs left:
 
@@ -305,8 +305,6 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-9: the BRANCH course `outrun`, its TRIAL class, its measured products and the code making it removed, before the
-  new roads, so that boards resized later do not change its identity too. Until RD-10 TRIAL has no OUTRUN.
 - RD-10: the 7 roads. The road's rules (units, the two roads' composite of lines and edges, the lanes driven, the
   ground's colors from the ROM, the stripes' period, the plan as where the original draws the centre lane and the
   map from road positions to its stations, rounded corners), the stage, fork and goal pieces, the roads assembled,

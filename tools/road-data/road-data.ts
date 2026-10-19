@@ -6,21 +6,16 @@ import path from 'node:path';
 import { mkdir, readdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
-import { normalizeCoursePositions } from '../authoring/course-joints.js';
-import type { Json } from '../authoring/json-pointer.js';
-import { readCourseDocument } from '../../src/course/course-document.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { PNG } from 'pngjs';
 import { readZip } from './zip.js';
 import { outlineBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
-import { stageObjects } from './outrun-scenery.js';
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { CONVERSION_VERSION, lateralScale, stageCourse, stationOf } from './outrun-course.js';
-import { outrunCourse } from './outrun-branch.js';
+import { lateralScale, stageCourse, stationOf } from './outrun-course.js';
 import { OUTRUN_SKIES, SKY_HORIZON, skyName } from './outrun-names.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
 import { playerOriginal } from './outrun-player.js';
@@ -226,62 +221,10 @@ try {
       break;
     }
     case 'course': {
-      // Each stage's course document from the ROMs, written to content, or with `--check` compared with the one there.
+      // Each OUTRUN stage's sky as published, written to content, or with `--check` compared with the one there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));
-      const length = stageLength(programs.main);
-      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
-        overallWidth: number;
-      };
-      const courses = [];
-      // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
-      // f × s_lat × 512 / L metres, a road position.
-      const startDepth = (line: number) =>
-        (CAMERA_DEFINITION.focalLength * lateralScale(vehicle.overallWidth) * 512) / line / stationOf(1);
-      // A course document normalized and read, written to content or with `--check` compared with the one there.
-      const save = async (id: string, document: unknown) => {
-        const file = `content/courses/${id}.course.json`;
-        const normalized = normalizeCoursePositions(document as Json).document;
-        const read = readCourseDocument(normalized, file);
-        if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
-        const text = formatSavedJson(normalized);
-        if (check) {
-          const committed = await readFile(file, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
-        } else await atomicWrite(file, text);
-        return file;
-      };
       const tiles = assembleTiles(readZip(new Uint8Array(await readFile(zip))));
-      // OUTRUN: every stage, its forks and goals.
-      const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
-      const fork = readForkStretch(programs);
-      const goals = readGoalStretches(programs);
-      const names = new Set(
-        [...stages.values()].flatMap((s) => s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value)),
-      );
-      const outrun = outrunCourse({
-        stages,
-        fork,
-        goals,
-        length,
-        tables: new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)])),
-        carWidth: vehicle.overallWidth,
-        cameraDistance: cameraDistance(CAMERA_DEFINITION),
-        kmh: TOP_KMH,
-        objects: (stage, width, end) =>
-          stageObjects(
-            programs.main,
-            stage.scenery.filter((p) => p.position < length),
-            {
-              end,
-              kmh: TOP_KMH,
-              start: stage.number === OUTRUN_STAGES[0]![0],
-              width,
-              startDepth,
-            },
-          ).placements,
-      });
-      const file = await save('outrun', outrun.document);
       // Each stage's sky as published: its generic sky under its own name.
       for (const [number, generic] of OUTRUN_SKIES) {
         const name = skyName(number);
@@ -306,33 +249,7 @@ try {
         const original = drawScreenPicture(name, { width, height, pixels }, { columns, rows, fit: 'fill' });
         await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), JSON.stringify(original));
       }
-      const stops = (p: number) => round1(stationOf(p));
-      courses.push({
-        course: file,
-        sections: outrun.document.sections.length,
-        links: outrun.document.links.length,
-        stages: outrun.reports.map(({ stage, name, cuts, road }) => {
-          const stations = Array.from({ length: Math.floor(stationOf(road.end)) + 1 }, (_, s) => s);
-          return {
-            stage: `0x${stage.toString(16)}`,
-            name,
-            cuts: cuts.map(stops),
-            heights: [
-              round1(Math.min(...stations.map(road.profile.height))),
-              round1(Math.max(...stations.map(road.profile.height))),
-            ],
-            steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
-            crossings: road.crossings.map((pairs) => ({
-              at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
-              apart: round1(
-                Math.min(...pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b)))),
-              ),
-            })),
-            metres: stops(road.end),
-          };
-        }),
-      });
-      console.log(JSON.stringify({ ok: true, zip, conversion: CONVERSION_VERSION, checked: check, courses }));
+      console.log(JSON.stringify({ ok: true, zip, checked: check, skies: [...OUTRUN_SKIES.keys()].map(skyName) }));
       break;
     }
     case 'look': {

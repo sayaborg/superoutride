@@ -1737,13 +1737,6 @@ from their frames (sources and recipes under `content/sprite-sources/`), the sky
 recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
 the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
-`outrun` (OUTRUN) is the whole of OUTRUN as one BRANCH course, written by the road data tool from the original's road
-data ([Original road data](original-road-data.md#outrun)), which owns its plan, lanes, strips, hills, scenery, start,
-forks and goals; run the conversion rather than editing the document. Its 15 stages each end in a fork whose lock
-stands where the original chooses the route and whose roads close to the next stage's start, merging where two forks
-lead to one stage, or in one of its 5 goals. Its scenery is outline boards. The development series TRIAL's class
-OUTRUN times it (TESTAROSSA, a margin of 1.35).
-
 ## Observation formats
 
 ### Course observations

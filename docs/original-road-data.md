@@ -338,19 +338,18 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 
 ## Course documents
 
-`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes
-`outrun` (OUTRUN, [OUTRUN](#outrun)), every stage raised as a road, to `content/courses/`; with `--check` it rebuilds
-it and fails where it differs from the committed document. CI holds no ROM, so the document is committed; edit the
-conversion, not the document.
+A stage's tables become a road (`stageRoad`) as below; `npm run road-data -- look`
+([Development](development.md#road-data-commands)) takes each stage alone so. No course document is written from the
+ROMs at present.
 
 The conversion, version 7 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
 ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
 as its program draws them:
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](#hills)'s advance per tick). Position 0 is GO,
-  the camera's station. The stage's 1948 positions end at its fork or goal stretch ([OUTRUN](#outrun)); the `look`
-  command takes a stage alone, a runout of 225 positions following on the path's look-ahead, which carries on the
-  stage's last segment, a straight.
+  the camera's station. The stage's 1948 positions end at its fork or goal stretch; the `look` command takes a stage
+  alone, a runout of 225 positions following on the path's look-ahead, which carries on the stage's last segment, a
+  straight.
 - **Plan.** Each curve segment, moved back by the path's offset, is a Straight or an Arc over the same positions of the
   path. A straight's heading is the path's two positions inside its ends, where it varies by no more than 0.1°. An Arc
   turns, the side its kind says, from the heading at its start to the heading at its end, each a neighbouring
@@ -358,9 +357,7 @@ as its program draws them:
   as the path does between its straights, COCONUT BEACH 360° left; an Arc's radius differs from its curve's R by a few
   percent where a join spreads its turn.
 - **Overpass.** COCONUT BEACH's plan passes over itself: its finish crosses its curve from 795, about 1740 m before,
-  nearly square. The passages lie in different Sections ([Architecture](architecture.md#plan-authority)), cut at a joint
-  between them where the road is one and joined by a Link on lane b; each later Section's sky keeps its direction by the
-  heading its frame faces. The [profile](#profile) keeps the passages at least 6 m apart.
+  nearly square. The [profile](#profile) keeps the passages at least 6 m apart.
 - **Road width.** From 0x1C2 (450) at position 0, each width point approaches its target from its position by
   |speed| × 16 / 303 units a position until it is reached or the next point begins; the runout keeps the last width.
 - **Lanes.** Each road has three lanes of 472/3 units, its edges ±236 from its centre; the two roads are centred at
@@ -441,57 +438,19 @@ returned over the 96 positions to the next table, raises the top 38 rows above t
 The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
 passages are 57.3 m apart without a bump.
 
-## OUTRUN
+## OUTRUN's stages
 
-`outrun` (OUTRUN) is the whole game as one BRANCH course: the 15 stages of the stage table (0xE49C, row r from 8r),
-each a road raised as a [course document](#course-documents)'s is, from GO through what follows the stage's end, with
-these differences:
+The stages are named as the original's map names them, matched to the stage table (0xE49C, row r from 8r) by their
+scenery (K accepted the match): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY
+MOUNTAIN, 0x2F ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5
+0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`).
 
-- **Start.** COCONUT BEACH, the entry, starts at road width 450 with the grid; every other stage at 0xD4 (212), the
-  width the roads close to at a fork.
-- **Sky.** Each stage's Sections show its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it
-  is a copy of the generic sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast
-  (COCONUT BEACH), sky-cliff (DEVIL'S CANYON), sky-country (GATEWAY, WILDERNESS), sky-overcast (CLOUDY MOUNTAIN),
-  sky-mountain (ALPS), sky-desert (DESERT, DEATH VALLEY), sky-seafront (SEASIDE TOWN), sky-farm (WHEAT FIELD,
-  VINEYARD), sky-town (OLD CAPITAL), sky-lake (LAKESIDE), sky-forest (AUTOBAHN) and sky-alpine-dark (DESOLATION HILL).
-  A [local original](development.md#local-originals) of its name replaces it.
-- **Fork.** A stage of rows 1 to 4 ends in the fork stretch (its tables at 0x1DFA4: a straight to its position 63, a
-  left curve to 160, a straight to 265, a right curve to 362 and a straight to 384), run as the main CPU's program runs
-  it (0x8780 to 0x89B6): the road width the stage ends at is kept; from 63 the roads part by 8 units a position; beyond
-  0x168 (360) the route is the side of the roads' middle the car is on (its x positive to the left); beyond 0x300 (768)
-  the roads switch, the car carried to the other road's place, and the roads close by 8 a position to 212; the next
-  stage begins at 384. Left leads to the next row's stage one to the right in the table, right to the one below it
-  (from COCONUT BEACH left to 0x3B, right to 0x1E).
-- **Choice.** Where the width reaches 360, a straight of 2 positions holds it (the format's fork zone, which the
-  original has not; the curve's pieces either side turn the whole curve's turn): the fork's lock stands 0.5 position
-  into it, its closure 1. The roads then part to 768 and switch.
-- **Switch.** The stage's last Section runs to the stretch's last straight (362), at least 484 m beyond its lock as
-  the Route requires: beyond the switch a road appears beside each, on its far side, where the other stood
-  (g, h, i | a, b, c | d, e, f | j, k, l), growing from 0 over a position, and each pair closes to 212 while the two
-  pairs keep their median. A Section for each pair then carries it on to the next stage's start, its checkpoint at its
-  end (the original's time extension): the left road on its lane b, as the right road of the next stage's pair (its
-  centre lane e), the right road on its lane e, as the left (its centre lane b), each joined to the next stage on lane
-  b. A stage entered from two forks merges there.
-- **Goal.** A stage of row 5 ends in the goal stretch its column names (0xE4EC, its tables by the blocks at 0xE514),
-  its road to 600 the runout past the finish at the stage's end, its road width from its own width point; the ending's
-  parting of the roads beyond its 182 is not raised.
-- **Profile.** Each stage's road, from GO to the next stage's start or the goal stretch's 600, has one
-  [profile](#profile), closed level at height 0 at both ends, so the stages a merge joins meet at one height.
-- **Sections.** Where a road's coordinate domain (the sand's outer edges and 4 m beyond) passes over itself before its
-  fork's Section ends, its passages lie in different Sections: each cut at the last joint before the later passage,
-  after the earlier and before the fork's choice, where the road is one (its width under 236). Crossings are looked
-  for, and kept 6 m apart, to the same end; the roads beyond it are not checked against the stage's.
-- **Names.** The stages are named as the original's map names them, matched to the table by their scenery (K
-  accepted the match): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY MOUNTAIN, 0x2F
-  ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5 0x32
-  LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD. Each stage's Sections are named
-  after it: its first by its name, later ones `-2`, `-3`, its fork's roads `-left` and `-right`; its finish is
-  `<stage>-GOAL` and each fork road's checkpoint `<stage>-<side>-CP`.
-
-Its scenery is [placed](#placing-scenery) on each stage's road from its scenery points; the start's objects stand on
-COCONUT BEACH. A goal stretch's scenery stands in the ending, whose roads are not raised, and is left out. An object's x is from the middle of the
-roads, the fork's two roads' before its switch; one beyond a switch would be left out, and none is. 32,156 objects
-stand on OUTRUN, 14,105 of them solid; 14,270 of the rest are strips and patches. A Section writes each run of equal objects without a body at equal spacing as one `repeat` of its first (to within 2 µm); a solid object stands at its own station.
+Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it is a copy of the generic
+sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast (COCONUT BEACH), sky-cliff
+(DEVIL'S CANYON), sky-country (GATEWAY, WILDERNESS), sky-overcast (CLOUDY MOUNTAIN), sky-mountain (ALPS), sky-desert
+(DESERT, DEATH VALLEY), sky-seafront (SEASIDE TOWN), sky-farm (WHEAT FIELD, VINEYARD), sky-town (OLD CAPITAL), sky-lake
+(LAKESIDE), sky-forest (AUTOBAHN) and sky-alpine-dark (DESOLATION HILL). A
+[local original](development.md#local-originals) of its name replaces it.
 
 ## Checks on `k1`
 
