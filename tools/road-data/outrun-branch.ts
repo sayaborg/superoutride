@@ -19,6 +19,7 @@ import {
 } from './outrun-course.js';
 import { OUTRUN_STAGES, pathOffset, type HeightTable, type Path, type Stage, type Stretch } from './outrun-road.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
+import { OUTRUN_NAMES, skyName, SKY_HORIZON, slug } from './outrun-names.js';
 
 /**
  * The fork, as the main CPU's program runs it (0x8780 to 0x89B6): at the stage's end the road width is kept and the
@@ -40,52 +41,6 @@ const FORK_LENGTH = 0x180;
 const LOCK_ZONE = 2;
 /** The goal stretch's road past the finish, positions: its path, to its last straight's end. */
 const GOAL_LENGTH = 600;
-
-/** The stages by number: their names on the original's map and their Sections' names. */
-export const OUTRUN_NAMES: ReadonlyMap<number, string> = new Map([
-  [0x3c, 'COCONUT BEACH'],
-  [0x1e, "DEVIL'S CANYON"],
-  [0x3b, 'GATEWAY'],
-  [0x20, 'CLOUDY MOUNTAIN'],
-  [0x2f, 'ALPS'],
-  [0x2a, 'DESERT'],
-  [0x2d, 'SEASIDE TOWN'],
-  [0x35, 'WHEAT FIELD'],
-  [0x33, 'OLD CAPITAL'],
-  [0x21, 'WILDERNESS'],
-  [0x32, 'LAKESIDE'],
-  [0x23, 'AUTOBAHN'],
-  [0x38, 'DESOLATION HILL'],
-  [0x22, 'DEATH VALLEY'],
-  [0x26, 'VINEYARD'],
-]);
-const slug = (name: string) => name.toLowerCase().replace(/'/g, '').replace(/ /g, '-');
-
-/**
- * Each stage's sky, `outrun-<stage>-sky`, as published: a copy of the generic sky most like the stage's scenery, which a
- * [local original](../../docs/development.md#local-originals) of its name replaces.
- */
-export const OUTRUN_SKIES: ReadonlyMap<number, string> = new Map([
-  [0x3c, 'sky-coast'],
-  [0x1e, 'sky-cliff'],
-  [0x3b, 'sky-country'],
-  [0x20, 'sky-overcast'],
-  [0x2f, 'sky-mountain'],
-  [0x2a, 'sky-desert'],
-  [0x2d, 'sky-seafront'],
-  [0x35, 'sky-farm'],
-  [0x33, 'sky-town'],
-  [0x21, 'sky-country'],
-  [0x32, 'sky-lake'],
-  [0x23, 'sky-forest'],
-  [0x38, 'sky-alpine-dark'],
-  [0x22, 'sky-desert'],
-  [0x26, 'sky-farm'],
-]);
-/** Stage `number`'s sky image. */
-export const skyName = (number: number) => `outrun-${slug(OUTRUN_NAMES.get(number)!)}-sky`;
-/** The skies' horizon row, the generic skies'. */
-export const SKY_HORIZON = 320;
 
 /** What OUTRUN's course is raised from beside its stages. */
 export interface OutrunInputs {
