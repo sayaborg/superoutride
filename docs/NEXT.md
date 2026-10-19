@@ -137,7 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+Next PR: [RD-8](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
+[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -154,8 +155,9 @@ readout and `drive` serve Stage RD's checks on K's video.
 ## Stage RD — OUTRUN from the original's road data
 
 OUTRUN's courses are raised from the road data in the original's program ROMs (MAME's `outrun`, Rev. B, every CRC
-matching); K's video `k1` of COCONUT BEACH only calibrates and checks. The constants are one set for the game, fixed on
-`k1`; other stages need no video. The hills are the original's: the profile matches the road's top on the original's
+matching); K's video `k1` of COCONUT BEACH only calibrates and checks. The constants are one set for the game; other
+stages need no video. Stage RD2 takes them from the ROMs and K instead of `k1`: a lane is K's 3.6 m over the original's
+lane spacing (424/3 road units, the road ROM's lines), and the stripes' period is the original's (6.320988 m). The hills are the original's: the profile matches the road's top on the original's
 screen (`c_look`, below), and a car leaving the road at a crest is not suppressed. The course documents and outline
 boards raised from the ROMs are committed and delivered as product.
 
@@ -205,7 +207,9 @@ K's decisions for the conversion (2026-10-18):
   program, published as the generic backgrounds; the player's TESTAROSSA from the original's Ferrari; voices and
   effects from the PCM ROMs (`opr-10188.71` to `opr-10193.66`), where they sound read from the sound ROM's
   (`epr-10187.88`) tables. Traffic keeps this game's vehicles; music comes from K's MAME recordings when they come.
-  `k1`'s side-by-sides are drawn with the local pictures.
+  `k1`'s side-by-sides are drawn with the local pictures. K changed what is published for Stage RD2 (2026-10-19): the
+  sprites' and backgrounds' pictures converted from the ROMs are committed and shown on Pages, provisionally
+  ([Stage RD2](#stage-rd2--outrun-rebuilt-from-the-roms)).
 - What the original draws as a sprite is made as a sprite (K, 2026-10-18), never replaced by colors or Strips; where a
   replacement cannot be avoided, the report says so first.
 - Order (K, 2026-10-18): each piece goes into TRIAL runnable and to main at green CI, not batched; a report begins
@@ -239,13 +243,97 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 The stage's PRs left:
 
 - RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14) and the start's objects' depth, which K may
-  decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)). The ground's spray (the surface
-  effect) is not converted ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches'
-  sizes by depth (flatter far away) need a drawing change: a board is one picture at every depth.
+  decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)); Stage RD2's RD-14 places them standing
+  still. The ground's spray (the surface effect) is not converted
+  ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches' sizes by depth (flatter
+  far away) need a drawing change: a board is one picture at every depth; Stage RD2's RD-13 rebuilds the strips from
+  the original's far sizes instead.
 - RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
 
 SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
 addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).
+
+## Stage RD2 — OUTRUN rebuilt from the ROMs
+
+Stage RD2 continues Stage RD: its PRs are numbered on from RD-7, and Stage RD's rules hold where this section does not
+change them. Its aim is OUTRUN's courses and pictures made again with every finding so far: exact, true to the ROMs,
+fair to look at, simple, and fitted to this game's physics. It is a pass on appearance: lengthy checks (the reference
+times' review among them) are left out, and the look comes first.
+
+K's decisions (2026-10-19 to 20):
+
+- **Structure.** The 15 stages are made as pieces of their own, and BRANCH is dropped. OUTRUN becomes 7 LINEAR courses:
+  the six roads to the goals (LLLL → GOAL A, LRLL → GOAL B, LLRR → GOAL C from the left, RRLL → GOAL C from the right,
+  RLRR → GOAL D, RRRR → GOAL E) and one road through all 15 stages.
+- **Pieces.** A stage piece runs from GO to the clean six lanes the fork stretch reaches at its 61 (road width 212,
+  level); a stage of row 5 ends at 1948, where its goal piece follows. A fork piece (L, or R its mirror) runs from the
+  fork stretch's 61 to 433.5: six lanes; a median appears; the road not taken ends; the three lanes taken turn (left,
+  90° left then 90° right; right, the mirror); a road comes in from the far side as the original's straight, symmetric
+  V; six lanes, and the next stage. Taking the left road enters the next stage's right half, the road merging from the
+  left; taking the right enters its left half. A goal piece (A to E) runs the goal stretch from 0 to 600. A piece has
+  one shape whatever comes before or after it; only guidance, background changes, objects crossing a seam and the
+  crossings' bumps differ by road.
+- **Order of the 15.** The map's order, row by row and within a row from the left fork's side: COCONUT BEACH; GATEWAY,
+  DEVIL'S CANYON; DESERT, ALPS, CLOUDY MOUNTAIN; WILDERNESS, OLD CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD, DEATH
+  VALLEY, DESOLATION HILL, AUTOBAHN, LAKESIDE. The forks alternate left and right from the left; after a stage of row 5
+  its own goal piece (its 90° left) joins it to the next, and people may stand at those goals too. The original's
+  destination signs keep their names where they do not match the road (K accepted).
+- **Dead ends.** No fence closes the road not taken; an original way of showing which road to take is made, built to a
+  default and decided by K on Pages.
+- **Road.** The lateral unit is corrected to the original's lane spacing, 424/3 units a lane, and a lane is 3.6 m. All
+  physics stays as it is.
+- **Pictures.** Pictures are resampled at the best quality there is (backgrounds by area averages in linear light).
+  Moving sprites are all placed, standing still (the start's flag waver among them), with every figure after the goal;
+  clouds stand still. Strips are rebuilt from the original's far sizes at the highest quality they allow. Each
+  background's near layer is drawn before its far layer at the same scale into one picture. The horizon's ground
+  gradient is not made. Every car, traffic included, is baked from 3D models, so the original's cars are not needed and
+  the Ferrari's local original (RD-6c) is removed.
+- **Publication.** The sprites' and backgrounds' pictures converted from the ROMs are committed and shown on Pages. They
+  are provisional, all drawn again for the product, and say so where they are specified. Sounds (PCM) stay local
+  originals alone; the ROM zip and the raw dumps stay out of Git and PRs.
+- **Later.** The hills are made again in a later stage; until then they keep today's rule. Crossings keep the 6 m rule;
+  proper grade separation comes with the hills.
+
+Rules of the stage, beside Stage RD's:
+
+- The conversion stays deterministic, its `--check` rebuilding from the ROMs and comparing with what is committed; the
+  specification records the ROMs' CRCs and the conversion's version.
+- No Cannonball identifier (function or constant names) appears in the repository's documents or code.
+- Measured products are generated again only where a course's identity changes, and are not reviewed. A course whose
+  reference run fails is left out of TRIAL's classes and delivered for FREE PLAY, its road kept as the ROM's, and is
+  reported.
+
+The PRs, in order (each one too large for one review is split and the split reported):
+
+- RD-7: this section and the product's OUTRUN (documents only).
+- RD-8: the names other code uses (`OUTRUN_NAMES`, `skyName`, `SKY_HORIZON`, `OUTRUN_SKIES`) moved out of
+  `outrun-branch.ts` into a module of their own (a move only).
+- RD-9: the BRANCH course `outrun`, its TRIAL class, its measured products and the code making it removed, before the
+  new roads, so that boards resized later do not change its identity too. Until RD-10 TRIAL has no OUTRUN.
+- RD-10: the 7 roads. The road's rules (units, the two roads' composite of lines and edges, the lanes driven, the
+  ground's colors from the ROM, the stripes' period, the plan as where the original draws the centre lane and the
+  map from road positions to its stations, rounded corners), the stage, fork and goal pieces, the roads assembled,
+  objects placed along a whole road, the checkpoints, the background changes (`wipe` at a fork, `rise` at a goal's
+  join) and yaw origins, the crossings, and TRIAL's 7 classes, each OUTRUN's class's values today (TESTAROSSA alone,
+  yellow, slot 14, the player last, traffic density 6 at 120 km/h, margin 1.35): `outrun-a` GOLDEN FRONTIER (A
+  LLLL), `outrun-b` HEAT HAZE (B LRLL), `outrun-c-left` DESERT MIRAGE (C LLRR), `outrun-c-right` STORM RIDGE (C RRLL),
+  `outrun-d` OVERDRIVE (D RLRR), `outrun-e` BLUE HORIZON (E RRRR), `outrun-all` GRAND TOUR (ALL 15). The boards keep
+  today's outline pictures at their final sizes and anchors. Measured. It may be split into the six roads (RD-10a) and
+  the 15 (RD-10b).
+- RD-11: the guidance where a road is chosen (drawn signs, chevrons and road arrows; K decides on Pages). Measured.
+- RD-12: the boards' pictures from the ROMs, sizes and anchors unchanged. Published, not measured.
+- RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.
+- RD-14: what stands still in place of what moves: clouds, VINEYARD's trees, the checkpoint banners, drawing 14, the
+  flag waver and the figures after each goal. Measured.
+- RD-15: each stage's background, both layers drawn into one sky, committed and published; the copies of the generic
+  skies end. Pixels alone.
+- RD-16 (the stage's last PR, deletions only): the outline boards' making and `content/sprite-sources`' boards, the
+  sprites' and skies' local originals and the Ferrari's (RD-6c: `outrun-player.ts`, the `player` command) removed; the
+  sounds' local originals stay. [Original road data](original-road-data.md) loses the sections of what is removed, and
+  this section leaves NEXT (RD-6e stays, awaiting K's recordings).
+
+Not in this stage: the hills made again and grade separation, BRANCH removed from the engine (a decision of its own),
+music, the cars' pictures, and the product's pictures drawn again.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
