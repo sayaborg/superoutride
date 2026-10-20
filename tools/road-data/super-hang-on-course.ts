@@ -176,13 +176,13 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const stationOf = (q: number) => path.station(along(q));
   const end = path.length;
 
-  // The gates and the finish, by course position.
+  // The gates and the finish, by course position, and their metres along P, which the Sections' cuts keep clear of.
   const checks = Array.from({ length: count }, (_, k) => [
     ...(k > 0 ? [length * k + inputs.gatePass] : []),
     length * k + inputs.middle + inputs.gatePass,
   ]).flat();
   const finish = length * count + inputs.gatePass;
-  const gateStations = [inputs.startGate, ...checks, finish].map(along);
+  const gateMetres = [inputs.startGate, ...checks, finish].map(along);
 
   // The Sections: one a section and the goal's, each cut again where its domain passes over itself.
   const reach = inputs.cross.edgesOut * unit + SAND + MAXIMUM_VEHICLE_REACH;
@@ -191,7 +191,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     const from = order === 0 ? 0 : along(length * order);
     const to = order === count ? end : along(length * (order + 1));
     const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
-    const cuts = domainCuts(path, from, to, reach, gateStations);
+    const cuts = domainCuts(path, from, to, reach, gateMetres);
     [from, ...cuts].forEach((a, i) =>
       pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
     );
@@ -351,7 +351,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 /**
  * Cuts of P's `[from, to]` (metres) so that no Section's coordinate domain, `reach` metres either side of P, passes over
  * itself: while two of its cells at least `DOMAIN_APART` apart overlap, the earliest later one with the latest earlier
- * one, it is cut between them, at the middle of the longest straight there, else halfway, keeping clear of the gates.
+ * one, it is cut between them, at the middle of the longest straight there, else halfway, keeping clear of the gates
+ * (metres along P).
  */
 function domainCuts(path: CoursePath, from: number, to: number, reach: number, gates: readonly number[]): number[] {
   const step = 2.5;
