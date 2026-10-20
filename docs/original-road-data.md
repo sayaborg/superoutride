@@ -151,16 +151,30 @@ and 11 draw a strip beside the road, its edge nearest the road at x, and drawing
 
 ## Outline boards
 
-`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite OUTRUN's stages show
-and the objects standing at the start (of the first stage), mirrored and shadowed as shown: a sprite source
-`content/sprite-sources/outrun-<sprite>[-mirrored][-shadowed].png` (a strip's `outrun-strip-<family>`) and its recipe, made into the course image of that
-name; with `--check` it rebuilds them and fails where one differs. Its master is the largest size's outline, filled: the
-colored pixels and every pixel no transparent path joins to the picture's edge.
-Its width is its pixels × their road units × `s_lat` ([Course documents](#course-documents)); its base point at the
-bottom or middle its anchor gives, across at the middle of the sprite's hit extents (so a solid object's body stands
-there; a strip's at its middle); each palette the sprite is shown in is a palette of the board (`p<palette>`, the lowest its default),
-one color, the palette's mean over the colored pixels. A shadowed board's shadow is the original's shadow at its scale
-and anchor. The entries of drawings 2, 12 and 14 (moving objects) are not converted.
+`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite OUTRUN's stages
+(to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
+mirrored and shadowed as shown: the course image `outrun-<sprite>[-mirrored][-shadowed]` (a strip's
+`outrun-strip-<family>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
+size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sampled once across and once down:
+
+- **Scale.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m (a lane, 424/3 units, is 3.6 m). A pixel spans
+  its routine's road units across and 15/14 of them down (`PIXEL_ASPECT`: the original's 320 × 224 pixels are shown at
+  4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
+- **Sampling.** Each texel takes the palette index whose pixels cover most of its area, transparency counted as an
+  index; of two as large, that of the pixel nearest the texel's centre (`areaMajority`). At these ratios it is the
+  nearest pixel's.
+- **Picture.** The board's indices are the largest size's outline, filled: the colored pixels and every pixel no
+  transparent path joins to the picture's edge. Each palette the sprite is shown in is a palette of the board
+  (`p<palette>`, the lowest its default), one color, the palette's mean over the colored pixels. Its
+  [local original](development.md#local-originals) has the same grid and the sprite's own indices in each palette's
+  own colors.
+- **Base point.** At the bottom or middle its anchor gives. Across, an object anchored by an edge that has no body (its
+  routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
+  at the middle of the sprite's hit extents, so a solid object's body stands there.
+- **Shadow.** A shadowed board's shadow is the original's shadow on the same grid and at its anchor.
+
+The entries of drawings 2, 5, 6, 12 and 14 (moving objects) are not converted. The sprite sources and recipes under
+`content/sprite-sources/` that earlier boards were imported from are no longer written or read.
 
 ## Placing scenery
 
@@ -180,8 +194,9 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
   original's objects move faster than they look near the start: no one depth fits both.
 - **Across.** An object's x is from the left road's centre; a right-side one's from the right road's, unless the road
   width where it appears exceeds 280. Its lateral is that point across from the roads' middle, at the road width where
-  it stands, less lane b's centre there (−w, or −(w + 78.67) / 2 below 78.67). An object anchored by an edge stands half
-  its width aside, and its board's base point is its hit extents' middle. Its height is y road units.
+  it stands, less lane b's centre there (−w, or −(w + 78.67) / 2 below 78.67). An object standing by its edge stands at
+  its x; any other anchored by an edge stands half its width aside, its board's base point its hit extents' middle. Its
+  height is y road units.
 - **Solid.** An object whose routine tests its extents and which stands on the ground gets a body as wide as its
   extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
 
@@ -194,7 +209,7 @@ A strip or patch is brought out, approaches and stands as an object does (`stage
   px). Its edge nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward,
   drawn mirrored on the left, a pixel 2 road units. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD, VINEYARD
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11
-  DEATH VALLEY's stones. Its board is the nearest size's, `outrun-strip-<family>`.
+  DEATH VALLEY's stones. Its board is the nearest size's, `outrun-strip-<family>`, its base point at that edge.
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, the nearest size's, reduced as the camera

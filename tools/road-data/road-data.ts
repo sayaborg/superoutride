@@ -8,14 +8,13 @@ import { spawnSync } from 'node:child_process';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
-import { PNG } from 'pngjs';
 import { readZip } from './zip.js';
-import { outlineBoards, type SpriteUse } from './outrun-boards.js';
+import { sceneryBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { lateralScale, stageCourse, stationOf } from './outrun-course.js';
+import { stageCourse, stationOf } from './outrun-course.js';
 import { OUTRUN_SKIES, SKY_HORIZON, skyName } from './outrun-names.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
 import { playerOriginal } from './outrun-player.js';
@@ -365,21 +364,21 @@ try {
       break;
     }
     case 'boards': {
-      // The outline boards of every sprite OUTRUN's stages and start show, written to content, or with `--check`
-      // compared with the ones there.
+      // The outline boards of every sprite OUTRUN's stages, fork and goal stretches and start show, written to content,
+      // or with `--check` compared with the ones there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));
       const files = readZip(new Uint8Array(await readFile(zip)));
       const words = assembleSprites(files);
       const length = stageLength(programs.main);
-      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
-        overallWidth: number;
-      };
       const uses: SpriteUse[] = [];
       const skipped = new Map<number, number>();
-      const points = OUTRUN_STAGES.flat().flatMap((n) =>
-        readStage(programs, n).scenery.filter((p) => p.position < length),
-      );
+      // The stages' points to their length, and every point of the fork and goal stretches.
+      const points = [
+        ...OUTRUN_STAGES.flat().flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
+        ...readForkStretch(programs).scenery,
+        ...readGoalStretches(programs).stretches.flatMap((s) => s.scenery),
+      ];
       const types = [...new Set(points.map((p) => p.type))].sort((a, b) => a - b);
       for (const type of types)
         for (const e of readSceneryType(programs.main, type).entries) {
@@ -405,22 +404,17 @@ try {
           palette: o.palette,
           shadow: (o.flags & 0x10) !== 0,
         });
-      const boards = await outlineBoards(programs.main, words, uses, lateralScale(vehicle.overallWidth), PNG);
+      const boards = sceneryBoards(programs.main, words, uses);
       for (const board of boards) {
-        const written = [
-          [`content/sprite-sources/${board.name}.png`, board.source],
-          [`content/sprite-sources/${board.name}.json`, new TextEncoder().encode(board.recipe)],
-          [`content/${board.image.path}`, board.image.bytes],
-        ] as const;
-        for (const [file, bytes] of written)
-          if (check) {
-            const committed = await readFile(file).catch(() => null);
-            requireInput(
-              committed && Buffer.compare(committed, bytes) === 0,
-              `/${file}`,
-              `${file} is not the ROMs' board`,
-            );
-          } else await atomicWrite(file, bytes);
+        const file = `content/${board.image.path}`;
+        if (check) {
+          const committed = await readFile(file).catch(() => null);
+          requireInput(
+            committed && Buffer.compare(committed, board.image.bytes) === 0,
+            `/${file}`,
+            `${file} is not the ROMs' board`,
+          );
+        } else await atomicWrite(file, board.image.bytes);
         // The original's picture of the same name, local: Git ignores the originals' directory.
         if (!check) await atomicWrite(path.join(ORIGINALS_DIRECTORY, board.original.path), board.original.bytes);
       }

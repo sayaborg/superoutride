@@ -3,7 +3,7 @@
  * the objects its scenery points start and the objects at the game's start, each where the camera passes it at the top
  * speed, beside its road.
  */
-import { boardName, paletteName, type SpriteUse } from './outrun-boards.js';
+import { boardName, paletteName, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { readSceneryType, type SceneryPoint } from './outrun-road.js';
 import {
   approach,
@@ -70,14 +70,14 @@ export function stageObjects(
     const size = objectSize(main, use);
     const width = size.width * routine.pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's.
-    // Its board stands on its hit extents' middle: one anchored by its left edge (1) stands half its width right, by its
-    // right (2) left, and one hit off its middle that far.
+    // One standing by its edge has its board's base point there. Any other's board stands on its hit extents' middle:
+    // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
+    // that far.
     const across = use.anchor & 3;
     const road = options.width(position);
     const lateral =
       (x >= 0 && !rightFromLeft ? road + x : x - road) +
-      (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) +
-      objectAside(main, use);
+      (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
     const [left, right] = hitExtents(main, use.sprite);
     placements.push({
       position,

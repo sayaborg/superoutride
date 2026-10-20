@@ -499,7 +499,7 @@ for K's own runs only: they never reach Git, a PR or Pages.
   saved for the published content stay valid.
 - **Conversion.** Each conversion is deterministic and is rebuilt by the command that writes the published file:
   `npm run road-data -- boards` writes each outline board and, beside it, its color original, from the same ROM
-  words at the same 40 texels/m and nearest-neighbor scale, with the ROM's palette under each palette name.
+  words on the same texel grid and by the same sampling, with the ROM's palette under each palette name.
   `npm run road-data -- course` writes each OUTRUN stage's sky and its original, the stage's background from the tile
   ROMs ([Backgrounds](original-road-data.md#backgrounds)). `npm run road-data -- player` writes the original of TESTAROSSA's picture set, the original's Ferrari
   ([The player's car](original-road-data.md#the-players-car)). `npm run road-data -- sounds` writes the originals of the recordings the original
