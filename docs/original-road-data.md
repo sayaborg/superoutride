@@ -186,7 +186,8 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
 - **Sampling.** Each texel takes the palette index whose pixels cover most of its area, transparency counted as an
   index; of two as large, that of the pixel nearest the texel's centre (`areaMajority`). At these ratios it is the
   nearest pixel's.
-- **Picture.** The board's indices are the largest size's own pixels, and each palette the sprite is shown in is a
+- **Picture.** The board's indices are the largest size's own pixels (a strip's restored from its sizes,
+  [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2). Its
   [local original](development.md#local-originals) is the same picture.
@@ -245,18 +246,28 @@ runs its slots:
 
 ### Strips and patches
 
-A strip or patch is brought out, approaches and stands as an object does (`stageObjects`), with no body:
+A strip or patch is brought out, approaches and stands as an object does (`roadObjects`), with no body:
 
 - **Strips.** Drawings 1, 3, 10 and 11 draw, whatever sprite their entry names, the sprite of 16 sizes the longs at
   0x4548, 0x4608, 0x4588 and 0x45C8 point at (`objectSize`), a size for each depth, the nearest last (232 or 248 by 31
   px). Its edge nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward,
   drawn mirrored on the left, a pixel 2 road units. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD, VINEYARD
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11
-  DEATH VALLEY's stones. Its board is the nearest size's, `outrun-strip-<family>`, its base point at that edge.
+  DEATH VALLEY's stones. Its board, `outrun-strip-<family>`, is the strip restored from its sizes, its base point at
+  that edge.
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
-  than a near one and no narrower. A board is one picture at every depth, the nearest size's, reduced as the camera
-  draws it: a far strip stands as tall for its width as a near one, and narrows.
+  than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
+  stands as tall for its width as a near one, and narrows.
+- **Restored** (`restoredStrip`). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
+  and their own rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the
+  nearest's width, which is only the inner 1/16 of the strip. The board is 16 times the nearest's width; its column
+  `d` nearest pixels from the edge by the road takes, from the largest size k that covers it ((k + 1)d < 16 × width:
+  15 within the nearest width, 7 from twice it, 3 from four times, 1 from eight times, 0 from sixteen), its column
+  floor(d(k + 1)/16) and, for row y, its row floor(y × its height / the nearest's). The grass's far sizes are not
+  shrunk across, so its nearest size repeats outward to the same width. The boards are 7564 × 68 texels (grass), 8086 ×
+  68 (sea, sand) and 8086 × 33 (stones: their sizes are 0 to 15 rows tall, so the outer half, size 0's, is
+  transparent), within a course image's 1,048,576 texels.
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
   DESOLATION HILL's drifts of sand, 248 by 31 px.
 - **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is

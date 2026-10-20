@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-13](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
+Next PR: [RD-14](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -247,8 +247,8 @@ The stage's PRs left:
 - RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14)
   ([Placing scenery](original-road-data.md#placing-scenery)); Stage RD2's RD-14 places them standing still. The ground's spray (the surface effect) is not converted
   ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches' sizes by depth (flatter
-  far away) need a drawing change: a board is one picture at every depth; Stage RD2's RD-13 rebuilds the strips from
-  the original's far sizes instead.
+  far away) would need a drawing change: a board is one picture at every depth, a strip's rebuilt from the original's
+  far sizes.
 - RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
 
 SUPER HANG-ON follows with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms).
@@ -316,7 +316,6 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.
 - RD-14: what stands still in place of what moves: clouds, VINEYARD's trees, the checkpoint banners, drawing 14, the
   flag waver and the figures after each goal. Measured.
 - RD-15: each stage's background, both layers drawn into one sky, committed and published; the copies of the generic

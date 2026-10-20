@@ -73,7 +73,10 @@ export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, lo
 /** The shadow every shadowed object casts, drawn at the object's scale: the size list at 0xFF56. */
 export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
 /** A strip routine's sprite: 16 sizes for the depths, the longs at its family's address pointing at them, nearest last. */
-const STRIP_SIZES = 16;
+export const STRIP_SIZES = 16;
+/** A strip family's 16 sizes, the farthest first. */
+export const familySizes = (main: Uint8Array, family: number) =>
+  Array.from({ length: STRIP_SIZES }, (_, k) => sizeAt(main, long(main, family + 4 * k)));
 
 /** Palette `index`'s 16 colors as RGB555: the words at 0x14ED8 + index × 32. */
 export const spritePalette = (main: Uint8Array, index: number) =>
@@ -137,6 +140,11 @@ export interface ObjectRoutine {
    * depth: the address of those longs.
    */
   readonly family?: number;
+  /**
+   * How its far sizes show more than its nearest: each its nearest shrunk across with what lies beyond (`reduced`), or
+   * its nearest unshrunk, the strip repeating (`repeated`).
+   */
+  readonly far?: 'reduced' | 'repeated';
 }
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
@@ -147,18 +155,16 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4548 }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4608 }],
-  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4588 }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x45c8 }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4548, far: 'repeated' }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4608, far: 'reduced' }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4588, far: 'reduced' }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x45c8, far: 'reduced' }],
 ]);
 
 /** The largest size an object shows: its family's nearest, or its sprite's first. */
 export function objectSize(main: Uint8Array, use: { readonly sprite: number; readonly routine: number }): SpriteSize {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
-  return family === undefined
-    ? spriteSizes(main, use.sprite)[0]!
-    : sizeAt(main, long(main, family + 4 * (STRIP_SIZES - 1)));
+  return family === undefined ? spriteSizes(main, use.sprite)[0]! : familySizes(main, family)[STRIP_SIZES - 1]!;
 }
 
 /** Where an object's board stands across from its anchor, road units: its hit extents' middle, a strip's at 0. */

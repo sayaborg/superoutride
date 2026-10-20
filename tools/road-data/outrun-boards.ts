@@ -7,7 +7,15 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
+import {
+  familySizes,
+  OBJECT_ROUTINES,
+  objectAside,
+  objectSize,
+  shadowSizes,
+  spritePalette,
+  STRIP_SIZES,
+} from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { areaMajority, boardGrid, paletteName } from './pixel-grid.js';
 
@@ -41,7 +49,7 @@ export const standsByEdge = (use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
 
 /**
  * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
- * number, its default). Each is made from the largest size's pixels straight onto its texel grid (`boardGrid`,
+ * number, its default). Each is made from the largest size's pixels (a strip's restored, `restoredStrip`) straight onto its texel grid (`boardGrid`,
  * `areaMajority`), in the palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
  * (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a solid object's body stands.
  */
@@ -63,9 +71,12 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
       group.some((u) => base(u) !== base(first!) || OBJECT_ROUTINES.get(u.routine)!.pixelUnits !== routine.pixelUnits)
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
-    const size = objectSize(main, first!);
-    const raw = spritePixels(words, size);
-    const pixels = first!.mirrored ? mirror(raw, size.width) : raw;
+    const largest = objectSize(main, first!);
+    const size =
+      routine.family === undefined
+        ? { ...largest, pixels: spritePixels(words, largest) }
+        : restoredStrip(main, words, routine.family, routine.far!);
+    const pixels = first!.mirrored ? mirror(size.pixels, size.width) : size.pixels;
     const grid = boardGrid(size.width, size.height, routine.pixelUnits);
     const scale = { x: grid.width / size.width, y: grid.height / size.height };
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
@@ -97,6 +108,35 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     boards.push({ name, image: courseImageFile(board), original: courseImageFile(board) });
   }
   return boards;
+}
+
+/** A strip is restored to this many times its nearest size's width. */
+const STRIP_REACH = 16;
+
+/**
+ * A strip's picture restored from its family's sizes, `STRIP_REACH` times its nearest size's width and as tall, its edge
+ * nearest the road on the left. Each column `d` nearest pixels from that edge: where the far sizes are the nearest shrunk
+ * across with what lies beyond (`reduced`), size k covering (k + 1) / 16 of the way, from the largest size that covers
+ * it, its column d(k + 1)/16 and its rows its height's share of the nearest's (a size without rows leaves it
+ * transparent); where they are not shrunk (`repeated`), the nearest size's, repeating outward.
+ */
+function restoredStrip(main: Uint8Array, words: Uint32Array, family: number, far: 'reduced' | 'repeated') {
+  const sizes = familySizes(main, family);
+  const sized = sizes.map((size) => spritePixels(words, size));
+  const { width, height } = sizes[STRIP_SIZES - 1]!;
+  const reach = STRIP_REACH * width;
+  const pixels = new Uint8Array(reach * height);
+  for (let d = 0; d < reach; d++) {
+    let k = STRIP_SIZES - 1;
+    if (far === 'reduced') while ((k + 1) * d >= reach) k--;
+    const size = sizes[k]!;
+    const column = far === 'reduced' ? Math.floor((d * (k + 1)) / STRIP_SIZES) : d % width;
+    for (let y = 0; y < height; y++) {
+      const row = Math.floor((y * size.height) / height);
+      if (row < size.height) pixels[y * reach + d] = sized[k]![row * size.width + column]!;
+    }
+  }
+  return { pixels, width: reach, height };
 }
 
 const mirror = (pixels: Uint8Array, width: number) =>
