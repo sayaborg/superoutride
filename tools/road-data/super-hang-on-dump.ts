@@ -19,7 +19,15 @@ import {
   readStripes,
   sectionPositions,
 } from './super-hang-on-road.js';
-import { hitWidth, readGateParts, readGrid, sizeList, SPRITE_COUNT, spriteList, spritePalette } from './super-hang-on-sprites.js';
+import {
+  hitWidth,
+  readGateParts,
+  readGrid,
+  sizeList,
+  SPRITE_COUNT,
+  spriteList,
+  spritePalette,
+} from './super-hang-on-sprites.js';
 import { backgroundMap, backgroundNumber, backgroundPalettes } from './super-hang-on-backgrounds.js';
 import { instruction } from './program-words.js';
 
@@ -52,15 +60,15 @@ export function superHangOnDump(files: ReadonlyMap<string, ZipFile>) {
   const sections = [...numbers].sort((a, b) => a - b).map((n) => readSection(programs, n, positions.length));
   const goal = readGoal(programs);
   const heightTables = [...new Set(sections.flatMap((s) => s.heights.map((h) => h.table)))].sort((a, b) => a - b);
-  const types = [
-    ...new Set([...sections.flatMap((s) => s.scenery), ...goal.scenery.flat()].map((p) => p.type)),
-  ].sort((a, b) => a - b);
+  const types = [...new Set([...sections.flatMap((s) => s.scenery), ...goal.scenery.flat()].map((p) => p.type))].sort(
+    (a, b) => a - b,
+  );
   const sceneryTypes = Object.fromEntries(types.map((t) => [t, readSceneryType(main, t)]));
   const gates = readGateParts(main);
   // The sprites the scenery shows by number, and the gates' frames by their size lists.
-  const spriteNumbers = [
-    ...new Set(Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.sprite))),
-  ].sort((a, b) => a - b);
+  const spriteNumbers = [...new Set(Object.values(sceneryTypes).flatMap((t) => t.items.map((i) => i.sprite)))].sort(
+    (a, b) => a - b,
+  );
   for (const n of spriteNumbers) if (n >= SPRITE_COUNT) throw new RangeError(`Sprite ${n} lies past the table`);
   const palettes = [
     ...new Set([
@@ -80,7 +88,10 @@ export function superHangOnDump(files: ReadonlyMap<string, ZipFile>) {
     sceneryTypes,
     stripes: readStripes(main),
     sprites: Object.fromEntries(
-      spriteNumbers.map((n) => [n, { list: spriteList(main, n), sizes: sizeList(main, spriteList(main, n)), hitWidth: hitWidth(main, n) }]),
+      spriteNumbers.map((n) => [
+        n,
+        { list: spriteList(main, n), sizes: sizeList(main, spriteList(main, n)), hitWidth: hitWidth(main, n) },
+      ]),
     ),
     gates: { parts: gates.map((g) => ({ ...g, sizes: sizeList(main, g.sprite) })), banners: bannerPalettes(main) },
     palettes: Object.fromEntries(palettes.map((p) => [p, spritePalette(main, p)])),

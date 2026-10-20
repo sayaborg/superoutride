@@ -164,7 +164,9 @@ export function sectionPlan(path: Path, metres: number) {
   // How far each element as fitted lies from the line before the folds were spread, from its start there.
   const before = lineOf(read, metres);
   const offLine = spans.map(([a, b]) => {
-    const shifted = before.map(([x, y]) => [x - before[a]![0] + line[a]![0], y - before[a]![1] + line[a]![1]] as [number, number]);
+    const shifted = before.map(
+      ([x, y]) => [x - before[a]![0] + line[a]![0], y - before[a]![1] + line[a]![1]] as [number, number],
+    );
     return missOf(shifted, h, a, b, metres);
   });
   return { segments, folds, offLine, headings: { start: read[0]!, end: read[end]! } };

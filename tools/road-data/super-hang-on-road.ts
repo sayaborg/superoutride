@@ -188,7 +188,10 @@ export function readCourses(main: Uint8Array): Course[] {
   return Array.from({ length: COURSE_COUNT }, (_, c) => {
     const count = u8(main, SECTION_COUNTS + c);
     const name = String.fromCharCode(
-      ...main.subarray(COURSE_NAMES + COURSE_NAME.stride * c, COURSE_NAMES + COURSE_NAME.stride * c + COURSE_NAME.length),
+      ...main.subarray(
+        COURSE_NAMES + COURSE_NAME.stride * c,
+        COURSE_NAMES + COURSE_NAME.stride * c + COURSE_NAME.length,
+      ),
     ).trimEnd();
     return {
       name,

@@ -32,7 +32,8 @@ export interface CrossSection {
 /** The pixel values of road ROM line `row`: plane 0 the low bit, plane 1 the high, a byte's bit 7 the leftmost. */
 function lineOf(rom: Uint8Array, row: number): number[] {
   return Array.from({ length: LINE_PIXELS }, (_, x) => {
-    const bit = (plane: number) => (rom[plane * PLANE_BYTES + row * (LINE_PIXELS / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1;
+    const bit = (plane: number) =>
+      (rom[plane * PLANE_BYTES + row * (LINE_PIXELS / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1;
     return bit(0) | (bit(1) << 1);
   });
 }

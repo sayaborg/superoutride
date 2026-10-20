@@ -37,7 +37,12 @@ export interface SpriteSize {
 export function sizeList(main: Uint8Array, address: number): SpriteSize[] {
   return Array.from({ length: SIZES }, (_, k) => {
     const a = address + 10 * k;
-    const size = { height: word(main, a), stride: word(main, a + 2), bank: word(main, a + 6) & 15, offset: word(main, a + 8) };
+    const size = {
+      height: word(main, a),
+      stride: word(main, a + 2),
+      bank: word(main, a + 6) & 15,
+      offset: word(main, a + 8),
+    };
     if (size.height && word(main, a + 4) !== (size.height - 1) * size.stride)
       throw new RangeError(`The size at 0x${a.toString(16)} does not span its rows`);
     return size;

@@ -19,7 +19,7 @@ const SCENERY_COUNTER = 0x6ab4 + 0x2e;
  */
 export function sceneryRules(main: Uint8Array) {
   const [speed] = instruction(main, 0x64bc, [0x0c79, null, 0x0026, 0x0078], "the top speed's comparison");
-  const [passes] = instruction(main, 0x71a0, [0x0c40, null], "the depth an object passes the bike at");
+  const [passes] = instruction(main, 0x71a0, [0x0c40, null], 'the depth an object passes the bike at');
   const [slots] = instruction(main, 0x6f26, [0x0c41, null], 'the scenery objects');
   const [period] = instruction(main, 0x6d7a, [0x1b7c, null, 0x002e], "the scenery count's steps");
   return {
