@@ -166,7 +166,8 @@ const CURVE_GAP = 2e-6;
 export function sectionProfile(profile: Profile, from: number, to: number, joinsBefore: boolean, joinsAfter: boolean) {
   const knots = [{ s: from, y: profile.height(from), curveLength: 0 }];
   for (const { from: a, to: b } of profile.bends) {
-    if (a < from || b > to) continue;
+    // A bend broken at a cut ends where the Section does, but for its station's rounding.
+    if (a < from - 1e-6 || b > to + 1e-6) continue;
     // To the step of computed values, finer than a station's, so that its tangents' grades hold at both its ends.
     const s = computedValue((a + b) / 2);
     knots.push({ s, y: profile.height(a) + profile.grade(a) * (s - a), curveLength: round(b - a - 2 * CURVE_GAP) });
