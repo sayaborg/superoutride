@@ -1755,8 +1755,8 @@ SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASI
 by the road data tool from the original's ROMs ([Original road data](original-road-data.md#super-hang-ons-courses)),
 which owns their plan, lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the
 documents. Each stage has its checkpoint where its CHECK gate passes the bike, and the finish is at the GOAL gate. Their
-scenery shows the original's sprites, provisionally. The development series TRIAL's classes AFRICA, ASIA, AMERICA and
-EUROPE time them (VFR750R alone, from the bike grid's last slot, a margin of 1.35).
+scenery shows the original's sprites, provisionally. Until their hills are made again they have no class: they are
+driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
 ## Observation formats
 

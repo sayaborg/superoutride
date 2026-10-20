@@ -137,8 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
-[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a, then
+Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
+[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-3a, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e is on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -347,6 +347,13 @@ K's decisions (2026-10-20):
   base, not the Japanese one.
 - **Product.** The four courses are the reference courses of the SUPER HANG-ON series ([Series](product.md#5-series)),
   one LINEAR course each.
+- **No classes until the hills.** Until the hills are made again, the courses have no TRIAL class: they are driven in
+  FREE PLAY alone, untimed, and their racing lines are their only measured products. When classes return, each is the
+  player alone on VFR750R from GO (slot 15), no traffic, margin 1.35.
+- **Beside Stage RD2 and Stage TO.** The three stages run side by side and share `tools/road-data/` and OUTRUN's written
+  products: those are never merged by hand but written again by the tool (and their racing lines by
+  `npm run measure -- generate`) after main is taken in; before each PR every original's `--check` on main passes on
+  the local ROMs; a PR changing a shared rule states which courses of which original change and by how much.
 
 Rules of the stage, beside Stage RD's and RD2's:
 
@@ -363,16 +370,17 @@ Rules of the stage, beside Stage RD's and RD2's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- SH-2a: the road data tool parted into each original's modules and the modules both share, moves only: OUTRUN's
-  `--check` passes unchanged, and [Original road data](original-road-data.md) states what both share once.
+- SH-2a is not made: SUPER HANG-ON's modules import OUTRUN's readers and the shared code where they are, and
+  [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s TO-2a moves what the originals share into common modules.
+- SH-3a: the crossings' bumps for crossings of more than two passages and for long overlaps, placed again while a later
+  bump has brought an earlier crossing nearer; OUTRUN's crossings, all of two passages, keep their bumps, so OUTRUN's
+  courses are unchanged (`--check`).
 - SH-2b: SUPER HANG-ON's ROMs read: the set checked by CRC, its programs assembled, and every table its courses use
   written to the dump `super-hang-on.json` (`superoutride.super-hang-on-road-data` version 1). No course yet.
-- SH-3: the four courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america`
+- SH-3b: the four courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america`
   (AMERICA) and `super-hang-on-europe` (EUROPE): the road on the original's road path, level but for the crossings'
-  bumps, with its colors and stripes; the scenery, gates, the goal's crowd and the ending's figures; and TRIAL's four
-  classes (VFR750R alone in tricolor, from the bike grid's last slot, no traffic, margin 1.35). Their 24 skies are
-  copies of `coast-sky` under their own names until SH-4. Measured. If too large, SH-3a (road, colors, Sections,
-  gates, classes) and SH-3b (objects).
+  bumps, with its colors and stripes; the scenery, gates, the goal's crowd and the ending's figures; no class. Their 24
+  skies are copies of `coast-sky` under their own names until SH-4. Their racing lines measured.
 - SH-4: the 24 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
 
 Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
