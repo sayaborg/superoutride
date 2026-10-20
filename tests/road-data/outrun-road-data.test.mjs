@@ -15,8 +15,10 @@ import {
 import {
   bendOf,
   closedGrades,
+  crossingOf,
   gradeRamps,
   profileOf,
+  separatedCrossings,
   stageGrades,
   STEEPEST,
 } from '../../tools/road-data/outrun-profile.ts';
@@ -496,6 +498,62 @@ test("a table's grades: kind 0's entries where the camera passes them, kind 1's 
   const total = held.reduce((sum, r) => sum + r.change, 0);
   assert.ok(Math.abs(total - (-192 / 576) * 2) < 1e-12);
   assert.ok(held.every((r) => r.held));
+});
+
+test('crossings kept 6 m apart: two passages by smooth bumps, more by levels, a long overlap flat, and again', () => {
+  /** Pairs of stations `step` apart over `[a, a + length]` and `[b, b + length]`, each earlier then later. */
+  const pairs = (a, b, length, step = 2) =>
+    Array.from({ length: Math.floor(length / step) + 1 }, (_, i) => [a + i * step, b + i * step]);
+  const apart = (profile, crossing) =>
+    Math.min(...crossing.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))));
+  const end = 8000;
+
+  // Two passages on a level road: the later is raised and the earlier lowered by a smooth bump each.
+  const two = crossingOf(pairs(1000, 3000, 10));
+  const kept = separatedCrossings([], [two], end);
+  const profile = profileOf(kept.changes.map(bendOf));
+  assert.ok(apart(profile, two) >= 6);
+  assert.ok(profile.height(3005) > 2.9 && profile.height(1005) < -2.9);
+  assert.deepEqual(
+    kept.separations.map((s) => [s.levels, s.flat]),
+    [
+      [
+        [0, 1],
+        [false, false],
+      ],
+    ],
+  );
+
+  // Three passages that overlap each other take levels in running order, 6 m apart about their mean.
+  const three = {
+    passages: [1000, 3000, 5000].map((from) => ({ from, to: from + 10 })),
+    pairs: [...pairs(1000, 3000, 10), ...pairs(1000, 5000, 10), ...pairs(3000, 5000, 10)],
+  };
+  const stacked = profileOf(separatedCrossings([], [three], end).changes.map(bendOf));
+  assert.ok(apart(stacked, three) >= 6);
+  assert.ok(stacked.height(1005) < -5.9 && Math.abs(stacked.height(3005)) < 0.5 && stacked.height(5005) > 5.9);
+
+  // A long overlap is held flat over its passages.
+  const long = crossingOf(pairs(1000, 4000, 400));
+  const flat = separatedCrossings([], [long], end);
+  const held = profileOf(flat.changes.map(bendOf));
+  assert.deepEqual(flat.separations[0].flat, [true, true]);
+  assert.ok(apart(held, long) >= 6);
+  assert.ok(Math.abs(held.height(4000) - held.height(4400)) < 1e-9);
+
+  // A later crossing whose bump lowers an earlier one's raised passage moves the earlier one again: its later passage
+  // lies on a rise, so its earlier one, by the earlier crossing's, is the lower.
+  const rise = [
+    { from: 5700, to: 5850, change: (2 * 2.8) / 300 },
+    { from: 5850, to: 6150, change: (-4 * 2.8) / 300 },
+    { from: 6150, to: 6300, change: (2 * 2.8) / 300 },
+  ];
+  const first = crossingOf(pairs(1000, 3000, 10));
+  const second = crossingOf(pairs(3150, 6000, 10));
+  const again = separatedCrossings(rise, [first, second], end);
+  const both = profileOf(again.changes.map(bendOf));
+  assert.ok(apart(both, first) >= 6 && apart(both, second) >= 6);
+  assert.ok(again.separations.filter((s) => s.crossing === 0).length > 1);
 });
 
 test("a sprite's pixels, its filled outline, its anchor and its palette's representative color", () => {

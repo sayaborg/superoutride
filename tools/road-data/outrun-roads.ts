@@ -28,12 +28,12 @@ import {
 import {
   bendOf,
   closedGrades,
+  crossingOf,
   LOOK,
   profileOf,
   separatedCrossings,
   stageGrades,
   type Change,
-  type Crossing,
   type Profile,
 } from './outrun-profile.js';
 import { tableRuns } from './outrun-hills.js';
@@ -254,7 +254,7 @@ function roadCrossings(laid: readonly Laid[], sides: (span: Span, p: number) => 
       else groups.push([pair]);
     }
   });
-  return groups as Crossing[];
+  return groups;
 }
 
 /** What a road's course takes beside its spans. */
@@ -378,8 +378,8 @@ export function roadProfile(
   const crossings = roadCrossings(laid, (span, p) => asphaltAt(span, p));
   const cutStations = laid.flatMap((l) => [l.start, ...l.cuts.map((c) => l.start + l.plan.station(c))]).slice(1);
   const profile = profileOf(
-    separatedCrossings(changes, crossings, end)
-      .filter((c) => c.from >= 0 && c.to <= end)
+    separatedCrossings(changes, crossings.map(crossingOf), end)
+      .changes.filter((c) => c.from >= 0 && c.to <= end)
       .map(bendOf),
     cutStations,
   );

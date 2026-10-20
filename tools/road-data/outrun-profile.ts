@@ -260,50 +260,175 @@ export function closedGrades(changes: readonly Change[], end: number): Change[] 
 
 /** The height two passages of a crossing are kept apart, metres. */
 const CLEARANCE = 6;
+/** The passes over a road's crossings that may move them: a later crossing's bumps may bring an earlier one nearer. */
+const PASSES = 10;
+/**
+ * Of a crossing of more than two passages, a passage's bump is smooth where it holds at least `1 / SMOOTH_RISE` of its
+ * rise over the passage, else flat.
+ */
+const SMOOTH_RISE = 1.1;
+/** Passages nearer than `CLEARANCE` by no more than this are apart: a micrometre, as stations are written. */
+const NEAR = 1e-6;
 
-/** Where a plan passes over itself: pairs of stations, the earlier passage's then the later's, whose roads overlap. */
-export type Crossing = readonly (readonly [number, number])[];
+/** A stretch of road stations where a road passes over or under itself: its first and last overlapping stations. */
+export interface Passage {
+  readonly from: number;
+  readonly to: number;
+}
 
 /**
- * A crossing's passages kept `CLEARANCE` apart: where they are nearer, the higher is raised and the lower lowered by
- * the same smooth bump, each over the shortest stretch (from 100 m by 20 m within the road's `[0, end]`) that moves the
- * road's top on this game's screen by at most `LOOK_ROWS`, else the longest; the bump grows until every overlapping
- * pair is apart.
+ * Where a plan passes over itself: its passages, apart and in running order, and the pairs of their stations whose
+ * roads overlap, each pair's earlier station first.
  */
-export function separatedCrossings(changes: readonly Change[], crossings: readonly Crossing[], end: number): Change[] {
+export interface Crossing {
+  readonly passages: readonly Passage[];
+  readonly pairs: readonly (readonly [number, number])[];
+}
+
+/** The crossing of two passages whose overlapping pairs of stations are `pairs`: their earlier and later stations'. */
+export function crossingOf(pairs: readonly (readonly [number, number])[]): Crossing {
+  const passage = (k: 0 | 1) => ({
+    from: Math.min(...pairs.map((p) => p[k])),
+    to: Math.max(...pairs.map((p) => p[k])),
+  });
+  const passages = [passage(0), passage(1)];
+  if (passages[0]!.to >= passages[1]!.from) throw new Error(`A crossing's passages at ${passages[0]!.from} m overlap`);
+  return { passages, pairs };
+}
+
+/** How one crossing was moved apart: each passage's level and whether its bump is flat, their spacing and the half. */
+export interface Separation {
+  readonly crossing: number;
+  readonly levels: readonly number[];
+  readonly flat: readonly boolean[];
+  readonly spacing: number;
+  readonly half: number;
+}
+
+/** The share of a smooth bump's rise `x` metres from its middle, its half `L`. */
+const smoothShare = (x: number, L: number) =>
+  x <= L / 2 ? 1 - (2 * x * x) / (L * L) : x < L ? 2 * (1 - x / L) ** 2 : 0;
+/** A smooth bump of `rise` at `s` over `[s − L, s + L]`: grades out to ±2·rise/L and back, curvature 4·rise/L². */
+const smoothBump = (s: number, rise: number, L: number): Change[] => [
+  { from: s - L, to: s - L / 2, change: (2 * rise) / L },
+  { from: s - L / 2, to: s + L / 2, change: (-4 * rise) / L },
+  { from: s + L / 2, to: s + L, change: (2 * rise) / L },
+];
+/** A flat bump of `rise` over `[a, b]`, rising over the `L` metres before it and falling over the `L` after it. */
+const flatBump = (a: number, b: number, rise: number, L: number): Change[] => [
+  { from: a - L, to: a - L / 2, change: (2 * rise) / L },
+  { from: a - L / 2, to: a, change: (-2 * rise) / L },
+  { from: b, to: b + L / 2, change: (-2 * rise) / L },
+  { from: b + L / 2, to: b + L, change: (2 * rise) / L },
+];
+
+/**
+ * Crossings kept `CLEARANCE` apart on the road `changes` make, its stations `[0, end]`: one after another, in the order
+ * given, then again while any is nearer. Where a crossing's passages are nearer, they take levels (of two passages, the
+ * lower first, the earlier where level; of more, in running order), each the lowest that no passage it overlaps already
+ * holds, and each moves by a bump of its level less their mean times a spacing, from what `CLEARANCE` lacks by 0.2 m
+ * until every overlapping pair is apart: of two passages, the higher is raised and the lower lowered. A passage's bump
+ * is smooth, at the middle of its stations, but of more than two passages flat over it where a smooth bump of the
+ * first half holds less than `1 / SMOOTH_RISE` of its rise over the passage; its half is the shortest from 100 m by
+ * 20 m that moves the road's top on this game's screen by at most `LOOK_ROWS`, within the road and short of the next
+ * passage at another level. Where the bumps cannot keep the passages apart (their spacing grown by 40 m), they are all
+ * flat.
+ */
+export function separatedCrossings(changes: readonly Change[], crossings: readonly Crossing[], end: number) {
   let out = [...changes];
-  for (const pairs of crossings) {
-    const before = profileOf(out.map(bendOf));
-    const apart = (p: Profile) => Math.min(...pairs.map(([a, b]) => Math.abs(p.height(a) - p.height(b))));
-    if (apart(before) >= CLEARANCE) continue;
-    const middle = (k: 0 | 1) => pairs.reduce((sum, pair) => sum + pair[k], 0) / pairs.length;
-    const [a, b] = [middle(0), middle(1)];
-    const up = before.height(b) >= before.height(a) ? 1 : -1;
-    // A bump of `rise` at s over [s − L, s + L]: grades out to ±2·rise/L and back, curvature 4·rise/L².
-    const bump = (s: number, rise: number, L: number): Change[] => [
-      { from: s - L, to: s - L / 2, change: (2 * rise) / L },
-      { from: s - L / 2, to: s + L / 2, change: (-4 * rise) / L },
-      { from: s + L / 2, to: s + L, change: (2 * rise) / L },
-    ];
-    const reach = Math.min(a, end - b, (b - a) / 2);
-    const with_ = (rise: number, L: number) => [...out, ...bump(a, -up * rise, L), ...bump(b, up * rise, L)];
-    let rise = (CLEARANCE - apart(before)) / 2,
-      L = Math.min(100, reach);
-    for (let i = 0; i < 200 && apart(profileOf(with_(rise, L).map(bendOf))) < CLEARANCE; i++) rise += 0.1;
-    while (L + 20 <= reach) {
-      const after = profileOf(with_(rise, L).map(bendOf));
-      if (
-        Math.max(
-          lookChange(before, after, a - L - RENDER_FAR_DEPTH_METERS, a + L, end),
-          lookChange(before, after, b - L - RENDER_FAR_DEPTH_METERS, b + L, end),
-        ) <= LOOK_ROWS
-      )
-        break;
-      L += 20;
-    }
-    out = with_(rise, L);
+  const separations: Separation[] = [];
+  for (let pass = 0; ; pass++) {
+    let kept = true;
+    crossings.forEach((crossing, k) => {
+      const moved = separation(out, crossing, end);
+      if (!moved) return;
+      if (pass === PASSES) throw new Error(`Crossings are nearer than ${CLEARANCE} m after ${PASSES} passes`);
+      out = [...out, ...moved.bumps];
+      separations.push({ crossing: k, ...moved.separation });
+      kept = false;
+    });
+    if (kept) return { changes: out, separations };
   }
-  return out;
+}
+
+/** The bumps that keep `crossing` apart on the road `changes` make, and how; null where it is apart. */
+function separation(changes: readonly Change[], crossing: Crossing, end: number) {
+  const { passages, pairs } = crossing;
+  const before = profileOf(changes.map(bendOf));
+  const apart = (p: Profile) => Math.min(...pairs.map(([a, b]) => Math.abs(p.height(a) - p.height(b))));
+  if (apart(before) >= CLEARANCE - NEAR) return null;
+  const n = passages.length;
+  const passageOf = (s: number) => passages.findIndex((p) => s >= p.from && s <= p.to);
+  const middles = passages.map((_, k) => {
+    let [sum, count] = [0, 0];
+    for (const pair of pairs)
+      for (const s of pair)
+        if (passageOf(s) === k) {
+          sum += s;
+          count++;
+        }
+    return sum / count;
+  });
+  // The levels: of two passages, the lower's first (the earlier's where level), of more, in running order.
+  const order = n === 2 && before.height(middles[1]!) < before.height(middles[0]!) ? [1, 0] : passages.map((_, k) => k);
+  const overlapping = (x: number, y: number) =>
+    pairs.some(([a, b]) => {
+      const [p, q] = [passageOf(a), passageOf(b)];
+      return (p === x && q === y) || (p === y && q === x);
+    });
+  const levels = passages.map(() => -1);
+  for (const k of order) {
+    const held = new Set(order.filter((j) => levels[j]! >= 0 && overlapping(j, k)).map((j) => levels[j]!));
+    let level = 0;
+    while (held.has(level)) level++;
+    levels[k] = level;
+  }
+  const mean = levels.reduce((sum, level) => sum + level, 0) / n;
+  // The bumps: smooth at their passages' middles, or flat over their passages; within the road and short of the next
+  // passage at another level.
+  const flat = new Set<number>();
+  const core = (k: number) => (flat.has(k) ? passages[k]! : { from: middles[k]!, to: middles[k]! });
+  const reach = () => {
+    let room = Math.min(core(0).from, end - core(n - 1).to);
+    for (let k = 0; k + 1 < n; k++)
+      if (levels[k] !== levels[k + 1]) room = Math.min(room, (core(k + 1).from - core(k).to) / 2);
+    return room;
+  };
+  const bumps = (spacing: number, L: number) =>
+    passages.flatMap((p, k) => {
+      const rise = (levels[k]! - mean) * spacing;
+      if (rise === 0) return [];
+      return flat.has(k) ? flatBump(p.from, p.to, rise, L) : smoothBump(middles[k]!, rise, L);
+    });
+  const after = (spacing: number, L: number) => profileOf([...changes, ...bumps(spacing, L)].map(bendOf));
+  // Of more than two passages, each holds its level: a passage a smooth bump would not hold there is flat.
+  const first = Math.min(100, reach());
+  if (n > 2)
+    passages.forEach((p, k) => {
+      if (smoothShare(Math.max(middles[k]! - p.from, p.to - middles[k]!), first) < 1 / SMOOTH_RISE) flat.add(k);
+    });
+  let spacing: number, L: number;
+  // The spacing grown; where it cannot keep the passages apart, every bump flat, and grown again.
+  for (;;) {
+    spacing = CLEARANCE - apart(before);
+    L = Math.min(100, reach());
+    for (let i = 0; i < 200 && apart(after(spacing, L)) < CLEARANCE; i++) spacing += 0.2;
+    if (apart(after(spacing, L)) >= CLEARANCE || flat.size === n) break;
+    passages.forEach((_, k) => flat.add(k));
+  }
+  const room = reach();
+  while (L + 20 <= room) {
+    const moved = after(spacing, L);
+    const looks = passages.map((_, k) =>
+      lookChange(before, moved, core(k).from - L - RENDER_FAR_DEPTH_METERS, core(k).to + L, end),
+    );
+    if (Math.max(...looks) <= LOOK_ROWS) break;
+    L += 20;
+  }
+  return {
+    bumps: bumps(spacing, L),
+    separation: { levels, flat: passages.map((_, k) => flat.has(k)), spacing, half: L },
+  };
 }
 
 /**
