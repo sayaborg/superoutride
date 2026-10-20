@@ -72,11 +72,9 @@ const sizesAt = (main: Uint8Array, address: number) =>
 export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, long(main, SPRITES + 4 * index));
 /** The shadow every shadowed object casts, drawn at the object's scale: the size list at 0xFF56. */
 export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
-/** A strip routine's sprite: 16 sizes for the depths, the longs at its family's address pointing at them, nearest last. */
-export const STRIP_SIZES = 16;
-/** A strip family's 16 sizes, the farthest first. */
-export const familySizes = (main: Uint8Array, family: number) =>
-  Array.from({ length: STRIP_SIZES }, (_, k) => sizeAt(main, long(main, family + 4 * k)));
+/** A family's sizes: the longs at its address point at them, as many as it has. */
+export const familySizes = (main: Uint8Array, family: Family) =>
+  Array.from({ length: family.sizes }, (_, k) => sizeAt(main, long(main, family.address + 4 * k)));
 
 /** Palette `index`'s 16 colors as RGB555: the words at 0x14ED8 + index × 32. */
 export const spritePalette = (main: Uint8Array, index: number) =>
@@ -127,25 +125,43 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 }
 
 /**
+ * The sizes a routine draws whatever sprite its entry names, choosing one by depth: the longs at `address` point at
+ * them, `sizes` of them, `nearest` the index of the nearest. Its far sizes show more than its nearest: each its
+ * nearest shrunk across with what lies beyond (`reduced`), or its nearest unshrunk, repeating (`repeated`).
+ */
+export interface Family {
+  readonly address: number;
+  readonly sizes: number;
+  readonly nearest: number;
+  readonly far: 'reduced' | 'repeated';
+}
+
+/**
  * What an object's routine does with it: the road units one pixel of its largest size spans (its zoom halves the road
- * line's scale once, or twice), whether it tests the car against its sprite's hit extents, and whether it keeps a
- * right-side object by the left road where the roads were apart as it appeared (the flag the spawn sets, bit 2).
+ * line's scale once or twice; the clouds', approaching at half the rate, stand twice as far and large), whether it tests
+ * the car against its sprite's hit extents, and whether it keeps a right-side object by the left road where the roads
+ * were apart as it appeared (the flag the spawn sets, bit 2).
  */
 export interface ObjectRoutine {
-  readonly pixelUnits: 1 | 2;
+  readonly pixelUnits: 1 | 2 | 4;
   readonly hits: boolean;
   readonly keepsLeftWhenApart: boolean;
+  /** A strip's or cloud's sizes. */
+  readonly family?: Family;
   /**
-   * A strip's routine draws, whatever sprite its entry names, the sizes its family's 16 longs point at, choosing one by
-   * depth: the address of those longs.
+   * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
+   * middle, on the side away from where it reaches, and this many road units up.
    */
-  readonly family?: number;
-  /**
-   * How its far sizes show more than its nearest: each its nearest shrunk across with what lies beyond (`reduced`), or
-   * its nearest unshrunk, the strip repeating (`repeated`).
-   */
-  readonly far?: 'reduced' | 'repeated';
+  readonly fromMiddle?: { readonly edge: number; readonly up: number };
 }
+
+/** A strip's sizes: 16 for the depths, the nearest last. */
+const strip = (address: number, far: Family['far']): Family => ({ address, sizes: 16, nearest: 15, far });
+/**
+ * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
+ * (1 − z/512)); standing twice as far, twice that, above the original's eye, 72 (rows 223 to 151).
+ */
+const CLOUDS_UP = 2 * 151 + 72;
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
   [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true }],
@@ -155,16 +171,28 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4548, far: 'repeated' }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4608, far: 'reduced' }],
-  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4588, far: 'reduced' }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x45c8, far: 'reduced' }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, 'repeated') }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, 'reduced') }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, 'reduced') }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, 'reduced') }],
+  [
+    0x4144,
+    {
+      pixelUnits: 4,
+      hits: false,
+      keepsLeftWhenApart: false,
+      family: { address: 0x4246, sizes: 9, nearest: 0, far: 'repeated' },
+      fromMiddle: { edge: 32, up: CLOUDS_UP },
+    },
+  ],
 ]);
+/** The clouds' palette at each sixteenth of their depth (the same at every depth): the bytes at 0x426A. */
+const CLOUD_PALETTES = 0x426a;
 
 /** The largest size an object shows: its family's nearest, or its sprite's first. */
 export function objectSize(main: Uint8Array, use: { readonly sprite: number; readonly routine: number }): SpriteSize {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
-  return family === undefined ? spriteSizes(main, use.sprite)[0]! : familySizes(main, family)[STRIP_SIZES - 1]!;
+  return family === undefined ? spriteSizes(main, use.sprite)[0]! : familySizes(main, family)[family.nearest]!;
 }
 
 /** Where an object's board stands across from its anchor, road units: its hit extents' middle, a strip's at 0. */
@@ -178,12 +206,19 @@ export const objectAside = (
  * kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A hit sets the
  * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432), its edge nearest
  * the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its middle at x. They
- * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kinds
- * 2, 5, 6, 12 and 14 move and are no object (null).
+ * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kind 2
+ * (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever its entry's. Kinds 5,
+ * 6, 12 and 14 move and are no object (null).
  */
-export function sceneryRoutine(flags: number, y: number): { routine: number; anchor: number } | null {
+export function sceneryRoutine(
+  main: Uint8Array,
+  flags: number,
+  y: number,
+): { routine: number; anchor: number; palette?: number } | null {
   const mirrored = (flags & 1) !== 0;
   switch (flags >> 4) {
+    case 2:
+      return { routine: 0x4144, anchor: mirrored ? 10 : 9, palette: main[CLOUD_PALETTES + 31]! };
     case 0:
       return { routine: y ? 0x4042 : 0x4048, anchor: 8 };
     case 4:

@@ -167,10 +167,12 @@ road units, or 1 where the routine halves the scale twice. The drawings read so 
 | 10      | 0x443C                | middle left (right) | 2     | never                         | no                   |
 | 11      | 0x4432                | middle left (right) | 2     | never                         | no                   |
 | 13      | 0x3FE8                | middle              | 1     | never                         | yes                  |
+| 2       | 0x4144                | bottom left (right) | 4     | never                         | (by the middle)      |
 
 A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
-([Strips and patches](#strips-and-patches)). Drawings 2, 5, 6, 12 and 14 move and are not converted yet.
+([Strips and patches](#strips-and-patches)). Drawing 2 draws a cloud ([Clouds](#clouds)). Drawings 5, 6, 12 and 14
+move and are not converted yet.
 
 ## Boards
 
@@ -196,7 +198,7 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
   at the middle of the sprite's hit extents, so a solid object's body stands there.
 - **Shadow.** A shadowed board's shadow is the original's shadow on the same grid and at its anchor.
 
-The entries of drawings 2, 5, 6, 12 and 14 (moving objects) are not converted. The sprite sources and recipes under
+The entries of drawings 5, 6, 12 and 14 (moving objects) are not converted. The sprite sources and recipes under
 `content/sprite-sources/` that earlier boards were imported from are no longer written or read.
 
 ## Placing scenery
@@ -220,8 +222,8 @@ runs its slots:
   replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
   position, its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from
   the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
-  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent. Moving
-  objects (drawings 2, 5, 6, 12 and 14) take slots too.
+  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent. Objects not
+  converted (drawings 5, 6, 12 and 14) take slots too.
 - **Approach.** Every object, one brought out this tick too, then comes nearer once: its depth gains the table at
   0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
   reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
@@ -274,6 +276,31 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   on them, near the camera: for 12 frames a spray from the table at 0xAD06 is drawn at the car, by the effect's kind
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
   spray is not converted.
+
+### Clouds
+
+Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119; 7 and 120 have cloud entries no
+point uses), is a cloud: 272 at the top speed. The original approaches it at half the rate (0x28000's step shifted
+right once) and draws it at screen row horizon × (1 − z/512) (the horizon row at 0x260510, the flat road's top, 151),
+its palette the byte at 0x426A by its depth (205 at every depth, whatever its entry's), its x not its entry's: the spawn
+(0x3EFC) anchors it by its bottom left edge 32 pixels left of the screen's middle, or mirrored by its bottom right edge
+32 pixels right (a pair overlaps 64), and the road's bends scroll it across. Its sizes are the 9 the longs at 0x4246
+point at (0x11BD0 to 0x11C20, 248 wide, 31 to 1 rows, the nearest first): nearer than line 256 the size and zoom the
+table at 0x30900 gives, from it the nearest at the line's scale. A far size is the nearest squashed down, the same
+across, drawn 1:1, so far off a cloud covers 16 times the nearest's width.
+
+Something approaching at half the rate looks as something standing still twice as far and twice as large does, so a
+cloud stands still:
+
+- **Scale.** A pixel spans 4 road units (4.0755 texels across, 4.3666 down).
+- **Place.** It stands where it passes the car at half the rate (`roadObjects`), its edge 32 of its pixels (128 road
+  units) from the roads' middle as the original's is from the screen's, reaching away from it: right from its left
+  edge, left mirrored.
+- **Height.** Its base point is (2 × 151 + 72) × 15/14 road units (10.2 m) above the road: twice its row above the
+  eye, which stays 151 road units at every depth, and the original's eye, 72 (row 223 to 151).
+- **Picture.** Its nearest size repeated outward, 16 times its width as the far sizes cover, in boards of 4 repetitions
+  (`boardsAcross`: the fewest, halving, that fit a course image), 4043 × 135 texels, side by side:
+  `outrun-strip-4246` and `-mirrored`, named by the family's address as the strips are. No body.
 
 On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
 beyond the road's edge band, as the original's.

@@ -7,6 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import {
   familySizes,
   OBJECT_ROUTINES,
@@ -14,7 +15,8 @@ import {
   objectSize,
   shadowSizes,
   spritePalette,
-  STRIP_SIZES,
+  type Family,
+  type ObjectRoutine,
 } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { areaMajority, boardGrid, paletteName } from './pixel-grid.js';
@@ -29,10 +31,10 @@ export interface SpriteUse {
   readonly shadow: boolean;
 }
 
-/** A board's image name: the sprite's number, or a strip's family's address, then whether mirrored and shadowed. */
+/** A board's image name: the sprite's number, or a strip's or cloud's family's address, then whether mirrored and shadowed. */
 export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow'>) {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
-  const shown = family === undefined ? String(use.sprite).padStart(3, '0') : `strip-${family.toString(16)}`;
+  const shown = family === undefined ? String(use.sprite).padStart(3, '0') : `strip-${family.address.toString(16)}`;
   return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
 }
 
@@ -75,7 +77,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const size =
       routine.family === undefined
         ? { ...largest, pixels: spritePixels(words, largest) }
-        : restoredStrip(main, words, routine.family, routine.far!);
+        : restoredStrip(main, words, routine.family, boardsAcross(main, routine).count);
     const pixels = first!.mirrored ? mirror(size.pixels, size.width) : size.pixels;
     const grid = boardGrid(size.width, size.height, routine.pixelUnits);
     const scale = { x: grid.width / size.width, y: grid.height / size.height };
@@ -110,27 +112,46 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
   return boards;
 }
 
-/** A strip is restored to this many times its nearest size's width. */
+/** A strip or cloud reaches this many times its nearest size's width: its far sizes cover 16 times the nearest's. */
 const STRIP_REACH = 16;
 
 /**
- * A strip's picture restored from its family's sizes, `STRIP_REACH` times its nearest size's width and as tall, its edge
- * nearest the road on the left. Each column `d` nearest pixels from that edge: where the far sizes are the nearest shrunk
- * across with what lies beyond (`reduced`), size k covering (k + 1) / 16 of the way, from the largest size that covers
- * it, its column d(k + 1)/16 and its rows its height's share of the nearest's (a size without rows leaves it
- * transparent); where they are not shrunk (`repeated`), the nearest size's, repeating outward.
+ * The boards a family's reach is split into, side by side outward, and each one's width (road units): the fewest,
+ * halving, whose board fits a course image's texels. A strip's is one; the clouds', twice as large, four.
  */
-function restoredStrip(main: Uint8Array, words: Uint32Array, family: number, far: 'reduced' | 'repeated') {
+export function boardsAcross(main: Uint8Array, routine: ObjectRoutine): { count: number; units: number } {
+  const { family } = routine;
+  if (!family) return { count: 1, units: 0 };
+  const { width, height } = familySizes(main, family)[family.nearest]!;
+  for (let count = 1; count <= STRIP_REACH; count *= 2) {
+    const grid = boardGrid((STRIP_REACH / count) * width, height, routine.pixelUnits);
+    if (grid.width * grid.height <= COURSE_DOCUMENT_LIMITS.imageMasterTexels) {
+      if (count > 1 && family.far !== 'repeated') throw new Error(`Family ${family.address} needs several boards`);
+      return { count, units: (STRIP_REACH / count) * width * routine.pixelUnits };
+    }
+  }
+  throw new Error(`Family ${family.address} does not fit a course image`);
+}
+
+/**
+ * A strip's or cloud's picture restored from its family's sizes, `STRIP_REACH` times its nearest size's width over
+ * `boards` boards (one board's share) and as tall, its edge nearest the road on the left. Each column `d` nearest pixels
+ * from that edge: where the far sizes are the nearest shrunk across with what lies beyond (`reduced`, a strip's 16
+ * sizes), size k covering (k + 1) / 16 of the way, from the largest size that covers it, its column d(k + 1)/16 and its
+ * rows its height's share of the nearest's (a size without rows leaves it transparent); where they are not shrunk
+ * (`repeated`), the nearest size's, repeating outward.
+ */
+function restoredStrip(main: Uint8Array, words: Uint32Array, family: Family, boards: number) {
   const sizes = familySizes(main, family);
   const sized = sizes.map((size) => spritePixels(words, size));
-  const { width, height } = sizes[STRIP_SIZES - 1]!;
-  const reach = STRIP_REACH * width;
+  const { width, height } = sizes[family.nearest]!;
+  const reach = (STRIP_REACH / boards) * width;
   const pixels = new Uint8Array(reach * height);
   for (let d = 0; d < reach; d++) {
-    let k = STRIP_SIZES - 1;
-    if (far === 'reduced') while ((k + 1) * d >= reach) k--;
+    let k = family.nearest;
+    if (family.far === 'reduced') while ((k + 1) * d >= STRIP_REACH * width) k--;
     const size = sizes[k]!;
-    const column = far === 'reduced' ? Math.floor((d * (k + 1)) / STRIP_SIZES) : d % width;
+    const column = family.far === 'reduced' ? Math.floor((d * (k + 1)) / STRIP_REACH) : d % width;
     for (let y = 0; y < height; y++) {
       const row = Math.floor((y * size.height) / height);
       if (row < size.height) pixels[y * reach + d] = sized[k]![row * size.width + column]!;

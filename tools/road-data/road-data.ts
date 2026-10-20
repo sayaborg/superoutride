@@ -604,7 +604,7 @@ try {
       const types = [...new Set(points.map((p) => p.type))].sort((a, b) => a - b);
       for (const type of types)
         for (const e of readSceneryType(programs.main, type).entries) {
-          const shown = sceneryRoutine(e.flags, e.y);
+          const shown = sceneryRoutine(programs.main, e.flags, e.y);
           if (!shown) {
             skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
             continue;

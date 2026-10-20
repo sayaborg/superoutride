@@ -3,7 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it at the top
  * speed, beside its road, as the main CPU runs them tick by tick.
  */
-import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
+import { boardName, boardsAcross, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
@@ -98,25 +98,30 @@ export function roadObjects(
     const size = objectSize(main, use);
     const width = size.width * routine.pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
-    // unless its routine keeps it by the left where the roads were apart.
+    // unless its routine keeps it by the left where the roads were apart; a cloud by the middle, whatever its x.
     // One standing by its edge has its board's base point there. Any other's board stands on its hit extents' middle:
     // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
     // that far.
     const across = use.anchor & 3;
     const road = options.width(position);
-    const lateral =
-      (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
-      (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
+    const { fromMiddle } = routine;
+    const lateral = fromMiddle
+      ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
+      : (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
+        (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
     const [left, right] = hitExtents(main, use.sprite);
-    placements.push({
-      position,
-      x: lateral,
-      y,
-      image: boardName(use),
-      palette: paletteName(use.palette),
-      hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
-      width,
-    });
+    // Its boards side by side, reaching outward from its edge.
+    const boards = boardsAcross(main, routine);
+    for (let k = 0; k < boards.count; k++)
+      placements.push({
+        position,
+        x: lateral + (across === 1 ? 1 : -1) * k * boards.units,
+        y: fromMiddle?.up ?? y,
+        image: boardName(use),
+        palette: paletteName(use.palette),
+        hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
+        width,
+      });
   };
 
   // What an object does when it passes the car.
@@ -174,7 +179,7 @@ export function roadObjects(
         count--;
         entry = entry - 8 < 0 ? running.entries.last : entry - 8;
         const e = running.entries.entries[entry / 8]!;
-        const shown = sceneryRoutine(e.flags, e.y);
+        const shown = sceneryRoutine(main, e.flags, e.y);
         const [left, right] = hitExtents(main, e.sprite);
         ended.objects++;
         if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left && !running.point.passable)
@@ -214,7 +219,7 @@ export function roadObjects(
           continue;
         }
         const drawing = e.flags >> 4;
-        const shown = sceneryRoutine(e.flags, e.y);
+        const shown = sceneryRoutine(main, e.flags, e.y);
         const apart = options.width(road) > RIGHT_FROM_LEFT_WIDTH;
         const solid = !running.point.passable;
         live.push({

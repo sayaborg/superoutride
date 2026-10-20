@@ -602,15 +602,18 @@ function approaching() {
 test('objects approach three phase steps a tick and pass the car 34 ticks after they appear, the clouds 66', () => {
   const main = approaching();
   const step = (293 * 0x12f) / 65536;
-  const at = (type, position) =>
-    roadObjects(main, [{ position, count: 1, type }], {
+  // Where each object stands: drawing 6's, not converted, or a cloud's (drawing 2), placed.
+  const at = (type, position) => {
+    const { unconverted, placements } = roadObjects(main, [{ position, count: 1, type }], {
       go: 0,
       end: 1000,
       resets: [],
       kmh: 293,
       width: () => 212,
       startDepth: () => Infinity,
-    }).unconverted.map((u) => u.position);
+    });
+    return [...unconverted, ...placements].map((o) => o.position);
+  };
   // Taken on the tick the road reaches 0: the first turn's object (line 0x104) and the second's (0x100) both pass the
   // car 34 ticks on (46.06 positions), having moved 35 times at advances of 13 and 14.
   for (const type of [1, 2]) assert.deepEqual(at(type, 0), [35 * step]);
@@ -636,6 +639,6 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
   assert.ok(ended.ended.objects > 40);
   // 200 clouds two a tick live 67 ticks each: no more than 79 at once.
   const crowded = run([{ position: 0, count: 200, type: 5 }], []);
-  assert.equal(crowded.unconverted.length + crowded.dropped, 200);
+  assert.equal(crowded.placements.length + crowded.dropped, 200);
   assert.ok(crowded.dropped > 0);
 });
