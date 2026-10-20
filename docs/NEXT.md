@@ -139,7 +139,7 @@
 
 Next PR: [RD-14](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
-[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3;
+[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3b;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -458,18 +458,17 @@ dump, and what is described as OUTRUN's is checked against OUTRUN's ROMs
 ([TURBO OUTRUN](original-road-data.md#turbo-outrun)). TO-2a moved what the three originals share into modules of their
 own ([Original road data](original-road-data.md)). TO-2c shared how objects approach the car and places TURBO OUTRUN's
 objects by its own control
-([Placing TURBO OUTRUN's scenery](original-road-data.md#placing-turbo-outruns-scenery)). What sharing needs more than a
-move (the two roads drawn together and their strips, which hold OUTRUN's cross-section, and the background layers,
-which RD-15's baking takes up) is shared by the PR that first uses it for TURBO OUTRUN. The PRs left, in this order
-(each one too large for one review is split and the split reported):
+([Placing TURBO OUTRUN's scenery](original-road-data.md#placing-turbo-outruns-scenery)). TO-2d shared the two roads
+drawn together from one road's picture and where a road's cells overlap; the background layers are shared by the PR
+that first uses them for TURBO OUTRUN, once RD-15's baking has taken them up. TO-3 was split: TO-3a laid the course
+`turbo-outrun` (TURBO OUTRUN) from the road paths, without objects: each stage to where the next begins, a join at each
+leg's end, a straight past the goal, the widths, lanes, plan, strips, materials, hills and Sections, the skies' names
+and yaw origins, the checkpoints, finish and grid, no class, its racing line measured
+([TURBO OUTRUN's course](original-road-data.md#turbo-outruns-course)). The PRs left, in this order (each one too large
+for one review is split and the split reported):
 
-- TO-3: the course `turbo-outrun` (TURBO OUTRUN): the road on the original's road paths as straights and arcs, each
-  stage to where the next begins, a join the original does not have at each leg's end, and a straight past the goal;
-  the widths, lanes, plan and stations, strips, colors, stripes, materials, hills and Sections; the skies' names and yaw
-  origins; the scenery in the ROMs' pictures, the start's objects and figures, the CHECK POINT and GOAL gates, the
-  legs' ends' and the goal's objects; the grid and the crossings' bumps. No class (FREE PLAY alone); its racing line
-  measured. Its 16 skies are copies of `coast-sky` under their own names until TO-4. If too large, TO-3a (road, colors,
-  Sections, gates) and TO-3b (objects).
+- TO-3b: the course's objects: the scenery in the ROMs' pictures with its bodies, the start's objects and figures, the
+  CHECK POINT and GOAL gates' parts, the legs' ends' and the goal's objects. Its racing line measured again.
 - TO-4: the 16 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
 
 Not in this stage: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and

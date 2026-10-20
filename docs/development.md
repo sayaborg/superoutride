@@ -500,6 +500,7 @@ from the ROMs under `content/`:
 | `player`               | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                                         |
 | `sounds`               | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
 | `turbo-outrun-read`    | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
+| `turbo-outrun-course`  | Write TURBO OUTRUN's course, raised from its ROM zip (`--zip`), to `content/courses/`, and its skies to `content/images/`, or with `--check` fail where one differs                                              |
 | `super-hang-on-read`   | Check SUPER HANG-ON's ROM zip (`--zip`, else the one zip in its ROM directory) and write its courses' tables to its dump                                                                                         |
 | `super-hang-on-course` | Write SUPER HANG-ON's four courses, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures their objects show and their skies to `content/images/`, or with `--check` fail where one differs |
 

@@ -1757,6 +1757,13 @@ documents. Each stage has its checkpoint where its CHECK gate passes the bike, a
 scenery shows the original's sprites, provisionally. Until their hills are made again they have no class: they are
 driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
+TURBO OUTRUN's course (`turbo-outrun` TURBO OUTRUN) is a LINEAR course of the original's 16 stages in running order,
+each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs
+([Original road data](original-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, gates
+and skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its
+CHECK POINT gate passes the car, and the finish is at the GOAL gate. Until its hills are made again it has no class: it
+is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
+
 ## Observation formats
 
 ### Course observations

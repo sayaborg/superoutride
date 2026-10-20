@@ -7,14 +7,11 @@
 import { requireInput } from '../course/authoring-io.js';
 import type { ZipFile } from './zip.js';
 import { assemblePrograms } from './outrun-rom.js';
-import { pathTurn, readHeightTable } from './road-tables.js';
+import { readHeightTable } from './road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
-  PATH_POSITIONS,
   readConstants,
   readKind,
-  readLegOrder,
-  readNameRecords,
   readRoutines,
   readShadowSizes,
   readSizeList,
@@ -22,9 +19,8 @@ import {
   readStripes,
   readStripSizeTable,
   readTurboOutrunSceneryType,
-  readTurboOutrunStage,
+  readTurboOutrunStages,
   sizeCount,
-  STAGE_COUNT,
   STRIP_SIZE_TABLES,
   TURBO_OUTRUN_HEIGHT_TABLES,
 } from './turbo-outrun-road.js';
@@ -37,13 +33,6 @@ export const TURBO_OUTRUN_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.turbo-outrun-road-data',
   version: 1,
 } as const);
-
-/** Every stage's gate: the scenery point at 1358, one CHECK POINT gate (type 3), or at the last stage the GOAL (68). */
-const GATE_POINT = 1358;
-const CHECK_GATE = 3;
-const GOAL_GATE = 68;
-/** A heading vector straight ahead (heading 0). */
-const AHEAD = [0, 4096] as const;
 
 /**
  * What the description says is OUTRUN's, at each set's address: the 225 height tables, the stripes (32 phases of 512
@@ -59,7 +48,6 @@ const SAME_AS_OUTRUN = Object.freeze({
 const OUTRUN_HEIGHT_TABLES = 0x220a;
 
 const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const letters = (text: string) => text.replace(/[^A-Z]/g, '');
 
 /** Where TURBO OUTRUN's tables are OUTRUN's, each compared: how many words differ, and any that are not explained. */
 function compareWithOutrun(
@@ -99,44 +87,7 @@ function compareWithOutrun(
 export function turboOutrunDump(files: ReadonlyMap<string, ZipFile>, outrunFiles: ReadonlyMap<string, ZipFile>) {
   const programs = assembleTurboOutrunPrograms(files);
   const { main, sub } = programs;
-  const legs = readLegOrder(main);
-  requireInput(
-    legs.flat().every((n, i) => n === i),
-    '/rom/main',
-    "The legs' order is not the stages 0 to 15 in turn",
-  );
-  const names = readNameRecords(main);
-  names.forEach((record, n) =>
-    requireInput(
-      letters(record.text) === letters(TURBO_OUTRUN_NAMES[n]!),
-      '/rom/main',
-      `Stage ${n}'s name record reads "${record.text}", not ${TURBO_OUTRUN_NAMES[n]}`,
-    ),
-  );
-  const stages = Array.from({ length: STAGE_COUNT }, (_, n) => readTurboOutrunStage(programs, n));
-  for (const stage of stages) {
-    const { path, number } = stage;
-    const at = (i: number) => [path.x[i], path.y[i]];
-    const last = PATH_POSITIONS - 1;
-    const turns = pathTurn(path, 0, last) / (2 * Math.PI);
-    requireInput(
-      at(0).join() === AHEAD.join() && at(last).join() === AHEAD.join(),
-      `/stages/${number}`,
-      `Stage ${number}'s path does not begin and end heading straight ahead`,
-    );
-    requireInput(
-      Math.abs(turns - Math.round(turns)) < 1 / 360 && Math.abs(Math.round(turns)) <= 1,
-      `/stages/${number}`,
-      `Stage ${number}'s path turns ${(turns * 360).toFixed(2)}°, not 0° or ±360°`,
-    );
-    const gate = stage.scenery.filter((p) => p.position === GATE_POINT);
-    const type = number === STAGE_COUNT - 1 ? GOAL_GATE : CHECK_GATE;
-    requireInput(
-      gate.length === 1 && gate[0]!.type === type && gate[0]!.count === 1,
-      `/stages/${number}`,
-      `Stage ${number} has no gate of type ${type} at ${GATE_POINT}`,
-    );
-  }
+  const { legs, names, stages } = readTurboOutrunStages(programs);
   const sameAsOutrun = compareWithOutrun(programs, assemblePrograms(outrunFiles));
   for (const [table, differing] of Object.entries(sameAsOutrun))
     requireInput(differing === 0, `/rom/${table}`, `${differing} of TURBO OUTRUN's ${table} differ from OUTRUN's`);

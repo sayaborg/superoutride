@@ -34,6 +34,14 @@ import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
+import {
+  COURSE_ID as TURBO_OUTRUN_COURSE_ID,
+  GENERIC_SKY as TURBO_OUTRUN_GENERIC_SKY,
+  skyName as turboOutrunSky,
+  TURBO_OUTRUN_CONVERSION_VERSION,
+  turboOutrunCourse,
+} from './turbo-outrun-course.js';
+import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { startDepth } from './object-approach.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import {
@@ -715,6 +723,79 @@ try {
             designed: designed.runs.reduce((n, r) => n + r.brought, 0),
             designedDropped: designed.runs.reduce((n, r) => n + r.dropped, 0),
           },
+        }),
+      );
+      break;
+    }
+    case 'turbo-outrun-course': {
+      // TURBO OUTRUN's course and skies from its ROM zip, written to content, or with `--check` compared.
+      const check = options.has('--check');
+      const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
+      const built = turboOutrunCourse(readZip(new Uint8Array(await readFile(zip))));
+      const file = await saveCourse(TURBO_OUTRUN_COURSE_ID, built.document, check);
+      // Each stage's sky as published: the generic coast sky under its own name.
+      const generic = JSON.parse(await readFile(`content/images/${TURBO_OUTRUN_GENERIC_SKY}.json`, 'utf8')) as Record<
+        string,
+        unknown
+      >;
+      const skies = TURBO_OUTRUN_NAMES.map((_, n) => turboOutrunSky(n));
+      for (const name of skies) {
+        const text = JSON.stringify({ ...generic, name });
+        const skyFile = `content/images/${name}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(
+            committed === text,
+            `/${skyFile}`,
+            `${skyFile} is not ${TURBO_OUTRUN_GENERIC_SKY} under its name`,
+          );
+        } else await atomicWrite(skyFile, text);
+      }
+      const { layout } = built;
+      const { width } = layout;
+      const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+      const arcs = layout.path.filter((s) => s.turn !== 0);
+      const radius = (s: (typeof arcs)[number]) => ((s.to - s.from) * POSITION_METRES) / Math.abs(s.turn);
+      const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          conversion: TURBO_OUTRUN_CONVERSION_VERSION,
+          checked: check,
+          course: file,
+          kmh: built.kmh,
+          positions: round3(layout.total - layout.go),
+          metres: round1(layout.station(layout.total)),
+          sections: layout.pieces.map((p) => p.id),
+          stages: layout.course.map(({ run, start, length, joined }, n) => ({
+            name: TURBO_OUTRUN_NAMES[n],
+            length: round3(length),
+            gate: round3(run.gate),
+            end: round3(run.end),
+            joined,
+            endWidth: round1(width.at(start + run.end)),
+            elements: layout.plans[n]!.segments.length,
+            folds: layout.plans[n]!.folds.length,
+            offLine: round3(Math.max(...layout.plans[n]!.offLine)),
+            turn: degrees(layout.plans[n]!.segments.reduce((sum, s) => sum + s.turn, 0)),
+          })),
+          elements: layout.path.length,
+          planElements: built.document.sections.reduce((n, s) => n + s.plan.length, 0),
+          tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
+          drift: Math.max(...layout.pieces.map((p) => p.plan.drift)),
+          narrowedSand: layout.sand.narrowed.map((n) => ({
+            at: round1(n.from),
+            side: n.side ? 'right' : 'left',
+            sand: round1(n.sand),
+          })),
+          crossings: layout.crossings.map((c) => ({
+            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+            levels: c.levels,
+            moves: c.moves,
+            heights: c.heights.map(round1),
+          })),
+          skies: skies.length,
         }),
       );
       break;

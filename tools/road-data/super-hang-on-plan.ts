@@ -117,7 +117,8 @@ function missOf(line: readonly [number, number][], h: readonly number[], a: numb
  *   arc turning evenly from heading to heading;
  * - the first and last elements straight at the section's end headings, each arc's turn its end heading less the
  *   heading the elements before reach, the last arc's end the section's end heading, so no turn dropped is lost; an
- *   arc straighter than `STRAIGHTEST` a straight, its turn carried by the next arc; straights one after another one.
+ *   arc straighter than `STRAIGHTEST` a straight, its turn carried by the next arc, the last arc then a straight and
+ *   the arc before it the last; straights one after another one.
  */
 export function sectionPlan(path: Path, metres: number) {
   const read = headingsOf(path);
@@ -137,23 +138,36 @@ export function sectionPlan(path: Path, metres: number) {
     spans.push([a, best]);
     a = best;
   }
-  const straight = (k: number) =>
-    k === 0 || k === spans.length - 1 || Math.abs(h[spans[k]![1]]! - h[spans[k]![0]]!) < STRAIGHT_DEGREES;
-  let lastArc = -1;
-  spans.forEach((_, k) => {
-    if (!straight(k)) lastArc = k;
-  });
-  let heading = h[0]!;
-  const laid: PlanSegment[] = spans.map(([from, to], k) => {
-    if (straight(k)) return { from, to, turn: 0 };
-    const target = k === lastArc ? h[end]! : h[to]!;
-    const turn = ((target - heading) * Math.PI) / 180;
-    if (k !== lastArc && Math.abs(turn) * STRAIGHTEST < (to - from) * metres) return { from, to, turn: 0 };
-    if (Math.abs(turn) * STRAIGHTEST < (to - from) * metres)
-      throw new RangeError(`The path's last arc, ${from} to ${to}, is straighter than ${STRAIGHTEST} m`);
-    heading = target;
-    return { from, to, turn };
-  });
+  // Straight spans; the last arc carries the turn to the section's end heading, and where it would be straighter than
+  // `STRAIGHTEST` it is a straight too, the arc before it the last.
+  const straights = new Set(
+    spans
+      .map((_, k) => k)
+      .filter(
+        (k) => k === 0 || k === spans.length - 1 || Math.abs(h[spans[k]![1]]! - h[spans[k]![0]]!) < STRAIGHT_DEGREES,
+      ),
+  );
+  let laid: PlanSegment[] | null = null;
+  while (!laid) {
+    const lastArc = Math.max(-1, ...spans.map((_, k) => k).filter((k) => !straights.has(k)));
+    let heading = h[0]!;
+    const out: PlanSegment[] = [];
+    for (const [k, [from, to]] of spans.entries()) {
+      if (straights.has(k)) {
+        out.push({ from, to, turn: 0 });
+        continue;
+      }
+      const target = k === lastArc ? h[end]! : h[to]!;
+      const turn = ((target - heading) * Math.PI) / 180;
+      if (Math.abs(turn) * STRAIGHTEST >= (to - from) * metres) {
+        heading = target;
+        out.push({ from, to, turn });
+      } else if (k !== lastArc) out.push({ from, to, turn: 0 });
+      else break;
+    }
+    if (out.length === spans.length) laid = out;
+    else straights.add(lastArc);
+  }
   // Straights one after another are one.
   const segments: PlanSegment[] = [];
   for (const e of laid) {

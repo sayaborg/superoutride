@@ -13,7 +13,7 @@ import type { CurvePoint, Path, WidthHeightPoint } from './road-tables.js';
 export const CONVERSION_VERSION = 11;
 
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
-const WIDTH_RATE = 16 / 303;
+export const WIDTH_RATE = 16 / 303;
 /**
  * At a join of its curves the path turns over a position or two beyond its curves' rates: the plan gives each join this
  * many positions either side, and reads a curve's own turn this far inside it.
