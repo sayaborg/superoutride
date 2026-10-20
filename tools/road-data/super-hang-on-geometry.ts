@@ -3,7 +3,6 @@
  * its straights and arcs one after another from the course's entry, the plane the centre lane runs on (P laid off a
  * fixed distance to its left, so again straights and arcs), and each road position's station on the plane.
  */
-import { overlap } from './crossings.js';
 
 /** A pose: metres, heading in radians counterclockwise from +x. */
 export interface Pose {
@@ -103,57 +102,4 @@ function advance(pose: Pose, e: PathElement, d: number): Pose {
     y: pose.y + (Math.cos(pose.heading) - Math.cos(pose.heading + k * d)) / k,
     heading: pose.heading + k * d,
   };
-}
-
-/**
- * The pairs of P's cells (`step` metres each, from `from` to `to` metres along P), at least `apart` metres apart along P,
- * whose cross-sections, `left` and `right` metres either side of P, overlap: each pair's cells' starts.
- */
-export function overlappingCells(
-  path: CoursePath,
-  options: {
-    readonly from: number;
-    readonly to: number;
-    readonly step: number;
-    readonly left: number;
-    readonly right: number;
-    readonly apart: number;
-    readonly margin?: number;
-  },
-): [number, number][] {
-  const { from, to, step, left, right, apart } = options;
-  const n = Math.max(1, Math.ceil((to - from) / step - 1e-9));
-  const at = (i: number) => Math.min(to, from + i * step);
-  const edges = Array.from({ length: n + 1 }, (_, i) => {
-    const [l, r] = [path.aside(at(i), -left), path.aside(at(i), right)];
-    return [
-      [l.x, l.y],
-      [r.x, r.y],
-    ] as const;
-  });
-  const cells = Array.from({ length: n }, (_, i) => [edges[i]![0], edges[i]![1], edges[i + 1]![1], edges[i + 1]![0]]);
-  const SQUARE = 50;
-  const keys = (cell: readonly (readonly [number, number])[]) => {
-    const xs = cell.map(([x]) => Math.floor(x / SQUARE)),
-      ys = cell.map(([, y]) => Math.floor(y / SQUARE));
-    const out: string[] = [];
-    for (let i = Math.min(...xs); i <= Math.max(...xs); i++)
-      for (let j = Math.min(...ys); j <= Math.max(...ys); j++) out.push(`${i},${j}`);
-    return out;
-  };
-  const grid = new Map<string, number[]>();
-  cells.forEach((cell, i) => {
-    for (const key of keys(cell)) grid.set(key, [...(grid.get(key) ?? []), i]);
-  });
-  const pairs = new Set<number>();
-  const out: [number, number][] = [];
-  cells.forEach((cell, i) => {
-    for (const key of keys(cell))
-      for (const j of grid.get(key)!) {
-        if (at(j) - at(i) < apart || pairs.has(i * n + j)) continue;
-        pairs.add(i * n + j);
-        if (overlap(cell, cells[j]!, options.margin ?? 0)) out.push([at(i), at(j)]);
-      }
-  });
-  return out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
 }

@@ -24,7 +24,8 @@ import {
   spriteWords,
 } from '../../tools/road-data/sprite-pixels.ts';
 import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
-import { centreLaneAt, composite, drivenLanes } from '../../tools/road-data/outrun-cross-section.ts';
+import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
+import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { outrunRoad } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
@@ -338,7 +339,7 @@ test('a stage becomes a road: its path turns between breaks at its joins, its wi
 test("two roads' picture: surfaces over lines, the left road's lines over the right's; the lanes driven", () => {
   // Each line or edge band shown, as [from, to] units across from the roads' middle.
   const shown = (w) =>
-    composite([-w, w]).map((i) => [
+    composite([-w, w], OUTRUN_ROAD).map((i) => [
       i.paint,
       Math.round(((i.left.road ? w : -w) + i.left.at) * 100) / 100,
       Math.round(((i.right.road ? w : -w) + i.right.at) * 100) / 100,

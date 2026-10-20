@@ -17,9 +17,11 @@ The road data tool keeps each original's ROM set, addresses and formats in its o
 `super-hang-on-*`, `turbo-outrun-*`) and what they share in modules of their own: a program's words and the halves it is
 interleaved from (`program-words`), the road tables in OUTRUN's format (`road-tables`: palette words, curves, widths and
 heights, scenery points, road paths and height tables), the hills (`hills`), the profile and the crossings' bumps
-(`road-profile`), where a road passes over itself (`crossings`), the plan laid off a road path with its corners rounded (`offset-plan`), the sprite hardware's pixels
-(`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`), and how objects approach the car
-(`object-approach`: the tick's advance, an approach table's step and `startDepth`).
+(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
+laid off a road path with its corners rounded (`offset-plan`), two roads drawn together from one road's picture across
+(`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
+(`pixel-grid`), and how objects approach the car (`object-approach`: the tick's advance, an approach table's step and
+`startDepth`).
 
 ## ROM set
 

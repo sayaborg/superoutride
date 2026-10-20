@@ -9,8 +9,8 @@ import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain
 import { repeated, sectionProfile } from './outrun-course.js';
 import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { CoursePath, overlappingCells, type PathElement } from './super-hang-on-geometry.js';
-import { crossingsOf } from './crossings.js';
+import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
+import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import type { PlanSegment } from './super-hang-on-plan.js';
@@ -279,8 +279,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     from: 0,
     to: end,
     step: metres,
-    left: half,
-    right: half,
+    sides: () => [half, half],
     apart: PASSAGES_APART,
   }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
@@ -360,8 +359,7 @@ function domainCuts(path: CoursePath, from: number, to: number, reach: number, g
     from,
     to,
     step,
-    left: reach,
-    right: reach,
+    sides: () => [reach, reach],
     apart: DOMAIN_APART,
     margin: DOMAIN_MARGIN,
   });

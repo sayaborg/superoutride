@@ -8,7 +8,8 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
-import { composite, ROAD_HALF, TOUCHING, UNIT_METRES, type FeatureEdge } from './outrun-cross-section.js';
+import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
+import { composite, type FeatureEdge } from './two-roads.js';
 import { OffsetPlan, POSITION_METRES, type Pose } from './offset-plan.js';
 import {
   forkSpan,
@@ -996,7 +997,10 @@ function sectionDocument(
 function regimes(span: Span, from: number, to: number) {
   const pictureAt = (p: number) => {
     const drawn = drawnAt(span, p);
-    const intervals = composite(drawn.map(({ road }) => lineOf(span, road.centre, p))).map((i) => ({
+    const intervals = composite(
+      drawn.map(({ road }) => lineOf(span, road.centre, p)),
+      OUTRUN_ROAD,
+    ).map((i) => ({
       paint: i.paint,
       left: { road: drawn[i.left.road]!.index, at: i.left.at },
       right: { road: drawn[i.right.road]!.index, at: i.right.at },

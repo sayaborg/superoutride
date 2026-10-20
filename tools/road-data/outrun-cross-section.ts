@@ -1,11 +1,12 @@
 /**
  * OUTRUN's road across ([Original road data](../../docs/original-road-data.md#cross-section)): one road's lines and
- * edges as the road ROM draws them, two roads' picture where they meet, and the lanes driven over them. Every amount is
- * in road units, across from the roads' middle, positive right.
+ * edges as the road ROM draws them (`two-roads` draws two together), and the lanes driven over two of them. Every amount
+ * is in road units, across from the roads' middle, positive right.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import type { ZipFile } from './zip.js';
+import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
 
 /** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 3.6 m. */
 export const LANE = 424 / 3;
@@ -18,9 +19,6 @@ export const START_WIDTH = 0x1c2;
 
 export { UNIT_METRES };
 
-/** How one road's ROM line draws a point: its surface, a line, its edge band, or outside the road. */
-export type Paint = 'surface' | 'line' | 'edge' | 'outside';
-
 /**
  * One road's lines and edge bands across from its centre, as the road ROM's nearest line (row 255 of `opr-10185`, 1 px
  * a unit, its centre at 252) draws them, each side alike: the inner lines 8 wide about 212/3 (pixel value 1), the outer
@@ -29,7 +27,7 @@ export type Paint = 'surface' | 'line' | 'edge' | 'outside';
  * the paint to its right.
  */
 const INNER = [212 / 3 - 4, 212 / 3 + 4] as const;
-const EDGES: readonly { readonly at: number; readonly right: Paint }[] = [
+export const OUTRUN_ROAD: RoadPicture = [
   { at: -ROAD_HALF, right: 'edge' },
   { at: -228, right: 'surface' },
   { at: -218, right: 'line' },
@@ -43,54 +41,6 @@ const EDGES: readonly { readonly at: number; readonly right: Paint }[] = [
   { at: 228, right: 'edge' },
   { at: ROAD_HALF, right: 'outside' },
 ];
-
-/** How one road centred at 0 draws `x`. */
-function paintAt(x: number): Paint {
-  let paint: Paint = 'outside';
-  for (const e of EDGES) if (x >= e.at) paint = e.right;
-  return paint;
-}
-
-/** Where a composite interval's side lies: road `road`'s feature edge `at` units from its centre. */
-export interface FeatureEdge {
-  readonly road: number;
-  readonly at: number;
-}
-
-/** A painted interval of the roads' picture: a line or an edge band, from `left` to `right`. */
-export interface PaintedInterval {
-  readonly paint: 'line' | 'edge';
-  readonly left: FeatureEdge;
-  readonly right: FeatureEdge;
-}
-
-/**
- * The picture of roads centred at `centres` (units, left to right), road 0 first in priority: at each point the surface
- * of any road wins, then road 0's line or edge, then the next road's, then the ground. Returns the lines and edge bands
- * that show, each delimited by the feature edges either side, merged where they touch and paint alike.
- */
-export function composite(centres: readonly number[]): PaintedInterval[] {
-  const edges = centres
-    .flatMap((c, road) => EDGES.map((e) => ({ road, at: e.at, x: c + e.at })))
-    .sort((a, b) => a.x - b.x || a.road - b.road);
-  const out: (PaintedInterval & { x: number })[] = [];
-  for (let i = 0; i + 1 < edges.length; i++) {
-    const [a, b] = [edges[i]!, edges[i + 1]!];
-    if (b.x <= a.x) continue;
-    const mid = (a.x + b.x) / 2;
-    const paints = centres.map((c) => paintAt(mid - c));
-    if (paints.includes('surface')) continue;
-    const shown = paints.find((p) => p !== 'outside');
-    if (shown === undefined || shown === 'surface') continue;
-    const last = out.at(-1);
-    const left = { road: a.road, at: a.at },
-      right = { road: b.road, at: b.at };
-    if (last && last.paint === shown && last.x === a.x) {
-      out[out.length - 1] = { ...last, right, x: b.x };
-    } else out.push({ paint: shown, left, right, x: b.x });
-  }
-  return out.map(({ paint, left, right }) => ({ paint, left, right }));
-}
 
 /**
  * The lanes driven at road width `w`, units: a, b, c | median | d, e, f, the outer lanes a and f always one lane. Two
@@ -139,12 +89,12 @@ export function checkRoadRom(files: ReadonlyMap<string, ZipFile>) {
   const bit = (plane: number, x: number) => (file.data[plane * 0x4000 + NEAREST * 64 + (x >> 3)]! >> (7 - (x & 7))) & 1;
   for (let x = 0; x < 512; x++) {
     const d = x + 0.5 - CENTRE_PIXEL;
-    if (Math.abs(d) < 4 || EDGES.some((e) => Math.abs(Math.abs(d) - Math.abs(e.at)) < 1)) continue;
+    if (Math.abs(d) < 4 || OUTRUN_ROAD.some((e) => Math.abs(Math.abs(d) - Math.abs(e.at)) < 1)) continue;
     const rom = ROM_PAINT[bit(0, x) | (bit(1, x) << 1)]!;
     requireInput(
-      rom === paintAt(d),
+      rom === paintAt(OUTRUN_ROAD, d),
       `/rom/${name}`,
-      `The road ROM draws ${rom} at ${d} units from its centre, not ${paintAt(d)}`,
+      `The road ROM draws ${rom} at ${d} units from its centre, not ${paintAt(OUTRUN_ROAD, d)}`,
     );
   }
 }
