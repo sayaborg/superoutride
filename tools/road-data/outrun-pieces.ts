@@ -16,7 +16,7 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { Quadratic, rounded, type PlanSegment, type QuadraticPiece } from './outrun-plan.js';
+import { POSITION_METRES, Quadratic, rounded, type PlanSegment, type QuadraticPiece } from './outrun-plan.js';
 import {
   pathOffset,
   type Path,
@@ -53,8 +53,6 @@ const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300, end: 600 });
 const DEAD_END = 2;
 /** A road that comes in grows to its lanes over one position. */
 const GROWS = 1;
-/** Where two roads meet at a goal joining the next stage, the right road's lanes widen from nothing over these. */
-const JOIN = [580, 600] as const;
 /** The sand reaches this far beyond the outermost asphalt, metres. */
 export const VERGE = 40;
 /** A verge's outer edge moves no faster than one metre across for this many along. */
@@ -83,7 +81,7 @@ export interface SpanStage {
   readonly from: number;
   readonly stage: Stage;
   /** How its sky arrives there. */
-  readonly arrival: 'cut' | 'wipe';
+  readonly arrival: 'cut' | 'wipe' | 'rise';
 }
 
 /** A span: its plan's path and offsets, its lanes and drawn roads, verges, heights and scenery. */
@@ -434,12 +432,10 @@ function vergeRamps(
 /** A verge ramp's length along, metres, for a move of `across` metres. */
 export const rampLength = (across: number) => VERGE_RAMP * Math.abs(across);
 
-/** What a goal span needs beside its stage: its goal stretch and whether it joins a next stage. */
+/** What a goal span needs beside its stage: its goal stretch and the goals' path. */
 export interface GoalOptions {
   readonly stretch: Stretch;
   readonly path: Path;
-  /** Whether it joins the next stage (the road through all 15), its right road's lanes widening at its end. */
-  readonly joins: boolean;
 }
 
 /**
@@ -448,8 +444,7 @@ export interface GoalOptions {
  * the road not taken, the right (d, e, f), ends, its lanes narrowing to nothing over its last two positions. Where the
  * goal's width point takes (the next tick after its second height point: from 182 on but at goal 2, whose point at 162
  * comes while the width is still the stage's), the width then closes at 256 × 16/303 units a position to 0, the road
- * taken coming back to P. A goal joining the next stage widens its right road's lanes from nothing over 580 to 600, so
- * that the six lanes meet the next stage's.
+ * taken coming back to P.
  */
 function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' | 'e'): Span {
   const offsetAt = STAGE_LENGTH;
@@ -478,16 +473,14 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
           : ROUNDED_HALF,
   );
   const dead = (p: number) => ramp(p, apart - DEAD_END, apart, LANE, 0);
-  const joining = (p: number) => ramp(p, at(JOIN[0]), at(JOIN[1]), 0, LANE);
   const lanes = (p: number) => {
     if (p < apart - DEAD_END) return drivenAt(width.at(p));
-    const right = goal.joins && p >= at(JOIN[0]) ? joining(p) : dead(p);
+    const right = dead(p);
     const m0 =
       p < apart ? 2 * (width.at(p) - TOUCHING) : ramp(p, apart, apart + DEAD_END, 2 * (width.at(apart) - TOUCHING), 0);
     return new Map(Object.entries({ a: LANE, b: LANE, c: LANE, m0, d: right, e: right, f: right }));
   };
   requireInput(width.at(apart - DEAD_END) >= TOUCHING, '/goal', 'The road not taken ends before the roads are apart');
-  const joinVerge = at(JOIN[1]);
   return {
     length,
     path: [
@@ -507,20 +500,11 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     order: STAGE_ORDER,
     centreLane: centre,
     lanes,
-    laneBreaks: [
-      apart - DEAD_END,
-      apart,
-      apart + DEAD_END,
-      ...(goal.joins ? JOIN.map(at) : []),
-      ...curvedSamples(width),
-    ],
+    laneBreaks: [apart - DEAD_END, apart, apart + DEAD_END, ...curvedSamples(width)],
     roads: [
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
       { from: 0, to: apart - DEAD_END, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
       { from: apart - DEAD_END, to: apart, centre: { lane: 'd', side: 'left', units: TOUCHING } },
-      ...(goal.joins
-        ? [{ from: at(JOIN[0]), to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } } as const]
-        : []),
     ],
     verges: {
       left: [0, length].map((p) => ({ at: p, ref: verge('a', 'left'), metres: -VERGE })),
@@ -529,12 +513,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
         { at: apart - DEAD_END, ref: verge('f', 'right'), metres: VERGE },
         { at: apart, ref: { lane: 'd', side: 'left', units: TOUCHING + ROAD_HALF }, metres: VERGE },
         { at: Number.NaN, ref: verge('c', 'right'), metres: VERGE },
-        ...(goal.joins
-          ? [
-              { at: Number.NaN, ref: verge('c', 'right'), metres: VERGE },
-              { at: joinVerge, ref: { lane: 'c', side: 'right' as const, units: TOUCHING + ROAD_HALF }, metres: VERGE },
-            ]
-          : [{ at: length, ref: verge('c', 'right'), metres: VERGE }]),
+        { at: length, ref: verge('c', 'right'), metres: VERGE },
       ],
     },
     heights: [
@@ -549,6 +528,67 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     scenery: [...stage.scenery.filter((p) => p.position < STAGE_LENGTH), ...shifted(goal.stretch.scenery, offsetAt)],
     stages: [{ from: 0, stage, arrival: 'cut' }],
     stageEnd: STAGE_LENGTH,
+  };
+}
+
+/** A join piece's length, positions: the verge's ramp out to the road coming in (three lanes across), then its growth. */
+const JOIN_LENGTH = GROWS + Math.ceil(rampLength(3 * LANE * UNIT_METRES) / POSITION_METRES);
+
+/**
+ * A join piece, after a goal piece on the road through all 15 (K's design, 2026-10-20): a straight of `JOIN_LENGTH`
+ * at road width 212, lanes a, b, c | m0 | d, e, f. The road taken runs on from the goal; its verge ramps out to the
+ * road coming in, which then appears beside it, its lanes growing over a position, so that the next stage begins in
+ * six lanes. As a fork's sides, `side` −1 (L) has the road taken as d, e, f (centre lane e), the next stage's right
+ * half, the road coming in from the left; 1 (R) its mirror, a, b, c (centre lane b). Level, with no scenery of its
+ * own; the next stage's road, ground and sky, its sky rising there.
+ */
+export function joinSpan(next: Stage, side: -1 | 1): Span {
+  const length = JOIN_LENGTH;
+  const comesIn = length - GROWS;
+  const coming = (p: number) => ramp(p, comesIn, length, 0, LANE);
+  const taken = side > 0 ? 'abc' : 'def';
+  const lanes = (p: number) =>
+    new Map([
+      ...[...'abc'].map((l) => [l, taken === 'abc' ? LANE : coming(p)] as const),
+      ['m0', 0],
+      ...[...'def'].map((l) => [l, taken === 'def' ? LANE : coming(p)] as const),
+    ]);
+  // The road taken's centre, 212 inside its outer lane's outer edge; the road coming in's, inside its inner lane's.
+  const takenCentre =
+    side > 0
+      ? ({ lane: 'a', side: 'left', units: TOUCHING } as const)
+      : ({ lane: 'f', side: 'right', units: -TOUCHING } as const);
+  const inner = side > 0 ? ({ lane: 'd', side: 'left' } as const) : ({ lane: 'c', side: 'right' } as const);
+  const fixed = side > 0 ? verge('a', 'left') : verge('f', 'right');
+  const ramps = vergeRamps(
+    side > 0 ? verge('c', 'right') : verge('d', 'left'),
+    { ...inner, units: side * (TOUCHING + ROAD_HALF) },
+    side,
+    comesIn,
+    length,
+    'in',
+  );
+  return {
+    length,
+    path: [{ from: 0, to: length, turn: 0 }],
+    width: new Quadratic([{ from: 0, to: length, a: TOUCHING, b: 0, c: 0 }]),
+    offset: new Quadratic([{ from: 0, to: length, a: side * centreLaneAt(TOUCHING) * UNIT_METRES, b: 0, c: 0 }]),
+    middle: () => 0,
+    order: STAGE_ORDER,
+    centreLane: side > 0 ? 'b' : 'e',
+    lanes,
+    laneBreaks: [comesIn],
+    roads: [
+      { from: 0, to: length, centre: takenCentre },
+      { from: comesIn, to: length, centre: { ...inner, units: side * TOUCHING } },
+    ],
+    verges:
+      side > 0
+        ? { left: [0, length].map((at) => ({ at, ref: fixed, metres: -VERGE })), right: ramps }
+        : { left: ramps, right: [0, length].map((at) => ({ at, ref: fixed, metres: VERGE })) },
+    heights: [],
+    scenery: [],
+    stages: [{ from: 0, stage: next, arrival: 'rise' }],
   };
 }
 

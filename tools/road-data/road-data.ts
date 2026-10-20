@@ -377,7 +377,7 @@ try {
           const span = stageSpan(stage, {
             first: row === 0,
             fork: goal ? null : fork,
-            ...(goal ? { goal: { stretch: goal, path: goals.path, joins: false } } : {}),
+            ...(goal ? { goal: { stretch: goal, path: goals.path } } : {}),
           });
           const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
           const { end, profile, crossings } = roadProfile(laid, { tables, kmh: TOP_KMH });

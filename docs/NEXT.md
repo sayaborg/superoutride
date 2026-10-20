@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-10c](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
+Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -276,8 +276,10 @@ K's decisions (2026-10-19 to 20):
 - **Order of the 15.** The map's order, row by row and within a row from the left fork's side: COCONUT BEACH; GATEWAY,
   DEVIL'S CANYON; DESERT, ALPS, CLOUDY MOUNTAIN; WILDERNESS, OLD CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD, DEATH
   VALLEY, DESOLATION HILL, AUTOBAHN, LAKESIDE. The forks alternate left and right from the left; after a stage of row 5
-  its own goal piece (its 90° left) joins it to the next, and people may stand at those goals too. The original's
-  destination signs keep their names where they do not match the road (K accepted).
+  its own goal piece (its 90° left) joins it to the next, and people may stand at those goals too. Between the goal
+  piece's three lanes and the next stage's six, a join piece of its own lets the other road come in as a fork's side
+  does, the joins' sides continuing the forks' alternation (K, 2026-10-20). The original's destination signs keep their
+  names where they do not match the road (K accepted).
 - **Dead ends.** No fence closes the road not taken; an original way of showing which road to take is made, built to a
   default and decided by K on Pages.
 - **Road.** The lateral unit is corrected to the original's lane spacing, 424/3 units a lane, and a lane is 3.6 m. All
@@ -305,18 +307,6 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-10: the 7 roads. The road's rules (units, the two roads' composite of lines and edges, the lanes driven, the
-  ground's colors from the ROM, the stripes' period, the plan as where the original draws the centre lane and the
-  map from road positions to its stations, rounded corners), the stage, fork and goal pieces, the roads assembled,
-  objects placed along a whole road, the checkpoints, the background changes (`wipe` at a fork, `rise` at a goal's
-  join) and yaw origins, the crossings, and TRIAL's 7 classes, each OUTRUN's class's values today (TESTAROSSA alone,
-  yellow, slot 14, the player last, traffic density 6 at 120 km/h, margin 1.35): `outrun-a` GOLDEN FRONTIER (A
-  LLLL), `outrun-b` HEAT HAZE (B LRLL), `outrun-c-left` DESERT MIRAGE (C LLRR), `outrun-c-right` STORM RIDGE (C RRLL),
-  `outrun-d` OVERDRIVE (D RLRR), `outrun-e` BLUE HORIZON (E RRRR), `outrun-all` GRAND TOUR (ALL 15). Measured. Split
-  in three: RD-10a gave the boards their final sizes and base points (no course used them, so nothing was measured);
-  RD-10b the six roads; RD-10c the 15, `outrun-all` GRAND TOUR, with its goals joining the next stages (`rise`) and its
-  middle goals as checkpoints. Where the format's coordinate domain needs it, corners are rounded over more than 4
-  positions (K, 2026-10-20; [Original road data](original-road-data.md#course-documents)).
 - RD-11: the guidance where a road is chosen (drawn signs, chevrons and road arrows; K decides on Pages). Measured.
 - RD-12: the boards' pictures from the ROMs, sizes and anchors unchanged. Published, not measured.
 - RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.

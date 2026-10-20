@@ -10,7 +10,7 @@ import type { Profile } from './outrun-profile.js';
 import type { CurvePoint, Path, WidthHeightPoint } from './outrun-road.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 8;
+export const CONVERSION_VERSION = 9;
 
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
 const WIDTH_RATE = 16 / 303;
