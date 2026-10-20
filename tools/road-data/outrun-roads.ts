@@ -57,6 +57,8 @@ const THIN = 1e-5;
 const STRAIGHTEST = 40000;
 /** A plan element shorter than this, metres, is carried on into the next: its length and its turn. */
 const SHORTEST = 1e-3;
+/** A knot this near a joint of its Section's plan, metres, is written at the joint. */
+const JOINT_SNAP = 2e-6;
 /** A width is there where it is wider than this, units. */
 const THERE = 1e-9;
 /** Where the composite of the roads is sampled for changes, positions. */
@@ -565,8 +567,12 @@ function sectionDocument(
     else elements.push({ kind: 'arc', id: `c${elements.length}`, length, radius, turn: side, from: e.from });
   }
   const first = elements[0]!.id;
-  const at = (p: number) => ({ joint: first, offset: round(plan.station(p) - origin) });
-  const atStation = (s: number) => ({ joint: first, offset: round(s) });
+  // A station within a few micrometres of a joint is the joint's: a position reckoned apart from the plan's elements
+  // can round to the micrometre beside it.
+  const joints = elements.map((_, i) => round(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
+  const onJoint = (s: number) => joints.find((j) => Math.abs(j - s) <= JOINT_SNAP) ?? s;
+  const atStation = (s: number) => ({ joint: first, offset: onJoint(round(s)) });
+  const at = (p: number) => atStation(plan.station(p) - origin);
 
   // The lanes: their widths at each knot, a lane or median 0 throughout left out.
   const knots = [

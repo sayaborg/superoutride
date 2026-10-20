@@ -96,8 +96,10 @@ fork leads to the next row's stage at the same place and the right road to the o
 - **Paths against curves.** Over each curve the path turns by 1/R a position, left where kind 3 says, right where 2
   says (the measured radius within 2.3 % of R in every stage). Every stage's path turns 0° or ±360° over its 1948
   positions and lines up with its curves (`pathOffset`), but for stage 0x38's, which runs 48 positions ahead of them
-  (0x2A's by 1). The plan follows the path, the road the original draws; the curves, moved back by the path's offset,
-  only check its headings and radii. Widths, heights and scenery keep their positions: the original draws them at the
+  (0x2A's by 1). At a join the path turns over a position or two by more than its curves' rates (up to 5° on 0x2A,
+  most of whose join vectors also differ in length), a turn the original draws. The plan follows the path, the road
+  the original draws; the curves, moved back by the path's offset, give where it may change its rate and check its
+  headings and radii. Widths, heights and scenery keep their positions: the original draws them at the
   same road positions as the path. The original's curves push the car outward, so on stage 0x38 the curves the player
   sees and the curves that push the car lie 48 positions apart.
 - **Height tables.** The long at 0x220A + number × 4 is a height table: {u8 kind, u8 step}, then by kind:
@@ -368,7 +370,7 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 9 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 10 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
 program draws them:
 
@@ -423,13 +425,16 @@ left out.
 
 ### Plan
 
-The plan is where the original draws the centre lane: its road path P (S's path table, its curves moved back by
-`pathOffset`) laid off sideways by the centre lane's centre: at a stage b's (−(w + 70.67 + c) / 2 from the roads' middle, −w at
-w ≥ 212), or e's (its mirror) where the stage is entered from a fork's left side. A position's station is the arc length along the plan to the point across from P there
-(`OffsetPlan`); everything placed by position (widths, objects, gates, height tables, sky changes) takes it. As
-straights and arcs: a straight where P is straight and the offset changes evenly, an arc where P is an arc and the
-offset holds, else arcs of at most 2 positions (4 on a straight) turning as the curve does, each joint within 1 cm of
-the curve (the largest of the roads 5.1 mm). A corner of the curve (P's curvature changing while the offset changes)
+The plan is where the original draws the centre lane: its road path P laid off sideways by the centre lane's centre.
+P turns as S's path table does, at one rate between breaks: the stretch's ends, and two positions either side of each
+join of its curves (moved back by `pathOffset`), so that a join's own turn stays at the join; a straight holds the
+middle of the path's headings inside it. Over any 50 m, fitted, P lies within 0.26 m of the path the table draws. The
+centre lane is at a stage b's (−(w + 70.67 + c) / 2 from the roads' middle, −w at w ≥ 212), or e's (its mirror) where
+the stage is entered from a fork's left side. A position's station is the arc length along the plan to the point
+across from P there (`OffsetPlan`); everything placed by position (widths, objects, gates, height tables, sky changes)
+takes it. As straights and arcs: a straight where P is straight and the offset changes evenly, an arc where P is an
+arc and the offset holds, else arcs of at most 2 positions (4 on a straight) turning as the curve does, each joint
+within 1 cm of the curve (the largest of the roads 4.5 mm). A corner of the curve (P's curvature changing while the offset changes)
 is turned by an arc either side, each turning half of it, no sharper than 120 m and within 3 mm of it. An arc that
 would be straighter than 40 km is a straight, its turn carried on; one shorter than a millimetre (two breaks all but
 together) is carried on into the next, its length and its turn.

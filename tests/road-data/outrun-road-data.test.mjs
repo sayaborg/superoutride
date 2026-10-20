@@ -304,7 +304,7 @@ function pathOf(length, rate) {
   return { address: 0, x, y };
 }
 
-test('a stage becomes a road: its arcs turn between its straights, its width follows its points', () => {
+test('a stage becomes a road: its path turns between breaks at its joins, its width follows its points', () => {
   // A left arc of radius 50 from 100 to 178 between two straights; the path turns from position 100 to 177.
   const path = pathOf(400, (p) => (p >= 100 && p < 178 ? 1 / 50 : 0));
   const curves = [
@@ -312,16 +312,19 @@ test('a stage becomes a road: its arcs turn between its straights, its width fol
     { position: 100, radius: 50, kind: 3 },
     { position: 178, radius: 0, kind: 1 },
   ];
+  // Breaks two positions either side of each join; the straights hold their headings, the rest turns as the path.
   const plan = stagePlan(curves, path, 0, 300);
   assert.deepEqual(
     plan.map((s) => [s.from, s.to]),
     [
-      [0, 100],
-      [100, 178],
-      [178, 300],
+      [0, 98],
+      [98, 102],
+      [102, 176],
+      [176, 180],
+      [180, 300],
     ],
   );
-  assert.ok(Math.abs(plan[1].turn - 78 / 50) < 1e-3);
+  [0, 2, 74, 2, 0].forEach((positions, i) => assert.ok(Math.abs(plan[i].turn - positions / 50) < 1e-3));
   assert.throws(() => stagePlan([curves[0], { ...curves[1], kind: 2 }, curves[2]], path, 0, 300), /turns left/);
 
   // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50.
