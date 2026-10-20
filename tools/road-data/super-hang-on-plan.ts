@@ -16,6 +16,11 @@ const ELEMENT_TOLERANCE = 0.25;
 const STRAIGHT_DEGREES = 0.01;
 /** An element stops growing once this many longer ones in a row miss the line. */
 const MISSES = 8;
+/**
+ * An arc straighter than this radius is a straight, its turn carried by the next arc, metres: the course format takes
+ * radii up to its length bound.
+ */
+const STRAIGHTEST = 40000;
 
 /**
  * One road position in metres, from the main CPU's program: at speed v the display shows v × 0x117 / 0xF0 km/h (the
@@ -111,7 +116,8 @@ function missOf(line: readonly [number, number][], h: readonly number[], a: numb
  *   position at a time until `MISSES` in a row miss): a straight where it turns less than `STRAIGHT_DEGREES`, else an
  *   arc turning evenly from heading to heading;
  * - the first and last elements straight at the section's end headings, each arc's turn its end heading less the
- *   heading the elements before reach, the last arc's end the section's end heading, so no turn dropped is lost.
+ *   heading the elements before reach, the last arc's end the section's end heading, so no turn dropped is lost; an
+ *   arc straighter than `STRAIGHTEST` a straight, its turn carried by the next arc; straights one after another one.
  */
 export function sectionPlan(path: Path, metres: number) {
   const read = headingsOf(path);
@@ -138,14 +144,24 @@ export function sectionPlan(path: Path, metres: number) {
     if (!straight(k)) lastArc = k;
   });
   let heading = h[0]!;
-  const segments: PlanSegment[] = spans.map(([from, to], k) => {
+  const laid: PlanSegment[] = spans.map(([from, to], k) => {
     if (straight(k)) return { from, to, turn: 0 };
     const target = k === lastArc ? h[end]! : h[to]!;
-    const turn = target - heading;
+    const turn = ((target - heading) * Math.PI) / 180;
+    if (k !== lastArc && Math.abs(turn) * STRAIGHTEST < (to - from) * metres) return { from, to, turn: 0 };
+    if (Math.abs(turn) * STRAIGHTEST < (to - from) * metres)
+      throw new RangeError(`The path's last arc, ${from} to ${to}, is straighter than ${STRAIGHTEST} m`);
     heading = target;
-    return { from, to, turn: (turn * Math.PI) / 180 };
+    return { from, to, turn };
   });
-  // How far each element lies from the line before the folds were spread, from its start there.
+  // Straights one after another are one.
+  const segments: PlanSegment[] = [];
+  for (const e of laid) {
+    const last = segments.at(-1);
+    if (last && last.turn === 0 && e.turn === 0) segments[segments.length - 1] = { ...last, to: e.to };
+    else segments.push(e);
+  }
+  // How far each element as fitted lies from the line before the folds were spread, from its start there.
   const before = lineOf(read, metres);
   const offLine = spans.map(([a, b]) => {
     const shifted = before.map(([x, y]) => [x - before[a]![0] + line[a]![0], y - before[a]![1] + line[a]![1]] as [number, number]);
