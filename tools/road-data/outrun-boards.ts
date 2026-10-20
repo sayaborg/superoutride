@@ -29,12 +29,22 @@ export interface SpriteUse {
   readonly routine: number;
   readonly palette: number;
   readonly shadow: boolean;
+  /** A frame of an animation no sprite names: the address of its size (its `sprite` then unused). */
+  readonly frame?: number;
 }
 
-/** A board's image name: the sprite's number, or a strip's or cloud's family's address, then whether mirrored and shadowed. */
-export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow'>) {
+/**
+ * A board's image name: the sprite's number, a strip's or cloud's family's address, or a frame's, then whether mirrored
+ * and shadowed.
+ */
+export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored' | 'shadow' | 'frame'>) {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
-  const shown = family === undefined ? String(use.sprite).padStart(3, '0') : `strip-${family.address.toString(16)}`;
+  const shown =
+    use.frame !== undefined
+      ? `frame-${use.frame.toString(16)}`
+      : family === undefined
+        ? String(use.sprite).padStart(3, '0')
+        : `strip-${family.address.toString(16)}`;
   return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
 }
 
@@ -61,8 +71,15 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const name = boardName(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
-  const shadow = shadowSizes(main)[0]!;
-  const shadowPixels = outline(spritePixels(words, shadow), shadow.width);
+  // The shadows, by their size list's address: the scenery's (0xFF56), or a routine's own.
+  const shadows = new Map<number | undefined, { width: number; pixels: Uint8Array }>();
+  const shadowOf = (address: number | undefined) => {
+    if (!shadows.has(address)) {
+      const size = shadowSizes(main, address)[0]!;
+      shadows.set(address, { width: size.width, pixels: outline(spritePixels(words, size), size.width) });
+    }
+    return shadows.get(address)!;
+  };
   const boards: BoardFiles[] = [];
   for (const [name, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
     const [first] = group;
@@ -85,6 +102,8 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const byEdge = standsByEdge(first!);
     const point = anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, grid.height);
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
+    const cast = shadowOf(routine.shadow?.sizes);
+    const castScale = routine.shadow?.scale ?? 1;
     const master = (palette: (k: number) => number[], indices: number[]): SpriteLodDocument => ({
       format: 'superoutride.sprite-lod',
       version: 4,
@@ -96,10 +115,16 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
       defaultPalette: paletteName(palettes[0]!),
       palettes: Object.fromEntries(palettes.map((p, k) => [paletteName(p), { colors: palette(k) }])),
       levels: [{ paletteRgb555: palette(0), indices, mixtures: spriteIdentityMixtures() }],
-      // The shadow: the original's, drawn at the object's scale and anchor.
+      // The shadow: the original's, drawn at its scale against the object's and at the object's anchor.
       ...(first!.shadow
         ? {
-            shadow: shadowFrame(shadowPixels, shadow.width, scale, first!.anchor & 12, -aside / scale.x),
+            shadow: shadowFrame(
+              cast.pixels,
+              cast.width,
+              { x: scale.x * castScale, y: scale.y * castScale },
+              first!.anchor & 12,
+              -aside / scale.x / castScale,
+            ),
           }
         : {}),
     });

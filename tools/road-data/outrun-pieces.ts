@@ -109,6 +109,8 @@ export interface Span {
   readonly stages: readonly SpanStage[];
   /** Where its stage ends, its finish or the goal checkpoint, if it has one. */
   readonly stageEnd?: number;
+  /** Where its goal stretch begins, if it has one, and the goal's number (the scene after it). */
+  readonly goal?: { readonly at: number; readonly number: number };
   /**
    * Where the original ends a stretch it runs (a stage at 1948, the fork stretch at its end, a goal stretch at 600):
    * its road position starts again at 0 for the next one, and the scenery point it was running ends.
@@ -463,6 +465,8 @@ export const rampLength = (across: number) => VERGE_RAMP * Math.abs(across);
 export interface GoalOptions {
   readonly stretch: Stretch;
   readonly path: Path;
+  /** The goal's number, the byte at 0xE4EC for its stage. */
+  readonly number: number;
 }
 
 /**
@@ -555,6 +559,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     scenery: [...stage.scenery.filter((p) => p.position < STAGE_LENGTH), ...shifted(goal.stretch.scenery, offsetAt)],
     stages: [{ from: 0, stage, arrival: 'cut' }],
     stageEnd: STAGE_LENGTH,
+    goal: { at: STAGE_LENGTH, number: goal.number },
     resets: [STAGE_LENGTH, length],
     choice: { parts: at(GOAL.parts), ends: apart, side: -1, taken: ['a', 'b', 'c'], dead: ['d', 'e', 'f'] },
   };
@@ -689,6 +694,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     ...(span.stageEnd !== undefined && inside(span.stageEnd)
       ? { stageEnd: span.stageEnd - from }
       : { stageEnd: undefined }),
+    ...(span.goal && inside(span.goal.at) ? { goal: { ...span.goal, at: span.goal.at - from } } : { goal: undefined }),
     ...(span.choice && inside(span.choice.parts)
       ? { choice: { ...span.choice, parts: span.choice.parts - from, ends: span.choice.ends - from } }
       : { choice: undefined }),
@@ -729,6 +735,7 @@ export function withEntry(span: Span, entry: number): Span {
     stages: span.stages.map((st) => ({ ...st, from: on(st.from) })),
     resets: span.resets.map((p) => p + entry),
     ...(span.stageEnd !== undefined ? { stageEnd: span.stageEnd + entry } : {}),
+    ...(span.goal ? { goal: { ...span.goal, at: span.goal.at + entry } } : {}),
     ...(span.choice
       ? { choice: { ...span.choice, parts: span.choice.parts + entry, ends: span.choice.ends + entry } }
       : {}),

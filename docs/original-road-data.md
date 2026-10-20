@@ -148,7 +148,8 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
   it; a routine also draws the sprite's size its scale selects. The objects standing at the game's start are the
   16-byte records counted by the word at 0x2B6E, {u8 flags, u8 anchor, u8 priority, u8 palette, word sprite × 4, signed
   word x in road units, word y × 128, word depth, long routine}, and the flag waver ([Banners and the flag
-  waver](#banners-and-the-flag-waver)).
+  waver](#banners-and-the-flag-waver)); the figures after each goal stand before the stopped camera ([The figures after
+  the goals](#the-figures-after-the-goals)).
 
 An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless
 the roads were apart as it appeared (the road width over the word at 0xE308, 280: the spawn sets its flag) and its
@@ -205,8 +206,9 @@ Base points, bodies' widths and LOD levels are each original's own rules ([Board
 
 `npm run road-data -- boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
-mirrored and shadowed as shown: the course image `outrun-<sprite>[-mirrored][-shadowed]` (a strip's
-`outrun-strip-<family>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
+mirrored and shadowed as shown, and the figures after each goal: the course image
+`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`, a figure's frame no sprite names
+`outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sampled once across and once down:
 
 - **Scale.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m (a lane, 424/3 units, is 3.6 m). A pixel spans
@@ -364,6 +366,61 @@ times the nearest's width; size 8, 3 rows, is too small to read. Its board, `out
 strip's is (`restoredStrip`): 8 times the nearest's width, each column d from the size shrunk least that still covers
 it (d × (8 − k)/8 within the nearest's width), its column d(8 − k)/8 and its rows its height's share of the nearest's:
 3652 × 138 texels. 1343 trees stand at the top speed.
+
+### The figures after the goals
+
+After its goal the original stops the camera at the goal stretch's 0x191 = 401 (0xA15E to 0xA1EA: from 0x163 it
+lets off the accelerator and brakes, from 0x18E it enters the scene, at 0x191 it stops the car) and plays the goal's
+scene before it, the goal's number g the byte at 0xE4EC for the stage: 0 LAKESIDE, 1 AUTOBAHN, 2 DESOLATION HILL, 3
+DEATH VALLEY, 4 VINEYARD. The set-up at 0x5890 makes its objects: the car, its door and its inside (0x124B0, 0x124D8,
+0x12500), and by the program at 0x5B42 the man (object 4, its lists at 0x12528), the woman (6, 0x12550), the third's
+first half (8, 0x12578), the effect's first half (10, 0x125A0) and at goal 4 a ninth figure (9, 0x12618), each with
+two longs at its table + 8g (its lists now and next) of 8-byte blocks {u8 palette, u8 bit 7 x negative, bits 4–6 the
+order drawn and bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y up, u8 depth (its line twice
+it, drawn at a quarter of the line's scale), u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. Objects 5, 7
+and, but at goal 4, 9 are shadows (0x5C48): the size list at 0x103B6 (80 × 15 at its largest) under the object
+before them, at 3/8 of its scale.
+
+Each object runs from its first tick to its last, {word, word} at 0x123A2 + 20 × object + 4g, by the scene's clock (the
+word at 0x60BCC), showing its block and counting down the block's ticks, then the next block, or after a list's last
+the next list's first. At its last tick object 8 becomes 11 (0x125C8) and 10 becomes 12 (0x125F0), each running its
+own lists from its own first tick. The scene lasts the word at 0x124A6 + 2g ticks (580, 580, 580, 400 and 600).
+
+What stands is what the scene's last tick shows (`goalFigures`), the car, its door and its inside not among it, nor the
+dust and smoke gone before it (the first halves, goal 2's object 12, goal 3's 11 and 12):
+
+| Goal              | Figure           | Frame   | Size    | Palette | x   | y   | Line | Shadow |
+| ----------------- | ---------------- | ------- | ------- | ------- | --- | --- | ---- | ------ |
+| E LAKESIDE        | man              | 0x1186A | 40 × 57 | 11      | −2  | 0   | 510  | yes    |
+|                   | woman            | 0x1166C | 16 × 54 | 8       | 18  | 0   | 510  | yes    |
+|                   | trophy (11)      | 0x11752 | 24 × 55 | 9       | −32 | 0   | 508  | yes    |
+| D AUTOBAHN        | man              | 0x113D8 | 24 × 56 | 10      | −8  | 0   | 510  | yes    |
+|                   | woman            | 0x1145A | 32 × 54 | 8       | 68  | 0   | 510  | yes    |
+|                   | trophy (11)      | 0x1170C | 24 × 55 | 9       | 26  | 0   | 508  | yes    |
+| C DESOLATION HILL | man              | 0x11EAA | 32 × 57 | 11      | −6  | 0   | 500  | yes    |
+|                   | woman            | 0x119FA | 32 × 55 | 8       | 44  | 0   | 494  | yes    |
+|                   | dancers (11)     | 0x11DBA | 96 × 57 | 187     | −6  | 0   | 510  | no     |
+| B DEATH VALLEY    | man              | 0x11A4A | 48 × 58 | 10      | 6   | 0   | 480  | yes    |
+|                   | woman            | 0x11A0E | 32 × 55 | 8       | 22  | 0   | 400  | yes    |
+| A VINEYARD        | man, lying       | 0x11AE0 | 72 × 15 | 10      | 30  | 2   | 500  | yes    |
+|                   | woman            | 0x11A0E | 32 × 55 | 8       | 58  | 0   | 490  | yes    |
+|                   | ninth figure (9) | 0x11DB0 | 24 × 56 | 234     | −84 | 0   | 498  | no     |
+|                   | three (11)       | 0x11A86 | 72 × 70 | 232     | 0   | 0   | 510  | no     |
+|                   | three (12)       | 0x11AA4 | 72 × 70 | 233     | −16 | 0   | 490  | no     |
+
+None is mirrored. A figure casts its shadow where its shadow's object runs at the last tick: goal 2's third's (9)
+never runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none.
+
+Each stands, wherever its goal is (a road's last or one the road runs on from), as the start's objects do
+(`goalFigurePlacements`): where the camera stops (the car at the goal stretch's 401, the camera 6 m behind it), as
+far on as the original draws it at its line (`startDepth`, 3130 / line m: 6.1 m at 510, 7.8 m at 400), across from
+the left road's centre there (the goal's driver keeps to the road taken's centre on the straight) by its x road units,
+up by its y × 15/14, a pixel 1 road unit, on its bottom middle, with no body. Its board is its frame's pixels in its
+palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anchor.
+
+This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`: TESTAROSSA's 321.5 m,
+the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on the six roads, so the car
+stops 465 m short of them (S13's 350 m).
 
 On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
 beyond the road's edge band, as the original's.

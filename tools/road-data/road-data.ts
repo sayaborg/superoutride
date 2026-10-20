@@ -43,6 +43,7 @@ import {
 } from './turbo-outrun-course.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { startDepth } from './object-approach.js';
+import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import {
   courseId,
@@ -409,11 +410,13 @@ try {
               startDepth,
               starts,
             });
-            // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
+            // The figures after each goal, standing before where the camera stops.
+            const figures = goalFigurePlacements(programs.main, road.goals, { ...road, startDepth });
             return {
-              placements,
+              placements: [...placements, ...figures].sort((a, b) => a.position - b.position || a.x - b.x),
+              // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
               checkpoints,
-              report: { dropped, ended, start },
+              report: { dropped, ended, start, figures: figures.length },
             };
           },
         });
@@ -494,12 +497,11 @@ try {
             ),
           ];
           const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
-          const goal =
-            row === OUTRUN_STAGES.length - 1 ? goals.stretches[goalNumber(programs.main, row, column)]! : null;
+          const goal = row === OUTRUN_STAGES.length - 1 ? goalNumber(programs.main, row, column) : null;
           const span = stageSpan(stage, {
             first: row === 0,
-            fork: goal ? null : fork,
-            ...(goal ? { goal: { stretch: goal, path: goals.path } } : {}),
+            fork: goal === null ? fork : null,
+            ...(goal === null ? {} : { goal: { stretch: goals.stretches[goal]!, path: goals.path, number: goal } }),
           });
           const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
           const { end, profile, crossings } = roadProfile(laid, { tables, kmh: TOP_KMH });
@@ -619,6 +621,10 @@ try {
             ...shown,
           });
         }
+      // The figures after each goal.
+      readGoalStretches(programs).stretches.forEach((_, g) =>
+        uses.push(...goalFigures(programs.main, g).map((figure) => figureUse(programs.main, figure))),
+      );
       for (const o of startObjects(programs.main))
         uses.push({
           sprite: o.sprite,

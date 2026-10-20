@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-14d](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
+Next PR: [RD-12b](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 (with `sky-baking`; it does not wait for RD-15), then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3b;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -316,12 +316,10 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-14d: the figures after each goal standing still. Measured.
-- RD-12b, once SUPER HANG-ON's SH-3c has put chosen lines (`chosenLines`) in `pixel-grid`: every ROM picture laid on
-  the texel grid by chosen lines instead of area majority, its palette indices kept (the boards, the strips' rows, the
-  clouds, VINEYARD's trees and the stills). Which source column a far size gives stays; the names, sizes, base points,
-  palettes and shadows do not change, so nothing is measured. If RD-14d is done before SH-3c is on main, RD-15 comes
-  first.
+- RD-12b: every ROM picture laid on the texel grid by chosen lines (`chosenLines`, from SUPER HANG-ON's SH-3c) instead
+  of area majority, its palette indices kept (the boards, their shadows, the strips' rows, the clouds, VINEYARD's trees
+  and the stills). Which source column a far size gives stays; the names, sizes, base points, palettes and shadows do
+  not change, so nothing is measured.
 - RD-15: each stage's background, both layers drawn into one sky by the baking the three originals share
   (`sky-baking`, made by whichever of RD-15, SH-4 and TO-4 reaches main first), committed and published; the copies of
   the generic skies end. Pixels alone.

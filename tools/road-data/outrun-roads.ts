@@ -304,6 +304,8 @@ export interface RoadOptions {
       readonly width: (position: number) => number;
       readonly resets: readonly number[];
       readonly end: number;
+      /** Where each goal stretch begins, and its goal's number. */
+      readonly goals: readonly { readonly position: number; readonly number: number }[];
     },
   ) => {
     readonly placements: readonly ObjectPlacement[];
@@ -443,6 +445,10 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       },
       resets: laid.flatMap((l, k) => l.road.span.resets.map((r) => positions[k]! + r)),
       end: roadEnd,
+      goals: laid.flatMap((l, k) => {
+        const goal = l.road.span.goal;
+        return goal ? [{ position: positions[k]! + goal.at, number: goal.number }] : [];
+      }),
     },
   );
   const placed = objects.placements.flatMap((o) => {
@@ -1098,7 +1104,7 @@ export interface RouteInputs {
  */
 interface Step {
   readonly stage: Stage;
-  readonly goal: Stretch | null;
+  readonly goal: { readonly stretch: Stretch; readonly number: number } | null;
   readonly next: { readonly stage: Stage; readonly side: -1 | 1 } | null;
 }
 
@@ -1111,8 +1117,11 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
   const fromLeft = inputs.rows.map((row) => [...row].reverse());
   const last = inputs.rows.length - 1;
   const at = (r: number, c: number) => inputs.stages.get(fromLeft[r]![c]!)!;
-  const goal = (r: number, c: number) =>
-    r === last ? inputs.goals.stretches[inputs.goalOf(r, fromLeft[r]!.length - 1 - c)]! : null;
+  const goal = (r: number, c: number) => {
+    if (r !== last) return null;
+    const number = inputs.goalOf(r, fromLeft[r]!.length - 1 - c);
+    return { stretch: inputs.goals.stretches[number]!, number };
+  };
   const side = (k: number) => (route.forks[k] === 'L' ? -1 : 1);
   if (route.all) {
     const places = fromLeft.flatMap((row, r) => row.map((_, c) => [r, c] as const));
@@ -1150,7 +1159,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
     // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b
     // at a fork; L's e and R's b at a join.
     if (goal) {
-      spans.push(...lastStageSpans(stage, { stretch: goal, path: inputs.goals.path }, first, centreLane, id));
+      spans.push(...lastStageSpans(stage, { ...goal, path: inputs.goals.path }, first, centreLane, id));
       if (next) {
         const join = joinSpan(next.stage, next.side);
         spans.push({ span: join, id: `${id}-join`, leaves: join.centreLane, starts: false });

@@ -70,8 +70,10 @@ const sizesAt = (main: Uint8Array, address: number) =>
   Array.from({ length: SIZES }, (_, k) => sizeAt(main, address + 10 * k));
 /** Sprite `index`'s sizes: the long at 0x11ED2 + index × 4 is its size list. */
 export const spriteSizes = (main: Uint8Array, index: number) => sizesAt(main, long(main, SPRITES + 4 * index));
-/** The shadow every shadowed object casts, drawn at the object's scale: the size list at 0xFF56. */
-export const shadowSizes = (main: Uint8Array) => sizesAt(main, SHADOW);
+/** The shadow a shadowed object casts: the size list at 0xFF56 (the scenery's, at the object's scale), or at `address`. */
+export const shadowSizes = (main: Uint8Array, address = SHADOW) => sizesAt(main, address);
+/** A frame's size: the 10 bytes at `address`, as a size list's first. */
+export const frameSize = (main: Uint8Array, address: number) => sizeAt(main, address);
 /** A family's sizes: the longs at its address point at them, as many as it has. */
 export const familySizes = (main: Uint8Array, family: Family) =>
   Array.from({ length: family.sizes }, (_, k) => sizeAt(main, long(main, family.address + 4 * k)));
@@ -137,8 +139,8 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 export function readFlagWaver(main: Uint8Array): StartObject {
   const block = long(main, FLAG_WAVER_LISTS + 8 * (COUNTDOWN - 9));
   const frame = ((main[block + 1]! & 15) << 16) | word(main, block + 2);
-  const sprite = Array.from({ length: SPRITE_COUNT }, (_, k) => long(main, SPRITES + 4 * k)).indexOf(frame);
-  if (sprite < 0) throw new Error(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
+  const sprite = spriteOfFrame(main, frame);
+  if (sprite === null) throw new Error(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
   return {
     flags: (main[block + 7]! >> 6) & 1,
     anchor: main[FLAG_WAVER_OBJECT + 9]!,
@@ -158,6 +160,12 @@ const FLAG_WAVER_LINE = 0x5e9a;
 const FLAG_WAVER_ROUTINE = 0x5ea8;
 /** The sprites the longs at 0x11ED2 name, up to the hit extents' table: 150. */
 const SPRITE_COUNT = (EXTENTS - SPRITES) / 4;
+
+/** The sprite whose size list starts at `frame`, if one does. */
+export function spriteOfFrame(main: Uint8Array, frame: number): number | null {
+  const sprite = Array.from({ length: SPRITE_COUNT }, (_, k) => long(main, SPRITES + 4 * k)).indexOf(frame);
+  return sprite < 0 ? null : sprite;
+}
 
 /** Every object standing at the start: the records at 0x2B6E and the flag waver. */
 export const startObjects = (main: Uint8Array) => [...readStartObjects(main), readFlagWaver(main)];
@@ -190,6 +198,11 @@ export interface ObjectRoutine {
   readonly family?: Family;
   /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
   readonly grantsTime?: boolean;
+  /**
+   * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
+   * times its own.
+   */
+  readonly shadow?: { readonly sizes: number; readonly scale: number };
   /**
    * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
    * middle, on the side away from where it reaches, and this many road units up.
@@ -224,6 +237,9 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true }],
   // The start's flag waver.
   [0x5ea8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
+  // (its line / 8 less a quarter of that, against its own line / 4).
+  [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
   [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true) }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
@@ -254,17 +270,27 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
 /** The clouds' palette at each sixteenth of their depth (the same at every depth): the bytes at 0x426A. */
 const CLOUD_PALETTES = 0x426a;
 
-/** The largest size an object shows: its family's nearest, or its sprite's first. */
-export function objectSize(main: Uint8Array, use: { readonly sprite: number; readonly routine: number }): SpriteSize {
+/** The largest size an object shows: its frame's, its family's nearest, or its sprite's first. */
+export function objectSize(
+  main: Uint8Array,
+  use: { readonly sprite: number; readonly routine: number; readonly frame?: number },
+): SpriteSize {
   const { family } = OBJECT_ROUTINES.get(use.routine)!;
+  if (use.frame !== undefined) return frameSize(main, use.frame);
   return family === undefined ? spriteSizes(main, use.sprite)[0]! : familySizes(main, family)[family.nearest]!;
 }
 
-/** Where an object's board stands across from its anchor, road units: its hit extents' middle, a strip's at 0. */
+/**
+ * Where an object's board stands across from its anchor, road units: its sprite's hit extents' middle, a strip's or a
+ * frame's (which has none) at 0.
+ */
 export const objectAside = (
   main: Uint8Array,
-  use: { readonly sprite: number; readonly routine: number; readonly mirrored: boolean },
-) => (OBJECT_ROUTINES.get(use.routine)!.family === undefined ? hitMiddle(main, use.sprite, use.mirrored) : 0);
+  use: { readonly sprite: number; readonly routine: number; readonly mirrored: boolean; readonly frame?: number },
+) =>
+  OBJECT_ROUTINES.get(use.routine)!.family === undefined && use.frame === undefined
+    ? hitMiddle(main, use.sprite, use.mirrored)
+    : 0;
 
 /**
  * A scenery entry's routine and anchor by its drawing (flags bits 4–7, dispatched at 0x3D98), mirrored by flags bit 0:

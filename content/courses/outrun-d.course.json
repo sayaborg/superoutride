@@ -118167,6 +118167,36 @@
         },
         {
           "kind": "sprite",
+          "image": "outrun-frame-113d8-shadowed",
+          "palette": "p010",
+          "at": { "joint": "s164", "offset": 126.682102 },
+          "lateral": -0.203774,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-frame-1145a-shadowed",
+          "palette": "p008",
+          "at": { "joint": "s164", "offset": 126.682102 },
+          "lateral": 1.732075,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-frame-1170c-shadowed",
+          "palette": "p009",
+          "at": { "joint": "s164", "offset": 126.706265 },
+          "lateral": 0.662264,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
           "image": "outrun-052",
           "palette": "p105",
           "at": { "joint": "s164", "offset": 129.157469 },
