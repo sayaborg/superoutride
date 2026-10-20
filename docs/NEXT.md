@@ -419,8 +419,11 @@ K's decisions (2026-10-20):
   LINEAR course of 16 stages, New York to Los Angeles.
 - **No class until the hills.** The hills of all three originals are made again later, so no reference times are made
   until then (K, 2026-10-20): the course has no TRIAL class and is driven in FREE PLAY alone, and only its racing line
-  is measured. When the hills are made again its class returns: TESTAROSSA alone in yellow from GO's slot (15),
-  OUTRUN's TRIAL traffic, margin 1.35.
+  is measured. When the hills are made again its TRIAL class returns: id `turbo-outrun`, title TURBO OUTRUN, course
+  `turbo-outrun`, 1 lap, vehicles TESTAROSSA alone (F40 and 959 are not yet in the catalog), one entry (TESTAROSSA,
+  yellow, pace 1, no stages, slot 15 at GO, not ahead), the player last, no rank limits, traffic as OUTRUN's TRIAL
+  classes had it (density 6, GOLF GTI 16V and DELTA HF INTEGRALE, 120 km/h), margin 1.35, colors not fixed. Until then
+  the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked then.
 
 Rules of the stage, beside Stage RD's, RD2's and SH's:
 
