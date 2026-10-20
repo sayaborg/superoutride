@@ -28,6 +28,7 @@
     "outrun-test": "node --import tsx tools/course/outrun-test.ts",
     "outrun-test-pictures": "node --import tsx tools/build/outrun-test-pictures.ts",
     "puff-pictures": "node --import tsx tools/build/puff-pictures.ts",
+    "guidance-pictures": "node --import tsx tools/build/guidance-pictures.ts",
     "outrun-test-sheets": "node --import tsx tools/course/outrun-test-sheets.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs"
   },

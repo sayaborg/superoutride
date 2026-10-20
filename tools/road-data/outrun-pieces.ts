@@ -120,8 +120,8 @@ export interface Span {
 
 /**
  * Where a road is chosen: the roads part at `parts`; the road taken lies on `side` (−1 left), its lanes `taken`; the
- * road not taken, its lanes `dead`, ends at `ends`, where its lanes begin to narrow. Lane names hold from the stage
- * before the parting on.
+ * road not taken, its lanes `dead`, ends at `ends`, its lanes narrowing to nothing over the positions before. Lane
+ * names hold from the stage before the parting on.
  */
 export interface Choice {
   readonly parts: number;
@@ -319,7 +319,7 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
     length,
     choice: {
       parts: at(FORK.parts),
-      ends: at(apartAt) - DEAD_END,
+      ends: at(apartAt),
       side,
       taken: side < 0 ? left : right,
       dead: side < 0 ? right : left,
@@ -556,7 +556,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     stages: [{ from: 0, stage, arrival: 'cut' }],
     stageEnd: STAGE_LENGTH,
     resets: [STAGE_LENGTH, length],
-    choice: { parts: at(GOAL.parts), ends: apart - DEAD_END, side: -1, taken: ['a', 'b', 'c'], dead: ['d', 'e', 'f'] },
+    choice: { parts: at(GOAL.parts), ends: apart, side: -1, taken: ['a', 'b', 'c'], dead: ['d', 'e', 'f'] },
   };
 }
 

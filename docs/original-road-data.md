@@ -535,12 +535,22 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
   it stands beside. A solid object's body is at most its board's width in whole texels. Where the road runs on from a
   goal, the objects its goal stretch brings out (its stands among them, on the road taken) are passed through (K,
   2026-10-20, for now).
-- **Guidance**, a default K decides on Pages, where a road is chosen: each fork, and each goal the
-  road runs on from (`roadGuidance`). Three rows of road arrows 150, 100 and 50 m before the roads part, one in each
-  lane at least 2.5 m wide, in the stage's lane line color: ahead (1.8 by 10 m) in a lane of the road taken, toward it
-  (3.2 by 10 m) in the others. Where the roads are 8 m apart, `sign-left` or `sign-right` stands between them, its
-  arrow to the road taken; where the road not taken ends, `chevron-left` or `chevron-right` stands in each of its
-  lanes, pointing to the road taken. All are passed through: no fence closes the road not taken.
+- **Guidance**, a default K decides on Pages, wherever a road is chosen: each fork's side not taken, and the right
+  road of each goal the road runs on from (the road taken is the left). The goals of the six roads, after which the
+  driver takes the car, have none. It is added as each road is assembled (`roadGuidance`), all passed through, so no
+  fence closes the road not taken; each piece points to the road taken. A low camera reads road marks only about 30 m
+  ahead, so boards show the way from afar and road marks and chevrons near. Its two places are where the roads begin
+  to part (the vertex where the road width starts to widen: a fork's 63, a goal's 182) and where the median between
+  them is 2 m wide (`w` 289.3: a fork's 72.7, a goal's 197.9 on A and B, 218.2 on C, D and E).
+  - **Boards** `route-arrow-left` or `-right`, 500, 300 and 150 m before the roads begin to part, on the verge of the
+    side not taken, 2 m beyond its edge band.
+  - **Chevrons** `route-chevron-left` or `-right`, three, 15 m apart from where the median is 2 m wide, in its
+    middle.
+  - **The dead end**: three `route-chevron`s, one at the centre of each lane of the road not taken, one position
+    before it ends.
+  - **Road arrows**: the course format's `arrow` pointing to the road taken, 2.4 by 12 m in RGB555 31710 (most stages'
+    lane line color; DESERT's and WILDERNESS's lines are their road's color), one in each lane of the side not taken
+    at least 2.5 m wide, every 25 m from 150 m before the roads begin to part to 10 m before the dead end.
 - **Gates.** The grid on COCONUT BEACH; a checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's
   left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the car, 10.8 positions
   into the stage, just after the roads have closed to six lanes (the original grants its time there, 0x4812; a stage
