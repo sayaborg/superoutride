@@ -45,6 +45,12 @@ export function pictureGrid(width: number, height: number, metres: number) {
   };
 }
 
+/** The width, metres, of the picture of size list `list` at `metres` a road unit. */
+export function pictureWidth(main: Uint8Array, list: number, metres: number) {
+  const size = sizeList(main, list)[0]!;
+  return pictureGrid(4 * size.stride - 1, size.height, metres).width / SPRITE_SOURCE_TEXELS_PER_METER;
+}
+
 /**
  * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
  * in (the lowest its default), from its largest size's pixels by area majority, with its width in metres.

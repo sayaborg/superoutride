@@ -33,6 +33,13 @@ import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import {
+  courseId,
+  GENERIC_SKY,
+  skyName as superHangOnSky,
+  superHangOnCourses,
+  SUPER_HANG_ON_CONVERSION_VERSION,
+} from './super-hang-on-courses.js';
+import {
   OUTRUN_STAGES,
   pathOffset,
   pathTurn,
@@ -134,6 +141,64 @@ try {
           sceneryTypes: Object.keys(dump.sceneryTypes).length,
           sprites: Object.keys(dump.sprites).length,
           palettes: Object.keys(dump.palettes).length,
+        }),
+      );
+      break;
+    }
+    case 'super-hang-on-course': {
+      // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
+      const check = options.has('--check');
+      const zip = await romZip(options.get('--zip'), SUPER_HANG_ON.rom);
+      const built = superHangOnCourses(readZip(new Uint8Array(await readFile(zip))));
+      const courses = [];
+      for (const { course, road, dropped, plans } of built.built) {
+        const file = await saveCourse(courseId(course.name), road.document, check);
+        courses.push({
+          course: file,
+          sections: road.document.sections.length,
+          metres: round1(road.path.planeLength),
+          objects: road.objects,
+          notBroughtOut: dropped,
+          elements: plans.reduce((n, p) => n + p.segments.length, 0),
+          crossings: road.crossings.report.map((c) => ({
+            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+            heights: c.heights.map(round1),
+            half: c.half,
+            smooth: c.smooth,
+          })),
+        });
+      }
+      for (const { image } of built.pictures) {
+        const file = `content/${image.path}`;
+        if (check) {
+          const committed = await readFile(file).catch(() => null);
+          requireInput(committed && Buffer.compare(committed, image.bytes) === 0, `/${file}`, `${file} is not the ROMs'`);
+        } else await atomicWrite(file, image.bytes);
+      }
+      // Each section's sky as published: the generic coast sky under its own name.
+      const generic = JSON.parse(await readFile(`content/images/${GENERIC_SKY}.json`, 'utf8')) as Record<string, unknown>;
+      const skies = built.built.flatMap(({ course }) =>
+        course.sections.map((_, order) => superHangOnSky(course.name, order)),
+      );
+      for (const name of skies) {
+        const text = JSON.stringify({ ...generic, name });
+        const skyFile = `content/images/${name}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not ${GENERIC_SKY} under its name`);
+        } else await atomicWrite(skyFile, text);
+      }
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          conversion: SUPER_HANG_ON_CONVERSION_VERSION,
+          checked: check,
+          metresAPosition: built.metres,
+          metresAUnit: built.unit,
+          courses,
+          pictures: built.pictures.length,
+          skies: skies.length,
         }),
       );
       break;
