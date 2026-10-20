@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-10e](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
+Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e and Stage SH's tool PRs are on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -244,9 +244,8 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 
 The stage's PRs left:
 
-- RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14) and the start's objects' depth, which K may
-  decide otherwise ([Placing scenery](original-road-data.md#placing-scenery)); Stage RD2's RD-14 places them standing
-  still. The ground's spray (the surface effect) is not converted
+- RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14)
+  ([Placing scenery](original-road-data.md#placing-scenery)); Stage RD2's RD-14 places them standing still. The ground's spray (the surface effect) is not converted
   ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches' sizes by depth (flatter
   far away) need a drawing change: a board is one picture at every depth; Stage RD2's RD-13 rebuilds the strips from
   the original's far sizes instead.
@@ -266,9 +265,9 @@ K's decisions (2026-10-19 to 20):
 - **Structure.** The 15 stages are made as pieces of their own, and BRANCH is dropped. OUTRUN becomes 7 LINEAR courses:
   the six roads to the goals (LLLL → GOAL A, LRLL → GOAL B, LLRR → GOAL C from the left, RRLL → GOAL C from the right,
   RLRR → GOAL D, RRRR → GOAL E) and one road through all 15 stages.
-- **Pieces.** A stage piece runs from GO to the clean six lanes the fork stretch reaches at its 61 (road width 212,
+- **Pieces.** A stage piece runs from GO to the clean six lanes the fork stretch reaches at its 59 (road width 212,
   level); a stage of row 5 ends at 1948, where its goal piece follows. A fork piece (L, or R its mirror) runs from the
-  fork stretch's 61 to 433.5: six lanes; a median appears; the road not taken ends; the three lanes taken turn (left,
+  fork stretch's 59 to 433.5: six lanes; a median appears; the road not taken ends; the three lanes taken turn (left,
   90° left then 90° right; right, the mirror); a road comes in from the far side as the original's straight, symmetric
   V; six lanes, and the next stage. Taking the left road enters the next stage's right half, the road merging from the
   left; taking the right enters its left half. A goal piece (A to E) runs the goal stretch from 0 to 600. A piece has
@@ -296,6 +295,9 @@ K's decisions (2026-10-19 to 20):
   originals alone; the ROM zip and the raw dumps stay out of Git and PRs.
 - **Later.** The hills are made again in a later stage; until then they keep today's rule. Crossings keep the 6 m rule;
   proper grade separation comes with the hills.
+- **The road position is the car's** (K, RD-10e, 2026-10-20), as in the original and in Stages SH and TO: GO is the
+  car at road position 0, the road's entry 6 m before it, where the camera stands; objects stand where they pass the
+  car, as the main CPU brings them out and approaches them tick by tick.
 - **No classes until the hills** (K, 2026-10-20). The hills of the three originals are reviewed later, so no reference
   times are needed now: OUTRUN's seven roads have no TRIAL class until their hills are made again, and FREE PLAY drives
   them untimed. When the hills are made again, each road gets its class back: the player from GO's slot (15),
@@ -311,8 +313,6 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-10e: objects' approach, the stages' ends and the road position as OUTRUN's ROM has them (K's instructions for
-  RD-10e).
 - RD-11: the guidance where a road is chosen (drawn signs, chevrons and road arrows; K decides on Pages). Measured.
 - RD-12: the boards' pictures from the ROMs, sizes and anchors unchanged. Published, not measured.
 - RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.
@@ -369,7 +369,9 @@ Rules of the stage, beside Stage RD's and RD2's:
 The PRs, in order (each one too large for one review is split and the split reported):
 
 - SH-2a: the road data tool parted into each original's modules and the modules both share, moves only: OUTRUN's
-  `--check` passes unchanged, and [Original road data](original-road-data.md) states what both share once.
+  `--check` passes unchanged, and [Original road data](original-road-data.md) states what both share once, the rule
+  among it: the road position is the vehicle's, and an object stands where it passes the vehicle (each original
+  approaches by its own ROM: OUTRUN and TURBO OUTRUN by the same table and advance, SUPER HANG-ON by its own).
 - SH-2b: SUPER HANG-ON's ROMs read: the set checked by CRC, its programs assembled, and every table its courses use
   written to the dump `super-hang-on.json` (`superoutride.super-hang-on-road-data` version 1). No course yet.
 - SH-3: the four courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america`
@@ -382,8 +384,7 @@ The PRs, in order (each one too large for one review is split and the split repo
 
 Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
 itself (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are
-encrypted), the ending's motion (its last frame alone stands), whether OUTRUN's road position becomes the car's
-rather than the camera's (K decides), and the product's pictures drawn again.
+encrypted), the ending's motion (its last frame alone stands), and the product's pictures drawn again.
 
 ## Stage TO — TURBO OUTRUN from the ROMs
 

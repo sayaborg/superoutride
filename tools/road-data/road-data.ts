@@ -20,7 +20,7 @@ import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeSpans } from './o
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom, UNIT_METRES } from './outrun-cross-section.js';
 import { POSITION_METRES } from './outrun-plan.js';
-import { stageObjects } from './outrun-scenery.js';
+import { roadObjects } from './outrun-scenery.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
@@ -266,7 +266,7 @@ try {
       const length = stageLength(programs.main);
       requireInput(length === 1948, '/main', `The stages are ${length} positions long, not 1948`);
       // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
-      // f × UNIT_METRES × 512 / L metres, in road positions.
+      // f × UNIT_METRES × 512 / L metres, in road positions from the camera at GO, at the road's entry.
       const startDepth = (line: number) => (CAMERA_DEFINITION.focalLength * UNIT_METRES * 512) / line / POSITION_METRES;
       const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
       const fork = readForkStretch(programs);
@@ -296,16 +296,18 @@ try {
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
           stageName: nameOf,
           sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
-          objects: (points, width, end) => {
-            const { placements, unconverted } = stageObjects(programs.main, points, {
-              end,
+          objects: (points, road) => {
+            const { placements, unconverted, dropped, ended, start } = roadObjects(programs.main, points, {
+              ...road,
               kmh: TOP_KMH,
-              start: true,
-              width,
               startDepth,
             });
-            // The checkpoint banner's left half (drawing 6) passing the camera: the original's time extension.
-            return { placements, checkpoints: unconverted.filter((u) => u.drawing === 6).map((u) => u.position) };
+            // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
+            return {
+              placements,
+              checkpoints: unconverted.filter((u) => u.drawing === 6).map((u) => u.position),
+              report: { dropped, ended, start },
+            };
           },
         });
         const file = await saveCourse(route.id, road.document, check);
@@ -315,6 +317,7 @@ try {
           sections: road.document.sections.length,
           metres: round1(road.end),
           objects: road.objects,
+          placing: road.placing,
           planDrift: Math.round(road.drift * 1e4) / 1e4,
           heights: [
             round1(Math.min(...stations.map(road.profile.height))),

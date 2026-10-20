@@ -191,21 +191,41 @@ The entries of drawings 2, 5, 6, 12 and 14 (moving objects) are not converted. T
 
 ## Placing scenery
 
-A stage's objects stand where the camera passes them at the top speed, 293 km/h (`stageObjects`):
+A road's objects stand where the car passes them at the top speed, 293 km/h, constant from GO (`roadObjects`), as
+the main CPU runs them tick by tick. The road position is the car's (0 at GO); each tick, in the order the program
+runs its slots:
 
-- **Points.** A scenery point is taken when the road position reaches it and replaces the one before. Each tick after,
-  its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from the last
-  back, until its count is spent. A tick advances the road `km/h × 0x12F / 65536` positions, 1.35 at the top speed.
-- **Approach.** An object brought out appears on the road's first line (the first of a tick's two a 1/64 line nearer:
-  0x3C76 spawns it at 0x10400, the second turn at 0x10000) and comes nearer by the table at 0x28000: each tick the
-  advance counter gains km/h / 64 units, its remainder carried (a unit 64 × 0x12F / 65536 positions), and the object's
-  depth the table's step for its line and that advance. It passes the camera at line 512, 134 positions after it
-  appeared at the top speed (132.6 from the nearer line), and stands there.
-- **The start.** An object standing at the start at line L is drawn L / 512 px a road unit: as large as this game's
-  camera shows it at f × `UNIT_METRES` × 512 / L metres (3130 / L m). It stands there, or where the camera would pass it
-  by its approach where that is nearer (lines below about 20). `k1`'s start gantry (line 160, 16.8 m) leaves the top of
-  the screen about 5 positions after GO, as it does at that depth; by its approach it would stand 48 m away. The
-  original's objects move faster than they look near the start: no one depth fits both.
+- **Stretches.** Before the road position advances, where it is past a stretch's end the next stretch begins: the
+  program resets its road position at a stage's 1948 (0x870A) and where a fork stretch's roads have closed (0x89A2),
+  dropping the fraction, and reads the next stretch's tables. The scenery control keeps its state, so the point it was
+  running brings out nothing more: the last points of a stage of row 5 (VINEYARD's 167 left, DEATH VALLEY's 40,
+  DESOLATION HILL's 163, AUTOBAHN's and LAKESIDE's 187) show nothing in the goal stretch. Here the road position runs
+  on: the next stretch begins where its piece does (the fraction the original drops, up to 2.35 positions, is not
+  made).
+- **Advance.** The road position gains `km/h × 0x12F / 65536` positions, 1.354660 at the top speed. The phase word
+  (0x26053C) gains km/h / 64 three times a tick, its remainder shared (twice in the frame interrupt, 0x7D26, and once
+  in object 0, 0xB9D8; a tick is two frames), and the tick's advance is that gain, at most 15 (0xB9DC): 13 and 14 at
+  293 km/h. The stripes count the same word.
+- **Points.** A scenery point is taken when the road position reaches it (one a tick, by its stretch's position) and
+  replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
+  position, its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from
+  the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
+  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent. Moving
+  objects (drawings 2, 5, 6, 12 and 14) take slots too.
+- **Approach.** Every object, one brought out this tick too, then comes nearer once: its depth gains the table at
+  0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
+  reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
+  after it appeared at the top speed, a cloud 66 (89.4). This approach, counted once a tick, put every object about
+  87 positions farther from 2026-10-18 (RD-4) to RD-10e. At the top speed 48 to 78 objects live at once; on all 15
+  stages one object finds no slot, CLOUDY MOUNTAIN's of type 34 at 1063.
+- **The start.** The 68 objects standing at the game's start take slots 3 to 70 at their lines from GO and approach as
+  any other. An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
+  f × `UNIT_METRES` × 512 / L metres (3130 / L m) from the camera, which stands at the road's entry at GO. It stands
+  there, or where it passes the car by its approach where that is nearer: 26 of them by their approach (the edges'
+  objects at lines 110 and below, those at 16 and below 55 to 101 m from the entry), 42 by their size (the edges' from
+  line 106, the START gate and the people). `k1`'s start gate (line 160, 19.6 m) leaves the top of the screen about 5
+  positions after GO; by its approach it passes the car 9.5 positions after GO, its top leaving the screen 5 to 7
+  positions after GO, so its approach and its size agree as the original draws them.
 - **Across.** An object's x is from the road its drawing gives ([Sprites](#sprites); the spawn at 0x3D74 sets the
   flag of roads apart, and a routine keeping objects left adds 2w to a right-side x only without it). Its point is
   that x across from the roads' middle at the road width where it stands, measured on the plan beside it ([OUTRUN's roads](#outruns-roads)). An object standing by its edge stands at its x; any other
@@ -235,8 +255,7 @@ A strip or patch is brought out, approaches and stands as an object does (`stage
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
   spray is not converted.
 
-On COCONUT BEACH 1507 objects stand, 1101 of them solid, 294 of the rest the sea's edge. Six bushes brought out while the roads were apart end on the
-right road where the roads close, as in the original. A beach hut before the finish has hit extents ending 0.6 m
+On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
 beyond the road's edge band, as the original's.
 
 ## Hills
@@ -372,12 +391,13 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 10 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 11 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
 program draws them:
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](#hills)'s advance per tick). Position 0 is GO,
-  the camera's station.
+  the car's station (the original's road position is the car's); the road's entry is the camera's distance, 6 m, before
+  it, where the camera stands at GO.
 - **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
   height, an object's height y) is 15/14 of its units across.
@@ -397,7 +417,7 @@ program draws them:
   (another pattern is refused; a centre line other than the surface is refused). The ground's two colors are the
   stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of 32 × 303 / 3072 positions,
   2048 / 324 = 6.320988 m (the road's fine position gains km/h / 64 three times a tick, 32 of it a period), counted
-  from the road's start along the plan's stations.
+  from GO along the plan's stations.
 
 ### Cross-section
 
@@ -450,7 +470,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
 - **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 59: its widths, then from the width it
   ends at to 212 at 8 units a position, the corner's vertex at the stretch's 57, so that it ends in six clean lanes,
   level (K's design: the original parts its roads from 63 at the width it ends at). A stage of row 5 runs to 1948 and
-  its goal piece follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects.
+  its goal piece follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects, after the road's entry: 6 m of straight before
+  GO at its start's width, lanes and colors, level.
 - **Fork pieces** (`forkSpan`), the fork stretch's 59 to 433.5, L (left taken) and R its mirror. As the main CPU's
   program runs the stretch (0x8780 to 0x89B6): from 63 the roads part by 8 a position; past 0x168 (360) the route is
   chosen and the next stage's background comes in; past 0x300 (768) the road not taken is no longer drawn and the width
@@ -498,19 +519,22 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
 - **Profile.** Each piece's height points run their tables at 293 km/h as the [profile](#profile) says, the stage's cut
   at its end, and each piece is closed level at height 0 at its ends; the whole road's crossings (passages at least
   200 m apart whose asphalt overlaps) are kept 6 m apart.
-- **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, so the
-  objects a stage's last points bring out stand in its fork piece and the fork's in the next stage. Each stands at the
+- **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
+  stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
+  positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
   it stands beside. A solid object's body is at most its board's width in whole texels. Where the road runs on from a
   goal, the objects its goal stretch brings out (its stands among them, on the road taken) are passed through (K,
   2026-10-20, for now).
 - **Gates.** The grid on COCONUT BEACH; a checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's
-  left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the camera, about 100
-  into the stage (a stage after a join has none); at each stage of row 5's 1948 a checkpoint `<STAGE>-GOAL` where the
+  left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the car, 10.8 positions
+  into the stage, just after the roads have closed to six lanes (the original grants its time there, 0x4812; a stage
+  after a join has none); at each stage of row 5's 1948 a checkpoint `<STAGE>-GOAL` where the
   road runs on, else the finish.
 - **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
   yaw origin there, and the same direction in the world in every Section that shows it. It comes in by `wipe` in a
-  fork piece and by `rise` in a join piece.
+  fork piece, 6 m before where the car reaches the width 360 (the camera, 6 m behind the car, then reaches the original's
+  change), and by `rise` in a join piece where it begins.
 
 | Course           | Name            | Forks | Stages                                                                               |
 | ---------------- | --------------- | ----- | ------------------------------------------------------------------------------------ |
@@ -522,10 +546,12 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
 | `outrun-e`       | BLUE HORIZON    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
 | `outrun-all`     | GRAND TOUR      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
 
-The six roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,449 to 11,946 objects each; GRAND TOUR is 73.6 km, 48
-Sections and 32,897 objects. Their heights reach −185 m and 268 m (the hills' rule, unchanged); 5 to 10 crossings each
-are kept 6 m apart, GRAND TOUR's 30. Past each goal's line, DESOLATION HILL's ending crowd (type 206) and the goal
-stands (type 209) stand on the road taken, beyond where the original's car stops (401).
+The six roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,198 to 11,782 objects each; GRAND TOUR is 73.6 km, 48
+Sections and 31,940 objects. Their heights reach −185 m and 268 m (the hills' rule, unchanged); 5 to 11 crossings each
+are kept 6 m apart, GRAND TOUR's 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner
+134 and 135) stands at about 321 to 327, before where the original's car stops (401) and drives under it; the stands
+(types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate
+types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
 
 ## Profile
 
@@ -533,7 +559,8 @@ A stage's profile turns its height tables' look on the original's screen into gr
 (`npm run road-data -- look` reports it for every stage):
 
 - **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the top
-  speed, 293 km/h. A road position is the camera's station. A table still running at the stage's end ends there, and
+  speed, 293 km/h, at the same road positions as before RD-10e: `c_look` was fitted with the camera at the road
+  position, and is kept until the hills are made again. A table still running at the stage's end ends there, and
   the road beyond the stage is level but for the grades returned: in the original it runs on into the fork, where on
   COCONUT BEACH its crest throws the car into the air at 200 km/h just before the fork's curve.
 - **Grades.** Each entry slid past the camera changes the grade by `c_look` × entry / 576 over its span, ending where

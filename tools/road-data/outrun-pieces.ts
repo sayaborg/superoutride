@@ -115,6 +115,11 @@ export interface Span {
   readonly stages: readonly SpanStage[];
   /** Where its stage ends, its finish or the goal checkpoint, if it has one. */
   readonly stageEnd?: number;
+  /**
+   * Where the original ends a stretch it runs (a stage at 1948, the fork stretch at its end, a goal stretch at 600):
+   * its road position starts again at 0 for the next one, and the scenery point it was running ends.
+   */
+  readonly resets: readonly number[];
 }
 
 const ramp = (p: number, from: number, to: number, a: number, b: number) =>
@@ -233,6 +238,7 @@ export function stageSpan(
     ],
     scenery: stage.scenery.filter((p) => p.position < STAGE_LENGTH),
     stages: [{ from: 0, stage, arrival: 'cut' }],
+    resets: [STAGE_LENGTH],
   } satisfies Span;
 }
 /** Half a corner's rounding, positions. */
@@ -250,7 +256,7 @@ const RETURNED_HALF = 3;
 const CLOSING_HALF = 4;
 
 /**
- * A fork piece, the fork stretch from 61 to 433.5 as the side taken sees it, `side` −1 left (L) or 1 right (R, L's
+ * A fork piece, the fork stretch from 59 to 433.5 as the side taken sees it, `side` −1 left (L) or 1 right (R, L's
  * mirror). L's lanes are g, h, i | m0 | a, b, c | m1 | d, e, f: the road taken a, b, c (centre lane b); the road not
  * taken d, e, f, its centre 2w right of the taken one's, ending where the width reaches 768 (132.5), its lanes narrowing
  * to nothing over its last two positions; the road coming in g, h, i, from 362 2w left of it, growing over a position.
@@ -321,6 +327,7 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
       { from: 0, stage: from, arrival: 'cut' as const },
       { from: wipe, stage: to, arrival: 'wipe' as const },
     ],
+    resets: [length],
   };
   // Each verge ramps out to the road coming in before it comes, and back from the road ending after it ends.
   const comesIn = at(FORK.closes);
@@ -528,6 +535,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     scenery: [...stage.scenery.filter((p) => p.position < STAGE_LENGTH), ...shifted(goal.stretch.scenery, offsetAt)],
     stages: [{ from: 0, stage, arrival: 'cut' }],
     stageEnd: STAGE_LENGTH,
+    resets: [STAGE_LENGTH, length],
   };
 }
 
@@ -589,6 +597,8 @@ export function joinSpan(next: Stage, side: -1 | 1): Span {
     heights: [],
     scenery: [],
     stages: [{ from: 0, stage: next, arrival: 'rise' }],
+    // The next stage's road position starts where the join ends.
+    resets: [length],
   };
 }
 
@@ -654,9 +664,47 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     stages: span.stages
       .filter((st, i) => (span.stages[i + 1]?.from ?? Infinity) > from && st.from < to)
       .map((st) => ({ ...st, from: Math.max(0, st.from - from) })),
+    resets: span.resets.filter((p) => p > from && p <= to).map((p) => p - from),
     ...(span.stageEnd !== undefined && inside(span.stageEnd)
       ? { stageEnd: span.stageEnd - from }
       : { stageEnd: undefined }),
+  };
+}
+
+/**
+ * `span` with the road's entry before it: `entry` positions of straight at its start's width, lanes and offset, level
+ * and in its colors, everything else moved on by `entry` (the road's ends and ramps at 0 reaching back to the entry).
+ */
+export function withEntry(span: Span, entry: number): Span {
+  const on = (p: number) => (p === 0 ? 0 : p + entry);
+  const moved = (q: Quadratic) =>
+    new Quadratic([
+      { from: 0, to: entry, a: q.at(0), b: 0, c: 0 },
+      ...q.pieces.map((piece) => ({ ...piece, from: piece.from + entry, to: piece.to + entry })),
+    ]);
+  const back = (p: number) => Math.max(0, p - entry);
+  return {
+    ...span,
+    length: span.length + entry,
+    path: [
+      { from: 0, to: entry, turn: 0 },
+      ...span.path.map((s) => ({ ...s, from: s.from + entry, to: s.to + entry })),
+    ],
+    width: moved(span.width),
+    offset: moved(span.offset),
+    middle: (p) => span.middle(back(p)),
+    lanes: (p) => span.lanes(back(p)),
+    laneBreaks: span.laneBreaks.map((p) => p + entry),
+    roads: span.roads.map((r) => ({ ...r, from: on(r.from), to: r.to + entry })),
+    verges: {
+      left: span.verges.left.map((k) => ({ ...k, at: on(k.at) })),
+      right: span.verges.right.map((k) => ({ ...k, at: on(k.at) })),
+    },
+    heights: span.heights.map((h) => ({ ...h, from: h.from + entry, to: h.to + entry, cut: h.cut + entry })),
+    scenery: span.scenery.map((p) => ({ ...p, position: p.position + entry })),
+    stages: span.stages.map((st) => ({ ...st, from: on(st.from) })),
+    resets: span.resets.map((p) => p + entry),
+    ...(span.stageEnd !== undefined ? { stageEnd: span.stageEnd + entry } : {}),
   };
 }
 

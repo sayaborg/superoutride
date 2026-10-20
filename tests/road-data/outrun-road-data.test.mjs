@@ -31,6 +31,8 @@ import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, composite, drivenLanes } from '../../tools/road-data/outrun-cross-section.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { outrunRoad } from '../../tools/road-data/outrun-roads.ts';
+import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
+import { POSITION_METRES } from '../../tools/road-data/outrun-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
@@ -420,7 +422,7 @@ test('a last stage and its goal become a course: lanes, plan within a centimetre
     tables: new Map([[0, flat]]),
     kmh: 293,
     cameraDistance: 6,
-    objects: () => ({ placements: [], checkpoints: [] }),
+    objects: () => ({ placements: [], checkpoints: [], report: null }),
     sky: () => ({ image: 'coast-sky', horizonY: 320 }),
     stageName: () => 'TEST',
   });
@@ -433,10 +435,12 @@ test('a last stage and its goal become a course: lanes, plan within a centimetre
     section.lanes.slice(0, 3).map((l) => (typeof l.width === 'number' ? l.width : l.width[0].width)),
     [3.6, 3.6, 3.6],
   );
-  // The finish at the stage's end, by the plan's station there; the road closed level at 0.
+  // The finish at the stage's end, by the plan's station there past the road's 6 m entry; the road closed level at 0.
   const finish = section.gates.find((g) => g.kind === 'finish');
   assert.equal(finish.id, 'TEST-GOAL');
-  assert.equal(finish.at.offset, road.laid[0].plan.station(1948));
+  const go = 6 / POSITION_METRES;
+  assert.ok(Math.abs(road.laid[0].plan.station(go) - 6) < 1e-9);
+  assert.equal(finish.at.offset, road.laid[0].plan.station(1948 + go));
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
 });
 
@@ -516,4 +520,69 @@ test("a sprite's pixels, its filled outline, its anchor and its palette's repres
   // The mean of the colored pixels' colors by channel.
   const palette = [0, (10 << 10) | (20 << 5) | 30, (20 << 10) | (10 << 5) | 0];
   assert.equal(representative(Uint8Array.from([1, 2, 0]), palette), (15 << 10) | (15 << 5) | 15);
+});
+
+/** A program whose objects approach by the table at 0x28000 (col × line × 0x400) and whose scenery types 1 to 3 each
+ * bring out drawing `drawing` (not converted) by their frequency word. */
+function approaching() {
+  const main = new Uint8Array(0x40000);
+  const m = writer(main);
+  for (let col = 0; col < 16; col++)
+    for (let line = 0; line < 512; line++) m.long(0x28000 + (col << 11) + 4 * line, col * line * 0x400);
+  m.word(0x2b6e, 0);
+  [
+    [1, 0x8000, 0x60],
+    [2, 0x4000, 0x60],
+    [3, 0x8000, 0x20],
+    [4, 0xffff, 0x60],
+    [5, 0xffff, 0x20],
+  ].forEach(([type, frequency, flags], k) => {
+    const address = 0x30000 + 16 * k;
+    m.long(0x1a43c + 4 * type, address);
+    m.word(address, frequency);
+    m.word(address + 2, 0);
+    main[address + 4] = flags;
+  });
+  return main;
+}
+
+test('objects approach three phase steps a tick and pass the car 34 ticks after they appear, the clouds 66', () => {
+  const main = approaching();
+  const step = (293 * 0x12f) / 65536;
+  const at = (type, position) =>
+    roadObjects(main, [{ position, count: 1, type }], {
+      go: 0,
+      end: 1000,
+      resets: [],
+      kmh: 293,
+      width: () => 212,
+      startDepth: () => Infinity,
+    }).unconverted.map((u) => u.position);
+  // Taken on the tick the road reaches 0: the first turn's object (line 0x104) and the second's (0x100) both pass the
+  // car 34 ticks on (46.06 positions), having moved 35 times at advances of 13 and 14.
+  for (const type of [1, 2]) assert.deepEqual(at(type, 0), [35 * step]);
+  assert.ok(Math.abs(34 * step - 46.06) < 0.01);
+  // A cloud (drawing 2) approaches at half the rate.
+  assert.deepEqual(at(3, 0), [67 * step]);
+});
+
+test("a stretch's end ends the point it was running, and objects find no slot past 79", () => {
+  const main = approaching();
+  const run = (points, resets) =>
+    roadObjects(main, points, {
+      go: 0,
+      end: 1000,
+      resets,
+      kmh: 293,
+      width: () => 212,
+      startDepth: () => Infinity,
+    });
+  // Two objects a tick from 100 for 60 objects: the stretch ending at 110 leaves the rest unshown.
+  const ended = run([{ position: 100, count: 60, type: 4 }], [110]);
+  assert.equal(ended.unconverted.length + ended.ended.objects, 60);
+  assert.ok(ended.ended.objects > 40);
+  // 200 clouds two a tick live 67 ticks each: no more than 79 at once.
+  const crowded = run([{ position: 0, count: 200, type: 5 }], []);
+  assert.equal(crowded.unconverted.length + crowded.dropped, 200);
+  assert.ok(crowded.dropped > 0);
 });

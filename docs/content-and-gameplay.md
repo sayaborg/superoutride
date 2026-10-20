@@ -1743,7 +1743,7 @@ STORM RIDGE, `outrun-d` OVERDRIVE, `outrun-e` BLUE HORIZON, each one of the orig
 `outrun-all` GRAND TOUR through all 15 stages) are LINEAR courses written by the road data tool from the original's
 road data ([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills,
 scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
-has its checkpoint where the original's checkpoint banner passes the camera; a goal the road runs on from is a
+has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
 checkpoint, and the finish is at the last stage's end. Their scenery is outline boards. Until their hills are made
 again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
 their measured products are their racing lines alone.

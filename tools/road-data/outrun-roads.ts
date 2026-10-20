@@ -23,6 +23,7 @@ import {
   type GoalOptions,
   sliceSpan,
   GOAL_CENTRE,
+  withEntry,
 } from './outrun-pieces.js';
 import {
   bendOf,
@@ -262,8 +263,16 @@ export interface RoadOptions {
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
+  /**
+   * The camera's distance behind the car: the road's entry is this far before GO, where the car stands at road position
+   * 0, the camera at the entry.
+   */
   readonly cameraDistance: number;
-  /** The road's objects, given its road width (units) at a road position and its end, positions. */
+  /**
+   * The road's objects, by road position from the entry: given GO's, the road width (units) at each, where each
+   * stretch the original runs ends, and the road's end; with where each checkpoint banner passes the car, and what the
+   * placing reports.
+   */
   readonly objects: (
     points: readonly {
       readonly position: number;
@@ -271,9 +280,17 @@ export interface RoadOptions {
       readonly type: number;
       readonly passable: boolean;
     }[],
-    width: (position: number) => number,
-    end: number,
-  ) => { readonly placements: readonly ObjectPlacement[]; readonly checkpoints: readonly number[] };
+    road: {
+      readonly go: number;
+      readonly width: (position: number) => number;
+      readonly resets: readonly number[];
+      readonly end: number;
+    },
+  ) => {
+    readonly placements: readonly ObjectPlacement[];
+    readonly checkpoints: readonly number[];
+    readonly report: unknown;
+  };
   /** Each stage's sky image and its horizon row. */
   readonly sky: (stage: Stage) => { readonly image: string; readonly horizonY: number };
   /** Each stage's name and its Sections' ids' stem. */
@@ -372,12 +389,14 @@ export function roadProfile(
 /**
  * One road as a course document, its Positions still measured from each Section's first joint, and what it reports:
  * spans in order, the first the entry, each joined to the next by its `leaves` lane. The first span's start is the
- * grid's; a stage reached through a fork or a join has its checkpoint where its banner passes the camera; a stage
+ * grid's; a stage reached through a fork or a join has its checkpoint where its banner passes the car; a stage
  * ending in a goal has a checkpoint at its end where the road runs on, the last stage its finish. Its height tables run per piece, each closed level at 0; its crossings are kept 6 m apart; where
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
-  const laid = layRoad(spans);
+  // The road's entry: the camera's distance before GO, where the camera stands.
+  const go = options.cameraDistance / POSITION_METRES;
+  const laid = layRoad([{ ...spans[0]!, span: withEntry(spans[0]!.span, go) }, ...spans.slice(1)]);
   const { end, profile, crossings } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
@@ -397,11 +416,15 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
         passable: goal !== undefined && p.position >= goal && k < laid.length - 1,
       }));
     }),
-    (position) => {
-      const { k, p } = spanAt(position);
-      return laid[k]!.road.span.width.at(p);
+    {
+      go,
+      width: (position) => {
+        const { k, p } = spanAt(position);
+        return laid[k]!.road.span.width.at(p);
+      },
+      resets: laid.flatMap((l, k) => l.road.span.resets.map((r) => positions[k]! + r)),
+      end: roadEnd,
     },
-    roadEnd,
   );
   const placed = objects.placements.flatMap((o) => {
     const { k, p } = spanAt(o.position);
@@ -479,6 +502,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     profile,
     crossings,
     objects: placed.length,
+    placing: objects.report,
     drift: Math.max(...laid.map((l) => l.plan.drift)),
   };
 }
@@ -686,10 +710,10 @@ function sectionDocument(
     color,
     material,
   });
-  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from the road's start:
+  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO:
   // a part half where `a` falls in one, the whole halves as a repeat, a part half where `b` does.
   const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
-    const phase = h * half - roadOrigin;
+    const phase = h * half - (roadOrigin - section.options.cameraDistance);
     const first = phase + Math.ceil((a - phase) / STRIPE_PERIOD - 1e-9) * STRIPE_PERIOD;
     const pieces: unknown[] = [];
     if (first - STRIPE_PERIOD + half > a + 1e-6)
@@ -763,6 +787,7 @@ function sectionDocument(
     gates.push({
       kind: 'start',
       grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
+        // The last slot at GO, the camera's distance on from the road's entry.
         at: atStation(round(section.options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING)),
         lane: i % 2 ? 'c' : 'b',
       })),
@@ -778,7 +803,11 @@ function sectionDocument(
     .map((s) => {
       const start = section.stageStarts.get(s.stage) ?? heading;
       return {
-        at: at(Math.max(s.from, from)),
+        // A sky the original changes changes where the car comes to it, the camera this game draws from behind it.
+        at:
+          s.from >= from && s.arrival === 'wipe'
+            ? atStation(round(plan.station(s.from) - origin - section.options.cameraDistance))
+            : at(Math.max(s.from, from)),
         name: section.options.stageName(s.stage),
         background: {
           ...section.options.sky(s.stage),

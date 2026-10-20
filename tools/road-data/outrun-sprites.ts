@@ -298,26 +298,12 @@ export function representative(pixels: Uint8Array, palette: readonly number[]): 
 
 /** An object's approach: the main CPU's table at 0x28000, a long a road line for each advance of 0 to 15 a tick. */
 const APPROACH = 0x28000;
-/** The road's lines: an object passes the camera at the last. */
-const LINES = 512;
-/** The advance counter gains the displayed km/h / 64 a tick, its remainder carried: a unit is 64 × 0x12F / 65536 positions. */
-export const ADVANCE_POSITIONS = (64 * 0x12f) / 65536;
 
 /**
- * The road positions an object travels at `kmh` from depth `depth` (16.16 lines) until it passes the camera: each tick
- * the advance counter gains km/h / 64 units, its remainder carried, and the object's depth the table's step for its
- * line and that advance (at most 15).
+ * An object's depth (16.16 lines) after one tick of its approach: the table's step for its line and the tick's advance
+ * (`col`, at most 15), half of it for an object that approaches at half the rate (drawing 2, the clouds: `asr.l #1`).
  */
-export function approach(main: Uint8Array, depth: number, kmh: number): number {
-  let z = depth,
-    carried = 0,
-    units = 0;
-  while (z >>> 16 < LINES) {
-    carried += kmh;
-    const advance = Math.min(15, Math.floor(carried / 64));
-    carried -= 64 * advance;
-    units += advance;
-    z += long(main, APPROACH + (advance << 11) + 4 * (z >>> 16));
-  }
-  return units * ADVANCE_POSITIONS;
+export function approached(main: Uint8Array, depth: number, advance: number, half = false): number {
+  const step = long(main, APPROACH + (advance << 11) + 4 * (depth >>> 16));
+  return depth + (half ? step >> 1 : step);
 }
