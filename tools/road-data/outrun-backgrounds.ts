@@ -4,7 +4,7 @@
  * [local original](../../docs/development.md#local-originals) of the stage's sky.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { paletteRgb555 } from './outrun-road.js';
+import { paletteRgb555 } from './road-tables.js';
 import type { ZipFile } from './zip.js';
 
 /** The tile ROMs: three bit planes, each two 32 KiB ROMs (tiles 0–4095, then 4096–8191), the lowest bit first. */

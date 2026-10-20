@@ -1,4 +1,5 @@
 import { requireInput } from '../course/authoring-io.js';
+import { interleave } from './program-words.js';
 import type { ZipFile } from './zip.js';
 
 /**
@@ -44,17 +45,6 @@ export function assemblePrograms(files: ReadonlyMap<string, ZipFile>): OutrunPro
     return out;
   };
   return { main: program(OUTRUN_PROGRAM_ROMS.main), sub: program(OUTRUN_PROGRAM_ROMS.sub) };
-}
-
-/** One program's half from the ROM of its even bytes and the ROM of its odd bytes. */
-export function interleave(even: Uint8Array, odd: Uint8Array): Uint8Array {
-  if (even.length !== odd.length) throw new RangeError('Paired ROMs differ in size');
-  const out = new Uint8Array(2 * even.length);
-  for (let i = 0; i < even.length; i++) {
-    out[2 * i] = even[i]!;
-    out[2 * i + 1] = odd[i]!;
-  }
-  return out;
 }
 
 const hex = (value: number) => `0x${value.toString(16).padStart(8, '0')}`;

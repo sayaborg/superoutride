@@ -4,7 +4,7 @@
  * station on it. Road widths are rounded at their corners first, so the plan and the lanes come from the same widths.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { POSITION_PER_KMH, TICKS } from './outrun-hills.js';
+import { POSITION_PER_KMH, TICKS } from './hills.js';
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 export const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);

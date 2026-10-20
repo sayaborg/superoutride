@@ -4,7 +4,7 @@
  * the section's ends straight at the heading every section starts and ends with.
  */
 import { instruction, long } from './program-words.js';
-import type { Path } from './outrun-road.js';
+import type { Path } from './road-tables.js';
 
 /** A fold is a position turning more than this off its seven positions' median, degrees. */
 const FOLD_DEGREES = 1;

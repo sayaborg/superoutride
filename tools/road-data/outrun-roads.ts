@@ -9,7 +9,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { composite, ROAD_HALF, TOUCHING, UNIT_METRES, type FeatureEdge } from './outrun-cross-section.js';
-import { OffsetPlan, POSITION_METRES, type Pose } from './outrun-plan.js';
+import { OffsetPlan, POSITION_METRES, type Pose } from './offset-plan.js';
 import {
   forkSpan,
   joinSpan,
@@ -35,12 +35,13 @@ import {
   stageGrades,
   type Change,
   type Profile,
-} from './outrun-profile.js';
-import { tableRuns } from './outrun-hills.js';
-import { PIXEL_ASPECT } from './outrun-boards.js';
+} from './road-profile.js';
+import { tableRuns } from './hills.js';
+import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import { repeated, sectionProfile, simplified } from './outrun-course.js';
-import type { HeightTable, Path, Stage, Stretch } from './outrun-road.js';
+import type { Stage, Stretch } from './outrun-road.js';
+import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 

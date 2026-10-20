@@ -1,5 +1,5 @@
 import { requireInput } from '../course/authoring-io.js';
-import { interleave } from './outrun-rom.js';
+import { interleave } from './program-words.js';
 import type { ZipFile } from './zip.js';
 
 /** A ROM by its name in the set and its CRC-32. */

@@ -13,6 +13,13 @@ The ROMs and any raw data taken from them are not committed and appear in no PR:
 tool's dumps beside them in `rom-data/`. The formats are read by this project's own code from this description and the
 ROMs themselves.
 
+The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
+`super-hang-on-*`, `turbo-outrun-*`) and what they share in modules of their own: a program's words and the halves it is
+interleaved from (`program-words`), the road tables in OUTRUN's format (`road-tables`: palette words, curves, widths and
+heights, scenery points, road paths and height tables), the hills (`hills`), the profile and the crossings' bumps
+(`road-profile`), the plan laid off a road path with its corners rounded (`offset-plan`), the sprite hardware's pixels
+(`sprite-pixels`) and the originals' pixels on this game's texel grid (`pixel-grid`).
+
 ## ROM set
 
 MAME's `outrun` (Rev. B). Each CPU's program is two 128 KiB halves, each half interleaved from a ROM of its even bytes

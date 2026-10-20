@@ -4,7 +4,7 @@
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.
  */
-import { paletteRgb555, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './outrun-road.js';
+import { paletteRgb555, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './road-tables.js';
 import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 

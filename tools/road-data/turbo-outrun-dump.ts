@@ -7,7 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import type { ZipFile } from './zip.js';
 import { assemblePrograms } from './outrun-rom.js';
-import { pathTurn, readHeightTable } from './outrun-road.js';
+import { pathTurn, readHeightTable } from './road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
 import {
   PATH_POSITIONS,

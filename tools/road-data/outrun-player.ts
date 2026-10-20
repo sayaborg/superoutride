@@ -4,7 +4,8 @@
  * TESTAROSSA's picture set as its [local original](../../docs/development.md#local-originals).
  */
 import { requireInput } from '../course/authoring-io.js';
-import { spritePalette, spritePixels, type SpriteSize } from './outrun-sprites.js';
+import { spritePalette } from './outrun-sprites.js';
+import { spritePixels, type SpriteSize } from './sprite-pixels.js';
 
 /**
  * The player's frames at 0x9ECC: three steering levels (under 0x12, under 0x1E, beyond) of three slopes, 8 bytes each,

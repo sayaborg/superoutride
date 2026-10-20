@@ -3,8 +3,10 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it at the top
  * speed, beside its road, as the main CPU runs them tick by tick.
  */
-import { boardName, paletteName, standsByEdge, type SpriteUse } from './outrun-boards.js';
-import { readSceneryType, type SceneryPoint } from './outrun-road.js';
+import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
+import { paletteName } from './pixel-grid.js';
+import { readSceneryType } from './outrun-road.js';
+import { type SceneryPoint } from './road-tables.js';
 import {
   approached,
   hitExtents,

@@ -3,7 +3,7 @@
  * ([Original road data](../../docs/original-road-data.md#super-hang-on)): each sprite's sizes, pixels and palettes, the
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
-import { paletteRgb555 } from './outrun-road.js';
+import { paletteRgb555 } from './road-tables.js';
 import { long, sword, u8, word } from './program-words.js';
 
 /** Main CPU: the sprites' size lists, their hit widths, the palettes, the gates' templates and the rivals' grid. */

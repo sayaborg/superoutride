@@ -11,15 +11,15 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
 import { sceneryBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
-import { hillsAlong, tableRuns } from './outrun-hills.js';
-import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
+import { hillsAlong, tableRuns } from './hills.js';
+import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
 import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeName, routeSpans } from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom, UNIT_METRES } from './outrun-cross-section.js';
-import { POSITION_METRES } from './outrun-plan.js';
+import { POSITION_METRES } from './offset-plan.js';
 import { roadObjects } from './outrun-scenery.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
@@ -42,19 +42,16 @@ import {
 } from './super-hang-on-courses.js';
 import {
   OUTRUN_STAGES,
-  pathOffset,
-  pathTurn,
   readForkStretch,
   readGoalStretches,
-  readHeightTable,
   readSceneryType,
   goalNumber,
   readStage,
   stageLength,
-  type HeightTable,
   type Stage,
   type Stretch,
 } from './outrun-road.js';
+import { pathOffset, pathTurn, readHeightTable, type HeightTable } from './road-tables.js';
 
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;

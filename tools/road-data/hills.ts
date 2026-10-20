@@ -2,7 +2,7 @@
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
  * row along a stage, from its height points and height tables, by the original's rule. Nothing is fitted.
  */
-import type { HeightTable, WidthHeightPoint } from './outrun-road.js';
+import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
 /** The road's lines, its bottom row, and the level horizon's base (each line's slope is base × 16, 16.16 rows). */
 const LINES = 512;

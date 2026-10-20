@@ -16,15 +16,9 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { POSITION_METRES, Quadratic, rounded, type PlanSegment, type QuadraticPiece } from './outrun-plan.js';
-import {
-  pathOffset,
-  type Path,
-  type SceneryPoint,
-  type Stage,
-  type Stretch,
-  type WidthHeightPoint,
-} from './outrun-road.js';
+import { POSITION_METRES, Quadratic, rounded, type PlanSegment, type QuadraticPiece } from './offset-plan.js';
+import { type Stage, type Stretch } from './outrun-road.js';
+import { pathOffset, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
 
 /** Every stage's length, positions: a constant of the main CPU's program. */
 const STAGE_LENGTH = 1948;

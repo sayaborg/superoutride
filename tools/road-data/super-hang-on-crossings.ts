@@ -2,7 +2,7 @@
  * Where a level SUPER HANG-ON course passes over itself ([Original road data](../../docs/original-road-data.md#super-hang-on)):
  * its overlapping pairs of stations gathered into crossings, each the passages that overlaps join.
  */
-import type { Crossing, Passage } from './outrun-profile.js';
+import type { Crossing, Passage } from './road-profile.js';
 
 /**
  * The crossings of overlapping pairs of stations `pairs`, each earlier then later: a passage is a run of the stations

@@ -7,7 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { areaMajority, PIXEL_ASPECT } from './outrun-boards.js';
+import { areaMajority, PIXEL_ASPECT } from './pixel-grid.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**

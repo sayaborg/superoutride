@@ -16,7 +16,7 @@ import {
   type Path,
   type SceneryPoint,
   type WidthHeightPoint,
-} from './outrun-road.js';
+} from './road-tables.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
 
 /** The stages, four legs of four, in running order: the leg order's bytes number them 0 to 15. */

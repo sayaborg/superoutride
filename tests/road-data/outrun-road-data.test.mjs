@@ -2,16 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { crc32, deflateRawSync } from 'node:zlib';
 import { readZip } from '../../tools/road-data/zip.ts';
-import { assemblePrograms, interleave } from '../../tools/road-data/outrun-rom.ts';
-import {
-  paletteRgb555,
-  pathOffset,
-  pathTurn,
-  readHeightTable,
-  readSceneryType,
-  readStage,
-  stageLength,
-} from '../../tools/road-data/outrun-road.ts';
+import { assemblePrograms } from '../../tools/road-data/outrun-rom.ts';
+import { interleave } from '../../tools/road-data/program-words.ts';
+import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun-road.ts';
+import { paletteRgb555, pathOffset, pathTurn, readHeightTable } from '../../tools/road-data/road-tables.ts';
 import {
   bendOf,
   closedGrades,
@@ -21,20 +15,20 @@ import {
   separatedCrossings,
   stageGrades,
   STEEPEST,
-} from '../../tools/road-data/outrun-profile.ts';
+} from '../../tools/road-data/road-profile.ts';
 import {
   anchorPoint,
   outline,
   representative,
   spritePixels,
   spriteWords,
-} from '../../tools/road-data/outrun-sprites.ts';
+} from '../../tools/road-data/sprite-pixels.ts';
 import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, composite, drivenLanes } from '../../tools/road-data/outrun-cross-section.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { outrunRoad } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
-import { POSITION_METRES } from '../../tools/road-data/outrun-plan.ts';
+import { POSITION_METRES } from '../../tools/road-data/offset-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
@@ -250,7 +244,7 @@ test('a path running ahead of its curves is found by the shift that matches thei
 });
 
 test("the original's hills: level road tops at row 151, a crest's window raises it, and holds count down by tick", async () => {
-  const { roadTop, hillsAlong, holdLength, LEVEL_HORIZON } = await import('../../tools/road-data/outrun-hills.ts');
+  const { roadTop, hillsAlong, holdLength, LEVEL_HORIZON } = await import('../../tools/road-data/hills.ts');
   // Level: 223 − 512 × 576 × 16 / 65536.
   assert.equal(roadTop(LEVEL_HORIZON, [], 0), 151);
   // A raised horizon of 864: 223 − 108.

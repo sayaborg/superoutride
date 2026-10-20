@@ -4,7 +4,7 @@
  * in road units, across from the roads' middle, positive right.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { UNIT_METRES } from './outrun-boards.js';
+import { UNIT_METRES } from './pixel-grid.js';
 import type { ZipFile } from './zip.js';
 
 /** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 3.6 m. */

@@ -6,8 +6,8 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { START_WIDTH } from './outrun-cross-section.js';
-import type { Profile } from './outrun-profile.js';
-import type { CurvePoint, Path, WidthHeightPoint } from './outrun-road.js';
+import type { Profile } from './road-profile.js';
+import type { CurvePoint, Path, WidthHeightPoint } from './road-tables.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const CONVERSION_VERSION = 11;

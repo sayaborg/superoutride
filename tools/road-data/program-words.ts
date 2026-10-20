@@ -1,6 +1,6 @@
 /**
- * Reading a 68000 program as its CPU addresses it: bytes, big-endian words and longs, and tables of entries up to their
- * end mark.
+ * Reading a 68000 program as its CPU addresses it: its halves interleaved from the ROMs of their even and odd bytes,
+ * bytes, big-endian words and longs, and tables of entries up to their end mark.
  */
 
 /** No table runs longer than this without its end mark: past it, the address is not a table's. */
@@ -41,4 +41,15 @@ export function instruction(p: Uint8Array, address: number, expected: readonly (
     else if (actual !== w) throw new RangeError(`The program at 0x${address.toString(16)} is not ${what}`);
   });
   return operands;
+}
+
+/** One program's half from the ROM of its even bytes and the ROM of its odd bytes. */
+export function interleave(even: Uint8Array, odd: Uint8Array): Uint8Array {
+  if (even.length !== odd.length) throw new RangeError('Paired ROMs differ in size');
+  const out = new Uint8Array(2 * even.length);
+  for (let i = 0; i < even.length; i++) {
+    out[2 * i] = even[i]!;
+    out[2 * i + 1] = odd[i]!;
+  }
+  return out;
 }

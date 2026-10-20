@@ -139,7 +139,7 @@
 
 Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
-[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e and Stage SH's tool PRs are on main;
+[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2c;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -439,8 +439,7 @@ Rules of the stage, beside Stage RD's, RD2's and SH's:
   (gates, stage ends, legs' ends and the goal), the joins and the straight past the goal, its cross-section and lanes,
   how its scenery is brought out, its kinds' records and routines, its strips' size tables and lateral rules, its
   palettes' place, its start table and start figures, and its backgrounds' palette patches. Where its formats are
-  OUTRUN's, OUTRUN's readers serve it, imported where they lie until TO-2a moves them into shared modules (Stage SH
-  imports them too and makes no move of its own).
+  OUTRUN's, the modules the originals share serve it ([Original road data](original-road-data.md)).
 - **OUTRUN's results stay.** OUTRUN's and SUPER HANG-ON's `--check` pass unchanged. Objects are brought out and
   approach by the model Stage RD2's RD-10e gives OUTRUN as its ROM has it (the phase advancing three times a tick, the
   road position the car's, an object standing at the road position of the tick its depth first passes the car's line:
@@ -459,15 +458,12 @@ Rules of the stage, beside Stage RD's, RD2's and SH's:
 
 TO-2b came first, as it needs nothing of the other stages: TURBO OUTRUN's ROMs are read, without decryption, into its
 dump, and what is described as OUTRUN's is checked against OUTRUN's ROMs
-([TURBO OUTRUN](original-road-data.md#turbo-outrun)); there is no object model and no course yet. The PRs left, in this
-order once RD-10e and Stage SH's tool PRs are on main (each one too large for one review is split and the split
-reported):
+([TURBO OUTRUN](original-road-data.md#turbo-outrun)). TO-2a then moved what the three originals share into modules of
+their own ([Original road data](original-road-data.md)); what sharing needs more than a move (the two roads drawn
+together and their strips, which hold OUTRUN's cross-section, the objects' model with `startDepth`, and the background
+layers, which RD-15's baking takes up) is shared by the PR that first uses it for TURBO OUTRUN. The PRs left, in this
+order (each one too large for one review is split and the split reported):
 
-- TO-2a: the OUTRUN readers TURBO OUTRUN shares, and those Stage SH imports, moved into shared modules, moves only: the
-  stage blocks and their curves', widths' and heights' and scenery points' readers, the height tables and the hills'
-  rule, the stripes, the two roads drawn together and their strips, the plan's offset and its corners' rounding, sprite
-  pixels and palette words, background tiles and layers, and placing the start's objects (`startDepth`). OUTRUN's and
-  SUPER HANG-ON's `--check` pass unchanged.
 - TO-2c: the objects' model, RD-10e's with TURBO OUTRUN's values as its arguments (the approach table at 0x48010, the
   car's line 0x180, vanishing at 0x1FF and strips at 0x1F8, 108 object slots, its control's step, its start table);
   OUTRUN's results unchanged.

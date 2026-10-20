@@ -5,7 +5,7 @@
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { ENTRY, entrySpans, type TableRun } from './outrun-hills.js';
+import { ENTRY, entrySpans, type TableRun } from './hills.js';
 
 /** An entry's value that changes the grade by `c_look`. */
 const UNIT = 576;

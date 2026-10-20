@@ -1,0 +1,101 @@
+/**
+ * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([Original road data](../../docs/original-road-data.md#sprites)):
+ * the sprite ROMs' 32-bit words, a size's pixels and outline, its base point by its anchor, and a palette's
+ * representative color.
+ */
+import { requireInput } from '../course/authoring-io.js';
+
+/** A set of four ROMs' words: ROM `k` gives byte `k` of each word, counted from the least significant. */
+export function spriteWords(roms: readonly Uint8Array[]): Uint32Array {
+  const [b0, b1, b2, b3] = roms;
+  return Uint32Array.from(b0!, (low, i) => ((b3![i]! << 24) | (b2![i]! << 16) | (b1![i]! << 8) | low) >>> 0);
+}
+
+/** One size of a sprite: its width and height in pixels, words a row, and its first word: bank and offset. */
+export interface SpriteSize {
+  readonly width: number;
+  readonly height: number;
+  readonly stride: number;
+  readonly bank: number;
+  readonly offset: number;
+}
+
+/**
+ * A size's pixels, row-major: each word eight 4-bit pixels, the most significant first, `stride` words a row from its
+ * bank's offset. 0 and 15 are transparent; a row ends with the word whose bits 4–7 are 15, and is transparent beyond.
+ */
+export function spritePixels(words: Uint32Array, size: SpriteSize): Uint8Array {
+  const out = new Uint8Array(size.width * size.height);
+  for (let y = 0; y < size.height; y++)
+    for (let x = 0, ended = false; x < size.width && !ended; x++) {
+      const w = words[size.bank * 0x10000 + ((size.offset + y * size.stride + (x >> 3)) & 0xffff)]!;
+      const v = (w >>> (28 - 4 * (x & 7))) & 15;
+      out[y * size.width + x] = v === 15 ? 0 : v;
+      if ((x & 7) === 7 && ((w >>> 4) & 15) === 15) ended = true;
+    }
+  return out;
+}
+
+/** A size's outline, filled: its colored pixels, and every other pixel no path of transparent pixels joins to its edge. */
+export function outline(pixels: Uint8Array, width: number): Uint8Array {
+  const height = pixels.length / width;
+  const shape = pixels.map((v) => (v > 0 ? 1 : 0));
+  // The outside: transparent pixels reached from the edge.
+  const outside = new Uint8Array(shape.length);
+  const stack: number[] = [];
+  const reach = (i: number) => {
+    if (!shape[i] && !outside[i]) {
+      outside[i] = 1;
+      stack.push(i);
+    }
+  };
+  for (let x = 0; x < width; x++) {
+    reach(x);
+    reach((height - 1) * width + x);
+  }
+  for (let y = 0; y < height; y++) {
+    reach(y * width);
+    reach(y * width + width - 1);
+  }
+  while (stack.length) {
+    const i = stack.pop()!,
+      x = i % width;
+    if (x > 0) reach(i - 1);
+    if (x < width - 1) reach(i + 1);
+    if (i >= width) reach(i - width);
+    if (i + width < shape.length) reach(i + width);
+  }
+  return shape.map((_, i) => (outside[i] ? 0 : 1));
+}
+
+/**
+ * The base point of a size `width` × `height` drawn by `anchor` (bits 0–1 across: 1 its left edge at the object's x,
+ * 2 its right edge, else its middle; bits 2–3 down: 4 its top at the object's y, 8 its bottom, else its middle), in
+ * texel-centre coordinates.
+ */
+export function anchorPoint(anchor: number, width: number, height: number): { x: number; y: number } {
+  const across = anchor & 3,
+    down = anchor & 12;
+  return {
+    x: across === 1 ? -0.5 : across === 2 ? width - 0.5 : width / 2 - 0.5,
+    y: down === 4 ? -0.5 : down === 8 ? height - 0.5 : height / 2 - 0.5,
+  };
+}
+
+/** A palette's representative color: its colors' mean over a sprite's opaque pixels, RGB555 by channel, rounded. */
+export function representative(pixels: Uint8Array, palette: readonly number[]): number {
+  let r = 0,
+    g = 0,
+    b = 0,
+    n = 0;
+  for (const v of pixels) {
+    if (!v) continue;
+    const c = palette[v]!;
+    r += (c >> 10) & 31;
+    g += (c >> 5) & 31;
+    b += c & 31;
+    n++;
+  }
+  requireInput(n > 0, '/sprites', 'A sprite without opaque pixels has no outline');
+  return (Math.round(r / n) << 10) | (Math.round(g / n) << 5) | Math.round(b / n);
+}
