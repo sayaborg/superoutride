@@ -209,14 +209,15 @@ Base points, bodies' widths and LOD levels are each original's own rules ([Board
 mirrored and shadowed as shown, and the figures after each goal: the course image
 `outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`, a figure's frame no sprite names
 `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
-size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sampled once across and once down:
+size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
 - **Scale.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m (a lane, 424/3 units, is 3.6 m). A pixel spans
   its routine's road units across and 15/14 of them down (`PIXEL_ASPECT`: the original's 320 × 224 pixels are shown at
   4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
-- **Sampling.** Each texel takes the palette index whose pixels cover most of its area, transparency counted as an
-  index; of two as large, that of the pixel nearest the texel's centre (`areaMajority`). At these ratios it is the
-  nearest pixel's.
+- **Sampling.** By [chosen lines](#chosen-lines) (`chosenLines`), each axis at its pixel's texels: a pixel of 2 units
+  is two texels across and down, one more where a window's chosen line repeats, so a line a texel wider stands where
+  the picture is flat; a strip's, cloud's or trees' restored picture is laid as a whole. A mirrored board is the
+  unmirrored board's output mirrored. Every board keeps the size the scale rounds to.
 - **Picture.** The board's indices are the largest size's own pixels (a strip's restored from its sizes,
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
@@ -225,7 +226,8 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
 - **Base point.** At the bottom or middle its anchor gives. Across, an object anchored by an edge that has no body (its
   routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
   at the middle of the sprite's hit extents, so a solid object's body stands there.
-- **Shadow.** A shadowed board's shadow is the original's shadow on the same grid and at its anchor.
+- **Shadow.** A shadowed board's shadow is the original's shadow by chosen lines at the board's scale (a figure's at
+  3/8 of it) and at its anchor.
 
 The sprite sources and recipes under
 `content/sprite-sources/` that earlier boards were imported from are no longer written or read.

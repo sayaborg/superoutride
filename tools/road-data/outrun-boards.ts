@@ -19,7 +19,7 @@ import {
   type ObjectRoutine,
 } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { areaMajority, boardGrid, paletteName } from './pixel-grid.js';
+import { boardGrid, chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -61,8 +61,8 @@ export const standsByEdge = (use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
 
 /**
  * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
- * number, its default). Each is made from the largest size's pixels (a strip's restored, `restoredStrip`) straight onto its texel grid (`boardGrid`,
- * `areaMajority`), in the palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
+ * number, its default). Each is made from the largest size's pixels (a strip's restored, `restoredStrip`) on its texel
+ * grid by chosen lines (`chosenLines`), a mirrored one the unmirrored output mirrored, in the palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
  * (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a solid object's body stands.
  */
 export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readonly SpriteUse[]): BoardFiles[] {
@@ -95,8 +95,10 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
       routine.family === undefined
         ? { ...largest, pixels: spritePixels(words, largest) }
         : restoredStrip(main, words, routine.family, boardsAcross(main, routine).count);
-    const pixels = first!.mirrored ? mirror(size.pixels, size.width) : size.pixels;
-    const grid = boardGrid(size.width, size.height, routine.pixelUnits);
+    // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
+    const texels = texelsAPixel(routine.pixelUnits);
+    const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
+    const indices = first!.mirrored ? mirror(grid.indices, grid.width) : grid.indices;
     const scale = { x: grid.width / size.width, y: grid.height / size.height };
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const byEdge = standsByEdge(first!);
@@ -128,10 +130,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
           }
         : {}),
     });
-    const board = master(
-      (k) => [0, ...spritePalette(main, palettes[k]!).slice(1)],
-      areaMajority(pixels, size.width, grid.width, grid.height),
-    );
+    const board = master((k) => [0, ...spritePalette(main, palettes[k]!).slice(1)], indices);
     boards.push({ name, image: courseImageFile(board), original: courseImageFile(board) });
   }
   return boards;
@@ -187,7 +186,7 @@ function restoredStrip(main: Uint8Array, words: Uint32Array, family: Family, boa
   return { pixels, width: reach, height };
 }
 
-const mirror = (pixels: Uint8Array, width: number) =>
+const mirror = <T>(pixels: readonly T[], width: number) =>
   pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
 
 /**
@@ -201,10 +200,13 @@ function shadowFrame(
   anchor: number,
   aside: number,
 ) {
-  const height = pixels.length / width;
-  const w = Math.max(1, Math.round(width * scale.x)),
-    h = Math.max(1, Math.round(height * scale.y));
-  const indices = areaMajority(pixels, width, w, h);
-  const point = anchorPoint(anchor, w, h);
-  return { width: w, height: h, anchorX: point.x - aside * scale.x, anchorY: point.y, levels: [{ indices }] };
+  const grid = chosenLines(pixels, width, scale.x, scale.y);
+  const point = anchorPoint(anchor, grid.width, grid.height);
+  return {
+    width: grid.width,
+    height: grid.height,
+    anchorX: point.x - aside * scale.x,
+    anchorY: point.y,
+    levels: [{ indices: grid.indices }],
+  };
 }
