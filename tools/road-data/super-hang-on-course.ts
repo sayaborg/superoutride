@@ -18,8 +18,12 @@ import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
 
-/** A lane, metres: K's 3.6 m over the road's half to its lines' inner edges. */
-export const LANE = 3.6;
+/**
+ * A lane, metres, over the road's half to its lines' inner edges: K's 4.3 m, at which the original's upright rear frame
+ * of the bike stands about as tall as VFR750R's upright rear picture. It is the one measure of SUPER HANG-ON's sizes
+ * across and up.
+ */
+export const LANE = 4.3;
 /** The plane runs on lane a's centre, half a lane left of P. */
 const OFFSET = LANE / 2;
 /** SAND reaches this far beyond the asphalt, metres. */

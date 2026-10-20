@@ -1,13 +1,13 @@
 /**
  * SUPER HANG-ON's pictures as course images ([Original road data](../../docs/original-road-data.md#super-hang-on)): each
- * sprite or frame an object shows, mirrored as shown, from its largest size's pixels straight onto its texel grid at
+ * sprite or frame an object shows, mirrored as shown, from its largest size's pixels by chosen lines onto its texel grid at
  * the scale the original draws it where it passes the bike, in every palette it is shown in, its base point the middle
  * of its bottom. They are the original's pictures, provisional: the product's are drawn again.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { areaMajority, PIXEL_ASPECT } from './pixel-grid.js';
+import { chosenLines, PIXEL_ASPECT } from './pixel-grid.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
@@ -36,24 +36,16 @@ export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mi
 /** A palette's name in a picture. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 
-/** The texel grid of a picture `width` × `height` pixels at `metres` a road unit, 40 texels a metre. */
-export function pictureGrid(width: number, height: number, metres: number) {
+/** Size list `list`'s largest size by chosen lines at `metres` a road unit, 40 texels a metre. */
+export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, metres: number) {
+  const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
   const across = PIXEL_UNITS * metres * SPRITE_SOURCE_TEXELS_PER_METER;
-  return {
-    width: Math.max(1, Math.round(width * across)),
-    height: Math.max(1, Math.round(height * across * PIXEL_ASPECT)),
-  };
-}
-
-/** The width, metres, of the picture of size list `list` at `metres` a road unit. */
-export function pictureWidth(main: Uint8Array, list: number, metres: number) {
-  const size = sizeList(main, list)[0]!;
-  return pictureGrid(4 * size.stride - 1, size.height, metres).width / SPRITE_SOURCE_TEXELS_PER_METER;
+  return chosenLines(pixels, width, across, across * PIXEL_ASPECT);
 }
 
 /**
  * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
- * in (the lowest its default), from its largest size's pixels by area majority, with its width in metres.
+ * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres.
  */
 export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
   const groups = new Map<string, PictureUse[]>();
@@ -65,9 +57,11 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, group]) => {
       const [first] = group as [PictureUse];
-      const { width, pixels: raw } = spritePixels(words, sizeList(main, first.list)[0]!);
-      const pixels = first.mirrored ? raw.map((_, i) => raw[i - (i % width) + width - 1 - (i % width)]!) : raw;
-      const grid = pictureGrid(width, pixels.length / width, metres);
+      const grid = chosenPicture(main, words, first.list, metres);
+      // A mirrored picture is the unmirrored one's lines mirrored.
+      const indices = first.mirrored
+        ? grid.indices.map((_, i) => grid.indices[i - (i % grid.width) + grid.width - 1 - (i % grid.width)]!)
+        : grid.indices;
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
       const master: SpriteLodDocument = {
@@ -83,7 +77,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
         levels: [
           {
             paletteRgb555: colors(palettes[0]!),
-            indices: areaMajority(pixels, width, grid.width, grid.height),
+            indices,
             mixtures: spriteIdentityMixtures(),
           },
         ],

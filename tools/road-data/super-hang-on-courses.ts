@@ -3,6 +3,7 @@
  * the road data tool's commands write, the course documents, the pictures their objects show and their skies' names.
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { instruction, word } from './program-words.js';
 import type { ZipFile } from './zip.js';
@@ -16,14 +17,14 @@ import { roadCrossSection } from './super-hang-on-cross-section.js';
 import {
   paletteName,
   pictureName,
-  pictureWidth,
+  chosenPicture,
   superHangOnPictures,
   type PictureUse,
 } from './super-hang-on-boards.js';
-import { superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
+import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 1;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 2;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;
@@ -92,7 +93,7 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
   const rules = sceneryRules(main);
   const amounts = programAmounts(main);
   const cross = roadCrossSection(superHangOnRoadRom(files));
-  const unit = 3.6 / cross.linesIn;
+  const unit = LANE / cross.linesIn;
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
@@ -103,13 +104,12 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
       CAMERA_DEFINITION.focalLength) *
     (180 / Math.PI);
   const uses: PictureUse[] = [];
+  const widths = new Map<number, number>();
   const picture = (list: number, mirrored: boolean, palette: number) => {
     uses.push({ list, mirrored, palette });
-    return {
-      image: pictureName(main, { list, mirrored }),
-      palette: paletteName(palette),
-      width: pictureWidth(main, list, unit),
-    };
+    if (!widths.has(list))
+      widths.set(list, chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER);
+    return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), width: widths.get(list)! };
   };
   const built = readCourses(main).map((course, c) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));

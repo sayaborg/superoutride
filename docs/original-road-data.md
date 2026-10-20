@@ -20,7 +20,7 @@ heights, scenery points, road paths and height tables), the hills (`hills`), the
 (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
 laid off a road path with its corners rounded (`offset-plan`), two roads drawn together from one road's picture across
 (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
-(`pixel-grid`), and how objects approach the car (`object-approach`: the tick's advance, an approach table's step and
+(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), and how objects approach the car (`object-approach`: the tick's advance, an approach table's step and
 `startDepth`).
 
 ## ROM set
@@ -178,6 +178,28 @@ and 11 draw a strip beside the road, its edge nearest the road at x, and drawing
 ([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
 ([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the
 checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-waver)).
+
+## Chosen lines
+
+A ROM's picture is put on the 40 texels/m grid by chosen lines (`chosenLines`), so that its one-pixel lines (outlines,
+letters' strokes, poles) neither break nor change their width: every texel is a source pixel, its colors unmixed (the
+LOD levels below the master mix them). Each axis is planned from the picture on its own, at its r texels a pixel:
+
+- **Count.** N = max(1, round(n × r)) of its n lines, each a source line in order: shrinking (N < n), K = n − N lines
+  are dropped; growing (N > n), each line is repeated q = ⌊N / n⌋ times and K = N − q·n of them once more.
+- **Choice.** The K are one from each of K equal windows [⌊k·n/K⌋, ⌊(k+1)·n/K⌋), k = 0 … K − 1, chosen in order: the
+  line of least score, a line's score being the number of pixels it differs in from the nearer of its two neighbours
+  (an end line's one). Shrinking, the neighbours are the lines still kept (the left or upper the nearest not yet
+  dropped), so two equal lines across a window's edge are not both dropped; growing, the source's. Of equal scores,
+  the line nearest the window's middle, then the lowest. Transparency is a color.
+- **Picture.** A texel is the source pixel of its chosen row and column.
+- **Symmetry.** A picture each of whose columns equals its mirror's stays symmetric: N moves by one where K would be
+  odd (to the nearer of n × r), the left ⌊n/2⌋ columns take K/2 windows chosen as above, and the right columns mirror
+  them; an odd middle column is neither dropped nor repeated once more.
+- **Mirroring.** A mirrored picture is the unmirrored picture's output mirrored, not chosen again.
+
+Base points, bodies' widths and LOD levels are each original's own rules ([Boards](#boards),
+[SUPER HANG-ON's courses](#super-hang-ons-courses)); a separate shadow picture is put on the grid the same way.
 
 ## Boards
 
@@ -967,19 +989,23 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 1, the pictures their objects show and their skies, or with
-`--check` fails where one differs:
+`super-hang-on-europe` (EUROPE), conversion version 2, the pictures their objects show and their skies, or with
+`--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
+each course's Sections, length, objects and crossings:
 
-- **Plane and stations.** Lane a's centre runs 1.8 m left of P on the plane, again straights and arcs: an arc turning
-  left is shorter and one turning right longer by 1.8 m times its turn. A course position (section k's position p is
+- **Plane and stations.** Lane a's centre runs 2.15 m (half a lane) left of P on the plane, again straights and arcs:
+  an arc turning left is shorter and one turning right longer by 2.15 m times its turn. A course position (section k's position p is
   2049k + p, the goal's after the last section's) is the station across from P there on the plane, as on OUTRUN's
   ([Plan](#plan)). GO, the bike at the first section's position 0, is station 6.
-- **Lanes.** a and b, 3.6 m each, either side of P; the centre lane a.
+- **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a. The lane is K's: at 4.3 m the
+  original's upright rear frame of the bike stands about as tall as VFR750R's upright rear picture. It is the one
+  measure of SUPER HANG-ON's sizes across and up.
 - **Cross-section.** The road ROM draws one road at a size proportional to its line, a feature's edge u units from the
   centre at u × line / 224 pixels (as an object's x, the `divs.w #$E0` at 0x7262): each edge's u is 224 times its
   pixels' slope against the line over lines 60 to 189, the left's and right's mean. The centre line is ±4.42 units, the
   lines 238.14 to 249.79, the shoulder the surface's, the edge bands 259.21 to 293.80. A lane is the road's half to its
-  lines' inner edges, 3.6 m as OUTRUN's lane is, so a unit is 0.015117 m. SAND reaches 40 m beyond the edge bands.
+  lines' inner edges, 238.14 units, 4.3 m, so a unit is 0.0180566 m: the road, objects' x, pictures, bodies, gates,
+  the crowd and the figures, and the grids' spacing across are all in it. SAND reaches 40 m beyond the edge bands.
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
@@ -991,7 +1017,7 @@ courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-ha
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
   original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,
   224/191 units each, either side) or its picture's width where narrower. A picture is its sprite's largest size on its
-  texel grid by area majority, a pixel 224/191 units across and 224/191 × the pixel aspect down, its base point the
+  texel grid by [chosen lines](#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel aspect down, its base point the
   middle of its bottom, in every palette it is shown in; the pictures are published, provisionally.
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 38.31 positions after it comes out (⌈0x1FF0 / the depth step⌉

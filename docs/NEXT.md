@@ -138,7 +138,7 @@
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
 Next PR: [RD-14d](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
-[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
+[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 (with `sky-baking`; it does not wait for RD-15), then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3b;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -364,14 +364,20 @@ K's decisions (2026-10-20):
   products: those are never merged by hand but written again by the tool (and their racing lines by
   `npm run measure -- generate`) after main is taken in; before each PR every original's `--check` on main passes on
   the local ROMs; a PR changing a shared rule states which courses of which original change and by how much.
+- **Scale** (K, 2026-10-21). A lane is 4.3 m, not OUTRUN's 3.6 m: at 4.34 m the original's upright rear frame of the
+  bike stands as tall as VFR750R's upright rear picture; at 3.6 m lamps and signs looked small beside the bike. The
+  camera stays the same for every vehicle (changing it per series would mean baking the vehicles' pictures again); the
+  original's camera, higher and nearer, still shows the road and objects at the bike 1/0.847 times as large as this
+  game does.
+- **Pictures** (K, 2026-10-21). ROM pictures are put on the texel grid as cleanly as possible, by chosen lines
+  ([Chosen lines](original-road-data.md#chosen-lines)).
 
 Rules of the stage, beside Stage RD's and RD2's:
 
 - K's zip lies in `reference-media/super-hang-on/rom/`, the tool's dumps in `reference-media/super-hang-on/rom-data/`.
   No code of MAME, Cannonball or LayOut is copied or ported: the formats are read by this project's own code from the
   stage's description and the ROMs themselves.
-- The road data tool serves both originals. What they share has one implementation: palette words, area-majority
-  sampling, area averages in linear light, the front layer's column removal, tile pictures, writing images, course
+- The road data tool serves both originals. What they share has one implementation: palette words, chosen lines, area averages in linear light, the front layer's column removal, tile pictures, writing images, course
   documents, `--check` and the crossings' bumps. Each original adds its own ROM set, addresses and formats (sprites,
   tiles, how objects are brought out); OUTRUN's two roads, forks and strips do not enter SUPER HANG-ON.
 - The stage stops only where the ROMs disagree with the stage's description, where a rule above would break, or where
@@ -385,8 +391,10 @@ The PRs, in order (each one too large for one review is split and the split repo
   [Original road data](original-road-data.md) then states once the rule among it: the road position is the vehicle's,
   and an object stands where it passes the vehicle (each original approaches by its own ROM: OUTRUN and TURBO OUTRUN
   by the same table and advance, SUPER HANG-ON by its own). SH-3 was split: SH-3a gave the crossings' bumps crossings
-  of more than two passages and long overlaps, OUTRUN's courses unchanged.
-- SH-4: the 24 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
+  of more than two passages and long overlaps, OUTRUN's courses unchanged. SH-3c made the lane 4.3 m and put
+  SUPER HANG-ON's pictures on the grid by chosen lines.
+- SH-4: the 24 skies baked from the tile ROMs in place of the copies, by the shared `sky-baking`; it does not wait for
+  RD-15. Pixels alone, published, not measured.
 
 Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
 itself (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are
