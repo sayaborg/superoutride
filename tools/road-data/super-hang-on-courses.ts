@@ -1,13 +1,20 @@
 /**
  * SUPER HANG-ON's four courses from its ROMs ([Original road data](../../docs/original-road-data.md#super-hang-on)): what
- * the road data tool's commands write, the course documents, the pictures their objects show and their skies' names.
+ * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { instruction, word } from './program-words.js';
 import type { ZipFile } from './zip.js';
-import { assembleSuperHangOnPrograms, assembleSuperHangOnSprites, superHangOnRoadRom } from './super-hang-on-rom.js';
+import {
+  assembleSuperHangOnPrograms,
+  assembleSuperHangOnSprites,
+  assembleSuperHangOnTiles,
+  superHangOnRoadRom,
+} from './super-hang-on-rom.js';
+import { sectionBands } from './super-hang-on-backgrounds.js';
+import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { readCourses, readGoal, readSceneryType, readSection, sectionPositions } from './super-hang-on-road.js';
 import { positionMetres, sectionPlan } from './super-hang-on-plan.js';
 import { courseScenery, sceneryRules } from './super-hang-on-scenery.js';
@@ -51,15 +58,13 @@ const ENDING: readonly (readonly EndingFigure[])[] = [
  * The skies face as the original's backgrounds: at heading 0 its back layer's pixel 1370 of 1536 is at the screen's
  * middle (K's reading of the layers' scroll), here 1370 × 1504 / 1536 of the sky's 1504.
  */
-const SKY_WIDTH = 1504;
-const BACK_LAYER = { width: 1536, middle: 1370 } as const;
+const BACK_MIDDLE = 1370;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();
 export const courseId = (name: string) => `super-hang-on-${courseSlug(name)}`;
-/** Section `order` (0 from)'s sky, a copy of the generic coast sky until the original's are baked. */
+/** Section `order` (0 from)'s sky, baked from its background. */
 export const skyName = (name: string, order: number) => `shangon-${courseSlug(name)}-${order + 1}-sky`;
-export const GENERIC_SKY = 'coast-sky';
 
 /**
  * The program's amounts the courses read beside the tables: the stripes' period (32 phases of the 5 bits `andi.w #$1F`
@@ -87,6 +92,7 @@ function programAmounts(main: Uint8Array) {
 export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
   const programs = assembleSuperHangOnPrograms(files);
   const words = assembleSuperHangOnSprites(files);
+  const planes = assembleSuperHangOnTiles(files);
   const { main } = programs;
   const positions = sectionPositions(main);
   const metres = positionMetres(main);
@@ -100,7 +106,7 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
   const tick = (rules.advance * rules.speed) / 65536;
   const depthStep = word(main, 0xc5ea + 2 * rules.speed);
   const yawOrigin =
-    ((SKY_WIDTH - ((BACK_LAYER.middle * SKY_WIDTH) / BACK_LAYER.width - CAMERA_DEFINITION.centerX)) /
+    ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
       CAMERA_DEFINITION.focalLength) *
     (180 / Math.PI);
   const uses: PictureUse[] = [];
@@ -151,7 +157,11 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
       yawOrigin,
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
     });
-    return { course, plans, dropped, road };
+    const skies = sections.map((section, order) => {
+      const name = skyName(course.name, order);
+      return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555)) };
+    });
+    return { course, plans, dropped, road, skies };
   });
   const pictures = superHangOnPictures(main, words, uses, unit);
   return { built, pictures, metres, cross, unit, rules, amounts };

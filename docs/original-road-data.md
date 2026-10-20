@@ -20,8 +20,9 @@ heights, scenery points, road paths and height tables), the hills (`hills`), the
 (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
 laid off a road path with its corners rounded (`offset-plan`), two roads drawn together from one road's picture across
 (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
-(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), and how objects approach the car (`object-approach`: the tick's advance, an approach table's step and
-`startDepth`).
+(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), a background baked into one sky
+([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
+table's step and `startDepth`).
 
 ## ROM set
 
@@ -201,6 +202,35 @@ LOD levels below the master mix them). Each axis is planned from the picture on 
 
 Base points, bodies' widths and LOD levels are each original's own rules ([Boards](#boards),
 [SUPER HANG-ON's courses](#super-hang-ons-courses)); a separate shadow picture is put on the grid the same way.
+
+## Sky baking
+
+Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
+its ROMs:
+
+- **Layers.** The back layer, 1536 pixels wide, and the front, 2048 (it turns 4/3 as many pixels a turn), in RGB555 or
+  transparent, each with its bottom row's place: how many rows below the horizon (0 the first row below it).
+- **Overlap.** The back layer's pixel the front's pixel 0 lies over: the front's pixel f lies over the back's
+  0.75f + overlap.
+- **Ramp.** The sky's color in each row up from the horizon, the last also every row above, and the color below the
+  horizon.
+
+The sky is baked in four steps:
+
+1. **Columns.** The front layer's 2048 columns lose 512, leaving 1536 (`keptColumns`). By dynamic programming, the
+   columns removed are those whose removal makes the sum of the differences between kept neighbouring columns least: a
+   column's difference from another is the sum over its rows of their pixels' difference, the mean of the channels'
+   differences in linear light, 1 between transparency and any color. The columns removed before any column stay
+   within 8 of a quarter of it, so the front keeps its place over the back; of equal sums, the first found.
+2. **Layers.** In the original's pixels, the ramp, then the back layer over it, then the front over that, each layer by
+   its bottom row; the front's kept column j over the back's pixel j + overlap (modulo 1536).
+3. **Size.** Each of the sky's 1504 × 640 pixels is the linear-light mean of the area it covers: 1504/1536 of the
+   back's pixels across, 15/14 of that down (the original's pixel aspect), the horizon between rows 319 and 320.
+4. **Tiles.** The pixels are drawn as a tile picture as the skies command draws one (each 16 × 16 tile at most 15
+   RGB555 colors by median cut, no dithering).
+
+The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever the
+front's columns removed.
 
 ## Boards
 
@@ -991,6 +1021,19 @@ at 0x1E06 + 4b addresses {word count − 1, then byte pairs {palette, source}}, 
 0x9ED8 + 4(base + 8k + s), base course c's byte at 0x9EA0; a step is {word parts − 1, then parts {word column, word row,
 long content}}, a content {word width − 1, word height − 1, then its tile words row by row}, columns wrapping at 256.
 
+Its sky is baked ([Sky baking](#sky-baking), `sectionBands`) from two bands of the map, its columns in screen order:
+
+- **Tiles.** The tile ROMs `epr-10652.54`, `epr-10651.55` and `epr-10650.56` are three bit planes, the lowest first, 8
+  bytes a tile, a byte a row, bit 7 the leftmost pixel. A tile word's tile is its bits 0–11 and its palette its bits
+  5–11; a pixel 0 is transparent, any other the palette's word (its 8 words those the background loads).
+- **Bands.** The front layer is the map's rows 0–3, all 256 columns (2048 × 32 pixels), the back its rows 20–31,
+  columns 64–255 (1536 × 96); the other rows are not shown. Both bands' bottom row is the road's first, the first
+  below the horizon, so the front reaches 31 rows above it and the back 95.
+- **Overlap.** At heading 0 the screen's middle shows the front's pixel 1880 and the back's 1370: the front's pixel f
+  over the back's 0.75f − 40.
+- **Ramp.** The section's 32 sky words, word 31 the two rows just above the horizon, word 30 the next two, up to word 0,
+  which also fills every row above; word 31 below the horizon.
+
 ### SUPER HANG-ON's dump
 
 `npm run road-data -- super-hang-on-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
@@ -1088,11 +1131,12 @@ each course's Sections, length, objects and crossings:
 - **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
   figures, as its last frame shows them (K's reading of the original's run: their frames, palettes, x and height
   above the road), at 56.0, where the original's bike stops.
-- **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, a copy of `coast-sky` until the backgrounds are
-  baked: from its first Section's start, the next section's from 6 m before the bike reaches position 1930 (the
-  camera's station as the original redraws the background); the goal's Section shows the last section's. At heading 0
-  the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 × 1504 / 1536 of the sky's 1504:
-  a Section's yaw origin is 77.0° plus the road's turn from the course's start to its start.
+- **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, its background baked ([SUPER HANG-ON's
+  backgrounds](#super-hang-ons-backgrounds)): from its first Section's start, the next section's from 6 m before the
+  bike reaches position 1930 (the camera's station as the original redraws the background); the goal's Section shows the
+  last section's. At heading 0 the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
+  1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
+  start.
 - **Profile.** Level but for the crossings' bumps ([Profile](#profile)), its bends broken at the Sections' cuts.
 
 ## TURBO OUTRUN

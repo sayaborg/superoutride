@@ -138,7 +138,6 @@
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
 Next PR: [RD-15](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
-[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 (with `sky-baking`; it does not wait for RD-15), then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3b2;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -379,17 +378,8 @@ Rules of the stage, beside Stage RD's and RD2's:
   the format cannot make a course's form (the nearest form it can make is then shown); every other open point is
   decided by its default and reported in its PR.
 
-The PRs, in order (each one too large for one review is split and the split reported):
-
-- SH-2a is not made: SUPER HANG-ON's modules import OUTRUN's readers and the shared code where they are, and
-  [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s TO-2a moves what the originals share into common modules;
-  [Original road data](original-road-data.md) then states once the rule among it: the road position is the vehicle's,
-  and an object stands where it passes the vehicle (each original approaches by its own ROM: OUTRUN and TURBO OUTRUN
-  by the same table and advance, SUPER HANG-ON by its own). SH-3 was split: SH-3a gave the crossings' bumps crossings
-  of more than two passages and long overlaps, OUTRUN's courses unchanged. SH-3c made the lane 4.3 m and put
-  SUPER HANG-ON's pictures on the grid by chosen lines.
-- SH-4: the 24 skies baked from the tile ROMs in place of the copies, by the shared `sky-baking`; it does not wait for
-  RD-15. Pixels alone, published, not measured.
+Its PRs, SH-1 to SH-4, are all on main (SH-2a was not made: Stage TO's TO-2a moved what the originals share into
+modules of their own); the hills come in a later stage.
 
 Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
 itself (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are

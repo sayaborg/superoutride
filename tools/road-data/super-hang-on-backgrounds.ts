@@ -1,9 +1,11 @@
 /**
  * SUPER HANG-ON's backgrounds as its main program draws them
  * ([Original road data](../../docs/original-road-data.md#super-hang-on)): each section's tile map, drawn in eight steps
- * of parts, and the palettes it loads.
+ * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
 import { long, u8, word } from './program-words.js';
+import { paletteRgb555 } from './road-tables.js';
+import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
 /** Main CPU: each section's background number, the backgrounds' palette lists and sources, the drawing's steps. */
 const BACKGROUND_NUMBERS = 0x9eb4;
@@ -66,4 +68,62 @@ export function backgroundMap(main: Uint8Array, course: number, order: number): 
     }
   }
   return map;
+}
+
+/** A tile: 8 × 8 pixels, a byte a row in each plane, bit 7 the leftmost. */
+const TILE = 8;
+/** The front band: the map's rows 0–3, every column. The back band: rows 20–31, columns 64–255. */
+const FRONT_BAND = { row: 0, rows: 4, column: 0, columns: MAP_COLUMNS } as const;
+const BACK_BAND = { row: 20, rows: 12, column: 64, columns: 192 } as const;
+/**
+ * At heading 0 the screen's middle shows the front band's pixel 1880 and the back's 1370: the front's f over the back's
+ * 0.75f − 40.
+ */
+const OVERLAP = -40;
+/** The ramp: two rows up from the horizon a word, word 31 the lowest; word 0 also every row above. */
+const RAMP_ROWS = 2;
+
+/**
+ * Course `course`'s section `order` as a sky bakes it ([Sky baking](../../docs/original-road-data.md#sky-baking)), from
+ * the tile ROMs' `planes` and the section's 32 sky colors `sky` (RGB555): the front and back bands of its tile map, a
+ * tile word's tile its bits 0–11 and its palette bits 5–11, a pixel 0 transparent and any other its palette's word,
+ * each band's bottom row the road's first (the first below the horizon); the ramp word 31 up to word 0, two rows each,
+ * and word 31 below.
+ */
+export function sectionBands(
+  main: Uint8Array,
+  planes: readonly Uint8Array[],
+  course: number,
+  order: number,
+  sky: readonly number[],
+): SkyBands {
+  const map = backgroundMap(main, course, order);
+  const number = backgroundNumber(main, course, order);
+  const { palettes } = backgroundPalettes(main, number);
+  const band = ({ row, rows, column, columns }: { row: number; rows: number; column: number; columns: number }) => {
+    const [width, height] = [columns * TILE, rows * TILE];
+    const pixels = new Int32Array(width * height);
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) {
+        const tileWord = map[(row + (y >> 3)) * MAP_COLUMNS + column + (x >> 3)]!;
+        const [tile, u, v] = [tileWord & 0xfff, x & 7, y & 7];
+        const value = planes.reduce((n, plane, p) => n | (((plane[tile * TILE + v]! >> (7 - u)) & 1) << p), 0);
+        const words = palettes.get((tileWord >> 5) & 0x7f);
+        if (value && !words)
+          throw new Error(
+            `Background ${number}'s tile word 0x${tileWord.toString(16)} uses a palette it does not load`,
+          );
+        pixels[y * width + x] = value ? paletteRgb555(words![value]!) : TRANSPARENT;
+      }
+    return { width, pixels, bottom: 0 } satisfies SkyLayer;
+  };
+  return {
+    back: band(BACK_BAND),
+    front: band(FRONT_BAND),
+    overlap: OVERLAP,
+    ramp: {
+      rows: Array.from({ length: sky.length * RAMP_ROWS }, (_, i) => sky[sky.length - 1 - Math.floor(i / RAMP_ROWS)]!),
+      below: sky[sky.length - 1]!,
+    },
+  };
 }

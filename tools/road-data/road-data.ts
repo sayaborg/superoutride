@@ -45,13 +45,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { startDepth } from './object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
-import {
-  courseId,
-  GENERIC_SKY,
-  skyName as superHangOnSky,
-  superHangOnCourses,
-  SUPER_HANG_ON_CONVERSION_VERSION,
-} from './super-hang-on-courses.js';
+import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from './super-hang-on-courses.js';
 import {
   OUTRUN_STAGES,
   readForkStretch,
@@ -198,20 +192,14 @@ try {
           );
         } else await atomicWrite(file, image.bytes);
       }
-      // Each section's sky as published: the generic coast sky under its own name.
-      const generic = JSON.parse(await readFile(`content/images/${GENERIC_SKY}.json`, 'utf8')) as Record<
-        string,
-        unknown
-      >;
-      const skies = built.built.flatMap(({ course }) =>
-        course.sections.map((_, order) => superHangOnSky(course.name, order)),
-      );
-      for (const name of skies) {
-        const text = JSON.stringify({ ...generic, name });
+      // Each section's sky, baked from its background; course images are saved as their exact compact bytes.
+      const skies = built.built.flatMap(({ skies }) => skies);
+      for (const { name, document } of skies) {
+        const text = JSON.stringify(document);
         const skyFile = `content/images/${name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not ${GENERIC_SKY} under its name`);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
         } else await atomicWrite(skyFile, text);
       }
       console.log(
