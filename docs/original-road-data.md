@@ -631,6 +631,130 @@ SUPER HANG-ON's courses are raised from MAME's `shangon`, the export sitdown/upr
 courses differ, and K chose this one. Its ROM set, programs and tables are described here as
 [Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) reads them.
 
+### SUPER HANG-ON's ROM set
+
+Each CPU's program is two 128 KiB halves, each interleaved from a ROM of its even bytes and a ROM of its odd bytes, as
+OUTRUN's are:
+
+| CPU  | Addresses       | Even bytes      | Odd bytes       |
+| ---- | --------------- | --------------- | --------------- |
+| main | 0x00000–0x1FFFF | `epr-10886.133` | `epr-10884.118` |
+| main | 0x20000–0x3FFFF | `epr-10887.132` | `epr-10885.117` |
+| sub  | 0x00000–0x1FFFF | `epr-10792.76`  | `epr-10790.58`  |
+| sub  | 0x20000–0x3FFFF | `epr-10793.75`  | `epr-10791.57`  |
+
+The main CPU's 0x30000–0x3FFFF holds what its 0x10000–0x1FFFF holds; the tool checks that it does and reads the tables
+at the latter. Each ROM is checked by its size and its CRC-32 (`SUPER_HANG_ON_PROGRAM_ROMS`), and each zip entry
+against the CRC-32 its archive records; another ROM set is refused. K's set matches:
+
+| ROM             | CRC-32     | ROM            | CRC-32     |
+| --------------- | ---------- | -------------- | ---------- |
+| `epr-10886.133` | `8be3cd36` | `epr-10792.76` | `16299d25` |
+| `epr-10884.118` | `cb06150d` | `epr-10790.58` | `2246cbc1` |
+| `epr-10887.132` | `8d248bb0` | `epr-10793.75` | `d9525427` |
+| `epr-10885.117` | `70795f26` | `epr-10791.57` | `5faf4cbe` |
+
+The sprites are eight 128 KiB ROMs in four pairs, each pair the high and the low bytes of 16-bit words, eight banks of
+0x10000 words in all (`SUPER_HANG_ON_SPRITE_ROMS`): `mpr-10798.16` `7d58f807` over `mpr-10794.8` `7c958e63`,
+`mpr-10799.14` `96d90d3d` over `mpr-10795.6` `d9d31f8c`, `mpr-10800.12` `feaff98e` over `mpr-10796.4` `fb48957c`,
+`mpr-10801.10` `12781795` over `mpr-10797.2` `27f2870d`. The tiles are three 32 KiB ROMs, one bit plane each, the
+lowest first: `epr-10652.54` `260286f9`, `epr-10651.55` `c609ee7b`, `epr-10650.56` `b236a403`
+(`SUPER_HANG_ON_TILE_ROMS`). The road ROM is `epr-10642.47` `7836bcc3` (`SUPER_HANG_ON_ROAD_ROM`): 256 lines of 512
+pixels, two bit planes of 64 bytes a line one after the other. Each is checked as the programs are. The sound ROMs are
+not read.
+
+### SUPER HANG-ON's programs
+
+Both CPUs are 68000s, as OUTRUN's are. Every amount below is read from its instruction after the instruction is
+checked.
+
+- **Time and distance.** A tick is 1/60 s: the clock counts 60 ticks a second (`moveq #$3C, d1` at 0x544E). The road
+  position is the long at 0x260030, 16.16, the position its upper word; each tick it advances by the long at 0x8848
+  (0x97) times the speed, the word at 0x260078, over 65536. The display shows speed v as v × 0x117 / 0xF0 km/h
+  (`mulu.w #$117` and `divu.w #$F0` at 0x15DA), so a position is 0x117 × 65536 / (0xF0 × 3.6 × 60 × 0x97) =
+  2.335835 m. The top speed is 0xF1 without the turbo (`cmpi.w #$F1, ($260078).l` at 0x64BC).
+- **Sections.** A section is 2049 positions: past position 0x800 (`cmpi.w #$800, ($260030).l` at 0x676E) the next
+  section begins at 0. At position 1930 the next section's background and ground come in (`cmpi.w #$78A, d0` at
+  0x6678); a CHECK gate comes out at section position 0, from the second section on, and at 1024 (`cmpi.w #$400, d0` at
+  0x6DA4); past goal position 35 the race ends (`cmpi.w #$23, ($260030).l` at 0x6342).
+- **Courses.** Course c of four: its name the seven characters at 0x586E + 9c, its sections the first of the words at
+  0x8B4C + 18c, as many as its byte at 0x8870 + c, its stages its byte at 0x8874 + c less one. Each of the 24 sections
+  runs in one course:
+
+  | Course  | Sections, in running order                           | Stages |
+  | ------- | ---------------------------------------------------- | ------ |
+  | AFRICA  | 0x0A, 0x01, 0x02                                     | 6      |
+  | ASIA    | 0x13, 0x14, 0x15, 0x16, 0x17                         | 10     |
+  | AMERICA | 0x11, 0x00, 0x09, 0x12, 0x10, 0x0B, 0x06             | 14     |
+  | EUROPE  | 0x03, 0x0D, 0x0C, 0x0E, 0x0F, 0x08, 0x07, 0x05, 0x04 | 18     |
+
+- **A section's block.** Section n's block is the long at 0x8AEC + 4n: nine longs, the addresses of its sky (32 palette
+  words), its road's four color pairs (+4 to +10, which follow the sky's words in the ROM: the program copies all 40 to
+  the palette at once), its ground's pair (+14), its curves (+18), heights (+1C) and scenery (+20). A pair is two
+  [palette words](#palette-words), half 0 then half 1. The road hardware draws a pixel of value p in the pair at
+  `0x7F6 ^ 2p`: the surface (pixel 0) is +10, the lines (1) +C, the edge bands (2) +8, and the centre line (a 3 among
+  the middle eight columns) +4, the other way round from OUTRUN's names; the other 3s are the ground.
+- **Curves.** {signed word position, word radius in positions, word kind: 1 straight, 2 right, 3 left}, ending at
+  position −1. They follow the road path only roughly ([SUPER HANG-ON's plan](#super-hang-ons-plan)).
+- **Heights.** {word position, word height table (1 from), word 0, word 0}, ending at position 0x7FFF. Height table t is
+  the long at 0x1A48 + 4(t − 1) on the sub CPU: vertical heading vectors {signed word x, signed word y}, (0, 4096)
+  level, ending at (0, 0). They are dumped for the hills to come; the road is level.
+- **Scenery points.** {word position, u8 count, u8 type}, ending at a negative position
+  ([Placing SUPER HANG-ON's scenery](#placing-super-hang-ons-scenery)).
+- **Road paths.** Section n's is the long at 0x19E8 + 4n on the sub CPU: a heading vector {signed word x, signed word y},
+  about 4096 long, for each of its 2049 positions. Every section's starts and ends with (0, 4096).
+- **The goal.** The last section runs into the goal: the longs at 0x1801A are its curves' and heights' addresses, then
+  course c's scenery's at 0x18022 + 4c; its road path is the one the sub CPU's `move.l #path, ($604F0).l` at 0x11B2
+  loads, 200 positions straight ahead.
+- **Stripes.** 32 tables at 0xEA6A, one a phase, of a word for each of the road's 192 lines, which the program copies to
+  the road's line colors. The phase is the low five bits of the word at 0x260090, which gains v / 34 a tick (`moveq
+#$22, d2` at 0x6594). Bits 0, 1, 3 and 8 (surface, lines, centre line, ground) choose half 1 and switch together; bit
+  2 (the edge bands) switches twice as often.
+- **The ground's change.** From position 1930 the ground's pair steps to the next section's in 32 steps, one each two
+  ticks (`addi.w #$80` on its step's word at 0x69BC, to the 32nd, `cmpi.b #$1F` at 0x69C4): at step s (0 from) each
+  channel is c₀ + ⌊(s + 1)(c₁ − c₀) / 32⌋.
+
+### SUPER HANG-ON's sprites
+
+A sprite is drawn from the sprite ROMs' words, in banks of 0x10000 words:
+
+- **Sizes.** Sprite i's size list is the long at 0x11A6A + 4i (90 sprites, before the hit widths): five sizes, the
+  largest first, each half the one before, of 10 bytes {word height, word words a row, word (height − 1) × words a row,
+  word bank (its low four bits), word first word in the bank}.
+- **Pixels.** Each word holds four 4-bit pixels, the most significant first; every row is its words a row long and its
+  last pixel is 15, its end, so a size is 4 × words a row − 1 pixels wide. 0 and 15 are transparent. Drawn mirrored, a
+  row is read from its end.
+- **Palettes.** Palette p is the 16 palette words at 0xD7F0 + 32p, slot 0 transparent.
+- **Hit widths.** Sprite i's is the word at 0x11BD2 + 2i: pixels either side of the object at the bike's line where the
+  bike hits it.
+- **Scenery types.** Type t is the long at 0x13F04 + 4t: {word pattern}, then 6-byte items {u8 flags (bit 0 mirrors),
+  u8 0, signed word x (units from the road's centre, right positive), u8 sprite, u8 palette}, ending at a flags byte
+  whose bit 7 is set.
+- **Gates.** A gate is six parts, objects 27 to 32, from templates of 0x30 bytes at 0x7274: {u8 flags (bit 0 mirrors) …
+  +0x16 u8 palette … +0x1A long size list … +0x26 word depth, +0x28 signed word x, +0x2C signed word lift}, the left
+  and right legs, the signal, the left and right corners and the banner. Its parts are drawn at x × line / 191 and lift
+  × line / 192 pixels on a road line. The START banner's palette is its template's (0x2E); the CHECK and GOAL banners'
+  are set as the gate comes out (`move.b #$2F, ($16, a0, d0.w)` at 0x6E40, `#$30` at 0x6DFC).
+- **Grids.** The rivals' places at GO on course c: seven {word depth, signed word x} at 0x86C0 + 28c.
+
+### SUPER HANG-ON's backgrounds
+
+Course c's section k (0 from) shows background number the byte at 0x9EB4 + 9c + k. Background b's palettes: the long
+at 0x1E06 + 4b addresses {word count − 1, then byte pairs {palette, source}}, palette taking the 8 words at
+0x21F2 + 16 × source. Its tile map, 256 columns (four pages of 64) of 32 rows, is drawn in eight steps, the longs at
+0x9ED8 + 4(base + 8k + s), base course c's byte at 0x9EA0; a step is {word parts − 1, then parts {word column, word row,
+long content}}, a content {word width − 1, word height − 1, then its tile words row by row}, columns wrapping at 256.
+
+### SUPER HANG-ON's dump
+
+`npm run road-data -- super-hang-on-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
+zip and writes `superoutride.super-hang-on-road-data` version 1, `super-hang-on.json` in its dump directory: the ROMs'
+names and CRCs; the sections' positions; the courses; every section (number, block, sky, colors as words and RGB555,
+curves, heights, scenery, road path); the goal; the height tables and scenery types the points name; the stripes; the
+sprites the scenery shows (size list, sizes, hit width); the gates' parts with their sizes and the banners' palettes;
+the palettes these use; the grids; and each section's background (number, palettes, tile map). It refuses a section
+that runs in more than one course and a sprite past the table.
+
 ## TURBO OUTRUN
 
 TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118); the other
