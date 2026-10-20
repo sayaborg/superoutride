@@ -7,18 +7,29 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { mirror, shadowFrame } from './outrun-boards.js';
+import { mirror, restoredStrip, shadowFrame } from './outrun-boards.js';
 import { chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
-/** A board's base point down: the bottom of its picture (anchor 8), or its middle (anchor 0, a patch on the road). */
-export type Foot = 8 | 0;
+/**
+ * A strip's family: how many sizes its list holds, the nearest's place, how many times the nearest's width it reaches,
+ * how each far size shrinks the nearest across (with what lies beyond; none where the far sizes are the nearest
+ * squashed, which then repeats outward), and how many boards side by side its reach is split into.
+ */
+export interface StripFamily {
+  readonly sizes: number;
+  readonly nearest: number;
+  readonly reach: number;
+  readonly shrink?: (k: number) => number;
+  readonly boards: number;
+}
 
 /**
  * One way an object shows a picture: its size list, the road units a pixel of its largest size spans, mirrored or not,
- * in a palette, shadowed or not, its base point down, and across its anchor (the picture's middle) the road units its
- * base point stands aside, as shown: where its body stands.
+ * in a palette, shadowed or not, its base point by `anchor` (`anchorPoint`: across its middle, left or right edge, down
+ * its middle or bottom), and across from a middle anchor the road units its base point stands aside, as shown: where
+ * its body stands. A strip's picture is restored from its family's sizes.
  */
 export interface PictureUse {
   readonly sizes: number;
@@ -26,24 +37,39 @@ export interface PictureUse {
   readonly mirrored: boolean;
   readonly palette: number;
   readonly shadow: boolean;
-  readonly foot: Foot;
+  readonly anchor: number;
   readonly aside: number;
+  readonly strip?: StripFamily;
 }
 
 /**
  * A picture's image name: `toutrun-<size list, five hex digits>`, then its scale where a pixel is not 2 road units
- * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed.
+ * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed; a strip's `toutrun-strip-<size list>`, whether
+ * mirrored.
  */
-export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'shadow'>) {
+export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'shadow' | 'strip'>) {
+  const list = use.sizes.toString(16).padStart(5, '0');
+  const mirrored = use.mirrored ? '-mirrored' : '';
+  if (use.strip) return `toutrun-strip-${list}${mirrored}`;
   const scale = use.units === 2 ? '' : `-u${Math.round(use.units * 1000)}`;
-  return `toutrun-${use.sizes.toString(16).padStart(5, '0')}${scale}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
+  return `toutrun-${list}${scale}${mirrored}${use.shadow ? '-shadowed' : ''}`;
+}
+
+/** A picture's pixels, its edge nearest the road on the left for a strip: its largest size's, or its restored strip. */
+function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUse, 'sizes' | 'strip'>) {
+  if (!use.strip) {
+    const [size] = readSizeList(main, use.sizes, 1);
+    return { pixels: spritePixels(words, size!), width: size!.width, height: size!.height };
+  }
+  return restoredStrip(words, readSizeList(main, use.sizes, use.strip.sizes), use.strip, use.strip.boards);
 }
 
 /**
  * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
- * size's pixels by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored) onto the texel grid
+ * size's pixels (a strip's restored, `restoredStrip`) by chosen lines (`chosenLines`, a mirrored picture the unmirrored
+ * one's mirrored) onto the texel grid
  * of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its palette's color),
- * with its width in metres. Its base point is its foot's, `aside` across; a shadowed board carries the shadow picture
+ * with its width in metres. Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
  * (the size list at 0x2667A) at its scale and base point.
  */
 export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
@@ -58,14 +84,14 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([name, group]) => {
       const [first] = group as [PictureUse];
-      if (group.some((u) => u.foot !== first.foot || u.aside !== first.aside))
-        throw new RangeError(`Board ${name} is shown with different base points`);
-      const [size] = readSizeList(main, first.sizes, 1);
+      if (group.some((u) => u.anchor !== first.anchor || u.aside !== first.aside || u.units !== first.units))
+        throw new RangeError(`Board ${name} is shown with different base points or scales`);
+      const size = picturePixels(main, words, first);
       const texels = texelsAPixel(first.units);
-      const grid = chosenLines(spritePixels(words, size!), size!.width, texels.across, texels.down);
+      const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
       const indices = first.mirrored ? mirror(grid.indices, grid.width) : grid.indices;
-      const scale = { x: grid.width / size!.width, y: grid.height / size!.height };
-      const point = anchorPoint(first.foot, grid.width, grid.height);
+      const scale = { x: grid.width / size.width, y: grid.height / size.height };
+      const point = anchorPoint(first.anchor, grid.width, grid.height);
       const aside = (first.aside / first.units) * scale.x;
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
@@ -87,7 +113,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
           },
         ],
         ...(first.shadow
-          ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.foot, -aside / scale.x) }
+          ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
           : {}),
       };
       return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(board) };

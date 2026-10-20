@@ -18,7 +18,7 @@ import {
   type Family,
   type ObjectRoutine,
 } from './outrun-sprites.js';
-import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
+import { anchorPoint, outline, spritePixels, type SpriteSize } from './sprite-pixels.js';
 import { boardGrid, chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
@@ -94,7 +94,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const size =
       routine.family === undefined
         ? { ...largest, pixels: spritePixels(words, largest) }
-        : restoredStrip(main, words, routine.family, boardsAcross(main, routine).count);
+        : restoredStrip(words, familySizes(main, routine.family), routine.family, boardsAcross(main, routine).count);
     // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
     const texels = texelsAPixel(routine.pixelUnits);
     const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
@@ -155,15 +155,19 @@ export function boardsAcross(main: Uint8Array, routine: ObjectRoutine): { count:
 }
 
 /**
- * A strip's, cloud's or trees' picture restored from its family's sizes, its reach times its nearest size's width over
+ * A strip's, cloud's or trees' picture restored from its family's `sizes`, its reach times its nearest size's width over
  * `boards` boards (one board's share) and as tall, its edge nearest the road on the left. Each column `d` nearest pixels
  * from that edge: where the far sizes are the nearest shrunk across with what lies beyond, size k (shrunk by s) covering
  * d where d·s is within the nearest's width, from the largest size that covers it, its column d·s and its rows its
  * height's share of the nearest's (a size without rows leaves it transparent); where they are not shrunk, the nearest
  * size's, repeating outward.
  */
-function restoredStrip(main: Uint8Array, words: Uint32Array, family: Family, boards: number) {
-  const sizes = familySizes(main, family);
+export function restoredStrip(
+  words: Uint32Array,
+  sizes: readonly SpriteSize[],
+  family: Pick<Family, 'nearest' | 'reach' | 'shrink'>,
+  boards: number,
+) {
   const sized = sizes.map((size) => spritePixels(words, size));
   const { width, height } = sizes[family.nearest]!;
   const reach = (family.reach / boards) * width;

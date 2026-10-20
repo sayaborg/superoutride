@@ -9,14 +9,42 @@ import { long } from './program-words.js';
 import type { Quadratic } from './offset-plan.js';
 import { POSITION_METRES } from './offset-plan.js';
 import { startDepth } from './object-approach.js';
-import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
-import { type Foot, type PictureUse } from './turbo-outrun-boards.js';
+import { boardGrid, PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
+import { readSizeList } from './turbo-outrun-road.js';
+import { type PictureUse, type StripFamily } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
 
-/** The routines that draw the strips beside the road (0x0C to 0x20) and the far strip (0x24): placed with TO-3b2. */
-const STRIPS = [0x0c, 0x24] as const;
+/**
+ * The strips, by routine, as OUTRUN's families are restored ([Strips and patches](../../docs/original-road-data.md#strips-and-patches)):
+ * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes 224 wide, 3 to 63 rows, the nearest
+ * last, far size k the nearest shrunk to k/8 with more beyond; strip B (0x18 to 0x20: waves, dunes, flower beds)
+ * OUTRUN's strips', its 16 sizes the nearest last, size k the nearest shrunk to (k + 1)/16; the far strip (0x24, fog)
+ * the clouds', its 9 sizes 248 wide, 1 to 31 rows, the nearest squashed, so the nearest repeats 16 times outward.
+ * Strip A and the far strip stand on their bottom, strip B on its middle, each by its edge nearest the road.
+ */
+const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8, reach: 8, shrink: (k: number) => k / 8, down: 8 };
+const STRIP_B = {
+  from: 0x18,
+  to: 0x20,
+  sizes: 16,
+  nearest: 15,
+  reach: 16,
+  shrink: (k: number) => (k + 1) / 16,
+  down: 0,
+};
+const FAR_STRIP = 0x24;
+const FAR = { sizes: 9, nearest: 8, reach: 16, down: 8 };
+/**
+ * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
+ * road units: its edge 32 of its pixels from P as the original's is from the screen's middle, reaching away from it,
+ * and its base point (2 × 151 + 72) road units up (twice its row above the eye, and the eye), as OUTRUN's clouds.
+ */
+const FAR_UNITS = 4;
+const FAR_EDGE = 32;
+const FAR_UP = 2 * 151 + 72;
 /**
  * The routines drawing objects lying on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles) and the puddles
  * that splash when hit (0x4C, 0x50), their base point their middle, as OUTRUN's patches'.
@@ -67,8 +95,9 @@ export interface PlacingReport {
   readonly bodies: number;
   /** Objects of classes 11 to 17 (thrown or broken when hit), passed through: by class, how many. */
   readonly breakable: Readonly<Record<string, number>>;
-  /** The strips and far strips left for TO-3b2, and the items below the road (never seen). */
+  /** The strips' pieces and the far strips', and the items below the road (never seen). */
   readonly strips: number;
+  readonly farStrips: number;
   readonly below: number;
 }
 
@@ -94,6 +123,7 @@ export function turboOutrunPlacements(
   const start = { passing: 0, sized: 0 };
   const breakable: Record<string, number> = {};
   let strips = 0,
+    farStrips = 0,
     below = 0,
     girls = 0,
     bodies = 0;
@@ -104,8 +134,11 @@ export function turboOutrunPlacements(
 
   for (const o of inputs.objects) {
     const kind = readKind(main, o.item.kind);
-    if (kind.routine >= STRIPS[0] && kind.routine <= STRIPS[1]) {
-      strips++;
+    const strip = [STRIP_A, STRIP_B].find((f) => kind.routine >= f.from && kind.routine <= f.to);
+    if (strip || kind.routine === FAR_STRIP) {
+      placed.push(...stripPieces(main, o, kind, strip, inputs));
+      if (strip) strips++;
+      else farStrips++;
       continue;
     }
     if (o.item.y < 0) {
@@ -157,7 +190,7 @@ export function turboOutrunPlacements(
       mirrored,
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
-      foot: (LYING.includes(kind.routine) ? 0 : 8) as Foot,
+      anchor: LYING.includes(kind.routine) ? 0 : 8,
       aside,
     };
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
@@ -185,7 +218,7 @@ export function turboOutrunPlacements(
           mirrored: f.mirrored,
           palette: f.palette,
           shadow: false,
-          foot: 8,
+          anchor: 8,
           aside: 0,
         },
         body: null,
@@ -195,6 +228,58 @@ export function turboOutrunPlacements(
   });
   return {
     placed,
-    report: { placed: placed.length, start, figures, girls, bodies, breakable, strips, below },
+    report: { placed: placed.length, start, figures, girls, bodies, breakable, strips, farStrips, below },
   };
+}
+
+/**
+ * A strip's boards where it stands, side by side outward: strip A's and B's edge nearest the road at its x × 16 units
+ * from road 0's centre (x < 0, drawn mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused.
+ * The far strip's reach is split into the fewest boards, halving, that fit a course image.
+ */
+function stripPieces(
+  main: Uint8Array,
+  o: StandingObject,
+  kind: ReturnType<typeof readKind>,
+  strip: typeof STRIP_A | typeof STRIP_B | undefined,
+  inputs: { readonly start: (stage: number) => number; readonly width: Quadratic },
+): PlacedObject[] {
+  const mirrored = (o.item.flags & 1) !== 0;
+  const g = inputs.start(o.stage) + o.position;
+  const units = strip ? 2 : FAR_UNITS;
+  const sizes = readSizeList(main, kind.sizes, strip?.sizes ?? FAR.sizes);
+  const nearest = sizes[strip?.nearest ?? FAR.nearest]!;
+  const reach = strip?.reach ?? FAR.reach;
+  let boards = 1;
+  while (
+    boardGrid((reach / boards) * nearest.width, nearest.height, units).width *
+      boardGrid(1, nearest.height, units).height >
+    COURSE_DOCUMENT_LIMITS.imageMasterTexels
+  )
+    boards *= 2;
+  if (strip && boards > 1) throw new Error(`Strip ${kind.sizes.toString(16)} needs several boards`);
+  const family: StripFamily = strip
+    ? { sizes: strip.sizes, nearest: strip.nearest, reach, shrink: strip.shrink, boards }
+    : { sizes: FAR.sizes, nearest: FAR.nearest, reach, boards };
+  const use: PictureUse = {
+    sizes: kind.sizes,
+    units,
+    mirrored,
+    palette: kind.palette,
+    shadow: false,
+    anchor: (strip?.down ?? FAR.down) | (mirrored ? 2 : 1),
+    aside: 0,
+    strip: family,
+  };
+  const w = inputs.width.at(g);
+  const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
+  const height = (strip ? o.item.y : FAR_UP) * UNIT_METRES * PIXEL_ASPECT;
+  const across = (reach / boards) * nearest.width * units;
+  return Array.from({ length: boards }, (_, k) => ({
+    g,
+    x: (edge + (mirrored ? -1 : 1) * k * across) * UNIT_METRES,
+    height,
+    use,
+    body: null,
+  }));
 }
