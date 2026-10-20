@@ -183,7 +183,9 @@ its course. Each class also has its time margin and whether it fixes colors.
   drives all 15 stages in the map's order, row by row from the left, its forks alternately left and right and each
   goal but the last joining the next stage.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
-  vehicle: the silver 959 starts left, the red F40 right.
+  vehicle: the silver 959 starts left, the red F40 right. Its course is the original's 16 stages as one LINEAR course,
+  raised from the ROMs of MAME's `toutrun` ([Original road data](original-road-data.md#turbo-outrun)); where the
+  original stops at a leg's end and starts the next leg afresh, a join the original does not have carries the road on.
 - **CHASE H.Q.** chases one rival per stage, each ahead of the player at the stage start: white Esprit
   Turbo, yellow Countach, silver 911 Turbo, blue 288 GTO, red 928. The player must pass each stage end
   first; there is no clock and no arrest.

@@ -1,15 +1,17 @@
 # Original road data
 
 OUTRUN's courses are raised from the road data in the original's program ROMs, and
-[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) raises SUPER HANG-ON's from its own the same way. This
-document owns how each original's ROMs are read: the ROM set, its programs, the tables' format and addresses, the dump
-the road data tool writes, and how the tables become course documents. OUTRUN's sections come first, and
-[SUPER HANG-ON](#super-hang-on) has its own. What the conversion does not yet cover is NEXT's
-([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data), Stage SH).
+[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) and [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms)
+raise SUPER HANG-ON's and TURBO OUTRUN's from their own the same way. This document owns how each original's ROMs are
+read: the ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how the
+tables become course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on) and
+[TURBO OUTRUN](#turbo-outrun) have their own. What the conversion does not yet cover is NEXT's
+([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data), Stage SH, Stage TO).
 
 The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-`reference-media/outrun/rom/` and `reference-media/super-hang-on/rom/`, the tool's dumps beside them in `rom-data/`.
-The formats are read by this project's own code from this description and the ROMs themselves.
+`reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/` and `reference-media/turbo-outrun/rom/`, the
+tool's dumps beside them in `rom-data/`. The formats are read by this project's own code from this description and the
+ROMs themselves.
 
 ## ROM set
 
@@ -626,3 +628,11 @@ and are not committed.
 SUPER HANG-ON's courses are raised from MAME's `shangon`, the export sitdown/upright set (unprotected): the cabinets'
 courses differ, and K chose this one. Its ROM set, programs and tables are described here as
 [Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) reads them.
+
+## TURBO OUTRUN
+
+TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118); the other
+cabinets' sets are only compared. It runs on OUTRUN's board and its program is OUTRUN's remade: where its formats are
+OUTRUN's, OUTRUN's sections above describe them, and its own ROM set, programs and tables are described here as
+[Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms) reads them. Its main CPU's program is encrypted for
+instruction fetches alone: the tables are read as the ROMs' bytes, and the program is never decrypted.

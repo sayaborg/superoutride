@@ -138,7 +138,8 @@
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
 Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
-[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a;
+[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a, then
+[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e is on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -379,6 +380,87 @@ itself (sixteen bikes, their colors and pace), sounds and music, the mini ride-o
 encrypted), the ending's motion (its last frame alone stands), whether OUTRUN's road position becomes the car's
 rather than the camera's (K decides), and the product's pictures drawn again.
 
+## Stage TO — TURBO OUTRUN from the ROMs
+
+Stage TO follows Stages RD2 and SH and raises TURBO OUTRUN's 16 stages, NEW YORK to LOS ANGELES, from the original's
+ROMs into one LINEAR course, with the tools and rules those stages made: the ROMs' pictures converted and published,
+backgrounds baked into skies, two roads drawn together, objects placed along a whole road, the plan raised from the road
+path, crossings kept apart by bumps, and PRs ordered so that the course is measured as seldom as possible. TURBO
+OUTRUN runs on OUTRUN's board and its program is OUTRUN's remade, so most of its formats are OUTRUN's, read by OUTRUN's
+readers and checked on its ROMs; the main CPU's encryption, the stages' order and ends, how scenery is brought out, and
+the start and goal scenes are its own. Its aim is Stage RD2's and SH's: exact, true to the ROMs, fair to look at,
+simple, and fitted to this game's physics; the look comes first, and lengthy checks (the reference times' review among
+them) are left out. Its PRs are numbered from TO-1, and Stage RD's, RD2's and SH's rules hold where this section does
+not change them.
+
+K's decisions (2026-10-20):
+
+- **Kept from Stages RD2 and SH.** All physics stays as it is; distances come from the original's displayed speed and
+  its clock, and lanes from the road ROM's lines. Pictures are resampled at the best quality there is (backgrounds by
+  area averages in linear light). Everything that moves is placed standing still, the ending as its last frame. Each
+  background's near layer is drawn before its far layer at the same scale into one picture; the horizon's ground
+  gradient is not made. The cars are baked from 3D models, so the original's car, rival and traffic are not converted.
+  The sprites' and backgrounds' pictures converted from the ROMs are committed and shown on Pages, provisionally
+  (drawn again for the product); sounds (PCM) stay local originals alone, and the ROM zip and the raw dumps stay out of
+  Git and PRs. The hills are made again in a later stage; crossings keep the 6 m rule.
+- **Set.** MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118) is the base; the other cabinets'
+  sets are only compared.
+- **Product.** The course is the reference course of the TURBO OUTRUN series ([Series](product.md#5-series)): one
+  LINEAR course of 16 stages, New York to Los Angeles.
+
+Rules of the stage, beside Stage RD's, RD2's and SH's:
+
+- K's zip lies in `reference-media/turbo-outrun/rom/`, the tool's dumps in `reference-media/turbo-outrun/rom-data/`.
+  No code of MAME, Cannonball or LayOut is copied or ported: the formats are read by this project's own code from the
+  stage's description and the ROMs themselves.
+- **No decryption.** The main CPU's program is encrypted (FD1094). The encryption covers instruction fetches alone, so
+  the tables the tool reads are the ROMs' bytes as they are. No decrypting code and no key (the zip's `317-0118.key`)
+  enter the repository or are used. What the stage's description says of the program's code (how a stage ends, how
+  objects approach, the start's figures, the backgrounds' palette patches) was found by decrypting it for the
+  description; the tool cannot check it and takes it as described.
+- The road data tool, parted into each original's modules in SH-2a, gains TURBO OUTRUN's: its ROM set, the stages' order
+  and ends (gates, stage ends, legs' ends and the goal), the joins and the straight past the goal, its cross-section
+  and lanes, how its scenery is brought out, its kinds' records and routines, its strips' size tables and lateral
+  rules, its palettes' place, its start table and start figures, and its backgrounds' palette patches. Where its
+  formats are OUTRUN's, OUTRUN's readers serve both, moved into the shared modules by a PR of moves alone first.
+- **OUTRUN's results stay.** OUTRUN's and SUPER HANG-ON's `--check` pass unchanged. Objects are brought out and
+  approach by the model Stage RD2's RD-10e gives OUTRUN as its ROM has it (the phase advancing three times a tick, the
+  road position the car's, an object standing at the road position of the tick its depth first passes the car's line:
+  OUTRUN's 0x200, TURBO OUTRUN's 0x180), shared by both; TURBO OUTRUN adds what differs (its tables' addresses, the
+  car's line, the depth objects vanish at, its 108 object slots, its control's step and its start table). Until RD-10e
+  is on main, the stage stops after TO-1 and asks K.
+- The stage stops only where the ROMs disagree with the stage's description (an address holding other contents, an
+  unknown format, or contents described as OUTRUN's differing), where a rule above would break, or where the format
+  cannot make the course's form (the nearest form it can make is then shown); every other open point is decided by its
+  default and reported in its PR.
+
+The PRs, in order (each one too large for one review is split and the split reported):
+
+- TO-2a: the OUTRUN readers TURBO OUTRUN shares moved into the shared modules, moves only: the stage blocks and their
+  curves', widths' and heights' and scenery points' readers, the height tables and the hills' rule, the stripes, the
+  two roads drawn together and their strips, the plan's offset and its corners' rounding, sprite pixels and palette
+  words, background tiles and layers, and placing the start's objects (`startDepth`). OUTRUN's and SUPER HANG-ON's
+  `--check` pass unchanged.
+- TO-2b: TURBO OUTRUN's ROMs read: the set checked by CRC, its programs assembled without decryption, and every table
+  its course uses written to the dump `turbo-outrun.json` (`superoutride.turbo-outrun-road-data` version 1), the start
+  figures' and the palette patches' tables from the stage's description. Objects are brought out and approach by
+  RD-10e's model with TURBO OUTRUN's values (the approach table at 0x48010, the car's line 0x180, vanishing at 0x1FF and
+  strips at 0x1F8, 108 object slots, its control's step). It checks locally that what is described as OUTRUN's (the
+  height tables, the stripes, the approach table, the sub CPU's road drawing) is. No course yet.
+- TO-3: the course `turbo-outrun` (TURBO OUTRUN): the road on the original's road paths as straights and arcs, each
+  stage to where the next begins, a join the original does not have at each leg's end, and a straight past the goal;
+  the widths, lanes, plan and stations, strips, colors, stripes, materials, hills and Sections; the skies' names and yaw
+  origins; the scenery in the ROMs' pictures, the start's objects and figures, the CHECK POINT and GOAL gates, the
+  legs' ends' and the goal's objects; the grid and the crossings' bumps; and TRIAL's class (TESTAROSSA alone in yellow
+  from GO's slot, OUTRUN's traffic, margin 1.35). Its 16 skies are copies of `coast-sky` under their own names until
+  TO-4. Measured. If too large, TO-3a (road, colors, Sections, gates, class) and TO-3b (objects).
+- TO-4: the 16 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
+
+Not in this stage: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and
+959, their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and
+traffic tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds
+and music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again.
+
 ## Stage DT — DRIFT TUNED trial vehicles
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
@@ -515,7 +597,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [Stage SH](#stage-sh--super-hang-on-from-the-roms)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                  |
 | OUTRUN         | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
-| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. F40 and 959 are period road specifications.                                                                                                                                       |
+| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [Stage TO](#stage-to--turbo-outrun-from-the-roms)). F40 and 959 are period road specifications.   |
 | CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
 | CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. |
 | OUTRUNNERS     | The reference has 30 stages and 10 goals over both courses; connections are to be confirmed. Candidates: 911 SPEEDSTER 1989, RX-7 (FC3S) 1989, COBRA 427 (year open), ELDORADO (Biarritz; generation open), MINI (1967 Cooper S 1275), QUATTRO (1989 20V).                                                                                                                           |
@@ -528,8 +610,8 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 ### Courses of the originals
 
 OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
-SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms). How CHASE H.Q.'s
-are raised, K decides then.
+SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), and TURBO
+OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
 Their time limits come from reference driving, as for every course.
 
 ### Inspection and art
