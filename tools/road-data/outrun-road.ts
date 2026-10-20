@@ -296,12 +296,16 @@ export type HeightTable =
   | { readonly kind: 4; readonly step: number; readonly horizon: number };
 
 /**
- * Height table `number`, the long at 0x220A + number × 4 on the sub CPU: {u8 kind, u8 step}, then kind 0's u8 descent
- * and ascent factors, kinds 1 and 2's word wait, kind 3's word or kind 4's word horizon; the entries, signed words,
- * end at −1. Another kind is an error: the ROM disagrees with this reading.
+ * Height table `number`, the long at 0x220A + number × 4 on the sub CPU (`tables`, TURBO OUTRUN's 0x2156): {u8 kind, u8
+ * step}, then kind 0's u8 descent and ascent factors, kinds 1 and 2's word wait, kind 3's word or kind 4's word horizon;
+ * the entries, signed words, end at −1. Another kind is an error: the ROM disagrees with this reading.
  */
-export function readHeightTable(sub: Uint8Array, number: number): HeightTable & { readonly address: number } {
-  const address = long(sub, HEIGHT_TABLES + number * 4);
+export function readHeightTable(
+  sub: Uint8Array,
+  number: number,
+  tables = HEIGHT_TABLES,
+): HeightTable & { readonly address: number } {
+  const address = long(sub, tables + number * 4);
   const kind = u8(sub, address),
     step = u8(sub, address + 1);
   const list = () =>

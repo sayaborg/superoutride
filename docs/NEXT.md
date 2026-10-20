@@ -139,7 +139,7 @@
 
 Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a, then
-[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e is on main;
+[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e and Stage SH's tool PRs are on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -407,6 +407,10 @@ K's decisions (2026-10-20):
   sets are only compared.
 - **Product.** The course is the reference course of the TURBO OUTRUN series ([Series](product.md#5-series)): one
   LINEAR course of 16 stages, New York to Los Angeles.
+- **No class until the hills.** The hills of all three originals are made again later, so no reference times are made
+  until then (K, 2026-10-20): the course has no TRIAL class and is driven in FREE PLAY alone, and only its racing line
+  is measured. When the hills are made again its class returns: TESTAROSSA alone in yellow from GO's slot (15),
+  OUTRUN's TRIAL traffic, margin 1.35.
 
 Rules of the stage, beside Stage RD's, RD2's and SH's:
 
@@ -418,42 +422,49 @@ Rules of the stage, beside Stage RD's, RD2's and SH's:
   enter the repository or are used. What the stage's description says of the program's code (how a stage ends, how
   objects approach, the start's figures, the backgrounds' palette patches) was found by decrypting it for the
   description; the tool cannot check it and takes it as described.
-- The road data tool, parted into each original's modules in SH-2a, gains TURBO OUTRUN's: its ROM set, the stages' order
-  and ends (gates, stage ends, legs' ends and the goal), the joins and the straight past the goal, its cross-section
-  and lanes, how its scenery is brought out, its kinds' records and routines, its strips' size tables and lateral
-  rules, its palettes' place, its start table and start figures, and its backgrounds' palette patches. Where its
-  formats are OUTRUN's, OUTRUN's readers serve both, moved into the shared modules by a PR of moves alone first.
+- The road data tool gains TURBO OUTRUN's modules (`turbo-outrun-*.ts`): its ROM set, the stages' order and ends
+  (gates, stage ends, legs' ends and the goal), the joins and the straight past the goal, its cross-section and lanes,
+  how its scenery is brought out, its kinds' records and routines, its strips' size tables and lateral rules, its
+  palettes' place, its start table and start figures, and its backgrounds' palette patches. Where its formats are
+  OUTRUN's, OUTRUN's readers serve it, imported where they lie until TO-2a moves them into shared modules (Stage SH
+  imports them too and makes no move of its own).
 - **OUTRUN's results stay.** OUTRUN's and SUPER HANG-ON's `--check` pass unchanged. Objects are brought out and
   approach by the model Stage RD2's RD-10e gives OUTRUN as its ROM has it (the phase advancing three times a tick, the
   road position the car's, an object standing at the road position of the tick its depth first passes the car's line:
   OUTRUN's 0x200, TURBO OUTRUN's 0x180), shared by both; TURBO OUTRUN adds what differs (its tables' addresses, the
-  car's line, the depth objects vanish at, its 108 object slots, its control's step and its start table). Until RD-10e
-  is on main, the stage stops after TO-1 and asks K.
+  car's line, the depth objects vanish at, its 108 object slots, its control's step and its start table).
+- **Side by side** (K, 2026-10-20). Stages RD2, SH and TO run in parallel sessions and touch the same tool and OUTRUN's
+  products. What the tools write (course documents, boards, skies, racing lines) is written again by the tools after
+  main is taken in, never merged by hand. Before each PR, main is rebased in and every original's `--check` on main
+  passes on the local ROMs. A PR that changes OUTRUN's products writes them again in the same PR, one such PR at a time;
+  a PR changing a shared rule says which course of which original changes, and by how much. A move whose files another
+  session's open work touches waits until that work is on main.
 - The stage stops only where the ROMs disagree with the stage's description (an address holding other contents, an
   unknown format, or contents described as OUTRUN's differing), where a rule above would break, or where the format
   cannot make the course's form (the nearest form it can make is then shown); every other open point is decided by its
   default and reported in its PR.
 
-The PRs, in order (each one too large for one review is split and the split reported):
+TO-2b came first, as it needs nothing of the other stages: TURBO OUTRUN's ROMs are read, without decryption, into its
+dump, and what is described as OUTRUN's is checked against OUTRUN's ROMs
+([TURBO OUTRUN](original-road-data.md#turbo-outrun)); there is no object model and no course yet. The PRs left, in this
+order once RD-10e and Stage SH's tool PRs are on main (each one too large for one review is split and the split
+reported):
 
-- TO-2a: the OUTRUN readers TURBO OUTRUN shares moved into the shared modules, moves only: the stage blocks and their
-  curves', widths' and heights' and scenery points' readers, the height tables and the hills' rule, the stripes, the
-  two roads drawn together and their strips, the plan's offset and its corners' rounding, sprite pixels and palette
-  words, background tiles and layers, and placing the start's objects (`startDepth`). OUTRUN's and SUPER HANG-ON's
-  `--check` pass unchanged.
-- TO-2b: TURBO OUTRUN's ROMs read: the set checked by CRC, its programs assembled without decryption, and every table
-  its course uses written to the dump `turbo-outrun.json` (`superoutride.turbo-outrun-road-data` version 1), the start
-  figures' and the palette patches' tables from the stage's description. Objects are brought out and approach by
-  RD-10e's model with TURBO OUTRUN's values (the approach table at 0x48010, the car's line 0x180, vanishing at 0x1FF and
-  strips at 0x1F8, 108 object slots, its control's step). It checks locally that what is described as OUTRUN's (the
-  height tables, the stripes, the approach table, the sub CPU's road drawing) is. No course yet.
+- TO-2a: the OUTRUN readers TURBO OUTRUN shares, and those Stage SH imports, moved into shared modules, moves only: the
+  stage blocks and their curves', widths' and heights' and scenery points' readers, the height tables and the hills'
+  rule, the stripes, the two roads drawn together and their strips, the plan's offset and its corners' rounding, sprite
+  pixels and palette words, background tiles and layers, and placing the start's objects (`startDepth`). OUTRUN's and
+  SUPER HANG-ON's `--check` pass unchanged.
+- TO-2c: the objects' model, RD-10e's with TURBO OUTRUN's values as its arguments (the approach table at 0x48010, the
+  car's line 0x180, vanishing at 0x1FF and strips at 0x1F8, 108 object slots, its control's step, its start table);
+  OUTRUN's results unchanged.
 - TO-3: the course `turbo-outrun` (TURBO OUTRUN): the road on the original's road paths as straights and arcs, each
   stage to where the next begins, a join the original does not have at each leg's end, and a straight past the goal;
   the widths, lanes, plan and stations, strips, colors, stripes, materials, hills and Sections; the skies' names and yaw
   origins; the scenery in the ROMs' pictures, the start's objects and figures, the CHECK POINT and GOAL gates, the
-  legs' ends' and the goal's objects; the grid and the crossings' bumps; and TRIAL's class (TESTAROSSA alone in yellow
-  from GO's slot, OUTRUN's traffic, margin 1.35). Its 16 skies are copies of `coast-sky` under their own names until
-  TO-4. Measured. If too large, TO-3a (road, colors, Sections, gates, class) and TO-3b (objects).
+  legs' ends' and the goal's objects; the grid and the crossings' bumps. No class (FREE PLAY alone); its racing line
+  measured. Its 16 skies are copies of `coast-sky` under their own names until TO-4. If too large, TO-3a (road, colors,
+  Sections, gates) and TO-3b (objects).
 - TO-4: the 16 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
 
 Not in this stage: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and

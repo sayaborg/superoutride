@@ -1,0 +1,275 @@
+/**
+ * TURBO OUTRUN's road data as its programs hold it ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
+ * the legs' order, each stage's block (colors, ground, sky ramp, curves, widths and heights, scenery) and road path, the
+ * scenery types, the kinds' records and their size lists, the sprite palettes, the strips' size tables, the routines'
+ * table and the program's constants the conversion uses. Where a format is OUTRUN's, OUTRUN's reader reads it. Every
+ * reader takes a program as the 68000 addresses it and returns the table's entries as numbers.
+ */
+import {
+  paletteRgb555,
+  readCurves,
+  readPath,
+  readScenery,
+  readWidthsHeights,
+  type Colors,
+  type CurvePoint,
+  type Path,
+  type SceneryPoint,
+  type WidthHeightPoint,
+} from './outrun-road.js';
+import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
+
+/** The stages, four legs of four, in running order: the leg order's bytes number them 0 to 15. */
+export const STAGE_COUNT = 16;
+export const LEG_COUNT = 4;
+export const LEG_STAGES = 4;
+
+/** Main CPU. */
+const STAGE_BLOCKS = 0x1e042;
+const LEG_ORDER = 0x1e018;
+const LEG_ORDER_STRIDE = 8;
+const NAME_RECORDS = 0x11578;
+const NAME_LENGTH = 14;
+const START_WIDTHS = 0x1de14;
+const RIGHT_FROM_LEFT_WIDTH = 0x1de04;
+const TOP_SPEED = 0x1dde2;
+const ADVANCE = 0x1ddea;
+const OBJECT_SLOTS = 0x228d4;
+const GROUNDS = 0x230a0;
+const SKY_RAMPS = 0x232e0;
+const SCENERY_TYPES = 0x39b16;
+const KINDS = 0x28038;
+const ROUTINES = 0x9304;
+const PALETTES = 0x2470;
+const SHADOW_SIZES = 0x2667a;
+/** Sub CPU. */
+const STAGE_PATHS = 0x1224;
+export const TURBO_OUTRUN_HEIGHT_TABLES = 0x2156;
+const STRIPES = 0x109ee;
+
+/** A stage's road path covers 1496 positions; a sky ramp is 64 palette words; a ground 16. */
+export const PATH_POSITIONS = 1496;
+const RAMP_WORDS = 64;
+const GROUND_WORDS = 16;
+/** A kind's record is 16 bytes; a sprite palette 14 words (pixels 1 to 14); the routines' table 27 longs (0 to 0x68). */
+const KIND_BYTES = 16;
+const PALETTE_WORDS = 14;
+const ROUTINE_COUNT = 27;
+/** The stripes: 32 phases of a word for each of the road's 512 lines. */
+const STRIPE_PHASES = 32;
+const STRIPE_LINES = 512;
+
+const u8 = (p: Uint8Array, a: number) => {
+  if (!(a >= 0 && a < p.length)) throw new RangeError(`Address 0x${a.toString(16)} lies outside the program`);
+  return p[a]!;
+};
+const s8 = (p: Uint8Array, a: number) => (u8(p, a) << 24) >> 24;
+const word = (p: Uint8Array, a: number) => (u8(p, a) << 8) | u8(p, a + 1);
+const sword = (p: Uint8Array, a: number) => (word(p, a) << 16) >> 16;
+const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p, a + 2);
+const colors = (p: Uint8Array, address: number, count: number): Colors => {
+  const words = Array.from({ length: count }, (_, i) => word(p, address + 2 * i));
+  return { address, words, rgb555: words.map(paletteRgb555) };
+};
+
+/** The legs' stages in running order: four bytes of each leg's eight at 0x1E018. */
+export const readLegOrder = (main: Uint8Array): number[][] =>
+  Array.from({ length: LEG_COUNT }, (_, leg) =>
+    Array.from({ length: LEG_STAGES }, (_, i) => u8(main, LEG_ORDER + LEG_ORDER_STRIDE * leg + i)),
+  );
+
+/**
+ * The stages' names as the main CPU's name records at 0x11578 spell them, in stage order: records {word screen address,
+ * word 0x000D (14 characters less one), 14 characters}, between which other records lay dots over the names; blank
+ * records are passed over.
+ */
+export function readNameRecords(main: Uint8Array): { address: number; text: string }[] {
+  const names: { address: number; text: string }[] = [];
+  for (let a = NAME_RECORDS; names.length < STAGE_COUNT; a += 2) {
+    if (a > NAME_RECORDS + 0x400) throw new RangeError('The name records do not hold 16 names');
+    if (word(main, a + 2) !== NAME_LENGTH - 1) continue;
+    const bytes = Array.from({ length: NAME_LENGTH }, (_, i) => u8(main, a + 4 + i));
+    if (!bytes.every((b) => b >= 0x20 && b < 0x7f)) continue;
+    const text = String.fromCharCode(...bytes);
+    if (text.trim()) names.push({ address: a, text });
+    a += 2 + NAME_LENGTH;
+  }
+  return names;
+}
+
+/** The program's constants the conversion uses, each a word or long of a table the main CPU reads. */
+export function readConstants(main: Uint8Array) {
+  return {
+    /** The road advances `speed × advance / 65536` positions a tick: the long at 0x1DDEA. */
+    advance: long(main, ADVANCE),
+    /** The top speed in the top gear without turbo or tune-up, km/h: the word at 0x1DDE2. */
+    topSpeed: word(main, TOP_SPEED),
+    /** Past this road width as an object appears, a right-side object stands by the left road: the word at 0x1DE04. */
+    rightFromLeftWidth: word(main, RIGHT_FROM_LEFT_WIDTH),
+    /** The road width each stage begins at from its leg's start (450) or played on (220): words at 0x1DE14. */
+    startWidths: Array.from({ length: STAGE_COUNT }, (_, n) => word(main, START_WIDTHS + 2 * n)),
+    /** The objects scenery is brought out into: the first and how many, words at 0x228D4. */
+    objectSlots: { first: word(main, OBJECT_SLOTS), count: word(main, OBJECT_SLOTS + 2) },
+  };
+}
+
+/** A stage: its block, colors, ground, sky ramp, tables and road path. */
+export interface TurboOutrunStage {
+  readonly number: number;
+  readonly block: number;
+  readonly colors: {
+    readonly centreLine: Colors;
+    readonly laneLines: Colors;
+    readonly edges: Colors;
+    readonly surface: Colors;
+  };
+  /** The sky word's ramp: 64 palette words, two rows each up from the road's top, the last above. */
+  readonly sky: { readonly number: number; readonly ramp: Colors };
+  /** The ground word's 16 palette words: the 15th and 16th its halves, the 14 before the far horizon's. */
+  readonly ground: { readonly number: number; readonly words: Colors };
+  readonly curves: readonly CurvePoint[];
+  readonly widthsHeights: readonly WidthHeightPoint[];
+  readonly scenery: readonly SceneryPoint[];
+  readonly path: Path;
+}
+
+/**
+ * Stage `number`'s block, the long at 0x1E042 + 4 × number, nine longs as OUTRUN's: the sky word, the centre line's,
+ * lane lines', edges' and surface's four palette words each, the ground word, then its curves, widths and heights, and
+ * scenery. The sky word numbers its ramp (the long at 0x232E0 + 4 × it), the ground word its 16 words (the long at
+ * 0x230A0 + 4 × it). Its road path is the long at 0x1224 + 4 × number on the sub CPU, 1496 positions.
+ */
+export function readTurboOutrunStage({ main, sub }: TurboOutrunPrograms, number: number): TurboOutrunStage {
+  const block = long(main, STAGE_BLOCKS + 4 * number);
+  const pointer = (k: number) => long(main, block + 4 * k);
+  const sky = word(main, pointer(0)),
+    ground = word(main, pointer(5));
+  return {
+    number,
+    block,
+    colors: {
+      centreLine: colors(main, pointer(1), 4),
+      laneLines: colors(main, pointer(2), 4),
+      edges: colors(main, pointer(3), 4),
+      surface: colors(main, pointer(4), 4),
+    },
+    sky: { number: sky, ramp: colors(main, long(main, SKY_RAMPS + 4 * sky), RAMP_WORDS) },
+    ground: { number: ground, words: colors(main, long(main, GROUNDS + 4 * ground), GROUND_WORDS) },
+    curves: readCurves(main, pointer(6)),
+    widthsHeights: readWidthsHeights(main, pointer(7)),
+    scenery: readScenery(main, pointer(8)),
+    path: readPath(sub, long(sub, STAGE_PATHS + 4 * number), PATH_POSITIONS),
+  };
+}
+
+/** A scenery type's item: flags (bit 0 mirrors, bit 1 sets its depth), x (× 16 road units), y, its kind, b6 and b7. */
+export interface TurboOutrunItem {
+  readonly flags: number;
+  readonly x: number;
+  readonly y: number;
+  readonly kind: number;
+  readonly b6: number;
+  readonly b7: number;
+}
+/** {u8 flags, s8 x, signed word y, word kind, u8 b6, u8 b7}. */
+export const readItem = (main: Uint8Array, a: number): TurboOutrunItem => ({
+  flags: u8(main, a),
+  x: s8(main, a + 1),
+  y: sword(main, a + 2),
+  kind: word(main, a + 4),
+  b6: u8(main, a + 6),
+  b7: u8(main, a + 7),
+});
+
+/**
+ * Scenery type `type`, the long at 0x39B16 + 4 × type: {signed word turn (negative turns the pattern's 32 bits, else
+ * its upper 16), long pattern, u8 items, u8 step}, then its 8-byte items.
+ */
+export function readTurboOutrunSceneryType(main: Uint8Array, type: number) {
+  const address = long(main, SCENERY_TYPES + 4 * type);
+  const count = u8(main, address + 6);
+  return {
+    address,
+    turn: sword(main, address),
+    pattern: long(main, address + 2),
+    step: u8(main, address + 7),
+    items: Array.from({ length: count }, (_, i) => readItem(main, address + 8 + 8 * i)),
+  };
+}
+
+/**
+ * Kind `kind`'s record, 16 bytes at 0x28038 + 16 × kind: {long size list, s8 hit left, s8 hit right, u8 flags (bit 0
+ * half scale, bit 1 casts the shadow picture, bit 2 its pixel 10 shades), u8 routine, word palette, word collision
+ * class (0xFFFF none), two words}.
+ */
+export function readKind(main: Uint8Array, kind: number) {
+  const a = KINDS + KIND_BYTES * kind;
+  return {
+    address: a,
+    sizes: long(main, a),
+    hit: [s8(main, a + 4), s8(main, a + 5)] as const,
+    flags: u8(main, a + 6),
+    routine: u8(main, a + 7),
+    palette: word(main, a + 8),
+    collision: word(main, a + 10),
+    words: [word(main, a + 12), word(main, a + 14)] as const,
+  };
+}
+
+/** The routines' table at 0x9304: a long for each routine byte (0, 4, …, 0x68). */
+export const readRoutines = (main: Uint8Array): number[] =>
+  Array.from({ length: ROUTINE_COUNT }, (_, i) => long(main, ROUTINES + 4 * i));
+
+/** How many sizes a kind's routine lists: strip A's (0x0C–0x14) and the far strip's (0x24) 9, strip B's (0x18–0x20) 16. */
+export function sizeCount(routine: number): number {
+  if (routine >= 0x18 && routine <= 0x20) return 16;
+  if ((routine >= 0x0c && routine <= 0x14) || routine === 0x24) return 9;
+  return 5;
+}
+
+/** A size: {word width, word height, word words a row, u8, u8 bank, word first word in the bank}. */
+export interface TurboOutrunSize {
+  readonly width: number;
+  readonly height: number;
+  readonly stride: number;
+  readonly flags: number;
+  readonly bank: number;
+  readonly offset: number;
+}
+/** `count` sizes of 10 bytes from `address`. */
+export const readSizeList = (main: Uint8Array, address: number, count: number): TurboOutrunSize[] =>
+  Array.from({ length: count }, (_, k) => {
+    const a = address + 10 * k;
+    return {
+      width: word(main, a),
+      height: word(main, a + 2),
+      stride: word(main, a + 4),
+      flags: u8(main, a + 6),
+      bank: u8(main, a + 7),
+      offset: word(main, a + 8),
+    };
+  });
+
+/** The shadow picture's size list at 0x2667A, five sizes, which shadowed kinds cast on the road. */
+export const readShadowSizes = (main: Uint8Array) => ({
+  address: SHADOW_SIZES,
+  sizes: readSizeList(main, SHADOW_SIZES, 5),
+});
+
+/**
+ * A strip's sizes by depth: 128 entries {u8 the size's place in its size list (0, 10, …, 80), u8 scale}, entry
+ * floor(L / 2) for a depth L under 256: strip A's at 0x2B6E2, the far strip's at 0x2B5E2.
+ */
+export const STRIP_SIZE_TABLES = Object.freeze({ stripA: 0x2b6e2, far: 0x2b5e2 } as const);
+export const readStripSizeTable = (main: Uint8Array, address: number) =>
+  Array.from({ length: 128 }, (_, i) => ({ place: u8(main, address + 2 * i), scale: u8(main, address + 2 * i + 1) }));
+
+/** Sprite palette `palette`: the 14 palette words at 0x2470 + 28 × palette, pixels 1 to 14 (0 and 15 transparent). */
+export const readSpritePalette = (main: Uint8Array, palette: number): Colors =>
+  colors(main, PALETTES + 2 * PALETTE_WORDS * palette, PALETTE_WORDS);
+
+/** The stripes on the sub CPU at 0x109EE: 32 phases of a word for each of the road's 512 lines. */
+export const readStripes = (sub: Uint8Array): number[][] =>
+  Array.from({ length: STRIPE_PHASES }, (_, phase) =>
+    Array.from({ length: STRIPE_LINES }, (_, line) => word(sub, STRIPES + 2 * (STRIPE_LINES * phase + line))),
+  );

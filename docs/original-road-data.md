@@ -638,3 +638,90 @@ cabinets' sets are only compared. It runs on OUTRUN's board and its program is O
 OUTRUN's, OUTRUN's sections above describe them, and its own ROM set, programs and tables are described here as
 [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms) reads them. Its main CPU's program is encrypted for
 instruction fetches alone: the tables are read as the ROMs' bytes, and the program is never decrypted.
+
+### TURBO OUTRUN's ROM set
+
+Each CPU's program is 128 KiB parts, each interleaved from a ROM of its even bytes and a ROM of its odd bytes, as
+OUTRUN's are; the main CPU has three parts:
+
+| CPU  | Addresses       | Even bytes      | Odd bytes       |
+| ---- | --------------- | --------------- | --------------- |
+| main | 0x00000–0x1FFFF | `epr-12513.133` | `epr-12512.118` |
+| main | 0x20000–0x3FFFF | `epr-12515.132` | `epr-12514.117` |
+| main | 0x40000–0x5FFFF | `epr-12293.131` | `epr-12292.116` |
+| sub  | 0x00000–0x1FFFF | `opr-12295.76`  | `opr-12294.58`  |
+| sub  | 0x20000–0x3FFFF | `opr-12297.75`  | `opr-12296.57`  |
+
+Every ROM the conversion reads is checked by its size and its CRC-32 (`turbo-outrun-rom.ts`), and each zip entry
+against the CRC-32 its archive records; another ROM set is refused. K's set matches: `epr-12513.133` `ae8835a5`,
+`epr-12512.118` `f90372ad`, `epr-12515.132` `1f047df4`, `epr-12514.117` `5539e9c3`, `epr-12293.131` `f4321eea`,
+`epr-12292.116` `51d98af0`, `opr-12295.76` `d43a3a84`, `opr-12294.58` `27cdcfd3`, `opr-12297.75` `1d9b5677`,
+`opr-12296.57` `0a513671`; the road ROM `epr-12298.11` and its copy `epr-12299.47`, both `fc9bc41b` (as OUTRUN's, 256
+lines of 512 pixels, the second bit plane at 0x4000); the tiles, one bit plane of 64 KiB each, the lowest first,
+`opr-12323.102` `4de43a6f`, `opr-12324.103` `24607a55`, `opr-12325.104` `1405137a`; the sprites, two sets of four, each
+ROM one byte of a 32-bit word, the least significant first, `mpr-12336.9` `dda465c7`, `mpr-12337.10` `828233d1`,
+`mpr-12338.11` `46b4b5f4`, `mpr-12339.12` `0d7e3bab`, then `mpr-12364.13` `a4b83e65`, `mpr-12365.14` `4a80b2a9`,
+`mpr-12366.15` `385cb3ab`, `mpr-12367.16` `4930254a`. The sound ROMs and the key (`317-0118.key`) are not read.
+
+### TURBO OUTRUN's programs
+
+The main CPU's program is encrypted (FD1094) for instruction fetches alone, so its tables read as its ROMs' bytes.
+Where the stage's description gives what the encrypted code does, the tool takes it as given and says so. Both CPUs are
+68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's board.
+
+- **Constants.** The road advances `speed × 0x12F / 65536` positions a tick (the long at 0x1DDEA), as OUTRUN's; the top
+  speed without turbo or tune-up is 324 km/h (the word at 0x1DDE2); a right-side object stands by the left road past
+  road width 280 (the word at 0x1DE04); scenery is brought out into the 108 objects from object 2 (the words at
+  0x228D4).
+- **Legs.** The 16 stages run in four legs of four: each leg's first four bytes of its eight at 0x1E018 number its
+  stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 when played on (the words at
+  0x1DE14 + 2n).
+- **Names.** The name records at 0x11578, {word screen address, word 0x000D, 14 characters}, spell the stages in turn,
+  other records laying dots over them. The names are `TURBO_OUTRUN_NAMES`, WASHINGTON D.C. with the last dot the 14
+  characters leave out.
+- **Stage blocks.** Stage n's block is the long at 0x1E042 + 4n, nine longs as OUTRUN's: the sky word, the centre
+  line's, lane lines', edges' and surface's four palette words each, the ground word, then the curves, widths and
+  heights, and scenery, each in OUTRUN's format ([Main CPU](#main-cpu)). The sky word numbers its ramp, the long at
+  0x232E0 + 4 × it (64 words); the ground word its 16 words, the long at 0x230A0 + 4 × it, the 15th and 16th its halves.
+  Every stage has its gate at scenery point 1358: one CHECK POINT gate (type 3), the last stage's GOAL (type 68).
+- **Scenery types.** Type t is the long at 0x39B16 + 4t: {signed word turn (negative turns the pattern's 32 bits, else
+  its upper 16), long pattern, u8 items, u8 step}, then 8-byte items {u8 flags (bit 0 mirrors, bit 1 sets its depth to
+  the word (b6, b7)), s8 x (× 16 road units), signed word y, word kind, u8 b6, u8 b7}.
+- **Kinds.** Kind k's record is the 16 bytes at 0x28038 + 16k: {long size list, s8 hit left, s8 hit right, u8 flags (bit
+  0 half scale, bit 1 casts the shadow picture, bit 2 its pixel 10 shades), u8 routine, word palette, word collision
+  class (0xFFFF none), two words}. The routine byte indexes the longs at 0x9304. A size list holds sizes of 10 bytes
+  {word width, word height, word words a row, u8, u8 bank, word first word}: five, the largest first, but nine for
+  routines 0x0C–0x14 and 0x24 and sixteen for 0x18–0x20, the farthest first. Those strips choose a size by depth from
+  128 entries {u8 place in the size list, u8 scale}: at 0x2B6E2 for 0x0C–0x14, at 0x2B5E2 for 0x24. The shadow picture
+  is the size list at 0x2667A.
+- **Palettes.** Sprite palette p is the 14 palette words at 0x2470 + 28p, pixels 1 to 14.
+- **The start.** Leg l's start objects: the long and word at 0x7B46 + 8l, items 0 to c of the list it names, each
+  setting its depth; item c / 2 − 1 is written over and never shown. The start figures (the code at 0x5446) are the
+  stage's description's values, as each stands in the countdown's last tick and the signal at GO (`START_FIGURES`).
+- **Backgrounds.** Stage n's background number is the byte at 0x2ABF8 + 8 × its leg + its place in the leg (the same at
+  0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
+  offset}, its layers in OUTRUN's format ([Backgrounds](#backgrounds)) but for rows not written, which hold tile word
+  0x0020. A leg's start loads tile palettes 8 to 127, each the 8 words at 0x22A56 + 16 × its byte at 0x229DE; each stage
+  then applies its patch (`PALETTE_PATCHES`, from the stage's description), so a stage shows its leg's patches to it.
+
+### TURBO OUTRUN's sub CPU
+
+- **Road paths.** Stage n's is the long at 0x1224 + 4n: 1496 heading vectors in OUTRUN's format, beginning and ending
+  straight ahead (0, 4096), each turning 0° or ±360°.
+- **Height tables** are the longs at 0x2156 + 4 × number, OUTRUN's 225 tables at addresses 0xB4 earlier.
+- **Stripes** are the 32 phases of 512 words at 0x109EE, as OUTRUN's.
+
+Where the stage's description says a table is OUTRUN's, the read checks it against OUTRUN's ROM set: the 225 height
+tables, the stripes, the approach table (the main CPU's 0x48010, OUTRUN's 0x28000) and the sub CPU's road drawing
+(0x1280–0x2155, OUTRUN's from 0x1334), which differs only where it addresses the height tables.
+
+### TURBO OUTRUN's dump
+
+`npm run road-data -- turbo-outrun-read` ([Development](development.md#road-data-commands)) checks and reads the ROM
+zip and writes `superoutride.turbo-outrun-road-data` version 1, `turbo-outrun.json` in its dump directory: the ROMs'
+names and CRCs; the constants; the legs; the name records; every stage (block, colors, sky ramp, ground, curves, widths
+and heights, scenery, road path); the height tables its points name; the stripes; the scenery types, the kinds their
+items and the start objects name, the routines, the size lists and the strips' size tables, the shadow and the
+palettes; the start objects and figures; each background's layers and each stage's tile palettes with the patches; and
+the comparison with OUTRUN's tables. It refuses a ROM set, order, name, path, gate or table that differs from the
+stage's description.

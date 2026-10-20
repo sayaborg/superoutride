@@ -31,6 +31,7 @@ import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
+import { turboOutrunDump } from './turbo-outrun-dump.js';
 import {
   OUTRUN_STAGES,
   pathOffset,
@@ -56,6 +57,9 @@ const TOP_KMH = 293;
 /** Where K's ROM zip and the tool's dumps lie: never committed. */
 const ROM_DIRECTORY = 'reference-media/outrun/rom';
 const DUMP_DIRECTORY = 'reference-media/outrun/rom-data';
+/** Where K's TURBO OUTRUN ROM zip and the tool's dumps of it lie: never committed. */
+const TURBO_OUTRUN_ROM_DIRECTORY = 'reference-media/turbo-outrun/rom';
+const TURBO_OUTRUN_DUMP_DIRECTORY = 'reference-media/turbo-outrun/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The player's picture set, which the Ferrari's local original replaces. */
@@ -73,6 +77,14 @@ async function readPrograms(zip: string | undefined) {
     zip = path.join(ROM_DIRECTORY, zips[0]!);
   }
   return { zip, programs: assemblePrograms(readZip(new Uint8Array(await readFile(zip)))) };
+}
+
+/** The zip `zip`, else the one zip in `directory`. */
+async function oneZip(zip: string | undefined, directory: string, option: string) {
+  if (zip) return zip;
+  const zips = (await readdir(directory).catch(() => [])).filter((name) => name.endsWith('.zip'));
+  requireInput(zips.length === 1, '/arguments/' + option, `${option} names the ROM zip, or ${directory} holds one`);
+  return path.join(directory, zips[0]!);
 }
 
 /**
@@ -527,6 +539,55 @@ try {
           originals: check ? null : ORIGINALS_DIRECTORY,
           boards: boards.map((b) => b.name),
           notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
+        }),
+      );
+      break;
+    }
+    case 'turbo-outrun-read': {
+      // TURBO OUTRUN's ROM zip checked and read, never decrypted; every table its course uses to the dump, and the
+      // tables described as OUTRUN's checked against OUTRUN's ROM zip.
+      const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
+      const outrunZip = await oneZip(options.get('--outrun-zip'), ROM_DIRECTORY, '--outrun-zip');
+      const dump = turboOutrunDump(
+        readZip(new Uint8Array(await readFile(zip))),
+        readZip(new Uint8Array(await readFile(outrunZip))),
+      );
+      const out = options.get('--out') ?? TURBO_OUTRUN_DUMP_DIRECTORY;
+      await atomicWrite(path.join(out, 'turbo-outrun.json'), JSON.stringify(dump) + '\n');
+      const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 100) / 100;
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          outrunZip,
+          out,
+          constants: dump.constants,
+          stages: dump.stages.map((stage, n) => {
+            const { path: p } = stage;
+            // Where the last turn ends: the heading holds from there to the path's end.
+            let lastTurn = p.x.length - 1;
+            while (lastTurn > 0 && p.x[lastTurn - 1] === p.x[lastTurn] && p.y[lastTurn - 1] === p.y[lastTurn])
+              lastTurn--;
+            return {
+              number: n,
+              name: dump.names[n]!.name,
+              curves: stage.curves.length,
+              widths: stage.widthsHeights.filter((q) => q.kind !== 0).length,
+              heights: stage.widthsHeights.filter((q) => q.kind === 0).length,
+              scenery: stage.scenery.length,
+              lastTurn,
+              // Counterclockwise positive, as `pathTurn` counts.
+              turn: degrees(pathTurn(p, 0, p.x.length - 1)),
+              background: dump.stageBackgrounds[n]!.background,
+            };
+          }),
+          heightTables: Object.keys(dump.heightTables).length,
+          sceneryTypes: Object.keys(dump.sceneryTypes).length,
+          kinds: Object.keys(dump.kinds).length,
+          sizeLists: Object.keys(dump.sizeLists).length,
+          palettes: Object.keys(dump.palettes).length,
+          startObjects: dump.startObjects.map((s) => s.shown.length),
+          sameAsOutrun: dump.sameAsOutrun,
         }),
       );
       break;
