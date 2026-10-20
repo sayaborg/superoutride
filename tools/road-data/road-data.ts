@@ -741,6 +741,17 @@ try {
       const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
       const built = turboOutrunCourse(readZip(new Uint8Array(await readFile(zip))));
       const file = await saveCourse(TURBO_OUTRUN_COURSE_ID, built.document, check);
+      for (const { image } of built.pictures) {
+        const picture = `content/${image.path}`;
+        if (check) {
+          const committed = await readFile(picture).catch(() => null);
+          requireInput(
+            committed && Buffer.compare(committed, image.bytes) === 0,
+            `/${picture}`,
+            `${picture} is not the ROMs'`,
+          );
+        } else await atomicWrite(picture, image.bytes);
+      }
       // Each stage's sky as published: the generic coast sky under its own name.
       const generic = JSON.parse(await readFile(`content/images/${TURBO_OUTRUN_GENERIC_SKY}.json`, 'utf8')) as Record<
         string,
@@ -803,6 +814,8 @@ try {
             moves: c.moves,
             heights: c.heights.map(round1),
           })),
+          objects: built.placing,
+          pictures: built.pictures.length,
           skies: skies.length,
         }),
       );

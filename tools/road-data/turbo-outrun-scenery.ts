@@ -10,9 +10,9 @@ import type { SceneryPoint } from './road-tables.js';
 import { readStartObjects } from './turbo-outrun-start.js';
 
 /** The approach table at 0x48010, OUTRUN's 0x28000's contents. */
-const APPROACH = 0x48010;
+export const APPROACH = 0x48010;
 /** The car's line (the word at 0x608BC): an object stands where its depth reaches it; the gates are judged there. */
-const CAR_LINE = 0x180;
+export const CAR_LINE = 0x180;
 /** An object vanishes at line 0x1FF, a strip at 0x1F8, freeing its slot. */
 const VANISHES = 0x1ff;
 const STRIP_VANISHES = 0x1f8;
@@ -207,4 +207,20 @@ export function turboOutrunObjects(
     for (const run of legRuns) runs.push({ ...run, brought: 0, dropped: 0, ended: 0, ...tallies.get(run.stage) });
   }
   return { objects, runs };
+}
+
+/**
+ * Where an object standing still at line `line` from GO stands, as the leg's start objects do: the road position of
+ * the tick its depth first reaches the car's line, approaching at `kmh` from GO.
+ */
+export function standsFrom(main: Uint8Array, line: number, kmh: number): number {
+  const step = kmh * STEP_PER_KMH;
+  let depth = line << 16,
+    remainder = 0;
+  for (let tick = 1; ; tick++) {
+    let advance;
+    ({ advance, remainder } = tickAdvance(kmh, remainder));
+    depth = approached(main, APPROACH, depth, advance);
+    if (depth >>> 16 >= CAR_LINE) return (tick * step) / 65536;
+  }
 }

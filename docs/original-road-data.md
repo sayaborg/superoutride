@@ -1221,7 +1221,8 @@ stage's description.
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
 `turbo-outrun` (TURBO OUTRUN), conversion version 1, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
-([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects are not yet placed.
+([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
+[TURBO OUTRUN's objects](#turbo-outruns-objects) says.
 
 - **Stages.** A 6 m straight, the camera's distance, before GO (NEW YORK's position 0), then the stages in running
   order, each from its position 0: a stage within a leg to its end (T + 12, 1426.083), where the next begins; a leg's
@@ -1280,3 +1281,38 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
 - **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](#profile)), the stage closed
   level at height 0 over its stretch; the nine crossings, each of two passages, kept apart; bends broken at the
   Sections' cuts.
+
+### TURBO OUTRUN's objects
+
+The course's objects (`turboOutrunPlacements`) stand where the scenery model stands them at 324 km/h with the 108
+objects ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)), at the course position of their stage's
+road position, the start's and the girls' as below. The strips beside the road and the far strip (routines 0x0C to
+0x24, 7,227 at 324 km/h) are not yet placed; nor are the two items below the road (kind 0 at y −1024), never seen.
+
+- **Across**, road units from P at the road width w where it stands: an item marked by b7 (its flags' bit 1 clear),
+  the gates' parts among them, its x × 16; any other x × 16 from road 0's centre (−w) where x < 0, from road 1's (+w)
+  where x ≥ 0, but from road 0's where the road was wider than 280 (the word at 0x1DE04) as it came out.
+- **Height.** Its y road units, half of them for a half-scale kind (its flags' bit 0), 15/14 of them up.
+- **Picture.** Its kind's size list, but the walkers' (routines 0x34, 0x38) and routine 0x60's the first of their frame
+  lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit
+  0; in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on the
+  middle of its bottom, but one lying on the road (routine 0x08, the puddles of 0x4C and 0x50) on its middle as
+  OUTRUN's patches do, and across at the middle of its kind's hit extents.
+- **Body.** Where its kind's collision class is 0 to 3 (the original stops or spins the car) and it stands on the
+  ground (y 0), but for the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
+  scale 1), at most its board's width. Classes 11 to 17, thrown or broken when hit (fences, snow, stones, shrubs,
+  puddles: 2,372 at 324 km/h), and the rest pass through.
+- **The start.** Each leg's start objects (330) stand where they pass the car or where they look as large as the
+  original draws them at their line (`startDepth`), the nearer, as OUTRUN's do; 286 where they pass, 44 by their size.
+  Its start figures (`START_FIGURES`, 43) stand the same way, x from road 0's centre, each at its own pixel's road
+  units.
+- **STAGE UP! and GOAL!** The girls (routine 0x64) and their signs (0x68), which the original draws over the screen,
+  stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
+  the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
+  x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
+- **Shadows.** A kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A) on the road, drawn
+  at its scale and base point (`-shadowed`); a kind's pixel 10 that shades (bit 2) keeps its palette's color.
+- **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
+  2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by
+  [chosen lines](#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a body is at
+  most its board's width. 172 boards, published provisionally.

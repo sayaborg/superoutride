@@ -186,14 +186,15 @@ function restoredStrip(main: Uint8Array, words: Uint32Array, family: Family, boa
   return { pixels, width: reach, height };
 }
 
-const mirror = <T>(pixels: readonly T[], width: number) =>
+/** `pixels`, `width` wide, mirrored left to right. */
+export const mirror = <T>(pixels: readonly T[], width: number) =>
   pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
 
 /**
  * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
  * base point `aside` source pixels across from there (the frame then stands that far the other way).
  */
-function shadowFrame(
+export function shadowFrame(
   pixels: Uint8Array,
   width: number,
   scale: { readonly x: number; readonly y: number },

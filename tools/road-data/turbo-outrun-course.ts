@@ -7,9 +7,9 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { sectionProfile, simplified } from './outrun-course.js';
+import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import { STRIPE_PERIOD } from './outrun-roads.js';
-import { UNIT_METRES } from './pixel-grid.js';
+import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import {
@@ -20,7 +20,9 @@ import {
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
 import { layTurboOutrun, OPEN, type Piece } from './turbo-outrun-layout.js';
-import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { assembleTurboOutrunPrograms, assembleTurboOutrunSprites } from './turbo-outrun-rom.js';
+import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
+import { turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
   readConstants,
   readTurboOutrunStages,
@@ -126,7 +128,7 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
   const { stages } = readTurboOutrunStages(programs);
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
-  const { runs } = turboOutrunObjects(programs.main, stages, { kmh, slots: constants.objectSlots.count });
+  const { objects, runs } = turboOutrunObjects(programs.main, stages, { kmh, slots: constants.objectSlots.count });
   for (const stage of stages)
     for (const colors of Object.values(stage.colors))
       requireInput(
@@ -183,9 +185,31 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
     s: station(lastStage.start + lastStage.run.gate),
   };
 
+  // The objects, and the pictures they show.
+  const placing = turboOutrunPlacements(programs.main, {
+    objects,
+    runs,
+    start: (stage) => course[stage]!.start,
+    width: layout.width,
+    go: layout.go,
+    kmh,
+  });
+  requireInput(
+    placing.placed.every((o) => o.g < layout.total),
+    `/${COURSE_ID}`,
+    "An object stands past the course's end",
+  );
+  const pictures = turboOutrunBoards(
+    programs.main,
+    assembleTurboOutrunSprites(files),
+    placing.placed.map((o) => o.use),
+  );
+
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout,
+      widths: new Map(pictures.map((p) => [p.name, p.width])),
+      objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
       first: i === 0,
       last: i === pieces.length - 1,
       stretches,
@@ -215,6 +239,8 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
     layout,
     runs,
     kmh,
+    pictures,
+    placing: placing.report,
   };
 }
 
@@ -223,6 +249,9 @@ function sectionDocument(
   piece: Piece,
   context: {
     readonly layout: ReturnType<typeof layTurboOutrun>;
+    readonly objects: readonly PlacedObject[];
+    /** Each picture's width, metres, by name. */
+    readonly widths: ReadonlyMap<string, number>;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -525,7 +554,24 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: [],
+    sprites: repeated(
+      [...context.objects]
+        .sort((a, b) => a.g - b.g || a.x - b.x)
+        .map((o) => ({
+          kind: 'sprite',
+          image: pictureName(o.use),
+          palette: paletteName(o.use.palette),
+          at: at(o.g),
+          lateral: round(o.x - offset.at(o.g)),
+          groundOffset: round(o.height),
+          unselectedLink: null,
+          // As wide as its hit extents, at most its picture.
+          body:
+            o.body === null
+              ? null
+              : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
+        })),
+    ),
     environments,
     gates,
   };

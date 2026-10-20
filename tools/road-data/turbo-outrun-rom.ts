@@ -1,5 +1,6 @@
 import { requireInput } from '../course/authoring-io.js';
 import { interleave } from './program-words.js';
+import { spriteWords } from './sprite-pixels.js';
 import type { ZipFile } from './zip.js';
 
 /** A ROM by its name in the set and its CRC-32. */
@@ -108,3 +109,12 @@ export const turboOutrunRoms = (): Record<string, string> =>
       ...TURBO_OUTRUN_SPRITE_ROMS.flat(),
     ].map(({ name, crc }) => [name, hex(crc)]),
   );
+
+/** The sprite ROMs' words (`spriteWords`: .9 and .13 the lowest bytes, .12 and .16 the highest), set 1's after set 0's. */
+export function assembleTurboOutrunSprites(files: ReadonlyMap<string, ZipFile>): Uint32Array {
+  const words = new Uint32Array(TURBO_OUTRUN_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
+  TURBO_OUTRUN_SPRITE_ROMS.forEach((set, s) =>
+    words.set(spriteWords(set.map((rom) => romData(files, rom, SPRITE_ROM_SIZE))), s * SPRITE_ROM_SIZE),
+  );
+  return words;
+}
