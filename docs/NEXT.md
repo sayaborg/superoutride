@@ -298,6 +298,9 @@ K's decisions (2026-10-19 to 20):
 - **The road position is the car's** (K, RD-10e, 2026-10-20), as in the original and in Stages SH and TO: GO is the
   car at road position 0, the road's entry 6 m before it, where the camera stands; objects stand where they pass the
   car, as the main CPU brings them out and approaches them tick by tick.
+- **Names** (K, 2026-10-20). A road is named by its stages' short names in the order it runs them, each fork's side
+  between them as the map reads it, ▲ left (up) and ▼ right (down): CB▲GAT▲DES▲WIL▲VIN and so on; the road through all
+  15 is ALL 15 STAGES. The courses' ids, and the stages' names within the roads, stay.
 - **No classes until the hills** (K, 2026-10-20). The hills of the three originals are reviewed later, so no reference
   times are needed now: OUTRUN's seven roads have no TRIAL class until their hills are made again, and FREE PLAY drives
   them untimed. When the hills are made again, each road gets its class back: the player from GO's slot (15),

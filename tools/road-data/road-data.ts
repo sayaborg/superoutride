@@ -15,8 +15,8 @@ import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
-import { OUTRUN_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
-import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeSpans } from './outrun-roads.js';
+import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
+import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeName, routeSpans } from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom, UNIT_METRES } from './outrun-cross-section.js';
 import { POSITION_METRES } from './outrun-plan.js';
@@ -383,12 +383,13 @@ try {
         goals,
         goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
         idOf: (stage: Stage) => slug(nameOf(stage)),
+        shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
       };
       const courses = [];
       for (const route of OUTRUN_ROUTES) {
         const road = outrunRoad(routeSpans(route, inputs), {
           id: route.id,
-          name: route.name,
+          name: routeName(route, inputs),
           tables,
           kmh: TOP_KMH,
           cameraDistance: cameraDistance(CAMERA_DEFINITION),

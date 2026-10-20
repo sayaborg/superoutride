@@ -1738,9 +1738,10 @@ from their frames (sources and recipes under `content/sprite-sources/`), the sky
 recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
 the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
-OUTRUN's roads (`outrun-a` GOLDEN FRONTIER, `outrun-b` HEAT HAZE, `outrun-c-left` DESERT MIRAGE, `outrun-c-right`
-STORM RIDGE, `outrun-d` OVERDRIVE, `outrun-e` BLUE HORIZON, each one of the original's routes to a goal, and
-`outrun-all` GRAND TOUR through all 15 stages) are LINEAR courses written by the road data tool from the original's
+OUTRUN's roads (`outrun-a` CB▲GAT▲DES▲WIL▲VIN, `outrun-b` CB▲GAT▼ALP▲OC▲DV, `outrun-c-left` CB▲GAT▲DES▼OC▼DH,
+`outrun-c-right` CB▼DC▼CM▲WF▲DH, `outrun-d` CB▼DC▲ALP▼WF▼AUT, `outrun-e` CB▼DC▼CM▼ST▼LAK, each one of the original's
+routes to a goal, and `outrun-all` ALL 15 STAGES through all 15 stages, named by their stages' short names and forks
+([Original road data](original-road-data.md#outruns-roads))) are LINEAR courses written by the road data tool from the original's
 road data ([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills,
 scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
 has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a

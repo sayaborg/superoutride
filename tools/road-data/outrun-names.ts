@@ -17,6 +17,16 @@ export const OUTRUN_NAMES: ReadonlyMap<number, string> = new Map([
   [0x22, 'DEATH VALLEY'],
   [0x26, 'VINEYARD'],
 ]);
+/**
+ * Each stage's short name, as the roads' names write it: a name of two words their initials, of one its first three
+ * letters.
+ */
+export const OUTRUN_SHORT_NAMES: ReadonlyMap<number, string> = new Map(
+  [...OUTRUN_NAMES].map(([number, name]) => {
+    const words = name.split(' ');
+    return [number, words.length === 2 ? words.map((w) => w[0]).join('') : name.slice(0, 3)];
+  }),
+);
 export const slug = (name: string) => name.toLowerCase().replace(/'/g, '').replace(/ /g, '-');
 
 /**

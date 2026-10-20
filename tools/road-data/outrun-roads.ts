@@ -42,6 +42,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite
 import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { HeightTable, Path, Stage, Stretch } from './outrun-road.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
+import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
 /** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
 export const STRIPE_PERIOD = ((32 * 303) / 3072) * POSITION_METRES;
@@ -902,11 +903,9 @@ function regimes(span: Span, from: number, to: number) {
   return out;
 }
 
-/** One of OUTRUN's roads: its course id and name, its TRIAL class's title, and the side each fork takes. */
+/** One of OUTRUN's roads: its course id and the side each fork takes. */
 export interface OutrunRoute {
   readonly id: string;
-  readonly name: string;
-  readonly title: string;
   /** Each fork's side, left (L) or right (R), in order; on the road through all 15, then each join's. */
   readonly forks: string;
   /** Whether it runs through all 15 stages in the map's order, each goal but the last joining the next stage. */
@@ -914,14 +913,28 @@ export interface OutrunRoute {
 }
 /** The six roads to the goals, each by its forks' sides, and the road through all 15, its sides alternating from L. */
 export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
-  { id: 'outrun-a', name: 'GOLDEN FRONTIER', title: 'A LLLL', forks: 'LLLL', all: false },
-  { id: 'outrun-b', name: 'HEAT HAZE', title: 'B LRLL', forks: 'LRLL', all: false },
-  { id: 'outrun-c-left', name: 'DESERT MIRAGE', title: 'C LLRR', forks: 'LLRR', all: false },
-  { id: 'outrun-c-right', name: 'STORM RIDGE', title: 'C RRLL', forks: 'RRLL', all: false },
-  { id: 'outrun-d', name: 'OVERDRIVE', title: 'D RLRR', forks: 'RLRR', all: false },
-  { id: 'outrun-e', name: 'BLUE HORIZON', title: 'E RRRR', forks: 'RRRR', all: false },
-  { id: 'outrun-all', name: 'GRAND TOUR', title: 'ALL 15', forks: 'LRLRLRLRLRLRLR', all: true },
+  { id: 'outrun-a', forks: 'LLLL', all: false },
+  { id: 'outrun-b', forks: 'LRLL', all: false },
+  { id: 'outrun-c-left', forks: 'LLRR', all: false },
+  { id: 'outrun-c-right', forks: 'RRLL', all: false },
+  { id: 'outrun-d', forks: 'RLRR', all: false },
+  { id: 'outrun-e', forks: 'RRRR', all: false },
+  { id: 'outrun-all', forks: 'LRLRLRLRLRLRLR', all: true },
 ]);
+/** A left fork leads up the original's map, a right one down. */
+const FORK_MARKS: Readonly<Record<string, string>> = Object.freeze({ L: TEXT_MARKS.up, R: TEXT_MARKS.down });
+
+/**
+ * A road's name (K, 2026-10-20): its stages' short names in the order it runs them, each fork's side between them as
+ * the map reads it (▲ left, up; ▼ right, down); the road through all 15, whose sides alternate only for the look,
+ * ALL 15 STAGES.
+ */
+export function routeName(route: OutrunRoute, inputs: RouteInputs): string {
+  if (route.all) return 'ALL 15 STAGES';
+  return routeSteps(route, inputs)
+    .map(({ stage }, k) => (k > 0 ? FORK_MARKS[route.forks[k - 1]!]! : '') + inputs.shortOf(stage))
+    .join('');
+}
 
 /** What a route's spans are made from. */
 export interface RouteInputs {
@@ -934,6 +947,8 @@ export interface RouteInputs {
   readonly goalOf: (row: number, column: number) => number;
   /** A stage's Sections' ids' stem. */
   readonly idOf: (stage: Stage) => string;
+  /** A stage's short name. */
+  readonly shortOf: (stage: Stage) => string;
 }
 
 /**

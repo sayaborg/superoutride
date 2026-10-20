@@ -508,7 +508,7 @@ The roads are made of pieces, each one shape whatever comes before or after it (
 
 Each road (`outrunRoad`) is a LINEAR course of pieces: the first row's stage, each fork's side taken (left to the next
 row's stage at the same place counted from the left, right to the one after it), and the last stage with its goal;
-or, GRAND TOUR, all 15 stages in the map's order, row by row and within a row from the left, each of rows 1 to 4 left by
+or, ALL 15 STAGES, all 15 stages in the map's order, row by row and within a row from the left, each of rows 1 to 4 left by
 its fork and each of row 5 but the last by its goal and a join, the forks' and then the joins' sides alternating from
 L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, the next's centreline on the Link's lane's centre:
 
@@ -536,19 +536,24 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
   fork piece, 6 m before where the car reaches the width 360 (the camera, 6 m behind the car, then reaches the original's
   change), and by `rise` in a join piece where it begins.
 
-| Course           | Name            | Forks | Stages                                                                               |
-| ---------------- | --------------- | ----- | ------------------------------------------------------------------------------------ |
-| `outrun-a`       | GOLDEN FRONTIER | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                             |
-| `outrun-b`       | HEAT HAZE       | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                          |
-| `outrun-c-left`  | DESERT MIRAGE   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                     |
-| `outrun-c-right` | STORM RIDGE     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C)     |
-| `outrun-d`       | OVERDRIVE       | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                       |
-| `outrun-e`       | BLUE HORIZON    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
-| `outrun-all`     | GRAND TOUR      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
+A road's name (`routeName`, K, 2026-10-20) is its stages' short names in the order it runs them, each fork's side
+between them as the original's map reads it: ▲ where it takes the left fork (up the map), ▼ the right (down). The road
+through all 15 is ALL 15 STAGES: its sides alternate only for the look, and follow no way across the map. The goals'
+letters and L and R are not written; the courses' ids stay.
 
-The six roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,198 to 11,782 objects each; GRAND TOUR is 73.6 km, 48
+| Course           | Name               | Forks | Stages                                                                               |
+| ---------------- | ------------------ | ----- | ------------------------------------------------------------------------------------ |
+| `outrun-a`       | CB▲GAT▲DES▲WIL▲VIN | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                             |
+| `outrun-b`       | CB▲GAT▼ALP▲OC▲DV   | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                          |
+| `outrun-c-left`  | CB▲GAT▲DES▼OC▼DH   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                     |
+| `outrun-c-right` | CB▼DC▼CM▲WF▲DH     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C)     |
+| `outrun-d`       | CB▼DC▲ALP▼WF▼AUT   | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                       |
+| `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
+| `outrun-all`     | ALL 15 STAGES      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
+
+The six roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,198 to 11,782 objects each; ALL 15 STAGES is 73.6 km, 48
 Sections and 31,940 objects. Their heights reach −185 m and 268 m (the hills' rule, unchanged); 5 to 11 crossings each
-are kept 6 m apart, GRAND TOUR's 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner
+are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner
 134 and 135) stands at about 321 to 327, before where the original's car stops (401) and drives under it; the stands
 (types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate
 types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
@@ -626,6 +631,27 @@ MOUNTAIN, 0x2F ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x3
 0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`). On the map,
 from the left fork's side: COCONUT BEACH; GATEWAY, DEVIL'S CANYON; DESERT, ALPS, CLOUDY MOUNTAIN; WILDERNESS, OLD
 CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD (A), DEATH VALLEY (B), DESOLATION HILL (C), AUTOBAHN (D), LAKESIDE (E).
+A stage's short name (`OUTRUN_SHORT_NAMES`), which the roads' names write, is a name of two words' initials, or one
+word's first three letters. Numbered in the map's order (from the left column to the right, within a column from the
+left fork's side down), which is also the order ALL 15 STAGES runs them:
+
+| Number | Stage           | Short name |
+| ------ | --------------- | ---------- |
+| 1      | COCONUT BEACH   | CB         |
+| 2      | GATEWAY         | GAT        |
+| 3      | DEVIL'S CANYON  | DC         |
+| 4      | DESERT          | DES        |
+| 5      | ALPS            | ALP        |
+| 6      | CLOUDY MOUNTAIN | CM         |
+| 7      | WILDERNESS      | WIL        |
+| 8      | OLD CAPITAL     | OC         |
+| 9      | WHEAT FIELD     | WF         |
+| 10     | SEASIDE TOWN    | ST         |
+| 11     | VINEYARD        | VIN        |
+| 12     | DEATH VALLEY    | DV         |
+| 13     | DESOLATION HILL | DH         |
+| 14     | AUTOBAHN        | AUT        |
+| 15     | LAKESIDE        | LAK        |
 
 Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it is a copy of the generic
 sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast (COCONUT BEACH), sky-cliff
