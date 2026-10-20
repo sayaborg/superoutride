@@ -145,6 +145,58 @@
       },
       "timeMargin": 1.35,
       "fixedColors": false
+    },
+    {
+      "id": "super-hang-on-africa",
+      "title": "AFRICA",
+      "course": "super-hang-on-africa",
+      "laps": 1,
+      "vehicles": ["VFR750R"],
+      "entries": [{ "vehicle": "VFR750R", "color": "tricolor", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
+    },
+    {
+      "id": "super-hang-on-asia",
+      "title": "ASIA",
+      "course": "super-hang-on-asia",
+      "laps": 1,
+      "vehicles": ["VFR750R"],
+      "entries": [{ "vehicle": "VFR750R", "color": "tricolor", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
+    },
+    {
+      "id": "super-hang-on-america",
+      "title": "AMERICA",
+      "course": "super-hang-on-america",
+      "laps": 1,
+      "vehicles": ["VFR750R"],
+      "entries": [{ "vehicle": "VFR750R", "color": "tricolor", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
+    },
+    {
+      "id": "super-hang-on-europe",
+      "title": "EUROPE",
+      "course": "super-hang-on-europe",
+      "laps": 1,
+      "vehicles": ["VFR750R"],
+      "entries": [{ "vehicle": "VFR750R", "color": "tricolor", "pace": 1, "stages": null, "slot": 15, "ahead": null }],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": null,
+      "timeMargin": 1.35,
+      "fixedColors": false
     }
   ]
 }
