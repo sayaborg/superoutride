@@ -204,13 +204,4 @@ export function sceneryRoutine(flags: number, y: number): { routine: number; anc
 }
 
 /** An object's approach: the main CPU's table at 0x28000, a long a road line for each advance of 0 to 15 a tick. */
-const APPROACH = 0x28000;
-
-/**
- * An object's depth (16.16 lines) after one tick of its approach: the table's step for its line and the tick's advance
- * (`col`, at most 15), half of it for an object that approaches at half the rate (drawing 2, the clouds: `asr.l #1`).
- */
-export function approached(main: Uint8Array, depth: number, advance: number, half = false): number {
-  const step = long(main, APPROACH + (advance << 11) + 4 * (depth >>> 16));
-  return depth + (half ? step >> 1 : step);
-}
+export const APPROACH = 0x28000;

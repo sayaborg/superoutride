@@ -18,7 +18,8 @@ The road data tool keeps each original's ROM set, addresses and formats in its o
 interleaved from (`program-words`), the road tables in OUTRUN's format (`road-tables`: palette words, curves, widths and
 heights, scenery points, road paths and height tables), the hills (`hills`), the profile and the crossings' bumps
 (`road-profile`), the plan laid off a road path with its corners rounded (`offset-plan`), the sprite hardware's pixels
-(`sprite-pixels`) and the originals' pixels on this game's texel grid (`pixel-grid`).
+(`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`), and how objects approach the car
+(`object-approach`: the tick's advance, an approach table's step and `startDepth`).
 
 ## ROM set
 
@@ -1001,6 +1002,32 @@ Where the stage's description gives what the encrypted code does, the tool takes
 Where the stage's description says a table is OUTRUN's, the read checks it against OUTRUN's ROM set: the 225 height
 tables, the stripes, the approach table (the main CPU's 0x48010, OUTRUN's 0x28000) and the sub CPU's road drawing
 (0x1280–0x2155, OUTRUN's from 0x1334), which differs only where it addresses the height tables.
+
+### Placing TURBO OUTRUN's scenery
+
+TURBO OUTRUN's objects are brought out and approach as OUTRUN's do ([Placing scenery](#placing-scenery): the tick's
+advance, the approach table, the road position the car's), with its own values and control (`turboOutrunObjects`).
+Each leg runs from GO at one speed, tick by tick:
+
+- **The start.** The leg's first stage begins with its start objects in the objects, at their lines; one at line 0
+  never moves and never shows.
+- **Stage ends.** At T + 13, T the tick the gate's judging post (routine 0x28) reaches the car's line, the next stage
+  begins at road position 0 with its points from the first. Its background comes in at T + 11. At a leg's last stage
+  the car stops at T + 2 instead: its control stops, and the objects still coming stand where they would pass the car
+  driven on.
+- **Advance.** The road position gains `km/h × 0x12F / 65536` positions; the tick's advance is the phase's gain, at
+  most 15.
+- **The control.** A point is taken when the road position reaches it (one a tick), its count times its items to bring
+  out. While its cursor (its position, one more each tick) is not past the road position and items remain, the type's
+  pattern turns step + 1 times (its 32 bits where its turn is negative, else its upper 16); each 1 turned out brings out
+  the type's next item, in order, into the first free of the 108 objects, or none where all are taken.
+- **Approach.** An object appears at line 1, or at the line its item's flags' bit 1 sets, and approaches by the table
+  at 0x48010 (OUTRUN's 0x28000's contents), the far strip (routine 0x24) at half the rate. It stands at the road
+  position of the tick it first reaches the car's line, 0x180, and vanishes at 0x1FF, a strip (routines 0x0C to 0x24)
+  at 0x1F8.
+
+`npm run road-data -- turbo-outrun-read` prints where the stages end and how many objects stand, at the top speed (324
+km/h) with the 108 objects and as designed (216 km/h, one step a position, no object wanting).
 
 ### TURBO OUTRUN's dump
 

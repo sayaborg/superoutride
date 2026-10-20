@@ -139,7 +139,7 @@
 
 Next PR: [RD-12](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
-[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2c;
+[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -457,15 +457,14 @@ Rules of the stage, beside Stage RD's, RD2's and SH's:
 
 TO-2b came first, as it needs nothing of the other stages: TURBO OUTRUN's ROMs are read, without decryption, into its
 dump, and what is described as OUTRUN's is checked against OUTRUN's ROMs
-([TURBO OUTRUN](original-road-data.md#turbo-outrun)). TO-2a then moved what the three originals share into modules of
-their own ([Original road data](original-road-data.md)); what sharing needs more than a move (the two roads drawn
-together and their strips, which hold OUTRUN's cross-section, the objects' model with `startDepth`, and the background
-layers, which RD-15's baking takes up) is shared by the PR that first uses it for TURBO OUTRUN. The PRs left, in this
-order (each one too large for one review is split and the split reported):
+([TURBO OUTRUN](original-road-data.md#turbo-outrun)). TO-2a moved what the three originals share into modules of their
+own ([Original road data](original-road-data.md)). TO-2c shared how objects approach the car and places TURBO OUTRUN's
+objects by its own control
+([Placing TURBO OUTRUN's scenery](original-road-data.md#placing-turbo-outruns-scenery)). What sharing needs more than a
+move (the two roads drawn together and their strips, which hold OUTRUN's cross-section, and the background layers,
+which RD-15's baking takes up) is shared by the PR that first uses it for TURBO OUTRUN. The PRs left, in this order
+(each one too large for one review is split and the split reported):
 
-- TO-2c: the objects' model, RD-10e's with TURBO OUTRUN's values as its arguments (the approach table at 0x48010, the
-  car's line 0x180, vanishing at 0x1FF and strips at 0x1F8, 108 object slots, its control's step, its start table);
-  OUTRUN's results unchanged.
 - TO-3: the course `turbo-outrun` (TURBO OUTRUN): the road on the original's road paths as straights and arcs, each
   stage to where the next begins, a join the original does not have at each leg's end, and a straight past the goal;
   the widths, lanes, plan and stations, strips, colors, stripes, materials, hills and Sections; the skies' names and yaw

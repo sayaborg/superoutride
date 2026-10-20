@@ -7,8 +7,9 @@ import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
+import { approached, STEP_PER_KMH, tickAdvance } from './object-approach.js';
 import {
-  approached,
+  APPROACH,
   hitExtents,
   OBJECT_ROUTINES,
   objectAside,
@@ -25,12 +26,6 @@ const APPEARS = [0x10400, 0x10000];
 const PASSES = 0x200;
 /** The scenery's object slots, 3 to 81 (the word at 0xF204). */
 const SLOTS = 79;
-/** The phase word gains km/h / 64 three times a tick, its remainder shared: twice in the frame interrupt, once in object 0. */
-const PHASE_STEPS = 3;
-/** The most an object's depth advances by in a tick (the table's 16 advances). */
-const MOST_ADVANCE = 15;
-/** The road position each km/h advances a tick, 16.16 (0x12F). */
-const STEP_PER_KMH = 0x12f;
 /** Drawing 2 (the clouds) approaches at half the rate (0x4144). */
 const HALF_RATE_DRAWING = 2;
 
@@ -189,13 +184,8 @@ export function roadObjects(
     }
     // 1. The road position, 2. the tick's advance.
     const road = options.go + (tick * step) / 65536;
-    let advance = 0;
-    for (let i = 0; i < PHASE_STEPS; i++) {
-      remainder += options.kmh;
-      advance += Math.floor(remainder / 64);
-      remainder %= 64;
-    }
-    advance = Math.min(MOST_ADVANCE, advance);
+    let advance;
+    ({ advance, remainder } = tickAdvance(options.kmh, remainder));
     // 3. The control: a point taken, then its pattern turned.
     while (next < taken.length && stretchOf(taken[next]!.position) < stretch) next++;
     const point = taken[next];
@@ -257,7 +247,7 @@ export function roadObjects(
     // 4. Every object approaches once; one reaching line 512 passes the car here.
     for (let i = live.length - 1; i >= 0; i--) {
       const o = live[i]!;
-      o.depth = approached(main, o.depth, advance, o.half);
+      o.depth = approached(main, APPROACH, o.depth, advance, o.half);
       if (o.depth >>> 16 < PASSES) continue;
       o.stands(road);
       live.splice(i, 1);

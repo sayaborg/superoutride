@@ -18,7 +18,7 @@ import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
 import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeName, routeSpans } from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
-import { checkRoadRom, UNIT_METRES } from './outrun-cross-section.js';
+import { checkRoadRom } from './outrun-cross-section.js';
 import { POSITION_METRES } from './offset-plan.js';
 import { roadObjects } from './outrun-scenery.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
@@ -32,6 +32,9 @@ import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
+import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
+import { turboOutrunObjects } from './turbo-outrun-scenery.js';
+import { startDepth } from './object-approach.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import {
   courseId,
@@ -56,6 +59,7 @@ import { pathOffset, pathTurn, readHeightTable, type HeightTable } from './road-
 /** Positions left out at each end of a curve where its rate is measured. */
 const JOIN = 2;
 const round1 = (value: number) => Math.round(value * 10) / 10;
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
 /** The top speed, km/h: the holds of the hills are counted at it unless told otherwise. */
 const TOP_KMH = 293;
 
@@ -360,9 +364,6 @@ try {
       checkRoadRom(files);
       const length = stageLength(programs.main);
       requireInput(length === 1948, '/main', `The stages are ${length} positions long, not 1948`);
-      // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
-      // f × UNIT_METRES × 512 / L metres, in road positions from the camera at GO, at the road's entry.
-      const startDepth = (line: number) => (CAMERA_DEFINITION.focalLength * UNIT_METRES * 512) / line / POSITION_METRES;
       const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
       const fork = readForkStretch(programs);
       const goals = readGoalStretches(programs);
@@ -647,10 +648,17 @@ try {
       // tables described as OUTRUN's checked against OUTRUN's ROM zip.
       const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
       const outrunZip = await oneZip(options.get('--outrun-zip'), ROM_DIRECTORY, '--outrun-zip');
-      const dump = turboOutrunDump(
-        readZip(new Uint8Array(await readFile(zip))),
-        readZip(new Uint8Array(await readFile(outrunZip))),
-      );
+      const files = readZip(new Uint8Array(await readFile(zip)));
+      const dump = turboOutrunDump(files, readZip(new Uint8Array(await readFile(outrunZip))));
+      // Where the objects stand: at the top speed with the original's 108 objects, and as designed (one step a
+      // position, below 216.3 km/h, with no object wanting).
+      const { main } = assembleTurboOutrunPrograms(files);
+      const model = (kmh: number, slots: number) => {
+        const { objects, runs } = turboOutrunObjects(main, dump.stages, { kmh, slots });
+        return { objects, runs };
+      };
+      const top = model(dump.constants.topSpeed, dump.constants.objectSlots.count);
+      const designed = model(216, 4096);
       const out = options.get('--out') ?? TURBO_OUTRUN_DUMP_DIRECTORY;
       await atomicWrite(path.join(out, 'turbo-outrun.json'), JSON.stringify(dump) + '\n');
       const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 100) / 100;
@@ -687,6 +695,26 @@ try {
           palettes: Object.keys(dump.palettes).length,
           startObjects: dump.startObjects.map((s) => s.shown.length),
           sameAsOutrun: dump.sameAsOutrun,
+          objects: {
+            kmh: dump.constants.topSpeed,
+            stages: top.runs.map((run) => ({
+              stage: run.stage,
+              gate: round3(run.gate),
+              backgroundChange: round3(run.backgroundChange),
+              end: round3(run.end),
+              stops: run.stops,
+              standing: top.objects.filter((o) => o.stage === run.stage).length,
+              brought: run.brought,
+              dropped: run.dropped,
+              ended: run.ended,
+              intoNext: top.objects.filter((o) => o.from.stage === run.stage && o.stage !== run.stage).length,
+            })),
+            standing: top.objects.length,
+            pointItems: top.runs.reduce((n, r) => n + r.brought, 0),
+            dropped: top.runs.reduce((n, r) => n + r.dropped, 0),
+            designed: designed.runs.reduce((n, r) => n + r.brought, 0),
+            designedDropped: designed.runs.reduce((n, r) => n + r.dropped, 0),
+          },
         }),
       );
       break;
