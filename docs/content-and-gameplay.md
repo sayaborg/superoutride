@@ -1745,8 +1745,8 @@ routes to a goal, and `outrun-all` ALL 15 STAGES through all 15 stages, named by
 road data ([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills,
 scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
 has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
-checkpoint, and the finish is at the last stage's end. Their scenery is outline boards. Until their hills are made
-again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
+checkpoint, and the finish is at the last stage's end. Their scenery is outline boards; where a road is chosen, road arrows, a sign
+and chevrons show which road to take. Until their hills are made again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
 their measured products are their racing lines alone.
 
 SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,

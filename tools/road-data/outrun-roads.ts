@@ -70,6 +70,15 @@ const JOINT_SNAP = 2e-6;
 const THERE = 1e-9;
 /** Where the composite of the roads is sampled for changes, positions. */
 const SAMPLE = 0.25;
+/**
+ * The guidance where a road is chosen (K decides on Pages): rows of road arrows this far before the roads part, metres;
+ * each lane at least `ARROW_LANE` wide gets one, ahead in a lane of the road taken, else toward it; its size, metres.
+ */
+const ARROW_ROWS = [150, 100, 50];
+const ARROW_LANE = 2.5;
+const ARROW = Object.freeze({ forward: { width: 1.8, length: 10 }, aside: { width: 3.2, length: 10 } });
+/** The sign between the roads stands where they are this far apart, metres. */
+const SIGN_APART = 8;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 const metres = (units: number) => round(units * UNIT_METRES);
@@ -439,6 +448,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     return found ? [{ ...found, object: o }] : [];
   });
 
+  const guidance = roadGuidance(laid);
+
   // The Sections.
   const sections: unknown[] = [];
   const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
@@ -473,6 +484,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
           checkpoints: [...(cp ? [{ id: `${name}-CP`, p: cp.p }] : []), ...(goal && k < laid.length - 1 ? [goal] : [])],
           finish: k === laid.length - 1 ? goal : null,
           objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
+          guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
           profile,
           stageStarts,
           options,
@@ -534,6 +546,90 @@ function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
   return null;
 }
 
+/** A piece of guidance at position `p` of span `k`: a road arrow in a lane, or a sign beside a lane's side. */
+type Guide = { readonly k: number; readonly p: number } & (
+  | { readonly kind: 'arrow'; readonly lane: string; readonly direction: 'forward' | 'left' | 'right' }
+  | {
+      readonly kind: 'sign';
+      readonly image: string;
+      readonly lane: string;
+      readonly side: 'left' | 'center' | 'right';
+      readonly offset: number;
+    }
+);
+
+/**
+ * The guidance where a road is chosen (each fork, and each goal the road runs on from): rows of road arrows before the
+ * roads part, ahead in the lanes of the road taken and toward it in the others; a sign between the roads where they
+ * have parted `SIGN_APART`, pointing to the road taken; and chevrons across the road not taken where it ends, pointing
+ * to the road taken. All are passed through.
+ */
+function roadGuidance(laid: readonly Laid[]): Guide[] {
+  // A road station's span and position.
+  const positionAt = (station: number) => {
+    const k = laid.reduce((found, l, i) => (l.start <= station ? i : found), 0);
+    const l = laid[k]!;
+    let [lo, hi] = [0, l.road.span.length];
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (l.start + l.plan.station(mid) < station) lo = mid;
+      else hi = mid;
+    }
+    return { k, p: (lo + hi) / 2 };
+  };
+  return laid.flatMap((l, k) => {
+    const choice = l.road.span.choice;
+    if (!choice || k === laid.length - 1) return [];
+    const toward: 'left' | 'right' = choice.side < 0 ? 'left' : 'right';
+    const arrows = ARROW_ROWS.flatMap((before) => {
+      const { k: j, p } = positionAt(l.start + l.plan.station(choice.parts) - before);
+      const widths = laid[j]!.road.span.lanes(p);
+      return [...choice.taken, ...choice.dead]
+        .filter((lane) => (widths.get(lane) ?? 0) * UNIT_METRES >= ARROW_LANE)
+        .map((lane) => ({
+          kind: 'arrow' as const,
+          k: j,
+          p,
+          lane,
+          direction: choice.taken.includes(lane) ? ('forward' as const) : toward,
+        }));
+    });
+    // The roads' gap: the median between the road taken's inner lane and the road not taken.
+    const inner = choice.side < 0 ? choice.taken.at(-1)! : choice.taken[0]!;
+    const innerSide = choice.side < 0 ? 'right' : 'left';
+    const apartAt = (p: number) =>
+      Math.abs(
+        lineOf(l.road.span, { lane: inner, side: innerSide, units: 0 }, p) -
+          lineOf(l.road.span, { lane: choice.dead[choice.side < 0 ? 0 : 2]!, side: toward, units: 0 }, p),
+      ) * UNIT_METRES;
+    let [lo, hi] = [choice.parts, choice.ends];
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (apartAt(mid) < SIGN_APART) lo = mid;
+      else hi = mid;
+    }
+    const sign = {
+      kind: 'sign' as const,
+      k,
+      p: hi,
+      image: `sign-${toward}`,
+      lane: inner,
+      side: innerSide as 'left' | 'right',
+      offset: (-choice.side * SIGN_APART) / 2,
+    };
+    const chevrons = choice.dead.map((lane) => ({
+      kind: 'sign' as const,
+      k,
+      p: choice.ends,
+      image: `chevron-${toward}`,
+      lane,
+      side: 'center' as const,
+      offset: 0,
+    }));
+    return [...arrows, sign, ...chevrons];
+  });
+}
+
 type Lateral = Record<string, unknown>;
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
@@ -552,6 +648,7 @@ function sectionDocument(
     readonly checkpoints: readonly { readonly id: string; readonly p: number }[];
     readonly finish: { readonly id: string; readonly p: number } | null;
     readonly objects: readonly { readonly p: number; readonly lateral: number; readonly object: ObjectPlacement }[];
+    readonly guidance: readonly Guide[];
     readonly profile: Profile;
     readonly stageStarts: ReadonlyMap<Stage, number>;
     readonly options: RoadOptions;
@@ -783,6 +880,18 @@ function sectionDocument(
     }
   }
 
+  // The road arrows, in the lane lines' color.
+  for (const g of section.guidance)
+    if (g.kind === 'arrow')
+      strips.push({
+        kind: 'arrow',
+        at: at(g.p),
+        lateral: laneLateral(g.lane, 'center', 0),
+        ...ARROW[g.direction === 'forward' ? 'forward' : 'aside'],
+        direction: g.direction,
+        color: colors.laneLines.rgb555[1]!,
+      });
+
   // The gates.
   const gates: unknown[] = [];
   if (section.first)
@@ -838,8 +947,8 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: repeated(
-      section.objects.map(({ p, lateral, object: o }) => ({
+    sprites: repeated([
+      ...section.objects.map(({ p, lateral, object: o }) => ({
         kind: 'sprite',
         image: o.image,
         palette: o.palette,
@@ -856,7 +965,24 @@ function sectionDocument(
                 movable: null,
               },
       })),
-    ),
+      // The guidance's signs, passed through.
+      ...section.guidance.flatMap((g) =>
+        g.kind === 'sign'
+          ? [
+              {
+                kind: 'sprite',
+                image: g.image,
+                palette: 'original',
+                at: at(g.p),
+                lateral: laneLateral(g.lane, g.side, g.offset),
+                groundOffset: 0,
+                unselectedLink: null,
+                body: null,
+              },
+            ]
+          : [],
+      ),
+    ]),
     environments,
     gates,
   };

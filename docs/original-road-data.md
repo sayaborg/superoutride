@@ -533,6 +533,12 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
   it stands beside. A solid object's body is at most its board's width in whole texels. Where the road runs on from a
   goal, the objects its goal stretch brings out (its stands among them, on the road taken) are passed through (K,
   2026-10-20, for now).
+- **Guidance**, a default K decides on Pages, where a road is chosen: each fork, and each goal the
+  road runs on from (`roadGuidance`). Three rows of road arrows 150, 100 and 50 m before the roads part, one in each
+  lane at least 2.5 m wide, in the stage's lane line color: ahead (1.8 by 10 m) in a lane of the road taken, toward it
+  (3.2 by 10 m) in the others. Where the roads are 8 m apart, `sign-left` or `sign-right` stands between them, its
+  arrow to the road taken; where the road not taken ends, `chevron-left` or `chevron-right` stands in each of its
+  lanes, pointing to the road taken. All are passed through: no fence closes the road not taken.
 - **Gates.** The grid on COCONUT BEACH; a checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's
   left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the car, 10.8 positions
   into the stage, just after the roads have closed to six lanes (the original grants its time there, 0x4812; a stage

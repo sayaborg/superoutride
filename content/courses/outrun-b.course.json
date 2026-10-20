@@ -20811,6 +20811,78 @@
           "right": { "lane": "f", "side": "right", "offset": 0.967925 },
           "color": 31710,
           "material": null
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "s2", "offset": 65.426409 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "s2", "offset": 65.426409 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -30.819967 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -30.819967 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c5", "offset": 1.139429 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c5", "offset": 1.139429 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c5", "offset": 1.139429 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c5", "offset": 1.139429 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
         }
       ],
       "walls": [],
@@ -24566,7 +24638,48 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "sign-left",
+          "palette": "original",
+          "at": { "joint": "c15", "offset": -0.456852 },
+          "lateral": { "lane": "c", "side": "right", "offset": 4 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "d", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
@@ -44271,6 +44384,78 @@
           "right": { "lane": "f", "side": "right", "offset": 0.967925 },
           "color": 31710,
           "material": null
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c1", "offset": -80.819968 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c1", "offset": -80.819968 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "right",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c1", "offset": -30.819968 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c1", "offset": -30.819968 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "right",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.139427 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.139427 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.139427 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "right",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.139427 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "right",
+          "color": 31710
         }
       ],
       "walls": [],
@@ -48104,7 +48289,48 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "sign-right",
+          "palette": "original",
+          "at": { "joint": "c15", "offset": -0.456852 },
+          "lateral": { "lane": "d", "side": "left", "offset": -4 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-right",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-right",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-right",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "c", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
@@ -54816,6 +55042,114 @@
           "right": { "lane": "f", "side": "right", "offset": 0.967925 },
           "color": 31710,
           "material": null
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -121.518633 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -121.518633 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -121.518633 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -121.518633 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -71.518633 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -71.518633 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -71.518633 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -71.518633 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -21.518633 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -21.518633 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -21.518633 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c9", "offset": -21.518633 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 31710
         }
       ],
       "walls": [],
@@ -60028,7 +60362,48 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "sign-left",
+          "palette": "original",
+          "at": { "joint": "c15", "offset": -0.456852 },
+          "lateral": { "lane": "c", "side": "right", "offset": 4 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "d", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
@@ -80085,6 +80460,114 @@
           "right": { "lane": "f", "side": "right", "offset": 0.967925 },
           "color": 30484,
           "material": null
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -98.870958 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -98.870958 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -98.870958 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -98.870958 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -48.870958 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -48.870958 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -48.870958 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": -48.870958 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.129043 },
+          "lateral": { "lane": "a", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.129043 },
+          "lateral": { "lane": "b", "side": "center", "offset": 0 },
+          "width": 1.8,
+          "length": 10,
+          "direction": "forward",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.129043 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
+        },
+        {
+          "kind": "arrow",
+          "at": { "joint": "c3", "offset": 1.129043 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "width": 3.2,
+          "length": 10,
+          "direction": "left",
+          "color": 30484
         }
       ],
       "walls": [],
@@ -85563,7 +86046,48 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "sign-left",
+          "palette": "original",
+          "at": { "joint": "c15", "offset": -0.456852 },
+          "lateral": { "lane": "c", "side": "right", "offset": 4 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "d", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "e", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "chevron-left",
+          "palette": "original",
+          "at": { "joint": "c39", "offset": 0 },
+          "lateral": { "lane": "f", "side": "center", "offset": 0 },
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },

@@ -114,6 +114,21 @@ export interface Span {
    * its road position starts again at 0 for the next one, and the scenery point it was running ends.
    */
   readonly resets: readonly number[];
+  /** Where a road is chosen in it, if one is. */
+  readonly choice?: Choice;
+}
+
+/**
+ * Where a road is chosen: the roads part at `parts`; the road taken lies on `side` (−1 left), its lanes `taken`; the
+ * road not taken, its lanes `dead`, ends at `ends`, where its lanes begin to narrow. Lane names hold from the stage
+ * before the parting on.
+ */
+export interface Choice {
+  readonly parts: number;
+  readonly ends: number;
+  readonly side: -1 | 1;
+  readonly taken: readonly string[];
+  readonly dead: readonly string[];
 }
 
 const ramp = (p: number, from: number, to: number, a: number, b: number) =>
@@ -296,8 +311,19 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
     at(FORK.closes) + GROWS,
     ...curvedSamples(width),
   ];
+  const [left, right] = [
+    ['a', 'b', 'c'],
+    ['d', 'e', 'f'],
+  ];
   const common = {
     length,
+    choice: {
+      parts: at(FORK.parts),
+      ends: at(apartAt) - DEAD_END,
+      side,
+      taken: side < 0 ? left : right,
+      dead: side < 0 ? right : left,
+    },
     path: pathOver(fork, start, FORK.end, Math.ceil(FORK.end)).map((s) => ({
       ...s,
       turn: side < 0 ? s.turn : -s.turn,
@@ -530,6 +556,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     stages: [{ from: 0, stage, arrival: 'cut' }],
     stageEnd: STAGE_LENGTH,
     resets: [STAGE_LENGTH, length],
+    choice: { parts: at(GOAL.parts), ends: apart - DEAD_END, side: -1, taken: ['a', 'b', 'c'], dead: ['d', 'e', 'f'] },
   };
 }
 
@@ -662,6 +689,9 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     ...(span.stageEnd !== undefined && inside(span.stageEnd)
       ? { stageEnd: span.stageEnd - from }
       : { stageEnd: undefined }),
+    ...(span.choice && inside(span.choice.parts)
+      ? { choice: { ...span.choice, parts: span.choice.parts - from, ends: span.choice.ends - from } }
+      : { choice: undefined }),
   };
 }
 
@@ -699,6 +729,9 @@ export function withEntry(span: Span, entry: number): Span {
     stages: span.stages.map((st) => ({ ...st, from: on(st.from) })),
     resets: span.resets.map((p) => p + entry),
     ...(span.stageEnd !== undefined ? { stageEnd: span.stageEnd + entry } : {}),
+    ...(span.choice
+      ? { choice: { ...span.choice, parts: span.choice.parts + entry, ends: span.choice.ends + entry } }
+      : {}),
   };
 }
 
