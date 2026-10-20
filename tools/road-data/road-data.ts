@@ -31,6 +31,7 @@ import { drawScreenPicture } from '../graphics/screen-pictures.js';
 import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
+import { superHangOnDump } from './super-hang-on-dump.js';
 import {
   OUTRUN_STAGES,
   pathOffset,
@@ -53,9 +54,13 @@ const round1 = (value: number) => Math.round(value * 10) / 10;
 /** The top speed, km/h: the holds of the hills are counted at it unless told otherwise. */
 const TOP_KMH = 293;
 
-/** Where K's ROM zip and the tool's dumps lie: never committed. */
+/** Where K's ROM zips and the tool's dumps lie, by original: never committed. */
 const ROM_DIRECTORY = 'reference-media/outrun/rom';
 const DUMP_DIRECTORY = 'reference-media/outrun/rom-data';
+const SUPER_HANG_ON = Object.freeze({
+  rom: 'reference-media/super-hang-on/rom',
+  dump: 'reference-media/super-hang-on/rom-data',
+});
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The player's picture set, which the Ferrari's local original replaces. */
@@ -65,13 +70,17 @@ const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', ver
 
 const [command, ...rest] = process.argv.slice(2);
 
+/** The ROM zip `zip`, else the one zip in `directory`. */
+async function romZip(zip: string | undefined, directory: string) {
+  if (zip) return zip;
+  const zips = (await readdir(directory).catch(() => [])).filter((name) => name.endsWith('.zip'));
+  requireInput(zips.length === 1, '/arguments/--zip', `--zip names the ROM zip, or ${directory} holds one`);
+  return path.join(directory, zips[0]!);
+}
+
 /** The programs from the ROM zip `zip`, else the one zip in the ROM directory, checked. */
 async function readPrograms(zip: string | undefined) {
-  if (!zip) {
-    const zips = (await readdir(ROM_DIRECTORY).catch(() => [])).filter((name) => name.endsWith('.zip'));
-    requireInput(zips.length === 1, '/arguments/--zip', `--zip names the ROM zip, or ${ROM_DIRECTORY} holds one`);
-    zip = path.join(ROM_DIRECTORY, zips[0]!);
-  }
+  zip = await romZip(zip, ROM_DIRECTORY);
   return { zip, programs: assemblePrograms(readZip(new Uint8Array(await readFile(zip)))) };
 }
 
@@ -109,6 +118,26 @@ function parse(args: readonly string[]) {
 try {
   const options = parse(rest);
   switch (command) {
+    case 'super-hang-on-read': {
+      // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
+      const zip = await romZip(options.get('--zip'), SUPER_HANG_ON.rom);
+      const dump = superHangOnDump(readZip(new Uint8Array(await readFile(zip))));
+      const out = options.get('--out') ?? SUPER_HANG_ON.dump;
+      await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          out,
+          positions: dump.positions,
+          courses: dump.courses,
+          sceneryTypes: Object.keys(dump.sceneryTypes).length,
+          sprites: Object.keys(dump.sprites).length,
+          palettes: Object.keys(dump.palettes).length,
+        }),
+      );
+      break;
+    }
     case 'read': {
       // The ROM zip checked and read; every table to the dump.
       const { zip, programs } = await readPrograms(options.get('--zip'));
