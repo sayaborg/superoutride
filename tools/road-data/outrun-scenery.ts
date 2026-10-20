@@ -18,7 +18,7 @@ import { POSITION_PER_KMH } from './outrun-hills.js';
 
 /** Where the road width exceeds this as an object appears, the roads are apart: some routines keep it by the left road. */
 const RIGHT_FROM_LEFT_WIDTH = 280;
-/** Objects appear at the road's first line; the second of a tick's two slots a 1/64 line nearer. */
+/** Objects appear at the road's first line; the first of a tick's two turns (slot 1) a 1/64 line nearer (0x3C76). */
 const HORIZON = 0x10000;
 const NEARER = 0x10400;
 

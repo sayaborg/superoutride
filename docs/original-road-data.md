@@ -192,10 +192,11 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
 - **Points.** A scenery point is taken when the road position reaches it and replaces the one before. Each tick after,
   its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from the last
   back, until its count is spent. A tick advances the road `km/h × 0x12F / 65536` positions, 1.35 at the top speed.
-- **Approach.** An object brought out appears on the road's first line (the second of a tick's two a 1/64 line nearer)
-  and comes nearer by the table at 0x28000: each tick the advance counter gains km/h / 64 units, its remainder carried
-  (a unit 64 × 0x12F / 65536 positions), and the object's depth the table's step for its line and that advance. It
-  passes the camera at line 512, 134 positions after it appeared at the top speed, and stands there.
+- **Approach.** An object brought out appears on the road's first line (the first of a tick's two a 1/64 line nearer:
+  0x3C76 spawns it at 0x10400, the second turn at 0x10000) and comes nearer by the table at 0x28000: each tick the
+  advance counter gains km/h / 64 units, its remainder carried (a unit 64 × 0x12F / 65536 positions), and the object's
+  depth the table's step for its line and that advance. It passes the camera at line 512, 134 positions after it
+  appeared at the top speed (132.6 from the nearer line), and stands there.
 - **The start.** An object standing at the start at line L is drawn L / 512 px a road unit: as large as this game's
   camera shows it at f × `UNIT_METRES` × 512 / L metres (3130 / L m). It stands there, or where the camera would pass it
   by its approach where that is nearer (lines below about 20). `k1`'s start gantry (line 160, 16.8 m) leaves the top of
