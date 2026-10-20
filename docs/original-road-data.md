@@ -1211,6 +1211,15 @@ Where the stage's description gives what the encrypted code does, the tool takes
   offset}, its layers in OUTRUN's format ([Backgrounds](#backgrounds)) but for rows not written, which hold tile word
   0x0020. A leg's start loads tile palettes 8 to 127, each the 8 words at 0x22A56 + 16 × its byte at 0x229DE; each stage
   then applies its patch (`PALETTE_PATCHES`, from the stage's description), so a stage shows its leg's patches to it.
+- **Skies.** A stage's sky is baked ([Sky baking](#sky-baking), `stageBands`) from its background's two layers, page
+  by page with the last page leftmost: the front its four pages (2048 pixels), the back its three (1536), each 32 rows
+  of tiles. The tile ROMs `opr-12323.102`, `opr-12324.103` and `opr-12325.104` are three bit planes, the lowest first,
+  8 bytes a tile, bit 7 the leftmost pixel; a tile word's tile is its bits 0–12, tile 64p to 64p + 63 in palette p; a
+  pixel 0 is transparent, any other the stage's palette's word. Both layers' last row is the entry's offset − 1 rows
+  below the horizon (the offset is 10: their last 10 rows lie under the road), and at heading 0 the screen's middle
+  shows the front's pixel 1888 and the back's 1376, so the front's pixel f lies over the back's 0.75f − 40. The ramp
+  is the stage's sky ramp, its word 0 the two rows just above the horizon, each next word two rows higher, word 63
+  every row above, and word 0 below the horizon.
 
 ### TURBO OUTRUN's sub CPU
 
@@ -1317,11 +1326,11 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
 - **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating; each stage's
   checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish
   `los-angeles-GOAL` where the GOAL gate's does (1403.613).
-- **Skies.** Stage n's is `toutrun-<stage>-sky`, a copy of `coast-sky` until the backgrounds are baked: NEW YORK's from
-  the start; within a leg the next stage's from 6 m before the car reaches where its background comes in (T + 11,
-  1424.585); a leg's first stage's rising at its GO. At heading 0 the original's back layer's pixel 1376 of 1536 is at
-  the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 75.6° plus the plane's turn
-  from the course's start to its start.
+- **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
+  programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from 6 m before the car
+  reaches where its background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the
+  original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
+  Section's yaw origin is 75.6° plus the plane's turn from the course's start to its start.
 - **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](#profile)), the stage closed
   level at height 0 over its stretch; the nine crossings, each of two passages, kept apart; bends broken at the
   Sections' cuts.

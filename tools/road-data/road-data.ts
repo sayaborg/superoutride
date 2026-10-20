@@ -36,8 +36,6 @@ import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import {
   COURSE_ID as TURBO_OUTRUN_COURSE_ID,
-  GENERIC_SKY as TURBO_OUTRUN_GENERIC_SKY,
-  skyName as turboOutrunSky,
   TURBO_OUTRUN_CONVERSION_VERSION,
   turboOutrunCourse,
 } from './turbo-outrun-course.js';
@@ -740,22 +738,14 @@ try {
           );
         } else await atomicWrite(picture, image.bytes);
       }
-      // Each stage's sky as published: the generic coast sky under its own name.
-      const generic = JSON.parse(await readFile(`content/images/${TURBO_OUTRUN_GENERIC_SKY}.json`, 'utf8')) as Record<
-        string,
-        unknown
-      >;
-      const skies = TURBO_OUTRUN_NAMES.map((_, n) => turboOutrunSky(n));
-      for (const name of skies) {
-        const text = JSON.stringify({ ...generic, name });
+      // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
+      const { skies } = built;
+      for (const { name, document } of skies) {
+        const text = JSON.stringify(document);
         const skyFile = `content/images/${name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(
-            committed === text,
-            `/${skyFile}`,
-            `${skyFile} is not ${TURBO_OUTRUN_GENERIC_SKY} under its name`,
-          );
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
         } else await atomicWrite(skyFile, text);
       }
       const { layout } = built;

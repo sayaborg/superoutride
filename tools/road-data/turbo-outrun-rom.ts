@@ -118,3 +118,7 @@ export function assembleTurboOutrunSprites(files: ReadonlyMap<string, ZipFile>):
   );
   return words;
 }
+
+/** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
+export const assembleTurboOutrunTiles = (files: ReadonlyMap<string, ZipFile>): readonly Uint8Array[] =>
+  TURBO_OUTRUN_TILE_ROMS.map((rom) => romData(files, rom, TILE_ROM_SIZE));

@@ -1,7 +1,10 @@
 /**
  * TURBO OUTRUN's backgrounds as its main CPU's tables hold them ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
- * each stage's background number, its two layers' tile words, and the tile palettes its leg has loaded by that stage.
+ * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
+ * its two layers and sky ramp as a sky bakes them.
  */
+import { paletteRgb555 } from './road-tables.js';
+import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
 
 /** A stage's background number: the byte at 0x2ABF8 + 8 × leg + its place in the leg, and the same at 0x1DA52. */
@@ -165,4 +168,59 @@ export function stageTilePalettes(main: Uint8Array, stage: number): Uint16Array 
         for (let c = 0; c < TILE_PALETTE_WORDS; c++)
           words[(first + q - FIRST_TILE_PALETTE) * TILE_PALETTE_WORDS + c] = word(main, source + 2 * c);
   return words;
+}
+
+/** A tile: 8 × 8 pixels, a byte a row in each plane, bit 7 the leftmost; tile 64p to 64p + 63 in palette p. */
+const TILE = 8;
+const TILES_A_PALETTE = 64;
+/** The pages left to right: the last page leftmost. */
+const PAGE_ORDER = { front: [3, 2, 1, 0], back: [2, 1, 0] } as const;
+/** At heading 0 the screen's middle shows the front layer's pixel 1888 and the back's 1376: the front's f over the back's 0.75f − 40. */
+const OVERLAP = -40;
+/** The ramp: two rows up from the horizon a word, word 0 the lowest, word 63 every row above; word 0 below the horizon. */
+const RAMP_ROWS = 2;
+
+/**
+ * Stage `stage` as a sky bakes it ([Sky baking](../../docs/original-road-data.md#sky-baking)), from the tile ROMs'
+ * `planes` and its sky ramp `ramp` (64 RGB555 words): its background's front layer (four pages, 2048 pixels) and back
+ * layer (three, 1536), the last page leftmost, a tile word's tile its bits 0–12, a pixel 0 transparent and any other
+ * its palette's word (the stage's palettes, `stageTilePalettes`), each layer's bottom its entry's offset rows below the
+ * horizon (its last row the offset's − 1st below it); the ramp word 0 up to word 63, two rows each, and word 0 below.
+ */
+export function stageBands(
+  main: Uint8Array,
+  planes: readonly Uint8Array[],
+  stage: number,
+  ramp: readonly number[],
+): SkyBands {
+  const number = backgroundNumber(main, stage);
+  const background = readBackground(main, number);
+  const palettes = stageTilePalettes(main, stage);
+  const layer = (tiles: Uint16Array, order: readonly number[]): SkyLayer => {
+    const [width, height] = [order.length * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
+    const pixels = new Int32Array(width * height);
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) {
+        const page = order[Math.floor(x / (PAGE_COLUMNS * TILE))]!;
+        const tileWord = tiles[(page * PAGE_ROWS + (y >> 3)) * PAGE_COLUMNS + ((x >> 3) % PAGE_COLUMNS)]!;
+        const [tile, u, v] = [tileWord & 0x1fff, x & 7, y & 7];
+        const value = planes.reduce((n, plane, p) => n | (((plane[tile * TILE + v]! >> (7 - u)) & 1) << p), 0);
+        const palette = Math.floor(tile / TILES_A_PALETTE) - FIRST_TILE_PALETTE;
+        if (value && palette < 0)
+          throw new Error(
+            `Background ${number}'s tile word 0x${tileWord.toString(16)} uses a palette it does not load`,
+          );
+        pixels[y * width + x] = value ? paletteRgb555(palettes[palette * TILE_PALETTE_WORDS + value]!) : TRANSPARENT;
+      }
+    return { width, pixels, bottom: background.offset - 1 };
+  };
+  return {
+    back: layer(background.back.tiles, PAGE_ORDER.back),
+    front: layer(background.front.tiles, PAGE_ORDER.front),
+    overlap: OVERLAP,
+    ramp: {
+      rows: Array.from({ length: ramp.length * RAMP_ROWS }, (_, i) => ramp[Math.floor(i / RAMP_ROWS)]!),
+      below: ramp[0]!,
+    },
+  };
 }

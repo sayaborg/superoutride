@@ -20,7 +20,13 @@ import {
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
 import { layTurboOutrun, OPEN, type Piece } from './turbo-outrun-layout.js';
-import { assembleTurboOutrunPrograms, assembleTurboOutrunSprites } from './turbo-outrun-rom.js';
+import {
+  assembleTurboOutrunPrograms,
+  assembleTurboOutrunSprites,
+  assembleTurboOutrunTiles,
+} from './turbo-outrun-rom.js';
+import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
+import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
 import { turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
@@ -40,21 +46,17 @@ const COURSE_NAME = 'TURBO OUTRUN';
 
 /** A stage's Sections' ids' stem: its name in lower case, dots left out, words joined by hyphens. */
 export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().replace(/\./g, '').replace(/ +/g, '-');
-/** A stage's sky, a copy of the generic coast sky until the original's are baked. */
+/** A stage's sky, baked from its background. */
 export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
-export const GENERIC_SKY = 'coast-sky';
 
 /** The start grid: as many slots as a run's competitors, this far apart, the last at GO in lane b, the next in a. */
 const GRID_SLOTS = 16;
 const GRID_SPACING = 12;
-/** The skies' horizon row, the generic skies'. */
-const SKY_HORIZON = 320;
 /**
  * The skies face as the original's backgrounds: at heading 0 its back layer's pixel 1376 of 1536 is at the screen's
  * middle, here 1376 × 1504 / 1536 of the sky's 1504.
  */
-const SKY_WIDTH = 1504;
-const BACK_LAYER = { width: 1536, middle: 1376 } as const;
+const BACK_MIDDLE = 1376;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
@@ -125,6 +127,7 @@ interface SkyChange {
 export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
   checkTurboOutrunRoadRom(files);
   const programs = assembleTurboOutrunPrograms(files);
+  const planes = assembleTurboOutrunTiles(files);
   const { stages } = readTurboOutrunStages(programs);
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
@@ -173,7 +176,7 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
       ),
     );
   const yawBase =
-    ((SKY_WIDTH - ((BACK_LAYER.middle * SKY_WIDTH) / BACK_LAYER.width - CAMERA_DEFINITION.centerX)) /
+    ((SKY_WIDTH - ((BACK_MIDDLE * SKY_WIDTH) / BACK_WIDTH - CAMERA_DEFINITION.centerX)) /
       CAMERA_DEFINITION.focalLength) *
     (180 / Math.PI);
   const checkpoints = course
@@ -240,6 +243,11 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
     runs,
     kmh,
     pictures,
+    // Each stage's sky, baked from its background.
+    skies: stages.map((stage, n) => ({
+      name: skyName(n),
+      document: bakeSky(skyName(n), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
+    })),
     placing: placing.report,
   };
 }

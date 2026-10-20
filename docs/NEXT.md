@@ -137,8 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-15](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
-[Stage TO](#stage-to--turbo-outrun-from-the-roms)'s TO-4;
+Next PR: [RD-15](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -465,13 +464,9 @@ and yaw origins, the checkpoints, finish and grid, no class, its racing line mea
 the strips, in the ROMs' pictures by SH-3c's chosen lines
 ([TURBO OUTRUN's objects](original-road-data.md#turbo-outruns-objects)), so no TO-3c is needed; TO-3b2 stood the
 strips and the far strip, restored as OUTRUN's strips and clouds are
-([TURBO OUTRUN's strips](original-road-data.md#turbo-outruns-strips)). The PR left (split and reported if too large
-for one review):
-
-- TO-4: the 16 skies baked in place of the copies by the originals' one sky baking (`sky-baking`, K, 2026-10-21,
-  SH-4's): TURBO OUTRUN's backgrounds give it their layers, ramp and palettes (each leg's start's with the stage's
-  patches to it), the layers' bottoms 10 rows below the horizon, the front's pixel f over the back's 0.75f − 40, below
-  the horizon the ramp's word 0. RD-15 is not waited for. Pixels alone, published, not measured.
+([TURBO OUTRUN's strips](original-road-data.md#turbo-outruns-strips)); TO-4 baked its 16 skies by SH-4's `sky-baking`
+([TURBO OUTRUN's programs](original-road-data.md#turbo-outruns-programs)). Stage TO has no PR left: its hills wait for
+the stage that makes the hills again.
 
 Not in this stage: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and
 959, their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and
