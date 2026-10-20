@@ -251,16 +251,12 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 - **Picture.** The board's indices are the largest size's own pixels (a strip's restored from its sizes,
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
-  ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2). Its
-  [local original](development.md#local-originals) is the same picture.
+  ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
 - **Base point.** At the bottom or middle its anchor gives. Across, an object anchored by an edge that has no body (its
   routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
   at the middle of the sprite's hit extents, so a solid object's body stands there.
 - **Shadow.** A shadowed board's shadow is the original's shadow by chosen lines at the board's scale (a figure's at
   3/8 of it) and at its anchor.
-
-The sprite sources and recipes under
-`content/sprite-sources/` that earlier boards were imported from are no longer written or read.
 
 ## Placing scenery
 
@@ -496,7 +492,7 @@ stage 0x3B's tables put the road's top at or above the screen's top.
 
 `npm run road-data -- course` also writes each stage's sky, `outrun-<stage>-sky`, baked from its background
 ([sky baking](#sky-baking)) out of the tile ROMs as its program places it (`stageSky`), committed and shown on Pages
-provisionally; its [local original](development.md#local-originals) is the same picture:
+provisionally:
 
 - **Tiles.** The tile ROMs are three bit planes, each two ROMs (`opr-10268.99` and `opr-10232.102` the lowest bit,
   `opr-10267.100` and `opr-10231.103` the next, `opr-10266.101` and `opr-10230.104` the highest), 8 bytes a tile, a byte
@@ -520,22 +516,6 @@ provisionally; its [local original](development.md#local-originals) is the same 
   VALLEY, VINEYARD), so their skies are flat.
 
 Each course's backgrounds keep their image, horizon row (320, the sky picture's) and yaw origin, so no course changes.
-
-## The player's car
-
-`npm run road-data -- player` draws the original's Ferrari into TESTAROSSA's picture set
-(`content/sprites/testarossa.json`) as its [local original](development.md#local-originals) (`playerOriginal`):
-
-- **Frames.** The table at 0x9ECC holds the player's frames, 8 bytes each: {long size, word frame, word x offset}.
-  Three steering levels (under 0x12, under 0x1E, beyond) each have three slopes; the level slope's (the middle) is
-  taken. As stored, a frame shows the car turned left, with x offset +1, −3 and −8; turned right, it is drawn mirrored.
-- **Palettes.** The car's palette is 2 + its wheels' phase (2 or 3), and 2 more while braking (4 or 5). The one color
-  palette 4 changes, slot 11, is the brake lamp.
-- **The set.** Every picture, size, anchor, shadow, palette name and grid cell stays the published set's. A picture
-  shows its yaw's level: straight from behind, mid one or two steps turned, hard beyond. Its frame is scaled by
-  nearest pixel so that its width at that size is the straight picture's, its bottom on the picture's bottom and its
-  middle at the anchor less its x offset. Slots 1–14 are the car's colors in every named palette; the lamp is slot 15,
-  off and on from palettes 2 and 4.
 
 ## Voices and effects
 
@@ -869,12 +849,8 @@ left fork's side down), which is also the order ALL 15 STAGES runs them:
 | 14     | AUTOBAHN        | AUT        |
 | 15     | LAKESIDE        | LAK        |
 
-Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it is a copy of the generic
-sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast (COCONUT BEACH), sky-cliff
-(DEVIL'S CANYON), sky-country (GATEWAY, WILDERNESS), sky-overcast (CLOUDY MOUNTAIN), sky-mountain (ALPS), sky-desert
-(DESERT, DEATH VALLEY), sky-seafront (SEASIDE TOWN), sky-farm (WHEAT FIELD, VINEYARD), sky-town (OLD CAPITAL), sky-lake
-(LAKESIDE), sky-forest (AUTOBAHN) and sky-alpine-dark (DESOLATION HILL). A
-[local original](development.md#local-originals) of its name replaces it.
+Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320, baked from its background
+([Backgrounds](#backgrounds)).
 
 ## Checks on `k1`
 

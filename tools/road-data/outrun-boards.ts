@@ -48,11 +48,10 @@ export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored'
   return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
 }
 
-/** The files of one board: its course image, and the same picture as the local original in its place. */
+/** The files of one board: its course image. */
 export interface BoardFiles {
   readonly name: string;
   readonly image: { readonly path: string; readonly bytes: Uint8Array };
-  readonly original: { readonly path: string; readonly bytes: Uint8Array };
 }
 
 /** Whether an object of `use` stands by its edge: anchored by an edge, with no body (its routine never hits). */
@@ -131,7 +130,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
         : {}),
     });
     const board = master((k) => [0, ...spritePalette(main, palettes[k]!).slice(1)], indices);
-    boards.push({ name, image: courseImageFile(board), original: courseImageFile(board) });
+    boards.push({ name, image: courseImageFile(board) });
   }
   return boards;
 }

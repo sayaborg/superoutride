@@ -1,9 +1,7 @@
 /**
  * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([Original road data](../../docs/original-road-data.md#sprites)):
- * the sprite ROMs' 32-bit words, a size's pixels and outline, its base point by its anchor, and a palette's
- * representative color.
+ * the sprite ROMs' 32-bit words, a size's pixels and outline, and its base point by its anchor.
  */
-import { requireInput } from '../course/authoring-io.js';
 
 /** A set of four ROMs' words: ROM `k` gives byte `k` of each word, counted from the least significant. */
 export function spriteWords(roms: readonly Uint8Array[]): Uint32Array {
@@ -80,22 +78,4 @@ export function anchorPoint(anchor: number, width: number, height: number): { x:
     x: across === 1 ? -0.5 : across === 2 ? width - 0.5 : width / 2 - 0.5,
     y: down === 4 ? -0.5 : down === 8 ? height - 0.5 : height / 2 - 0.5,
   };
-}
-
-/** A palette's representative color: its colors' mean over a sprite's opaque pixels, RGB555 by channel, rounded. */
-export function representative(pixels: Uint8Array, palette: readonly number[]): number {
-  let r = 0,
-    g = 0,
-    b = 0,
-    n = 0;
-  for (const v of pixels) {
-    if (!v) continue;
-    const c = palette[v]!;
-    r += (c >> 10) & 31;
-    g += (c >> 5) & 31;
-    b += c & 31;
-    n++;
-  }
-  requireInput(n > 0, '/sprites', 'A sprite without opaque pixels has no outline');
-  return (Math.round(r / n) << 10) | (Math.round(g / n) << 5) | Math.round(b / n);
 }

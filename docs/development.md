@@ -494,10 +494,9 @@ from the ROMs under `content/`:
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read`                 | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                                               |
 | `hills`                | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
-| `course`               | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies and their [local originals](#local-originals) to `content/images/`, or with `--check` fail where one differs |
+| `course`               | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies to `content/images/`, or with `--check` fail where one differs                                               |
 | `look`                 | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
-| `boards`               | Write the boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), in the ROMs' pixels, and their [local originals](#local-originals), or with `--check` fail where a board differs      |
-| `player`               | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                                         |
+| `boards`               | Write the boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), in the ROMs' pixels, or with `--check` fail where a board differs                                                     |
 | `sounds`               | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
 | `turbo-outrun-read`    | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
 | `turbo-outrun-course`  | Write TURBO OUTRUN's course, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures its objects show and its skies to `content/images/`, or with `--check` fail where one differs            |
@@ -506,26 +505,21 @@ from the ROMs under `content/`:
 
 ### Local originals
 
-A local build can show an original's own pictures, converted from its ROMs, in place of the published ones. They are
-for K's own runs only: they never reach Git, a PR or Pages.
+A local build can play an original's own voices and effects, converted from its ROMs, in place of the published
+recordings. They are for K's own runs only: they never reach Git, a PR or Pages.
 
 - **Where.** A local original is a file under `reference-media/originals/` (which Git ignores) at the path, under
   `content/`, of the published file it replaces. A file with no published counterpart is left out.
-- **Identity.** An original keeps everything the course identity reads: the same name, size in texels, foot position,
-  palette names and level count as the published file. Only its pixels and colors differ, so the measured products
-  saved for the published content stay valid.
-- **Conversion.** Each conversion is deterministic and is rebuilt by the command that writes the published file:
-  `npm run road-data -- boards` writes each board, in the ROMs' pixels, and beside it the same picture as its original.
-  `npm run road-data -- course` writes each OUTRUN stage's sky and its original, the stage's background from the tile
-  ROMs ([Backgrounds](original-road-data.md#backgrounds)). `npm run road-data -- player` writes the original of TESTAROSSA's picture set, the original's Ferrari
-  ([The player's car](original-road-data.md#the-players-car)). `npm run road-data -- sounds` writes the originals of the recordings the original
-  plays from its PCM ROMs, with ffmpeg ([Voices and effects](original-road-data.md#voices-and-effects)).
+- **Identity.** An original keeps the published file's name; only its sound differs, so nothing the course identity
+  reads changes and the measured products saved for the published content stay valid.
+- **Conversion.** The conversion is deterministic: `npm run road-data -- sounds` writes the originals of the recordings
+  the original plays from its PCM ROMs, with ffmpeg ([Voices and effects](original-road-data.md#voices-and-effects)).
 - **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
   paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
   authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.
 
-To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- boards`, `course`,
-`player` and `sounds`, then `npm run build:originals`, serve the repository root (`python3 -m http.server 8000`)
+To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- sounds`, then
+`npm run build:originals`, serve the repository root (`python3 -m http.server 8000`)
 and open the game with `dev=1`.
 `npm run build` returns to the published files.
 

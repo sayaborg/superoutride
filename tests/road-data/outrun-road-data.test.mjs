@@ -16,13 +16,7 @@ import {
   stageGrades,
   STEEPEST,
 } from '../../tools/road-data/road-profile.ts';
-import {
-  anchorPoint,
-  outline,
-  representative,
-  spritePixels,
-  spriteWords,
-} from '../../tools/road-data/sprite-pixels.ts';
+import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
 import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
@@ -551,7 +545,7 @@ test('crossings kept 6 m apart: two passages by smooth bumps, more by levels, a 
   assert.ok(again.separations.filter((s) => s.crossing === 0).length > 1);
 });
 
-test("a sprite's pixels, its filled outline, its anchor and its palette's representative color", () => {
+test("a sprite's pixels, its filled outline and its anchor", () => {
   // A set's four ROMs give a word's bytes from the least significant: .9's byte is its low byte, .12's its high one.
   const roms = [[0x78], [0x56], [0x34], [0x12]].map((bytes) => Uint8Array.from(bytes));
   assert.deepEqual([...spriteWords(roms)], [0x12345678]);
@@ -570,9 +564,6 @@ test("a sprite's pixels, its filled outline, its anchor and its palette's repres
   // Bottom middle, and the right edge at the object's x.
   assert.deepEqual(anchorPoint(8, 10, 20), { x: 4.5, y: 19.5 });
   assert.deepEqual(anchorPoint(10, 10, 20), { x: 9.5, y: 19.5 });
-  // The mean of the colored pixels' colors by channel.
-  const palette = [0, (10 << 10) | (20 << 5) | 30, (20 << 10) | (10 << 5) | 0];
-  assert.equal(representative(Uint8Array.from([1, 2, 0]), palette), (15 << 10) | (15 << 5) | 15);
 });
 
 /** A program whose objects approach by the table at 0x28000 (col × line × 0x400) and whose scenery types 1 to 3 each

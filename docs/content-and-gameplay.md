@@ -1746,7 +1746,7 @@ road data ([Original road data](original-road-data.md#outruns-roads)), which own
 scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
 has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
 checkpoint, and the finish is at the last stage's end. Their scenery is the ROMs' sprites, provisionally; where a road is chosen, boards, chevrons and
-road arrows show which road to take. Until their hills are made again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
+road arrows show which road to take. Until their hills are made again they have no class ([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and
 their measured products are their racing lines alone.
 
 SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,

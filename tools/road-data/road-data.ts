@@ -26,7 +26,6 @@ import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { assembleTiles, stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
-import { playerOriginal } from './outrun-player.js';
 import { assembleSound, commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
@@ -73,8 +72,6 @@ const SUPER_HANG_ON_ROM_DIRECTORY = 'reference-media/super-hang-on/rom';
 const SUPER_HANG_ON_DUMP_DIRECTORY = 'reference-media/super-hang-on/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
-/** The player's picture set, which the Ferrari's local original replaces. */
-const PLAYER_SET = 'content/sprites/testarossa.json';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
@@ -426,7 +423,7 @@ try {
           })),
         });
       }
-      // Each stage's sky, baked from its background, and the same picture as its local original.
+      // Each stage's sky, baked from its background.
       for (const number of OUTRUN_STAGES.flat()) {
         const name = skyName(number);
         const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
@@ -437,7 +434,6 @@ try {
           continue;
         }
         await atomicWrite(skyFile, text);
-        await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), text);
       }
       console.log(
         JSON.stringify({
@@ -525,16 +521,6 @@ try {
       console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
       break;
     }
-    case 'player': {
-      // The player's car, the Ferrari, drawn into TESTAROSSA's picture set as its local original.
-      const { zip, programs } = await readPrograms(options.get('--zip'));
-      const words = assembleSprites(readZip(new Uint8Array(await readFile(zip))));
-      const published = JSON.parse(await readFile(PLAYER_SET, 'utf8')) as Parameters<typeof playerOriginal>[2];
-      const file = path.join(ORIGINALS_DIRECTORY, path.relative('content', PLAYER_SET));
-      await atomicWrite(file, formatSavedJson(playerOriginal(programs.main, words, published)));
-      console.log(JSON.stringify({ ok: true, zip, original: file }));
-      break;
-    }
     case 'sounds': {
       // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
       const { zip } = await readPrograms(options.get('--zip'));
@@ -618,14 +604,11 @@ try {
             `${file} is not the ROMs' board`,
           );
         } else await atomicWrite(file, board.image.bytes);
-        // The original's picture of the same name, local: Git ignores the originals' directory.
-        if (!check) await atomicWrite(path.join(ORIGINALS_DIRECTORY, board.original.path), board.original.bytes);
       }
       console.log(
         JSON.stringify({
           ok: true,
           checked: check,
-          originals: check ? null : ORIGINALS_DIRECTORY,
           boards: boards.map((b) => b.name),
           notConverted: Object.fromEntries([...skipped].map(([kind, n]) => [`kind ${kind}`, n])),
         }),
