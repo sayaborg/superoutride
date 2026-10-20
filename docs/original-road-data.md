@@ -494,9 +494,9 @@ stage 0x3B's tables put the road's top at or above the screen's top.
 
 ## Backgrounds
 
-`npm run road-data -- course` also writes each stage's background, converted from the tile ROMs, as the
-[local original](development.md#local-originals) of its sky (`stageBackground`), at the published sky's size (94 × 40
-tiles) and horizon row (320):
+`npm run road-data -- course` also writes each stage's sky, `outrun-<stage>-sky`, baked from its background
+([sky baking](#sky-baking)) out of the tile ROMs as its program places it (`stageSky`), committed and shown on Pages
+provisionally; its [local original](development.md#local-originals) is the same picture:
 
 - **Tiles.** The tile ROMs are three bit planes, each two ROMs (`opr-10268.99` and `opr-10232.102` the lowest bit,
   `opr-10267.100` and `opr-10231.103` the next, `opr-10266.101` and `opr-10230.104` the highest), 8 bytes a tile, a byte
@@ -512,13 +512,14 @@ tiles) and horizon row (320):
   6–12. The page selects at 0x17E4C and 0x17E5C show each page's predecessor to its right, so a layer reads its last
   page first.
 - **Placement.** The front layer scrolls by the road's heading, a turn its width; the back 3/4 as fast, a turn its
-  width too. Both stand with their bottom `offset` rows (10 on every stage) below the road's top.
-- **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, a row each
-  up from the road's top, the last above.
+  width too, so the front's pixel f stands over the back's 3/4 f: the overlap is 0. Both stand with their bottom
+  `offset` rows (10 on every stage) below the road's top, so their bottom row's place is offset − 1.
+- **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 palette words, color k (1
+  to 62) on rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below the road's top. Eight stages'
+  ramps hold one color 64 times (COCONUT BEACH, DEVIL'S CANYON, ALPS, SEASIDE TOWN, WHEAT FIELD, WILDERNESS, DEATH
+  VALLEY, VINEYARD), so their skies are flat.
 
-The picture draws the sky, then the back layer, then the front, each layer across the picture's width once (a turn)
-by nearest pixel, and is drawn as a tile picture as the skies command draws one. The two layers turn together in it:
-this game's sky is one plane, so the back layer's slower turn is not shown.
+Each course's backgrounds keep their image, horizon row (320, the sky picture's) and yaw origin, so no course changes.
 
 ## The player's car
 

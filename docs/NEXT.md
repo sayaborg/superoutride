@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-15](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
+Next PR: [RD-16](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -315,11 +315,9 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-15: each stage's background, both layers drawn into one sky by the baking the three originals share
-  (`sky-baking`, made by whichever of RD-15, SH-4 and TO-4 reaches main first), committed and published; the copies of
-  the generic skies end. Pixels alone.
 - RD-16 (the stage's last PR, deletions only): the outline boards' making and `content/sprite-sources`' boards, the
-  sprites' and skies' local originals and the Ferrari's (RD-6c: `outrun-player.ts`, the `player` command) removed; the
+  sprites' and skies' local originals, the generic skies' map and the old horizon constant (`OUTRUN_SKIES`,
+  `SKY_HORIZON` in `outrun-names`) and the Ferrari's (RD-6c: `outrun-player.ts`, the `player` command) removed; the
   sounds' local originals stay. [Original road data](original-road-data.md) loses the sections of what is removed, and
   this section leaves NEXT (RD-6e stays, awaiting K's recordings).
 

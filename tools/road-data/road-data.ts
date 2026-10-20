@@ -15,7 +15,7 @@ import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
-import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
+import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, skyName, slug } from './outrun-names.js';
 import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeName, routeSpans } from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom } from './outrun-cross-section.js';
@@ -24,12 +24,10 @@ import { roadObjects } from './outrun-scenery.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
-import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
+import { assembleTiles, stageSky } from './outrun-backgrounds.js';
+import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { playerOriginal } from './outrun-player.js';
 import { assembleSound, commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
-import { drawScreenPicture } from '../graphics/screen-pictures.js';
-import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
-import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
@@ -428,29 +426,18 @@ try {
           })),
         });
       }
-      // Each stage's sky as published: its generic sky under its own name.
-      for (const [number, generic] of OUTRUN_SKIES) {
+      // Each stage's sky, baked from its background, and the same picture as its local original.
+      for (const number of OUTRUN_STAGES.flat()) {
         const name = skyName(number);
-        const sky = JSON.parse(await readFile(`content/images/${generic}.json`, 'utf8')) as Record<string, unknown>;
-        const text = JSON.stringify({ ...sky, name });
+        const text = JSON.stringify(bakeSky(name, stageSky(programs.main, tiles, number)));
         const skyFile = `content/images/${name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not ${generic} under its name`);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the sky baked from the ROMs`);
           continue;
         }
         await atomicWrite(skyFile, text);
-        // Its local original: the stage's background from the tile ROMs, at the published sky's size and horizon.
-        const columns = sky.columns as number,
-          rows = (sky.tiles as unknown[]).length / columns;
-        const [width, height] = [columns * TILE_PICTURE_TILE_SIZE, rows * TILE_PICTURE_TILE_SIZE];
-        const background = stageBackground(programs.main, tiles, number, width, height, SKY_HORIZON);
-        const channel = (c: number) => Math.round((c * 255) / 31);
-        const pixels = Uint32Array.from(background, (c) =>
-          rgba(channel((c >> 10) & 31), channel((c >> 5) & 31), channel(c & 31)),
-        );
-        const original = drawScreenPicture(name, { width, height, pixels }, { columns, rows, fit: 'fill' });
-        await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), JSON.stringify(original));
+        await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), text);
       }
       console.log(
         JSON.stringify({
@@ -459,7 +446,7 @@ try {
           conversion: CONVERSION_VERSION,
           checked: check,
           courses,
-          skies: [...OUTRUN_SKIES.keys()].map(skyName),
+          skies: OUTRUN_STAGES.flat().map(skyName),
         }),
       );
       break;

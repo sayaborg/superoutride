@@ -1,10 +1,11 @@
 /**
  * OUTRUN's backgrounds as its program places them ([Original road data](../../docs/original-road-data.md#backgrounds)):
- * each stage's two tile layers, front and back, over its sky's ramp, drawn as one picture for a
- * [local original](../../docs/development.md#local-originals) of the stage's sky.
+ * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
+ * sky.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
+import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 import type { ZipFile } from './zip.js';
 
 /** The tile ROMs: three bit planes, each two 32 KiB ROMs (tiles 0–4095, then 4096–8191), the lowest bit first. */
@@ -48,7 +49,7 @@ const PAGE_ROWS = 32;
 const TILE = 8;
 const FRONT_PAGES = 4;
 const BACK_PAGES = 3;
-/** A sky ramp: 64 palette words, one a row up from the horizon, the last above. */
+/** A sky ramp: 64 palette words, 0 below the horizon, then two rows each up from it, the last above. */
 const RAMP = 64;
 
 const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
@@ -154,54 +155,43 @@ function layerWord(planes: readonly Uint8Array[], ram: Uint16Array, layer: Layer
 }
 
 /**
- * Stage `number`'s background, `width` × `height` RGB555 pixels, the horizon (the road's top) at row `horizon`, as its
+ * What stage `number`'s background gives its sky ([sky baking](../../docs/original-road-data.md#sky-baking)), as its
  * program places it:
  * - **Layers.** The byte at 0x17E84 + its place in the stage table numbers its entry at 0x17EAC, 12 bytes: {u8 front
- *   rows, u8 back rows, long front data, long back data, word offset}. The front layer is four pages (2048 px) and turns
- *   with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn its
- *   width too. Both stand with their bottom `offset` rows below the road's top.
- * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: a row up from the horizon
- *   each, the last above.
- * Each layer is drawn across the width once, a turn, by nearest pixel; the front over the back over the sky.
+ *   rows, u8 back rows, long front data, long back data, word offset}. The front layer is four pages (2048 px) and
+ *   turns with the road's heading, a full turn a width; the back is three (1536 px), turning 3/4 as fast, a full turn
+ *   its width too, so the front's pixel f stands over the back's 3/4 f. Both stand with their bottom `offset` rows
+ *   below the road's top.
+ * - **Sky.** The stage block's first word numbers its ramp, the long at 0x17590 + 4 × it: 64 colors, color k (1–62)
+ *   rows 2(k − 1) to 2k − 1 up from the road's top, 63 above them, 0 below it.
  */
-export function stageBackground(
-  main: Uint8Array,
-  planes: readonly Uint8Array[],
-  number: number,
-  width: number,
-  height: number,
-  horizon: number,
-): Uint16Array {
+export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], number: number): SkyBands {
   const place = [...main.subarray(STAGE_TABLE, STAGE_TABLE + 40)].indexOf(number);
   requireInput(place >= 0, '/stage', `Stage 0x${number.toString(16)} is not in the stage table`);
   const ram = stagePalettes(main, place);
   const entry = LAYERS + 12 * main[LAYER_INDICES + place]!;
-  const offset = word(main, entry + 10);
-  const layers = [
-    readLayer(main, long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
-    readLayer(main, long(main, entry + 2), FRONT_PAGES, main[entry]!),
-  ];
+  // The layers' bottom row, `offset` rows below the road's top: 0 is the first row below it.
+  const bottom = word(main, entry + 10) - 1;
+  const layer = (address: number, pages: number, rows: number): SkyLayer => {
+    const read = readLayer(main, address, pages, rows);
+    const [width, height] = [pages * PAGE_COLUMNS * TILE, PAGE_ROWS * TILE];
+    const pixels = new Int32Array(width * height);
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) {
+        const w = layerWord(planes, ram, read, x, y);
+        pixels[y * width + x] = w === null ? TRANSPARENT : paletteRgb555(w);
+      }
+    return { width, pixels, bottom };
+  };
   const ramp = long(main, SKY_RAMPS + 4 * word(main, long(main, long(main, STAGE_BLOCKS + 4 * number))));
-  const pixels = new Uint16Array(width * height);
-  for (let y = 0; y < height; y++) {
-    const sky = paletteRgb555(word(main, ramp + 2 * Math.min(RAMP - 1, Math.max(0, horizon - 1 - y))));
-    // The layers' pages' rows: their bottom edge `offset` rows below the horizon.
-    const row = y - (horizon + offset) + PAGE_ROWS * TILE;
-    for (let x = 0; x < width; x++) {
-      let color = sky;
-      if (row >= 0 && row < PAGE_ROWS * TILE)
-        for (const layer of layers) {
-          const w = layerWord(
-            planes,
-            ram,
-            layer,
-            Math.floor(((x + 0.5) * layer.pages * PAGE_COLUMNS * TILE) / width),
-            row,
-          );
-          if (w !== null) color = paletteRgb555(w);
-        }
-      pixels[y * width + x] = color;
-    }
-  }
-  return pixels;
+  const color = (k: number) => paletteRgb555(word(main, ramp + 2 * k));
+  return {
+    back: layer(long(main, entry + 6), BACK_PAGES, main[entry + 1]!),
+    front: layer(long(main, entry + 2), FRONT_PAGES, main[entry]!),
+    overlap: 0,
+    ramp: {
+      rows: Array.from({ length: 2 * (RAMP - 2) + 1 }, (_, u) => color(Math.min(RAMP - 1, Math.floor(u / 2) + 1))),
+      below: color(0),
+    },
+  };
 }
