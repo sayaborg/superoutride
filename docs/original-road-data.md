@@ -423,7 +423,9 @@ b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w =
 (SEASIDE TOWN, OLD CAPITAL, WHEAT FIELD, LAKESIDE), they are a, b, e and f (laid over the two roads, c and d would be
 3.4 cm wide there, between the middle line's sides), and at 212 they are the two roads' own. The visible lines come
 from the two roads' picture, not the lanes. A lane or median 0 throughout a Section is
-left out.
+left out. Each width is written straight by station between knots: where the width, the offset or the lanes' rule
+changes slope, and halfway between until it lies within 1 cm of its rule (where the offset changes on a curve, the
+station does not run evenly with the position).
 
 ### Plan
 

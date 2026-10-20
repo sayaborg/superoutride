@@ -57,6 +57,10 @@ const THIN = 1e-5;
 const STRAIGHTEST = 40000;
 /** A plan element shorter than this, metres, is carried on into the next: its length and its turn. */
 const SHORTEST = 1e-3;
+/** A lane's width as written lies within this of its rule, metres. */
+const WIDTH_TOLERANCE = 0.01;
+/** Knots are added halfway no closer than this, positions. */
+const SHORTEST_KNOTS = 1 / 64;
 /** A knot this near a joint of its Section's plan, metres, is written at the joint. */
 const JOINT_SNAP = 2e-6;
 /** A width is there where it is wider than this, units. */
@@ -574,8 +578,10 @@ function sectionDocument(
   const atStation = (s: number) => ({ joint: first, offset: onJoint(round(s)) });
   const at = (p: number) => atStation(plan.station(p) - origin);
 
-  // The lanes: their widths at each knot, a lane or median 0 throughout left out.
-  const knots = [
+  // The lanes: their widths at each knot, a lane or median 0 throughout left out. Each width is written straight by
+  // station between knots; where the station does not run evenly with the position (the offset changing on a curve),
+  // a knot is added halfway until every width lies within WIDTH_TOLERANCE of its rule there.
+  const breaks = [
     ...new Set([
       from,
       to,
@@ -587,6 +593,26 @@ function sectionDocument(
   ]
     .filter((p) => p >= from && p <= to)
     .sort((a, b) => a - b);
+  const straight = (a: number, b: number) => {
+    const m = (a + b) / 2;
+    const [wa, wb, wm] = [span.lanes(a), span.lanes(b), span.lanes(m)];
+    const t = (plan.station(m) - plan.station(a)) / (plan.station(b) - plan.station(a));
+    return span.order.every(
+      (n) => Math.abs(wa.get(n)! + (wb.get(n)! - wa.get(n)!) * t - wm.get(n)!) * UNIT_METRES <= WIDTH_TOLERANCE,
+    );
+  };
+  const knots: number[] = [];
+  const halve = (a: number, b: number) => {
+    if (b - a <= SHORTEST_KNOTS || straight(a, b)) return;
+    const m = (a + b) / 2;
+    halve(a, m);
+    knots.push(m);
+    halve(m, b);
+  };
+  breaks.forEach((p, i) => {
+    if (i > 0) halve(breaks[i - 1]!, p);
+    knots.push(p);
+  });
   const widths = knots.map((p) => span.lanes(p));
   const present = span.order.filter((name) => widths.some((w) => w.get(name)! > THERE));
   const lanes = present.map((name) => {
