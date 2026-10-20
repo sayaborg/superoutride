@@ -1748,6 +1748,14 @@ checkpoint, and the finish is at the last stage's end. Their scenery is outline 
 again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
 their measured products are their racing lines alone.
 
+SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,
+`super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written
+by the road data tool from the original's ROMs ([Original road data](original-road-data.md#super-hang-ons-courses)),
+which owns their plan, lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the
+documents. Each stage has its checkpoint where its CHECK gate passes the bike, and the finish is at the GOAL gate. Their
+scenery shows the original's sprites, provisionally. Until their hills are made again they have no class: they are
+driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
+
 ## Observation formats
 
 ### Course observations

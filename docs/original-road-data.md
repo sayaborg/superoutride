@@ -730,11 +730,12 @@ checked.
   `0x7F6 ^ 2p`: the surface (pixel 0) is +10, the lines (1) +C, the edge bands (2) +8, and the centre line (a 3 among
   the middle eight columns) +4, the other way round from OUTRUN's names; the other 3s are the ground.
 - **Curves.** {signed word position, word radius in positions, word kind: 1 straight, 2 right, 3 left}, ending at
-  position −1. They follow the road path only roughly.
+  position −1. They follow the road path only roughly ([SUPER HANG-ON's plan](#super-hang-ons-plan)).
 - **Heights.** {word position, word height table (1 from), word 0, word 0}, ending at position 0x7FFF. Height table t is
   the long at 0x1A48 + 4(t − 1) on the sub CPU: vertical heading vectors {signed word x, signed word y}, (0, 4096)
   level, ending at (0, 0). They are dumped for the hills to come; the road is level.
-- **Scenery points.** {word position, u8 count, u8 type}, ending at a negative position.
+- **Scenery points.** {word position, u8 count, u8 type}, ending at a negative position
+  ([Placing SUPER HANG-ON's scenery](#placing-super-hang-ons-scenery)).
 - **Road paths.** Section n's is the long at 0x19E8 + 4n on the sub CPU: a heading vector {signed word x, signed word y},
   about 4096 long, for each of its 2049 positions. Every section's starts and ends with (0, 4096).
 - **The goal.** The last section runs into the goal: the longs at 0x1801A are its curves' and heights' addresses, then
@@ -788,6 +789,95 @@ curves, heights, scenery, road path); the goal; the height tables and scenery ty
 sprites the scenery shows (size list, sizes, hit width); the gates' parts with their sizes and the banners' palettes;
 the palettes these use; the grids; and each section's background (number, palettes, tile map). It refuses a section
 that runs in more than one course and a sprite past the table.
+
+### SUPER HANG-ON's plan
+
+The road is the road path P itself: one road, no width points. Each section's path becomes straights and arcs over its
+2049 positions (`sectionPlan`); its curves only check it, for they follow the path roughly (radii 0.79 to 1.56 times the
+path's, their joints up to 13 positions off):
+
+- **Folds.** A position turning more than 1° off the median of the seven about it (fewer at the path's ends) is a fold:
+  its excess is spread evenly over those seven, the sum kept. The headings are rebuilt, and their line laid, each
+  position a step along its ends' mean heading.
+- **Elements.** From the section's start, each element is the longest that stays within 0.25 m of the line at every
+  position it spans, grown a position at a time until eight longer ones in a row miss: a straight where it turns less
+  than 0.01°, else an arc turning evenly from heading to heading.
+- **Ends.** The first and last elements are straights at the section's end headings, which are every section's, (0,
+  4096); each arc turns from the heading the elements before it reach to its end heading, the last arc to the
+  section's end heading, so no turn dropped is lost. An arc straighter than 40 km is a straight, its turn carried by the
+  next arc (the course format's lengths), and straights one after another are one.
+
+The 24 sections become 1074 elements, 24 to 73 a section; the sharpest arc is 53.3 m (EUROPE's 0x0E, 1001 to 1008);
+160 folds are spread. Laid from its start, a section's plan lies at most 2.1 m from its path's line (median 0.6 m).
+
+A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its sections' elements in running
+order, then the goal's straight of 260 positions: the original's 200, made longer so that every vehicle stops before its
+end (517.8 m past the finish).
+
+### Placing SUPER HANG-ON's scenery
+
+A course's scenery stands where the main CPU's program brings it out and it passes the bike, the program run tick by
+tick at the top speed (0xF1) from the course's start, its objects in their order (`courseScenery`):
+
+- **Object 7.** Past the section's last position, the next section begins at 0 with its points.
+- **Object 8.** The road advances 0x97 × 0xF1 / 65536 positions.
+- **Object 11.** A scenery point is taken when the position reaches it: a cursor at it, its count, its type's pattern
+  and first item. While its count lasts and the cursor is at most the position, a step: the cursor moves on a position,
+  the pattern turns left once and a counter from 15 counts down, a count spent each time it passes 0; a 1 turned out
+  brings out the next item (after the last, the first) into the first free of the eight scenery objects, none if all
+  are taken.
+- **Objects 12 to 19.** Each object's depth gains the step its speed gives (the word at 0xC5EA + 2 × speed), and at
+  0x1FF0 (`cmpi.w #$1FF, d0` at 0x71A0 on the depth's top 12 bits) it passes the bike and stands at the road's position.
+
+Objects still coming when the last section ends stand in the goal's positions; none does. AFRICA brings out 1012
+objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EUROPE 2898 (357).
+
+### SUPER HANG-ON's courses
+
+`npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
+courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
+`super-hang-on-europe` (EUROPE), conversion version 1, the pictures their objects show and their skies, or with
+`--check` fails where one differs:
+
+- **Plane and stations.** Lane a's centre runs 1.8 m left of P on the plane, again straights and arcs: an arc turning
+  left is shorter and one turning right longer by 1.8 m times its turn. A course position (section k's position p is
+  2049k + p, the goal's after the last section's) is the station across from P there on the plane, as on OUTRUN's
+  ([Plan](#plan)). GO, the bike at the first section's position 0, is station 6.
+- **Lanes.** a and b, 3.6 m each, either side of P; the centre lane a.
+- **Cross-section.** The road ROM draws one road at a size proportional to its line, a feature's edge u units from the
+  centre at u × line / 224 pixels (as an object's x, the `divs.w #$E0` at 0x7262): each edge's u is 224 times its
+  pixels' slope against the line over lines 60 to 189, the left's and right's mean. The centre line is ±4.42 units, the
+  lines 238.14 to 249.79, the shoulder the surface's, the edge bands 259.21 to 293.80. A lane is the road's half to its
+  lines' inner edges, 3.6 m as OUTRUN's lane is, so a unit is 0.015117 m. SAND reaches 40 m beyond the edge bands.
+- **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
+  outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
+  period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
+  from GO along the plane. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
+  at the top speed; the next section's road colors begin at its start.
+- **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
+  goal's, each cut again where its coordinate domain (to SAND's edges and the vehicles' reach) passes over itself, at
+  the middle of the longest straight between the passages, 2 m clear of the gates. They join by lane a.
+- **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
+  original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,
+  224/191 units each, either side) or its picture's width where narrower. A picture is its sprite's largest size on its
+  texel grid by area majority, a pixel 224/191 units across and 224/191 × the pixel aspect down, its base point the
+  middle of its bottom, in every palette it is shown in; the pictures are published, provisionally.
+- **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
+  each CHECK, five parts, where it passes the bike, 38.31 positions after it comes out (⌈0x1FF0 / the depth step⌉
+  ticks at the top speed); GOAL, five parts, at goal position 38.31. A part stands x × 224/191 units right of P, its
+  picture lifted lift × 224/192 units. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
+  `<course>-GOAL` at GOAL.
+- **Grids.** The start gate's 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate
+  lanes.
+- **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
+  figures, as its last frame shows them (K's reading of the original's run: their frames, palettes, x and height
+  above the road), at 56.0, where the original's bike stops.
+- **Skies.** Section k's (0 from) is `shangon-<course>-<k + 1>-sky`, a copy of `coast-sky` until the backgrounds are
+  baked: from its first Section's start, the next section's from 6 m before the bike reaches position 1930 (the
+  camera's station as the original redraws the background); the goal's Section shows the last section's. At heading 0
+  the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 × 1504 / 1536 of the sky's 1504:
+  a Section's yaw origin is 77.0° plus the road's turn from the course's start to its start.
+- **Profile.** Level but for the crossings' bumps ([Profile](#profile)), its bends broken at the Sections' cuts.
 
 ## TURBO OUTRUN
 

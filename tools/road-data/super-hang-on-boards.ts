@@ -1,0 +1,93 @@
+/**
+ * SUPER HANG-ON's pictures as course images ([Original road data](../../docs/original-road-data.md#super-hang-on)): each
+ * sprite or frame an object shows, mirrored as shown, from its largest size's pixels straight onto its texel grid at
+ * the scale the original draws it where it passes the bike, in every palette it is shown in, its base point the middle
+ * of its bottom. They are the original's pictures, provisional: the product's are drawn again.
+ */
+import { courseImageFile } from '../graphics/sprite-import.js';
+import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { areaMajority, PIXEL_ASPECT } from './outrun-boards.js';
+import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
+
+/**
+ * Road units a pixel of an object's largest size spans where it passes the bike: the original draws that size 1:1 on
+ * line 191 of the road, where a unit is 191 / 224 pixels.
+ */
+export const PIXEL_UNITS = 224 / 191;
+
+/** One way an object shows a picture: its size list, mirrored or not, in a palette. */
+export interface PictureUse {
+  readonly list: number;
+  readonly mirrored: boolean;
+  readonly palette: number;
+}
+
+/**
+ * A picture's image name: `shangon-<sprite>` for a size list the sprites' table names (the lowest such sprite, three
+ * digits), else `shangon-frame-<address>`; then whether mirrored.
+ */
+export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mirrored'>): string {
+  let sprite = -1;
+  for (let s = 0; s < SPRITE_COUNT && sprite < 0; s++) if (spriteList(main, s) === use.list) sprite = s;
+  const shown = sprite >= 0 ? String(sprite).padStart(3, '0') : `frame-${use.list.toString(16)}`;
+  return `shangon-${shown}${use.mirrored ? '-mirrored' : ''}`;
+}
+/** A palette's name in a picture. */
+export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
+
+/** The texel grid of a picture `width` × `height` pixels at `metres` a road unit, 40 texels a metre. */
+export function pictureGrid(width: number, height: number, metres: number) {
+  const across = PIXEL_UNITS * metres * SPRITE_SOURCE_TEXELS_PER_METER;
+  return {
+    width: Math.max(1, Math.round(width * across)),
+    height: Math.max(1, Math.round(height * across * PIXEL_ASPECT)),
+  };
+}
+
+/** The width, metres, of the picture of size list `list` at `metres` a road unit. */
+export function pictureWidth(main: Uint8Array, list: number, metres: number) {
+  const size = sizeList(main, list)[0]!;
+  return pictureGrid(4 * size.stride - 1, size.height, metres).width / SPRITE_SOURCE_TEXELS_PER_METER;
+}
+
+/**
+ * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
+ * in (the lowest its default), from its largest size's pixels by area majority, with its width in metres.
+ */
+export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
+  const groups = new Map<string, PictureUse[]>();
+  for (const use of uses) {
+    const name = pictureName(main, use);
+    groups.set(name, [...(groups.get(name) ?? []), use]);
+  }
+  return [...groups]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([name, group]) => {
+      const [first] = group as [PictureUse];
+      const { width, pixels: raw } = spritePixels(words, sizeList(main, first.list)[0]!);
+      const pixels = first.mirrored ? raw.map((_, i) => raw[i - (i % width) + width - 1 - (i % width)]!) : raw;
+      const grid = pictureGrid(width, pixels.length / width, metres);
+      const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
+      const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
+      const master: SpriteLodDocument = {
+        format: 'superoutride.sprite-lod',
+        version: 4,
+        name,
+        width: grid.width,
+        height: grid.height,
+        anchorX: grid.width / 2 - 0.5,
+        anchorY: grid.height - 0.5,
+        defaultPalette: paletteName(palettes[0]!),
+        palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
+        levels: [
+          {
+            paletteRgb555: colors(palettes[0]!),
+            indices: areaMajority(pixels, width, grid.width, grid.height),
+            mixtures: spriteIdentityMixtures(),
+          },
+        ],
+      };
+      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(master) };
+    });
+}

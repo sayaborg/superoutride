@@ -138,7 +138,7 @@
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
 Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
-[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-3b, then
+[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e and Stage SH's tool PRs are on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -381,10 +381,6 @@ The PRs, in order (each one too large for one review is split and the split repo
   and an object stands where it passes the vehicle (each original approaches by its own ROM: OUTRUN and TURBO OUTRUN
   by the same table and advance, SUPER HANG-ON by its own). SH-3 was split: SH-3a gave the crossings' bumps crossings
   of more than two passages and long overlaps, OUTRUN's courses unchanged.
-- SH-3b: the four courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america`
-  (AMERICA) and `super-hang-on-europe` (EUROPE): the road on the original's road path, level but for the crossings'
-  bumps, with its colors and stripes; the scenery, gates, the goal's crowd and the ending's figures; no class. Their 24
-  skies are copies of `coast-sky` under their own names until SH-4. Their racing lines measured.
 - SH-4: the 24 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
 
 Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
