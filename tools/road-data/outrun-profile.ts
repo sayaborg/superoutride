@@ -262,8 +262,13 @@ export function closedGrades(changes: readonly Change[], end: number): Change[] 
 const CLEARANCE = 6;
 /** The passes over a road's crossings that may move them: a later crossing's bumps may bring an earlier one nearer. */
 const PASSES = 10;
-/** A passage's bump is smooth where it holds at least `1 / SMOOTH_RISE` of its rise over the passage, else flat. */
+/**
+ * Of a crossing of more than two passages, a passage's bump is smooth where it holds at least `1 / SMOOTH_RISE` of its
+ * rise over the passage, else flat.
+ */
 const SMOOTH_RISE = 1.1;
+/** Passages nearer than `CLEARANCE` by no more than this are apart: a micrometre, as stations are written. */
+const NEAR = 1e-6;
 
 /** A stretch of road stations where a road passes over or under itself: its first and last overlapping stations. */
 export interface Passage {
@@ -323,10 +328,11 @@ const flatBump = (a: number, b: number, rise: number, L: number): Change[] => [
  * lower first, the earlier where level; of more, in running order), each the lowest that no passage it overlaps already
  * holds, and each moves by a bump of its level less their mean times a spacing, from what `CLEARANCE` lacks by 0.2 m
  * until every overlapping pair is apart: of two passages, the higher is raised and the lower lowered. A passage's bump
- * is smooth, at the middle of its stations, where a smooth bump of the first half holds `1 / SMOOTH_RISE` of its rise
- * over the passage, else flat over it; its half is the shortest from 100 m by 20 m that moves the road's top on this
- * game's screen by at most `LOOK_ROWS`, within the road and short of the next passage at another level. Where the bumps
- * cannot keep the passages apart (their spacing grown by 40 m), the longest smooth passage's bump is flat, and so on.
+ * is smooth, at the middle of its stations, but of more than two passages flat over it where a smooth bump of the
+ * first half holds less than `1 / SMOOTH_RISE` of its rise over the passage; its half is the shortest from 100 m by
+ * 20 m that moves the road's top on this game's screen by at most `LOOK_ROWS`, within the road and short of the next
+ * passage at another level. Where the bumps cannot keep the passages apart (their spacing grown by 40 m), they are all
+ * flat.
  */
 export function separatedCrossings(changes: readonly Change[], crossings: readonly Crossing[], end: number) {
   let out = [...changes];
@@ -350,7 +356,7 @@ function separation(changes: readonly Change[], crossing: Crossing, end: number)
   const { passages, pairs } = crossing;
   const before = profileOf(changes.map(bendOf));
   const apart = (p: Profile) => Math.min(...pairs.map(([a, b]) => Math.abs(p.height(a) - p.height(b))));
-  if (apart(before) >= CLEARANCE) return null;
+  if (apart(before) >= CLEARANCE - NEAR) return null;
   const n = passages.length;
   const passageOf = (s: number) => passages.findIndex((p) => s >= p.from && s <= p.to);
   const middles = passages.map((_, k) => {
@@ -395,18 +401,20 @@ function separation(changes: readonly Change[], crossing: Crossing, end: number)
       return flat.has(k) ? flatBump(p.from, p.to, rise, L) : smoothBump(middles[k]!, rise, L);
     });
   const after = (spacing: number, L: number) => profileOf([...changes, ...bumps(spacing, L)].map(bendOf));
+  // Of more than two passages, each holds its level: a passage a smooth bump would not hold there is flat.
   const first = Math.min(100, reach());
-  passages.forEach((p, k) => {
-    if (smoothShare(Math.max(middles[k]! - p.from, p.to - middles[k]!), first) < 1 / SMOOTH_RISE) flat.add(k);
-  });
+  if (n > 2)
+    passages.forEach((p, k) => {
+      if (smoothShare(Math.max(middles[k]! - p.from, p.to - middles[k]!), first) < 1 / SMOOTH_RISE) flat.add(k);
+    });
   let spacing: number, L: number;
+  // The spacing grown; where it cannot keep the passages apart, every bump flat, and grown again.
   for (;;) {
     spacing = CLEARANCE - apart(before);
     L = Math.min(100, reach());
     for (let i = 0; i < 200 && apart(after(spacing, L)) < CLEARANCE; i++) spacing += 0.2;
     if (apart(after(spacing, L)) >= CLEARANCE || flat.size === n) break;
-    const length = (k: number) => passages[k]!.to - passages[k]!.from;
-    flat.add(order.filter((k) => !flat.has(k)).sort((x, y) => length(y) - length(x) || x - y)[0]!);
+    passages.forEach((_, k) => flat.add(k));
   }
   const room = reach();
   while (L + 20 <= room) {

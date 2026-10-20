@@ -562,11 +562,12 @@ A stage's profile turns its height tables' look on the original's screen into gr
   crossing's passages are nearer, they take levels, of two passages the lower first (the earlier where level), of more
   in running order, each the lowest no passage it overlaps holds; each moves by its level less their mean times a
   spacing, grown from what 6 m lacks by 0.2 m until every overlapping pair is apart, so of two the higher is raised and
-  the lower lowered. A passage's bump is smooth at its middle where a smooth bump holds 10/11 of its rise over it, else
-  flat over the passage; it rises over the shortest half from 100 m by 20 m that moves this game's top by at most 1
-  row, short of the next passage at another level. Where smooth bumps grown by 40 m cannot keep a crossing apart, its
-  longest smooth passage's bump is flat, and so on. OUTRUN's crossings are of two passages, and SUPER HANG-ON's
-  passages that overlaps join make one crossing.
+  the lower lowered. A passage's bump is smooth at its middle, but of a crossing of more than two passages, which hold
+  their levels, flat over a passage that a smooth bump would hold at less than 10/11 of its rise; it rises over the
+  shortest half from 100 m by 20 m that moves this game's top by at most 1 row, short of the next passage at another
+  level. Where the bumps grown by 40 m cannot keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by
+  no more than a micrometre are apart. OUTRUN's crossings are of two passages, and SUPER HANG-ON's passages that
+  overlaps join make one crossing.
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
   that meet stay apart; stretches break at the Sections' cuts, and a knot next to a
