@@ -228531,7 +228531,7 @@
           "lateral": -9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -228551,7 +228551,7 @@
           "lateral": 9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -228564,484 +228564,55 @@
           "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 186.250091 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 162.345954,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "s78", "offset": 186.250091 },
+              "lateral": -9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "s78", "offset": 189.213054 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 162.345954,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p104",
+              "at": { "joint": "s78", "offset": 189.213054 },
+              "lateral": 9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 191.676017 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 194.260848 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 194.63898 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 197.223811 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 199.686774 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 202.649737 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 205.1127 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 208.075663 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 210.538626 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 213.501589 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 215.964552 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 218.927515 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 221.390478 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 224.353441 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 226.816404 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 229.779367 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 232.24233 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 235.205293 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 237.668255 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 240.631218 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 243.094181 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 246.057144 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 248.520107 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 251.48307 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s78", "offset": 253.946033 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 254.341523 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 256.908996 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 257.304486 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 259.767449 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 262.730412 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 265.193375 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s78", "offset": 268.156338 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 270.619301 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 273.582264 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 276.045227 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 279.008189 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s78", "offset": 281.471152 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -281.200404 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -278.737441 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -275.774478 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -273.311515 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -270.348552 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -267.885589 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -264.922626 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -263.228456 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -260.265493 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 110.730046,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s78", "offset": 191.676017 },
+              "lateral": -9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229051,7 +228622,41 @@
           "lateral": -9.169811,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s78", "offset": 194.260848 },
+              "lateral": -8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 110.730046,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s78", "offset": 194.63898 },
+              "lateral": 9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229061,197 +228666,41 @@
           "lateral": 9.169811,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -252.376605 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s78", "offset": 197.223811 },
+              "lateral": 8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -249.413642 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -246.950679 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -243.987716 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -241.524753 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -238.56179 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -236.098827 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -233.135864 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -230.672901 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -227.709938 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -225.246975 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -225.177362 },
-          "lateral": -11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -222.464399 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -222.284012 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -222.214399 },
-          "lateral": 11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -219.751436 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -219.501436 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -217.038474 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -216.788474 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s78", "offset": 226.816404 },
+              "lateral": -8.354717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229261,27 +228710,24 @@
           "lateral": -8.354717,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -214.075511 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -211.612548 },
-          "lateral": -6.724528,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s78", "offset": 229.779367 },
+              "lateral": 8.354717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229291,7 +228737,281 @@
           "lateral": 8.354717,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s78", "offset": 254.341523 },
+              "lateral": 7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p102",
+              "at": { "joint": "s78", "offset": 257.304486 },
+              "lateral": -7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p105",
+              "at": { "joint": "s78", "offset": 270.619301 },
+              "lateral": 7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "s78", "offset": 273.582264 },
+              "lateral": -7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -278.737441 },
+              "lateral": 7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -275.774478 },
+              "lateral": -7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -252.376605 },
+              "lateral": -9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -249.413642 },
+              "lateral": 9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -241.524753 },
+              "lateral": -9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -238.56179 },
+              "lateral": 9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -230.672901 },
+              "lateral": -10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -227.709938 },
+              "lateral": 10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -225.177362 },
+          "lateral": -11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -222.464399 },
+          "lateral": -10.392453,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -222.214399 },
+          "lateral": 11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -219.751436 },
+          "lateral": -9.984906,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -219.501436 },
+          "lateral": 10.392453,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -216.788474 },
+          "lateral": 9.984906,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -211.612548 },
+          "lateral": -6.724528,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -229301,7 +229021,7 @@
           "lateral": -5.09434,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -229311,17 +229031,24 @@
           "lateral": 6.724528,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -206.186622 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 1.036151,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -206.186622 },
+              "lateral": -3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229331,27 +229058,24 @@
           "lateral": 5.09434,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -205.150471 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -203.223659 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 1.036151,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -203.223659 },
+              "lateral": 3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229361,27 +229085,24 @@
           "lateral": -8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -202.187508 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -199.724545 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "end", "offset": -199.724545 },
+              "lateral": -3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229391,7 +229112,7 @@
           "lateral": 8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -229404,24 +229125,21 @@
           "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -196.761582 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -194.298619 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p104",
+              "at": { "joint": "end", "offset": -196.761582 },
+              "lateral": 3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -229442,16 +229160,6 @@
           "groundOffset": 1.528302,
           "unselectedLink": null,
           "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -191.335656 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
         },
         {
           "kind": "sprite",
@@ -253623,7 +253331,7 @@
           "lateral": -9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -253643,7 +253351,7 @@
           "lateral": 9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -253656,654 +253364,38 @@
           "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 194.260848 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 197.223811 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 199.686774 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 202.271605 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 202.649737 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 205.234568 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 207.697531 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 210.660494 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 213.123457 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 216.08642 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 218.549383 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 221.512346 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 223.975309 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 226.938272 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 229.401235 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 232.364198 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 234.827161 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 237.790124 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 240.253087 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 243.216049 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 245.679012 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 248.641975 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 251.104938 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 254.067901 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 256.530864 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 259.493827 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 261.95679 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 262.35228 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 264.919753 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 265.315243 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 267.778206 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 270.741169 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 273.204132 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 276.167095 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 278.630058 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "s75", "offset": 281.593021 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -281.578536 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -278.615573 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -276.15261 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -273.189647 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -270.726684 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -267.763721 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -265.300758 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -262.337795 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -259.874832 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -256.911869 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -255.217699 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -252.254736 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -249.791774 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -246.828811 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -244.365848 },
-          "lateral": -10.8,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -241.402885 },
-          "lateral": 10.8,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -238.939922 },
-          "lateral": -10.8,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -235.976959 },
-          "lateral": 10.8,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -233.513996 },
-          "lateral": -11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -230.551033 },
-          "lateral": 11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -228.08807 },
-          "lateral": -11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -225.125107 },
-          "lateral": 11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -222.662144 },
-          "lateral": -11.615094,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -219.699181 },
-          "lateral": 11.615094,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -219.169295 },
-          "lateral": -12.430189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -216.456332 },
-          "lateral": -11.615094,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -216.206332 },
-          "lateral": 12.430189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -213.743369 },
-          "lateral": -11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -213.493369 },
-          "lateral": 11.615094,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 194.260848 },
+              "lateral": -10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -255.217699 },
+              "lateral": -10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -254313,27 +253405,41 @@
           "lateral": -10.392453,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -210.780406 },
-          "lateral": 11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 197.223811 },
+              "lateral": 10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -208.317443 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -252.254736 },
+              "lateral": 10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -254343,17 +253449,102 @@
           "lateral": 10.392453,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 202.271605 },
+              "lateral": -9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 205.234568 },
+              "lateral": 9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 234.827161 },
+              "lateral": -9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
           "image": "outrun-021",
           "palette": "p206",
-          "at": { "joint": "end", "offset": -205.60448 },
-          "lateral": -7.94717,
+          "at": { "joint": "end", "offset": -208.317443 },
+          "lateral": -9.577358,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 237.790124 },
+              "lateral": 9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 259.493827 },
+              "lateral": 9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -254363,47 +253554,332 @@
           "lateral": 9.577358,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 262.35228 },
+              "lateral": 8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "s75", "offset": 265.315243 },
+              "lateral": -8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -270.726684 },
+              "lateral": 9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -267.763721 },
+              "lateral": -9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -244.365848 },
+              "lateral": -10.8,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -241.402885 },
+              "lateral": 10.8,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -233.513996 },
+              "lateral": -11.207547,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
           "image": "outrun-021",
           "palette": "p206",
-          "at": { "joint": "end", "offset": -202.891517 },
+          "at": { "joint": "end", "offset": -213.743369 },
+          "lateral": -11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -230.551033 },
+              "lateral": 11.207547,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-021-mirrored",
+          "palette": "p206",
+          "at": { "joint": "end", "offset": -210.780406 },
+          "lateral": 11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 6.205812,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -222.662144 },
+              "lateral": -11.615094,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 6.205812,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -219.699181 },
+              "lateral": 11.615094,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-021",
+          "palette": "p206",
+          "at": { "joint": "end", "offset": -219.169295 },
+          "lateral": -12.430189,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-021-mirrored",
+          "palette": "p206",
+          "at": { "joint": "end", "offset": -216.206332 },
+          "lateral": 12.430189,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 10.851852,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -205.60448 },
+              "lateral": -7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 13.564815,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -202.891517 },
+              "lateral": -6.316981,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-021",
+          "palette": "p206",
+          "at": { "joint": "end", "offset": -181.187813 },
           "lateral": -6.316981,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -202.641517 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "kind": "repeat",
+          "every": 10.851852,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -202.641517 },
+              "lateral": 7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 13.564815,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -200.178554 },
+              "lateral": -4.686792,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
           "image": "outrun-021",
           "palette": "p206",
-          "at": { "joint": "end", "offset": -200.178554 },
+          "at": { "joint": "end", "offset": -178.47485 },
           "lateral": -4.686792,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 13.564815,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -199.928554 },
+              "lateral": 6.316981,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
           "image": "outrun-021-mirrored",
           "palette": "p206",
-          "at": { "joint": "end", "offset": -199.928554 },
+          "at": { "joint": "end", "offset": -178.22485 },
           "lateral": 6.316981,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -254413,27 +253889,34 @@
           "lateral": -8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 13.564815,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-021-mirrored",
+              "palette": "p206",
+              "at": { "joint": "end", "offset": -197.215591 },
+              "lateral": 4.686792,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
           "image": "outrun-021-mirrored",
           "palette": "p206",
-          "at": { "joint": "end", "offset": -197.215591 },
+          "at": { "joint": "end", "offset": -175.511887 },
           "lateral": 4.686792,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -194.752628 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -254443,7 +253926,7 @@
           "lateral": 8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -254457,26 +253940,6 @@
         },
         {
           "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -191.789665 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -189.326702 },
-          "lateral": -6.316981,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
           "image": "outrun-135",
           "palette": "p186",
           "at": { "joint": "end", "offset": -189.076702 },
@@ -254484,96 +253947,6 @@
           "groundOffset": 9.606469,
           "unselectedLink": null,
           "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -186.613739 },
-          "lateral": -4.686792,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -186.363739 },
-          "lateral": 6.316981,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -183.900776 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -183.650776 },
-          "lateral": 4.686792,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -181.187813 },
-          "lateral": -6.316981,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -180.937813 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -178.47485 },
-          "lateral": -4.686792,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -178.22485 },
-          "lateral": 6.316981,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-021-mirrored",
-          "palette": "p206",
-          "at": { "joint": "end", "offset": -175.511887 },
-          "lateral": 4.686792,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 12.625, "movable": null }
         }
       ],
       "environments": [
@@ -283180,7 +282553,7 @@
           "lateral": -9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283200,7 +282573,7 @@
           "lateral": 9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283230,7 +282603,7 @@
           "lateral": -1.630189,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283240,7 +282613,7 @@
           "lateral": 3.260377,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283250,7 +282623,7 @@
           "lateral": 0,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 3.25, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283260,7 +282633,7 @@
           "lateral": -8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283270,7 +282643,7 @@
           "lateral": 1.630189,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.445283, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283280,7 +282653,7 @@
           "lateral": 8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283320,7 +282693,7 @@
           "lateral": -4.075472,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283330,7 +282703,7 @@
           "lateral": 3.260377,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.445283, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283350,7 +282723,7 @@
           "lateral": 5.09434,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283360,7 +282733,7 @@
           "lateral": -3.260377,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 3.25, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283370,7 +282743,7 @@
           "lateral": 2.445283,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283380,7 +282753,7 @@
           "lateral": -4.075472,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.445283, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283390,17 +282763,24 @@
           "lateral": 0.611321,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-145-mirrored",
-          "palette": "p224",
-          "at": { "joint": "end", "offset": -166.790857 },
-          "lateral": -3.260377,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-145-mirrored",
+              "palette": "p224",
+              "at": { "joint": "end", "offset": -166.790857 },
+              "lateral": -3.260377,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -283410,17 +282790,7 @@
           "lateral": 4.890566,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.445283, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-145-mirrored",
-          "palette": "p224",
-          "at": { "joint": "end", "offset": -161.364931 },
-          "lateral": -3.260377,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283430,7 +282800,7 @@
           "lateral": 2.241509,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -283440,7 +282810,7 @@
           "lateral": -0.815094,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 2.037736, "movable": null }
+          "body": null
         }
       ],
       "environments": [
@@ -315475,294 +314845,89 @@
           "body": { "width": 1.833962, "movable": null }
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 25.534287 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138888,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 25.534287 },
+              "lateral": 7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 31.210213 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 47.23799 },
+              "lateral": 7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 33.673175 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 68.941694 },
+              "lateral": 7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 39.349101 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 90.645398 },
+              "lateral": 7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 41.812064 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 47.23799 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 47.48799 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 52.913916 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 55.376879 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 61.052805 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 63.515768 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 68.941694 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 69.191694 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 74.61762 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 77.080583 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 82.756509 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 85.219472 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 90.645398 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 90.895398 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 96.321324 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 98.784287 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 104.460213 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 106.923175 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 112.349101 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 112.599101 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 118.025027 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 120.48799 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 126.163916 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-000-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 128.626879 },
-          "lateral": 7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 112.349101 },
+              "lateral": 7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -315772,27 +314937,92 @@
           "lateral": 7.030189,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-000-mirrored-shadowed",
-          "palette": "p000",
-          "at": { "joint": "s74", "offset": 134.302805 },
-          "lateral": -7.030189,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "kind": "repeat",
+          "every": 8.138888,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-mirrored-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 31.210213 },
+              "lateral": -7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-025",
-          "palette": "p230",
-          "at": { "joint": "s74", "offset": 137.684879 },
-          "lateral": -9.781132,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-mirrored-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 52.913916 },
+              "lateral": -7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-mirrored-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 74.61762 },
+              "lateral": -7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-mirrored-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 96.321324 },
+              "lateral": -7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-000-mirrored-shadowed",
+              "palette": "p000",
+              "at": { "joint": "s74", "offset": 118.025027 },
+              "lateral": -7.030189,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -315802,7 +315032,17 @@
           "lateral": -7.030189,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.833962, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-025",
+          "palette": "p230",
+          "at": { "joint": "s74", "offset": 137.684879 },
+          "lateral": -9.781132,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -315822,7 +315062,7 @@
           "lateral": 9.781132,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -315835,484 +315075,55 @@
           "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 145.695636 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 162.345954,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "s74", "offset": 145.695636 },
+              "lateral": -9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "s74", "offset": 148.658599 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 162.345954,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p104",
+              "at": { "joint": "s74", "offset": 148.658599 },
+              "lateral": 9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 151.121562 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 153.706393 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 154.084525 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 156.669356 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 159.132319 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 162.095282 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 164.558245 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 167.521208 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 169.98417 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 172.947133 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 175.410096 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 178.373059 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 180.836022 },
-          "lateral": -8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 183.798985 },
-          "lateral": 8.762264,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 186.261948 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 189.224911 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 191.687874 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 194.650837 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 197.1138 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 200.076763 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 202.539726 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 205.502689 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 207.965652 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 210.928615 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 213.391578 },
-          "lateral": -8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 213.787067 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 216.354541 },
-          "lateral": 8.354717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 216.75003 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 219.212993 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 222.175956 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 224.638919 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 227.601882 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 230.064845 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 233.027808 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 235.490771 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 238.453734 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 240.916697 },
-          "lateral": 7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "s74", "offset": 243.87966 },
-          "lateral": -7.539623,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 246.342623 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 249.305586 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 251.768549 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 254.731512 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 257.194475 },
-          "lateral": 7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p102",
-          "at": { "joint": "s74", "offset": 260.157438 },
-          "lateral": -7.94717,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "s74", "offset": 261.851607 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -260.265493 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 110.730045,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s74", "offset": 151.121562 },
+              "lateral": -9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316322,7 +315133,41 @@
           "lateral": -9.169811,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s74", "offset": 153.706393 },
+              "lateral": -8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 110.730045,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 154.084525 },
+              "lateral": 9.169811,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316332,197 +315177,41 @@
           "lateral": 9.169811,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -252.376604 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 156.669356 },
+              "lateral": 8.762264,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -249.413641 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -246.950678 },
-          "lateral": -9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -243.987715 },
-          "lateral": 9.577358,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -241.524752 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -238.561789 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -236.098826 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -233.135863 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -230.6729 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -227.709937 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -225.246974 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -225.177362 },
-          "lateral": -11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -222.464399 },
-          "lateral": -10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -222.284011 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -222.214399 },
-          "lateral": 11.207547,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -219.751436 },
-          "lateral": -9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -219.501436 },
-          "lateral": 10.392453,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -217.038473 },
-          "lateral": -9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -216.788473 },
-          "lateral": 9.984906,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "s74", "offset": 186.261948 },
+              "lateral": -8.354717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316532,27 +315221,24 @@
           "lateral": -8.354717,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -214.07551 },
-          "lateral": 9.169811,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -211.612547 },
-          "lateral": -6.724528,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 189.224911 },
+              "lateral": 8.354717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316562,7 +315248,281 @@
           "lateral": 8.354717,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 213.787067 },
+              "lateral": 7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 216.75003 },
+              "lateral": -7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p105",
+              "at": { "joint": "s74", "offset": 230.064845 },
+              "lateral": 7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "s74", "offset": 233.027808 },
+              "lateral": -7.539623,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 246.342623 },
+              "lateral": 7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p102",
+              "at": { "joint": "s74", "offset": 249.305586 },
+              "lateral": -7.94717,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -252.376604 },
+              "lateral": -9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -249.413641 },
+              "lateral": 9.577358,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -241.524752 },
+              "lateral": -9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -238.561789 },
+              "lateral": 9.984906,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -230.6729 },
+              "lateral": -10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -227.709937 },
+              "lateral": 10.392453,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -225.177362 },
+          "lateral": -11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -222.464399 },
+          "lateral": -10.392453,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -222.214399 },
+          "lateral": 11.207547,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -219.751436 },
+          "lateral": -9.984906,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -219.501436 },
+          "lateral": 10.392453,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052-mirrored",
+          "palette": "p104",
+          "at": { "joint": "end", "offset": -216.788473 },
+          "lateral": 9.984906,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-052",
+          "palette": "p105",
+          "at": { "joint": "end", "offset": -211.612547 },
+          "lateral": -6.724528,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "sprite",
@@ -316572,7 +315532,7 @@
           "lateral": -5.09434,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -316582,17 +315542,24 @@
           "lateral": 6.724528,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -206.186621 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 1.036151,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p103",
+              "at": { "joint": "end", "offset": -206.186621 },
+              "lateral": -3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316602,27 +315569,24 @@
           "lateral": 5.09434,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p103",
-          "at": { "joint": "end", "offset": -205.15047 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -203.223658 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 1.036151,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p102",
+              "at": { "joint": "end", "offset": -203.223658 },
+              "lateral": 3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316632,27 +315596,24 @@
           "lateral": -8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p102",
-          "at": { "joint": "end", "offset": -202.187507 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -199.724544 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052",
+              "palette": "p105",
+              "at": { "joint": "end", "offset": -199.724544 },
+              "lateral": -3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316662,7 +315623,7 @@
           "lateral": 8.150943,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": { "width": 1.625, "movable": null }
+          "body": null
         },
         {
           "kind": "sprite",
@@ -316675,24 +315636,21 @@
           "body": null
         },
         {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -196.761581 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052",
-          "palette": "p105",
-          "at": { "joint": "end", "offset": -194.298618 },
-          "lateral": -3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-052-mirrored",
+              "palette": "p104",
+              "at": { "joint": "end", "offset": -196.761581 },
+              "lateral": 3.464151,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",
@@ -316713,16 +315671,6 @@
           "groundOffset": 1.528302,
           "unselectedLink": null,
           "body": null
-        },
-        {
-          "kind": "sprite",
-          "image": "outrun-052-mirrored",
-          "palette": "p104",
-          "at": { "joint": "end", "offset": -191.335655 },
-          "lateral": 3.464151,
-          "groundOffset": 0,
-          "unselectedLink": null,
-          "body": { "width": 9.373585, "movable": null }
         },
         {
           "kind": "sprite",

@@ -259,7 +259,12 @@ export interface RoadOptions {
   readonly cameraDistance: number;
   /** The road's objects, given its road width (units) at a road position and its end, positions. */
   readonly objects: (
-    points: readonly { readonly position: number; readonly count: number; readonly type: number }[],
+    points: readonly {
+      readonly position: number;
+      readonly count: number;
+      readonly type: number;
+      readonly passable: boolean;
+    }[],
     width: (position: number) => number,
     end: number,
   ) => { readonly placements: readonly ObjectPlacement[]; readonly checkpoints: readonly number[] };
@@ -377,7 +382,15 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   };
   const roadEnd = positions.at(-1)! + laid.at(-1)!.road.span.length;
   const objects = options.objects(
-    laid.flatMap((l, k) => l.road.span.scenery.map((p) => ({ ...p, position: p.position + positions[k]! }))),
+    // A goal's own objects, where the road runs on through them, are passed through (K, 2026-10-20, for now).
+    laid.flatMap((l, k) => {
+      const goal = l.road.span.stageEnd;
+      return l.road.span.scenery.map((p) => ({
+        ...p,
+        position: p.position + positions[k]!,
+        passable: goal !== undefined && p.position >= goal && k < laid.length - 1,
+      }));
+    }),
     (position) => {
       const { k, p } = spanAt(position);
       return laid[k]!.road.span.width.at(p);

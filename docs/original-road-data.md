@@ -491,7 +491,9 @@ L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, 
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, so the
   objects a stage's last points bring out stand in its fork piece and the fork's in the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
-  it stands beside. A solid object's body is at most its board's width in whole texels.
+  it stands beside. A solid object's body is at most its board's width in whole texels. Where the road runs on from a
+  goal, the objects its goal stretch brings out (its stands among them, on the road taken) are passed through (K,
+  2026-10-20, for now).
 - **Gates.** The grid on COCONUT BEACH; a checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's
   left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the camera, about 100
   into the stage (a stage after a join has none); at each stage of row 5's 1948 a checkpoint `<STAGE>-GOAL` where the

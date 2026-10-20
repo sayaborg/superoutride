@@ -45,11 +45,12 @@ export interface ObjectPlacement {
  * A point is taken when the road position reaches it, replacing the one before; then each tick its pattern turns twice,
  * each turn bringing out its next entry, from the last back, where a 1 leaves it, until its count is spent. At `kmh` a
  * tick advances the road `kmh × 0x12F / 65536` positions. An object appears at the horizon where it is brought out and
- * stands where the camera passes it (`approach`). `width(p)` is the road width (units) at position p.
+ * stands where the camera passes it (`approach`). `width(p)` is the road width (units) at position p. The objects a
+ * point marked `passable` brings out are not hit.
  */
 export function stageObjects(
   main: Uint8Array,
-  points: readonly SceneryPoint[],
+  points: readonly (SceneryPoint & { readonly passable?: boolean })[],
   options: {
     readonly end: number;
     readonly kmh: number;
@@ -69,7 +70,7 @@ export function stageObjects(
   const unconverted: { drawing: number; position: number }[] = [];
   const step = options.kmh * POSITION_PER_KMH;
   const reach = [approach(main, HORIZON, options.kmh), approach(main, NEARER, options.kmh)];
-  const place = (use: SpriteUse, at: number, x: number, y: number, apart: boolean) => {
+  const place = (use: SpriteUse, at: number, x: number, y: number, apart: boolean, solid = true) => {
     const position = at;
     if (position >= options.end) return;
     const routine = OBJECT_ROUTINES.get(use.routine)!;
@@ -92,7 +93,7 @@ export function stageObjects(
       y,
       image: boardName(use),
       palette: paletteName(use.palette),
-      hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
+      hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
       width,
     });
   };
@@ -142,7 +143,7 @@ export function stageObjects(
           shadow: (e.flags & 2) !== 0,
           ...shown,
         };
-        place(use, road + reach[slot]!, 16 * e.x, e.y, options.width(road) > RIGHT_FROM_LEFT_WIDTH);
+        place(use, road + reach[slot]!, 16 * e.x, e.y, options.width(road) > RIGHT_FROM_LEFT_WIDTH, !point.passable);
       }
     }
   });

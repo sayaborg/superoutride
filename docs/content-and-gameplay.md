@@ -1746,8 +1746,9 @@ scenery, start, forks, goals and joins; run the conversion rather than editing t
 has its checkpoint where the original's checkpoint banner passes the camera; a goal the road runs on from is a
 checkpoint, and the finish is at the last stage's end. Their scenery is outline boards. The development series
 TRIAL's classes A LLLL, B LRLL, C LLRR, C RRLL, D RLRR and E RRRR time the six (TESTAROSSA, a margin of 1.35). GRAND
-TOUR is untimed: its reference run is stopped by VINEYARD's goal stands, which stand on the road it drives on through,
-so it has no class and no reference times, only its racing line (K's rule for a road whose reference run fails).
+TOUR is untimed: its reference run, losing its road among DESOLATION HILL's stones as goal C's roads part, does not
+finish, so it has no class and no reference times, only its racing line (K's rule for a road whose reference run
+fails).
 
 ## Observation formats
 
