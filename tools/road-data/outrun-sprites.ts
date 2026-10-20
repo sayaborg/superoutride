@@ -126,14 +126,16 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 
 /**
  * The sizes a routine draws whatever sprite its entry names, choosing one by depth: the longs at `address` point at
- * them, `sizes` of them, `nearest` the index of the nearest. Its far sizes show more than its nearest: each its
- * nearest shrunk across with what lies beyond (`reduced`), or its nearest unshrunk, repeating (`repeated`).
+ * them, `sizes` of them, `nearest` the index of the nearest. Its far sizes show more than its nearest, `reach` times its
+ * width at the farthest: each size k its nearest shrunk across by `shrink(k)` with what lies beyond (0 where too small
+ * to read), or, with no `shrink`, its nearest unshrunk, repeating.
  */
 export interface Family {
   readonly address: number;
   readonly sizes: number;
   readonly nearest: number;
-  readonly far: 'reduced' | 'repeated';
+  readonly reach: number;
+  readonly shrink?: (k: number) => number;
 }
 
 /**
@@ -155,8 +157,14 @@ export interface ObjectRoutine {
   readonly fromMiddle?: { readonly edge: number; readonly up: number };
 }
 
-/** A strip's sizes: 16 for the depths, the nearest last. */
-const strip = (address: number, far: Family['far']): Family => ({ address, sizes: 16, nearest: 15, far });
+/** A strip's sizes: 16 for the depths, the nearest last; size k, where reduced, the nearest shrunk to (k + 1)/16. */
+const strip = (address: number, reduced: boolean): Family => ({
+  address,
+  sizes: 16,
+  nearest: 15,
+  reach: 16,
+  ...(reduced ? { shrink: (k: number) => (k + 1) / 16 } : {}),
+});
 /**
  * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
  * (1 − z/512)); standing twice as far, twice that, above the original's eye, 72 (rows 223 to 151).
@@ -171,17 +179,29 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, 'repeated') }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, 'reduced') }],
-  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, 'reduced') }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, 'reduced') }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true) }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true) }],
+  // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
+  [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588, true) }],
+  // VINEYARD's trees: size k ≤ 7 the nearest shrunk to (8 − k)/8, more trees beyond; size 8 (3 rows) too small.
+  [
+    0x428a,
+    {
+      pixelUnits: 2,
+      hits: false,
+      keepsLeftWhenApart: false,
+      family: { address: 0x435c, sizes: 9, nearest: 0, reach: 8, shrink: (k) => (k < 8 ? (8 - k) / 8 : 0) },
+    },
+  ],
   [
     0x4144,
     {
       pixelUnits: 4,
       hits: false,
       keepsLeftWhenApart: false,
-      family: { address: 0x4246, sizes: 9, nearest: 0, far: 'repeated' },
+      family: { address: 0x4246, sizes: 9, nearest: 0, reach: 16 },
       fromMiddle: { edge: 32, up: CLOUDS_UP },
     },
   ],
@@ -207,8 +227,9 @@ export const objectAside = (
  * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432), its edge nearest
  * the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its middle at x. They
  * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kind 2
- * (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever its entry's. Kinds 5,
- * 6, 12 and 14 move and are no object (null).
+ * (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever its entry's; kind 12
+ * (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again. Kinds 5 and 6 move and are no object
+ * (null).
  */
 export function sceneryRoutine(
   main: Uint8Array,
@@ -239,6 +260,10 @@ export function sceneryRoutine(
       return { routine: 0x4432, anchor: mirrored ? 2 : 1 };
     case 13:
       return { routine: 0x3fe8, anchor: 0 };
+    case 12:
+      return { routine: 0x428a, anchor: mirrored ? 10 : 9 };
+    case 14:
+      return { routine: 0x4380, anchor: mirrored ? 2 : 1 };
     default:
       return null;
   }

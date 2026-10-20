@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-14b](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
+Next PR: [RD-14c](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order; beside them
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s SH-4 once RD-15's backgrounds are on main, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-3b;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -244,7 +244,7 @@ The conversion is [Original road data](original-road-data.md#course-documents)'s
 
 The stage's PRs left:
 
-- RD-4: scenery, done but for the moving objects (drawings 2, 12 and 14)
+- RD-4: scenery, done but for the moving objects (drawings 5 and 6, the checkpoint banners)
   ([Placing scenery](original-road-data.md#placing-scenery)); Stage RD2's RD-14 places them standing still. The ground's spray (the surface effect) is not converted
   ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches' sizes by depth (flatter
   far away) would need a drawing change: a board is one picture at every depth, a strip's rebuilt from the original's
@@ -316,8 +316,8 @@ Rules of the stage, beside Stage RD's:
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
-- RD-14, what stands still in place of what moves, in parts each measured: RD-14b VINEYARD's trees and drawing 14;
-  RD-14c the checkpoint banners and the start's flag waver; RD-14d the figures after each goal.
+- RD-14, what stands still in place of what moves, in parts each measured: RD-14c the checkpoint banners and the
+  start's flag waver; RD-14d the figures after each goal.
 - RD-15: each stage's background, both layers drawn into one sky, committed and published; the copies of the generic
   skies end. Pixels alone.
 - RD-16 (the stage's last PR, deletions only): the outline boards' making and `content/sprite-sources`' boards, the

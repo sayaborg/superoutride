@@ -129640,6 +129640,91 @@
           "body": null
         },
         {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 33,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588-mirrored",
+              "palette": "p181",
+              "at": { "joint": "s59", "offset": 26.923267 },
+              "lateral": -6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588-mirrored",
+              "palette": "p181",
+              "at": { "joint": "s59", "offset": 211.404749 },
+              "lateral": -6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 32,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s59", "offset": 29.63623 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s59", "offset": 205.978823 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s59", "offset": 219.543637 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
           "kind": "sprite",
           "image": "outrun-028-mirrored",
           "palette": "p223",

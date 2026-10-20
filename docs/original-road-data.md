@@ -168,11 +168,14 @@ road units, or 1 where the routine halves the scale twice. The drawings read so 
 | 11      | 0x4432                | middle left (right) | 2     | never                         | no                   |
 | 13      | 0x3FE8                | middle              | 1     | never                         | yes                  |
 | 2       | 0x4144                | bottom left (right) | 4     | never                         | (by the middle)      |
+| 12      | 0x428A                | bottom left (right) | 2     | never                         | no                   |
+| 14      | 0x4380                | middle left (right) | 2     | never                         | yes                  |
 
 A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
-([Strips and patches](#strips-and-patches)). Drawing 2 draws a cloud ([Clouds](#clouds)). Drawings 5, 6, 12 and 14
-move and are not converted yet.
+([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
+([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)). Drawings 5 and 6 move and
+are not converted yet.
 
 ## Boards
 
@@ -198,7 +201,7 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
   at the middle of the sprite's hit extents, so a solid object's body stands there.
 - **Shadow.** A shadowed board's shadow is the original's shadow on the same grid and at its anchor.
 
-The entries of drawings 5, 6, 12 and 14 (moving objects) are not converted. The sprite sources and recipes under
+The entries of drawings 5 and 6 (moving objects) are not converted. The sprite sources and recipes under
 `content/sprite-sources/` that earlier boards were imported from are no longer written or read.
 
 ## Placing scenery
@@ -223,7 +226,7 @@ runs its slots:
   position, its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from
   the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
   the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent. Objects not
-  converted (drawings 5, 6, 12 and 14) take slots too.
+  converted (drawings 5 and 6) take slots too.
 - **Approach.** Every object, one brought out this tick too, then comes nearer once: its depth gains the table at
   0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
   reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
@@ -255,8 +258,10 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   px). Its edge nearest the road stands at the entry's x, from the road's centre as an object's; it reaches outward,
   drawn mirrored on the left, a pixel 2 road units. Drawing 1 draws flowered grass (GATEWAY, ALPS, WHEAT FIELD, VINEYARD
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11
-  DEATH VALLEY's stones. Its board, `outrun-strip-<family>`, is the strip restored from its sizes, its base point at
-  that edge.
+  DEATH VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart
+  and setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 79
+  at the top speed. Its board, `outrun-strip-<family>`, is the strip restored from its sizes, its base point at that
+  edge.
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
@@ -301,6 +306,21 @@ cloud stands still:
 - **Picture.** Its nearest size repeated outward, 16 times its width as the far sizes cover, in boards of 4 repetitions
   (`boardsAcross`: the fewest, halving, that fit a course image), 4043 × 135 texels, side by side:
   `outrun-strip-4246` and `-mirrored`, named by the family's address as the strips are. No body.
+
+### VINEYARD's trees
+
+Drawing 12 (0x428A), VINEYARD's trees (type 199's entries, x ±21 by its grass at ±19; 197 and 198 hold the same but no
+point uses them), approaches as an object does and stands on the ground by its bottom left edge, or mirrored its right
+(0x3E34), its x from the left road's centre or a right-side one's from the right's. It draws, whatever sprite its entry
+names, the 9 sizes the longs at 0x435C point at (0x10410 to 0x10460, 224 wide, 63 to 3 rows, the nearest first):
+nearer than line 256 the size and zoom the table at 0x30A00 gives, from it the nearest at half the line's scale (a
+pixel 2 road units), in its entry's palette, 228. It tests no hit, so it has no body.
+
+A far size k (to 7) is the nearest shrunk to (8 − k)/8 across and down with more trees beyond, covering 8/(8 − k)
+times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is restored as a
+strip's is (`restoredStrip`): 8 times the nearest's width, each column d from the size shrunk least that still covers
+it (d × (8 − k)/8 within the nearest's width), its column d(8 − k)/8 and its rows its height's share of the nearest's:
+3652 × 138 texels. 1343 trees stand at the top speed.
 
 On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
 beyond the road's edge band, as the original's.

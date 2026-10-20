@@ -229415,6 +229415,2202 @@
         {
           "kind": "repeat",
           "every": 5.425926,
+          "count": 18,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s3", "offset": 37.144481 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -81.645183 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -62.654443 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -43.663702 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -21.959998 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.343025,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -2.801157 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335805,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 5.20977 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 12,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 26.552987 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 90.582638 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335805,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 109.257952 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -99.821622 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -81.146307 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -62.470992 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335805,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -41.127776 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -22.452461 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.636073,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": -3.841615 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.52534,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 4.636238 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.68356,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 18.845138 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.68356,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": -22.842049 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.707618,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": -2.949589 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.353802,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 0.025876 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 13.94888 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569202,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 30.656483 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 47.364087 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 97.486899 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 158.748113 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -116.506895 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -85.876288 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -63.599483 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -44.107279 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569202,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -21.830474 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.356752,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 0.429305 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.146434,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": 8.253632 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.146434,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": 26.26615 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.146434,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c12", "offset": -22.204868 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.428162,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c12", "offset": 3.691386 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 6.756313 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 45.874682 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 79.404712 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 129.699757 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -96.398285 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -62.868255 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -12.57321 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.485535,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s15", "offset": -4.000386 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 20,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s15", "offset": 4.198112 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 30,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s15", "offset": 112.71663 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -61.539512 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -42.548771 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -23.55803 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.515018,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": 3.625328 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 12,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 6.557688 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 73.140987 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 128.627069 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -84.897349 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -62.702916 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -43.282787 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548609,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -23.862659 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -7.216834 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.675839,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": 3.964885 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c19", "offset": 6.96859 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c19", "offset": 29.761161 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c19", "offset": 49.704661 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698142,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c20", "offset": -31.303682 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c20", "offset": -8.511111 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-strip-435c",
+          "palette": "p228",
+          "at": { "joint": "c20", "offset": 2.839613 },
+          "lateral": 16.805256,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 17,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s3", "offset": 39.857444 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -78.932221 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -59.94148 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -40.950739 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": -19.247035 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.349595,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": 2.422109 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 15,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 7.877673 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 87.914736 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335805,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 111.925854 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -97.15372 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -78.478405 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -59.80309 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335805,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -38.459874 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.335804,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": -19.784559 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.614163,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 1.63997 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.52534,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 7.478018 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.68356,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 21.686918 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.68356,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": -20.000269 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.732625,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": -0.107809 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.353802,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 2.810477 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 16.73348 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 33.441084 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569202,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 77.994694 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 94.702298 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 144.82511 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -124.860697 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -83.091688 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569202,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -60.814883 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -41.322678 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.569201,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -19.045873 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.44595,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": -2.338269 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 10.292868,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": 0.533981 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 12.866085,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": 15.973282 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.146434,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c12", "offset": -32.497736 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.146433,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c12", "offset": -19.631651 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.385839,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c12", "offset": 0.998466 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 3.962144 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 48.668851 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 82.198881 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c13", "offset": 132.493926 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -110.369131 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -60.074086 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.588338,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": -9.779041 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.508,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c14", "offset": 1.377543 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 20,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s15", "offset": 6.911075 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 26,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s15", "offset": 115.429593 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -80.530253 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -58.826549 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -39.835808 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": -20.845067 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.507551,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c16", "offset": 0.871553 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 3.783384 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 12,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 59.269466 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c17", "offset": 125.852765 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -82.123045 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -59.928612 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -40.508483 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.548608,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": -21.088354 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.66944,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c18", "offset": 1.130165 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c19", "offset": 4.119518 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c19", "offset": 32.610232 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c20", "offset": -48.398111 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.698143,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c20", "offset": -28.454611 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.697573,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c20", "offset": -5.66204 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-strip-435c-mirrored",
+          "palette": "p228",
+          "at": { "joint": "end", "offset": -2.636111 },
+          "lateral": -8.564555,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
           "count": 17,
           "elements": [
             {
@@ -231920,6 +234116,1325 @@
               "body": null
             }
           ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 5.588437 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 37,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 27.29214 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -63.630944 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -41.92724 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -22.936499 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.272068,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": -3.712944 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 4.189133 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 35.749244 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 72.569373 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -72.542769 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -35.72264 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.305399,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": 1.106957 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 2.712963,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s4", "offset": 3.9732 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 25,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s4", "offset": 12.112089 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -83.841432 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -62.137728 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -43.146987 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -21.443283 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.273745,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 0.253116 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 2.608242,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 2.981796 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.216483,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 10.806521 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.216483,
+          "count": 13,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 55.146628 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.216483,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": -11.816013 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.239006,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 3.826633 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330175,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 6.707941 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 12,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 22.698464 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 86.660555 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -82.347976 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -61.027279 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -42.37167 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -21.050973 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.249165,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 0.265625 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198937,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 2.985322 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 23.781067 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 83.568831 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -66.418239 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -48.221963 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -30.025687 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.355045,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": 1.202999 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 8.3014 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 27,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 24.579177 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -123.316129 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -79.908721 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -60.917981 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -39.214277 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -20.223536 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.277144,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": 1.43958 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 6.819142 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 38.379253 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 69.939364 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -69.91276 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.260018,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -33.092631 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.292177,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -1.53252 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s4", "offset": 1.260237 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 25,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s4", "offset": 14.825052 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -81.128469 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -59.424765 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -40.434024 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425925,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -18.73032 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.269643,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 2.889989 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.216483,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 8.198279 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.216483,
+          "count": 15,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c6", "offset": 57.754869 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.207226,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c7", "offset": 1.22302 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330175,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 4.042854 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 13,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 20.033377 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 9,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c8", "offset": 89.325642 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -79.682889 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -58.362192 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330175,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -39.706583 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.330174,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": -18.385886 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.245437,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c9", "offset": 2.890207 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198937,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 5.58479 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 11,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c10", "offset": 26.380535 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -84.614516 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -63.818771 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -45.622495 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.198936,
+          "count": 6,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c11", "offset": -27.426219 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "sprite",
+          "image": "outrun-strip-435c-mirrored",
+          "palette": "p228",
+          "at": { "joint": "c11", "offset": 3.880522 },
+          "lateral": -8.564555,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
         },
         {
           "kind": "repeat",
@@ -235102,6 +238617,363 @@
           "elements": [
             {
               "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 1.347054 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 27,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 14.911869 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -80.203245 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -61.212504 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -39.508801 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -20.51806 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.289596,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": 1.155854 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 3.86504 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 40.321322 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 68.965543 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -56.294692 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -38.066551 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -19.83841 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.410241,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": 1.032333 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": 4.034648 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": 43.566452 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -61.200275 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -41.434373 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.6474,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -21.66847 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.509749,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": 0.89868 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 20,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c-mirrored",
+              "palette": "p228",
+              "at": { "joint": "s6", "offset": 3.726103 },
+              "lateral": -8.564555,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
               "image": "outrun-strip-4548-mirrored",
               "palette": "p255",
               "at": { "joint": "s0", "offset": 1.347054 },
@@ -235803,6 +239675,363 @@
               "palette": "p255",
               "at": { "joint": "s6", "offset": 1.01314 },
               "lateral": 15.990162,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 2.712963,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 4.060017 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 27,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s0", "offset": 12.198906 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -82.916208 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -63.925467 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -42.221764 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": -23.231023 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.269849,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c1", "offset": 3.800652 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 10,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 6.46906 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 7.81206,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 58.549463 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c2", "offset": 71.569563 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -58.898712 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -40.670571 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.20804,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": -22.44243 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.461094,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c3", "offset": 3.737454 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 8,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": 6.858348 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c4", "offset": 52.037553 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -64.023975 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -44.258073 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.647401,
+          "count": 3,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -24.492171 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.556122,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "c5", "offset": -1.902568 },
+              "lateral": 16.805256,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 20,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-435c",
+              "palette": "p228",
+              "at": { "joint": "s6", "offset": 1.01314 },
+              "lateral": 16.805256,
               "groundOffset": 0,
               "unselectedLink": null,
               "body": null
@@ -291264,6 +295493,125 @@
           "groundOffset": 8.078167,
           "unselectedLink": null,
           "body": null
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 16,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588-mirrored",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 26.759229 },
+              "lateral": -6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 17,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588-mirrored",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 113.574043 },
+              "lateral": -6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 7,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588-mirrored",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 211.24071 },
+              "lateral": -6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 15,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 29.472192 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 17,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 110.86108 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 8.138889,
+          "count": 2,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 205.814784 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "every": 5.425926,
+          "count": 5,
+          "elements": [
+            {
+              "kind": "sprite",
+              "image": "outrun-strip-4588",
+              "palette": "p181",
+              "at": { "joint": "s71", "offset": 219.379599 },
+              "lateral": 6.928302,
+              "groundOffset": 0,
+              "unselectedLink": null,
+              "body": null
+            }
+          ]
         },
         {
           "kind": "sprite",

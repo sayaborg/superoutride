@@ -112,46 +112,48 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
   return boards;
 }
 
-/** A strip or cloud reaches this many times its nearest size's width: its far sizes cover 16 times the nearest's. */
-const STRIP_REACH = 16;
-
 /**
  * The boards a family's reach is split into, side by side outward, and each one's width (road units): the fewest,
- * halving, whose board fits a course image's texels. A strip's is one; the clouds', twice as large, four.
+ * halving, whose board fits a course image's texels. A strip's or the trees' is one; the clouds', twice as large, four.
  */
 export function boardsAcross(main: Uint8Array, routine: ObjectRoutine): { count: number; units: number } {
   const { family } = routine;
   if (!family) return { count: 1, units: 0 };
   const { width, height } = familySizes(main, family)[family.nearest]!;
-  for (let count = 1; count <= STRIP_REACH; count *= 2) {
-    const grid = boardGrid((STRIP_REACH / count) * width, height, routine.pixelUnits);
+  for (let count = 1; count <= family.reach; count *= 2) {
+    const grid = boardGrid((family.reach / count) * width, height, routine.pixelUnits);
     if (grid.width * grid.height <= COURSE_DOCUMENT_LIMITS.imageMasterTexels) {
-      if (count > 1 && family.far !== 'repeated') throw new Error(`Family ${family.address} needs several boards`);
-      return { count, units: (STRIP_REACH / count) * width * routine.pixelUnits };
+      if (count > 1 && family.shrink) throw new Error(`Family ${family.address} needs several boards`);
+      return { count, units: (family.reach / count) * width * routine.pixelUnits };
     }
   }
   throw new Error(`Family ${family.address} does not fit a course image`);
 }
 
 /**
- * A strip's or cloud's picture restored from its family's sizes, `STRIP_REACH` times its nearest size's width over
+ * A strip's, cloud's or trees' picture restored from its family's sizes, its reach times its nearest size's width over
  * `boards` boards (one board's share) and as tall, its edge nearest the road on the left. Each column `d` nearest pixels
- * from that edge: where the far sizes are the nearest shrunk across with what lies beyond (`reduced`, a strip's 16
- * sizes), size k covering (k + 1) / 16 of the way, from the largest size that covers it, its column d(k + 1)/16 and its
- * rows its height's share of the nearest's (a size without rows leaves it transparent); where they are not shrunk
- * (`repeated`), the nearest size's, repeating outward.
+ * from that edge: where the far sizes are the nearest shrunk across with what lies beyond, size k (shrunk by s) covering
+ * d where d·s is within the nearest's width, from the largest size that covers it, its column d·s and its rows its
+ * height's share of the nearest's (a size without rows leaves it transparent); where they are not shrunk, the nearest
+ * size's, repeating outward.
  */
 function restoredStrip(main: Uint8Array, words: Uint32Array, family: Family, boards: number) {
   const sizes = familySizes(main, family);
   const sized = sizes.map((size) => spritePixels(words, size));
   const { width, height } = sizes[family.nearest]!;
-  const reach = (STRIP_REACH / boards) * width;
+  const reach = (family.reach / boards) * width;
+  const { shrink } = family;
   const pixels = new Uint8Array(reach * height);
   for (let d = 0; d < reach; d++) {
+    // The largest size that covers d: the one shrunk least that still holds it.
     let k = family.nearest;
-    if (family.far === 'reduced') while ((k + 1) * d >= STRIP_REACH * width) k--;
+    if (shrink) {
+      k = -1;
+      for (let j = 0; j < sizes.length; j++) if (d * shrink(j) < width && (k < 0 || shrink(j) > shrink(k))) k = j;
+    }
     const size = sizes[k]!;
-    const column = family.far === 'reduced' ? Math.floor((d * (k + 1)) / STRIP_REACH) : d % width;
+    const column = shrink ? Math.floor(d * shrink(k)) : d % width;
     for (let y = 0; y < height; y++) {
       const row = Math.floor((y * size.height) / height);
       if (row < size.height) pixels[y * reach + d] = sized[k]![row * size.width + column]!;
