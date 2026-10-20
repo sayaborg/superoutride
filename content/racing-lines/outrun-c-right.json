@@ -11,6 +11,66 @@
       "vehicleSha256": "056a17c0d6bb536f5e185df82b1a505b32c7e4d69d0da31063658db8c538a1f3",
       "seconds": 432.676,
       "minimumCurvatureSeconds": 433.005
+    },
+    {
+      "vehicleId": "911_TURBO_3_3",
+      "vehicleSha256": "65c4cd9e962ca815486bbdc0eec099023009163c28d2a74bdb05fb5d0cefc234",
+      "seconds": 442.176,
+      "minimumCurvatureSeconds": 442.588
+    },
+    {
+      "vehicleId": "CORVETTE_C4",
+      "vehicleSha256": "c546a899417f54363d8385900ff5b497048f3f0c3d33df407896b2731b1ac570",
+      "seconds": 450.049,
+      "minimumCurvatureSeconds": 450.23
+    },
+    {
+      "vehicleId": "GOLF_GTI_16V",
+      "vehicleSha256": "6f195d00ad1693f03f8be193b0ccc6d66ab510039944ee57c4dea1d5b11b8999",
+      "seconds": 486.76,
+      "minimumCurvatureSeconds": 487.052
+    },
+    {
+      "vehicleId": "DELTA_HF_INTEGRALE",
+      "vehicleSha256": "757b79c0f6c58102dca2e4c7e10aaaf39d655b4ba9c01306e282e9b3630d48c7",
+      "seconds": 467.733,
+      "minimumCurvatureSeconds": 468.052
+    },
+    {
+      "vehicleId": "S13_DRIFT_TUNED",
+      "vehicleSha256": "f8c9d0bb5247d8311ad4ecf96651f55408929a6e0292aaaef1dbb955aaa55a99",
+      "seconds": 650.929,
+      "minimumCurvatureSeconds": 651.274
+    },
+    {
+      "vehicleId": "AE86_DRIFT_TUNED",
+      "vehicleSha256": "efb9df8f8a3ab0801675ff53081fd2dfc8e828b28282405208b73b9a56c99a87",
+      "seconds": 698.104,
+      "minimumCurvatureSeconds": 698.446
+    },
+    {
+      "vehicleId": "VFR750R",
+      "vehicleSha256": "73f9bf1bd504ee87f480cfb8641222ae31f61a3c03153eecc445309808107518",
+      "seconds": 441.252,
+      "minimumCurvatureSeconds": 441.583
+    },
+    {
+      "vehicleId": "R80_GS_PARIS_DAKAR",
+      "vehicleSha256": "40e595086cb25c490e2598eb1e1f09721b5f3ff567dbac78504e9504b92e2e0e",
+      "seconds": 567.498,
+      "minimumCurvatureSeconds": 568.33
+    },
+    {
+      "vehicleId": "FXRT_SPORT_GLIDE",
+      "vehicleSha256": "1cc91374ae925967a4950613d3ef0518fca201c98c333acfc4f8b70d5c6d5d3e",
+      "seconds": 569.289,
+      "minimumCurvatureSeconds": 570.038
+    },
+    {
+      "vehicleId": "PX200E_ARCOBALENO",
+      "vehicleSha256": "05c9b6ebf90ac5a869b2a5b12eb484bd3f449c7007c81e0d46002ade23e6a489",
+      "seconds": 900.155,
+      "minimumCurvatureSeconds": 901.325
     }
   ],
   "lines": [

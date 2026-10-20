@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-11](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
+Next PR: [RD-10e](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
 [Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a, then
 [Stage TO](#stage-to--turbo-outrun-from-the-roms)'s from TO-2a once RD-10e and Stage SH's tool PRs are on main;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -296,18 +296,23 @@ K's decisions (2026-10-19 to 20):
   originals alone; the ROM zip and the raw dumps stay out of Git and PRs.
 - **Later.** The hills are made again in a later stage; until then they keep today's rule. Crossings keep the 6 m rule;
   proper grade separation comes with the hills.
+- **No classes until the hills** (K, 2026-10-20). The hills of the three originals are reviewed later, so no reference
+  times are needed now: OUTRUN's seven roads have no TRIAL class until their hills are made again, and FREE PLAY drives
+  them untimed. When the hills are made again, each road gets its class back: the player from GO's slot (15),
+  TESTAROSSA alone, a margin of 1.35, and traffic as before (GOLF GTI 16V and DELTA HF INTEGRALE, density 6, 120 km/h).
 
 Rules of the stage, beside Stage RD's:
 
 - The conversion stays deterministic, its `--check` rebuilding from the ROMs and comparing with what is committed; the
   specification records the ROMs' CRCs and the conversion's version.
 - No Cannonball identifier (function or constant names) appears in the repository's documents or code.
-- Measured products are generated again only where a course's identity changes, and are not reviewed. A course whose
-  reference run fails is left out of TRIAL's classes and delivered for FREE PLAY, its road kept as the ROM's, and is
-  reported.
+- A road's measured products are its racing lines alone. Wherever a course's identity changes, they are made again
+  (`npm run measure -- generate`), and they are neither reviewed nor reported.
 
 The PRs, in order (each one too large for one review is split and the split reported):
 
+- RD-10e: objects' approach, the stages' ends and the road position as OUTRUN's ROM has them (K's instructions for
+  RD-10e).
 - RD-11: the guidance where a road is chosen (drawn signs, chevrons and road arrows; K decides on Pages). Measured.
 - RD-12: the boards' pictures from the ROMs, sizes and anchors unchanged. Published, not measured.
 - RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.

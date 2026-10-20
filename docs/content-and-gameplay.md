@@ -1744,11 +1744,9 @@ STORM RIDGE, `outrun-d` OVERDRIVE, `outrun-e` BLUE HORIZON, each one of the orig
 road data ([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills,
 scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
 has its checkpoint where the original's checkpoint banner passes the camera; a goal the road runs on from is a
-checkpoint, and the finish is at the last stage's end. Their scenery is outline boards. The development series
-TRIAL's classes A LLLL, B LRLL, C LLRR, C RRLL, D RLRR and E RRRR time the six (TESTAROSSA, a margin of 1.35). GRAND
-TOUR is untimed: its reference run, losing its road among DESOLATION HILL's stones as goal C's roads part, does not
-finish, so it has no class and no reference times, only its racing line (K's rule for a road whose reference run
-fails).
+checkpoint, and the finish is at the last stage's end. Their scenery is outline boards. Until their hills are made
+again they have no class ([NEXT](NEXT.md#stage-rd2--outrun-rebuilt-from-the-roms)): FREE PLAY drives them untimed, and
+their measured products are their racing lines alone.
 
 ## Observation formats
 
