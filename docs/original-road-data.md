@@ -1,13 +1,15 @@
 # Original road data
 
-OUTRUN's courses are raised from the road data in the original's program ROMs. This document owns how those ROMs are
-read: the ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how a
-stage's tables become a course document. What the conversion does not yet cover is
-[NEXT](NEXT.md#stage-rd--outrun-from-the-originals-road-data)'s.
+OUTRUN's courses are raised from the road data in the original's program ROMs, and
+[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) raises SUPER HANG-ON's from its own the same way. This
+document owns how each original's ROMs are read: the ROM set, its programs, the tables' format and addresses, the dump
+the road data tool writes, and how the tables become course documents. OUTRUN's sections come first, and
+[SUPER HANG-ON](#super-hang-on) has its own. What the conversion does not yet cover is NEXT's
+([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data), Stage SH).
 
-The ROMs and any raw data taken from them are not committed and appear in no PR: K's zip lies in
-`reference-media/outrun/rom/`, the tool's dumps in `reference-media/outrun/rom-data/`. The formats are read by this
-project's own code from this description and the ROMs themselves.
+The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
+`reference-media/outrun/rom/` and `reference-media/super-hang-on/rom/`, the tool's dumps beside them in `rom-data/`.
+The formats are read by this project's own code from this description and the ROMs themselves.
 
 ## ROM set
 
@@ -598,3 +600,9 @@ and are not committed.
 - **Width.** The road's edges lie off the screen on the car's row: the road there is 10.3 m, about 410 px. The lane
   lines either side of the car stand `k1`'s median 136.0 px apart there, this game's lane 137.6 px at its 40 px/m.
 - **Start.** The start line's place is checked with the scenery, which places the start gantry.
+
+## SUPER HANG-ON
+
+SUPER HANG-ON's courses are raised from MAME's `shangon`, the export sitdown/upright set (unprotected): the cabinets'
+courses differ, and K chose this one. Its ROM set, programs and tables are described here as
+[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) reads them.

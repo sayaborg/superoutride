@@ -137,7 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-10c](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
+Next PR: [RD-10c](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order, then
+[Stage SH](#stage-sh--super-hang-on-from-the-roms)'s from SH-2a;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -250,8 +251,7 @@ The stage's PRs left:
   the original's far sizes instead.
 - RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
 
-SUPER HANG-ON follows with the same tool once K supplies its ROMs: its tables are of the same family at unknown
-addresses, so the work begins by finding the sub CPU's road path tables (instructions to follow).
+SUPER HANG-ON follows with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms).
 
 ## Stage RD2 — OUTRUN rebuilt from the ROMs
 
@@ -331,6 +331,63 @@ The PRs, in order (each one too large for one review is split and the split repo
 
 Not in this stage: the hills made again and grade separation, BRANCH removed from the engine (a decision of its own),
 music, the cars' pictures, and the product's pictures drawn again.
+
+## Stage SH — SUPER HANG-ON from the ROMs
+
+Stage SH follows Stage RD2 and raises SUPER HANG-ON's four courses, AFRICA, ASIA, AMERICA and EUROPE, from the
+original's ROMs as Stage RD2 raised OUTRUN's, with its tools and rules: the ROMs' pictures converted and published,
+backgrounds baked into skies, objects placed along a whole road, crossings kept apart by bumps, and PRs ordered so that
+the courses are measured as seldom as possible. Its aim is Stage RD2's: exact, true to the ROMs, fair to look at,
+simple, and fitted to this game's physics; the look comes first, and lengthy checks (the reference times' review among
+them) are left out. Its PRs are numbered from SH-1, and Stage RD's and RD2's rules hold where this section does not
+change them.
+
+K's decisions (2026-10-20):
+
+- **Kept from Stage RD2.** All physics stays as it is; distances come from the original's displayed speed and its
+  clock. Pictures are resampled at the best quality there is (backgrounds by area averages in linear light). Everything
+  that moves is placed standing still, the ending as its last frame. Each background's near layer is drawn before its
+  far layer at the same scale into one picture; the horizon's ground gradient is not made. The bikes are baked from 3D
+  models, so the original's bike and rivals are not converted. The sprites' and backgrounds' pictures converted from
+  the ROMs are committed and shown on Pages, provisionally (drawn again for the product); sounds (PCM) stay local
+  originals alone, and the ROM zip and the raw dumps stay out of Git and PRs. The hills are made again in a later
+  stage; crossings keep the 6 m rule.
+- **Cabinet.** The cabinets' courses differ: the export sitdown/upright set, MAME's `shangon` (unprotected), is the
+  base, not the Japanese one.
+- **Product.** The four courses are the reference courses of the SUPER HANG-ON series ([Series](product.md#5-series)),
+  one LINEAR course each.
+
+Rules of the stage, beside Stage RD's and RD2's:
+
+- K's zip lies in `reference-media/super-hang-on/rom/`, the tool's dumps in `reference-media/super-hang-on/rom-data/`.
+  No code of MAME, Cannonball or LayOut is copied or ported: the formats are read by this project's own code from the
+  stage's description and the ROMs themselves.
+- The road data tool serves both originals. What they share has one implementation: palette words, area-majority
+  sampling, area averages in linear light, the front layer's column removal, tile pictures, writing images, course
+  documents, `--check` and the crossings' bumps. Each original adds its own ROM set, addresses and formats (sprites,
+  tiles, how objects are brought out); OUTRUN's two roads, forks and strips do not enter SUPER HANG-ON.
+- The stage stops only where the ROMs disagree with the stage's description, where a rule above would break, or where
+  the format cannot make a course's form (the nearest form it can make is then shown); every other open point is
+  decided by its default and reported in its PR.
+
+The PRs, in order (each one too large for one review is split and the split reported):
+
+- SH-2a: the road data tool parted into each original's modules and the modules both share, moves only: OUTRUN's
+  `--check` passes unchanged, and [Original road data](original-road-data.md) states what both share once.
+- SH-2b: SUPER HANG-ON's ROMs read: the set checked by CRC, its programs assembled, and every table its courses use
+  written to the dump `super-hang-on.json` (`superoutride.super-hang-on-road-data` version 1). No course yet.
+- SH-3: the four courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america`
+  (AMERICA) and `super-hang-on-europe` (EUROPE): the road on the original's road path, level but for the crossings'
+  bumps, with its colors and stripes; the scenery, gates, the goal's crowd and the ending's figures; and TRIAL's four
+  classes (VFR750R alone in tricolor, from the bike grid's last slot, no traffic, margin 1.35). Their 24 skies are
+  copies of `coast-sky` under their own names until SH-4. Measured. If too large, SH-3a (road, colors, Sections,
+  gates, classes) and SH-3b (objects).
+- SH-4: the 24 skies baked from the tile ROMs in place of the copies. Pixels alone, published, not measured.
+
+Not in this stage: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series
+itself (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are
+encrypted), the ending's motion (its last frame alone stands), whether OUTRUN's road position becomes the car's
+rather than the camera's (K decides), and the product's pictures drawn again.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
@@ -466,7 +523,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 | Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                      |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE); which cabinet's roads to use is open. VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                       |
+| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [Stage SH](#stage-sh--super-hang-on-from-the-roms)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                  |
 | OUTRUN         | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
 | TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. F40 and 959 are period road specifications.                                                                                                                                       |
 | CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
@@ -481,7 +538,8 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 ### Courses of the originals
 
 OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
-SUPER HANG-ON's are raised with the same tool once K supplies its ROMs. How CHASE H.Q.'s are raised, K decides then.
+SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms). How CHASE H.Q.'s
+are raised, K decides then.
 Their time limits come from reference driving, as for every course.
 
 ### Inspection and art
@@ -556,7 +614,7 @@ and switching is a cut.
 | Series values    | TSUKUBA CLUBMAN's pace ratios (1.02 at the pole to 0.88), margin 1.35 and 5 laps on real devices; a rival reaches its 95% ceiling at about 1.02, so the pole has no room above it                                                                                                                                                                                                        |
 | Grids            | Whether grid slots take a free lateral: TSUKUBA's bike slots stand at lane centres, about 5.7 m apart, wider than the real grid's about 4 m                                                                                                                                                                                                                                              |
 | Rivals           | Whether one-make rivals' pace ratios are shuffled each run (today each slot keeps its own)                                                                                                                                                                                                                                                                                               |
-| Series content   | SUPER HANG-ON reference layouts; CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                                                                                                                                                                                          |
+| Series content   | CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                                                                                                                                                                                                                           |
 | Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                                                                                                                                                                                            |
 | Vehicles         | Exact specifications of adopted vehicles (year, market, grade); BROUGHAM TUNED values                                                                                                                                                                                                                                                                                                    |
 | Circuits         | Series or FREE PLAY placement of the selected circuits below                                                                                                                                                                                                                                                                                                                             |
