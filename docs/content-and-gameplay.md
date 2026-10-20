@@ -1750,6 +1750,14 @@ TOUR is untimed: its reference run, losing its road among DESOLATION HILL's ston
 finish, so it has no class and no reference times, only its racing line (K's rule for a road whose reference run
 fails).
 
+SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,
+`super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written
+by the road data tool from the original's ROMs ([Original road data](original-road-data.md#super-hang-ons-courses)),
+which owns their plan, lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the
+documents. Each stage has its checkpoint where its CHECK gate passes the bike, and the finish is at the GOAL gate. Their
+scenery shows the original's sprites, provisionally. The development series TRIAL's classes AFRICA, ASIA, AMERICA and
+EUROPE time them (VFR750R alone, from the bike grid's last slot, a margin of 1.35).
+
 ## Observation formats
 
 ### Course observations
