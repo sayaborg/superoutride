@@ -32,6 +32,7 @@ import { TILE_PICTURE_TILE_SIZE } from '../../src/image/tile-picture.js';
 import { rgba } from '../../src/image/rgb555.js';
 import { assemblePrograms, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
+import { superHangOnDump } from './super-hang-on-dump.js';
 import {
   OUTRUN_STAGES,
   pathOffset,
@@ -60,6 +61,9 @@ const DUMP_DIRECTORY = 'reference-media/outrun/rom-data';
 /** Where K's TURBO OUTRUN ROM zip and the tool's dumps of it lie: never committed. */
 const TURBO_OUTRUN_ROM_DIRECTORY = 'reference-media/turbo-outrun/rom';
 const TURBO_OUTRUN_DUMP_DIRECTORY = 'reference-media/turbo-outrun/rom-data';
+/** Where K's SUPER HANG-ON ROM zip and the tool's dumps of it lie: never committed. */
+const SUPER_HANG_ON_ROM_DIRECTORY = 'reference-media/super-hang-on/rom';
+const SUPER_HANG_ON_DUMP_DIRECTORY = 'reference-media/super-hang-on/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The player's picture set, which the Ferrari's local original replaces. */
@@ -121,6 +125,26 @@ function parse(args: readonly string[]) {
 try {
   const options = parse(rest);
   switch (command) {
+    case 'super-hang-on-read': {
+      // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
+      const zip = await oneZip(options.get('--zip'), SUPER_HANG_ON_ROM_DIRECTORY, '--zip');
+      const dump = superHangOnDump(readZip(new Uint8Array(await readFile(zip))));
+      const out = options.get('--out') ?? SUPER_HANG_ON_DUMP_DIRECTORY;
+      await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          out,
+          positions: dump.positions,
+          courses: dump.courses,
+          sceneryTypes: Object.keys(dump.sceneryTypes).length,
+          sprites: Object.keys(dump.sprites).length,
+          palettes: Object.keys(dump.palettes).length,
+        }),
+      );
+      break;
+    }
     case 'read': {
       // The ROM zip checked and read; every table to the dump.
       const { zip, programs } = await readPrograms(options.get('--zip'));

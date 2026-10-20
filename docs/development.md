@@ -475,19 +475,20 @@ evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC
 
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
 runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` (TURBO OUTRUN's in
-`reference-media/turbo-outrun/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
+`reference-media/turbo-outrun/rom/`, SUPER HANG-ON's in `reference-media/super-hang-on/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
 from the ROMs under `content/`:
 
-| Command             | Purpose                                                                                                                                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read`              | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                                               |
-| `hills`             | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
-| `course`            | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies and their [local originals](#local-originals) to `content/images/`, or with `--check` fail where one differs |
-| `look`              | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
-| `boards`            | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), and their [local originals](#local-originals), or with `--check` fail where a board differs                   |
-| `player`            | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                                         |
-| `sounds`            | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
-| `turbo-outrun-read` | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
+| Command              | Purpose                                                                                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`               | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                                               |
+| `hills`              | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
+| `course`             | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies and their [local originals](#local-originals) to `content/images/`, or with `--check` fail where one differs |
+| `look`               | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
+| `boards`             | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), and their [local originals](#local-originals), or with `--check` fail where a board differs                   |
+| `player`             | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                                         |
+| `sounds`             | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
+| `turbo-outrun-read`  | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
+| `super-hang-on-read` | Check SUPER HANG-ON's ROM zip (`--zip`, else the one zip in its ROM directory) and write its courses' tables to its dump                                                                                         |
 
 ### Local originals
 
