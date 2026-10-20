@@ -1,7 +1,7 @@
 {
   "format": "superoutride.racing-line",
   "version": 2,
-  "courseBuildSha256": "c49a87d72747ea9cb48201f8fcf1e44d2a93f3fe31739b966e7b9acde5c653cd",
+  "courseBuildSha256": "89abded0114f6946fc2d451e801000ed504389a6a5f97cbf3c9b6f43fdac5cbb",
   "procedureSha256": "a02d84163d6c8544c90dd66d617de1a50d041b397856c697933f7124c64c2ef8",
   "spacing": 5,
   "lengthWeight": 0,
@@ -9,8 +9,8 @@
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "73f9bf1bd504ee87f480cfb8641222ae31f61a3c03153eecc445309808107518",
-      "seconds": 637.261,
-      "minimumCurvatureSeconds": 637.261
+      "seconds": 637.266,
+      "minimumCurvatureSeconds": 637.266
     }
   ],
   "lines": [
