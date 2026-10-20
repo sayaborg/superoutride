@@ -484,7 +484,7 @@ from the ROMs under `content/`:
 | `hills`                | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
 | `course`               | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies and their [local originals](#local-originals) to `content/images/`, or with `--check` fail where one differs |
 | `look`                 | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
-| `boards`               | Write the outline boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), and their [local originals](#local-originals), or with `--check` fail where a board differs                   |
+| `boards`               | Write the boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), in the ROMs' pixels, and their [local originals](#local-originals), or with `--check` fail where a board differs      |
 | `player`               | Write the local original of TESTAROSSA's picture set, the original's Ferrari, from the ROM zip (`--zip`)                                                                                                         |
 | `sounds`               | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
 | `turbo-outrun-read`    | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
@@ -502,8 +502,7 @@ for K's own runs only: they never reach Git, a PR or Pages.
   palette names and level count as the published file. Only its pixels and colors differ, so the measured products
   saved for the published content stay valid.
 - **Conversion.** Each conversion is deterministic and is rebuilt by the command that writes the published file:
-  `npm run road-data -- boards` writes each outline board and, beside it, its color original, from the same ROM
-  words on the same texel grid and by the same sampling, with the ROM's palette under each palette name.
+  `npm run road-data -- boards` writes each board, in the ROMs' pixels, and beside it the same picture as its original.
   `npm run road-data -- course` writes each OUTRUN stage's sky and its original, the stage's background from the tile
   ROMs ([Backgrounds](original-road-data.md#backgrounds)). `npm run road-data -- player` writes the original of TESTAROSSA's picture set, the original's Ferrari
   ([The player's car](original-road-data.md#the-players-car)). `npm run road-data -- sounds` writes the originals of the recordings the original

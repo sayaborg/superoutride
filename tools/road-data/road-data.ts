@@ -578,7 +578,7 @@ try {
       break;
     }
     case 'boards': {
-      // The outline boards of every sprite OUTRUN's stages, fork and goal stretches and start show, written to content,
+      // The boards of every sprite OUTRUN's stages, fork and goal stretches and start show, written to content,
       // or with `--check` compared with the ones there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));

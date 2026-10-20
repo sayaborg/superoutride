@@ -170,9 +170,9 @@ A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the j
 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
 ([Strips and patches](#strips-and-patches)). Drawings 2, 5, 6, 12 and 14 move and are not converted yet.
 
-## Outline boards
+## Boards
 
-`npm run road-data -- boards` writes an [outline board](footage.md#outline-boards) for each sprite OUTRUN's stages
+`npm run road-data -- boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
 mirrored and shadowed as shown: the course image `outrun-<sprite>[-mirrored][-shadowed]` (a strip's
 `outrun-strip-<family>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
@@ -184,11 +184,10 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
 - **Sampling.** Each texel takes the palette index whose pixels cover most of its area, transparency counted as an
   index; of two as large, that of the pixel nearest the texel's centre (`areaMajority`). At these ratios it is the
   nearest pixel's.
-- **Picture.** The board's indices are the largest size's outline, filled: the colored pixels and every pixel no
-  transparent path joins to the picture's edge. Each palette the sprite is shown in is a palette of the board
-  (`p<palette>`, the lowest its default), one color, the palette's mean over the colored pixels. Its
-  [local original](development.md#local-originals) has the same grid and the sprite's own indices in each palette's
-  own colors.
+- **Picture.** The board's indices are the largest size's own pixels, and each palette the sprite is shown in is a
+  palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
+  ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2). Its
+  [local original](development.md#local-originals) is the same picture.
 - **Base point.** At the bottom or middle its anchor gives. Across, an object anchored by an edge that has no body (its
   routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
   at the middle of the sprite's hit extents, so a solid object's body stands there.

@@ -1,14 +1,14 @@
 /**
- * OUTRUN's scenery as outline boards ([Original road data](../../docs/original-road-data.md#outline-boards)): each
- * sprite an object shows, mirrored as it is shown, becomes a course image whose only content is its largest size's
- * outline in one color a palette, on the texel grid of the original's pixels at the road's scale, its base point the
- * object's anchor, and its shadow the original's.
+ * OUTRUN's scenery as boards ([Original road data](../../docs/original-road-data.md#boards)): each sprite an object
+ * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
+ * the texel grid of the original's pixels at the road's scale, its base point the object's anchor, and its shadow the
+ * original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
-import { anchorPoint, outline, representative, spritePixels } from './sprite-pixels.js';
+import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { areaMajority, boardGrid, paletteName } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
@@ -28,7 +28,7 @@ export function boardName(use: Pick<SpriteUse, 'sprite' | 'routine' | 'mirrored'
   return `outrun-${shown}${use.mirrored ? '-mirrored' : ''}${use.shadow ? '-shadowed' : ''}`;
 }
 
-/** The files of one board: its course image, and the original's picture in its place, which stays local. */
+/** The files of one board: its course image, and the same picture as the local original in its place. */
 export interface BoardFiles {
   readonly name: string;
   readonly image: { readonly path: string; readonly bytes: Uint8Array };
@@ -42,8 +42,7 @@ export const standsByEdge = (use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
 /**
  * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
  * number, its default). Each is made from the largest size's pixels straight onto its texel grid (`boardGrid`,
- * `areaMajority`): the published board its outline in one color a palette, the local original its pixels in the
- * palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
+ * `areaMajority`), in the palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
  * (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a solid object's body stands.
  */
 export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readonly SpriteUse[]): BoardFiles[] {
@@ -70,7 +69,6 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const grid = boardGrid(size.width, size.height, routine.pixelUnits);
     const scale = { x: grid.width / size.width, y: grid.height / size.height };
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
-    const colors = palettes.map((p) => representative(pixels, spritePalette(main, p)));
     const byEdge = standsByEdge(first!);
     const point = anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, grid.height);
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
@@ -93,14 +91,10 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
         : {}),
     });
     const board = master(
-      (k) => [0, ...Array<number>(15).fill(colors[k]!)],
-      areaMajority(outline(pixels, size.width), size.width, grid.width, grid.height),
-    );
-    const original = master(
       (k) => [0, ...spritePalette(main, palettes[k]!).slice(1)],
       areaMajority(pixels, size.width, grid.width, grid.height),
     );
-    boards.push({ name, image: courseImageFile(board), original: courseImageFile(original) });
+    boards.push({ name, image: courseImageFile(board), original: courseImageFile(board) });
   }
   return boards;
 }
