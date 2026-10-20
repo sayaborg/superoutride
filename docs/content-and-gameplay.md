@@ -1270,7 +1270,8 @@ a Section's schedule stations are every 5 m from its start, then its end. `start
 integer milliseconds, at the entry Section's stations from the first one the reference reaches. `sections` gives,
 for each Section a reference run passes from its start, the fastest time over all of that course's reference runs
 from the Section's start to each station it reaches, starting at 0; times increase strictly. The build derives
-both by interpolating the run's race time between fixed steps at each station's route station. A RACE run
+both by interpolating the run's race time between fixed steps at each station's route station; a station passed in
+the same millisecond as the one before (a Section's end just past its last 5 m station) takes the next millisecond. A RACE run
 admits the player vehicle's schedule once, against the compiled course and the run vehicle; no other vehicle's
 schedule and no FREE PLAY run reads one.
 

@@ -190,9 +190,14 @@ function paceSchedule(entryId: string, runs: readonly ReferenceRun[]): SavedPace
       sections.set(pass.section, values);
     }
   }
+  // Stations closer than a millisecond's travel take the next millisecond, so that the times increase strictly.
+  const increasing = (values: readonly number[]) =>
+    values.reduce<number[]>((out, value) => [...out, Math.max(value, (out.at(-1) ?? -1) + 1)], []);
   return {
-    start: { section: entryId, first: runs[0]!.passes[0]!.first, milliseconds: start },
-    sections: [...sections].filter(([, values]) => values.length >= 2),
+    start: { section: entryId, first: runs[0]!.passes[0]!.first, milliseconds: increasing(start) },
+    sections: [...sections]
+      .filter(([, values]) => values.length >= 2)
+      .map(([section, values]) => [section, increasing(values)] as const),
   };
 }
 
