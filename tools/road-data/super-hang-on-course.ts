@@ -10,7 +10,7 @@ import { repeated, sectionProfile } from './outrun-course.js';
 import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, overlappingCells, type PathElement } from './super-hang-on-geometry.js';
-import { crossingsOf } from './super-hang-on-crossings.js';
+import { crossingsOf } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import type { PlanSegment } from './super-hang-on-plan.js';

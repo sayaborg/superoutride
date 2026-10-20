@@ -3,6 +3,7 @@
  * its straights and arcs one after another from the course's entry, the plane the centre lane runs on (P laid off a
  * fixed distance to its left, so again straights and arcs), and each road position's station on the plane.
  */
+import { overlap } from './crossings.js';
 
 /** A pose: metres, heading in radians counterclockwise from +x. */
 export interface Pose {
@@ -102,25 +103,6 @@ function advance(pose: Pose, e: PathElement, d: number): Pose {
     y: pose.y + (Math.cos(pose.heading) - Math.cos(pose.heading + k * d)) / k,
     heading: pose.heading + k * d,
   };
-}
-
-/** Whether two convex polygons overlap: no edge of either separates them by more than `margin`. */
-export function overlap(
-  a: readonly (readonly [number, number])[],
-  b: readonly (readonly [number, number])[],
-  margin = 0,
-): boolean {
-  for (const polygon of [a, b])
-    for (let i = 0; i < polygon.length; i++) {
-      const [x0, y0] = polygon[i]!,
-        [x1, y1] = polygon[(i + 1) % polygon.length]!;
-      const [nx, ny] = [y0 - y1, x1 - x0];
-      const norm = Math.hypot(nx, ny) || 1;
-      const span = (q: readonly (readonly [number, number])[]) => q.map(([x, y]) => (nx * x + ny * y) / norm);
-      const [pa, pb] = [span(a), span(b)];
-      if (Math.max(...pa) + margin <= Math.min(...pb) || Math.max(...pb) + margin <= Math.min(...pa)) return false;
-    }
-  return true;
 }
 
 /**

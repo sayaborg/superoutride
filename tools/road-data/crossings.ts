@@ -1,6 +1,6 @@
 /**
- * Where a level SUPER HANG-ON course passes over itself ([Original road data](../../docs/original-road-data.md#super-hang-on)):
- * its overlapping pairs of stations gathered into crossings, each the passages that overlaps join.
+ * Where a road passes over itself ([Original road data](../../docs/original-road-data.md#profile)): whether two of its
+ * cells overlap, and its overlapping pairs of stations gathered into crossings, each the passages that overlaps join.
  */
 import type { Crossing, Passage } from './road-profile.js';
 
@@ -26,4 +26,23 @@ export function crossingsOf(pairs: readonly (readonly [number, number])[], gap: 
     passages: ks.map((k) => passages[k]!),
     pairs: pairs.filter(([a]) => ks.includes(passageOf(a))),
   }));
+}
+
+/** Whether two convex polygons overlap: no edge of either separates them by more than `margin`. */
+export function overlap(
+  a: readonly (readonly [number, number])[],
+  b: readonly (readonly [number, number])[],
+  margin = 0,
+): boolean {
+  for (const polygon of [a, b])
+    for (let i = 0; i < polygon.length; i++) {
+      const [x0, y0] = polygon[i]!,
+        [x1, y1] = polygon[(i + 1) % polygon.length]!;
+      const [nx, ny] = [y0 - y1, x1 - x0];
+      const norm = Math.hypot(nx, ny) || 1;
+      const span = (q: readonly (readonly [number, number])[]) => q.map(([x, y]) => (nx * x + ny * y) / norm);
+      const [pa, pb] = [span(a), span(b)];
+      if (Math.max(...pa) + margin <= Math.min(...pb) || Math.max(...pb) + margin <= Math.min(...pa)) return false;
+    }
+  return true;
 }
