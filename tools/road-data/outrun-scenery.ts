@@ -14,7 +14,7 @@ import {
   OBJECT_ROUTINES,
   objectAside,
   objectSize,
-  readStartObjects,
+  type StartObject,
   sceneryRoutine,
 } from './outrun-sprites.js';
 
@@ -60,7 +60,7 @@ export interface ObjectPlacement {
  * 4. Each object's depth gains the table's step at 0x28000 for its line and the advance (half for the clouds); where it
  *    reaches line 512 it passes the car, and stands at that tick's road position.
  *
- * The objects at the game's start fill slots from GO at their lines and stand where they pass the car or, nearer, where
+ * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
  * they look as large as the original draws them at their line (`startDepth`, a road position). A point is taken by
  * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
  * road position p; the roads are apart for an object where it was wider than 280 as it appeared. The objects a point
@@ -76,9 +76,12 @@ export function roadObjects(
     readonly kmh: number;
     readonly width: (p: number) => number;
     readonly startDepth: (line: number) => number;
+    readonly starts: readonly StartObject[];
   },
 ): {
   placements: ObjectPlacement[];
+  /** Where an object that grants the checkpoint's time passes the car. */
+  checkpoints: number[];
   notConverted: Map<number, number>;
   /** Where each entry not converted stands, by its drawing. */
   unconverted: { drawing: number; position: number }[];
@@ -90,11 +93,13 @@ export function roadObjects(
   start: { passing: number; sized: number };
 } {
   const placements: ObjectPlacement[] = [];
+  const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
   const unconverted: { drawing: number; position: number }[] = [];
   const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean, solid = true) => {
-    if (position >= options.end) return;
     const routine = OBJECT_ROUTINES.get(use.routine)!;
+    if (routine.grantsTime) checkpoints.push(position);
+    if (position >= options.end) return;
     const size = objectSize(main, use);
     const width = size.width * routine.pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
@@ -130,7 +135,7 @@ export function roadObjects(
   let dropped = 0;
   const ended = { objects: 0, solid: 0 };
   const start = { passing: 0, sized: 0 };
-  for (const o of readStartObjects(main)) {
+  for (const o of options.starts) {
     const use = {
       sprite: o.sprite,
       mirrored: (o.flags & 1) !== 0,
@@ -260,6 +265,7 @@ export function roadObjects(
   }
   return {
     placements: placements.sort((a, b) => a.position - b.position || a.x - b.x),
+    checkpoints,
     notConverted,
     unconverted,
     dropped,

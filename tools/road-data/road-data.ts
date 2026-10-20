@@ -10,7 +10,7 @@ import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
 import { sceneryBoards, type SpriteUse } from './outrun-boards.js';
-import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-sprites.js';
+import { assembleSprites, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
@@ -392,6 +392,7 @@ try {
         shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
       };
       const courses = [];
+      const starts = startObjects(programs.main);
       for (const route of OUTRUN_ROUTES) {
         const road = outrunRoad(routeSpans(route, inputs), {
           id: route.id,
@@ -402,15 +403,16 @@ try {
           stageName: nameOf,
           sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
           objects: (points, road) => {
-            const { placements, unconverted, dropped, ended, start } = roadObjects(programs.main, points, {
+            const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
               ...road,
               kmh: TOP_KMH,
               startDepth,
+              starts,
             });
             // The checkpoint banner's left half (drawing 6) passing the car: the original's time extension.
             return {
               placements,
-              checkpoints: unconverted.filter((u) => u.drawing === 6).map((u) => u.position),
+              checkpoints,
               report: { dropped, ended, start },
             };
           },
@@ -617,7 +619,7 @@ try {
             ...shown,
           });
         }
-      for (const o of readStartObjects(programs.main))
+      for (const o of startObjects(programs.main))
         uses.push({
           sprite: o.sprite,
           mirrored: (o.flags & 1) !== 0,

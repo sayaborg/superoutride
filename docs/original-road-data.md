@@ -147,7 +147,8 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
 - **Objects.** A scenery entry's drawing chooses its routine, which sets its anchor, its scale and whether the car hits
   it; a routine also draws the sprite's size its scale selects. The objects standing at the game's start are the
   16-byte records counted by the word at 0x2B6E, {u8 flags, u8 anchor, u8 priority, u8 palette, word sprite × 4, signed
-  word x in road units, word y × 128, word depth, long routine}.
+  word x in road units, word y × 128, word depth, long routine}, and the flag waver ([Banners and the flag
+  waver](#banners-and-the-flag-waver)).
 
 An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless
 the roads were apart as it appeared (the road width over the word at 0xE308, 280: the spawn sets its flag) and its
@@ -170,12 +171,13 @@ road units, or 1 where the routine halves the scale twice. The drawings read so 
 | 2       | 0x4144                | bottom left (right) | 4     | never                         | (by the middle)      |
 | 12      | 0x428A                | bottom left (right) | 2     | never                         | no                   |
 | 14      | 0x4380                | middle left (right) | 2     | never                         | yes                  |
+| 5, 6    | 0x46D6, 0x4774        | bottom middle       | 2     | never                         | no                   |
 
 A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
 ([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
-([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)). Drawings 5 and 6 move and
-are not converted yet.
+([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the
+checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-waver)).
 
 ## Boards
 
@@ -201,7 +203,7 @@ size's pixels straight onto its texel grid at 40 texels/m (`sceneryBoards`), sam
   at the middle of the sprite's hit extents, so a solid object's body stands there.
 - **Shadow.** A shadowed board's shadow is the original's shadow on the same grid and at its anchor.
 
-The entries of drawings 5 and 6 (moving objects) are not converted. The sprite sources and recipes under
+The sprite sources and recipes under
 `content/sprite-sources/` that earlier boards were imported from are no longer written or read.
 
 ## Placing scenery
@@ -225,20 +227,19 @@ runs its slots:
   replaces the one before. While its count lasts and its cursor (its position, one more each tick) is not past the road
   position, its type's frequency word turns left twice; each turn that carries out a 1 brings out its next entry, from
   the last back: the first turn's at line 0x104 (0x3C76 spawns it at 0x10400), the second's at 0x100. An object takes
-  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent. Objects not
-  converted (drawings 5 and 6) take slots too.
+  the first free of the scenery's 79 slots (3 to 81); with none free it is not brought out, its count spent.
 - **Approach.** Every object, one brought out this tick too, then comes nearer once: its depth gains the table at
   0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
   reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
   after it appeared at the top speed, a cloud 66 (89.4). This approach, counted once a tick, put every object about
   87 positions farther from 2026-10-18 (RD-4) to RD-10e. At the top speed 48 to 78 objects live at once; on all 15
   stages one object finds no slot, CLOUDY MOUNTAIN's of type 34 at 1063.
-- **The start.** The 68 objects standing at the game's start take slots 3 to 70 at their lines from GO and approach as
+- **The start.** The 69 objects standing at the game's start take slots 3 to 71 at their lines from GO and approach as
   any other. An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
   f × `UNIT_METRES` × 512 / L metres (3130 / L m) from the camera, which stands at the road's entry at GO. It stands
   there, or where it passes the car by its approach where that is nearer: 26 of them by their approach (the edges'
-  objects at lines 110 and below, those at 16 and below 55 to 101 m from the entry), 42 by their size (the edges' from
-  line 106, the START gate and the people). `k1`'s start gate (line 160, 19.6 m) leaves the top of the screen about 5
+  objects at lines 110 and below, those at 16 and below 55 to 101 m from the entry), 43 by their size (the edges' from
+  line 106, the START gate, the people and the flag waver). `k1`'s start gate (line 160, 19.6 m) leaves the top of the screen about 5
   positions after GO; by its approach it passes the car 9.5 positions after GO, its top leaving the screen 5 to 7
   positions after GO, so its approach and its size agree as the original draws them.
 - **Across.** An object's x is from the road its drawing gives ([Sprites](#sprites); the spawn at 0x3D74 sets the
@@ -306,6 +307,26 @@ cloud stands still:
 - **Picture.** Its nearest size repeated outward, 16 times its width as the far sizes cover, in boards of 4 repetitions
   (`boardsAcross`: the fewest, halving, that fit a course image), 4043 × 135 texels, side by side:
   `outrun-strip-4246` and `-mirrored`, named by the family's address as the strips are. No body.
+
+### Banners and the flag waver
+
+The fork stretch's point at 398 (type 60, count 4) brings out the checkpoint: two posts (drawing 4, sprite 16, palette
+221, x ±20) and the banner's halves, drawing 5 at x 8 and drawing 6 at x −8, each sprite 10 (CHECK, 224 × 45 pixels) in
+palette 42 at y 222. Their routines (0x46D6, 0x4774) draw a raised object as 0x4042 does, its x from the left road's
+centre or a right-side one's from the right's, and test no hit; passing the car, 0x4774 sets the word at 0x60B62 to
+−1 (0x4812), the checkpoint's time, where 0x46D6 only vanishes (0x481A). The type's entries come out from the last, so
+drawing 6 appears on the point's first tick and passes the car first: there the checkpoint's gate stands
+([OUTRUN's roads](#outruns-roads)). Each half stands as a raised object does, with no body.
+
+The start's flag waver is drawn by the program at 0x5EA8 from state 9 to 12 (the word at 0x6080C), each state's
+lists the two longs at 0x12382 + 8 × (state − 9) point at, of 8-byte blocks {u8 palette, u8 bit 7 x negative and
+bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y, u8 depth, u8 bit 7 the list's last, bit 6
+mirrored, bits 0–5 ticks}. It stands as the countdown's (state 10) first block shows it, holding up its flag: sprite
+98 (its frame, 0x10BAE, is sprite 98's size list), 40 × 96 pixels, palette 12, mirrored, 70 road units left of the
+left road's centre. It starts at line 400 (0x5E98) whatever its block's depth and approaches as the start's objects
+do, drawn at a quarter of its line's scale, a pixel 1 road unit; its object (0x582E) stands on its bottom middle and
+casts no shadow. It stands as the start's objects do: where it looks as large, 3130 / 400 = 7.8 m from the camera,
+nearer than where it passes the car.
 
 ### VINEYARD's trees
 

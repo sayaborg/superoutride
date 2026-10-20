@@ -125,6 +125,44 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 }
 
 /**
+ * The start's flag waver, standing as it holds up its flag through the countdown: the program at 0x5EA8 draws, from
+ * state 9 to 12 (the word at 0x6080C), the 8-byte blocks of the lists the longs at 0x12382 + 8 × (state − 9) point
+ * at, {u8 palette, u8 bit 7 x negative and bits 0–3 the frame's high bits, word the frame's low bits, u8 x, s8 y, u8
+ * depth, u8 bit 7 the list's last, bit 6 mirrored, bits 0–5 ticks}. The countdown's (state 10) first block shows sprite
+ * 98 (its frame the size list at 0x10BAE), 40 × 96 pixels of 1 road unit (its zoom a quarter of its line), in palette 12,
+ * mirrored, 70 road units left of the left road's centre. It starts at line 0x190 (the immediate of 0x5E98) whatever its
+ * block's depth, approaching as the start's objects do; its object (0x582E) stands on its bottom middle and casts no
+ * shadow.
+ */
+export function readFlagWaver(main: Uint8Array): StartObject {
+  const block = long(main, FLAG_WAVER_LISTS + 8 * (COUNTDOWN - 9));
+  const frame = ((main[block + 1]! & 15) << 16) | word(main, block + 2);
+  const sprite = Array.from({ length: SPRITE_COUNT }, (_, k) => long(main, SPRITES + 4 * k)).indexOf(frame);
+  if (sprite < 0) throw new Error(`The flag waver's frame ${frame.toString(16)} is no sprite's`);
+  return {
+    flags: (main[block + 7]! >> 6) & 1,
+    anchor: main[FLAG_WAVER_OBJECT + 9]!,
+    palette: main[block]!,
+    sprite,
+    x: (main[block + 1]! & 0x80 ? -1 : 1) * main[block + 4]!,
+    y: (main[block + 5]! << 24) >> 24,
+    line: word(main, FLAG_WAVER_LINE),
+    routine: FLAG_WAVER_ROUTINE,
+  };
+}
+/** The flag waver's lists, the countdown's state, its object's template, its start line's immediate and its routine. */
+const FLAG_WAVER_LISTS = 0x12382;
+const COUNTDOWN = 10;
+const FLAG_WAVER_OBJECT = 0x582e;
+const FLAG_WAVER_LINE = 0x5e9a;
+const FLAG_WAVER_ROUTINE = 0x5ea8;
+/** The sprites the longs at 0x11ED2 name, up to the hit extents' table: 150. */
+const SPRITE_COUNT = (EXTENTS - SPRITES) / 4;
+
+/** Every object standing at the start: the records at 0x2B6E and the flag waver. */
+export const startObjects = (main: Uint8Array) => [...readStartObjects(main), readFlagWaver(main)];
+
+/**
  * The sizes a routine draws whatever sprite its entry names, choosing one by depth: the longs at `address` point at
  * them, `sizes` of them, `nearest` the index of the nearest. Its far sizes show more than its nearest, `reach` times its
  * width at the farthest: each size k its nearest shrunk across by `shrink(k)` with what lies beyond (0 where too small
@@ -150,6 +188,8 @@ export interface ObjectRoutine {
   readonly keepsLeftWhenApart: boolean;
   /** A strip's or cloud's sizes. */
   readonly family?: Family;
+  /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
+  readonly grantsTime?: boolean;
   /**
    * An object placed by the screen's middle, not its entry's x: its edge this many of its pixels beyond the roads'
    * middle, on the side away from where it reaches, and this many road units up.
@@ -179,6 +219,11 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
+  [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false }],
+  [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true }],
+  // The start's flag waver.
+  [0x5ea8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
   [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true) }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
@@ -228,8 +273,8 @@ export const objectAside = (
  * the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its middle at x. They
  * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kind 2
  * (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever its entry's; kind 12
- * (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again. Kinds 5 and 6 move and are no object
- * (null).
+ * (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again; kinds 5 and 6 (0x46D6, 0x4774) the
+ * checkpoint banner's halves, raised on their bottom middle. Any other kind is no object (null).
  */
 export function sceneryRoutine(
   main: Uint8Array,
@@ -262,6 +307,10 @@ export function sceneryRoutine(
       return { routine: 0x3fe8, anchor: 0 };
     case 12:
       return { routine: 0x428a, anchor: mirrored ? 10 : 9 };
+    case 5:
+      return { routine: 0x46d6, anchor: 8 };
+    case 6:
+      return { routine: 0x4774, anchor: 8 };
     case 14:
       return { routine: 0x4380, anchor: mirrored ? 2 : 1 };
     default:
