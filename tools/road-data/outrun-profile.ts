@@ -247,12 +247,15 @@ export function stageGrades(
 const TILT_RAMP = RENDER_FAR_DEPTH_METERS;
 
 /**
- * `changes` with the road tilted by one constant grade, taken over its first `TILT_RAMP` metres and left over its last,
- * so that it ends at height 0 at `end` as it begins: a road's ends join others' at height 0.
+ * `changes` closed: any grade left at `end` (a table running to it) returned to 0 over the last `TILT_RAMP` metres,
+ * then the road tilted by one constant grade, taken over its first `TILT_RAMP` metres and left over its last, so that
+ * it ends level at height 0 at `end` as it begins: a road's ends join others' level at height 0.
  */
 export function closedGrades(changes: readonly Change[], end: number): Change[] {
-  const tilt = -profileOf(changes.map(bendOf)).height(end) / (end - TILT_RAMP);
-  return [...changes, { from: 0, to: TILT_RAMP, change: tilt }, { from: end - TILT_RAMP, to: end, change: -tilt }];
+  const left = profileOf(changes.map(bendOf)).grade(end);
+  const level = left === 0 ? [...changes] : [...changes, { from: end - TILT_RAMP, to: end, change: -left }];
+  const tilt = -profileOf(level.map(bendOf)).height(end) / (end - TILT_RAMP);
+  return [...level, { from: 0, to: TILT_RAMP, change: tilt }, { from: end - TILT_RAMP, to: end, change: -tilt }];
 }
 
 /** The height two passages of a crossing are kept apart, metres. */

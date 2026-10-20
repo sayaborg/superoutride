@@ -527,8 +527,9 @@ A stage's profile turns its height tables' look on the original's screen into gr
 - **Grades left.** The grade a table leaves (where its entries do not sum to 0, and a held shape's) is returned to 0
   over the stretch to the next table's start, the last's over the stretch to the road's end; where that stretch is
   empty, it is carried to the next.
-- **Closed.** The road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it
-  ends level at height 0 as it begins, where its ends join other roads.
+- **Closed.** A grade still left at the road's end (a table running to it) is returned to 0 over its last 200 m; then
+  the road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it ends level
+  at height 0 as it begins, where its ends join other roads.
 - **Crossings.** Where a plan passes over itself (pairs of stations at least 200 m apart whose cross-sections, to the
   edge bands, overlap between them and the next position), its passages are kept at least 6 m apart: where nearer, the higher is raised and the lower
   lowered by one smooth bump each, over the shortest stretch from 100 m by 20 m that moves this game's top by at most

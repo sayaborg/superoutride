@@ -460,6 +460,9 @@ test("a stage's grades: a table's leftover returned before the next, a held shap
   assert.ok(Math.abs(profile.grade(300)) < 1e-12);
   const closed = profileOf(closedGrades(changes, 300).map(bendOf));
   assert.ok(Math.abs(closed.height(300)) < 1e-9 && Math.abs(closed.grade(300)) < 1e-12);
+  // A grade still left at the end, a table running to it, is returned there too.
+  const left = profileOf(closedGrades([{ from: 100, to: 150, change: 0.05 }], 600).map(bendOf));
+  assert.ok(Math.abs(left.height(600)) < 1e-9 && Math.abs(left.grade(600)) < 1e-12);
 });
 
 test("a table's grades: kind 0's entries where the camera passes them, kind 1's shape held on the nearest segment", () => {
