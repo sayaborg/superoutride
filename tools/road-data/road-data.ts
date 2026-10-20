@@ -14,8 +14,16 @@ import { assembleSprites, readStartObjects, sceneryRoutine } from './outrun-spri
 import { hillsAlong, tableRuns } from './outrun-hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './outrun-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
-import { stageCourse, stationOf } from './outrun-course.js';
-import { OUTRUN_SKIES, SKY_HORIZON, skyName } from './outrun-names.js';
+import { CONVERSION_VERSION } from './outrun-course.js';
+import { OUTRUN_NAMES, OUTRUN_SKIES, SKY_HORIZON, skyName, slug } from './outrun-names.js';
+import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeSpans } from './outrun-roads.js';
+import { stageSpan } from './outrun-pieces.js';
+import { checkRoadRom, UNIT_METRES } from './outrun-cross-section.js';
+import { POSITION_METRES } from './outrun-plan.js';
+import { stageObjects } from './outrun-scenery.js';
+import { normalizeCoursePositions } from '../authoring/course-joints.js';
+import type { Json } from '../authoring/json-pointer.js';
+import { readCourseDocument } from '../../src/course/course-document.js';
 import { assembleTiles, stageBackground } from './outrun-backgrounds.js';
 import { playerOriginal } from './outrun-player.js';
 import { assembleSound, commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
@@ -31,6 +39,7 @@ import {
   readGoalStretches,
   readHeightTable,
   readSceneryType,
+  goalNumber,
   readStage,
   stageLength,
   type HeightTable,
@@ -52,8 +61,6 @@ const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The player's picture set, which the Ferrari's local original replaces. */
 const PLAYER_SET = 'content/sprites/testarossa.json';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
-/** The runout past a stage's length, positions on its path's look-ahead, its look is taken over. */
-const LOOK_RUNOUT = 225;
 const DUMP_FORMAT = Object.freeze({ format: 'superoutride.outrun-road-data', version: 1 } as const);
 
 const [command, ...rest] = process.argv.slice(2);
@@ -66,6 +73,22 @@ async function readPrograms(zip: string | undefined) {
     zip = path.join(ROM_DIRECTORY, zips[0]!);
   }
   return { zip, programs: assemblePrograms(readZip(new Uint8Array(await readFile(zip)))) };
+}
+
+/**
+ * A course document normalized and read, written to content, or with `check` compared with the one there.
+ */
+async function saveCourse(id: string, document: unknown, check: boolean) {
+  const file = `content/courses/${id}.course.json`;
+  const normalized = normalizeCoursePositions(document as Json).document;
+  const read = readCourseDocument(normalized, file);
+  if (!read.ok) throw Object.assign(new Error(`${file} does not read`), { diagnostics: read.diagnostics });
+  const text = formatSavedJson(normalized);
+  if (check) {
+    const committed = await readFile(file, 'utf8').catch(() => null);
+    requireInput(committed === text, `/${file}`, `${file} is not the conversion of the ROMs`);
+  } else await atomicWrite(file, text);
+  return file;
 }
 
 /** Flags take no value; every other option is `--name value`. */
@@ -220,10 +243,80 @@ try {
       break;
     }
     case 'course': {
-      // Each OUTRUN stage's sky as published, written to content, or with `--check` compared with the one there.
+      // OUTRUN's roads from the ROMs, and each stage's sky as published, written to content, or with `--check` compared
+      // with the ones there.
       const check = options.has('--check');
       const { zip, programs } = await readPrograms(options.get('--zip'));
-      const tiles = assembleTiles(readZip(new Uint8Array(await readFile(zip))));
+      const files = readZip(new Uint8Array(await readFile(zip)));
+      const tiles = assembleTiles(files);
+      // The roads' lines and edges as this conversion draws them are the road ROM's.
+      checkRoadRom(files);
+      const length = stageLength(programs.main);
+      requireInput(length === 1948, '/main', `The stages are ${length} positions long, not 1948`);
+      // An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
+      // f × UNIT_METRES × 512 / L metres, in road positions.
+      const startDepth = (line: number) => (CAMERA_DEFINITION.focalLength * UNIT_METRES * 512) / line / POSITION_METRES;
+      const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
+      const fork = readForkStretch(programs);
+      const goals = readGoalStretches(programs);
+      const names = new Set(
+        [...stages.values(), fork, ...goals.stretches].flatMap((s) =>
+          s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
+        ),
+      );
+      const tables = new Map([...names].map((n) => [n, readHeightTable(programs.sub, n)]));
+      const nameOf = (stage: Stage) => OUTRUN_NAMES.get(stage.number)!;
+      const inputs = {
+        rows: OUTRUN_STAGES,
+        stages,
+        fork,
+        goals,
+        goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
+        idOf: (stage: Stage) => slug(nameOf(stage)),
+      };
+      const courses = [];
+      for (const route of OUTRUN_ROUTES) {
+        const road = outrunRoad(routeSpans(route, inputs), {
+          id: route.id,
+          name: route.name,
+          tables,
+          kmh: TOP_KMH,
+          cameraDistance: cameraDistance(CAMERA_DEFINITION),
+          stageName: nameOf,
+          sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
+          objects: (points, width, end) => {
+            const { placements, unconverted } = stageObjects(programs.main, points, {
+              end,
+              kmh: TOP_KMH,
+              start: true,
+              width,
+              startDepth,
+            });
+            // The checkpoint banner's left half (drawing 6) passing the camera: the original's time extension.
+            return { placements, checkpoints: unconverted.filter((u) => u.drawing === 6).map((u) => u.position) };
+          },
+        });
+        const file = await saveCourse(route.id, road.document, check);
+        const stations = Array.from({ length: Math.floor(road.end) + 1 }, (_, s) => s);
+        courses.push({
+          course: file,
+          sections: road.document.sections.length,
+          metres: round1(road.end),
+          objects: road.objects,
+          planDrift: Math.round(road.drift * 1e4) / 1e4,
+          heights: [
+            round1(Math.min(...stations.map(road.profile.height))),
+            round1(Math.max(...stations.map(road.profile.height))),
+          ],
+          steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
+          crossings: road.crossings.map((pairs) => ({
+            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
+            apart: round1(
+              Math.min(...pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b)))),
+            ),
+          })),
+        });
+      }
       // Each stage's sky as published: its generic sky under its own name.
       for (const [number, generic] of OUTRUN_SKIES) {
         const name = skyName(number);
@@ -248,81 +341,90 @@ try {
         const original = drawScreenPicture(name, { width, height, pixels }, { columns, rows, fit: 'fill' });
         await atomicWrite(path.join(ORIGINALS_DIRECTORY, 'images', `${name}.json`), JSON.stringify(original));
       }
-      console.log(JSON.stringify({ ok: true, zip, checked: check, skies: [...OUTRUN_SKIES.keys()].map(skyName) }));
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          conversion: CONVERSION_VERSION,
+          checked: check,
+          courses,
+          skies: [...OUTRUN_SKIES.keys()].map(skyName),
+        }),
+      );
       break;
     }
     case 'look': {
-      // For every stage, as its course or else as one Section with the first course's runout: `c_look` refitted on it,
-      // its profile's extremes and crossings, and each table's road top on both screens and least load at the top speed.
+      // For every stage, as its stage piece alone (with its fork's six lanes, or its goal): `c_look` refitted on it, its
+      // profile's extremes and crossings, and each table's road top on both screens and least load at the top speed.
       const { programs } = await readPrograms(options.get('--zip'));
       const length = stageLength(programs.main);
-      const vehicle = JSON.parse(await readFile('content/vehicles/TESTAROSSA.json', 'utf8')) as {
-        overallWidth: number;
-      };
+      const fork = readForkStretch(programs);
+      const goals = readGoalStretches(programs);
       const reports = [];
-      for (const number of OUTRUN_STAGES.flat()) {
-        // The stage alone, one Section on its runout.
-        const course = {
-          stage: number,
-          name: `0x${number.toString(16)}`,
-          sections: [{ id: 'stage', from: 0 }],
-          runout: LOOK_RUNOUT,
-          sky: { image: skyName(number), horizonY: SKY_HORIZON },
-        };
-        const stage = readStage(programs, course.stage);
-        const names = [...new Set(stage.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value))];
-        const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
-        const { profile, crossings } = stageCourse(stage, {
-          ...course,
-          length,
-          offset: pathOffset(stage.curves, stage.path, length),
-          carWidth: vehicle.overallWidth,
-          cameraDistance: cameraDistance(CAMERA_DEFINITION),
-          tables,
-          kmh: TOP_KMH,
-          objects: () => [],
-        });
-        const positions = Array.from({ length }, (_, p) => p);
-        const points = stage.widthsHeights.filter((p) => p.position < length);
-        const original = hillsAlong(points, tables, positions, () => TOP_KMH);
-        const end = stationOf(length + course.runout);
-        const stations = Array.from({ length: Math.floor(end) + 1 }, (_, s) => s);
-        const runs = tableRuns(points, tables, () => TOP_KMH);
-        const ahead = Math.ceil(RENDER_FAR_DEPTH_METERS / stationOf(1));
-        // Rows on the original's screen: this game's top as the original's row of the same look.
-        const game = positions.map((p) => ORIGINAL_LEVEL_TOP - gameLook(roadTopRow(profile, stationOf(p), end)) * 224);
-        reports.push({
-          stage: `0x${course.stage.toString(16)}`,
-          look: LOOK,
-          refitted: fitLook(runs, (p) => original[p]!, positions, stationOf, end),
-          rmsRows: round1(Math.sqrt(positions.reduce((sum, p) => sum + (game[p]! - original[p]!) ** 2, 0) / length)),
-          heights: [
-            round1(Math.min(...stations.map(profile.height))),
-            round1(Math.max(...stations.map(profile.height))),
-          ],
-          steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
-          crossings: crossings.map((pairs) => ({
-            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
-            apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
-          })),
-          tables: runs.map((run) => {
-            const from = Math.max(0, Math.floor(run.start - ahead)),
-              to = Math.min(length, Math.ceil(run.end));
-            const span = positions.slice(from, to);
-            const extremes = (rows: readonly number[]) => [
-              round1(Math.min(...span.map((p) => rows[p]!))),
-              round1(Math.max(...span.map((p) => rows[p]!))),
-            ];
-            return {
-              position: run.start,
-              kind: run.table.kind,
-              original: extremes(Array.from(original)),
-              game: extremes(game),
-              load: Math.round(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 100) / 100,
-            };
-          }),
-        });
-      }
+      for (const [row, numbers] of OUTRUN_STAGES.entries())
+        for (const [column, number] of numbers.entries()) {
+          const stage = readStage(programs, number);
+          const names = [
+            ...new Set(
+              [stage, fork, ...goals.stretches].flatMap((s) =>
+                s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
+              ),
+            ),
+          ];
+          const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
+          const goal =
+            row === OUTRUN_STAGES.length - 1 ? goals.stretches[goalNumber(programs.main, row, column)]! : null;
+          const span = stageSpan(stage, {
+            first: row === 0,
+            fork: goal ? null : fork,
+            ...(goal ? { goal: { stretch: goal, path: goals.path, joins: false } } : {}),
+          });
+          const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
+          const { end, profile, crossings } = roadProfile(laid, { tables, kmh: TOP_KMH });
+          const stationOf = (p: number) => laid[0]!.plan.station(p);
+          const course = { stage: number };
+          const positions = Array.from({ length }, (_, p) => p);
+          const points = stage.widthsHeights.filter((p) => p.position < length);
+          const original = hillsAlong(points, tables, positions, () => TOP_KMH);
+          const stations = Array.from({ length: Math.floor(end) + 1 }, (_, s) => s);
+          const runs = tableRuns(points, tables, () => TOP_KMH);
+          const ahead = Math.ceil(RENDER_FAR_DEPTH_METERS / POSITION_METRES);
+          // Rows on the original's screen: this game's top as the original's row of the same look.
+          const game = positions.map(
+            (p) => ORIGINAL_LEVEL_TOP - gameLook(roadTopRow(profile, stationOf(p), end)) * 224,
+          );
+          reports.push({
+            stage: `0x${course.stage.toString(16)}`,
+            look: LOOK,
+            refitted: fitLook(runs, (p) => original[p]!, positions, stationOf, end),
+            rmsRows: round1(Math.sqrt(positions.reduce((sum, p) => sum + (game[p]! - original[p]!) ** 2, 0) / length)),
+            heights: [
+              round1(Math.min(...stations.map(profile.height))),
+              round1(Math.max(...stations.map(profile.height))),
+            ],
+            steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
+            crossings: crossings.map((pairs) => ({
+              at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
+              apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
+            })),
+            tables: runs.map((run) => {
+              const from = Math.max(0, Math.floor(run.start - ahead)),
+                to = Math.min(length, Math.ceil(run.end));
+              const span = positions.slice(from, to);
+              const extremes = (rows: readonly number[]) => [
+                round1(Math.min(...span.map((p) => rows[p]!))),
+                round1(Math.max(...span.map((p) => rows[p]!))),
+              ];
+              return {
+                position: run.start,
+                kind: run.table.kind,
+                original: extremes(Array.from(original)),
+                game: extremes(game),
+                load: Math.round(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 100) / 100,
+              };
+            }),
+          });
+        }
       console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
       break;
     }

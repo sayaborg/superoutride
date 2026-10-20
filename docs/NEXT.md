@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-10b](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
+Next PR: [RD-10c](#stage-rd2--outrun-rebuilt-from-the-roms), then Stage RD2's later PRs in their order;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -314,7 +314,9 @@ The PRs, in order (each one too large for one review is split and the split repo
   LLLL), `outrun-b` HEAT HAZE (B LRLL), `outrun-c-left` DESERT MIRAGE (C LLRR), `outrun-c-right` STORM RIDGE (C RRLL),
   `outrun-d` OVERDRIVE (D RLRR), `outrun-e` BLUE HORIZON (E RRRR), `outrun-all` GRAND TOUR (ALL 15). Measured. Split
   in three: RD-10a gave the boards their final sizes and base points (no course used them, so nothing was measured);
-  RD-10b the six roads; RD-10c the 15.
+  RD-10b the six roads; RD-10c the 15, `outrun-all` GRAND TOUR, with its goals joining the next stages (`rise`) and its
+  middle goals as checkpoints. Where the format's coordinate domain needs it, corners are rounded over more than 4
+  positions (K, 2026-10-20; [Original road data](original-road-data.md#course-documents)).
 - RD-11: the guidance where a road is chosen (drawn signs, chevrons and road arrows; K decides on Pages). Measured.
 - RD-12: the boards' pictures from the ROMs, sizes and anchors unchanged. Published, not measured.
 - RD-13: the strips rebuilt (sea, sand and stone from their 16 sizes, grass repeated). Pictures alone.

@@ -54,8 +54,9 @@ Every stage is 1948 positions long: not a table's value but a constant of the ma
 is checked.
 
 Stage numbers (world edition), stage 1 to 5: 1: 0x3C; 2: 0x1E, 0x3B; 3: 0x20, 0x2F, 0x2A; 4: 0x2D, 0x35, 0x33, 0x21;
-5: 0x32, 0x23, 0x38, 0x22, 0x26. Which number lies past which fork, and the stages' names, are given only once the
-fork's handling or a video shows them.
+5: 0x32, 0x23, 0x38, 0x22, 0x26, each row listed from its right fork's side: counted from the left, the left road at a
+fork leads to the next row's stage at the same place and the right road to the one after it
+([OUTRUN's stages](#outruns-stages)).
 
 ### Main CPU
 
@@ -75,6 +76,11 @@ fork's handling or a video shows them.
   mirrors, bit 1 casts a shadow, bits 4–7 choose the drawing ([Sprites](#sprites)); x is in 16 road units, y in road
   units above the road.
 - **Fork stretch.** Three longs at 0x1DFA4: its curves', widths and heights', and scenery's addresses.
+- **Grounds.** The long at 0x17350 + 4 × a stage's ground word (its block's sixth long points at it) addresses 16
+  palette words: the 15th and 16th are the ground's two colors, half 0 and half 1; the 14 before shade the far horizon
+  and are not used.
+- **Goal numbers.** The byte at 0xE4EC + a stage's place in the stage table (row r from 8r) numbers the goal stretch it
+  ends in.
 - **Goal stretches.** Five longs at 0xE514, each a block of three longs: a goal stretch's curves', widths and heights',
   and scenery's addresses. Each goal has three curve segments, the last from 312.
 
@@ -127,23 +133,24 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
   16-byte records counted by the word at 0x2B6E, {u8 flags, u8 anchor, u8 priority, u8 palette, word sprite × 4, signed
   word x in road units, word y × 128, word depth, long routine}.
 
-An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre unless
-the road width exceeds the word at 0xE308 (280) where it appears. Its anchor byte: bits 0–1 put its sprite's left edge
-(1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the
-largest size spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
+An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless
+the roads were apart as it appeared (the road width over the word at 0xE308, 280: the spawn sets its flag) and its
+routine keeps it by the left road then. Its anchor byte: bits 0–1 put its sprite's left edge (1), right edge (2) or
+middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size spans 2
+road units, or 1 where the routine halves the scale twice. The drawings read so far:
 
-| Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               |
-| ------- | --------------------- | ------------------- | ----- | ----------------------------- |
-| 0       | 0x4048, raised 0x4042 | bottom middle       | 2     | by its extents, on the ground |
-| 4       | 0x4658                | bottom middle       | 2     | by its extents                |
-| 7       | 0x4828                | bottom right (left) | 2     | by its extents                |
-| 8       | 0x3FE2                | bottom middle       | 1     | never                         |
-| 9       | 0x492A                | bottom middle       | 2     | by its extents                |
-| 1       | 0x4416                | middle left (right) | 2     | never                         |
-| 3       | 0x4408                | middle left (right) | 2     | never                         |
-| 10      | 0x443C                | middle left (right) | 2     | never                         |
-| 11      | 0x4432                | middle left (right) | 2     | never                         |
-| 13      | 0x3FE8                | middle              | 1     | never                         |
+| Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
+| ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
+| 0       | 0x4048, raised 0x4042 | bottom middle       | 2     | by its extents, on the ground | yes                  |
+| 4       | 0x4658                | bottom middle       | 2     | by its extents                | no                   |
+| 7       | 0x4828                | bottom right (left) | 2     | by its extents                | yes                  |
+| 8       | 0x3FE2                | bottom middle       | 1     | never                         | yes                  |
+| 9       | 0x492A                | bottom middle       | 2     | by its extents                | yes                  |
+| 1       | 0x4416                | middle left (right) | 2     | never                         | no                   |
+| 3       | 0x4408                | middle left (right) | 2     | never                         | no                   |
+| 10      | 0x443C                | middle left (right) | 2     | never                         | no                   |
+| 11      | 0x4432                | middle left (right) | 2     | never                         | no                   |
+| 13      | 0x3FE8                | middle              | 1     | never                         | yes                  |
 
 A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
@@ -188,15 +195,15 @@ A stage's objects stand where the camera passes them at the top speed, 293 km/h 
   (a unit 64 × 0x12F / 65536 positions), and the object's depth the table's step for its line and that advance. It
   passes the camera at line 512, 134 positions after it appeared at the top speed, and stands there.
 - **The start.** An object standing at the start at line L is drawn L / 512 px a road unit: as large as this game's
-  camera shows it at f × `s_lat` × 512 / L metres (2687 / L m). It stands there, or where the camera would pass it
+  camera shows it at f × `UNIT_METRES` × 512 / L metres (3130 / L m). It stands there, or where the camera would pass it
   by its approach where that is nearer (lines below about 20). `k1`'s start gantry (line 160, 16.8 m) leaves the top of
   the screen about 5 positions after GO, as it does at that depth; by its approach it would stand 48 m away. The
   original's objects move faster than they look near the start: no one depth fits both.
-- **Across.** An object's x is from the left road's centre; a right-side one's from the right road's, unless the road
-  width where it appears exceeds 280. Its lateral is that point across from the roads' middle, at the road width where
-  it stands, less lane b's centre there (−w, or −(w + 78.67) / 2 below 78.67). An object standing by its edge stands at
-  its x; any other anchored by an edge stands half its width aside, its board's base point its hit extents' middle. Its
-  height is y road units.
+- **Across.** An object's x is from the road its drawing gives ([Sprites](#sprites); the spawn at 0x3D74 sets the
+  flag of roads apart, and a routine keeping objects left adds 2w to a right-side x only without it). Its point is
+  that x across from the roads' middle at the road width where it stands, measured on the plan beside it ([OUTRUN's roads](#outruns-roads)). An object standing by its edge stands at its x; any other
+  anchored by an edge stands half its width aside, its board's base point its hit extents' middle. Its height is
+  y road units, 15/14 of them.
 - **Solid.** An object whose routine tests its extents and which stands on the ground gets a body as wide as its
   extents, at most its board's width; the others pass through (K's rule: the original's hit routines are the mark).
 
@@ -353,50 +360,146 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 
 ## Course documents
 
-A stage's tables become a road (`stageRoad`) as below; `npm run road-data -- look`
-([Development](development.md#road-data-commands)) takes each stage alone so. No course document is written from the
-ROMs at present.
+`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes
+[OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
+the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
+`npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 7 (`CONVERSION_VERSION`), fits nothing to footage: the constants measured on `k1` use only
-ratios within one row and time × displayed speed, and the [profile](#profile)'s `c_look` matches the original's hills
-as its program draws them:
+The conversion, version 8 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
+program draws them:
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](#hills)'s advance per tick). Position 0 is GO,
-  the camera's station. The stage's 1948 positions end at its fork or goal stretch; the `look` command takes a stage
-  alone, a runout of 225 positions following on the path's look-ahead, which carries on the stage's last segment, a
-  straight.
-- **Plan.** Each curve segment, moved back by the path's offset, is a Straight or an Arc over the same positions of the
-  path. A straight's heading is the path's two positions inside its ends, where it varies by no more than 0.1°. An Arc
-  turns, the side its kind says, from the heading at its start to the heading at its end, each a neighbouring
-  straight's or, between two arcs, the path's at their join; its radius is its length over that turn. So the arcs turn
-  as the path does between its straights, COCONUT BEACH 360° left; an Arc's radius differs from its curve's R by a few
-  percent where a join spreads its turn.
-- **Overpass.** COCONUT BEACH's plan passes over itself: its finish crosses its curve from 795, about 1740 m before,
-  nearly square. The [profile](#profile) keeps the passages at least 6 m apart.
-- **Road width.** From 0x1C2 (450) at position 0, each width point approaches its target from its position by
-  |speed| × 16 / 303 units a position until it is reached or the next point begins; the runout keeps the last width.
-- **Lanes.** Each road has three lanes of 472/3 units, its edges ±236 from its centre; the two roads are centred at
-  ±road width. The lanes are a, b, c (the left road), a median, and d, e, f (the right road); b, always wider than 0,
-  is the centre lane, so the plan's centreline is the left road's centre lane and the original's centre lies one road
-  width to its right. At a road width w ≥ 236 every lane is 472/3 and the median 2(w − 236); at 78.67 ≤ w < 236 the
-  roads overlap, their outer edges kept, and c and d narrow to w − 78.67, meeting at the original's centre; at
-  w < 78.67 c and d are 0 and b and e w + 78.67. A lane or median 0 throughout a Section is left out.
-- **Lateral scale.** A unit is `s_lat` = TESTAROSSA's width (its vehicle document's) / (0.5743 × 472/3) = 0.02187 m;
-  0.5743 is the player picture's width over the lane spacing on its own row on `k1`. A lane is 3.44 m, against the
-  3.45 m lanes (−0.3 %) and 3.30 m by the Beetle's 1.05 (+4.3 %).
-- **Strips.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1
-  (another pattern is refused); each half is 3.158 m of a 6.315 m period counted from GO across the Sections (`k1`'s
-  stripes against time × displayed speed). The road is half 1's surface with half 0's over its halves. A line or edge
-  is drawn over each half where its color differs from the surface's: on COCONUT BEACH the lane lines in half 1 and the
-  edges in half 0. The lane lines are 8 units wide, centred between a and b, e and f, and while c and d are there b
-  and c, d and e; the edge bands are 20 units wide outside each road's outer lanes and, where the median holds both
-  (w ≥ 256), inside it (both measured on `k1`). A centre line that differs from the surface is refused: its place is
-  not yet read.
-- **Ground.** SAND 40 m beyond each edge band and in the median. Its colors are provisional until the ground's word is
-  read: `k1`'s two sands with its capture's darkening undone by the road's ratio (156 over 148), 28471 in half 0 and
-  29528 in half 1 (`k1` pairs the darker sand with the lighter road). The sky is `coast-sky`.
-- **Start and finish.** The grid is 16 slots 12 m apart alternating lanes b and c, its last, the player's, in lane c
-  (`k1`'s start) the camera's distance (6 m) ahead of GO. The finish is at the stage's length.
+  the camera's station.
+- **Across.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m: the road ROM's lines lie 424/3 units apart.
+  The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
+  height, an object's height y) is 15/14 of its units across.
+- **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from its
+  position by |speed| × 16 / 303 units a position until it is reached or the next point begins.
+- **Corners.** Where the road width's slope changes, it is rounded by a parabola over 4 positions centred on the corner
+  (it misses the corner by half the change of slope times a position: 0.10 m at a fork's 8 units a position); corners
+  nearer than 4 positions are rounded as one about where their outer lines meet. Where the format's coordinate domain
+  (the sand to 40 m beyond the asphalt and 4 m more) needs a wider radius, a corner is rounded over more (K's choice,
+  2026-10-20): 8 positions where the roads part (a fork's 63, a goal's 182, P's curve beginning there too; 0.20 m),
+  8 where a fork's roads begin to close (362, the road coming in on the inside), 12 where a goal's roads stop parting
+  and close (15.6°, the road not taken still beside; 0.82 m), 6 where a goal's road taken is back on P. Each piece's
+  roundings lie within it: one nearer its start than half its rounding is moved in to there, the line after it with
+  it (at most 2 positions, 8 cm). The lanes' rule bends the centre lane where the width passes 72 and 212; those
+  corners are rounded alike. The lanes and the plan both come from the rounded width.
+- **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1
+  (another pattern is refused; a centre line other than the surface is refused). The ground's two colors are the
+  stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of 32 × 303 / 3072 positions,
+  2048 / 324 = 6.320988 m (the road's fine position gains km/h / 64 three times a tick, 32 of it a period), counted
+  from the road's start along the plan's stations.
+
+### Cross-section
+
+One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`,
+CRC `22794426`, 256 lines of 512 pixels, two bit planes of 64 bytes a line; row 255 is 1 pixel a unit, its centre at
+pixel 252), which `road-data course` checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the
+outer lines 206 to 218 (1), the shoulder to 228 the surface (0), the edge band 228 to 250 (2). The centre line, 8 wide
+at 0, is the surface's color on all 15 stages and is not drawn. Lines and edge bands are drawn at their exact units
+(the original's 7/11 unit and pixel rounding are not).
+
+Two roads drawn together (`composite`) show, at each point, the surface of either road (its shoulder included) over road
+0's (the left one's) lines and edges, over road 1's, over the ground: between two roads at road width w (centres ±w) the
+middle is at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 7.33), at 162 five (an edge band 0.67
+wide of road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band
+2(w − 228) wide, beyond 250 the ground 2(w − 250) wide. Each line and band shown is a Strip between two features' edges
+held to lanes (a road's centre lies 212 units inside its outer lane's outer edge, or its inner lane's inner edge), cut
+where the arrangement changes. ASPHALT lies under each road from its centre ∓ 250, SAND beneath all from 40 m beyond the
+outermost asphalt; the ground's color is everywhere, its half 0 over its halves.
+
+The lanes driven (`drivenLanes`) are a, b, c | median | d, e, f; a and f are always one lane, 424/3 units (3.6 m). At
+w ≥ 212 every lane is one lane and the median 2(w − 212); for 72 < w < 212, c = d = 424/3 × (w − 72) / 140 and
+b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w = 72, where four lanes show for kilometres
+(SEASIDE TOWN, OLD CAPITAL, WHEAT FIELD, LAKESIDE), they are a, b, e and f (laid over the two roads, c and d would be
+3.4 cm wide there, between the middle line's sides), and at 212 they are the two roads' own. The visible lines come
+from the two roads' picture, not the lanes. A lane or median 0 throughout a Section is
+left out.
+
+### Plan
+
+The plan is where the original draws the centre lane: its road path P (S's path table, its curves moved back by
+`pathOffset`) laid off sideways by the centre lane's centre: at a stage b's (−(w + 70.67 + c) / 2 from the roads' middle, −w at
+w ≥ 212), or e's (its mirror) where the stage is entered from a fork's left side. A position's station is the arc length along the plan to the point across from P there
+(`OffsetPlan`); everything placed by position (widths, objects, gates, height tables, sky changes) takes it. As
+straights and arcs: a straight where P is straight and the offset changes evenly, an arc where P is an arc and the
+offset holds, else arcs of at most 2 positions (4 on a straight) turning as the curve does, each joint within 1 cm of
+the curve (the largest of the roads 5.1 mm). A corner of the curve (P's curvature changing while the offset changes)
+is turned by an arc either side, each turning half of it, no sharper than 120 m and within 3 mm of it. An arc that
+would be straighter than 40 km is a straight, its turn carried on.
+
+### Pieces
+
+The roads are made of pieces, each one shape whatever comes before or after it (`outrun-pieces.ts`):
+
+- **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 59: its widths, then from the width it
+  ends at to 212 at 8 units a position, the corner's vertex at the stretch's 57, so that it ends in six clean lanes,
+  level (K's design: the original parts its roads from 63 at the width it ends at). A stage of row 5 runs to 1948 and
+  its goal piece follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects.
+- **Fork pieces** (`forkSpan`), the fork stretch's 59 to 433.5, L (left taken) and R its mirror. As the main CPU's
+  program runs the stretch (0x8780 to 0x89B6): from 63 the roads part by 8 a position; past 0x168 (360) the route is
+  chosen and the next stage's background comes in; past 0x300 (768) the road not taken is no longer drawn and the width
+  holds; from 362, the second curve's end, the car is carried 2w across and the roads close by 8 a position to 212,
+  the next stage beginning at about 432. Here the width parts from 212 to 768 (63 to 132.5), holds, and closes from
+  362 to 212 at 431.5. L's lanes are g, h, i (the road coming in) | m0 | a, b, c (taken, centre lane b) | m1 | d, e, f
+  (not taken). Before 362 the road taken is w left of P; from 362 it keeps P's heading and moves 768 − w toward the
+  road coming in, which appears 2w beyond it, growing over a position: a straight, even V about P's 1536 left, meeting
+  in six lanes at 431.5. The road not taken lies 2w right of the road taken (its own curvature, the original's mirror,
+  has no place in one Section's plan) and ends at 132.5, its lanes narrowing to nothing over its last two positions;
+  sand beyond. The verge (the sand's outer edge) comes back from it after it ends, and goes out to the road coming in
+  before it comes, one metre across for 6 along. R mirrors all: a, b, c (not taken) | m0 | d, e, f (taken, centre lane
+  e) | m1 | j, k, l (coming in). The fork piece's road and ground are the stage before's; its sky changes to the next
+  stage's by `wipe` where the width passes 360 (81.5). Entering a fork piece L leaves the stage by lane b, R by e;
+  leaving, L by b and R by e, the road taken's middle lane, so the side taken enters the next stage's d, e, f (L),
+  its centre lane e, or a, b, c (R), its centre lane b.
+- **Goal pieces** (`stageSpan` with a goal), the goal stretch (S's path at 0x3ACA0) from 0 to 600, after its stage in
+  one span. Each stage of row 5 ends in the goal its place in the stage table numbers (the byte at 0xE4EC + its place,
+  0x8A04's `move.b (a0, d0.w)`): VINEYARD A (4), DEATH VALLEY B (3), DESOLATION HILL C (2), AUTOBAHN D (1), LAKESIDE E
+  (0). The stage's last width holds to 182; from there the roads part by 8 a position to 768 (`s_r`), where the right
+  road, not taken, ends; where the goal's width point acts (read the tick after its second height point; A, B, D and E,
+  whose second height point is at 182), the width then closes at 256 × 16 / 303 units a position to 0, the road taken
+  coming back to P; at C (its point at 162, read while the width is still DESOLATION HILL's 0, so no change) it stays
+  768 to 600. Once the road not taken has ended, the road taken keeps its three lanes. The goal's height points run
+  their tables; its scenery stands.
+
+### OUTRUN's roads
+
+Each road (`outrunRoad`) is a LINEAR course of pieces: the first row's stage, each fork's side taken (left to the next
+row's stage at the same place counted from the left, right to the one after it), and the last stage with its goal.
+Each span is laid in the world after the one before, the next's centreline on the Link's lane's centre:
+
+- **Sections.** A fork piece is one Section (the centre lane changes at its ends). A last stage entered from the left
+  is two, cut at its `GOAL_CENTRE` (1946), its centre lane e before and b after, since the goal's road taken is the
+  left one; they join by lane b. A span is otherwise one Section but where its coordinate domain passes over itself: then its passages lie in different Sections, cut at the last joint
+  before the later passage, after the earlier, where the road is one (w ≤ 212), joined by its centre lane.
+- **Profile.** Each piece's height points run their tables at 293 km/h as the [profile](#profile) says, the stage's cut
+  at its end, and each piece is closed level at height 0 at its ends; the whole road's crossings (passages at least
+  200 m apart whose asphalt overlaps) are kept 6 m apart.
+- **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, so the
+  objects a stage's last points bring out stand in its fork piece and the fork's in the next stage. Each stands at the
+  world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
+  it stands beside. A solid object's body is at most its board's width in whole texels.
+- **Gates.** The grid on COCONUT BEACH; a checkpoint `<STAGE>-CP` in each stage after a fork where the fork's banner's
+  left half (the entry of drawing 6 of type 60, its point at 398, the first brought out) passes the camera, about 100
+  into the stage; the finish `<STAGE>-GOAL` at the last stage's 1948.
+- **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
+  yaw origin there, and the same direction in the world in every Section that shows it.
+
+| Course           | Name            | Forks | Stages                                                                           |
+| ---------------- | --------------- | ----- | -------------------------------------------------------------------------------- |
+| `outrun-a`       | GOLDEN FRONTIER | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                         |
+| `outrun-b`       | HEAT HAZE       | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                      |
+| `outrun-c-left`  | DESERT MIRAGE   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                 |
+| `outrun-c-right` | STORM RIDGE     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C) |
+| `outrun-d`       | OVERDRIVE       | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                   |
+| `outrun-e`       | BLUE HORIZON    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)       |
+
+The roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,449 to 11,946 objects each. Their heights reach −185 m and
+265 m (the hills' rule, unchanged); 5 to 10 crossings each are kept 6 m apart. Past each goal's finish, DESOLATION
+HILL's ending crowd (type 206) and the goal stands (type 209) stand on the road taken, beyond where the original's
+car stops (401).
 
 ## Profile
 
@@ -458,7 +561,9 @@ passages are 57.3 m apart without a bump.
 The stages are named as the original's map names them, matched to the stage table (0xE49C, row r from 8r) by their
 scenery (K accepted the match): row 1 0x3C COCONUT BEACH; row 2 0x1E DEVIL'S CANYON, 0x3B GATEWAY; row 3 0x20 CLOUDY
 MOUNTAIN, 0x2F ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x33 OLD CAPITAL, 0x21 WILDERNESS; row 5
-0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`).
+0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`). On the map,
+from the left fork's side: COCONUT BEACH; GATEWAY, DEVIL'S CANYON; DESERT, ALPS, CLOUDY MOUNTAIN; WILDERNESS, OLD
+CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD (A), DEATH VALLEY (B), DESOLATION HILL (C), AUTOBAHN (D), LAKESIDE (E).
 
 Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320. As published it is a copy of the generic
 sky most like the stage's scenery (`OUTRUN_SKIES`), written by `road-data course`: sky-coast (COCONUT BEACH), sky-cliff

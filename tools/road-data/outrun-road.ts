@@ -166,13 +166,20 @@ export interface Stage extends Stretch {
     readonly surface: Colors;
     readonly ground: Colors;
   };
+  /**
+   * The ground's two colors, half 0 then half 1, RGB555: of the 16 palette words its ground number (the ground word)
+   * points at through the long at 0x17350 + 4 × number, the 15th and 16th; the 14 before shade the far horizon.
+   */
+  readonly groundStripes: readonly [number, number];
   readonly path: Path;
 }
+/** Main CPU: the grounds' palette words, by ground number. */
+const GROUNDS = 0x17350;
 
 /**
  * Stage `number`'s block, the long at 0xE528 + number × 4: the sky's, centre line's, lane lines', edges', surface's and
  * ground's colors' addresses (four words for the lines, edges and surface, one for the sky and ground), then its curves',
- * widths and heights' and scenery's.
+ * widths and heights' and scenery's; the ground's two colors through its ground word (`groundStripes`).
  */
 export function readStage({ main, sub }: OutrunPrograms, number: number): Stage {
   const block = long(main, STAGE_BLOCKS + number * 4);
@@ -188,6 +195,10 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
       surface: colors(main, pointer(4), 4),
       ground: colors(main, pointer(5), 1),
     },
+    groundStripes: (() => {
+      const ground = long(main, GROUNDS + 4 * word(main, pointer(5)));
+      return [paletteRgb555(word(main, ground + 28)), paletteRgb555(word(main, ground + 30))] as const;
+    })(),
     ...stretch(main, pointer(6), pointer(7), pointer(8)),
     path: readPath(sub, long(sub, STAGE_PATHS + number * 4), STAGE_PATH_POSITIONS),
   };
@@ -209,6 +220,11 @@ export function readGoalStretches({ main, sub }: OutrunPrograms): { stretches: S
   });
   return { stretches, path: readPath(sub, GOAL_PATH, GOAL_PATH_POSITIONS) };
 }
+
+/** Main CPU: each stage's goal stretch by its place in the stage table (row r from 8r), a byte each. */
+const GOAL_NUMBERS = 0xe4ec;
+/** The goal stretch the stage at row `row` (0 to 4), `column` of the stage table ends in: 0x8A04's `move.b (a0, d0.w)`. */
+export const goalNumber = (main: Uint8Array, row: number, column: number) => u8(main, GOAL_NUMBERS + 8 * row + column);
 
 /** A road path: per position a heading vector {signed word x, signed word y}, its address and length. */
 export interface Path {

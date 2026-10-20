@@ -1738,6 +1738,15 @@ from their frames (sources and recipes under `content/sprite-sources/`), the sky
 recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
 the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
+OUTRUN's roads (`outrun-a` GOLDEN FRONTIER, `outrun-b` HEAT HAZE, `outrun-c-left` DESERT MIRAGE, `outrun-c-right`
+STORM RIDGE, `outrun-d` OVERDRIVE, `outrun-e` BLUE HORIZON) are LINEAR courses, each one of the original's routes to a
+goal, written by the road data tool from the original's road data
+([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery,
+start, forks and goals; run the conversion rather than editing the documents. Each stage after a fork has its
+checkpoint where the original's checkpoint banner passes the camera; the finish is at the last stage's end. Their
+scenery is outline boards. The development series TRIAL's classes A LLLL, B LRLL, C LLRR, C RRLL, D RLRR and E RRRR
+time them (TESTAROSSA, a margin of 1.35).
+
 ## Observation formats
 
 ### Course observations

@@ -16,7 +16,7 @@ import {
 } from './outrun-sprites.js';
 import { POSITION_PER_KMH } from './outrun-hills.js';
 
-/** A right-side object is from the left road's centre where the road width exceeds this where it appears. */
+/** Where the road width exceeds this as an object appears, the roads are apart: some routines keep it by the left road. */
 const RIGHT_FROM_LEFT_WIDTH = 280;
 /** Objects appear at the road's first line; the second of a tick's two slots a 1/64 line nearer. */
 const HORIZON = 0x10000;
@@ -58,25 +58,32 @@ export function stageObjects(
     /** The road position (the camera's at GO 0) where an object at the start's depth `line` looks as large. */
     readonly startDepth: (line: number) => number;
   },
-): { placements: ObjectPlacement[]; notConverted: Map<number, number> } {
+): {
+  placements: ObjectPlacement[];
+  notConverted: Map<number, number>;
+  /** Where each entry not converted would stand, by its drawing. */
+  unconverted: { drawing: number; position: number }[];
+} {
   const placements: ObjectPlacement[] = [];
   const notConverted = new Map<number, number>();
+  const unconverted: { drawing: number; position: number }[] = [];
   const step = options.kmh * POSITION_PER_KMH;
   const reach = [approach(main, HORIZON, options.kmh), approach(main, NEARER, options.kmh)];
-  const place = (use: SpriteUse, at: number, x: number, y: number, rightFromLeft: boolean) => {
+  const place = (use: SpriteUse, at: number, x: number, y: number, apart: boolean) => {
     const position = at;
     if (position >= options.end) return;
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     const size = objectSize(main, use);
     const width = size.width * routine.pixelUnits;
-    // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's.
+    // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's
+    // unless its routine keeps it by the left where the roads were apart.
     // One standing by its edge has its board's base point there. Any other's board stands on its hit extents' middle:
     // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
     // that far.
     const across = use.anchor & 3;
     const road = options.width(position);
     const lateral =
-      (x >= 0 && !rightFromLeft ? road + x : x - road) +
+      (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
       (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
     const [left, right] = hitExtents(main, use.sprite);
     placements.push({
@@ -125,6 +132,7 @@ export function stageObjects(
         const shown = sceneryRoutine(e.flags, e.y);
         if (!shown) {
           notConverted.set(e.flags >> 4, (notConverted.get(e.flags >> 4) ?? 0) + 1);
+          unconverted.push({ drawing: e.flags >> 4, position: road + reach[slot]! });
           continue;
         }
         const use = {
@@ -138,5 +146,5 @@ export function stageObjects(
       }
     }
   });
-  return { placements: placements.sort((a, b) => a.position - b.position || a.x - b.x), notConverted };
+  return { placements: placements.sort((a, b) => a.position - b.position || a.x - b.x), notConverted, unconverted };
 }

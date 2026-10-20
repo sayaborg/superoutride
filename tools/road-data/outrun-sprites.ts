@@ -186,11 +186,13 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
 
 /**
  * What an object's routine does with it: the road units one pixel of its largest size spans (its zoom halves the road
- * line's scale once, or twice), and whether it tests the car against its sprite's hit extents.
+ * line's scale once, or twice), whether it tests the car against its sprite's hit extents, and whether it keeps a
+ * right-side object by the left road where the roads were apart as it appeared (the flag the spawn sets, bit 2).
  */
 export interface ObjectRoutine {
   readonly pixelUnits: 1 | 2;
   readonly hits: boolean;
+  readonly keepsLeftWhenApart: boolean;
   /**
    * A strip's routine draws, whatever sprite its entry names, the sizes its family's 16 longs point at, choosing one by
    * depth: the address of those longs.
@@ -199,17 +201,17 @@ export interface ObjectRoutine {
 }
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
-  [0x4042, { pixelUnits: 2, hits: false }],
-  [0x4048, { pixelUnits: 2, hits: true }],
-  [0x4658, { pixelUnits: 2, hits: true }],
-  [0x4828, { pixelUnits: 2, hits: true }],
-  [0x492a, { pixelUnits: 2, hits: true }],
-  [0x3fe2, { pixelUnits: 1, hits: false }],
-  [0x3fe8, { pixelUnits: 1, hits: false }],
-  [0x4416, { pixelUnits: 2, hits: false, family: 0x4548 }],
-  [0x4408, { pixelUnits: 2, hits: false, family: 0x4608 }],
-  [0x443c, { pixelUnits: 2, hits: false, family: 0x4588 }],
-  [0x4432, { pixelUnits: 2, hits: false, family: 0x45c8 }],
+  [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true }],
+  [0x4048, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x4658, { pixelUnits: 2, hits: true, keepsLeftWhenApart: false }],
+  [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
+  [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4548 }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4608 }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x4588 }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: 0x45c8 }],
 ]);
 
 /** The largest size an object shows: its family's nearest, or its sprite's first. */

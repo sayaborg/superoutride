@@ -27,14 +27,10 @@ import {
   spritePixels,
   spriteWords,
 } from '../../tools/road-data/outrun-sprites.ts';
-import {
-  lanesAt,
-  lateralScale,
-  roadWidths,
-  stageCourse,
-  stagePlan,
-  stationOf,
-} from '../../tools/road-data/outrun-course.ts';
+import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
+import { centreLaneAt, composite, drivenLanes } from '../../tools/road-data/outrun-cross-section.ts';
+import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
+import { outrunRoad } from '../../tools/road-data/outrun-roads.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
@@ -308,7 +304,7 @@ function pathOf(length, rate) {
   return { address: 0, x, y };
 }
 
-test('a stage becomes a course: its arcs turn between its straights, its lanes follow its road width', () => {
+test('a stage becomes a road: its arcs turn between its straights, its width follows its points', () => {
   // A left arc of radius 50 from 100 to 178 between two straights; the path turns from position 100 to 177.
   const path = pathOf(400, (p) => (p >= 100 && p < 178 ? 1 / 50 : 0));
   const curves = [
@@ -328,7 +324,7 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
   assert.ok(Math.abs(plan[1].turn - 78 / 50) < 1e-3);
   assert.throws(() => stagePlan([curves[0], { ...curves[1], kind: 2 }, curves[2]], path, 0, 300), /turns left/);
 
-  // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50; the roads' lanes follow it.
+  // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50.
   const width = [{ position: 50, kind: 1, value: 300, speed: 30 }];
   assert.deepEqual(roadWidths(width, 300), [
     [0, 450],
@@ -336,19 +332,63 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
     [144.6875, 300],
     [300, 300],
   ]);
-  const lane = 472 / 3;
-  assert.deepEqual(lanesAt(300), { a: lane, b: lane, c: lane, m: 128, d: lane, e: lane, f: lane });
-  assert.deepEqual(lanesAt(236 - 1e-9).m, 0);
-  assert.ok(Math.abs(lanesAt(236 - 1e-9).c - lane) < 1e-6);
-  assert.deepEqual(lanesAt(0), { a: lane, b: lane / 2, c: 0, m: 0, d: 0, e: lane / 2, f: lane });
+});
 
+test("two roads' picture: surfaces over lines, the left road's lines over the right's; the lanes driven", () => {
+  // Each line or edge band shown, as [from, to] units across from the roads' middle.
+  const shown = (w) =>
+    composite([-w, w]).map((i) => [
+      i.paint,
+      Math.round(((i.left.road ? w : -w) + i.left.at) * 100) / 100,
+      Math.round(((i.right.road ? w : -w) + i.right.at) * 100) / 100,
+    ]);
+  // Three lanes: lines about ±70.67 and ±212.
+  assert.deepEqual(shown(0).slice(1, 3), [
+    ['line', -218, -206],
+    ['line', -74.67, -66.67],
+  ]);
+  // Four lanes: the middle line 5.33 wide, the next 7.33.
+  assert.deepEqual(shown(72).slice(3, 5), [
+    ['line', -2.67, 2.67],
+    ['line', 138.67, 146],
+  ]);
+  // Five, the middle wide: the left road's edge band shows 0.67 between the right road's surface and its line.
+  assert.deepEqual(shown(162).slice(3, 6), [
+    ['line', -95.33, -87.33],
+    ['edge', 87.33, 88],
+    ['line', 88, 95.33],
+  ]);
+  // Six equal lanes: the two outer lines one line 12 wide; apart beyond 250, ground between the edge bands.
+  assert.deepEqual(shown(212)[4], ['line', -6, 6]);
+  assert.deepEqual(shown(260).slice(5, 7), [
+    ['edge', -32, -10],
+    ['edge', 10, 32],
+  ]);
+  // The lanes driven: a and f always a lane; c and d grow from 72 to 212; b's centre is the plan's.
+  const lane = 424 / 3;
+  assert.deepEqual(drivenLanes(300), { a: lane, b: lane, c: lane, m: 176, d: lane, e: lane, f: lane });
+  assert.deepEqual(drivenLanes(0), { a: lane, b: lane / 2, c: 0, m: 0, d: 0, e: lane / 2, f: lane });
+  assert.ok(Math.abs(drivenLanes(162).c - (lane * 90) / 140) < 1e-12);
+  assert.equal(centreLaneAt(300), -300);
+  assert.ok(Math.abs(centreLaneAt(72) + (72 + lane / 2) / 2) < 1e-12);
+});
+
+test('a last stage and its goal become a course: lanes, plan within a centimetre, finish and profile', () => {
+  // A stage straight but for a left arc, and a goal stretch as the original's: straight to 182, left R80 to 312.
+  const stagePath = pathOf(2308, (p) => (p >= 400 && p < 500 ? 1 / 60 : 0));
+  const goalPath = pathOf(624, (p) => (p >= 182 && p < 312 ? 1 / 80 : 0));
   const grey = (light, dark) => ({ address: 0, words: [], rgb555: [light, dark, light, dark] });
   const stage = {
     number: 1,
-    curves,
-    widthsHeights: width,
+    curves: [
+      { position: 0, radius: 0, kind: 1 },
+      { position: 400, radius: 60, kind: 3 },
+      { position: 500, radius: 0, kind: 1 },
+    ],
+    widthsHeights: [{ position: 600, kind: 1, value: 0, speed: 30 }],
     scenery: [],
-    path,
+    path: stagePath,
+    groundStripes: [29528, 30585],
     colors: {
       surface: grey(20083, 19026),
       centreLine: grey(20083, 19026),
@@ -356,43 +396,45 @@ test('a stage becomes a course: its arcs turn between its straights, its lanes f
       edges: grey(31710, 19026),
     },
   };
-  // A table [0 ×6, 576, −576, 0 ×6] from position 20: level entries 3 × 2.125 positions each, the others 3 × 3 ×
-  // 2.125 (its factors): a rise and a crest.
-  const crest = { kind: 0, step: 3, descent: 3, ascent: 3, entries: [0, 0, 0, 0, 0, 0, 576, -576, 0, 0, 0, 0, 0, 0] };
-  stage.widthsHeights = [...width, { position: 20, kind: 0, value: 7, speed: 0 }];
-  const { document: course, profile } = stageCourse(stage, {
+  const goal = {
+    curves: [
+      { position: 0, radius: 0, kind: 1 },
+      { position: 182, radius: 80, kind: 3 },
+      { position: 312, radius: 0, kind: 1 },
+    ],
+    widthsHeights: [
+      { position: 0, kind: 0, value: 0, speed: 0 },
+      { position: 182, kind: 0, value: 0, speed: 0 },
+      { position: 5, kind: 1, value: 0, speed: 256 },
+    ],
+    scenery: [],
+  };
+  const flat = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 0] };
+  const span = stageSpan(stage, { first: false, fork: null, goal: { stretch: goal, path: goalPath, joins: false } });
+  const road = outrunRoad([{ span, id: 'stage', leaves: 'b', starts: true }], {
+    id: 'test',
     name: 'TEST',
-    sections: [{ id: 'stage', from: 0 }],
-    length: 250,
-    runout: 50,
-    offset: 0,
-    carWidth: 1.976,
-    cameraDistance: 6,
-    sky: { image: 'coast-sky', horizonY: 320 },
-    tables: new Map([[7, crest]]),
+    tables: new Map([[0, flat]]),
     kmh: 293,
-    objects: () => [],
+    cameraDistance: 6,
+    objects: () => ({ placements: [], checkpoints: [] }),
+    sky: () => ({ image: 'coast-sky', horizonY: 320 }),
+    stageName: () => 'TEST',
   });
-  const read = readCourseDocument(normalizeCoursePositions(course).document);
+  assert.ok(road.drift <= 0.01);
+  const read = readCourseDocument(normalizeCoursePositions(road.document).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
-  const [section] = course.sections;
-  assert.ok(Math.abs(section.plan[1].radius - (stationOf(178) - stationOf(100)) / (78 / 50)) < 1);
-  // The median, 2 × (450 − 236) units at the start, at the road's scale.
-  const median = section.lanes.find((l) => l.kind === 'median');
-  assert.ok(Math.abs(median.width[0].width - 428 * lateralScale(1.976)) < 1e-5);
-  // The player's slot is the last, the camera at GO behind it; the finish at the stage's length.
-  assert.equal(section.gates[0].grid.at(-1).at.offset, 6);
-  assert.equal(section.gates[1].at.offset, stationOf(250));
-  // The crest, the road tilted to end level at height 0 as it begins; the profile's knots are its ends and one PVI a
-  // bend, the tangents' intersection.
-  const end = stationOf(300);
-  assert.ok(Math.abs(profile.height(end)) < 1e-9 && Math.abs(profile.grade(end)) < 1e-12);
-  assert.equal(section.profile.length, profile.bends.length + 2);
-  const [, up] = section.profile;
-  const [bend] = profile.bends;
-  assert.ok(
-    Math.abs(up.y - (profile.height(bend.from) + (profile.grade(bend.from) * (bend.to - bend.from)) / 2)) < 1e-6,
+  const [section] = road.document.sections;
+  // Three lanes of 3.6 m each side at the start (road width 212, the median 0 and left out).
+  assert.deepEqual(
+    section.lanes.slice(0, 3).map((l) => (typeof l.width === 'number' ? l.width : l.width[0].width)),
+    [3.6, 3.6, 3.6],
   );
+  // The finish at the stage's end, by the plan's station there; the road closed level at 0.
+  const finish = section.gates.find((g) => g.kind === 'finish');
+  assert.equal(finish.id, 'TEST-GOAL');
+  assert.equal(finish.at.offset, road.laid[0].plan.station(1948));
+  assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
 });
 
 test("a stage's grades: a table's leftover returned before the next, a held shape stopped at the steepest, the road closed", () => {
