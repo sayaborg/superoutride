@@ -4,7 +4,8 @@
  * (object 11) into its eight scenery objects (objects 12 to 19), each standing where it passes the bike.
  */
 import { instruction, long, word } from './program-words.js';
-import { readSceneryType, type SceneryItem, type SceneryPoint } from './super-hang-on-road.js';
+import type { SceneryPoint } from './outrun-road.js';
+import { readSceneryType, type SceneryItem } from './super-hang-on-road.js';
 
 /** Main CPU: the depth an object gains a tick by speed (a word for each), its first scenery object's template. */
 const DEPTH_STEPS = 0xc5ea;

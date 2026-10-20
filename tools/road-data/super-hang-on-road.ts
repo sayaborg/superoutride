@@ -4,7 +4,7 @@
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.
  */
-import { paletteRgb555 } from './outrun-road.js';
+import { paletteRgb555, readCurves, readPath, type CurvePoint, type Path, type SceneryPoint } from './outrun-road.js';
 import { entries, instruction, long, sword, u8, word } from './program-words.js';
 import type { SuperHangOnPrograms } from './super-hang-on-rom.js';
 
@@ -54,21 +54,6 @@ const pair = (p: Uint8Array, a: number): ColorPair => {
   return { words, rgb555: [paletteRgb555(words[0]), paletteRgb555(words[1])] };
 };
 
-/** A curve's start: its position, radius in positions and kind (1 straight, 2 right, 3 left). */
-export interface CurvePoint {
-  readonly position: number;
-  readonly radius: number;
-  readonly kind: number;
-}
-/** {signed word position, word radius, word kind}, ending at position −1. */
-const readCurves = (p: Uint8Array, address: number): CurvePoint[] =>
-  entries(
-    address,
-    6,
-    (a) => sword(p, a) === -1,
-    (a) => ({ position: sword(p, a), radius: word(p, a + 2), kind: word(p, a + 4) }),
-  );
-
 /** A height point: from its position the road's vertical heading follows height table `table` (1 from). */
 export interface HeightPoint {
   readonly position: number;
@@ -87,13 +72,7 @@ const readHeights = (p: Uint8Array, address: number): HeightPoint[] =>
     },
   );
 
-/** A scenery point: from its position, `count` × 16 steps of scenery type `type`. */
-export interface SceneryPoint {
-  readonly position: number;
-  readonly count: number;
-  readonly type: number;
-}
-/** {word position, u8 count, u8 type}, ending at a negative position. */
+/** Scenery points as OUTRUN's, {word position, u8 count, u8 type}, a count lasting 16 steps; ending at a negative position. */
 const readScenery = (p: Uint8Array, address: number): SceneryPoint[] =>
   entries(
     address,
@@ -101,22 +80,6 @@ const readScenery = (p: Uint8Array, address: number): SceneryPoint[] =>
     (a) => sword(p, a) < 0,
     (a) => ({ position: word(p, a), count: u8(p, a + 2), type: u8(p, a + 3) }),
   );
-
-/** A road path: per position a heading vector {signed word x, signed word y}, its address. */
-export interface Path {
-  readonly address: number;
-  readonly x: readonly number[];
-  readonly y: readonly number[];
-}
-function readPath(sub: Uint8Array, address: number, positions: number): Path {
-  const x: number[] = [],
-    y: number[] = [];
-  for (let i = 0; i < positions; i++) {
-    x.push(sword(sub, address + 4 * i));
-    y.push(sword(sub, address + 4 * i + 2));
-  }
-  return { address, x, y };
-}
 
 /**
  * A section: its block's address and colors, its curves, heights and scenery on the main CPU and its road path on the
