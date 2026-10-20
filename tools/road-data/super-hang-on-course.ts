@@ -7,10 +7,10 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { repeated, sectionProfile } from './outrun-course.js';
-import { bendOf, profileOf } from './outrun-profile.js';
+import { bendOf, profileOf, separatedCrossings } from './outrun-profile.js';
 import { PIXEL_ASPECT } from './outrun-boards.js';
 import { CoursePath, overlappingCells, type PathElement } from './super-hang-on-geometry.js';
-import { crossingBumps, passagesOf } from './super-hang-on-crossings.js';
+import { crossingsOf } from './super-hang-on-crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import type { PlanSegment } from './super-hang-on-plan.js';
@@ -24,8 +24,9 @@ export const LANE = 3.6;
 const OFFSET = LANE / 2;
 /** SAND reaches this far beyond the asphalt, metres. */
 const SAND = 40;
-/** Passages at least this far apart along the road may cross, metres. */
+/** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
 const PASSAGES_APART = 200;
+const PASSAGE_GAP = 3;
 /** Within a Section, its coordinate domain is checked at least this far apart along the road and this close, metres. */
 const DOMAIN_APART = 10;
 const DOMAIN_MARGIN = 0.5;
@@ -162,7 +163,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const push = (length: number, turn: number) => {
     const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
     const last = elements.at(-1);
-    if (last && last.turn === 0 && turn === 0) elements[elements.length - 1] = { ...last, length: last.length + length };
+    if (last && last.turn === 0 && turn === 0)
+      elements[elements.length - 1] = { ...last, length: last.length + length };
     else elements.push({ start, length, turn });
   };
   push(entry, 0);
@@ -270,16 +272,23 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     "An object stands past the course's end",
   );
 
-  // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap.
+  // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
+  // level road.
   const half = inputs.cross.edgesOut * unit;
-  const pairs = overlappingCells(path, { from: 0, to: end, step: metres, left: half, right: half, apart: PASSAGES_APART })
-    .map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
-  const { passages, crosses } = passagesOf(pairs, metres, 2 * metres);
-  const crossings = crossingBumps(passages, crosses, pairs, path.planeLength);
+  const pairs = overlappingCells(path, {
+    from: 0,
+    to: end,
+    step: metres,
+    left: half,
+    right: half,
+    apart: PASSAGES_APART,
+  }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
+  const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
+  const separated = separatedCrossings([], crossings, path.planeLength);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(crossings.changes.map(bendOf), origins.slice(1, -1));
+  const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1));
 
   // The Sections.
   const startHeading = path.pose(0).heading;
@@ -298,7 +307,9 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
       grid: stationOf(0),
       profile,
-      skyChanges: sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition) - inputs.cameraDistance),
+      skyChanges: sections
+        .slice(0, -1)
+        .map((_, k) => stationOf(length * k + inputs.transition) - inputs.cameraDistance),
       startHeading,
     }),
   );
@@ -320,8 +331,19 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     },
     path,
     pieces,
-    crossings,
+    profile,
     pairs,
+    crossings: crossings.map((crossing, k) => {
+      const moves = separated.separations.filter((m) => m.crossing === k);
+      return {
+        passages: crossing.passages,
+        levels: moves[0]?.levels ?? null,
+        flat: moves[0]?.flat ?? null,
+        half: moves[0]?.half ?? null,
+        moves: moves.length,
+        heights: crossing.passages.map((p) => profile.height((p.from + p.to) / 2)),
+      };
+    }),
     objects: placed.length,
   };
 }
@@ -376,7 +398,13 @@ function writtenPlan(path: CoursePath, piece: Piece): WrittenElement[] {
     if (e.turn === 0) elements.push({ kind: 'straight', id, length });
     else {
       const turn = (e.turn * (b - a)) / e.length;
-      elements.push({ kind: 'arc', id, length, radius: round(length / Math.abs(turn)), turn: turn > 0 ? 'left' : 'right' });
+      elements.push({
+        kind: 'arc',
+        id,
+        length,
+        radius: round(length / Math.abs(turn)),
+        turn: turn > 0 ? 'left' : 'right',
+      });
     }
   }
   return elements;
@@ -445,7 +473,8 @@ function sectionDocument(
     if (go + k * p + h * w + w <= a + EPSILON) k++;
     const startOf = (j: number) => go + j * p + h * w;
     if (startOf(k) < a - EPSILON) {
-      if (Math.min(b, startOf(k) + w) - a > EPSILON) out.push(strip(a, Math.min(b, startOf(k) + w), left, right, color, null));
+      if (Math.min(b, startOf(k) + w) - a > EPSILON)
+        out.push(strip(a, Math.min(b, startOf(k) + w), left, right, color, null));
       k++;
     }
     let n = 0;
@@ -457,7 +486,8 @@ function sectionDocument(
     if (startOf(k + n) < b - EPSILON) out.push(strip(startOf(k + n), b, left, right, color, null));
     return out;
   };
-  const two = (pair: ColorPair | readonly [number, number]) => ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
+  const two = (pair: ColorPair | readonly [number, number]) =>
+    ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
   const own = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
     .filter((t) => t.to - t.from > EPSILON);
@@ -469,7 +499,12 @@ function sectionDocument(
   }
   strips.push(strip(origin, origin + size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
   // The road: its surface to the edge bands' outer edges, then lines, edge bands and centre line over it.
-  const features: { left: number; right: number; colors: (t: ColorStretch) => readonly [number, number]; period: number }[] = [
+  const features: {
+    left: number;
+    right: number;
+    colors: (t: ColorStretch) => readonly [number, number];
+    period: number;
+  }[] = [
     ...[-1, 1].map((side) => ({
       left: lateral(side < 0 ? -xs.linesOut * unit : xs.linesIn * unit),
       right: lateral(side < 0 ? -xs.linesIn * unit : xs.linesOut * unit),
@@ -538,7 +573,8 @@ function sectionDocument(
   });
   const environments = [environment(origin)];
   const change = context.skyChanges[piece.order];
-  if (change !== undefined && change > origin + 1e-6 && change < origin + size - 1e-6) environments.push(environment(change));
+  if (change !== undefined && change > origin + 1e-6 && change < origin + size - 1e-6)
+    environments.push(environment(change));
 
   return {
     id: piece.id,
@@ -549,8 +585,14 @@ function sectionDocument(
     lanes,
     centerLane: 'a',
     boundaries: [
-      { id: 'outer-left', knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-asphalt - SAND) })) },
-      { id: 'outer-right', knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(asphalt + SAND) })) },
+      {
+        id: 'outer-left',
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-asphalt - SAND) })),
+      },
+      {
+        id: 'outer-right',
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(asphalt + SAND) })),
+      },
     ],
     strips,
     walls: [],

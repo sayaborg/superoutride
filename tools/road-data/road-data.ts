@@ -160,11 +160,13 @@ try {
           objects: road.objects,
           notBroughtOut: dropped,
           elements: plans.reduce((n, p) => n + p.segments.length, 0),
-          crossings: road.crossings.report.map((c) => ({
+          crossings: road.crossings.map((c) => ({
             passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-            heights: c.heights.map(round1),
+            levels: c.levels,
+            flat: c.flat,
             half: c.half,
-            smooth: c.smooth,
+            moves: c.moves,
+            heights: c.heights.map(round1),
           })),
         });
       }
@@ -172,11 +174,18 @@ try {
         const file = `content/${image.path}`;
         if (check) {
           const committed = await readFile(file).catch(() => null);
-          requireInput(committed && Buffer.compare(committed, image.bytes) === 0, `/${file}`, `${file} is not the ROMs'`);
+          requireInput(
+            committed && Buffer.compare(committed, image.bytes) === 0,
+            `/${file}`,
+            `${file} is not the ROMs'`,
+          );
         } else await atomicWrite(file, image.bytes);
       }
       // Each section's sky as published: the generic coast sky under its own name.
-      const generic = JSON.parse(await readFile(`content/images/${GENERIC_SKY}.json`, 'utf8')) as Record<string, unknown>;
+      const generic = JSON.parse(await readFile(`content/images/${GENERIC_SKY}.json`, 'utf8')) as Record<
+        string,
+        unknown
+      >;
       const skies = built.built.flatMap(({ course }) =>
         course.sections.map((_, order) => superHangOnSky(course.name, order)),
       );
