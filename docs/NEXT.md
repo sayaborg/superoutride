@@ -137,7 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-2;
+[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -387,6 +388,94 @@ Not in this stage: the hills made again (proper grade separation with them), the
 traffic tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds
 and music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again.
 
+## Stage ER — ENDURO RACER from the ROMs
+
+Stage ER follows Stages RD2, SH and TO and raises ENDURO RACER's five stages (Sega, 1986, on the Space Harrier board)
+from the original's ROMs into one LINEAR course, with the tools and rules those stages made: the ROMs' pictures put on
+the texel grid by chosen lines, backgrounds baked into skies by `sky-baking`, objects placed along a whole road,
+crossings kept apart by bumps, and PRs ordered so that the course is measured as seldom as possible. Its aim is Stage
+RD2's, SH's and TO's: exact, true to the ROMs, fair to look at, simple, and fitted to this game's physics; the look
+comes first, and lengthy checks (the reference times' review among them) are left out. Its PRs are numbered from ER-1,
+and Stage RD's, RD2's, SH's and TO's rules hold where this section does not change them.
+
+K's decisions (2026-10-21):
+
+- **Kept from Stages RD2, SH and TO.** All physics stays as it is; distances come from the original's displayed speed
+  and its clock. Pictures are resampled at the best quality there is (ROM pictures by chosen lines, backgrounds by area
+  averages in linear light). Everything that moves is placed standing still. Each background's near layer is drawn
+  before its far layer at the same scale into one picture; the horizon's ground gradient is not made. The bikes are
+  baked from 3D models, so the original's bike and rivals are not converted. The sprites' and backgrounds' pictures
+  converted from the ROMs are committed and shown on Pages, provisionally (drawn again for the product); sounds (PCM)
+  stay local originals alone, and the ROM zips and the raw dumps stay out of Git and PRs. The hills are made again in a
+  later stage; crossings keep the 6 m rule. No class is made until the hills: the course is driven in FREE PLAY alone
+  and only its racing line is measured.
+- **Sprites stay sprites** (K, 2026-10-18 and 2026-10-21). What the original draws as a sprite is a board, never a
+  color or a strip; only what the road layer draws (the surface, the edge bands, the water crossings) and the ground's
+  color are strips. In ENDURO RACER every sprite but the bikes is a board, each jump mound one board. A report names
+  any place where a sprite had to be replaced, on the line after where the course can be seen.
+- **Set.** Graphics and the sub CPU are read from MAME's `enduror` (Enduro Racer, Rev A, YM2151, FD1089B 317-0013A).
+  Its main CPU's program is encrypted (FD1089B encrypts instructions and data), so the main CPU's tables are read from
+  the decrypted program in MAME's `endurobl` (bootleg set 1), which is the YM2203 set `enduror1` decrypted; its tables
+  are those of Rev A.
+- **Scale.** One road position is 1.185185 m (the displayed km/h at 60 Hz). Across the road SUPER HANG-ON's rule
+  holds (the original's upright rear frame of the bike as tall as VFR750R's upright rear picture), rounded to a lane,
+  half the road surface, of 3.5 m: one lateral unit is 0.018392 m and the road 7.00 m. The original's world does not
+  keep one scale across and along the road, so no scale follows from it alone; its objects' ratio (road 7.48 m) and
+  its road's look (road about 9.8 m) are the alternatives K may choose instead.
+- **Water.** This game has no water material: the water off the road (stage 3's water, stage 5's sea) is `SAND`, and
+  where the road crosses water its surface stays the road's `DIRT` in the water's color. K decides later whether a
+  water material (spray, grip and drag) is made.
+- **Product.** The five stages, in running order, are one LINEAR course `enduro-racer` (ENDURO RACER), as the original
+  runs them without stopping. It is the reference course of a later ENDURO RACER series
+  ([Series](product.md#5-series)).
+- **Jumps and objects on the road.** The jump mounds are boards passed through until the hills make them the road's
+  form; the rocks, rock pillars, dead trees and jeeps on the road have bodies by the original's hit mark, as every
+  object does.
+
+Rules of the stage, beside Stage RD's, RD2's, SH's and TO's:
+
+- K's two zips lie in `reference-media/enduro-racer/rom/` (`enduror.zip` and `endurobl.zip`, names an argument may
+  change), the tool's dump in `reference-media/enduro-racer/rom-data/`. The tool opens both and finds each ROM by its
+  CRC. No code of MAME, Cannonball or LayOut is copied or ported: the formats are read by this project's own code from
+  the stage's description and the ROMs themselves.
+- **No decryption.** No decrypting code and no key (`enduror.zip`'s `317-0013a.key`) enter the repository or are used.
+  The main CPU's tables are read from `endurobl`'s decrypted bytes. That those tables are Rev A's, and what the stage's
+  description says of the program's code, was found by decrypting the sets for the description; the tool cannot check
+  it and takes it as described.
+- The road data tool gains ENDURO RACER's modules (`enduro-racer-*.ts`): its ROM set and addresses, Space Harrier's
+  sprites, Hang-On's tiles, its road ROM, its scenery tables and its course. What it shares with the other originals
+  (`program-words`, `pixel-grid`'s `chosenLines` and `paletteName`, `sprite-pixels`, `sky-baking`, `crossings`,
+  `road-profile`, `--check`, and SUPER HANG-ON's `sectionPlan` and `CoursePath`) serves it unchanged; what it adds to
+  a shared module (Space Harrier's sprite banks and row ends among them) leaves every other original's `--check`
+  unchanged, and a SUPER HANG-ON function made shared leaves SUPER HANG-ON's `--check` byte for byte. OUTRUN's
+  `offset-plan` is not used.
+- **Every original's results stay.** Before each PR main is taken in and every original's `--check` on main (OUTRUN's
+  `course --check` and `boards --check`, SUPER HANG-ON's, TURBO OUTRUN's and, once it exists, ENDURO RACER's) passes on
+  the local ROMs; a PR changing a shared rule says which course of which original changes, and by how much.
+- The stage stops only where the ROMs disagree with the stage's description (an address holding other contents, an
+  unknown format, a CRC that does not match), where a rule above would break, or where the format cannot make the
+  course's form (the nearest form it can make is then shown); every other open point is decided by its default and
+  reported in its PR.
+
+The PRs, in order (each one too large for one review is split and the split reported):
+
+- ER-2: ENDURO RACER's ROMs read: the set found by CRC in both zips, the main CPU's data and instruction images, the
+  instructions the tables are found by checked, and every table the course uses written to the dump `enduro-racer.json`
+  (`superoutride.enduro-racer-road-data` version 1) by `enduro-racer-read`. `sprite-pixels` reads Space Harrier's
+  sprites (banks of 0x8000 words, rows ended by a last pixel of 15, rows 0 to h − 2 drawn, base point 4 the bottom
+  edge), OUTRUN's and TURBO OUTRUN's results unchanged. No course yet.
+- ER-3: the course `enduro-racer` (ENDURO RACER), without objects: the five stages' road paths in running order and a
+  straight past the goal, the plan, lanes, strips, colors, stripes, materials, flat profile with the crossings' bumps,
+  Sections, the skies' names and yaw origins, the checkpoints, finish and grid, no class, its racing line measured. Its
+  five skies are copies of `coast-sky` under their own names until ER-5.
+- ER-4: its objects: the scenery, the start's gate and figures, the stage ends' CHECK banners and posts, the goal, and
+  the jump mounds as boards, in the ROMs' pictures by chosen lines. Measured.
+- ER-5: the five skies baked from the tile ROMs by `sky-baking` in place of the copies. Pixels alone, not measured.
+
+Not in this stage: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
+colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
+pictures drawn again.
+
 ## Stage DT — DRIFT TUNED trial vehicles
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
@@ -536,8 +625,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 ### Courses of the originals
 
 OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
-SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), and TURBO
-OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
+SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), TURBO
+OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms) and ENDURO RACER's in
+[Stage ER](#stage-er--enduro-racer-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
 Their time limits come from reference driving, as for every course.
 
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):

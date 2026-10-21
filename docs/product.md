@@ -199,7 +199,10 @@ its course. Each class also has its time margin and whether it fixes colors.
 - **RALLY STAGE** is an original game in the manner of a 1989 arcade release. Its core is surface
   changes between tarmac, gravel and snow within one run.
   There are no tire changes or service parks.
-- Enduro Racer is not included.
+- **ENDURO RACER** is a series of a later stage; its bikes, rivals, colors and pace are decided then. Until then its
+  reference course, the original's five stages as one LINEAR course of 12.14 km raised from the ROMs of MAME's
+  `enduror` and `endurobl` ([Original road data](original-road-data.md#enduro-racer)), is a FREE PLAY course in no
+  series.
 
 ## 6. Flow and screens
 

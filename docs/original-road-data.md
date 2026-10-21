@@ -1,27 +1,28 @@
 # Original road data
 
 OUTRUN's courses are raised from the road data in the original's program ROMs, and
-[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) and [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms)
-raise SUPER HANG-ON's and TURBO OUTRUN's from their own the same way. This document owns how each original's ROMs are
-read: the ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how the
-tables become course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on) and
-[TURBO OUTRUN](#turbo-outrun) have their own. What the conversion does not yet cover is NEXT's
-([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data), Stage SH, Stage TO).
+[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms), [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms)
+and [Stage ER](NEXT.md#stage-er--enduro-racer-from-the-roms) raise SUPER HANG-ON's, TURBO OUTRUN's and ENDURO RACER's
+from their own the same way. This document owns how each original's ROMs are read: the ROM set, its programs, the
+tables' format and addresses, the dump the road data tool writes, and how the tables become course documents. OUTRUN's
+sections come first; [SUPER HANG-ON](#super-hang-on), [TURBO OUTRUN](#turbo-outrun) and
+[ENDURO RACER](#enduro-racer) have their own. What the conversion does not yet cover is NEXT's
+([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data), Stage SH, Stage TO, Stage ER).
 
 The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-`reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/` and `reference-media/turbo-outrun/rom/`, the
-tool's dumps beside them in `rom-data/`. The formats are read by this project's own code from this description and the
-ROMs themselves.
+`reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/`, `reference-media/turbo-outrun/rom/` and
+`reference-media/enduro-racer/rom/`, the tool's dumps beside them in `rom-data/`. The formats are read by this
+project's own code from this description and the ROMs themselves.
 
 The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
-`super-hang-on-*`, `turbo-outrun-*`) and what they share in modules of their own: a program's words and the halves it is
-interleaved from (`program-words`), the road tables in OUTRUN's format (`road-tables`: palette words, curves, widths and
-heights, scenery points, road paths and height tables), the hills (`hills`), the profile and the crossings' bumps
-(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
-laid off a road path with its corners rounded (`offset-plan`), two roads drawn together from one road's picture across
-(`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
-(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), a background baked into one sky
-([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
+`super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`) and what they share in modules of their own: a program's words
+and the halves it is interleaved from (`program-words`), the road tables in OUTRUN's format (`road-tables`: palette
+words, curves, widths and heights, scenery points, road paths and height tables), the hills (`hills`), the profile and
+the crossings' bumps (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their
+crossings), the plan laid off a road path with its corners rounded (`offset-plan`), two roads drawn together from one
+road's picture across (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this
+game's texel grid (`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), a background baked into one
+sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
 table's step and `startDepth`).
 
 ## ROM set
@@ -1370,3 +1371,11 @@ and 372 far strips.
   edge 32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units
   (10.2 m) above the road, its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.
+
+## ENDURO RACER
+
+ENDURO RACER's course is raised from MAME's `enduror` (Enduro Racer, Rev A, YM2151, FD1089B 317-0013A), whose graphics
+and sub CPU are read as they are. Its main CPU's program is encrypted for instructions and data alike, so its tables are
+read from the decrypted program of MAME's `endurobl` (bootleg set 1, the YM2203 set `enduror1` decrypted), whose tables
+are Rev A's; the program is never decrypted here. Its ROM set, programs and tables are described here as
+[Stage ER](NEXT.md#stage-er--enduro-racer-from-the-roms) reads them.
