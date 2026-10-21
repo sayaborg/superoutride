@@ -154,16 +154,18 @@ any of them changes drivers' inputs, so `PLANNED_DRIVER.version` rises with it.
 ## Camera settings
 
 The [camera definition](../src/view/camera-definition.ts) holds the camera's values; DEV camera controls replace
-the horizon row and the height frequency for the session without saving, and a reload restores them. The focal length
-(240 px), the camera height (2 m above the player's base point with a level body), the critically damped height
-spring and the yaw limit (45° about the road heading at the car, taken at once) are fixed; what the yaw follows is the
-player's setting ([Architecture](architecture.md#camera-and-fixed-metric)). The horizon row moves the whole view up
-or down the screen, the background with it, and the player's base point stays `f*h/D_cam` = 80 rows below it. The
+the camera height, the horizon row and the height frequency for the session without saving, and a reload restores them.
+The focal length (240 px), the critically damped height spring and the yaw limit (45° about the road heading at the car, taken at once) are fixed; what the yaw follows is the
+player's setting ([Architecture](architecture.md#camera-and-fixed-metric)). The camera height is measured above the
+player's base point with a level body; the player's base point stands `f*h/D_cam` rows below the horizon (80 at 2 m,
+60 at 1.5 m, 40 at 1 m) and its size does not change. The horizon row moves the whole view up or down the screen, the
+background with it. The
 background scrolls `f` pixels per radian of yaw, as distant road and sprites do; vertically it keeps one image row per
 screen row ([Image assets](image-assets.md#infinite-tiled-background)).
 
 | Setting          | Value | DEV choices                   | Meaning                                           |
 | ---------------- | ----- | ----------------------------- | ------------------------------------------------- |
+| Camera height    | 2 m   | 1, 1.5, 2 m                   | Height above the player's base point, level body  |
 | Horizon row      | 120   | 60, 70, 80, 90, 100, 110, 120 | The horizon's screen row with a level body        |
 | Height frequency | 2 Hz  | 0.5, 1, 2, 3, 5, 10 Hz        | Natural frequency of the sprung base point height |
 

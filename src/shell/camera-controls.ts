@@ -1,7 +1,7 @@
 import type { CameraDefinition } from '../view/camera.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 
-type CameraTuningKey = 'horizonRow' | 'heightFrequency';
+type CameraTuningKey = 'height' | 'horizonRow' | 'heightFrequency';
 
 /** DEV camera settings: each a choice of values for one camera definition field. */
 const CAMERA_TUNING: readonly {
@@ -10,6 +10,7 @@ const CAMERA_TUNING: readonly {
   readonly unit: string;
   readonly choices: readonly number[];
 }[] = [
+  { key: 'height', label: 'Camera height', unit: 'm', choices: [1, 1.5, 2] },
   { key: 'horizonRow', label: 'Horizon row', unit: '', choices: [60, 70, 80, 90, 100, 110, 120] },
   { key: 'heightFrequency', label: 'Camera height frequency', unit: 'Hz', choices: [0.5, 1, 2, 3, 5, 10] },
 ];
