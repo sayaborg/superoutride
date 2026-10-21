@@ -137,7 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR:
+Next PR: the tidying of the road data tool and the documents after the five Sega originals, from K's instructions
+(no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -421,10 +422,10 @@ K's decisions (2026-10-21):
   holds (the original's upright rear frame of the bike as tall as VFR750R's upright rear picture), rounded to a lane,
   half the road surface, of 3.5 m: one lateral unit is 0.018392 m and the road 7.00 m. The original's world does not
   keep one scale across and along the road, so no scale follows from it alone; its objects' ratio (road 7.48 m) and
-  its road's look (road about 9.8 m) are the alternatives K may choose instead.
+  its road's look (road about 9.8 m) were the alternatives, and K kept the 3.5 m lane (2026-10-21).
 - **Water.** This game has no water material: the water off the road (stage 3's water, stage 5's sea) is `SAND`, and
-  where the road crosses water its surface stays the road's `DIRT` in the water's color. K decides later whether a
-  water material (spray, grip and drag) is made.
+  where the road crosses water its surface stays the road's `DIRT` in the water's color. No water material (spray,
+  grip and drag) is made (K, 2026-10-21); a later stage of its own makes one if it is needed.
 - **Product.** The five stages, in running order, are one LINEAR course `enduro-racer` (ENDURO RACER), as the original
   runs them without stopping. It is the reference course of a later ENDURO RACER series
   ([Series](product.md#5-series)).
@@ -467,8 +468,21 @@ names and yaw origins, checkpoints, finish and grid, and the crossings' bumps, i
 by chosen lines: the scenery, the start's gate, the CHECK and goal parts and the jumps as boards passed through, bodies
 by the original's hit mark but on the road, none on another passage's road
 ([ENDURO RACER's objects](original-road-data.md#enduro-racers-objects)). ER-5 baked its five skies by `sky-baking`
-([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). Stage ER has no PR left: its hills and jumps
-wait for the stage that makes the hills again.
+([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). ER-6 recorded K's decisions on what the
+stage's reports left open (2026-10-21: "go on with the recommendations; only playing will tell"): every default stays,
+and K drives the course in FREE PLAY on Pages and asks for changes as they show.
+
+- The scale stays (a position 1.185185 m, a lane 3.5 m); alternatives (a) and (b) are not used.
+- The water off the road stays `SAND`, the three crossings' surface `DIRT` in the water's color.
+- The 183 objects on the road keep passing through. Their bodies come back only once the drivers (who measure the
+  racing lines and drive) can avoid objects standing on the road, not with the hills before that.
+- The jumps and jumping are made with the hills, which also decide the 5 jump mounds not placed for standing on another
+  passage's road. The crossings' bumps stay as they are (−11.4 to +12.1 m, 7.5 % at the steepest) until the hills
+  make them again, and the 150 objects on another passage's road stay out.
+- The stripes' phase is confirmed on the original (band B from position 0, the borders at even positions;
+  [ENDURO RACER's course](original-road-data.md#enduro-racers-course)).
+
+Stage ER is closed.
 
 Not in this stage: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
 colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
@@ -505,8 +519,9 @@ K's decisions (2026-10-21):
   5.27 km, the qualifying's 2.28 km). The original has no amount that sets its lateral unit in metres, so the space
   between the barriers, 1640 units, is a real Monaco street's 10 m: a unit is 10 / 1640 m (the barriers 0.80 m tall, a
   lamp 6.5 m, a person 2.3 m). The original's world keeps one scale across and along the road, so this default shortens
-  the road 0.64 times against its look. The alternatives K may choose after MG-5's drawings: (R) the real lap of
-  3.328 km, (C) the width from the rivals' cars against TESTAROSSA's, (A) one scale across and along.
+  the road 0.64 times against its look. K kept this scale after MG-5's drawings (2026-10-21); the alternatives were
+  (R) the real lap of 3.328 km, (C) the width from the rivals' cars against TESTAROSSA's, (A) one scale across and
+  along ([SUPER MONACO GP's courses](original-road-data.md#super-monaco-gps-courses) keeps their notes).
 - **Product.** Two circuits, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying`
   (SUPER MONACO GP QUALIFYING, the qualifying's form), each a FREE PLAY course in no series. The two forms share most of
   the road but each closes on its own path, so they are two circuits, not one BRANCH course.
@@ -558,9 +573,19 @@ pictures and the picture of each of its 32 views, drawn as the original selects 
 as before. MG-5 placed their objects: every object but the surface boards a board without a body, in the ROMs'
 pictures by chosen lines, the barriers, kerbs, walls and advertising boards in eight view sets
 ([SUPER MONACO GP's objects](original-road-data.md#super-monaco-gps-objects)); the racing lines were measured again.
-Near barriers stand as steps where the original draws a band, from this game's higher camera; K decides later whether
-anything changes, and which scale the courses keep (the default, (R) or (C)). MG-6 baked their sky from the tile ROMs
-by `sky-baking` and the tunnel's dark. Stage MG has no PR left: its hills wait for the stage that makes the hills again.
+MG-6 baked their sky from the tile ROMs by `sky-baking` and the tunnel's dark. MG-7 recorded K's decisions on what
+the stage's reports left open (2026-10-21, with ER-6): every default stays, and K drives the courses in FREE PLAY on
+Pages and asks for changes as they show.
+
+- The scale stays (a step 0.372267 m, 1640 units between the barriers 10 m); (R), (C) and (A) are not used.
+- The near barriers keep standing as steps, the original's pictures and selection as they are: the pictures are drawn
+  for the original's eye about 0.57 m above the road, and with this game's camera lowered to 0.6 m at the car they make
+  the original's continuous band.
+- The pictures stay as they are: 76 MB of saved JSON, about 5.4 MB compressed in Git and from Pages, as TURBO OUTRUN's
+  and OUTRUN's; most of it is the 16-unit class, each of the original's pixels about 4 × 4 texels. A format holding
+  pictures at the original's pixel size would make it smaller, and is not made now.
+
+Stage MG is closed.
 
 Not in this stage: the hills (the original's dz) and grade separation, the SUPER MONACO GP series itself (cars, rivals,
 laps, rank limits, time and the overcast set), sounds and music, the motion of what moves, the start's signal, the
@@ -720,6 +745,14 @@ OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms), ENDURO RACER's in
 [Stage ER](#stage-er--enduro-racer-from-the-roms) and SUPER MONACO GP's in
 [Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
 Their time limits come from reference driving, as for every course.
+
+Left by Stages ER and MG to later stages (K, 2026-10-21):
+
+- The hills and jumping: ENDURO RACER's grade tables, its jumps and the 5 jump mounds standing on another passage's
+  road, its crossings made again, and SUPER MONACO GP's hills.
+- The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
+- A water material (spray, grip and drag), in a stage of its own if it is needed.
+- The SUPER MONACO GP series and its overcast set.
 
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
 

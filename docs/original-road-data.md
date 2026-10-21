@@ -1514,7 +1514,8 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
   frame of the bike, its rows 0–81, 82 × 128/125 × 15/14 units, as tall as VFR750R's upright rear picture, 1.65 m)
   gives 3.49 m, rounded as SUPER HANG-ON's 4.34 m was. The original's world keeps no one scale across and along the
   road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects at 4.2456 × x / (d + 4.19), two different
-  eyes), so its objects' far ratio (a road of 7.48 m) and its road's look (about 9.8 m) are the alternatives.
+  eyes), so its objects' far ratio (a road of 7.48 m) and its road's look (about 9.8 m) were the alternatives; K kept
+  the 3.5 m lane (2026-10-21).
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
   2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
   line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as Stage ER's description reads the sub
@@ -1534,10 +1535,16 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 - **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a.
 - **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
   right), its surface to the edge bands' outer edges, and its edge bands' narrow and middle bands over it, each in band
-  B and band A by turns every 2 positions. From position 0 band B comes first: the sub CPU starts its colors as
-  0x00FF0000, swaps them on the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's
-  nearest line, which so shows the high word, band B, while the position's bit 1 is 0. The borders stand at the
-  stations of even positions, so each of P's elements lays them evenly and writes them as repeats. Over the water
+  B and band A by turns every 2 positions: band B over positions [0, 2) + 4k and band A over [2, 4) + 4k, the borders
+  at even positions. This was confirmed on the original: in a research harness the bike stood still while the road
+  position (0x126188 and 0x126184) was stepped from 0 to 3.9375 by 1/16, the road layer's nearest row showing band B at
+  0–1.875 and band A at 1.9375–3.875, the nearest border coming down to that row as the position neared 2 and reaching
+  it at 1.875 (the nearest row lies about 0.1 position ahead of the road position, within the pattern's steps of 1/16).
+  A running frame cannot tell, for the shared RAM's position is read at another time than the road is drawn. The tool
+  cannot check it and takes it as found; the sub CPU's code agrees: it starts its colors as 0x00FF0000, swaps them on
+  the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's nearest line, which so shows
+  the high word, band B, while the position's bit 1 is 0. The borders stand at the stations of even positions, so each
+  of P's elements lays them evenly and writes them as repeats. Over the water
   crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color. The ground's
   rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT`. The ground reaches 18 m beyond the edge bands (22.32 m from
@@ -1725,9 +1732,11 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
   qualifying's 2.28 km. Across, 1640 units, the space between the barriers, are a real Monaco street's 10 m: a unit is
   6.0976 mm, 15/14 of that up. The original's world keeps one scale across and along the road, so the road here is
-  0.64 times as long against its width as the original looks. The alternatives for K: (R) the real lap, 3.328 km (a
-  step 0.235095 m); (C) the rivals' cars as wide as TESTAROSSA (a unit 9.4095 mm); (A) both, one scale (a step
-  0.903314 m).
+  0.64 times as long against its width as the original looks. K kept this scale (2026-10-21): seen from above, a unit
+  is 3.88 mm along the road, 6.10 mm across and 6.53 mm up. The alternatives were (R) the real lap, 3.328 km (a step
+  0.235095 m), whose qualifying form does not close with two straights and whose grid must stand one slot further;
+  (C) the rivals' cars as wide as TESTAROSSA (a unit 9.4095 mm), whose pictures pass the course's texel bound (46.8 M
+  with their levels, and 0x0D86's 1.42 M one image's); and (A) both, one scale (a step 0.903314 m).
 - **Lap.** A lap runs from the race's line, step 288, round to it again; the qualifying's own line, step 276, is 12
   steps (4.5 m) behind it.
 - **Plan.** The headings from step 288 round to it again, N + 1 of them as SUPER HANG-ON's road path vectors (4096 sin
@@ -1819,9 +1828,12 @@ the original's band table alone acts on its car.
 - **Curves' insides.** An object on an arc's inside farther from lane a's centre than the arc's radius less 2 m is
   left out (none is: the nearest, a far building at the race's and the qualifying's step 2166, stands 0.40 of its
   arc's radius inside lane a's centre).
-- **Images.** 139 in all, 14.68 M master texels; the 2-unit class drops about half its lines, among them 20
-  one-pixel columns (the kerbs' stripes' edges, 0x0774–0x0828, and one each in 0x060C and 0x0AAA) and no row.
+- **Images.** 139 in all, 14.68 M master texels, 76.0 MB of saved JSON (about 5.4 MB compressed, in Git and as Pages
+  serves it); the 16-unit class, the far buildings and cliffs, holds 45.3 MB of it, each of the original's pixels
+  about 4 × 4 texels. The 2-unit class drops about half its lines, among them 20 one-pixel columns (the kerbs'
+  stripes' edges, 0x0774–0x0828, and one each in 0x060C and 0x0AAA) and no row.
 
 The near barriers stand as steps, one picture a board, where the original draws a continuous band: its pictures are
-drawn for its eye about 0.57 m above the road at the car, this game's camera 6 m behind and 2 m above it. The pictures
-and their selection are the original's as they are.
+drawn for its eye about 0.57 m above the road at the car, this game's camera 6 m behind and 2 m above it (with the
+camera lowered to 0.6 m at the car, the same pictures and selection make the original's continuous band). The pictures
+and their selection are the original's as they are, and K kept them so (2026-10-21).
