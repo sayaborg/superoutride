@@ -407,7 +407,8 @@ async function assembleCourseRun(
   // vehicle, the player included, casts its picture's shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
   // The other vehicles' pictures and the puffs', reused frame to frame.
-  const others: CourseSprite[] = [];
+  const others: CourseSprite[] = [],
+    puffSprites: CourseSprite[] = [];
   const draw = () => {
     const { scene, race, puffs } = active;
     const started = performanceHud ? performance.now() : 0,
@@ -415,10 +416,9 @@ async function assembleCourseRun(
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
     others.length = 0;
-    others.push(
-      ...raceSprites(otherVehicles, lifecycle.camera, scene.world),
-      ...puffs.sprites(scene.world.coordinates),
-    );
+    others.push(...raceSprites(otherVehicles, lifecycle.camera, scene.world));
+    puffSprites.length = 0;
+    puffSprites.push(...puffs.sprites(scene.world.coordinates));
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
@@ -430,6 +430,7 @@ async function assembleCourseRun(
       },
       lifecycle.camera,
       others,
+      puffSprites,
       observations.knocked,
       measurements,
     );

@@ -513,11 +513,22 @@ BG do not enter the average. [Browser](browser.md#performance-hud) owns the HUD'
 
 ## Sprites and Painter
 
-Every picture is a flat picture without depth standing upright at its base point, its anchor, and is drawn at the
-projected scale `f/d` px/m there ([picture contract](image-assets.md#picture-contract)). Course anchors use known
-chainage and render height; vehicles and movable objects stand at their base points, from their observed chainage and
-lateral. A picture may extend below its anchor: what lies below its base point is ordered by the base point's depth
-too. Yaw/bank variants are authored images. Rendering uses nearest sampling, binary alpha and one SINGLE sprite per
+Every picture stands upright at its base point, its anchor, and is drawn at the projected scale `f/d` px/m there
+([picture contract](image-assets.md#picture-contract)). Course anchors use known chainage and render height; vehicles
+and movable objects stand at their base points, from their observed chainage and lateral. A picture is one of two kinds,
+which the drawing decides by what it is given as; course and image documents carry no mark:
+
+1. **A board without depth**: every picture not given as a vehicle's (course images, tire puffs). It is one plane at
+   its anchor's depth: every row, those below the anchor too, is ordered at that depth, and nearer ground hides it pixel
+   by pixel.
+2. **A thing with depth along the road**: a picture chosen from a vehicle's picture set. The screen rows whose centres
+   lie on or above the anchor's screen row (`floor` of its projected y) are drawn at the anchor's depth. Each row below
+   lies on the ground nearer than the anchor: of the terrain rows on that screen row, transparent ones included, the
+   farthest nearer than the anchor is found, and the picture's row is drawn right after that terrain row and its walls,
+   so nearer ground and walls draw over it; a screen row with no terrain row nearer than the anchor is drawn at the
+   anchor's depth. Rows laid on one terrain row draw from far anchors to near.
+
+Yaw/bank variants are authored images. Rendering uses nearest sampling, binary alpha and one SINGLE sprite per
 vehicle; bank is visual. One drawing serves every image, course images and vehicle pictures alike: a level `k` is a
 frame of `40/2^k` texels per metre with its own anchor, and the renderer draws the nearest-octave level.
 A vehicle's yaw image is the one for its body yaw relative to the camera yaw less its direction of view: the direction
@@ -532,14 +543,14 @@ and sprite counts, the player's screen point and image choice) go only to a meas
 (the performance HUD and the bike lean indicator, with `dev=1`), the course tool and tests; the product path passes
 none and carries no DEV value.
 Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge of the pictures whose base points lie at
-the player's depth `D_cam` or beyond, the player, the nearer pictures far to near, then, under the PAUSE menu or
+the player's depth `D_cam` or beyond (a vehicle's rows below its anchor laid on their terrain rows), the player, the nearer pictures far to near, then, under the PAUSE menu or
 RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
 frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).
 The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
 Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
 beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites.
 Pictures are ordered by their base points' depth and the player is one of them, at `D_cam`: a picture at the player's
-depth draws before it, and a nearer one after it, over the player and over every ground row and wall. Ground and walls
+depth draws before it, and a nearer one after it, whole, over the player and over every ground row and wall. Ground and walls
 never cover the player; a vehicle or object between the camera and the player is drawn over the player, and a ground
 row nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn without a player, its picture and its shadow: the footage tool's
 replay draws the course alone ([Courses from footage](footage.md#replay-comparison)); its measurements then hold NaN
@@ -594,8 +605,9 @@ Columns clip to the frame; a wall beside
 the camera clips as any other. Solid or not makes no difference to drawing, and an invisible wall draws nothing. A
 measured render counts the painted wall pixels.
 
-Course sprites enter the render as one array of world sprites (`RenderScene.worldSprites`), with the other vehicles'
-pictures and the [tire puffs](tire-puffs.md#drawing)', which are world pictures that cast no shadow. Each frame the renderer
+Course sprites enter the render as one array of world sprites (`RenderScene.worldSprites`), with the
+[tire puffs](tire-puffs.md#drawing)' pictures, which are boards that cast no shadow; the other vehicles' pictures enter
+as another (`RenderScene.vehicleSprites`), things with depth along the road. Each frame the renderer
 keeps those whose pseudo depth lies in the visible depth interval, projects each through the frame's camera and draws
 them far to near.
 

@@ -42,13 +42,13 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, 'FACING');
       target.pixels.fill(0);
       const result = createRenderMeasurements();
-      scene.render(target, player, camera, [], [], result);
+      scene.render(target, player, camera, [], [], [], result);
       assert.ok(result.stripGround.outputPixels > 0);
       const before = JSON.stringify(vehicle),
         occurrences = scene.runtime.window.occurrences,
         view = scene.runtime.readers;
       // Rendering again changes neither the vehicle nor the Route's window and readers.
-      scene.render(target, player, camera, [], [], result);
+      scene.render(target, player, camera, [], [], [], result);
       assert.equal(JSON.stringify(vehicle), before);
       assert.equal(scene.runtime.window.occurrences, occurrences);
       assert.equal(scene.runtime.readers, view);

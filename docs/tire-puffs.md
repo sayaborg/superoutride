@@ -84,7 +84,7 @@ for performance to be judged on devices) are alive; a new puff beyond it replace
 
 ## Drawing
 
-A puff is drawn each frame as a world picture standing at its base point, with no shadow, ordered by depth among the
+A puff is drawn each frame as a board standing at its base point, with no shadow, ordered by depth among the
 other pictures ([Architecture](architecture.md#sprites-and-painter)): the size of its kind whose diameter is nearest its
 own by ratio (the smallest or largest beyond them), the shapes of that size taken in turn by the puff's birth order, in
 its surface's palette, each picture resolved in a palette once. A front tire's puffs are therefore hidden by the player's
@@ -94,8 +94,8 @@ body until it has passed them, and a rear tire's are drawn over it.
 
 The observer owns the puffs as it owns its vehicle pictures (`createTirePuffs` in `src/view/tire-puffs.ts`); the race
 knows nothing of them. A run advances them in each fixed step after the race's advance, from `race.observe()`'s player,
-rivals and traffic, with the step's camera, and draws their pictures with the other vehicles' through the scene's
-`others`; each run assembly, a DEV rebuild's included, starts with none. The attract demo runs through the same step.
+rivals and traffic, with the step's camera, and draws their pictures through the scene's `pictures`, beside the other
+vehicles' `vehicles`; each run assembly, a DEV rebuild's included, starts with none. The attract demo runs through the same step.
 The driving scenarios advance them every fixed step and draw them in the frames they render, checking the limit.
 
 ## DEV

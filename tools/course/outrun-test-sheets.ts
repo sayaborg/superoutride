@@ -123,7 +123,7 @@ try {
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, 'FACING');
       scene.advance(camera);
       if (step % 6 || step < 54) continue;
-      scene.render(target, { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach }, camera, [], []);
+      scene.render(target, { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach }, camera, [], [], []);
       frames.push({ pixels: target.pixels.slice(), label: `T ${(step * SIM_DT).toFixed(1)} S ${camera.s.toFixed(0)}` });
     }
     await write(`crossing-${id}`, sheetOf(`CROSSING ${id.toUpperCase()}`, frames));

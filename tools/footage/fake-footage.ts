@@ -442,10 +442,10 @@ async function renderAndEncode(
     // turning slower.
     const pose =
       video.corruption === 'background' ? { yaw: at.heading, horizon: roadEndRow(world.height, camera) } : null;
-    scene.render(target, drawn, pose ? { ...camera, background: pose } : camera, others, []);
+    scene.render(target, drawn, pose ? { ...camera, background: pose } : camera, others, [], []);
     if (pose && farTarget) {
       const { farRows, farSpeed } = FAKE_CORRUPTION.background;
-      scene.render(farTarget, drawn, { ...camera, background: { ...pose, yaw: pose.yaw * farSpeed } }, others, []);
+      scene.render(farTarget, drawn, { ...camera, background: { ...pose, yaw: pose.yaw * farSpeed } }, others, [], []);
       const rows = Math.max(0, Math.min(height, Math.floor(pose.horizon) - farRows));
       target.pixels.set(farTarget.pixels.subarray(0, rows * target.width));
     }

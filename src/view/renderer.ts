@@ -5,7 +5,7 @@ import { wrapAngle } from '../core/math.js';
 import { pseudoProject, type PseudoCamera } from './projection.js';
 import { mergeTerrainAndSprites } from './painter-merge.js';
 import { SoftwareSurface } from './software-surface.js';
-import { drawScaledSprite } from './sprite.js';
+import { drawScaledSprite, scaledSpriteBounds } from './sprite.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { generateTerrainLines, createTerrainWorkspace, type TerrainRenderParameters } from './terrain-line.js';
 import { selectVehicleSprite, type VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
@@ -80,7 +80,10 @@ interface RenderScene {
    */
   readonly player: RenderPlayer | null;
   readonly terrainParameters: TerrainRenderParameters;
+  /** The boards: course images and tire puffs. */
   readonly worldSprites: readonly CourseSprite[];
+  /** The other vehicles' pictures: things with depth along the road. */
+  readonly vehicleSprites: readonly CourseSprite[];
   /** The visible walls on the resident Route. */
   readonly walls: readonly RouteWall[];
 }
@@ -109,6 +112,18 @@ export function createRenderWorkspace() {
     shadowPool: [] as PlacedShadow[],
     shadowAnchor: { x: 0, y: 0, z: 0, s: 0 },
     shadowProjection: { x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 },
+    /** Each screen row's terrain rows, far to near: `rowLines` from `rowFirst[y]` to `rowFirst[y + 1]`. */
+    rowFirst: new Int32Array(0),
+    rowLines: [] as number[],
+    /**
+     * The vehicle picture rows drawn after a terrain row and its walls: each terrain row's first and last entry, and each
+     * entry's picture, screen row and next entry (-1 ends).
+     */
+    laidFirst: [] as number[],
+    laidLast: [] as number[],
+    laidSprite: [] as number[],
+    laidRow: [] as number[],
+    laidNext: [] as number[],
   };
 }
 
@@ -120,7 +135,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, player, terrainParameters, worldSprites, walls }: RenderScene,
+  { background, guide, camera, player, terrainParameters, worldSprites, vehicleSprites, walls }: RenderScene,
   { ground, workspace }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
@@ -128,7 +143,9 @@ export function renderDriving(
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   background.draw(target, renderCamera);
-  const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
+  const sprites = visible
+    ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd, vehicleSprites)
+    : [];
   const playerProjection = player && pseudoProject(player.base, camera);
   const relativeYaw = player ? wrapAngle(player.vehicle.yaw - renderCamera.yaw) : NaN;
   const selected = player && selectVehicleSprite(player.set, relativeYaw, deriveVehicleLeanRadians(player.vehicle));
@@ -168,14 +185,64 @@ export function renderDriving(
 
   const stripStats = workspace.strips;
   stripStats.activeStrips = stripStats.outputPixels = 0;
-  // The pictures at the player's depth or beyond join the terrain merge; the nearer ones follow the player.
-  let nearSprites = sprites.length;
-  if (playerProjection) while (nearSprites > 0 && sprites[nearSprites - 1]!.d < playerProjection.depth) nearSprites--;
-  const drawSprite = (sprite: VisibleCourseSprite) => {
-    const stats = drawWorldSprite(target, sprite);
+  // Each screen row's terrain rows, far to near, for the vehicle picture rows lying on the ground.
+  const height = target.height;
+  if (workspace.rowFirst.length < height + 1) workspace.rowFirst = new Int32Array(height + 1);
+  const rowFirst = workspace.rowFirst,
+    rowLines = workspace.rowLines;
+  rowFirst.fill(0);
+  for (const line of terrain) rowFirst[line.y + 1]!++;
+  for (let y = 0; y < height; y++) rowFirst[y + 1]! += rowFirst[y]!;
+  rowLines.length = terrain.length;
+  for (let i = 0; i < terrain.length; i++) rowLines[rowFirst[terrain[i]!.y]!++] = i;
+  for (let y = height; y > 0; y--) rowFirst[y] = rowFirst[y - 1]!;
+  rowFirst[0] = 0;
+  const { laidFirst, laidLast, laidSprite, laidRow, laidNext } = workspace;
+  laidFirst.length = laidLast.length = terrain.length;
+  laidFirst.fill(-1);
+  laidSprite.length = laidRow.length = laidNext.length = 0;
+
+  const drawRows = (sprite: VisibleCourseSprite, rowStart: number, rowEnd: number) => {
+    const { x, y, scale } = sprite.projection;
+    const stats = drawScaledSprite(target, sprite.asset, x, y, scale, rowStart, rowEnd);
     spriteOutputSamples += stats.outputSamples;
     spriteWrittenPixels += stats.writtenPixels;
   };
+  // A board, and a vehicle's rows on and above its anchor's screen row, draw at the anchor's depth. Each vehicle row below
+  // lies on the ground nearer than the anchor: it draws after that screen row's farthest terrain row nearer than the
+  // anchor, or at the anchor's depth where there is none.
+  const drawSprite = (sprite: VisibleCourseSprite, index: number) => {
+    if (!sprite.vehicle) return drawRows(sprite, 0, height);
+    const { y, scale } = sprite.projection;
+    const bounds = scaledSpriteBounds(sprite.asset, scale);
+    const anchorRow = Math.floor(y),
+      bottom = Math.min(height - 1, Math.ceil(y + bounds.bottom));
+    let runStart = 0;
+    for (let row = Math.max(0, anchorRow + 1); row <= bottom; row++) {
+      let line = -1;
+      for (let i = rowFirst[row]!; i < rowFirst[row + 1]!; i++)
+        if (terrain[rowLines[i]!]!.d < sprite.d) {
+          line = rowLines[i]!;
+          break;
+        }
+      if (line < 0) continue;
+      drawRows(sprite, runStart, row);
+      runStart = row + 1;
+      const entry = laidSprite.length;
+      laidSprite.push(index);
+      laidRow.push(row);
+      laidNext.push(-1);
+      if (laidFirst[line]! < 0) laidFirst[line] = entry;
+      else laidNext[laidLast[line]!] = entry;
+      laidLast[line] = entry;
+    }
+    drawRows(sprite, runStart, height);
+  };
+  // The pictures at the player's depth or beyond join the terrain merge; the nearer ones follow the player.
+  let nearSprites = sprites.length;
+  if (playerProjection) while (nearSprites > 0 && sprites[nearSprites - 1]!.d < playerProjection.depth) nearSprites--;
+  let lineIndex = 0,
+    spriteIndex = 0;
   mergeTerrainAndSprites(
     terrain,
     sprites,
@@ -203,15 +270,18 @@ export function renderDriving(
         if (line.s >= wall.start && line.s <= wall.end)
           wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallWorkspace);
       }
+      // Then the vehicle picture rows lying on this ground row, far anchors to near.
+      for (let entry = laidFirst[lineIndex++]!; entry >= 0; entry = laidNext[entry]!)
+        drawRows(sprites[laidSprite[entry]!]!, laidRow[entry]!, laidRow[entry]! + 1);
     },
-    drawSprite,
+    (sprite) => drawSprite(sprite, spriteIndex++),
     nearSprites,
   );
 
   const playerStats = selected
     ? drawScaledSprite(target, selected.asset, playerProjection!.x, playerProjection!.y, playerProjection!.scale)
     : { outputSamples: 0, writtenPixels: 0 };
-  for (let i = nearSprites; i < sprites.length; i++) drawSprite(sprites[i]!);
+  for (let i = nearSprites; i < sprites.length; i++) drawRows(sprites[i]!, 0, height);
 
   // Only a measured render keeps the frame's measurements; the product render leaves them.
   if (!measurements) return;
@@ -231,8 +301,4 @@ export function renderDriving(
   measurements.playerRelativeYaw = relativeYaw;
   measurements.spriteOutputSamplesIncludingPlayer = spriteOutputSamples + playerStats.outputSamples;
   measurements.spriteWrittenPixelsIncludingPlayer = spriteWrittenPixels + playerStats.writtenPixels;
-}
-
-function drawWorldSprite(target: SoftwareSurface, sprite: VisibleCourseSprite) {
-  return drawScaledSprite(target, sprite.asset, sprite.projection.x, sprite.projection.y, sprite.projection.scale);
 }

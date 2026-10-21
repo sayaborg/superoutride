@@ -297,10 +297,8 @@ export async function runScenario({ course }, scenario) {
         reach: entry.compiledVehicle.reach,
       },
       camera,
-      [
-        ...sprites([...observed.rivals, ...observed.traffic], camera, scene.world),
-        ...puffs.sprites(scene.world.coordinates),
-      ],
+      sprites([...observed.rivals, ...observed.traffic], camera, scene.world),
+      puffs.sprites(scene.world.coordinates),
       observed.knocked,
     );
     evidence.frames++;

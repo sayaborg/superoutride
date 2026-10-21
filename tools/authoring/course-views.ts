@@ -148,7 +148,7 @@ export function createCourseFrameRenderer(
         target = createLogicalFrame();
       const stats = createRenderMeasurements();
       const player = { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach };
-      scene.render(target, player, camera, [], [], stats);
+      scene.render(target, player, camera, [], [], [], stats);
       return {
         width: target.width,
         height: target.height,

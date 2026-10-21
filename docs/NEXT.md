@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-1, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-2a, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -722,9 +722,9 @@ and TSUKUBA keeps its walls until a later stage makes it again (K, 2026-10-22).
 PRs:
 
 - PG-0: this section.
-- PG-1: drawing: kind 2's rows below the anchor; [Sprites and Painter](architecture.md#sprites-and-painter) and the
-  [picture contract](image-assets.md#picture-contract) rewritten. It fixes today's visible fault and waits for no
-  other PR.
+- PG-1 drew kind 2's rows below the anchor on the ground nearer than it
+  ([Sprites and Painter](architecture.md#sprites-and-painter)): the vehicles' near sides show; the boards' lower parts
+  stay hidden by nearer ground until their PRs below change them.
 - PG-2a: the tests using OUTRUN TEST and TRIAL move before those go. Traffic is driven on TSUKUBA by a class with
   traffic added to the test series (`tests/scenarios/run-rules.series.json`, its `image` `tsukuba-clubman`); the tests
   needing a straight course (`terminal`, `course-strip-ground`) use `super-hang-on-africa`; the screens smoke reads the

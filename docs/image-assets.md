@@ -418,9 +418,10 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 ## Picture contract
 
-Every picture is a flat picture standing upright at its base point ([Architecture](architecture.md#sprites-and-painter)):
-a vehicle's position seen from above at its body's underside, an object's placement at its height. Its anchor is that
-point. Pictures come in sizes; size `k` (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point,
+Every picture stands upright at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's
+position seen from above at its body's underside, an object's placement at its height. Its anchor is that point. A
+course image is a board without depth, one plane at its anchor's depth; a vehicle's picture is a thing with depth along
+the road, its rows below the anchor lying on the ground nearer than the anchor. Pictures come in sizes; size `k` (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point,
 and the renderer draws the size nearest its scale ([Shared image level selection](architecture.md#shared-image-level-selection)).
 Vehicle pictures and their generator follow this contract; this section is its only statement:
 
@@ -428,7 +429,8 @@ Vehicle pictures and their generator follow this contract; this section is its o
   (`D_cam` = 6 m) and 2.0 m above it, with a focal length of 240 px and no pitch or roll: its scale at the base point
   is `40 / 2^k` px/m, and one texel is one pixel of that camera. Every size is its own picture, drawn from its own
   camera, so the farther sizes show the vehicle closer to level; no size is made by reducing another.
-- **Anchor.** A picture's anchor is the projection of its base point. The picture may extend below it.
+- **Anchor.** A picture's anchor is the projection of its base point. The picture may extend below it: what it shows
+  there is the body's near side, drawn on the ground before the base point.
 - **Direction.** A picture is chosen by the body's yaw less the direction from the camera to the base point, in true
   perspective (`atan(x / d)` for the base point's camera-right distance `x` and depth `d`); the set's yaw images
   divide the turn evenly, image 0 seen from behind and each next one turned right by one step. Their number is the

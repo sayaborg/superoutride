@@ -37,7 +37,8 @@ export function scaledSpriteBounds(
 
 /**
  * Draw an image's picture with its anchor at (`xAnchor`, `yAnchor`) and `pixelsPerMeter` at its base point: the
- * nearest-octave level, each pixel taking the texel under its centre; every row is drawn, those below the anchor too.
+ * nearest-octave level, each pixel taking the texel under its centre; every row from `rowStart` to the one before
+ * `rowEnd` is drawn, those below the anchor too.
  */
 export function drawScaledSprite(
   target: SoftwareSurface,
@@ -45,6 +46,8 @@ export function drawScaledSprite(
   xAnchor: number,
   yAnchor: number,
   pixelsPerMeter: number,
+  rowStart = 0,
+  rowEnd = target.height,
 ): SpriteDrawStats {
   const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
   const level = asset.levels[levelIndex]!;
@@ -65,8 +68,8 @@ export function drawScaledSprite(
 
   const x0 = Math.max(0, unclippedX0);
   const x1 = Math.min(target.width - 1, unclippedX1);
-  const y0 = Math.max(0, unclippedY0);
-  const y1 = Math.min(target.height - 1, unclippedY1);
+  const y0 = Math.max(0, rowStart, unclippedY0);
+  const y1 = Math.min(target.height - 1, rowEnd - 1, unclippedY1);
 
   if (x1 < x0 || y1 < y0) {
     return { outputSamples: 0, writtenPixels: 0, clipped: true };

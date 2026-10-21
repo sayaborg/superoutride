@@ -48,6 +48,8 @@ export interface VisibleCourseSprite extends CourseSpritePlace {
   asset: SpriteAsset;
   d: number;
   projection: PseudoProjection;
+  /** Given as a vehicle's picture: a thing with depth along the road, not a board. */
+  vehicle: boolean;
 }
 
 /**
@@ -73,16 +75,23 @@ export function compileCourseSprite(
     : { ...place, asset: source.asset, views: null };
 }
 
+/** The boards `sprites` and the vehicles' pictures `vehicles` within the depth interval, far to near. */
 export function collectVisibleCourseSprites(
   sprites: readonly CourseSprite[],
   camera: PseudoCamera,
   dStart: number,
   dEnd: number,
+  vehicles: readonly CourseSprite[] = [],
 ): readonly VisibleCourseSprite[] {
   const visible: VisibleCourseSprite[] = [];
-  for (const sprite of sprites) {
+  for (const sprite of sprites) collect(sprite, false);
+  for (const sprite of vehicles) collect(sprite, true);
+  visible.sort((a, b) => b.d - a.d);
+  return visible;
+
+  function collect(sprite: CourseSprite, vehicle: boolean) {
     const d = pseudoDepth(sprite.sRender, camera.s);
-    if (d < dStart || d > dEnd) continue;
+    if (d < dStart || d > dEnd) return;
     const projection = pseudoProject({ x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender }, camera);
     const views = sprite.views;
     const asset = views
@@ -92,8 +101,6 @@ export function collectVisibleCourseSprites(
           ]!
         ]!
       : sprite.asset;
-    visible.push({ ...sprite, asset, d, projection });
+    visible.push({ ...sprite, asset, d, projection, vehicle });
   }
-  visible.sort((a, b) => b.d - a.d);
-  return visible;
 }
