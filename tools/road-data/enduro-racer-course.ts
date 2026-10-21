@@ -13,12 +13,18 @@ import { repeated, sectionProfile } from './outrun-course.js';
 import { paletteName } from './pixel-grid.js';
 import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
-import { BACK_WIDTH, SKY_WIDTH } from './sky-baking.js';
+import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
+import { stageSky } from './enduro-racer-backgrounds.js';
 import { sectionPlan, type PlanSegment } from './super-hang-on-plan.js';
 import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
 import { domainCuts, writtenPlan, type WrittenElement } from './super-hang-on-course.js';
 import { type Colors } from './road-tables.js';
-import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites, enduroRacerRoadRom } from './enduro-racer-rom.js';
+import {
+  assembleEnduroRacerPrograms,
+  assembleEnduroRacerSprites,
+  assembleEnduroRacerTiles,
+  enduroRacerRoadRom,
+} from './enduro-racer-rom.js';
 import {
   readGroundColors,
   readRoadColors,
@@ -36,7 +42,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 2;
+export const ENDURO_RACER_CONVERSION_VERSION = 3;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -175,7 +181,25 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
     spots: objects.spots,
     colored: (image) => colored.get(image)!,
   });
-  return { ...built, plans, cross, unit, metres, checks, finish, yawOrigin, pictures, hitWidth: HIT_WIDTH * unit };
+  // Each stage's sky, baked from its background over its ground's color (stage 5's the sea).
+  const planes = assembleEnduroRacerTiles(files);
+  const skies = stages.map(({ ground }, s) => ({
+    name: skyName(s),
+    document: bakeSky(skyName(s), stageSky(main, planes, s, ground.left)),
+  }));
+  return {
+    ...built,
+    plans,
+    cross,
+    unit,
+    metres,
+    checks,
+    finish,
+    yawOrigin,
+    pictures,
+    skies,
+    hitWidth: HIT_WIDTH * unit,
+  };
 }
 
 /** What the course is laid from. */

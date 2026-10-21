@@ -1504,7 +1504,7 @@ the tile palettes.
 ### ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 2, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 3, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
 and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
 crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -1551,11 +1551,18 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
   finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grid is SUPER
   HANG-ON's: 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate lanes; the
   original's five abreast is not copied.
-- **Skies.** Stage s's (0 from) is `enduror-<s + 1>-sky`, its environment `STAGE <s + 1>`. A Section starts with the
-  sky in force there; stage 2's, 4's and 5's come in at their start and stage 3's at position 4068, where its
-  background does, each 6 m before the bike reaches it, by `cut`. At a stage's start heading, every stage's the same,
-  the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
-  a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
+- **Skies.** Stage s's (0 from) is `enduror-<s + 1>-sky`, its environment `STAGE <s + 1>`, its background baked
+  ([Sky baking](#sky-baking)): its back and front layers ([ENDURO RACER's backgrounds](#enduro-racers-backgrounds)),
+  each column's tiles in its palettes, both layers' bottom row the first below the horizon but stage 5's back layer's,
+  4 rows lower (where it rests after rising; its rise is not made); the front's pixel f over the back's 0.75f − 64 (the
+  original's 0.75f − 63.625 where the road vanishes, to the whole pixel: 0.375 back pixels, 0.09°); the ramp's 48 rows
+  by its bits and the top color above; below the horizon the ground's color (stage 5's the sea). Stage 5's sea glitter
+  stands at its first step, the palette as loaded, and the ground's rows where the stripes change are not drawn. A
+  Section starts with the sky in force there; stage 2's, 4's and 5's come in at their start and stage 3's at position
+  4068, where its background does, each 6 m before the bike reaches it, by one `cut` (the original's column-by-column
+  change is not made). At a stage's start heading, every stage's the same, the original's road vanishes at its back
+  layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a Section's yaw origin is 97.69° plus the
+  road's turn from the course's start to its start.
 - **Profile.** Level but for the crossings' bumps ([Profile](#profile)): passages at least 200 m apart whose roads, to
   the edge bands' outer edges, overlap. 30 crossings, 62 passages, two of them clumps of three (stations 801–837,
   1840–1856 and 3274–3309; 9955–9980, 10740–10773 and 11954–11978); the loops at stages 2 to 5's starts and stages 1

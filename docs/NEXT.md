@@ -137,8 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s ER-5;
-[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+Next PR: [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -462,14 +461,13 @@ ER-2 read ENDURO RACER's ROMs into its dump: both zips' ROMs found by CRC, the m
 images with the instructions its tables are found by checked, and Space Harrier's sprites read by `sprite-pixels`
 ([ENDURO RACER](original-road-data.md#enduro-racer)). ER-3 laid the course `enduro-racer` (ENDURO RACER) without
 objects: the stages' paths and the goal's straight, the cross-section, lanes, strips, materials, Sections, skies'
-names and yaw origins, checkpoints, finish and grid, and the crossings' bumps, its racing line measured; its five skies
-are copies of `coast-sky` under their own names until ER-5
+names and yaw origins, checkpoints, finish and grid, and the crossings' bumps, its racing line measured
 ([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). ER-4 stood its objects in the ROMs' pictures
 by chosen lines: the scenery, the start's gate, the CHECK and goal parts and the jumps as boards passed through, bodies
 by the original's hit mark but on the road, none on another passage's road
-([ENDURO RACER's objects](original-road-data.md#enduro-racers-objects)). The PR left:
-
-- ER-5: the five skies baked from the tile ROMs by `sky-baking` in place of the copies. Pixels alone, not measured.
+([ENDURO RACER's objects](original-road-data.md#enduro-racers-objects)). ER-5 baked its five skies by `sky-baking`
+([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). Stage ER has no PR left: its hills and jumps
+wait for the stage that makes the hills again.
 
 Not in this stage: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
 colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's

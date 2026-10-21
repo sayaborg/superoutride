@@ -46,7 +46,6 @@ import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
   ENDURO_RACER_CONVERSION_VERSION,
   enduroRacerCourse,
-  skyName as enduroRacerSky,
 } from './enduro-racer-course.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from './super-hang-on-courses.js';
 import {
@@ -867,15 +866,14 @@ try {
           );
         } else await atomicWrite(picture, image.bytes);
       }
-      // Each stage's sky as published: the generic coast sky under its own name.
-      const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
-      const skies = Array.from({ length: 5 }, (_, s) => enduroRacerSky(s));
-      for (const name of skies) {
-        const text = JSON.stringify({ ...generic, name });
+      // Each stage's sky, baked from its background; course images are saved as their exact compact bytes.
+      const { skies } = built;
+      for (const { name, document } of skies) {
+        const text = JSON.stringify(document);
         const skyFile = `content/images/${name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not coast-sky under its name`);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
         } else await atomicWrite(skyFile, text);
       }
       const degrees = (radians: number) => round1((radians * 180) / Math.PI);

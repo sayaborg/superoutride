@@ -6,6 +6,7 @@
 import { long, sword, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
+import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 
 /** Main CPU (its data image). */
 const FRONT_LAYERS = 0xd668;
@@ -90,5 +91,60 @@ export function readSky(main: Uint8Array, stage: number) {
     colors: palette.words.slice(1, 15),
     rgb555: palette.rgb555.slice(1, 15),
     top: { word: top, rgb555: paletteRgb555(top) },
+  };
+}
+
+/** A tile: 8 × 8 pixels, a byte a row in each of three bit planes, bit 7 the leftmost. */
+const TILE = 8;
+/** The sky's ramp: 48 rows up from the horizon. */
+const RAMP_ROWS = 48;
+/** The front layer's pixel f lies over the back's 0.75f − 63.625 where the road vanishes: −64 to the whole pixel. */
+const OVERLAP = -64;
+
+/**
+ * Stage s's sky as `sky-baking` takes it, from the tile ROMs' bit planes `planes` and the ground's color `below`: each
+ * layer's columns in the order of their address, a tile word's tile its bits 0–11 and its palette its bits 5–11 (pixel
+ * 0 transparent), both layers' bottom row the first below the horizon but for the back layer's offset (stage 5's 4
+ * rows lower); the ramp's colors by its bits, a 1 at the row up from the horizon where the next color begins, and the
+ * top color above.
+ */
+export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage: number, below: number): SkyBands {
+  const palettes = new Map([...readTilePalettes(main)].map(([p, words]) => [p, words.map(paletteRgb555)]));
+  const layer = (which: 'front' | 'back', bottom: number): SkyLayer => {
+    const { rows, columns } = readLayer(main, stage, which);
+    const width = columns.length * COLUMN_TILES * TILE;
+    const pixels = new Int32Array(width * rows * TILE).fill(TRANSPARENT);
+    columns.forEach((tiles, c) =>
+      tiles.forEach((tileWord, k) => {
+        const [tx, ty] = [c * COLUMN_TILES + (k % COLUMN_TILES), Math.floor(k / COLUMN_TILES)];
+        const tile = tileWord & 0xfff,
+          colors = palettes.get((tileWord >> 5) & 0x7f);
+        for (let y = 0; y < TILE; y++)
+          for (let x = 0; x < TILE; x++) {
+            const bit = (plane: number) => (planes[plane]![tile * TILE + y]! >> (7 - x)) & 1;
+            const v = bit(0) | (bit(1) << 1) | (bit(2) << 2);
+            if (!v) continue;
+            if (!colors)
+              throw new RangeError(`Stage ${stage + 1}'s ${which} layer uses palette ${(tileWord >> 5) & 0x7f}`);
+            pixels[(ty * TILE + y) * width + tx * TILE + x] = colors[v]!;
+          }
+      }),
+    );
+    return { width, pixels, bottom };
+  };
+  const sky = readSky(main, stage);
+  const bits = sky.ramp.flatMap((w) => Array.from({ length: 16 }, (_, b) => (w >> (15 - b)) & 1));
+  const rows: number[] = [];
+  let color = 0;
+  for (let r = 0; r < RAMP_ROWS; r++) {
+    if (bits[r]) color++;
+    rows.push(sky.rgb555[color]!);
+  }
+  if (color !== sky.rgb555.length - 1) throw new RangeError(`Stage ${stage + 1}'s ramp does not reach its last color`);
+  return {
+    back: layer('back', -readBackOffset(main, stage)),
+    front: layer('front', 0),
+    overlap: OVERLAP,
+    ramp: { rows: [...rows, sky.top.rgb555], below },
   };
 }
