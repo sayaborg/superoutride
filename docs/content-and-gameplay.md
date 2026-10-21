@@ -412,7 +412,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                      |
 | Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                              |
-| Non-circuit finite `routes` from the entry                              |                256 | Author-chosen reference work bound, not derived: one reference run per route and vehicle (OUTRUN TEST has 16)           |
+| Non-circuit finite `routes` from the entry                              |                256 | Author-chosen reference work bound, not derived: one reference run per route and vehicle                                |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up                                                                                      |
 | Each Strip/sprite array `stripElements` / `spriteElements`              |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling           |
@@ -680,8 +680,8 @@ with the same amounts finds: values off the step (`digits`, round), knots nothin
 (`equal-width`, merge), near colours (`near-color`, merge), Boundaries no other value of their Section names or images
 no value of the course names (`unused`, no operation), and medians zero wide throughout (`zero-median`, no operation).
 Findings without an operation hold no candidate. A value off the step holds round's proposal without its shift: the
-shift is measured by reading the value's Section again, and a course has thousands of such values (OUTRUN TEST 12838
-at 0.001 m), each measured after every change.
+shift is measured by reading the value's Section again, and a course has thousands of such values, each measured after
+every change.
 
 **Underlay alignments** ([`course-underlays.ts`](../tools/authoring/course-underlays.ts)) are production-only numbers
 in `content/course-underlays/<course>.json`, which the core neither reads nor delivers:
@@ -955,19 +955,21 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 {
   "format": "superoutride.series",
   "version": 13,
-  "id": "trial",
-  "title": "TRIAL",
-  "image": "trial",
+  "id": "example",
+  "title": "EXAMPLE",
+  "image": "tsukuba-clubman",
   "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
   "dev": true,
   "classes": [
     {
-      "id": "a",
-      "title": "A",
-      "course": "outrun-trial-a",
+      "id": "traffic",
+      "title": "TRAFFIC",
+      "course": "tsukuba",
       "laps": 1,
-      "vehicles": ["TESTAROSSA"],
-      "entries": [{ "vehicle": "TESTAROSSA", "color": "yellow", "pace": 1, "stages": null, "slot": 14, "ahead": null }],
+      "vehicles": ["911_TURBO_3_3"],
+      "entries": [
+        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 1, "stages": null, "slot": 14, "ahead": null }
+      ],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
@@ -1012,16 +1014,12 @@ course's Sections, and rank limits naming checkpoint or FINISH gates of that cou
 with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
 Run admits the class it drives.
 
-The delivered series are TSUKUBA CLUBMAN, the first product series, OUTRUN TEST, a working series offered without DEV,
-and TRIAL, a development series; each
-document holds its classes, with their fields and traffic. TSUKUBA CLUBMAN has no race tracks and the title track
-`placeholder-one` until K delivers its own; OUTRUN TEST and TRIAL play `placeholder-two` as their title track and offer both
-placeholders as race tracks. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
+The delivered series is TSUKUBA CLUBMAN, the first product series; its
+document holds its classes, with their fields. It has no race tracks and the title track
+`placeholder-one` until K delivers its own. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
-1.02 at the pole to 0.88. OUTRUN TEST runs the [test course](#test-course) in one class: TESTAROSSA in red (fixed
-colors), alone from the pole, with the clock, a margin of 1.35 and traffic (density 6 at 120 km/h: GOLF GTI 16V,
-DELTA HF INTEGRALE, 911 TURBO 3.3). TRIAL holds the [trial courses](#trial-courses).
+1.02 at the pole to 0.88.
 
 ## FREE PLAY document
 
@@ -1669,58 +1667,6 @@ violation is an internal invariant failure (`Error`).
 Known recovery coordinates use the shared route. Observers resynchronize once, suppress reset
 crossing credit and update the player
 camera before rendering. Unrelated internal faults propagate.
-
-## Trial courses
-
-`outrun-trial-a` (OUTRUN TRIAL A) and `outrun-trial-a-steep` (OUTRUN TRIAL A STEEP) are trial courses, not product
-courses: they try out the procedure of raising a course from a video. Each length is the source's displayed speed times
-its duration; the strongest curve is set to 0.75 of the lateral limit and each other curve in proportion to how fast the
-source's background turns there. A's hills keep the car on the ground over each crest (0.6 G at 293 km/h); A STEEP's are
-matched to how the hills look on screen instead. On A STEEP the reference driver leaves the course at a crest, so its
-time limit is generous; it stays so until the AI anticipates the load lost over a crest. Their scenery and pictures are
-provisional; the videos and their pixels are not in the repository. The development series TRIAL holds both.
-
-## Test course
-
-`outrun-test` (OUTRUN TEST) is a BRANCH course in OutRun's structure that exercises every kind of road the engine can
-draw and drive; the fork driving scenario drives it. Its document is written by a production-only generator,
-[`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) (`npm run outrun-test`), from a table of stages; edit the
-table and run the generator rather than the document. The generator writes nothing the shared course reader does not
-read (the build compiles it in full). Each stage is one Section, in five rows of 1 to 5 stages, left
-to right: COASTLINE; GATEWAY, CLIFF ROAD; FARMLAND, OLD TOWN, TUNNEL RUN; LAKESIDE, DESERT, ALPINE PASS, FOREST;
-RIVIERA, INTERCHANGE, DOWNHILL, RUINS, METROPOLIS. Difficulty rises to the right in every row. A stage of rows 1–4
-ends in a fork: its left Link leads to the same position in the next row and its right Link to the next position, so an
-inner stage is entered from two stages above it (a seam join); there are 16 routes, and each row-5 stage ends at its own
-goal.
-
-Every stage begins with one road of lanes a and b, 3.6 m each (lane a the centre lane), level at height 0, and a
-200 m entry straight over which its own cross-section starts. A forking stage ends in a 900 m straight: lanes c and d
-(3.6 m) appear right of a median over its first 150 m, the median opens to 4 m by 250 m, the lock is at 300 m and the
-closure at 700 m, after which the roads part to 24 m apart at the stage's end; `fork-warning` and `fork-closed` signs stand on the road
-each Link does not take, and the stage's checkpoint is its end, the seam. A forking stage ends level at height 0, so
-both its successors start where it ends. A goal stage ends in a 900 m straight, level at its last height, with its
-finish 450 m before its end. The entry stage, COASTLINE, starts as a divided 3+3 highway (lanes w, a, b | c, d, e) with
-its 16-slot grid in lanes a and b, merges into six lanes and narrows to the fork's four. Stages are sized so that each
-takes about 90 s for TESTAROSSA at the reference driver's utilization; the generator prints a planning estimate from
-TESTAROSSA's limits as measured when the stages were sized (its `SIZING` table), and the measured reference times are the course's times. Each stage's sky arrives at
-its start by a `wipe` or a `rise`, alternately (the entry's by `cut`), its yaw origin keeping the sky's direction from
-its left-most predecessor. A checkpoint arch
-stands 12 m into every stage but the entry, whose start gantry stands over its grid, and a goal arch over each finish.
-Each stage's own ground, Boundaries, walls, open limits, sprites and further environments are written by its design
-through a stage context ([`tools/course/outrun-test/`](../tools/course/outrun-test)), with pictures drawn for the
-course ([Image assets](image-assets.md#drawn-pictures)); its base ground is a verge either side of the road over its
-material, the road with rumble strips, edge lines and lane dashes, the median between two roads where it is open (wider
-than 0) in grass with a solid edge line along each side, and the ground beyond, each in light and dark bands 40 m long.
-The median's place comes from the lanes' order, between the lanes either side of it, since a median has no id.
-
-Every stage has its own drawn sky and its own cross-section and scenery, so that together they use every capability of
-the format: solid walls above the road (house fronts, high-rise fronts, rock faces, barriers, tunnel bores) and below it
-(cliff and valley faces falling from transparent ground), visual-only walls (fences), guardrails broken by opened
-course limits over a drop (CLIFF ROAD), lanes that appear and end (GATEWAY, OLD TOWN, INTERCHANGE), tunnels with their
-own interior sky (TUNNEL RUN, METROPOLIS), steep grades, crests and jumps (FARMLAND, ALPINE PASS, DOWNHILL), and Strips
-of every surface on the carriageway: `WET_ASPHALT` stretches under an overcast or storm sky that arrives and clears
-within the stage (CLIFF ROAD, OLD TOWN, TUNNEL RUN's exits, ALPINE PASS's summit, METROPOLIS), `DIRT` at crests and bends
-(FARMLAND, FOREST, RUINS) and `SAND` drifts (DESERT). Spectators line the last 160 m before every goal.
 
 ## Product courses
 

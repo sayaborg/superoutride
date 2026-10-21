@@ -142,28 +142,20 @@ translation has no effect. Vertically the mapping is linear: the screen horizon 
 ([projection](architecture.md#height-and-projection)) meets the image's horizon row, each screen row shows one
 image row (`imageY = round(imageHorizonY + y - horizonY)`), and rows beyond the image's top or bottom repeat its
 edge row. Horizontally it scrolls at the camera's focal length, `f` pixels per radian of camera yaw from the yaw origin, as
-distant road and sprites do (a camera may give another rate: only the footage tool's
-[fake footage](footage.md#fake-footage-and-the-round-trip-test) does, as an original's background may scroll at its own), and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
-closes on itself exactly and a narrower or wider one shifts by the difference each turn. A camera may also give the
-background its own pose, a yaw to turn with and a screen row for its horizon, as a plane apart from the road; only the
-fake footage does, to move a background as a pseudo-3D original may. The provisional skies are 94
+distant road and sprites do, and repeats at its own width: a full turn spans `2*pi*f` pixels, so a map that wide
+closes on itself exactly and a narrower or wider one shifts by the difference each turn. The provisional skies are 94
 tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transform yaw origin with camera yaw.
 
 ## Drawn pictures
 
-OUTRUN TEST's pictures are drawn by a deterministic production-only program
-([`tools/graphics/drawn/`](../tools/graphics/drawn)), `npm run outrun-test-pictures` ([Development](development.md#outrun-test-commands)):
-outlined shapes in three tones of light, at most 15 colors a picture, sprites at 40 texels per metre standing on the
-middle of their bottom row with a flat contact shadow at their foot (fixed objects cast no shadow pictures of their
-own). Each picture is written as a source with its recipe and then made as the picture commands make it: the series
-picture as a [screen picture](#screen-pictures), sprites as `content/sprite-sources/<name>.png` and `.json` (the sprite
-recipe, `palettes` null) imported as course images, and skies as `content/sky-sources/<name>.png` with an entry in that
-directory's `recipes.json` (the screen picture recipe format, 94 × 40 tiles, `fill`), drawn as course skies by the
-skies command into `content/images/<name>.json`. Replacing any source with another image of the same name and size and
-running its command replaces the picture without touching the course.
+Drawn pictures come from a deterministic production-only program
+([`tools/graphics/drawn/`](../tools/graphics/drawn)): outlined shapes in three tones of light, at most 15 colors a
+picture, at 40 texels per metre, standing on the middle of their bottom row. Each picture is written as a source with
+its recipe, `content/sprite-sources/<name>.png` and `.json`, and imported as a course image; replacing a source with
+another image of the same name and size and running its command replaces the picture without touching a course.
 
 The guidance's pictures where OUTRUN's roads part ([Original road data](original-road-data.md#outruns-roads)) are
-drawn by the same program, `npm run guidance-pictures` ([Development](development.md#guidance-pictures-command)), as
+drawn by this program, `npm run guidance-pictures` ([Development](development.md#guidance-pictures-command)), as
 sprites with their recipes: yellow boards edged in black, black chevrons pointing to the road taken, grey posts.
 `route-arrow-left` is a 3 × 1.5 m board with a triple chevron on two posts, its bottom 1.2 m above the ground;
 `route-chevron-left` a 1.2 × 0.6 m board with a double chevron on one post, its bottom 0.8 m up; each `-right` is its
@@ -700,8 +692,7 @@ its [series document](content-and-gameplay.md#series-documents) names it.
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
 picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`
-and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them, except
-`outrun-test`'s, which `npm run outrun-test-pictures` draws ([Development](development.md#outrun-test-commands)). The same sources
+and one `<name>.png` for each picture it names. K generated the sources and holds the rights to them. The same sources
 and recipes always give the same pictures.
 
 ```text
@@ -718,9 +709,7 @@ first box and channel winning ties; each box's color is its rounded mean), and e
 colors; there is no dithering. A tile's palette holds the colors its pixels take in value order, so identical tiles
 share their pattern and palette, which are saved once.
 
-| Picture           | Source              | Recipe          |
-| ----------------- | ------------------- | --------------- |
-| `title-logo`      | the logo, cut out   | 18×7, `contain` |
-| `tsukuba-clubman` | 4:3                 | 20×15, `fill`   |
-| `trial`           | 320×240 plain (DEV) | 20×15, `fill`   |
-| `outrun-test`     | 320×240, drawn      | 20×15, `fill`   |
+| Picture           | Source            | Recipe          |
+| ----------------- | ----------------- | --------------- |
+| `title-logo`      | the logo, cut out | 18×7, `contain` |
+| `tsukuba-clubman` | 4:3               | 20×15, `fill`   |

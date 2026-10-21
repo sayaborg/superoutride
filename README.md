@@ -2,7 +2,7 @@
 
 A 320×240 raster pseudo-3D browser driving game. Cars and bikes share world coordinates, suspension
 contacts, tires and wheel mechanics. Saved CourseDocuments supply TSUKUBA and the
-trial courses through one driving scene, with ordered Strip surfaces.
+courses raised from the originals' ROMs through one driving scene, with ordered Strip surfaces.
 
 [Play the game](https://sayaborg.github.io/superoutride/).
 [Specifications](docs/README.md) identify each contract's owner; [NEXT](docs/NEXT.md) owns future work.

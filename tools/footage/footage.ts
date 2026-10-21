@@ -4,7 +4,6 @@
  */
 import path from 'node:path';
 import { atomicWrite, reportError, requireInput } from '../course/authoring-io.js';
-import { writeFakeFootage } from './fake-footage.js';
 import { FRAMES_DIRECTORY, ingestVideo, type CaptureValues } from './ingest.js';
 import { colorCensus } from './census.js';
 import { measureFeatures, type HudTemplates } from './features.js';
@@ -12,7 +11,6 @@ import { EXACT_DIRECTORY, exactIndices, measureNoise, readFeatures } from './noi
 import { calibrateCamera, playerColumn } from './calibrate.js';
 import { fitPlan, framePoints, solvePlans } from './plan.js';
 import { loadFootageModel, TIMING_KINDS, type PitchRule } from './footage-model.js';
-import { writeFakeModelDraft } from './fake-model.js';
 import { access, readFile } from 'node:fs/promises';
 
 const [command, ...rest] = process.argv.slice(2);
@@ -49,7 +47,7 @@ function videoDirectory(root: string, options: Map<string, string[]>) {
 
 /**
  * The footage model's file: `--model`, else the original's committed one (`content/footage/<game>/`), else a draft
- * beside its footage (`<root>/<game>/`), as the fake original's is.
+ * beside its footage (`<root>/<game>/`).
  */
 async function footageModelFile(root: string, game: string, options: Map<string, string[]>) {
   const named = options.get('--model')?.[0];
@@ -67,16 +65,6 @@ try {
   const options = parse(rest);
   const root = path.resolve(options.get('--out')?.[0] ?? 'reference-media');
   switch (command) {
-    case 'fake': {
-      const { written, gauge } = await writeFakeFootage(root, options.get('--video') ?? [], {
-        seconds: Number(options.get('--seconds')?.[0] ?? Infinity),
-        exact: Number(options.get('--exact')?.[0] ?? 0),
-        encode: !options.has('--no-video'),
-      });
-      await writeFakeModelDraft(root, gauge.gaugeWidth);
-      console.log(JSON.stringify({ ok: true, written }));
-      break;
-    }
     case 'ingest': {
       const directory = videoDirectory(root, options);
       const file = path.resolve(options.get('--file')?.[0] ?? path.join(directory, 'video.mp4'));
@@ -127,7 +115,7 @@ try {
       break;
     }
     case 'noise': {
-      // The fake original's capture noise: the features of its exact frames (`fake --exact`) against the video's.
+      // A video's capture noise: the features of its exact frames (`exact/`) against the video's.
       const directory = videoDirectory(root, options);
       const game = options.get('--game')![0]!;
       const model = await loadFootageModel(await footageModelFile(root, game, options));

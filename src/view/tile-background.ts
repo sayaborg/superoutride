@@ -8,19 +8,14 @@ export interface TileBackground {
   readonly yawOriginRadians: number;
 }
 
-/**
- * The image x the frame's left edge shows: the background's yaw (the camera's unless the camera gives the background its
- * own pose) from the background's yaw origin at the camera's background scroll, its focal length unless it gives
- * another.
- */
+/** The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the focal length. */
 export function backgroundPan(background: TileBackground, camera: PseudoCamera): number {
-  const yaw = camera.background?.yaw ?? camera.yaw;
-  return Math.round((camera.backgroundScroll ?? camera.focalLength) * (yaw - background.yawOriginRadians));
+  return Math.round(camera.focalLength * (camera.yaw - background.yawOriginRadians));
 }
 
-/** The screen row the background's horizon stands at: the camera's horizon unless it gives the background its own pose. */
+/** The screen row the background's horizon stands at: the camera's horizon. */
 export function backgroundHorizon(camera: PseudoCamera): number {
-  return camera.background?.horizon ?? horizonY(camera);
+  return horizonY(camera);
 }
 
 /**

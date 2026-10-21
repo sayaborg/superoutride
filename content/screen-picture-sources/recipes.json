@@ -3,8 +3,6 @@
   "version": 1,
   "pictures": {
     "title-logo": { "columns": 18, "rows": 7, "fit": "contain" },
-    "tsukuba-clubman": { "columns": 20, "rows": 15, "fit": "fill" },
-    "trial": { "columns": 20, "rows": 15, "fit": "fill" },
-    "outrun-test": { "columns": 20, "rows": 15, "fit": "fill" }
+    "tsukuba-clubman": { "columns": 20, "rows": 15, "fit": "fill" }
   }
 }

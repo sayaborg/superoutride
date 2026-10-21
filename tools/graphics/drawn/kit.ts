@@ -13,8 +13,8 @@ import {
 } from './raster.js';
 
 /**
- * OUTRUN TEST's scenery pictures, drawn at the picture contract's 40 texels per metre, each standing on its base point
- * at the middle of its bottom row: the period's arcade look, outlined shapes with three tones of light, at most 15
+ * Drawn pictures, at the picture contract's 40 texels per metre, each standing on its base point at the middle of its
+ * bottom row: the period's arcade look, outlined shapes with three tones of light, at most 15
  * colors a picture. Objects that stand on the ground carry a flat contact shadow at their foot.
  */
 export const TEXELS_PER_METRE = 40;

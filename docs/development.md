@@ -16,7 +16,6 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 | `npm test`                    | All checks, build, startup and screens smoke and driving scenarios    |
 | `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe               |
 | `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles              |
-| `npm run outrun-test`         | Write the OUTRUN TEST course document from its generator              |
 | `npm run skies`               | Draw the course skies that have sources into course images            |
 | `python3 -m http.server 8000` | Serve the checkout, game and tools                                    |
 
@@ -109,14 +108,14 @@ stands in for the content course of its file name (or joins the content under it
 and series come from the same compiled content.
 
 ```sh
-npm run course -- compile content/courses/outrun-trial-a.course.json
-npm run course -- render content/courses/outrun-trial-a.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
-npm run course -- report content/courses/outrun-trial-a.course.json --step 25 --out /tmp/course-report
-npm run course -- structure content/courses/outrun-trial-a.course.json --section stage-1
-npm run course -- move content/courses/outrun-trial-a.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
-npm run course -- set content/courses/outrun-trial-a.course.json --values /sections/0/pis/1/radius=420 --out content/courses/outrun-trial-a.course.json
-npm run course -- unbind content/courses/outrun-trial-a.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
-npm run course -- remove-knots content/courses/outrun-trial-a.course.json --tolerance 0 --apply all --out content/courses/outrun-trial-a.course.json
+npm run course -- compile content/courses/tsukuba.course.json
+npm run course -- render content/courses/tsukuba.course.json --s 100 --l 0 --vehicle TESTAROSSA --out /tmp/course.png
+npm run course -- report content/courses/tsukuba.course.json --step 25 --out /tmp/course-report
+npm run course -- structure content/courses/tsukuba.course.json --section sector-1
+npm run course -- move content/courses/tsukuba.course.json --element /sections/0/sprites/0/elements/0 --ds 5 --step 0.5
+npm run course -- set content/courses/tsukuba.course.json --values /sections/0/pis/1/radius=420 --out content/courses/tsukuba.course.json
+npm run course -- unbind content/courses/tsukuba.course.json --lateral /sections/0/boundaries/1/knots/0/lateral
+npm run course -- remove-knots content/courses/tsukuba.course.json --tolerance 0 --apply all --out content/courses/tsukuba.course.json
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
@@ -161,7 +160,7 @@ the content compiled by the authoring core; it never reads `dist/`:
 npm run measure -- generate
 npm run measure -- regenerate
 npm run measure -- compare
-npm run measure -- trace --course outrun-trial-a --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
+npm run measure -- trace --course tsukuba --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
 ```
 
 `generate` solves again each course's stale or absent racing lines first (a line is also stale when a vehicle that times
@@ -412,32 +411,6 @@ It reads `content/screen-picture-sources/recipes.json` and the sources beside it
 `content/screen-pictures/<name>.json` and a check sheet of it, `dist/screen-pictures/<name>.png`, over a grey ground,
 which nothing reads. The build admits the saved pictures and draws nothing.
 
-### OUTRUN TEST commands
-
-The [test course](content-and-gameplay.md#test-course) and its pictures come from production-only generators, each
-deterministic, each printing one JSON result or its diagnostics:
-
-```sh
-npm run outrun-test
-npm run outrun-test-pictures
-npm run outrun-test-sheets -- [stage ...] [--crossing link ...] [--out directory]
-```
-
-`outrun-test` writes `content/courses/outrun-test.course.json` from the stage table in
-[`tools/course/outrun-test.ts`](../tools/course/outrun-test.ts) and prints each stage's length and planning estimate;
-the measured products then follow from `npm run measure -- generate`. `outrun-test-pictures` draws the sources of the
-OUTRUN TEST pictures with the raster of [`tools/graphics/drawn/`](../tools/graphics/drawn) and writes them with their
-recipes where the picture commands read them, then makes the pictures as those commands do: the series picture to
-`content/screen-picture-sources/` (as `npm run screen-pictures`), sprites to `content/sprite-sources/` (as
-`npm run sprite -- import <name>`) and skies to `content/sky-sources/` (as `npm run skies`); given names, it draws only
-those. Any source can be replaced by another image of the same name and size, and made by its own command without
-touching the course or this one. `outrun-test-sheets` compiles the content once and writes a contact sheet of each named stage (every stage by
-default) under `dist/outrun-test-sheets/`: frames of the logical frame through the product scene from the stage's
-start, every eighth of it and its fork or goal, each labelled with its station, and 150 m past each change of
-environment within it, and for each Link named after
-`--crossing` a sheet of a drive across its seam at 30 m/s through the scene's fixed steps, so its background
-transition shows; nothing reads them.
-
 ### Puff pictures command
 
 The [tire puffs](tire-puffs.md)' pictures come from a production-only generator, deterministic, printing one JSON
@@ -471,16 +444,15 @@ The footage tool raises a course from videos of an original game ([Courses from 
 evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC stopped with these commands built
 ([NEXT](NEXT.md#stage-vc--courses-from-footage)); each takes `--out`, a root in place of `reference-media/`:
 
-| Command     | Purpose                                                                                                                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fake`      | Draw the fake original's videos and truth (`--video` names some; `--seconds` keeps their start; `--exact n` also writes every nth game frame and the next; `--no-video` skips encoding) |
-| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                                                                                                  |
-| `drive`     | Mark the stretch where the player drives (`--from`, `--to`) and the timing events the HUD does not read (`--go`, `--checkpoint`, `--goal`), seconds                                     |
-| `colors`    | List the colors a video's frames are drawn in, for a person to give the ground's their roles                                                                                            |
-| `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                                                      |
-| `noise`     | For fake footage: each feature's capture noise, the video's frames against the exact ones (`fake --exact`)                                                                              |
-| `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                                                         |
-| `solve`     | Each video's plan and profile under the footage model's pitch rule, and the rows' check of that rule                                                                                    |
+| Command     | Purpose                                                                                                                                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                                                              |
+| `drive`     | Mark the stretch where the player drives (`--from`, `--to`) and the timing events the HUD does not read (`--go`, `--checkpoint`, `--goal`), seconds |
+| `colors`    | List the colors a video's frames are drawn in, for a person to give the ground's their roles                                                        |
+| `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                  |
+| `noise`     | Each feature's capture noise: the video's frames against its exact frames (`exact/`)                                                                |
+| `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                     |
+| `solve`     | Each video's plan and profile under the footage model's pitch rule, and the rows' check of that rule                                                |
 
 ### Road data commands
 
@@ -537,7 +509,7 @@ directory's `recipes.json`, as a tile picture 40 tiles high and opaque, and writ
 npm run skies
 ```
 
-Skies without a source are left as they are.
+Skies without a source are left as they are; with no `recipes.json` it draws none.
 
 ### Screens smoke
 

@@ -3,8 +3,8 @@ import { createRaster, outlined, plot, sequence, type Color, type Raster } from 
 import { TEXELS_PER_METRE } from './kit.js';
 
 /**
- * The tire puffs' pictures: clouds of overlapping lumps, outlined and lit from the upper left in three tones, as
- * OUTRUN TEST's scenery is drawn, each standing on the middle of its bottom row and as wide and as tall as the diameter
+ * The tire puffs' pictures: clouds of overlapping lumps, outlined and lit from the upper left in three tones, as the
+ * drawn kit draws, each standing on the middle of its bottom row and as wide and as tall as the diameter
  * it shows. Every picture has four used slots: 1 the outline, 2 the shade, 3 the middle tone and 4 the light. The
  * clouds are colored by name: `smoke`, `dirt`, `sand`, `verge` and `grass`; spray's mist and drops by `spray`.
  */

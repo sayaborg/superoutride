@@ -4,7 +4,7 @@ A course of an original game is raised from videos of it being played. The foota
 one course that, drawn by this game's own scene and renderer from the original's camera, looks as close to the
 original's frames as one consistent course can, and writes it as a course document with its Strips and course-fixed
 sprites. This document owns the footage model, the footage features, the footage observations (sprites included), the
-procedure, the replay comparison and the round-trip test. Stage VC stopped on 2026-10-18 with the tool built through the
+procedure and the replay comparison. Stage VC stopped on 2026-10-18 with the tool built through the
 plan and profile ([NEXT](NEXT.md#stage-vc--courses-from-footage)); the rest stands as specified and is not scheduled.
 [Development](development.md#footage-commands) lists the commands built.
 
@@ -15,21 +15,20 @@ original.
 
 ## Terms
 
-| Term                 | Meaning                                                                                                                                                                         |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| original             | The game a video shows (OUTRUN, SUPER HANG-ON, CHASE H.Q. and so on), with its edition and cabinet                                                                              |
-| video                | One file of footage of the original, as K supplies it                                                                                                                           |
-| game pixel           | One pixel of the original's own frame grid, before the video's scaling                                                                                                          |
-| footage model        | What is true of the original in every video: its camera, gauge, color roles, HUD and the rules it draws by ([Footage model](#footage-model))                                    |
-| capture values       | What is true of one video alone: its crop and scale to game pixels, its color decoding and its frame times ([Capture values](#capture-values))                                  |
-| footage features     | Numbers measured from each frame of a video ([Features](#features)); they never leave `reference-media/`                                                                        |
-| footage observations | The committed numeric record of a course raised from footage ([Footage observations](#footage-observations))                                                                    |
-| replay               | The solved course drawn through the product scene and renderer from the original's camera at each frame's solved pose                                                           |
-| gauge                | The one free scale of the footage, fixed by the width of a vehicle the original draws at the road's scale ([What footage measures](#what-footage-measures))                     |
-| inconsistency amount | How far the original's drawing departs from one consistent world, by station and depth range                                                                                    |
-| outline board        | A course image that keeps an original sprite's outline, filled with one color ([Outline boards](#outline-boards))                                                               |
-| fake footage         | Footage this game draws of one of its own courses with a camera unlike its own, to test the tool against known truth ([Round-trip test](#fake-footage-and-the-round-trip-test)) |
-| noise level          | The variance, in game pixels², of one feature under one footage condition (scale, compression, frame rate), measured on calibration intervals and on fake footage               |
+| Term                 | Meaning                                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| original             | The game a video shows (OUTRUN, SUPER HANG-ON, CHASE H.Q. and so on), with its edition and cabinet                                                                |
+| video                | One file of footage of the original, as K supplies it                                                                                                             |
+| game pixel           | One pixel of the original's own frame grid, before the video's scaling                                                                                            |
+| footage model        | What is true of the original in every video: its camera, gauge, color roles, HUD and the rules it draws by ([Footage model](#footage-model))                      |
+| capture values       | What is true of one video alone: its crop and scale to game pixels, its color decoding and its frame times ([Capture values](#capture-values))                    |
+| footage features     | Numbers measured from each frame of a video ([Features](#features)); they never leave `reference-media/`                                                          |
+| footage observations | The committed numeric record of a course raised from footage ([Footage observations](#footage-observations))                                                      |
+| replay               | The solved course drawn through the product scene and renderer from the original's camera at each frame's solved pose                                             |
+| gauge                | The one free scale of the footage, fixed by the width of a vehicle the original draws at the road's scale ([What footage measures](#what-footage-measures))       |
+| inconsistency amount | How far the original's drawing departs from one consistent world, by station and depth range                                                                      |
+| outline board        | A course image that keeps an original sprite's outline, filled with one color ([Outline boards](#outline-boards))                                                 |
+| noise level          | The variance, in game pixels², of one feature under one footage condition (scale, compression, frame rate), measured on calibration intervals and on exact frames |
 
 ## Symbols
 
@@ -272,8 +271,8 @@ templates (each digit's and event's ink colors by letter, `.` for ground) into `
 
 The horizon, landmarks and `D′` are measured from these by calibration and the landmark step.
 
-**Noise levels.** For fake footage, `fake --exact n` writes every nth frame and the next as the original drew them,
-and `noise` measures the same features on those frames (`exact-features.jsonl`) and on the video's frames at the same
+**Noise levels.** Where a video has exact frames (`exact/`, frames as the original drew them, at known indices),
+`noise` measures the same features on those frames (`exact-features.jsonl`) and on the video's frames at the same
 indices (`exact-video-features.jsonl`), and writes, per feature, the mean and variance of the video's reading less the
 exact one, with the count of readings the exact frame has and the video lacks (`noise.json`): road edges and lines
 each pair with the video's nearest of their kind within 3 game pixels; the speed's and event's mismatch rates; the
@@ -419,8 +418,7 @@ Start, checkpoints, forks and goals are placed precisely:
   time's quantization (the update period times half the speed) is reported.
 
 - **Order.** Whether a fork begins before or after its checkpoint is measured, not assumed. In the course format a
-  stage ends at its checkpoint, the Section's end, and the fork's lock and closure stand in the Section before it, as
-  in OUTRUN TEST ([Test course](content-and-gameplay.md#test-course)); an order that does not fit this stops the work.
+  stage ends at its checkpoint, the Section's end, and the fork's lock and closure stand in the Section before it; an order that does not fit this stops the work.
 - **Sections.** Seams stand at checkpoints; a fork's lock and closure follow from its measured beginning by the
   format's rules.
 
@@ -621,96 +619,6 @@ A course's footage observations are `superoutride.footage-observations` version 
 Outline evidence (the original-resolution texel shapes and per-frame masks) stays in `reference-media/`, from which the
 tool makes it again deterministically from the videos.
 
-## Fake footage and the round-trip test
-
-Before any original's video, the whole procedure passes a round trip on footage of a known course.
-
-- **Truth.** Four OUTRUN TEST stages, COASTLINE, CLIFF ROAD, FARMLAND and INTERCHANGE (27.6 km), with hills, a jump,
-  tight curves, lanes that appear and end, medians, wet road and dirt, and drawn sprites: trees, signs, gates, an
-  overpass, sea stacks standing below the road, cones and spectators. The generator makes this truth course
-  (`outrun-test-route`) from the saved OUTRUN TEST document:
-  - the stages are chained in that order, each through OUTRUN TEST's own Link to the next stage where it has one and
-    its left exit otherwise; every other exit keeps its fork (lock, closure and signs) and leads to a stub, a 400 m
-    level straight of two lanes ending in a finish, enough for the view past the seam;
-  - walls and course-limit openings are left out, since footage does not raise walls;
-  - checkpoint arches stand at their seams, where timing happens, not 12 m past them;
-  - a row of cones (movable objects) lines INTERCHANGE's first lane taper.
-- **Camera.** The fake original's frame is 320×224 game pixels (the top of the logical frame) seen from `f` = 200 px,
-  `h` = 1.6 m, `x₀` = 156, `y₀` = 98, its background turning with the heading at `a` = 150 px/rad and rising with the
-  pitch at `b` = 1, and `D′` = 4 m, the camera `h` above the road beneath it and pitching by each video's pitch rule:
-  under `road` with the road's chord from the camera to the player, under `level` not at all. The `level` video is an
-  original of its own, its pitch rule written and checked apart from the others'. Each frame's camera stands at its pose
-  `(s_c, l_c, ψ, φ, Y_c)` exactly as replay places it; its lateral puts the player's base point on the centre column.
-  As in an original, the player stands where its picture's lowest row meets the road, `D′` from the camera, and timing
-  happens there; the product picture's own base point, the footprint's centre, stands 5.19 m from the camera, since
-  TESTAROSSA's picture seen from behind reaches 0.48 m below it (`D = D′·(h + e)/h` for a reach `e`).
-  The product camera's own values are 240 px, 2 m, 160, 120 and `a = f`, its player 6 m away.
-- **Drive.** From the pole, 3 s at rest, GO, then the speed the road's curvature allows (8.5 m/s² across, top speed
-  288 km/h varied smoothly), weaving across the taken road's two lanes, the camera looking aside by 0.03–0.08 rad for
-  2–3 s every 8–18 s; past the goal it slows to 30 m/s and ends 60 m before the course's end. The HUD shows the speed in
-  whole km/h (the player's chainage rate), a clock, the stage and the events GO, TIME BONUS (each checkpoint) and GOAL
-  for 2 s, all in text tiles. Traffic (GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3, about two per kilometre at
-  27–36 m/s) keeps a lane of the taken road and is passed at least 2.6 m aside, hiding what lies behind it.
-- **Capture.** Each video scales the game frame by a whole factor with nearest pixels into a larger frame with black
-  margins and encodes it with H.264, in its own range and matrix; the 30 fps video keeps every other frame. Corrupted
-  versions are made inside the generator only, never in the product renderer:
-  - `hills`: while the camera passes within 60 m of a vertical curve, rows below the horizon move by up to 10 game
-    pixels, down over crests and up over sags, easing over 60 m: a change not consistent with depth;
-  - `player`: the frame drawn without the player, its picture laid over at 1.3 times the road's scale where its base
-    point projects: a player off the road's scale;
-  - `background`: a background moved as a pseudo-3D original may move it: down, stuck to the row where the road's
-    ground ends; across, with `κ·Δs` alone at a factor, ignoring `ψ`; and a farther layer laid over at another speed.
-
-  | Video        | Seed | Pitch | fps | Scale | Video size | Margins (left, top) | CRF | Range, matrix   | Corruption |
-  | ------------ | ---: | ----- | --: | ----: | ---------- | ------------------- | --: | --------------- | ---------- |
-  | `a`          |    1 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
-  | `b`          |    2 | road  |  60 |     2 | 854×480    | 107, 16             |  27 | limited, BT.601 | none       |
-  | `c`          |    3 | road  |  30 |     4 | 1440×1080  | 80, 92              |  25 | full, BT.709    | none       |
-  | `hills`      |    4 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | hills      |
-  | `player`     |    5 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | player     |
-  | `background` |    6 | road  |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | background |
-  | `level`      |    7 | level |  60 |     3 | 1280×720   | 160, 24             |  23 | limited, BT.709 | none       |
-
-- **What a person would write.** `fake` also writes, under `reference-media/fake/`, what a person would after looking at
-  the fake original's frames: its footage model draft (every OUTRUN TEST ground color of the truth course with its
-  roles, the halved shadows of them, the HUD's readouts and event places with their ink colors, the masks, and the
-  gauge: TESTAROSSA at the width the fake original draws it, as a person names an original's player vehicle and its
-  real width) and its HUD templates.
-- **Truth written.** `reference-media/fake/outrun-test-route/` holds the truth course document and, per video,
-  `video.mp4` and `truth.json` (`superoutride.fake-footage-truth` version 2): the stages and their route stations, the
-  video's capture, the camera (with `D′`), the gauge vehicle's and the traffic's overall widths and the widths their
-  pictures are drawn at (a picture's width at the road scale of its lowest row, wider than the vehicle since the picture
-  is a view in perspective), the corruption and its intervals, the landmarks (start line, pole, checkpoints, fork
-  beginnings and finish, in route stations), the HUD's events with their frames and times and its layout, the traffic,
-  and every kept frame's time, pose, the camera's heading in the world (which the background turns with), player place,
-  speed and displayed km/h.
-
-It passes when:
-
-- **Footage model.** `f`, `h`, `y₀`, `x₀` and `D′` equal the truth under the true vehicle's width as the gauge, with
-  their errors reported; lane widths, as results, equal the truth.
-- **Pitch rule.** The `road` videos are judged `road` by comparison, not as a tie, and the `level` video `level`, its
-  hills and their grade recovered to the noise level.
-- **Course.** The recovered course and the true one, drawn from the same camera and trajectory, differ in every
-  feature by less than one game pixel and by no more than the noise level.
-- **Appearance.** Strip colors equal the truth in RGB555, and periods, phases and edges are confirmed by the agreement of
-  color clusters.
-- **Sprite places and sizes.** The reprojection of `s`, `l`, `g`, `w` and `H` lies within one game pixel and the noise
-  level.
-- **Sprite outlines.** The texel size (1/40 m) and phase are recovered. For things seen magnified at their nearest, each
-  board equals the true image's alpha texel for texel; the fraction of texels left undecided is reported.
-- **Sprite kinds.** Things of one picture make one kind, and LOD changes fall at the product's LOD selection distances.
-- **Corrupted versions.** The player off the road's scale is detected, the gauge taken from traffic, and the footage
-  model still equals the truth. On `hills` the inconsistency amount rising over the corrupted hills and nowhere else,
-  and on `background` the road's features against the course condition, are reported.
-- **Several videos.** Aligned (from feature sequences cut to begin and end mid-course) and solved together, they meet
-  every condition above, each video's offset and scale coming back; differing capture comes back as each video's own
-  capture values.
-- **Landmarks.** Start, checkpoints and goal from shape equal the truth within the noise level, and differ from the
-  stations from time by no more than the time's quantization; `D′` equals the truth.
-- **Noise levels.** Each feature's noise level is recorded per footage condition (scale, compression, frame rate) and
-  serves the comparison's weights and its end.
-
 ## Procedure
 
 For each course, K supplies one or more videos (a second may come later), the original's name, and its edition and
@@ -727,7 +635,7 @@ cabinet where known.
    estimate and the inconsistency amount over all videos together.
 5. **Landmarks:** start, forks, checkpoints and goals.
 6. **Partition** into the course document's draft. Seams are at checkpoints; gate structures (fork parts, goals, grids)
-   follow the format's rules and OUTRUN TEST's construction at the measured stations. A fork's parted roads are not taken
+   follow the format's rules at the measured stations. A fork's parted roads are not taken
    from the footage, so two roads are never drawn in one frame.
 7. **Appearance.**
 8. **Sprites,** their outline boards made and placed on the course.
@@ -737,7 +645,7 @@ cabinet where known.
 11. **Report** ([below](#report)).
 
 The original's lap or stage times are never fitted: reference driving sets the game's time limits as for every course.
-The former trial rule (the strongest curve at 0.75 of the lateral limit, the others in proportion to the background's
+A rule from the background's turn (the strongest curve at 0.75 of the lateral limit, the others in proportion to the background's
 turn) is not used; the lateral acceleration each curve needs at the original's displayed speed is only reported.
 
 ## Report
@@ -764,7 +672,6 @@ turn) is not used; the lateral acceleration each curve needs at the original's d
 The work stops and reports when:
 
 - ffmpeg or another external tool cannot be made available;
-- the round trip on fake footage does not pass after fixing the tool, for no understood reason;
 - the renderer or projection needs a change that is not a generalization;
 - on a real video: the speed readout cannot be read or is absent; there is no level straight to calibrate on; the
   original draws in another projection form (its cues disagree with the forward model beyond the noise level); no

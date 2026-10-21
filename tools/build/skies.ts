@@ -16,7 +16,11 @@ const store = createNodeContentStore();
 try {
   requireInput(process.argv.length === 2, '/arguments', USAGE);
   const skies: string[] = [];
-  for (const [name, document] of await drawTilePictures(store, PNG, 'sky-sources')) {
+  // No sources, no recipes: nothing to draw.
+  const sources = (await store.list('sky-sources')).includes('recipes.json')
+    ? await drawTilePictures(store, PNG, 'sky-sources')
+    : new Map();
+  for (const [name, document] of sources) {
     const picture = compileTilePicture(document);
     requireInput(
       picture.rows === SKY_TILE_ROWS && picture.opaque,

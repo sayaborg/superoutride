@@ -482,7 +482,7 @@ combinations produce an error. FREE PLAY's defaults are the first vehicle in sel
 fails to load.
 
 ```text
-?series=trial&class=a
+?series=tsukuba-clubman&class=gti-cup
 ?series=tsukuba-clubman&class=911-cup&session=attack
 ?course=tsukuba&vehicle=TESTAROSSA&rivals=15&laps=1
 ```

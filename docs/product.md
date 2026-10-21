@@ -175,9 +175,6 @@ its course. Each class also has its time margin and whether it fixes colors.
 - **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
   vehicles in several colors. Its four courses are the original's, raised from the ROMs of its export sitdown/upright
   cabinet (MAME's `shangon`; [Original road data](original-road-data.md#super-hang-on)).
-- **OUTRUN TEST** is a working series on a map like the original OUTRUN's and an ordinary series without DEV: one class
-  on one BRANCH course of 15 stages and 5 goals that exercises every kind of road, TESTAROSSA in red, alone, with the clock and
-  traffic. Its class offers RACE and TIME ATTACK, and its course is in FREE PLAY.
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic and aims for a goal within time. Each
   of six classes drives one of the original's routes to its goal, taking each fork's side its route names; the seventh
   drives all 15 stages in the map's order, row by row from the left, its forks alternately left and right and each

@@ -1,9 +1,0 @@
-{
-  "format": "superoutride.sprite-recipe",
-  "version": 3,
-  "crop": { "x": 0, "y": 0, "width": 136, "height": 260 },
-  "widthMeters": 3.4,
-  "anchor": { "x": 67.5, "y": 259 },
-  "mask": [],
-  "palettes": null
-}

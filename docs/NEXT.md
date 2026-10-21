@@ -2,8 +2,12 @@
 
 ## Current state
 
-- One compiled graph scene serves TSUKUBA and the trial courses OUTRUN TRIAL A and A STEEP with RACE, TIME ATTACK and
-  FREE PLAY runs.
+- One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE, TIME ATTACK and
+  FREE PLAY runs. Without DEV, FREE PLAY offers TSUKUBA alone; the originals' courses, in no series, are DEV's.
+- No course uses these features any more (since PG-2b deleted OUTRUN TEST and OUTRUN TRIAL): BRANCH (forks, seam joins
+  and signs shown by a fork's choice), solid walls (TSUKUBA's walls are looks alone), open course limits, movable
+  objects (and their knocked pictures), and the `WET_ASPHALT` and `SHOULDER` materials. They stay in the engine; BRANCH
+  goes in a later stage ([Courses of the originals](#courses-of-the-originals)).
 - TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its PRODUCTION 750,
   GTI CUP and 911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)).
 - Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
@@ -89,13 +93,8 @@
   specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
   test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
   card → READY go through black.
-- Stage OT is complete. RIBBON is deleted. OUTRUN TEST
-  ([Test course](content-and-gameplay.md#test-course)) is offered without DEV in every mode and the attract demo:
-  - 15 generated stages over 16 routes, each measured at 80–100 s for TESTAROSSA.
-  - Drawn pictures and skies.
-  - `WET_ASPHALT`, `DIRT` and `SAND` on the carriageway.
-  - `wipe`, `rise` and `cut` background transitions owned by the environment.
-    Merges, closed roads, rank limits, ahead entries, movable objects, reversing beyond the entry and departures have no driving scenario since OT-1 (K's decision); of the six scenarios, one drives a rival through an OUTRUN TEST fork.
+- Stage OT is complete. RIBBON is deleted. OUTRUN TEST, the generated BRANCH course it made, and the OUTRUN TRIAL
+  courses were deleted in Stage PG's PG-2b.
 - Stage LD is complete: a course compiles in work slices the browser runs 8 ms at a time, so loading never stops the
   frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
   preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
@@ -137,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-2b, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-3, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -205,7 +204,7 @@ K's decisions for the conversion (2026-10-18):
 - What the original draws as a sprite is made as a sprite (K, 2026-10-18), never replaced by colors or Strips; where a
   replacement cannot be avoided, the report says so first. For what lies on the ground, Stage PG replaced this
   ([What lies on the ground is a Strip](#stage-pg--pictures-and-the-ground)).
-- Order (K, 2026-10-18): each piece goes into TRIAL runnable and to main at green CI, not batched; a report begins
+- Order (K, 2026-10-18): each piece goes in runnable and to main at green CI, not batched; a report begins
   with one line saying where K can see it (Pages or local, series and class).
 
 What a trial on K's ROMs and `k1` established:
@@ -269,7 +268,7 @@ K's decisions (2026-10-20):
   base, not the Japanese one.
 - **Product.** The four courses are the reference courses of the SUPER HANG-ON series ([Series](product.md#5-series)),
   one LINEAR course each.
-- **No classes until the hills.** Until the hills are made again, the courses have no TRIAL class: they are driven in
+- **No classes until the hills.** Until the hills are made again, the courses have no class: they are driven in
   FREE PLAY alone, untimed, and their racing lines are their only measured products. When classes return, each is the
   player alone on VFR750R from GO (slot 15), no traffic, margin 1.35.
 - **Beside Stage RD2 and Stage TO.** The three stages run side by side and share `tools/road-data/` and OUTRUN's written
@@ -331,12 +330,9 @@ K's decisions (2026-10-20):
 - **Product.** The course is the reference course of the TURBO OUTRUN series ([Series](product.md#5-series)): one
   LINEAR course of 16 stages, New York to Los Angeles.
 - **No class until the hills.** The hills of all three originals are made again later, so no reference times are made
-  until then (K, 2026-10-20): the course has no TRIAL class and is driven in FREE PLAY alone, and only its racing line
-  is measured. When the hills are made again its TRIAL class returns: id `turbo-outrun`, title TURBO OUTRUN, course
-  `turbo-outrun`, 1 lap, vehicles TESTAROSSA alone (F40 and 959 are not yet in the catalog), one entry (TESTAROSSA,
-  yellow, pace 1, no stages, slot 15 at GO, not ahead), the player last, no rank limits, traffic as OUTRUN's TRIAL
-  classes had it (density 6, GOLF GTI 16V and DELTA HF INTEGRALE, 120 km/h), margin 1.35, colors not fixed. Until then
-  the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked then.
+  until then (K, 2026-10-20): the course has no class and is driven in FREE PLAY alone, and only its racing line is
+  measured. Its classes are decided by the stage that makes the hills again (K, 2026-10-22). Until then the GOAL gate's
+  posts over lanes a and f are shown in drawings; whether a reference run hits them is checked then.
 
 Rules of the stage, beside Stage RD's, RD2's and SH's:
 
@@ -716,7 +712,7 @@ Rules of the stage:
   picture below the road would show over the nearer road); deep water; any change to walls or to the order of walls and
   pictures beyond them; BRANCH's removal (PG-2b only leaves no course using it); new tests (PG-2a only moves today's).
 
-The walls (`walls`) are used by TSUKUBA (12, looks alone) and OUTRUN TEST (368, 362 solid); OUTRUN TEST goes in PG-2b,
+The walls (`walls`) were used by TSUKUBA (12, looks alone) and OUTRUN TEST (368, 362 solid); OUTRUN TEST went in PG-2b,
 and TSUKUBA keeps its walls until a later stage makes it again (K, 2026-10-22).
 
 PRs:
@@ -728,18 +724,10 @@ PRs:
 - PG-2a moved the tests off OUTRUN TEST and TRIAL: traffic is driven on TSUKUBA by the test series' `traffic` class
   (the series on TSUKUBA CLUBMAN's picture), `terminal` and `course-strip-ground` read `super-hang-on-africa`, the
   screens smoke reads the test series beside the delivered ones, and the fork scenario is gone.
-- PG-2b: OUTRUN TEST and OUTRUN TRIAL (TRIAL A, TRIAL A STEEP and the TRIAL series) are deleted with their measured
-  products, the images only they use and their sources (`sprite-sources`' 53, every `sky-sources`), the series
-  pictures `trial` and `outrun-test` and their sources, the tools making them (`tools/course/outrun-test.ts` and
-  `outrun-test/`, `outrun-test-sheets`, `tools/build/outrun-test-pictures.ts`, their npm scripts), the drawing tools'
-  scenery, row2 to row5 and series-picture, the images kept for OUTRUN TEST (barricade, cone-down, cone-flying,
-  hill-sky, house-*, tree), and the fake footage tools (`tools/footage`'s `fake-*` and `footage.ts`'s fake verbs,
-  stopped Stage VC's). `cone` (TSUKUBA's), the drawing tools' kit, raster, guidance, puffs and drawn-sprite, and the
-  `skies` command stay. The documents are corrected (README, product, browser, image-assets, content-and-gameplay,
-  footage, development, NEXT); the classes NEXT would add to TRIAL (OUTRUN's, TURBO OUTRUN's, once the hills return)
-  become "classes are decided by the stage that makes the hills again". NEXT records the features no course uses any
-  more (BRANCH, solid walls, open limits, `WET_ASPHALT`, `SHOULDER` and others) and that FREE PLAY without DEV offers
-  TSUKUBA alone.
+- PG-2b deleted OUTRUN TEST and OUTRUN TRIAL (TRIAL A, TRIAL A STEEP and the TRIAL series) with their measured
+  products, the 84 images only they used and their sources (53 sprite sources and every sky source), the series
+  pictures `trial` and `outrun-test`, the generators and their drawing tools, the images kept for OUTRUN TEST and the
+  fake footage tools (with the camera's background pose only they gave).
 - PG-3: the default anchor ((W − 1)/2, H − 0.5) in one function (today written in two drawing tools); the sprite
   recipes' anchors and the tools' pictures (the tire puffs among them) at the bottom, made again; `cone`, which has no
   source, gets its image's anchorY corrected. TSUKUBA's 1–2 texel offsets come from this default, not from its
@@ -944,10 +932,8 @@ Left by Stages ER and MG to later stages (K, 2026-10-21):
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
 
 - **No class until the hills.** The three originals' hills are reviewed and made again in a later stage, with proper
-  grade separation; until then they keep today's rule, crossings keep the 6 m rule, and OUTRUN's roads have no TRIAL
-  class, FREE PLAY driving them untimed. When the hills are made again each road gets its class back: the player from
-  GO's slot (15), TESTAROSSA alone, a margin of 1.35, and traffic as before (GOLF GTI 16V and DELTA HF INTEGRALE,
-  density 6, 120 km/h).
+  grade separation; until then they keep today's rule, crossings keep the 6 m rule, and OUTRUN's roads have no class,
+  FREE PLAY driving them untimed. Their classes are decided by the stage that makes the hills again (K, 2026-10-22).
 - **Guidance.** The way of showing which road to take where a road is chosen is built to a default; K decides it on
   Pages.
 - **BRANCH.** OUTRUN no longer uses BRANCH; K decided to remove it from the engine in a later stage (2026-10-22).
@@ -960,8 +946,7 @@ The course editor is the human inspection and adjustment view over the file/CLI 
 steps and joining tolerances of its cleaning operations while producing the first product courses, and which findings
 become build rules once those defaults hold. The findings are worked out after every change, so their time is the
 author's wait (one worker, the default amounts): TSUKUBA 39 s (digits 0.2 s, unneeded knots 13 s, near and referable
-27 s, merge kinds 0.3 s), OUTRUN TEST 13 min (digits 2.6 s, unneeded knots 18 s, near and referable 12 min, merge kinds
-29 s). Show anchor displacement after geometry changes if producing courses
+27 s, merge kinds 0.3 s). Show anchor displacement after geometry changes if producing courses
 needs it. Before master-course production, document/compiler versions can advance without migration readers; replace
 development inputs with the corresponding version.
 
@@ -1012,8 +997,7 @@ and switching is a cut.
     continuous gradients beside the planned driver's.
   - The gap between plan and drive: on TSUKUBA the chosen `λ` plans lap 2 at 54.43 s (911 TURBO 3.3), 58.26 s (GOLF GTI
     16V) and 52.82 s (VFR750R), and the reference driver drives it in 54.45 s, 58.33 s and 53.10 s: within 0.03–0.28 s,
-    the most on VFR750R. On OUTRUN TEST and OUTRUN TRIAL A STEEP the chosen lines' planned gain (1.7 s and 0.16 s) is
-    lost in the drive (+0.18 s and +0.41 s against the minimum-curvature lines).
+    the most on VFR750R.
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format
@@ -1043,7 +1027,6 @@ and switching is a cut.
 | Interaction      | Whether a vehicle stopped against a wall or course limit recovers as one held by a fixed object does: a spun S13 DRIFT TUNED came to rest nose-in against TSUKUBA's course limit, its rear wheels spinning on the grass, and no input moved it (no reverse gear; manual recovery is DEV's)                                                                                               |
 | Grade separation | Occurrence/neighborhood/height selection of surfaces, landmarks and contacts at nearby crossings                                                                                                                                                                                                                                                                                         |
 | Front end        | Stage FE "Decisions for K" ([below](#stage-fe-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
-| Test course      | Stage OT "Decisions for K" ([below](#stage-ot-decisions-for-k))                                                                                                                                                                                                                                                                                                                          |
 | Front end        | FREE PLAY wallpaper and title music (black and silent today; its SELECT MUSIC offers every track and MUSIC OFF)                                                                                                                                                                                                                                                                          |
 | HUD              | Whether the steering picture's ratio to the front wheel's angle is per vehicle (one per form today)                                                                                                                                                                                                                                                                                      |
 | HUD              | Whether the top bridge picture follows each bike's own, and a steering wheel picture for formula cars                                                                                                                                                                                                                                                                                    |
@@ -1095,50 +1078,6 @@ Choices made where Stage FE left them open, each recorded in its PR:
   classes of one course share one compiled course; every class's run stays alive (about 6 MB of heap for the
   three TSUKUBA CLUBMAN classes together, 71 MB with the first alone). Stage LD replaced this: the demo holds only
   the shown and the next class's runs.
-
-### Stage OT decisions for K
-
-Choices made where Stage OT left them open, each recorded in its PR:
-
-- FE-10: a wallpaper change asked for while a black transition runs still finishes through black; only a steady screen
-  cuts.
-- Tests (OT-1, OT-2): the TSUKUBA ARCADE scenario's player is 911 TURBO 3.3 against GOLF GTI 16V rivals at pace 1; the
-  scenarios are split in two files, neither over about 30 s. The images only RIBBON used (cones, barricade, fork signs,
-  tree, hill sky) stay for OUTRUN TEST.
-- Structure (OT-3):
-  - The course document is generated from a stage table.
-  - Every stage starts with two 3.6 m lanes, level at height 0. Forking stages end at 0 and goals at their own height.
-  - The fork's lock is 600 m before the stage end, because route loading needs 484 m past it. The two roads run side
-    by side with a 4 m median before they part.
-  - The checkpoint is the seam.
-  - The startup smoke compiles OUTRUN TEST (about 5 s), and a driving scenario drives a rival through its first fork.
-  - Traffic is GOLF GTI 16V, DELTA HF INTEGRALE and 911 TURBO 3.3.
-- Reference driving (OT-3b): no scenario was added for the right-exit defect. The measured report shows that class of
-  defect, a right exit far slower than its left.
-- `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and susceptibility
-  0.7, to tune on real devices.
-- Transitions (OT-5):
-  - A wipe lays both maps on the incoming map's scroll. The generator keeps yaw origins along each stage's left-most
-    predecessor, so a seam join from the other predecessor arrives turned by the difference of their headings.
-  - A rise keeps each map's own scroll.
-  - A wipe's direction comes from the road's turn over the 150 m ahead (threshold 0.05 rad).
-  - A transition takes 1 s. A new crossing during one starts from the map being brought in.
-- Pictures (OT-6 to OT-10):
-  - Fixed scenery carries a flat contact shadow in its picture. Outlines are 2 px, lit from the upper left.
-  - Verge scenery, stone gates, overpasses and gantries are pass-through. Guardrails, rock faces, barriers and building
-    fronts are solid walls.
-  - Sea stacks stand 38 m below the road.
-  - The tunnel portal stands only at the entrance, because sprites face the camera.
-  - The mesa is 35 m wide, drawn at half scale under the 1,048,576-texel sprite limit.
-  - LAKESIDE reuses the existing `sail` picture.
-- Wet stretches (OT-7 to OT-10):
-  - The overcast sky arrives by wipe 150 m before the wet road and clears 100 m after it.
-  - Tunnel exits arrive by cut and clear by wipe.
-  - ALPINE PASS's storm arrives and leaves by rise.
-- Timing: GATEWAY, CLIFF ROAD, TUNNEL RUN, ALPINE PASS and FOREST were shortened to bring every award within 80–100 s;
-  OT-last gave FOREST one bend back (79.1 to 82.3 s).
-- INTERCHANGE's heavy traffic: traffic density is a series setting, so INTERCHANGE's extra lanes carry the series'
-  traffic rather than a denser stream.
 
 ### Selected circuits
 
