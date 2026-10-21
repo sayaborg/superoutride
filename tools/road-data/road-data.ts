@@ -40,6 +40,8 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import { startDepth } from './object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
+import { enduroRacerDump } from './enduro-racer-dump.js';
+import { filesByCrc } from './enduro-racer-rom.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from './super-hang-on-courses.js';
 import {
   OUTRUN_STAGES,
@@ -70,6 +72,12 @@ const TURBO_OUTRUN_DUMP_DIRECTORY = 'reference-media/turbo-outrun/rom-data';
 /** Where K's SUPER HANG-ON ROM zip and the tool's dumps of it lie: never committed. */
 const SUPER_HANG_ON_ROM_DIRECTORY = 'reference-media/super-hang-on/rom';
 const SUPER_HANG_ON_DUMP_DIRECTORY = 'reference-media/super-hang-on/rom-data';
+/** Where K's two ENDURO RACER ROM zips and the tool's dumps of them lie: never committed. */
+const ENDURO_RACER_ZIPS = Object.freeze({
+  '--zip': 'reference-media/enduro-racer/rom/enduror.zip',
+  '--bootleg-zip': 'reference-media/enduro-racer/rom/endurobl.zip',
+} as const);
+const ENDURO_RACER_DUMP_DIRECTORY = 'reference-media/enduro-racer/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -93,6 +101,13 @@ async function oneZip(zip: string | undefined, directory: string, option: string
   const zips = (await readdir(directory).catch(() => [])).filter((name) => name.endsWith('.zip'));
   requireInput(zips.length === 1, '/arguments/' + option, `${option} names the ROM zip, or ${directory} holds one`);
   return path.join(directory, zips[0]!);
+}
+
+/** ENDURO RACER's ROM files by CRC-32, from its two zips: `enduror` (`--zip`) and `endurobl` (`--bootleg-zip`). */
+async function enduroRacerFiles(options: ReadonlyMap<string, string>) {
+  const zips = Object.entries(ENDURO_RACER_ZIPS).map(([option, zip]) => options.get(option) ?? zip);
+  const files = filesByCrc(await Promise.all(zips.map(async (zip) => readZip(new Uint8Array(await readFile(zip))))));
+  return { zips, files };
 }
 
 /**
@@ -765,6 +780,66 @@ try {
           objects: built.placing,
           pictures: built.pictures.length,
           skies: skies.length,
+        }),
+      );
+      break;
+    }
+    case 'enduro-racer-read': {
+      // ENDURO RACER's two ROM zips read, never decrypted; every table its course uses to the dump.
+      const { zips, files } = await enduroRacerFiles(options);
+      const dump = enduroRacerDump(files);
+      const out = options.get('--out') ?? ENDURO_RACER_DUMP_DIRECTORY;
+      await atomicWrite(path.join(out, 'enduro-racer.json'), JSON.stringify(dump) + '\n');
+      const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zips,
+          out,
+          constants: dump.constants,
+          stageEnds: dump.stageEnds,
+          paths: dump.paths.map(({ address, x, y }) => {
+            // Each step's turn, counterclockwise positive as `Math.atan2` counts from x to the right and y ahead.
+            let turn = 0;
+            for (let p = 1; p < x.length; p++) {
+              const step = Math.atan2(y[p]!, x[p]!) - Math.atan2(y[p - 1]!, x[p - 1]!);
+              turn += Math.atan2(Math.sin(step), Math.cos(step));
+            }
+            const lengths = x.map((dx, p) => Math.hypot(dx, y[p]!) / 4096);
+            return {
+              address: `0x${address.toString(16)}`,
+              first: [x[0], y[0]],
+              last: [x.at(-1), y.at(-1)],
+              turn: degrees(turn),
+              notWhole: lengths.filter((l) => Math.abs(l - 1) > 0.01).length,
+            };
+          }),
+          waterCrossings: dump.waterCrossings,
+          scenery: Array.from({ length: 6 }, (_, s) => dump.scenery.filter((i) => i.position >> 11 === s).length),
+          scaledScenery: dump.scenery.filter((i) => i.height !== undefined).length,
+          sceneryTypes: Object.keys(dump.sceneryTypes).length,
+          hitTypes: Object.entries(dump.sceneryTypes)
+            .filter(([, t]) => t.flags & 8)
+            .map(([type]) => Number(type).toString(16)),
+          jumps: { halves: dump.jumps.halves, jumps: dump.jumps.jumps.length },
+          start: dump.start.map(({ flags, position, x, sizes, height }) => ({
+            flags: flags.toString(16),
+            position,
+            x,
+            sizes: sizes.toString(16),
+            height,
+          })),
+          sizeSets: Object.keys(dump.sizeSets).length,
+          undrawnRows: Object.fromEntries(
+            Object.entries(dump.sizeSets)
+              .filter(([, set]) => set.undrawnPixels > 0)
+              .map(([address, set]) => [Number(address).toString(16), set.undrawnPixels]),
+          ),
+          palettes: Object.keys(dump.palettes).length,
+          layers: dump.backgrounds.map(({ front, back, backOffset }) => ({
+            front: { rows: front.rows, columns: front.columns.length },
+            back: { rows: back.rows, columns: back.columns.length, offset: backOffset },
+          })),
         }),
       );
       break;

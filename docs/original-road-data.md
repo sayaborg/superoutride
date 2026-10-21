@@ -1379,3 +1379,124 @@ and sub CPU are read as they are. Its main CPU's program is encrypted for instru
 read from the decrypted program of MAME's `endurobl` (bootleg set 1, the YM2203 set `enduror1` decrypted), whose tables
 are Rev A's; the program is never decrypted here. Its ROM set, programs and tables are described here as
 [Stage ER](NEXT.md#stage-er--enduro-racer-from-the-roms) reads them.
+
+### ENDURO RACER's ROM set
+
+The main CPU's program comes from `endurobl`, whose ROMs hold the YM2203 set `enduror1`'s program decrypted. Its first
+64 KiB is interleaved from two 64 KiB ROMs whose first halves hold the instructions and second halves the data (the
+tables); the rest from pairs of 32 KiB ROMs that hold both. The tool assembles a data image and an instructions image:
+
+| CPU  | Addresses       | Even bytes                               | Odd bytes                                |
+| ---- | --------------- | ---------------------------------------- | ---------------------------------------- |
+| main | 0x00000–0x0FFFF | `7.13j` `f1d6b4b7`, data its second half | `4.13h` `43bff873`, data its second half |
+| main | 0x10000–0x1FFFF | `8.14j` `2153154a`                       | `5.14h` `0a97992c`                       |
+| main | 0x20000–0x2FFFF | `9.15j` `db3bff1c`                       | `6.15h` `54b1885a`                       |
+| sub  | 0x00000–0x0FFFF | `epr-7634a.ic54` `aec83731`              | `epr-7635a.ic67` `b2fce96f`              |
+
+The sub CPU's program is Rev A's, from `enduror`. As Stage ER's description says (the sets were decrypted to find it;
+the tool cannot check it): `endurobl`'s data are `enduror1`'s but for the bootleg's credit, the ROM test and the check
+words; 0x10000–0x2FFFF is the same in every set; Rev A's 0x00000–0x0FFFF holds the same tables 0x1A bytes lower, so
+the course is Rev A's. The YM2203 set's sub CPU program (`epr-7634.ic54`, `epr-7635.ic67`) differs from Rev A's only at
+0x0073–0x110B.
+
+The graphics are `enduror`'s: the road ROM `epr-7633.ic1` `6f146210` (256 lines of 512 pixels, two bit planes of 64
+bytes a line, the second 0x4000 after the first), the tiles `epr-7644.ic31` `e7a4ff90`, `epr-7645.ic46` `4caa0095`
+and `epr-7646.ic60` `7e432683` (three bit planes, the lowest first), and the sprites, 32 ROMs of 32 KiB in eight banks
+of 0x8000 32-bit words, each bank four ROMs, one byte of each word, the least significant first
+(`ENDURO_RACER_SPRITE_ROMS`): bank 0 `epr-7678.ic36`, `epr-7670.ic28`, `epr-7662.ic18`, `epr-7654.ic8`, and bank k
+the ROMs one lower in each column, to bank 7 `epr-7671.ic29`, `epr-7663.ic21`, `epr-7655.ic11`, `epr-7647.ic1`.
+
+The tool opens both zips (`enduror.zip` and `endurobl.zip` in `reference-media/enduro-racer/rom/`), checks every entry
+against the CRC-32 its archive records, and finds each ROM it reads by its CRC-32 and size, whatever the zip names it
+(K's names differ a little from MAME's); a set without one is refused. It reads no key (`317-0013a.key`), no Rev A
+main CPU ROM (encrypted) and no sound ROM, and never decrypts.
+
+### ENDURO RACER's programs
+
+Both CPUs are 68000s. The main CPU's shared RAM 0x124000–0x127FFF is the sub CPU's 0x07C000–0x07FFFF. Before it reads
+a table, the tool checks on the instructions' image the instructions that name it (`MAIN_INSTRUCTIONS`): the position's
+step, the bike's place, and the `lea` of each table below.
+
+- **Time and distance.** A tick is 1/60 s. The road position is the long at 0x126188, 16.16; each tick it gains the
+  speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows
+  the speed as it is in km/h, so a position is 65536 / (256 × 3.6 × 60) = 1.185185 m. The bike stands 0.75 positions
+  ahead of the road position (`move.l #$C0, d5` at 0x60EE on the 24.8 position).
+- **Stages.** Five stages of 2048 positions run on without a stop: the road position runs from 0 to 10239. Stage s
+  ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the tool checks
+  each.
+- **Road paths.** Stage s (0 from) runs the sub CPU's path that the long s of the eight at 0x592 names: 0x9800, 0x1800,
+  0x3800, 0x5800, 0x7800. A path is 2048 heading vectors {signed word x, signed word y}, x right and y ahead, each
+  about 4096 long; every path begins and ends with (0, 4096), and the five turn 0°, 360° left, 360° right, 360° left
+  and 360° right in all. Twelve to twenty vectors a path are 0.02–1.98 times as long, at the joints of straights and
+  arcs; only the headings are used.
+- **Road colors.** Stage s's road takes palette 0x38–0x3F, the 8 [palette words](#palette-words) at 0xD948 + 16s
+  (stage 5's at 0xD948 + 0x60): surface, edge's narrow bands and edge's middle band, each band A then B. The ground is
+  background colors 0x7D0–0x7D7, the 8 words at 0xD918 + 8s: 0x7D3 left of the road's fold and 0x7D1 right of it, 0x7D2
+  and 0x7D0 on the row where the stripes change. Only stage 5's sides differ.
+- **Stripes.** The road's bands A and B change every 2 positions; the border's shape on the road's rows is the sub
+  CPU's pattern at 0xD4E + (the position's long & 0x1F0), 32 steps of 128 rows' bits.
+- **Water crossings.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all
+  frame 0, at 5236–5286, 5456–5526 and 5596–5656, where the road's surface and edges give way to the ground.
+- **Stage 3's background** comes in at position 4068, the word at 0xDEB8 of the hills' section table, which the tool
+  checks.
+
+### ENDURO RACER's sprites
+
+Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-pixels`):
+
+- **Size sets.** A type's long names a set of five sizes, unscaled first, each about half the one before, of 10 bytes
+  {word height, word words a row, word (height − 1) × words a row, word 0x80 | bank, word first word in the bank}; the
+  tool checks the third and fourth words.
+- **Pixels.** Each word holds eight 4-bit pixels, the most significant first; a row is up to its words a row long and
+  ends with the word whose last pixel (bits 0–3) is 15. 0 and 15 are transparent; drawn mirrored, a row is read from
+  its end. Pixel 10 is a shadow: scenery is drawn with shadows allowed, and pixel 10 darkens what lies behind it.
+- **Drawn rows.** The program puts a size's bottom edge height − 1 rows below its top, so the hardware draws its rows
+  0 to height − 2; the last row never shows (`drawnSize`). Three sets have colored pixels there: 0x103CA (4), 0x1064A
+  (3) and 0x1189C (95).
+- **Placement.** A scenery object stands by its placement's bits 2–3: 4 its bottom edge at the object's y, 8 its top,
+  0 its middle, the other way round from OUTRUN's.
+- **Palettes.** Palette p is the 16 palette words at 0x9F08 + 32p.
+
+### ENDURO RACER's scenery
+
+- **Scenery table.** 0xAEA0: a word, its items' bytes (0x1802), then 1529 items {word road position, signed byte x,
+  byte type}, an item whose type's bit 7 is set followed by two bytes {placement, height of its bottom above the road
+  in unscaled pixels}. x is x × 8 lateral units right of the road's centre. The table runs in position order but for
+  16 steps back of up to 10 positions; its order is the order objects come out in. 366, 317, 173, 400 and 252 items
+  stand in the five stages and 21 past the goal.
+- **Types.** Type t's record is at 0xC6A4 + 6(t − 0x10): {long size set, byte palette, byte flags: 0x80 used, 0x08
+  hit, 0x01 mirrored, 0x02 flipped}. The scenery uses 57 types.
+- **Scaled x.** A scaled item of type 0x48–0x4E takes its x from the words at 0xCC88: −167, 21, 189, 163, −162, 208,
+  −208 units.
+- **Jumps.** 0xC8AE: a word, the count of halves the program stops at (216, two a jump), then jumps {word position,
+  signed byte left, signed byte right (× 2 units, each half's bottom middle), byte kind, byte spare} up to the first
+  whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
+  half is drawn as it is and the right half mirrored.
+- **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
+  position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
+  (flags 0x88), banners and START board at position 1.5.
+
+### ENDURO RACER's backgrounds
+
+- **Layers.** Stage s's front layer is the long at 0xD668 + 4s, its back layer the long at 0xD67C + 4s, each naming
+  {long columns' table, word rows}; the table holds 32 (front) or 24 (back) {long A, long B} columns, A a column's tile
+  words: 8 tiles across, row after row from the top. The layer's picture is its columns in the order of their address,
+  so the front is 2048 pixels around and the back 1536; the tool checks that the columns follow one another.
+- **Tiles.** Hang-On's: three bit planes, 8 bytes a tile, a byte a row, bit 7 the leftmost pixel. A tile word's tile
+  is its bits 0–11, its palette its bits 5–11, its bit 12 its priority; a pixel 0 is transparent.
+- **Tile palettes** stay as they are from the start: palettes 0–5 the 8 words each from 0xAAC8, palettes 8–127 the 8
+  words at 0xABA0 + 16 × the byte at 0xAB28 + palette − 8.
+- **Vertical offsets.** Both layers' bottom row is just below the horizon; the back layer's is moved by the word at
+  0xD0F2 + 2s (0, 0, 0, 0, −4).
+- **Sky.** The 48 bits at 0xD8DC + 6s mark, from the horizon up, where each of colors 0x7C1–0x7CE begins: pixels 1–14
+  of sprite palette 0x3C + s. Above them is the word at 0xD900 + 4s.
+
+### ENDURO RACER's dump
+
+`npm run road-data -- enduro-racer-read` ([Development](development.md#road-data-commands)) reads both zips and writes
+`superoutride.enduro-racer-road-data` version 1, `enduro-racer.json` in `reference-media/enduro-racer/rom-data/`: the
+ROMs' names and CRCs; the bike's place and stage 3's background's position; the stages' ends; the road paths; each
+stage's road and ground colors; the water crossings; the stripes' pattern; the scenery table, its types and the scaled
+x; the jumps and their kinds; the start's templates; the size sets these name, each with its undrawn row's colored
+pixels; their palettes; each stage's layers (records, columns' tables, tile words), back layer's offset and sky; and
+the tile palettes.

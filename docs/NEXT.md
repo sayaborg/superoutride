@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-2;
+Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-3;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -457,13 +457,11 @@ Rules of the stage, beside Stage RD's, RD2's, SH's and TO's:
   course's form (the nearest form it can make is then shown); every other open point is decided by its default and
   reported in its PR.
 
-The PRs, in order (each one too large for one review is split and the split reported):
+ER-2 read ENDURO RACER's ROMs into its dump: both zips' ROMs found by CRC, the main CPU's data and instructions
+images with the instructions its tables are found by checked, and Space Harrier's sprites read by `sprite-pixels`
+([ENDURO RACER](original-road-data.md#enduro-racer)). The PRs left, in order (each one too large for one review is
+split and the split reported):
 
-- ER-2: ENDURO RACER's ROMs read: the set found by CRC in both zips, the main CPU's data and instruction images, the
-  instructions the tables are found by checked, and every table the course uses written to the dump `enduro-racer.json`
-  (`superoutride.enduro-racer-road-data` version 1) by `enduro-racer-read`. `sprite-pixels` reads Space Harrier's
-  sprites (banks of 0x8000 words, rows ended by a last pixel of 15, rows 0 to h − 2 drawn, base point 4 the bottom
-  edge), OUTRUN's and TURBO OUTRUN's results unchanged. No course yet.
 - ER-3: the course `enduro-racer` (ENDURO RACER), without objects: the five stages' road paths in running order and a
   straight past the goal, the plan, lanes, strips, colors, stripes, materials, flat profile with the crossings' bumps,
   Sections, the skies' names and yaw origins, the checkpoints, finish and grid, no class, its racing line measured. Its
