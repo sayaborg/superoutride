@@ -528,6 +528,11 @@ which the drawing decides by what it is given as; course and image documents car
    so nearer ground and walls draw over it; a screen row with no terrain row nearer than the anchor is drawn at the
    anchor's depth. Rows laid on one terrain row draw from far anchors to near.
 
+A board whose image extends sideways (`extend`, [Image assets](image-assets.md#completed-sprite-images)) repeats within
+its plane, at its anchor's depth, from the picture toward the frame's edge the image names, left or right: the level
+drawn is the one its scale picks, repeated every image width, `W/40` m, at every level and never shrunk, so it is the
+true form of one plane at one depth. Each repetition is drawn as the picture is, row for row.
+
 Yaw/bank variants are authored images. Rendering uses nearest sampling, binary alpha and one SINGLE sprite per
 vehicle; bank is visual. One drawing serves every image, course images and vehicle pictures alike: a level `k` is a
 frame of `40/2^k` texels per metre with its own anchor, and the renderer draws the nearest-octave level.

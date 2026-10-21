@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-5, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6a, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -736,8 +736,10 @@ PRs:
 - PG-4 added `WATER`, shallow water, to the material catalog (grip 0.6, rolling resistance 0.06), the surface sounds
   and the tire puffs (spray every metre rolling); its values and their grounds are
   [Calibration](calibration.md#surface-materials)'s.
-- PG-5: boards extending sideways: the image's optional field, the drawing and the admission (an extending board's
-  placement has no body); [Image assets](image-assets.md) and [Architecture](architecture.md) rewritten.
+- PG-5 made boards extending sideways: a course image's optional `extend` (`"left"` or `"right"`) repeats the board
+  within its plane, every image width, to the frame's edge
+  ([Sprites and Painter](architecture.md#sprites-and-painter)); an extending image's placement has no body
+  (`invalid_placement`). No image extends yet; PG-6a and PG-7a give it to the rising strips.
 - PG-6a: OUTRUN's rising strips become extending boards at their bottoms, by the table.
 - PG-6b: the baking as a shared part of the road data tool, and OUTRUN's sea, lakes and patches baked into Strips;
   [Original road data](original-road-data.md) updated.

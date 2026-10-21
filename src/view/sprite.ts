@@ -38,7 +38,8 @@ export function scaledSpriteBounds(
 /**
  * Draw an image's picture with its anchor at (`xAnchor`, `yAnchor`) and `pixelsPerMeter` at its base point: the
  * nearest-octave level, each pixel taking the texel under its centre; every row from `rowStart` to the one before
- * `rowEnd` is drawn, those below the anchor too.
+ * `rowEnd` is drawn, those below the anchor too. A board extending sideways repeats the level the way it extends, to the
+ * frame's edge, every image width (`W / 40` m at every level).
  */
 export function drawScaledSprite(
   target: SoftwareSurface,
@@ -66,8 +67,11 @@ export function drawScaledSprite(
   const unclippedY0 = Math.ceil(topBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
   const unclippedY1 = Math.floor(bottomBoundary - 0.5 - PIXEL_EDGE_TOLERANCE);
 
-  const x0 = Math.max(0, unclippedX0);
-  const x1 = Math.min(target.width - 1, unclippedX1);
+  const extend = asset.extend;
+  const x0 = extend === 'left' ? 0 : Math.max(0, unclippedX0);
+  const x1 = extend === 'right' ? target.width - 1 : Math.min(target.width - 1, unclippedX1);
+  // The repetition's period in the level's texels: the master's width at this level.
+  const period = asset.levels[0]!.width / 2 ** levelIndex;
   const y0 = Math.max(0, rowStart, unclippedY0);
   const y1 = Math.min(target.height - 1, rowEnd - 1, unclippedY1);
 
@@ -86,7 +90,9 @@ export function drawScaledSprite(
     const patternRow = sy * level.width;
 
     for (let x = x0; x <= x1; x += 1) {
-      const sx = Math.floor((x + 0.5 - leftBoundary) * invScale);
+      let u = (x + 0.5 - leftBoundary) * invScale;
+      if ((extend === 'right' && u >= period) || (extend === 'left' && u < 0)) u -= Math.floor(u / period) * period;
+      const sx = Math.floor(u);
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
       const index = level.pattern.indexAt(patternRow + sx);

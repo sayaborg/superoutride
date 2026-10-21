@@ -21,7 +21,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
              alternate: {colors: [RGB555 integers]}},
   levels: [{paletteRgb555: [16 integers], indices: [row-major indices],
             mixtures: [[], [[baseIndex,weight], ...], ...]}, ...],
-  shadow?: {width, height, anchorX, anchorY, levels: [{indices: [row-major indices]}, ...]}
+  shadow?: {width, height, anchorX, anchorY, levels: [{indices: [row-major indices]}, ...]},
+  extend?: "left" | "right"
 }
 ```
 
@@ -43,6 +44,10 @@ anchor mapped as the image's. A master carries its shadow's master level; the LO
 opaque where any master texel in its box is, so a shadow never vanishes at a distance. A movable object's standing, flying and
 landed images each carry one ([Content and gameplay](content-and-gameplay.md#sprites-and-environment)); the
 provisional ones are the object's square seen by the size-0 contract camera ([Picture contract](#picture-contract)).
+`extend` is optional: it makes the image a board extending sideways, which repeats within its plane the way it names
+to the frame's edge ([Architecture](architecture.md#sprites-and-painter)); an image without it is drawn once. An
+image's mirror image (`-mirrored`) extends the other way. A placement of an extending image has no body
+(`invalid_placement`): it is for looks alone.
 Course sprites select one declared palette by its required name, including an explicit default name.
 The course compiler validates that reference and shares image/name resources. Rendering applies each
 selected palette once; no raw course replacement palettes or value-by-value LOD membership checks remain.

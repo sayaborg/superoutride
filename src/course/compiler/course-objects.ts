@@ -70,7 +70,7 @@ export function compileCourseSpritePlacements(
  * The Section's solid sprites as objects, one per placement with a body: its width, no wider than the image's world
  * width, from the road height plus `groundOffset` up the image's world height, and, for a movable body, its mass and
  * launch elevation. The image's size is read here once; a state-selected sign cannot be solid, nor a board with views,
- * whose picture, and so whose size, changes with the view. Each object keeps its placement's index, the sprite
+ * whose picture, and so whose size, changes with the view, nor a board extending sideways, which is for looks alone. Each object keeps its placement's index, the sprite
  * identity.
  */
 export function compileCourseSpriteObjects(
@@ -83,6 +83,12 @@ export function compileCourseSpriteObjects(
     if (body === null) return;
     if (image.kind !== 'sprite')
       throw new CourseInputError('invalid_placement', `${path}/body`, 'A board with views cannot be solid');
+    requireCourse(
+      image.image.extend === undefined,
+      `${path}/body`,
+      'A board extending sideways cannot be solid',
+      'invalid_placement',
+    );
     requireCourse(
       source.unselectedLink === null,
       `${path}/body`,

@@ -41,10 +41,17 @@ export interface SpriteLevel extends SpriteFrame {
   readonly shadow: SpriteFrame | null;
 }
 
-/** An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre. */
+/** Which way a board repeats within its plane to the screen's edge. */
+export type SpriteExtend = 'left' | 'right';
+
+/**
+ * An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre, and, for a board extending
+ * sideways, the way it repeats.
+ */
 export interface SpriteAsset {
   readonly name: string;
   readonly levels: readonly SpriteLevel[];
+  readonly extend?: SpriteExtend;
 }
 
 /** A shadow master and its build-generated levels: binary frames, nonzero opaque. */
@@ -72,6 +79,8 @@ export interface SpriteLodDocument {
     readonly mixtures: readonly PaletteMixture[];
   }[];
   readonly shadow?: SpriteShadowDocument;
+  /** A board extending sideways: the way it repeats. */
+  readonly extend?: SpriteExtend;
 }
 
 export function spriteLodLayout(width: number, height: number) {
@@ -129,6 +138,7 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       'palettes',
       'levels',
       ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'shadow') ? ['shadow'] : []),
+      ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'extend') ? ['extend'] : []),
     ],
     'superoutride.sprite-lod',
     4,
@@ -138,7 +148,13 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
   const picture = readSpritePicture(document, '', palettes, defaultPalette, (count) =>
     document.shadow === undefined ? null : readShadow(document.shadow, count),
   );
-  return Object.freeze({ name, ...picture, defaultPalette, palettes });
+  const extend = document.extend === undefined ? {} : { extend: readExtend(document.extend, '/extend') };
+  return Object.freeze({ name, ...picture, defaultPalette, palettes, ...extend });
+}
+
+function readExtend(value: unknown, path: string): SpriteExtend {
+  requireAdmission(value === 'left' || value === 'right', 'invalid_value', path, 'extend must be "left" or "right"');
+  return value;
 }
 
 /** An image's named palettes and the default one, which names one of them. */
