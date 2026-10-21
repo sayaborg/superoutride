@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-3;
+Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-4;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -459,13 +459,13 @@ Rules of the stage, beside Stage RD's, RD2's, SH's and TO's:
 
 ER-2 read ENDURO RACER's ROMs into its dump: both zips' ROMs found by CRC, the main CPU's data and instructions
 images with the instructions its tables are found by checked, and Space Harrier's sprites read by `sprite-pixels`
-([ENDURO RACER](original-road-data.md#enduro-racer)). The PRs left, in order (each one too large for one review is
-split and the split reported):
+([ENDURO RACER](original-road-data.md#enduro-racer)). ER-3 laid the course `enduro-racer` (ENDURO RACER) without
+objects: the stages' paths and the goal's straight, the cross-section, lanes, strips, materials, Sections, skies'
+names and yaw origins, checkpoints, finish and grid, and the crossings' bumps, its racing line measured; its five skies
+are copies of `coast-sky` under their own names until ER-5
+([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). The PRs left, in order (each one too large for
+one review is split and the split reported):
 
-- ER-3: the course `enduro-racer` (ENDURO RACER), without objects: the five stages' road paths in running order and a
-  straight past the goal, the plan, lanes, strips, colors, stripes, materials, flat profile with the crossings' bumps,
-  Sections, the skies' names and yaw origins, the checkpoints, finish and grid, no class, its racing line measured. Its
-  five skies are copies of `coast-sky` under their own names until ER-5.
 - ER-4: its objects: the scenery, the start's gate and figures, the stage ends' CHECK banners and posts, the goal, and
   the jump mounds as boards, in the ROMs' pictures by chosen lines. Measured.
 - ER-5: the five skies baked from the tile ROMs by `sky-baking` in place of the copies. Pixels alone, not measured.

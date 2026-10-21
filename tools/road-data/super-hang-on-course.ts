@@ -354,10 +354,18 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 /**
  * Cuts of P's `[from, to]` (metres) so that no Section's coordinate domain, `reach` metres either side of P, passes over
  * itself: while two of its cells at least `DOMAIN_APART` apart overlap, the earliest later one with the latest earlier
- * one, it is cut between them, at the middle of the longest straight there, else halfway, keeping clear of the gates
- * (metres along P).
+ * one (with `once`, every pair whose earlier one lies before that later one, where one cut parts them all), it is cut
+ * between them, at the middle of the longest straight there, else halfway, keeping clear of the gates (metres along
+ * P).
  */
-function domainCuts(path: CoursePath, from: number, to: number, reach: number, gates: readonly number[]): number[] {
+export function domainCuts(
+  path: CoursePath,
+  from: number,
+  to: number,
+  reach: number,
+  gates: readonly number[],
+  once = false,
+): number[] {
   const step = 2.5;
   const pairs = overlappingCells(path, {
     from,
@@ -369,7 +377,11 @@ function domainCuts(path: CoursePath, from: number, to: number, reach: number, g
   });
   if (!pairs.length) return [];
   const later = Math.min(...pairs.map(([, b]) => b));
-  const earlier = Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
+  // With `once`, one cut parts every pair whose earlier cell lies before the earliest later cell, where one can; else
+  // the earliest later cell's pairs are parted first.
+  const latest = Math.max(...pairs.filter(([a]) => a < later).map(([a]) => a)) + step;
+  const earlier =
+    once && latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
   const clear = (u: number) => gates.every((g) => Math.abs(g - u) > GATE_ROOM);
   const straights = path.elements
     .map((e) => ({ a: Math.max(e.start, earlier), b: Math.min(e.start + e.length, later), turn: e.turn }))
@@ -378,11 +390,11 @@ function domainCuts(path: CoursePath, from: number, to: number, reach: number, g
   let cut = straights.length ? (straights[0]!.a + straights[0]!.b) / 2 : (earlier + later) / 2;
   for (let d = 0; !clear(cut) && d < later - earlier; d += 0.5) cut = (earlier + later) / 2 + d;
   requireInput(cut > earlier && cut < later && clear(cut), '/plan', `No cut parts the road's passages at ${earlier} m`);
-  return [...domainCuts(path, from, cut, reach, gates), cut, ...domainCuts(path, cut, to, reach, gates)];
+  return [...domainCuts(path, from, cut, reach, gates, once), cut, ...domainCuts(path, cut, to, reach, gates, once)];
 }
 
 /** A plan element as written. */
-interface WrittenElement {
+export interface WrittenElement {
   readonly kind: string;
   readonly id: string;
   readonly length: number;
@@ -391,7 +403,7 @@ interface WrittenElement {
 }
 
 /** A piece's plan: P's elements over it, on the plane, to the micrometre. */
-function writtenPlan(path: CoursePath, piece: Piece): WrittenElement[] {
+export function writtenPlan(path: CoursePath, piece: { readonly from: number; readonly to: number }): WrittenElement[] {
   const elements: WrittenElement[] = [];
   for (const e of path.elements) {
     const [a, b] = [Math.max(e.start, piece.from), Math.min(e.start + e.length, piece.to)];

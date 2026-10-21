@@ -1500,3 +1500,63 @@ stage's road and ground colors; the water crossings; the stripes' pattern; the s
 x; the jumps and their kinds; the start's templates; the size sets these name, each with its undrawn row's colored
 pixels; their palettes; each stage's layers (records, columns' tables, tile words), back layer's offset and sky; and
 the tile palettes.
+
+### ENDURO RACER's course
+
+`npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
+`enduro-racer` (ENDURO RACER), conversion version 1, and its skies, or with `--check` fails where one differs; it
+reports the metres a position and a unit, the cross-section, each stage's elements, folds and turn, the tightest arc,
+the checkpoints, the finish, the road past it, the yaw origin, the steepest grade and the crossings:
+
+- **Scale.** A position is 1.185185 m. A lane is K's 3.5 m (`LANE`): SUPER HANG-ON's rule (the original's upright rear
+  frame of the bike, its rows 0–81, 82 × 128/125 × 15/14 units, as tall as VFR750R's upright rear picture, 1.65 m)
+  gives 3.49 m, rounded as SUPER HANG-ON's 4.34 m was. The original's world keeps no one scale across and along the
+  road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects at 4.2456 × x / (d + 4.19), two different
+  eyes), so its objects' far ratio (a road of 7.48 m) and its road's look (about 9.8 m) are the alternatives.
+- **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
+  2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
+  line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as Stage ER's description reads the sub
+  CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
+  surface's half 190.27 units (a lane, 3.5 m, so a unit is 0.0183947 m), the edge bands to 234.81 units (4.319 m),
+  their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
+- **Plan.** Each stage's path becomes straights and arcs by SUPER HANG-ON's `sectionPlan` over its positions 0–2047; the
+  step from 2047 to the next stage's 0 is straight, as every path ends and begins at (0, 4096). P is a straight of 6 m
+  less the bike's 0.75 positions before position 0, then the five stages, then the goal's straight. 119 elements (17,
+  24, 25, 21 and 32 a stage), 11 folds spread, each stage at most 0.28 m off its path's line; the tightest arc is
+  43.5 m (stage 5).
+- **Plane and stations.** Lane a's centre runs 1.75 m (half a lane) left of P on the plane. Course position q (stage s's
+  position p is 2048s + p) is the station across from P there. GO, the bike at position 0.75, is station 6.
+- **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10690: past the finish (10254,
+  station 12158.0) 516.7 m remain, more than any vehicle's takeover needs to stop (the longest, S13 DRIFT TUNED's,
+  436.7 m on this course) and past the last scenery (10342).
+- **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a.
+- **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
+  right), its surface to the edge bands' outer edges, and its edge bands' narrow and middle bands over it, each in band
+  B and band A by turns every 2 positions. From position 0 band B comes first: the sub CPU starts its colors as
+  0x00FF0000, swaps them on the position's bit 1 and toggles them at each of its pattern's 27 borders to the road's
+  nearest line, which so shows the high word, band B, while the position's bit 1 is 0. The borders stand at the
+  stations of even positions, so each of P's elements lays them evenly and writes them as repeats. Over the water
+  crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color. The ground's
+  rows where the stripes change are not drawn.
+- **Materials.** The surface and edge bands are `DIRT`. The ground reaches 18 m beyond the edge bands (22.32 m from
+  P), past the farthest scenery: `GRASS` on stage 1 and `SAND` on the others, for the water (stage 3's water, stage 5's
+  sea) has no material of its own here and `SAND` grips least and drags most. The water crossings stay `DIRT`.
+- **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
+  and `goal` from 10240, each cut again where its coordinate domain (to the ground's edges and the vehicles' reach)
+  passes over itself (`stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut
+  parts every overlap whose earlier cell lies before the earliest later cell, there (a loop's entry from its exit,
+  across the loop's far side), else as SUPER HANG-ON's are (`domainCuts`' `once`). 17 Sections; they join by lane a.
+- **Gates.** The checkpoints `enduro-racer-CP1` to `-CP4` stand where each stage's CHECK banner does (2048k + 4), the
+  finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grid is SUPER
+  HANG-ON's: 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate lanes; the
+  original's five abreast is not copied.
+- **Skies.** Stage s's (0 from) is `enduror-<s + 1>-sky`, its environment `STAGE <s + 1>`. A Section starts with the
+  sky in force there; stage 2's, 4's and 5's come in at their start and stage 3's at position 4068, where its
+  background does, each 6 m before the bike reaches it, by `cut`. At a stage's start heading, every stage's the same,
+  the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504:
+  a Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
+- **Profile.** Level but for the crossings' bumps ([Profile](#profile)): passages at least 200 m apart whose roads, to
+  the edge bands' outer edges, overlap. 30 crossings, 62 passages, two of them clumps of three (stations 801–837,
+  1840–1856 and 3274–3309; 9955–9980, 10740–10773 and 11954–11978); the loops at stages 2 to 5's starts and stages 1
+  and 2's parallel stretch (stations 1930–1986 and 2720–2774) among them. Heights run from −11.4 to +12.1 m, the
+  steepest grade 7.5 %.

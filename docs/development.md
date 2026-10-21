@@ -502,8 +502,9 @@ from the ROMs under `content/`:
 | `turbo-outrun-read`    | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                                       |
 | `turbo-outrun-course`  | Write TURBO OUTRUN's course, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures its objects show and its skies to `content/images/`, or with `--check` fail where one differs                    |
 | `super-hang-on-read`   | Check SUPER HANG-ON's ROM zip (`--zip`, else the one zip in its ROM directory) and write its courses' tables to its dump                                                                                                 |
-| `enduro-racer-read`    | Read ENDURO RACER's two ROM zips (`--zip`, else `enduror.zip`, and `--bootleg-zip`, else `endurobl.zip`, in its ROM directory), finding each ROM by its CRC, and write every table its course uses to its dump (`--out`) |
 | `super-hang-on-course` | Write SUPER HANG-ON's four courses, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures their objects show and their skies to `content/images/`, or with `--check` fail where one differs         |
+| `enduro-racer-read`    | Read ENDURO RACER's two ROM zips (`--zip`, else `enduror.zip`, and `--bootleg-zip`, else `endurobl.zip`, in its ROM directory), finding each ROM by its CRC, and write every table its course uses to its dump (`--out`) |
+| `enduro-racer-course`  | Write ENDURO RACER's course, raised from its two ROM zips (`--zip`, `--bootleg-zip`), to `content/courses/`, and its skies to `content/images/`, or with `--check` fail where one differs                                |
 
 ### Local originals
 

@@ -1765,6 +1765,13 @@ POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows
 Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's
 last slot at GO.
 
+ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
+written by the road data tool from the original's ROMs ([Original road data](original-road-data.md#enduro-racers-course)),
+which owns its plan, lanes, strips, materials, profile, gates and skies; run the conversion rather than editing the
+document. Each stage after the first has its checkpoint where its CHECK banner stands, and the finish is at the GOAL
+board. Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from the
+grid's last slot at GO.
+
 ## Observation formats
 
 ### Course observations

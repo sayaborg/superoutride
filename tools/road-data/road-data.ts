@@ -42,6 +42,12 @@ import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figu
 import { superHangOnDump } from './super-hang-on-dump.js';
 import { enduroRacerDump } from './enduro-racer-dump.js';
 import { filesByCrc } from './enduro-racer-rom.js';
+import {
+  COURSE_ID as ENDURO_RACER_COURSE_ID,
+  ENDURO_RACER_CONVERSION_VERSION,
+  enduroRacerCourse,
+  skyName as enduroRacerSky,
+} from './enduro-racer-course.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from './super-hang-on-courses.js';
 import {
   OUTRUN_STAGES,
@@ -840,6 +846,71 @@ try {
             front: { rows: front.rows, columns: front.columns.length },
             back: { rows: back.rows, columns: back.columns.length, offset: backOffset },
           })),
+        }),
+      );
+      break;
+    }
+    case 'enduro-racer-course': {
+      // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
+      const check = options.has('--check');
+      const { zips, files } = await enduroRacerFiles(options);
+      const built = enduroRacerCourse(files);
+      const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
+      // Each stage's sky as published: the generic coast sky under its own name.
+      const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
+      const skies = Array.from({ length: 5 }, (_, s) => enduroRacerSky(s));
+      for (const name of skies) {
+        const text = JSON.stringify({ ...generic, name });
+        const skyFile = `content/images/${name}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not coast-sky under its name`);
+        } else await atomicWrite(skyFile, text);
+      }
+      const degrees = (radians: number) => round1((radians * 180) / Math.PI);
+      const arcs = built.path.elements.filter((e) => e.turn !== 0);
+      const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
+      const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+      const { stationOf } = built;
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zips,
+          conversion: ENDURO_RACER_CONVERSION_VERSION,
+          checked: check,
+          course: file,
+          metresAPosition: built.metres,
+          metresAUnit: built.unit,
+          crossSection: built.cross,
+          metres: round1(built.path.planeLength),
+          sections: built.pieces.map((p) => p.id),
+          stages: built.plans.map((plan) => ({
+            elements: plan.segments.length,
+            folds: plan.folds.length,
+            offLine: round3(Math.max(...plan.offLine)),
+            turn: degrees(plan.segments.reduce((sum, e) => sum + e.turn, 0)),
+          })),
+          elements: built.path.elements.length,
+          tightest: { at: round1(built.path.station(tightest.start)), radius: round1(radius(tightest)) },
+          checkpoints: built.checks.map((q) => round1(stationOf(q))),
+          finish: round1(stationOf(built.finish)),
+          pastFinish: round1(built.path.planeLength - stationOf(built.finish)),
+          yawOrigin: round3(built.yawOrigin),
+          // The profile's steepest grade, sampled every metre.
+          steepest: round3(
+            Math.max(
+              ...Array.from({ length: Math.floor(built.path.planeLength) }, (_, s) => Math.abs(built.profile.grade(s))),
+            ),
+          ),
+          crossings: built.crossings.map((c) => ({
+            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+            levels: c.levels,
+            flat: c.flat,
+            half: c.half,
+            moves: c.moves,
+            heights: c.heights.map(round1),
+          })),
+          skies: skies.length,
         }),
       );
       break;

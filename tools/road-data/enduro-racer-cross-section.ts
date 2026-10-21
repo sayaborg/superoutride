@@ -1,0 +1,74 @@
+/**
+ * ENDURO RACER's road across ([Original road data](../../docs/original-road-data.md#enduro-racers-course)): the edges of
+ * its surface and edge bands in lateral units, as the road ROM draws them. Line L of the ROM is the road's left half,
+ * its last column the road's centre; the sub CPU draws depth number d3 with line L = 0.991 (d3 + 3) − 3, on which an
+ * object's unit is (d3 + 3) / 128 pixels, so an edge's units are 0.991 × 128 times the slope of its pixels against the
+ * line, fitted by least squares over the lines drawn at every size.
+ */
+
+/** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
+const FITTED = { from: 20, to: 128 } as const;
+const LINE_PIXELS = 512;
+const PLANE_BYTES = 0x4000;
+/** An edge's units per pixel a line: the line the sub CPU draws a depth number with, by the unit it draws there. */
+const UNITS_A_LINE = 0.991 * 128;
+
+/** The road's features across, units from its centre: the surface's edge and the edge bands' inner bands' edges. */
+export interface CrossSection {
+  /** The surface's half width: where the edge bands begin. */
+  readonly surface: number;
+  /** The narrow inner band's outer edge, the middle band's outer edge. */
+  readonly inner: number;
+  readonly middle: number;
+  /** The edge bands' outer edge: where the ground begins. */
+  readonly edges: number;
+}
+
+/** The pixel values of road ROM line `row`: plane 0 the low bit, plane 1 the high, a byte's bit 7 the leftmost. */
+function lineOf(rom: Uint8Array, row: number): number[] {
+  return Array.from({ length: LINE_PIXELS }, (_, x) => {
+    const bit = (plane: number) =>
+      (rom[plane * PLANE_BYTES + row * (LINE_PIXELS / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1;
+    return bit(0) | (bit(1) << 1);
+  });
+}
+
+/** The least squares slope of `points` [x, y]. */
+function slope(points: readonly (readonly [number, number])[]): number {
+  const n = points.length;
+  const [mx, my] = [points.reduce((s, [x]) => s + x, 0) / n, points.reduce((s, [, y]) => s + y, 0) / n];
+  const sxy = points.reduce((s, [x, y]) => s + (x - mx) * (y - my), 0);
+  const sxx = points.reduce((s, [x]) => s + (x - mx) ** 2, 0);
+  return sxy / sxx;
+}
+
+/**
+ * The road's cross-section from the road ROM: on each line from 20 to 128, outward from the centre (the line's right
+ * end), the surface's edge (0 to 1), the narrow band's (1 to 2), the middle band's (2 to 1) and the edge bands' (1 to
+ * 3), each the pixels from the centre to where the outer value begins, fitted against the line.
+ */
+export function roadCrossSection(rom: Uint8Array): CrossSection {
+  const steps = [
+    [0, 1],
+    [1, 2],
+    [2, 1],
+    [1, 3],
+  ] as const;
+  const edges = steps.map(() => [] as [number, number][]);
+  for (let row = FITTED.from; row <= FITTED.to; row++) {
+    const line = lineOf(rom, row);
+    let x = LINE_PIXELS - 1;
+    steps.forEach(([from, to], k) => {
+      while (x > 0 && !(line[x] === from && line[x - 1] === to)) x--;
+      if (x <= 0) throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
+      edges[k]!.push([row, LINE_PIXELS - x]);
+    });
+  }
+  const [surface, inner, middle, outer] = edges.map((points) => slope(points) * UNITS_A_LINE) as [
+    number,
+    number,
+    number,
+    number,
+  ];
+  return { surface, inner, middle, edges: outer };
+}
