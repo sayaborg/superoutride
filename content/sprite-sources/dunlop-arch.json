@@ -3,7 +3,7 @@
   "version": 3,
   "crop": { "x": 0, "y": 0, "width": 680, "height": 259 },
   "widthMeters": 30,
-  "anchor": { "x": 339.5, "y": 258 },
+  "anchor": { "x": 339.5, "y": 258.5 },
   "mask": [],
   "palettes": null
 }

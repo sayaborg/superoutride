@@ -150,7 +150,7 @@ tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transfor
 
 Drawn pictures come from a deterministic production-only program
 ([`tools/graphics/drawn/`](../tools/graphics/drawn)): outlined shapes in three tones of light, at most 15 colors a
-picture, at 40 texels per metre, standing on the middle of their bottom row. Each picture is written as a source with
+picture, at 40 texels per metre, standing on the middle of their bottom edge (the default anchor). Each picture is written as a source with
 its recipe, `content/sprite-sources/<name>.png` and `.json`, and imported as a course image; replacing a source with
 another image of the same name and size and running its command replaces the picture without touching a course.
 
@@ -163,7 +163,7 @@ mirror image.
 
 The [tire puffs](tire-puffs.md)' pictures are drawn by the same program, `npm run puff-pictures`
 ([Development](development.md#puff-pictures-command)), in the same look: clouds of overlapping lumps, each lump lit as a
-sphere from the upper left in three tones over a darker outline, opaque, standing on the middle of their bottom row
+sphere from the upper left in three tones over a darker outline, opaque, standing on the middle of their bottom edge
 and casting no shadow. A picture is as wide and as tall as the diameter it shows, at 40 texels per metre, for nine sizes
 from 0.25 m to 4 m in steps of √2 (`k` 0 to 8, widths rounded to whole texels). Each size has two cloud shapes,
 `puff-cloud-<k>-a` and `-b`, with the named palettes `smoke` (white to grey, the default), `dirt`, `sand`, `verge` and
@@ -375,7 +375,8 @@ published with each build, so the workbench reopens them. The master's name is `
  mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null}
 ```
 
-`mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
+A new recipe's anchor is the source's default, the middle of its bottom edge, `((W − 1)/2, H − 0.5)` for a source `W` by
+`H` (`defaultSpriteAnchor`); every saved recipe's anchor stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
 source alpha back. `palettes` names one or more palettes of 16 slots: the first is the default, which the source is
 normalized with, and the others color the same slots otherwise. Null generates one, `original`, from the masked crop
 ([Candidate palettes](#candidate-palettes)) with 15 colors.

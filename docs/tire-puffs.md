@@ -108,7 +108,7 @@ adopt as content.
 ## Pictures
 
 Every puff picture is an opaque course image of at most 16 colors with two-level transparency
-([Image assets](image-assets.md#completed-sprite-images)), standing at its base point on the middle of its bottom row
+([Image assets](image-assets.md#completed-sprite-images)), standing at its base point on the middle of its bottom edge
 (the default anchor) and casting no shadow. A picture shows a puff of the diameter its master's width represents,
 `W/40` metres. Each kind of puff has a run of pictures whose diameters differ by √2; a size may have several shapes.
 

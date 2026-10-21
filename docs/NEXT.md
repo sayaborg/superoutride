@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-3, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-4, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -728,10 +728,11 @@ PRs:
   products, the 84 images only they used and their sources (53 sprite sources and every sky source), the series
   pictures `trial` and `outrun-test`, the generators and their drawing tools, the images kept for OUTRUN TEST and the
   fake footage tools (with the camera's background pose only they gave).
-- PG-3: the default anchor ((W − 1)/2, H − 0.5) in one function (today written in two drawing tools); the sprite
-  recipes' anchors and the tools' pictures (the tire puffs among them) at the bottom, made again; `cone`, which has no
-  source, gets its image's anchorY corrected. TSUKUBA's 1–2 texel offsets come from this default, not from its
-  placements.
+- PG-3 made the default anchor ((W − 1)/2, H − 0.5) one function (`defaultSpriteAnchor`, which the drawn pictures and
+  the workbench's new recipes take), stood every sprite recipe's anchor on its crop's bottom edge and made their
+  pictures (the tire puffs' and the guidance's among them) again, and corrected `cone`'s anchorY. A master whose last
+  row is padding (its height rounded up from the crop's) keeps its anchor on the source's bottom edge, within a texel
+  above H − 0.5.
 - PG-4: `WATER`, one entry each in the material, tire audio and tire puff documents (the puffs' kind and color today's
   spray). Its drag is the rolling resistance coefficient, with no drag growing with speed; grip and rolling resistance
   are document values like every material's, their grounds in the PR (no material DEV); tire sound and spray are tuned

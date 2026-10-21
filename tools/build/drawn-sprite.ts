@@ -4,6 +4,7 @@ import { encodePng, type Raster } from '../graphics/drawn/raster.js';
 import { TEXELS_PER_METRE } from '../graphics/drawn/kit.js';
 import {
   courseImageFile,
+  defaultSpriteAnchor,
   importSpriteSource,
   SPRITE_RECIPE_FORMAT,
   SPRITE_RECIPE_VERSION,
@@ -13,7 +14,7 @@ import type { PNG } from 'pngjs';
 
 /**
  * Save a drawn picture as a sprite source, `content/sprite-sources/<name>.png` with its recipe (the whole raster at 40
- * texels per metre, standing on the middle of its bottom row, with `palettes`), and make its course image from them as
+ * texels per metre, standing on the middle of its bottom edge, with `palettes`), and make its course image from them as
  * the sprite command imports one; returns the image's content path.
  */
 export async function writeDrawnSprite(
@@ -30,7 +31,7 @@ export async function writeDrawnSprite(
     version: SPRITE_RECIPE_VERSION,
     crop: { x: 0, y: 0, width: raster.width, height: raster.height },
     widthMeters: raster.width / TEXELS_PER_METRE,
-    anchor: { x: raster.width / 2 - 0.5, y: raster.height - 1 },
+    anchor: defaultSpriteAnchor(raster.width, raster.height),
     mask: [],
     palettes,
   };

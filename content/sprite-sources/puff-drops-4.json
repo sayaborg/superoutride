@@ -3,7 +3,7 @@
   "version": 3,
   "crop": { "x": 0, "y": 0, "width": 40, "height": 40 },
   "widthMeters": 1,
-  "anchor": { "x": 19.5, "y": 39 },
+  "anchor": { "x": 19.5, "y": 39.5 },
   "mask": [],
   "palettes": {
     "spray": [0, 13876, 21242, 26493, 31743, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

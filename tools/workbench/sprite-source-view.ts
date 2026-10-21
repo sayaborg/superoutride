@@ -6,6 +6,7 @@ import { compileSpriteLod } from '../graphics/sprite-lod-compiler.js';
 import { decodeSpritePng } from '../graphics/sprite-png.js';
 import {
   courseImageFile,
+  defaultSpriteAnchor,
   importSprite,
   readSpriteRecipe,
   recipePalettes,
@@ -247,7 +248,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
         version: SPRITE_RECIPE_VERSION,
         crop: { x: 0, y: 0, width: decodedNew.width, height: decodedNew.height },
         widthMeters: decodedNew.width / 40,
-        anchor: { x: decodedNew.width / 2 - 0.5, y: decodedNew.height - 1 },
+        anchor: defaultSpriteAnchor(decodedNew.width, decodedNew.height),
         mask: [],
         palettes: null,
       } satisfies SpriteRecipe,

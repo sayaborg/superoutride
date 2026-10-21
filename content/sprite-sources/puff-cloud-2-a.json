@@ -3,7 +3,7 @@
   "version": 3,
   "crop": { "x": 0, "y": 0, "width": 20, "height": 20 },
   "widthMeters": 0.5,
-  "anchor": { "x": 9.5, "y": 19 },
+  "anchor": { "x": 9.5, "y": 19.5 },
   "mask": [],
   "palettes": {
     "smoke": [0, 14832, 21174, 26458, 31710, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

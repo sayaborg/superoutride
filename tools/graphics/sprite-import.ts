@@ -28,6 +28,14 @@ export const SPRITE_RECIPE_VERSION = 3;
 /** The directory of sources and recipes: `<name>.png` and `<name>.json`, the master's name being `<name>`. */
 export const SPRITE_SOURCES_DIRECTORY = 'sprite-sources';
 
+/**
+ * The default anchor of a source `width` by `height` texels, in texel-centre coordinates: the middle of its bottom edge,
+ * where a board stands.
+ */
+export function defaultSpriteAnchor(width: number, height: number): { readonly x: number; readonly y: number } {
+  return { x: (width - 1) / 2, y: height - 0.5 };
+}
+
 export interface SpriteRecipe {
   readonly format: typeof SPRITE_RECIPE_FORMAT;
   readonly version: typeof SPRITE_RECIPE_VERSION;
