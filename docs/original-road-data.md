@@ -1716,7 +1716,7 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 2, their skies and their [objects](#super-monaco-gps-objects)'
+QUALIFYING, the qualifying's), conversion version 3, their skies and their [objects](#super-monaco-gps-objects)'
 images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
 lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
 left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
@@ -1776,7 +1776,15 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   than the original's line moves them so that the rearmost leaves the camera's 6 m behind it (the format asks it).
   `bikeGrid` is null. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
-- **Skies.** `smgp-sky` from each Section's start; in the race the tunnel's `smgp-tunnel-sky` as the camera reaches
+- **Skies.** `smgp-sky` is baked ([Sky baking](#sky-baking)) from the fine set's background
+  ([SUPER MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels),
+  rows 112–239, and the front layer, the town's row, pages 0–3 (2048 pixels), rows 192–239, each pixel its tile's color
+  in its palette (pixel 0 transparent), both layers' bottom row the first below the horizon (the original's vertical
+  scroll 0x43 brings row 239 to the screen's row 172, its horizon between 171 and 172); the front's pixel f over the
+  back's 0.75f + 88 (where the road vanishes both layers show their pixel 354 at heading 0, the front's 0.75f + 88.5:
+  0.5 back pixels, 0.12°); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
+  each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
+  everywhere. The course starts with `smgp-sky` at each Section's start; in the race the tunnel's `smgp-tunnel-sky` as the camera reaches
   step 9054, where the original's background is wholly dark, and `smgp-sky` again at 10750, the middle of its
   brightening (10655–10847), each a `cut`. At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −

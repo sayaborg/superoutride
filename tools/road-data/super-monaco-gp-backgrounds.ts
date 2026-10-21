@@ -1,10 +1,12 @@
 /**
  * SUPER MONACO GP's background as its main program builds it
  * ([Original road data](../../docs/original-road-data.md#super-monaco-gps-background)): the tile pages drawn from their
- * run-length records, the tiles' palettes and the road layer's sky and ground colors, of the fine set.
+ * run-length records, the tiles' palettes and the road layer's sky and ground colors, of the fine set, and the sky they
+ * make.
  */
 import { u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
+import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from './sky-baking.js';
 
 /** Main CPU: the fine set's page records, drawn in order. */
 export const PAGE_RECORDS = Object.freeze([0x37ff8, 0x39f9a] as const);
@@ -75,3 +77,66 @@ export function readRoadLayerColors(main: Uint8Array) {
   const words = Array.from({ length: ROAD_LAYER_COUNT }, (_, c) => word(main, ROAD_LAYER_COLORS + 2 * c));
   return { address: ROAD_LAYER_COLORS, words, rgb555: words.map(paletteRgb555) };
 }
+
+/** The layers: the back of pages 4–6, rows 112–239; the front, the town's row, of pages 0–3, rows 192–239. */
+const LAYERS = Object.freeze({
+  back: { pages: [4, 5, 6], rows: [112, 239] },
+  front: { pages: [0, 1, 2, 3], rows: [192, 239] },
+} as const);
+/** The front's pixel f lies over the back's 0.75f + 88.5, the vanishing point at both layers' pixel 354 at heading 0. */
+const OVERLAP = 88;
+/** The ramp: color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row each, 0x00 above; 0x32 below. */
+const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as const);
+/** A page is 64 × 32 tiles of 8 × 8 pixels, three bit planes. */
+const TILE = 8;
+const PLANES = 3;
+
+/**
+ * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in
+ * its palette (pixel 0 transparent), both layers' bottom rows the first below the horizon; the road layer's ramp.
+ */
+export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Array[]): SkyBands {
+  const ram = drawPages(main);
+  const palettes = readTilePalettes(main);
+  const layer = ({ pages, rows }: { readonly pages: readonly number[]; readonly rows: readonly [number, number] }) => {
+    const width = pages.length * PAGE_COLUMNS * TILE,
+      height = rows[1] - rows[0] + 1;
+    const pixels = new Int32Array(width * height).fill(TRANSPARENT);
+    pages.forEach((page, k) => {
+      for (let y = rows[0]; y <= rows[1]; y++)
+        for (let x = 0; x < PAGE_COLUMNS * TILE; x++) {
+          const tileWord = ram[page * PAGE_COLUMNS * PAGE_ROWS + (y >> 3) * PAGE_COLUMNS + (x >> 3)]!;
+          const tile = tileWord & 0x1fff;
+          let v = 0;
+          for (let p = 0; p < PLANES; p++) v |= ((tiles[p]![tile * TILE + (y & 7)]! >> (7 - (x & 7))) & 1) << p;
+          if (!v) continue;
+          const colors = palettes.get((tileWord >> 6) & 0x7f);
+          if (!colors) throw new RangeError(`Tile palette ${(tileWord >> 6) & 0x7f} is not loaded`);
+          pixels[(y - rows[0]) * width + k * PAGE_COLUMNS * TILE + x] = colors[v]!;
+        }
+    });
+    return { width, pixels, bottom: 0 };
+  };
+  const road = readRoadLayerColors(main).rgb555;
+  return {
+    back: layer(LAYERS.back),
+    front: layer(LAYERS.front),
+    overlap: OVERLAP,
+    ramp: {
+      rows: [
+        ...Array.from({ length: RAMP.rows }, () => road[RAMP.low]!),
+        ...Array.from({ length: RAMP.low - 1 }, (_, i) => road[RAMP.low - 1 - i]!),
+        road[RAMP.top]!,
+      ],
+      below: road[RAMP.below]!,
+    },
+  };
+}
+
+/** A sky of one color, `rgb555`, everywhere: no layer over the ramp, the ramp and the ground that color. */
+export const uniformSkyBands = (rgb555: number): SkyBands => ({
+  back: { width: BACK_WIDTH, pixels: new Int32Array(BACK_WIDTH).fill(TRANSPARENT), bottom: 0 },
+  front: { width: FRONT_WIDTH, pixels: new Int32Array(FRONT_WIDTH).fill(TRANSPARENT), bottom: 0 },
+  overlap: OVERLAP,
+  ramp: { rows: [rgb555], below: rgb555 },
+});

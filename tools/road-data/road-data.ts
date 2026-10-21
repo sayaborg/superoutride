@@ -44,7 +44,6 @@ import { enduroRacerDump } from './enduro-racer-dump.js';
 import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
 import { superMonacoGpFiles } from './super-monaco-gp-rom.js';
 import {
-  SKIES as SUPER_MONACO_GP_SKIES,
   SUPER_MONACO_GP_CONVERSION_VERSION,
   STEP_METRES as SUPER_MONACO_GP_STEP,
   superMonacoGpCourses,
@@ -1030,14 +1029,13 @@ try {
           );
         } else await atomicWrite(picture, image.bytes);
       }
-      // The skies as published: the generic coast sky under their own names.
-      const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
-      for (const name of Object.values(SUPER_MONACO_GP_SKIES)) {
-        const text = JSON.stringify({ ...generic, name });
+      // The skies, baked from the ROMs; course images are saved as their exact compact bytes.
+      for (const { name, document } of built.skies) {
+        const text = JSON.stringify(document);
         const skyFile = `content/images/${name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not coast-sky under its name`);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
         } else await atomicWrite(skyFile, text);
       }
       console.log(

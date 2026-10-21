@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s MG-6;
+Next PR:
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -551,18 +551,16 @@ tables, the sprites' frame tables, view tables and palettes, and the background'
 the heading tables closed exactly on the written plane, lanes, materials and limits from the band tables, the surface
 and its marks as strips, Sections split where their boards would pass the format's bound, the tunnel's dark sky, the
 grid (one slot further past the line than the original's, for the camera's room), checkpoints and finish, their racing
-lines measured; their skies are copies of `coast-sky` under their own names until MG-6
-([SUPER MONACO GP's courses](original-road-data.md#super-monaco-gps-courses)). MG-4 gave the drawing and the course
-format boards with views: a [view set](image-assets.md#view-sets) is one image holding a board's pictures and the
-picture of each of its 32 views, drawn as the original selects it
+lines measured ([SUPER MONACO GP's courses](original-road-data.md#super-monaco-gps-courses)). MG-4 gave the drawing
+and the course format boards with views: a [view set](image-assets.md#view-sets) is one image holding a board's
+pictures and the picture of each of its 32 views, drawn as the original selects it
 ([Boards with views](architecture.md#boards-with-views)); no version rose and every other course draws and identifies
 as before. MG-5 placed their objects: every object but the surface boards a board without a body, in the ROMs'
 pictures by chosen lines, the barriers, kerbs, walls and advertising boards in eight view sets
 ([SUPER MONACO GP's objects](original-road-data.md#super-monaco-gps-objects)); the racing lines were measured again.
 Near barriers stand as steps where the original draws a band, from this game's higher camera; K decides later whether
-anything changes. The PR left:
-
-- MG-6: the sky baked from the tile ROMs by `sky-baking` in place of the copy. Pixels alone, not measured.
+anything changes, and which scale the courses keep (the default, (R) or (C)). MG-6 baked their sky from the tile ROMs
+by `sky-baking` and the tunnel's dark. Stage MG has no PR left: its hills wait for the stage that makes the hills again.
 
 Not in this stage: the hills (the original's dz) and grade separation, the SUPER MONACO GP series itself (cars, rivals,
 laps, rank limits, time and the overcast set), sounds and music, the motion of what moves, the start's signal, the

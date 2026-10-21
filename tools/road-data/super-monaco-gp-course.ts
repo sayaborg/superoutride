@@ -11,11 +11,12 @@ import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filte
 import type { ZipFile } from './zip.js';
 import { sectionProfile } from './outrun-course.js';
 import { profileOf } from './road-profile.js';
-import { SKY_WIDTH } from './sky-baking.js';
+import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { sectionPlan } from './super-hang-on-plan.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,
+  assembleSuperMonacoGpTiles,
   type SuperMonacoGpPrograms,
 } from './super-monaco-gp-rom.js';
 import {
@@ -40,10 +41,10 @@ import {
   type ViewsUse,
 } from './super-monaco-gp-boards.js';
 import { paletteName } from './pixel-grid.js';
-import { readRoadLayerColors } from './super-monaco-gp-backgrounds.js';
+import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 2;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 3;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -149,7 +150,7 @@ function meanColor(colors: readonly number[]): number {
   return linearToRgb555(sum[0]! / colors.length, sum[1]! / colors.length, sum[2]! / colors.length);
 }
 
-/** Both circuits' documents and reports, from the ROM set's files by CRC-32. */
+/** Both circuits' documents and reports, their boards' images and their skies, from the ROM set's files by CRC-32. */
 export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
   const programs = assembleSuperMonacoGpPrograms(files);
   const words = assembleSuperMonacoGpSprites(files);
@@ -203,7 +204,12 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
     courses.flatMap((c) => c.uses.views),
     UNIT,
   );
-  return { courses, boards };
+  // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
+  const skies = [
+    { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(files))) },
+    { name: SKIES.tunnel, document: bakeSky(SKIES.tunnel, uniformSkyBands(TUNNEL_DARK)) },
+  ];
+  return { courses, boards, skies };
 }
 
 /**
