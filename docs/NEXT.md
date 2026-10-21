@@ -137,7 +137,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s from MG-2;
+[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -473,6 +474,97 @@ Not in this stage: the hills (the original's grade tables) and jumping, the ENDU
 colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
 pictures drawn again.
 
+## Stage MG — SUPER MONACO GP from the ROMs
+
+Stage MG follows Stages RD2, SH, TO and ER and raises SUPER MONACO GP's two courses (Sega, 1989, on the X board), the
+race's and the qualifying's, from the original's ROMs into two CIRCUIT courses, with the tools and rules those stages
+made: the ROMs' pictures put on the texel grid by chosen lines, the background baked into a sky by `sky-baking`, SUPER
+HANG-ON's plan, and PRs ordered so that the courses are measured as seldom as possible. It is the first stage to raise
+circuits from ROMs, shaped as TSUKUBA, the hand-made circuit, is. Its aim is the earlier stages': exact, true to the
+ROMs, fair to look at, simple, and fitted to this game's physics; the look comes first, and lengthy checks (the
+reference times' review among them) are left out. Its PRs are numbered from MG-1, and Stage RD's, RD2's, SH's, TO's and
+ER's rules hold where this section does not change them.
+
+K's decisions (2026-10-21):
+
+- **Kept from the earlier stages.** All physics stays as it is; distances come from the original's displayed speed and
+  its clock. Pictures are resampled at the best quality there is (ROM pictures by chosen lines, backgrounds by area
+  averages in linear light). Everything that moves is placed standing still. The background's near layer is drawn
+  before its far layer at the same scale into one picture; the horizon's ground gradient is not made. The cars are
+  baked from 3D models, so the original's car (its cockpit) and its rivals' Formula One cars are not converted. The
+  sprites' and backgrounds' pictures converted from the ROMs are committed and shown on Pages, provisionally (drawn
+  again for the product); sounds (PCM) stay local originals alone, and the ROM zip and the raw dumps stay out of Git and
+  PRs. What the original draws as a sprite is a board, never a color or a strip, and a report names any place where a
+  sprite had to be replaced, on the line after where the courses can be seen (K, 2026-10-18). The hills are made again
+  in a later stage; crossings keep the 6 m rule. No class is made until the hills: the courses are driven in FREE PLAY
+  alone and only their racing lines are measured.
+- **Set.** MAME's `smgp` (Super Monaco GP, World, Rev B, FD1094 317-0126a). Its main CPU's program is encrypted for
+  instruction fetches alone, so its tables are the ROMs' bytes as they are; the course tables lie in the sub CPU's
+  program, which is not encrypted.
+- **Scale.** Lengths follow K's rule, the original's displayed km/h and its clock: one step is 0.372267 m (the race's lap
+  5.27 km, the qualifying's 2.28 km). The original has no amount that sets its lateral unit in metres, so the space
+  between the barriers, 1640 units, is a real Monaco street's 10 m: a unit is 10 / 1640 m (the barriers 0.80 m tall, a
+  lamp 6.5 m, a person 2.3 m). The original's world keeps one scale across and along the road, so this default shortens
+  the road 0.64 times against its look. The alternatives K may choose after MG-5's drawings: (R) the real lap of
+  3.328 km, (C) the width from the rivals' cars against TESTAROSSA's, (A) one scale across and along.
+- **Product.** Two circuits, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying`
+  (SUPER MONACO GP QUALIFYING, the qualifying's form), each a FREE PLAY course in no series. The two forms share most of
+  the road but each closes on its own path, so they are two circuits, not one BRANCH course.
+- **Everything but the road's surface is a sprite** (K, 2026-10-21). The original's road layer draws only the sky's and
+  ground's colors; every object, the road's surface included, is a sprite. The surface boards, lying flat on the ground,
+  are strips: the surface, its centre line, the grid's marks, the start line, the tire marks and rubber, and the side
+  paving the same boards draw. That replacement cannot be avoided and every report says so. Everything else is a board:
+  the barriers, the barriers across the road, the concrete walls, the kerbs and the advertising boards are, as in the
+  original, boards whose picture changes with the angle they are seen at (one of 32 chosen every frame), which this
+  game's drawing and course format gain in MG-4. No walls are made: what limits the cars is the original's band table
+  alone, as material edges, and no board has a body.
+- **Weather.** The fine set (the demo, qualifying and the first race); the overcast set is not made.
+- **Tunnel.** The race's 9032–10860 steps, made as this game makes tunnels: boards, strips and a `cut` to a dark sky.
+
+Rules of the stage, beside the earlier stages':
+
+- K's zip lies in `reference-media/super-monaco-gp/rom/smgp.zip`, the tool's dump in
+  `reference-media/super-monaco-gp/rom-data/`. The tool finds each ROM by its CRC and refuses another set. No code of
+  MAME, Cannonball or LayOut is copied or ported: the formats are read by this project's own code from the stage's
+  description and the ROMs themselves.
+- **No decryption.** No decrypting code and no key (the zip's `317-0126a.key`) enter the repository or are used. What
+  the stage's description says of the program's code (what it reads and how, its clock, its hits) was found by
+  decrypting it for the description; the tool cannot check it and takes it as described.
+- The road data tool gains SUPER MONACO GP's modules (`super-monaco-gp-*.ts`): its ROM set, addresses and formats (the
+  X board's sprite size sets, the scenery lists, the view tables, the barrier band tables, the 16B tiles). Its sprite
+  pixels are OUTRUN's, read by `sprite-pixels` as OUTRUN's are. What it adds to a shared module (closing a circuit
+  among it) leaves every other original's `--check` unchanged.
+- **Boards that change with the angle** (MG-4) are added to the drawing and the course format without changing any
+  other course's document, identity or drawing: no compiler, recipe or course document version rises, and no field is
+  added to a sprite's document.
+- **Every original's results stay.** Before each PR main is taken in and every original's `--check` on main (OUTRUN's,
+  SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and, once it exists, SUPER MONACO GP's) passes on the local ROMs; a PR
+  changing a shared rule says which course of which original changes, and by how much.
+- The stage stops only where the ROMs disagree with the stage's description (an address holding other contents, an
+  unknown format, a CRC that does not match), where a rule above would break, or where the format cannot make the
+  courses' form (a circuit that does not close, a board whose angle cannot be chosen as the original chooses it; the
+  nearest form it can make is then shown); every other open point is decided by its default and reported in its PR.
+
+The PRs, in order (each one too large for one review is split and the split reported):
+
+- MG-2: SUPER MONACO GP's ROMs read: the set found by CRC, the main CPU's bytes as they are, and every table the
+  courses use written to the dump `super-monaco-gp.json` (`superoutride.super-monaco-gp-road-data` version 1) by
+  `super-monaco-gp-read`. No course yet.
+- MG-3: the two circuits without objects: the plan from the heading tables by `sectionPlan`, closed exactly on the
+  written plane, lanes, materials and limits from the band tables, the surface and its marks as strips, Sections split
+  where their boards would pass the format's bound, the tunnel's dark sky, gates and grid, no class, their racing lines
+  measured. Their skies are copies of `coast-sky` under their own names until MG-6.
+- MG-4: boards that change with the angle in the drawing and the course format, with tests and specifications; no
+  version rises and every other course draws and identifies as before. Nothing is measured.
+- MG-5: their objects: every board and every board that changes with the angle, in the ROMs' pictures by chosen lines,
+  without bodies; the racing lines measured again; drawings of the default scale beside (R) and (C), and the drawing's
+  load.
+- MG-6: the sky baked from the tile ROMs by `sky-baking` in place of the copy. Pixels alone, not measured.
+
+Not in this stage: the hills (the original's dz) and grade separation, the SUPER MONACO GP series itself (cars, rivals,
+laps, rank limits, time and the overcast set), sounds and music, the motion of what moves, the start's signal, the
+mirror and the cockpit, and the product's pictures drawn again.
+
 ## Stage DT — DRIFT TUNED trial vehicles
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
@@ -623,8 +715,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
 SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), TURBO
-OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms) and ENDURO RACER's in
-[Stage ER](#stage-er--enduro-racer-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
+OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms), ENDURO RACER's in
+[Stage ER](#stage-er--enduro-racer-from-the-roms) and SUPER MONACO GP's in
+[Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
 Their time limits come from reference driving, as for every course.
 
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):

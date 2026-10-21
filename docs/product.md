@@ -203,6 +203,10 @@ its course. Each class also has its time margin and whether it fixes colors.
   reference course, the original's five stages as one LINEAR course of 12.14 km raised from the ROMs of MAME's
   `enduror` and `endurobl` ([Original road data](original-road-data.md#enduro-racer)), is a FREE PLAY course in no
   series.
+- **SUPER MONACO GP** is a series of a later stage; its cars, rivals, laps, rank limits and time are decided then. Until
+  then its reference courses, the original's race and qualifying courses as CIRCUIT courses of 5.27 km and 2.28 km
+  raised from the ROMs of MAME's `smgp` ([Original road data](original-road-data.md#super-monaco-gp)), are FREE PLAY
+  courses in no series.
 
 ## 6. Flow and screens
 
