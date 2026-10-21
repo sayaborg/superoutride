@@ -856,6 +856,17 @@ try {
       const { zips, files } = await enduroRacerFiles(options);
       const built = enduroRacerCourse(files);
       const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
+      for (const { image } of built.pictures) {
+        const picture = `content/${image.path}`;
+        if (check) {
+          const committed = await readFile(picture).catch(() => null);
+          requireInput(
+            committed && Buffer.compare(committed, image.bytes) === 0,
+            `/${picture}`,
+            `${picture} is not the ROMs'`,
+          );
+        } else await atomicWrite(picture, image.bytes);
+      }
       // Each stage's sky as published: the generic coast sky under its own name.
       const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
       const skies = Array.from({ length: 5 }, (_, s) => enduroRacerSky(s));
@@ -910,6 +921,18 @@ try {
             moves: c.moves,
             heights: c.heights.map(round1),
           })),
+          objects: built.placed.length,
+          bodies: built.placed.filter((o) => o.body !== null).length,
+          // The pictures whose bodies the original's hit narrows, with their colored widths.
+          narrowed: built.pictures
+            .filter((p) => p.colored > built.hitWidth && built.placed.some((o) => o.image === p.name && o.body))
+            .map((p) => ({ name: p.name, colored: round3(p.colored) })),
+          onOtherPassages: built.dropped,
+          passedThrough: built.passedThrough.length,
+          passedThroughByStage: [0, 1, 2, 3, 4].map(
+            (stage) => built.passedThrough.filter((o) => Math.min(4, Math.floor(o.position / 2048)) === stage).length,
+          ),
+          pictures: built.pictures.length,
           skies: skies.length,
         }),
       );

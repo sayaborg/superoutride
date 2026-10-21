@@ -9,7 +9,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import type { ZipFile } from './zip.js';
-import { sectionProfile } from './outrun-course.js';
+import { repeated, sectionProfile } from './outrun-course.js';
+import { paletteName } from './pixel-grid.js';
 import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, SKY_WIDTH } from './sky-baking.js';
@@ -17,7 +18,7 @@ import { sectionPlan, type PlanSegment } from './super-hang-on-plan.js';
 import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
 import { domainCuts, writtenPlan, type WrittenElement } from './super-hang-on-course.js';
 import { type Colors } from './road-tables.js';
-import { assembleEnduroRacerPrograms, enduroRacerRoadRom } from './enduro-racer-rom.js';
+import { assembleEnduroRacerPrograms, assembleEnduroRacerSprites, enduroRacerRoadRom } from './enduro-racer-rom.js';
 import {
   readGroundColors,
   readRoadColors,
@@ -31,9 +32,11 @@ import {
 import { readScenery } from './enduro-racer-scenery.js';
 import { bikeAhead } from './enduro-racer-dump.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
+import { enduroRacerBoards } from './enduro-racer-boards.js';
+import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 1;
+export const ENDURO_RACER_CONVERSION_VERSION = 2;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -68,6 +71,11 @@ const CHECK_TYPE = 0x48;
 const GOAL_TYPE = 0x50;
 /** The start's gate, positions: the start's templates stand at 1.5. */
 const START_GATE = 1.5;
+/**
+ * The original's hit: a bike within 0x5A lateral units of an object's x either side, whatever the object's width. A
+ * body is as wide as that or the object's colored pixels, whichever is narrower.
+ */
+const HIT_WIDTH = 2 * 0x5a;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
 const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
@@ -146,6 +154,10 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
       ground: { left: ground.rgb555[3]!, right: ground.rgb555[1]! },
     };
   });
+  const words = assembleEnduroRacerSprites(files);
+  const objects = enduroRacerObjects(main, unit);
+  const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
+  const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const built = layCourse({
     plans: plans.map((p) => p.segments),
     metres,
@@ -160,8 +172,10 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
     skyChanges,
     stages,
     yawOrigin,
+    spots: objects.spots,
+    colored: (image) => colored.get(image)!,
   });
-  return { ...built, plans, cross, unit, metres, checks, finish, yawOrigin };
+  return { ...built, plans, cross, unit, metres, checks, finish, yawOrigin, pictures, hitWidth: HIT_WIDTH * unit };
 }
 
 /** What the course is laid from. */
@@ -186,6 +200,19 @@ interface CourseInputs {
   }[];
   /** The yaw origin of a Section whose start faces the course's start, degrees. */
   readonly yawOrigin: number;
+  /** The objects, and each picture's colored width, metres. */
+  readonly spots: readonly ObjectSpot[];
+  readonly colored: (image: string) => number;
+}
+
+/** An object placed: its station, lateral, picture, height and body. */
+interface Placed {
+  readonly s: number;
+  readonly lateral: number;
+  readonly image: string;
+  readonly palette: number;
+  readonly groundOffset: number;
+  readonly body: number | null;
 }
 
 /**
@@ -259,6 +286,37 @@ function layCourse(inputs: CourseInputs) {
     stretches.push({ from: at, to, stage, ground, road });
   });
 
+  // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
+  // passage's road (to its edge bands' outer edges), which the original never shows together.
+  const onOtherPassage = otherPassages(path, edges);
+  const placed: Placed[] = [];
+  const dropped: { position: number; x: number; what: string }[] = [];
+  const passedThrough: { position: number; x: number; what: string }[] = [];
+  for (const spot of inputs.spots) {
+    const u = along(spot.position),
+      fromP = spot.x * unit;
+    // The objects on the road are passed through: the drivers do not steer around them.
+    const body = spot.hit && !spot.onRoad ? Math.min(HIT_WIDTH * unit, inputs.colored(spot.image)) : null;
+    if (onOtherPassage(u, fromP, (body ?? 0) / 2)) {
+      dropped.push({ position: spot.position, x: spot.x, what: spot.what });
+      continue;
+    }
+    if (spot.hit && spot.onRoad) passedThrough.push({ position: spot.position, x: spot.x, what: spot.what });
+    placed.push({
+      s: path.station(u),
+      lateral: OFFSET + fromP,
+      image: spot.image,
+      palette: spot.palette,
+      groundOffset: spot.height,
+      body,
+    });
+  }
+  requireInput(
+    placed.every((o) => o.s < path.planeLength),
+    `/${COURSE_ID}`,
+    "An object stands past the course's end",
+  );
+
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
   const pairs = overlappingCells(path, {
@@ -288,6 +346,7 @@ function layCourse(inputs: CourseInputs) {
       first: i === 0,
       last: i === pieces.length - 1,
       stretches,
+      objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
       checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: stationOf(q) })),
       finish: { id: `${COURSE_ID}-GOAL`, s: stationOf(inputs.finish) },
       grid: stationOf(inputs.go),
@@ -317,6 +376,9 @@ function layCourse(inputs: CourseInputs) {
     pieces,
     profile,
     stationOf,
+    placed,
+    dropped,
+    passedThrough,
     crossings: crossings.map((crossing, k) => {
       const moves = separated.separations.filter((m) => m.crossing === k);
       return {
@@ -387,6 +449,7 @@ function sectionDocument(
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
+    readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
     readonly grid: number;
@@ -537,7 +600,20 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: [],
+    sprites: repeated(
+      [...context.objects]
+        .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+        .map((o) => ({
+          kind: 'sprite',
+          image: o.image,
+          palette: paletteName(o.palette),
+          at: at(o.s),
+          lateral: round(o.lateral),
+          groundOffset: round(o.groundOffset),
+          unselectedLink: null,
+          body: o.body === null ? null : { width: round(o.body), movable: null },
+        })),
+    ),
     environments,
     gates,
   };
@@ -545,3 +621,28 @@ function sectionDocument(
 
 type Lateral = { readonly boundary: string; readonly offset: number };
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
+
+/** A step along P where another passage's road is sampled, metres. */
+const PASSAGE_STEP = 1;
+
+/**
+ * Whether a point `lateral` metres right of P `u` metres along it, widened `half` metres either side, lies on another
+ * passage's road: within `edges` of P (and half a step along) where P is at least `PASSAGES_APART` from `u`.
+ */
+function otherPassages(path: CoursePath, edges: number) {
+  const samples = Array.from({ length: Math.floor(path.length / PASSAGE_STEP) + 1 }, (_, k) => ({
+    u: k * PASSAGE_STEP,
+    pose: path.pose(k * PASSAGE_STEP),
+  }));
+  return (u: number, lateral: number, half: number) => {
+    const point = path.aside(u, lateral);
+    return samples.some(({ u: v, pose }) => {
+      if (Math.abs(v - u) < PASSAGES_APART) return false;
+      const [dx, dy] = [point.x - pose.x, point.y - pose.y];
+      if (Math.abs(dx) > edges + half + PASSAGE_STEP || Math.abs(dy) > edges + half + PASSAGE_STEP) return false;
+      const along = dx * Math.cos(pose.heading) + dy * Math.sin(pose.heading);
+      const across = dx * Math.sin(pose.heading) - dy * Math.cos(pose.heading);
+      return Math.abs(along) <= PASSAGE_STEP / 2 && Math.abs(across) <= edges + half;
+    });
+  };
+}

@@ -1504,9 +1504,10 @@ the tile palettes.
 ### ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 1, and its skies, or with `--check` fails where one differs; it
-reports the metres a position and a unit, the cross-section, each stage's elements, folds and turn, the tightest arc,
-the checkpoints, the finish, the road past it, the yaw origin, the steepest grade and the crossings:
+`enduro-racer` (ENDURO RACER), conversion version 2, the pictures its objects show and its skies, or with `--check`
+fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
+and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
+crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.5 m (`LANE`): SUPER HANG-ON's rule (the original's upright rear
   frame of the bike, its rows 0–81, 82 × 128/125 × 15/14 units, as tall as VFR750R's upright rear picture, 1.65 m)
@@ -1560,3 +1561,39 @@ the checkpoints, the finish, the road past it, the yaw origin, the steepest grad
   1840–1856 and 3274–3309; 9955–9980, 10740–10773 and 11954–11978); the loops at stages 2 to 5's starts and stages 1
   and 2's parallel stretch (stations 1930–1986 and 2720–2774) among them. Heights run from −11.4 to +12.1 m, the
   steepest grade 7.5 %.
+
+### ENDURO RACER's objects
+
+The course's objects stand at their road positions' stations, as the original's objects stand at their world
+positions; `enduro-racer-course` reports how many stand, how many have bodies, the pictures whose bodies the original's
+hit narrows and the objects left out:
+
+- **Scenery.** Each of the scenery table's 1529 items stands at its position, x × 8 lateral units right of P (a scaled
+  item of types 0x48–0x4E at the scaled types' x), lifted its height × 128/125 × 15/14 units, showing its type's size
+  set, mirrored where its type's flags' bit 0 is set, in its type's palette.
+- **Start.** The five start templates stand at position 1.5: the gate's posts at ±208 units, its banners at +163 and
+  −162 units and the START board at 0, the banners and board lifted 155 pixels, each in its template's size set and
+  palette.
+- **Jumps.** Each of the 69 jumps is one board at P: its kind's half drawn with its bottom middle at 2 × left units and
+  the half mirrored at 2 × right units, each to the nearest pixel, the mirrored half over the other as the original
+  brings it out after. Kinds 0 and 2 show one picture, `enduror-mound-0`, in their palettes 0x1B and 0x54; kinds 4 and
+  6 `enduror-mound-4` and `enduror-mound-6`. A jump has no body and is passed through: the road's mound is the hills'
+  (NEXT's).
+- **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road
+  too, but on the road (below): the original's bike hits within 0x5A units of the object's x either side, so a body is 2 × 0x5A
+  units (3.31 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside), whichever is narrower. The
+  wide tree (0x13), the farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed
+  to 3.31 m.
+- **On the road.** The original marks an item within 30 of the road's centre (in 8 units) as on the road, but for types
+  0x48–0x4E, and only those can hit its bike, which it keeps on the road. Those with the hit mark (rocks, rock pillars,
+  dead trees and jeeps: 199, 183 of them standing) are passed through here: with bodies, every vehicle's driver stopped
+  behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 53, 0, 24 and 53 a stage).
+- **Other passages.** An object whose base point, or body, stands on another passage's road (within its edge bands'
+  outer edges, at least 200 m away along P) is left out: the original never shows the two together. 150 are, 17 of
+  them on their own road and 5 of them jumps.
+- **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`) and the jumps' three: the unscaled size's drawn
+  rows (0 to height − 2) on the texel grid by [chosen lines](#chosen-lines), a pixel 128/125 lateral units across and
+  15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other pixels and its shadow
+  pixel 10, so neither is a texel off the other. A board's base point is the middle of its words' width, a row below
+  its last drawn row (the program puts a size's bottom edge there), in every palette it is shown in, the lowest its
+  default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.

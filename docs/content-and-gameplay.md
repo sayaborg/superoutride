@@ -1766,11 +1766,12 @@ Until its hills are made again it has no class: it is driven in FREE PLAY alone,
 last slot at GO.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
-written by the road data tool from the original's ROMs ([Original road data](original-road-data.md#enduro-racers-course)),
-which owns its plan, lanes, strips, materials, profile, gates and skies; run the conversion rather than editing the
-document. Each stage after the first has its checkpoint where its CHECK banner stands, and the finish is at the GOAL
-board. Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from the
-grid's last slot at GO.
+written by the road data tool from the original's ROMs ([Original road
+data](original-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
+gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
+where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
+provisionally, and its jumps stand as boards passed through until the hills make them. Until its hills are made again it
+has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
 ## Observation formats
 

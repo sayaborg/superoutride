@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s from ER-4;
+Next PR: [Stage ER](#stage-er--enduro-racer-from-the-roms)'s ER-5;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -430,7 +430,8 @@ K's decisions (2026-10-21):
   ([Series](product.md#5-series)).
 - **Jumps and objects on the road.** The jump mounds are boards passed through until the hills make them the road's
   form; the rocks, rock pillars, dead trees and jeeps on the road have bodies by the original's hit mark, as every
-  object does.
+  object does, unless the racing line's measurement or the drive fails on them: then they are passed through (ER-4:
+  every driver stopped behind stage 1's rocks).
 
 Rules of the stage, beside Stage RD's, RD2's, SH's and TO's:
 
@@ -463,11 +464,11 @@ images with the instructions its tables are found by checked, and Space Harrier'
 objects: the stages' paths and the goal's straight, the cross-section, lanes, strips, materials, Sections, skies'
 names and yaw origins, checkpoints, finish and grid, and the crossings' bumps, its racing line measured; its five skies
 are copies of `coast-sky` under their own names until ER-5
-([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). The PRs left, in order (each one too large for
-one review is split and the split reported):
+([ENDURO RACER's course](original-road-data.md#enduro-racers-course)). ER-4 stood its objects in the ROMs' pictures
+by chosen lines: the scenery, the start's gate, the CHECK and goal parts and the jumps as boards passed through, bodies
+by the original's hit mark but on the road, none on another passage's road
+([ENDURO RACER's objects](original-road-data.md#enduro-racers-objects)). The PR left:
 
-- ER-4: its objects: the scenery, the start's gate and figures, the stage ends' CHECK banners and posts, the goal, and
-  the jump mounds as boards, in the ROMs' pictures by chosen lines. Measured.
 - ER-5: the five skies baked from the tile ROMs by `sky-baking` in place of the copies. Pixels alone, not measured.
 
 Not in this stage: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
