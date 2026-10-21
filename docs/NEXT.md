@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s from MG-3;
+Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s from MG-4;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -547,13 +547,14 @@ Rules of the stage, beside the earlier stages':
 
 MG-2 read SUPER MONACO GP's ROMs into its dump: the set found by CRC, the main CPU's bytes as they are, the courses'
 tables, the sprites' frame tables, view tables and palettes, and the background's pages
-([SUPER MONACO GP](original-road-data.md#super-monaco-gp)). The PRs left, in order (each one too large for one review
-is split and the split reported):
+([SUPER MONACO GP](original-road-data.md#super-monaco-gp)). MG-3 laid the two circuits without objects: the plan from
+the heading tables closed exactly on the written plane, lanes, materials and limits from the band tables, the surface
+and its marks as strips, Sections split where their boards would pass the format's bound, the tunnel's dark sky, the
+grid (one slot further past the line than the original's, for the camera's room), checkpoints and finish, their racing
+lines measured; their skies are copies of `coast-sky` under their own names until MG-6
+([SUPER MONACO GP's courses](original-road-data.md#super-monaco-gps-courses)). The PRs left, in order (each one too
+large for one review is split and the split reported):
 
-- MG-3: the two circuits without objects: the plan from the heading tables by `sectionPlan`, closed exactly on the
-  written plane, lanes, materials and limits from the band tables, the surface and its marks as strips, Sections split
-  where their boards would pass the format's bound, the tunnel's dark sky, gates and grid, no class, their racing lines
-  measured. Their skies are copies of `coast-sky` under their own names until MG-6.
 - MG-4: boards that change with the angle in the drawing and the course format, with tests and specifications; no
   version rises and every other course draws and identifies as before. Nothing is measured.
 - MG-5: their objects: every board and every board that changes with the angle, in the ROMs' pictures by chosen lines,

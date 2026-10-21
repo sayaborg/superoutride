@@ -1773,6 +1773,14 @@ where its CHECK banner stands, and the finish is at the GOAL board. Its scenery 
 provisionally, and its jumps stand as boards passed through until the hills make them. Until its hills are made again it
 has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
+SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` SUPER
+MONACO GP QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
+data](original-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials and
+limits, strips, Sections, gates and skies; run the conversion rather than editing the documents. The race has its
+checkpoints where the original's CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their
+hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last
+slot.
+
 ## Observation formats
 
 ### Course observations

@@ -43,6 +43,12 @@ import { superHangOnDump } from './super-hang-on-dump.js';
 import { enduroRacerDump } from './enduro-racer-dump.js';
 import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
 import { superMonacoGpFiles } from './super-monaco-gp-rom.js';
+import {
+  SKIES as SUPER_MONACO_GP_SKIES,
+  SUPER_MONACO_GP_CONVERSION_VERSION,
+  STEP_METRES as SUPER_MONACO_GP_STEP,
+  superMonacoGpCourses,
+} from './super-monaco-gp-course.js';
 import { filesByCrc } from './enduro-racer-rom.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
@@ -977,6 +983,55 @@ try {
           frameTables: Object.keys(dump.frameTables).length,
           pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
           roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
+        }),
+      );
+      break;
+    }
+    case 'super-monaco-gp-course': {
+      // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
+      const check = options.has('--check');
+      const zip = await oneZip(options.get('--zip'), SUPER_MONACO_GP_ROM_DIRECTORY, '--zip');
+      const built = superMonacoGpCourses(superMonacoGpFiles(readZip(new Uint8Array(await readFile(zip)))));
+      const courses = [];
+      for (const { course, document, plan, elements, closed, sections, stepOf } of built) {
+        const file = await saveCourse(course.id, document, check);
+        const arcs = elements.filter((e) => e.turn !== 0);
+        const radius = (e: (typeof arcs)[number]) => ((e.to - e.from) * SUPER_MONACO_GP_STEP) / Math.abs(e.turn);
+        courses.push({
+          course: file,
+          elements: plan.segments.length,
+          arcs: plan.segments.filter((e) => e.turn !== 0).length,
+          written: elements.length,
+          tightest: round1(Math.min(...arcs.map(radius))),
+          offLine: round3(Math.max(...plan.offLine)),
+          lapMetres: round3(closed.written.reduce((sum, w) => sum + w.length, 0)),
+          // The lap's error before closing, and the three lengths that close it: the last arc and two straights.
+          error: [round3(closed.error.x), round3(closed.error.y)],
+          closing: closed.changed.map((i) => ({
+            steps: [elements[i]!.from, elements[i]!.to].map(stepOf),
+            length: closed.written[i]!.length,
+          })),
+          sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
+        });
+      }
+      // The skies as published: the generic coast sky under their own names.
+      const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
+      for (const name of Object.values(SUPER_MONACO_GP_SKIES)) {
+        const text = JSON.stringify({ ...generic, name });
+        const skyFile = `content/images/${name}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not coast-sky under its name`);
+        } else await atomicWrite(skyFile, text);
+      }
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
+          checked: check,
+          metresAStep: SUPER_MONACO_GP_STEP,
+          courses,
         }),
       );
       break;

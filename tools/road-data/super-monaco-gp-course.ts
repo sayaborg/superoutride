@@ -1,0 +1,736 @@
+/**
+ * SUPER MONACO GP's circuits from its ROMs ([Original road data](../../docs/original-road-data.md#super-monaco-gps-courses)):
+ * each course's heading table laid as straights and arcs from the race's line, closed exactly on the written plane, the
+ * road level, its lanes, its materials and limits from the barriers' band tables, the road's surface and its marks as
+ * strips, its Sections, sky, checkpoints, finish and grid.
+ */
+import { requireInput } from '../course/authoring-io.js';
+import { computedValue } from '../authoring/course-joints.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
+import type { ZipFile } from './zip.js';
+import { sectionProfile } from './outrun-course.js';
+import { profileOf } from './road-profile.js';
+import { SKY_WIDTH } from './sky-baking.js';
+import { sectionPlan } from './super-hang-on-plan.js';
+import {
+  assembleSuperMonacoGpPrograms,
+  assembleSuperMonacoGpSprites,
+  type SuperMonacoGpPrograms,
+} from './super-monaco-gp-rom.js';
+import {
+  EMPTY_GROUP,
+  readCourseBands,
+  readDescriptor,
+  readGroup,
+  readHeadings,
+  readSceneryList,
+  type Band,
+  type SceneryObject,
+} from './super-monaco-gp-road.js';
+import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
+import { readRoadLayerColors } from './super-monaco-gp-backgrounds.js';
+
+/** The conversion's version, recorded in the specification beside the courses it wrote. */
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 1;
+
+/**
+ * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
+ * (the camera moves 2.5 units a tick for each km/h) give it.
+ */
+export const STEP_METRES = (96 * 0.0349) / 9;
+/** A lateral unit, metres: 1640 units between the barriers are a real Monaco street's 10 m. */
+export const UNIT = 10 / 1640;
+/** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
+export const UNIT_DOWN = (UNIT * 15) / 14;
+/** The lap's line: every grid slot's lap count reaches its first lap at step 288. */
+const LAP_LINE = 288;
+/** The lanes, 512 units each, their centres at ±256 as the grid's; the plane runs on lane a's centre. */
+const LANE = 512 * UNIT;
+const OFFSET = LANE / 2;
+/**
+ * The band tables' edges, units from P: a barrier's band covers to the barriers at 820 (the original hits at 700 plus
+ * half a car, 105); an escape area's paving to the surface boards' edge at 992 and grass to its hit line, 1228 plus
+ * half a car; the open band's paving to the side paving's outer edge.
+ */
+const BARRIER = 820;
+const ESCAPE_PAVING = 992;
+const ESCAPE = 1228 + 105;
+const OPEN = 1720 + 992;
+/** A band's edges move to the next band's over the 4 steps about their border. */
+const BAND_RAMP = 2;
+/** The surface boards, a step's flat boards across the road, 1984 units wide, and those that draw it. */
+const SURFACE_BOARD = 0x0da4;
+const SURFACE_HALF = 992;
+const GRID_BOARD = 0x0dfe;
+const START_BOARD = 0x1f4a;
+export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 0x0e1c, 0x0e3a, START_BOARD, 0x1f92]));
+/** A flat board's pixel spans 8 units. */
+const FLAT_PIXEL = 8;
+/** The side paving: the surface board beside the road, 728–2712 units out. */
+const SIDE_PAVING = { from: 1720 - 992, to: 1720 + 992 } as const;
+/** The centre line: a board's top row's columns 120–129, drawn here 80 units wide and 2 steps long at its band's far end. */
+const CENTRE_LINE = { row: 0, from: 120, to: 129, half: 40, steps: 2 } as const;
+/**
+ * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
+ * 588 − 12s: the original's 12(23 − s) moved on 312 steps, so that the rearmost leaves the camera's distance behind it
+ * past the line, as the format asks. Each slot's marks are the grid board's rows.
+ */
+const GRID = { slots: 24, first: 588, spacing: 12 } as const;
+const GRID_MARKS = Object.freeze([
+  { row: 2, back: 0, from: 80, to: 896 },
+  { row: 22, back: 4, from: 64, to: 808 },
+] as const);
+const MARK_STEPS = 0.5;
+/** The start line: its boards' row 6, in blocks of bright (8–10) and dark (11–13) pixels, 2 steps before each board. */
+const START_LINE = { row: 6, steps: 2, bright: [8, 10], dark: [11, 13] } as const;
+/** The road layer's colors: the ground, and the dark of the tunnel's background, RGB555. */
+const GROUND_COLOR = 0x32;
+const TUNNEL_DARK = 0x0842;
+/** The race's tunnel: its dark ground from its mouth to its exit's, its dark sky as the camera reaches 9054 to 10750. */
+const TUNNEL = { ground: [9032, 10860], sky: [9054, 10750] } as const;
+/** The skies' horizon row, the generic skies'. */
+const SKY_HORIZON = 320;
+/** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
+const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
+
+const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
+const EPSILON = 1e-5;
+
+/** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
+const COURSES = Object.freeze([
+  { course: 1, id: 'super-monaco-gp', name: 'SUPER MONACO GP', checkpoints: [4697, 9538] },
+  { course: 0, id: 'super-monaco-gp-qualifying', name: 'SUPER MONACO GP QUALIFYING', checkpoints: [4697] },
+] as const);
+export type SuperMonacoGpCourse = (typeof COURSES)[number];
+
+/** The skies, by name. */
+export const SKIES = Object.freeze({ fine: 'smgp-sky', tunnel: 'smgp-tunnel-sky' } as const);
+
+/** A placed object of the scenery list: its step, as the list's word, and its object. */
+interface Spot {
+  readonly step: number;
+  readonly mirrored: boolean;
+  readonly object: SceneryObject;
+}
+
+/** The course's objects in its list's order: word k's group's objects stand at step k (mod N). */
+function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
+  return readSceneryList(sub, scenery).flatMap(({ mirrored, group }, k) =>
+    group === EMPTY_GROUP ? [] : readGroup(sub, group).map((object) => ({ step: k % steps, mirrored, object })),
+  );
+}
+
+/** Whether an object is drawn as strips: a flat board of the road's surface. */
+const isSurface = (o: SceneryObject) => o.kind === 0x04 && SURFACE_FRAMES.has(o.frames);
+
+/** The linear-light mean of RGB555 colors. */
+function meanColor(colors: readonly number[]): number {
+  const sum = [0, 0, 0];
+  for (const c of colors)
+    [(c >> 10) & 31, (c >> 5) & 31, c & 31].forEach((v, i) => (sum[i]! += rgb555LinearChannel(v)));
+  return linearToRgb555(sum[0]! / colors.length, sum[1]! / colors.length, sum[2]! / colors.length);
+}
+
+/** Both circuits' documents and reports, from the ROM set's files by CRC-32. */
+export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
+  const programs = assembleSuperMonacoGpPrograms(files);
+  const words = assembleSuperMonacoGpSprites(files);
+  const { main } = programs;
+  const roadLayer = readRoadLayerColors(main).rgb555;
+  // A flat board's picture, and its pixels' colors in a palette where `keep` holds.
+  const pictures = new Map<number, ReturnType<typeof largestPixels>>();
+  const picture = (frames: number) => {
+    if (!pictures.has(frames)) pictures.set(frames, largestPixels(main, words, frames));
+    return pictures.get(frames)!;
+  };
+  const colorsOf = (frames: number, palette: number, keep: (x: number, y: number, v: number) => boolean) => {
+    const { width, pixels } = picture(frames);
+    const rgb = readSpritePalette(main, palette).rgb555;
+    const out: number[] = [];
+    pixels.forEach((v, i) => {
+      if (v > 0 && v < 15 && keep(i % width, Math.floor(i / width), v)) out.push(rgb[v - 1]!);
+    });
+    return out;
+  };
+  const marks = {
+    surface: (palette: number) => meanColor(colorsOf(SURFACE_BOARD, palette, () => true)),
+    centre: (palette: number) =>
+      meanColor(
+        colorsOf(
+          SURFACE_BOARD,
+          palette,
+          (x, y) => y === CENTRE_LINE.row && x >= CENTRE_LINE.from && x <= CENTRE_LINE.to,
+        ),
+      ),
+    // A grid mark: its row's pixels across the left slot's line, from −to to −from units.
+    grid: (mark: (typeof GRID_MARKS)[number], palette: number) => {
+      const middle = picture(GRID_BOARD).width / 2;
+      const [a, b] = [middle - mark.to / FLAT_PIXEL, middle - mark.from / FLAT_PIXEL];
+      return meanColor(colorsOf(GRID_BOARD, palette, (x, y) => y === mark.row && x >= a && x < b));
+    },
+    start: (palette: number) => startBlocks(picture(START_BOARD), readSpritePalette(main, palette).rgb555),
+  };
+  return COURSES.map((course) =>
+    superMonacoGpCourse(programs, course, {
+      marks,
+      ground: roadLayer[GROUND_COLOR]!,
+    }),
+  );
+}
+
+/**
+ * The start line's blocks across the road: row 6 of its board, runs of bright and dark pixels, each its lateral span
+ * in units from P (the board's middle) and the linear-light mean of its pixels' colors.
+ */
+function startBlocks(picture: { width: number; pixels: Uint8Array }, rgb: readonly number[]) {
+  const bright = (v: number) => v >= START_LINE.bright[0] && v <= START_LINE.bright[1];
+  const dark = (v: number) => v >= START_LINE.dark[0] && v <= START_LINE.dark[1];
+  const row = Array.from(picture.pixels.subarray(START_LINE.row * picture.width, (START_LINE.row + 1) * picture.width));
+  const blocks: { from: number; to: number; color: number }[] = [];
+  for (let x = 0; x < row.length;) {
+    const v = row[x]!;
+    if (!bright(v) && !dark(v)) {
+      x++;
+      continue;
+    }
+    let end = x;
+    while (end < row.length && (bright(row[end]!) || dark(row[end]!)) && bright(row[end]!) === bright(v)) end++;
+    blocks.push({
+      from: (x - picture.width / 2) * FLAT_PIXEL,
+      to: (end - picture.width / 2) * FLAT_PIXEL,
+      color: meanColor(row.slice(x, end).map((p) => rgb[p - 1]!)),
+    });
+    x = end;
+  }
+  return blocks;
+}
+
+/** A plan element over steps [from, to] of the lap (0 the line), its Section, and its turn (left positive). */
+interface Element {
+  readonly section: number;
+  readonly from: number;
+  readonly to: number;
+  readonly turn: number;
+  /**
+   * A straight off the lap's line: closing may change its length. A straight a Section's border cuts is two straights;
+   * the line's straight, which the lap's border cuts, keeps its length.
+   */
+  readonly free: boolean;
+}
+
+/** An element as written on the plane: its length, and an arc's radius and side. */
+interface Written {
+  readonly kind: 'straight' | 'arc';
+  length: number;
+  readonly radius?: number;
+  readonly right?: boolean;
+}
+
+/** The pose after `written` from (0, 0) facing +y; headings counterclockwise. */
+function laid(written: readonly Written[]) {
+  let [x, y, h] = [0, 0, Math.PI / 2];
+  const starts: { x: number; y: number; h: number }[] = [];
+  for (const w of written) {
+    starts.push({ x, y, h });
+    if (w.kind === 'straight') {
+      x += w.length * Math.cos(h);
+      y += w.length * Math.sin(h);
+    } else {
+      const k = (w.right ? -1 : 1) / w.radius!;
+      x += (Math.sin(h + k * w.length) - Math.sin(h)) / k;
+      y += (Math.cos(h) - Math.cos(h + k * w.length)) / k;
+      h += k * w.length;
+    }
+  }
+  return { end: { x, y, h }, starts };
+}
+
+/**
+ * The lap's elements written on the plane, closed: each element's plane length (an arc's on lane a's centre, `OFFSET`
+ * left of P) and radius to the micrometre; then the last arc's length solved so that the lap turns exactly once right,
+ * and the two free straights whose headings differ by at least 30° (|sin| ≥ 0.5) that close the position with the
+ * least of their larger change, changed; those three lengths unrounded.
+ */
+function closedPlan(elements: readonly Element[]) {
+  const written: Written[] = elements.map((e) => {
+    const length = (e.to - e.from) * STEP_METRES;
+    if (e.turn === 0) return { kind: 'straight', length: round(length) };
+    const plane = round(length - OFFSET * e.turn);
+    return { kind: 'arc', length: plane, radius: round(plane / Math.abs(e.turn)), right: e.turn < 0 };
+  });
+  const signed = (w: Written) => (w.kind === 'arc' ? ((w.right ? -1 : 1) * w.length) / w.radius! : 0);
+  const last = written.map((w) => w.kind).lastIndexOf('arc');
+  const others = written.reduce((sum, w, i) => sum + (i === last ? 0 : signed(w)), 0);
+  const needed = -2 * Math.PI - others;
+  const arc = written[last]!;
+  requireInput(needed < 0 === arc.right, '/plan', 'The last arc cannot close the lap’s turn');
+  arc.length = Math.abs(needed) * arc.radius!;
+  const { end, starts } = laid(written);
+  let best: { i: number; j: number; di: number; dj: number } | null = null;
+  const free = elements.map((e, i) => (e.free ? i : -1)).filter((i) => i >= 0);
+  for (const i of free)
+    for (const j of free) {
+      if (j <= i) continue;
+      const [a, b] = [starts[i]!.h, starts[j]!.h];
+      const det = Math.cos(a) * Math.sin(b) - Math.sin(a) * Math.cos(b);
+      if (Math.abs(det) < 0.5) continue;
+      const di = (-end.x * Math.sin(b) + end.y * Math.cos(b)) / det;
+      const dj = (-end.y * Math.cos(a) + end.x * Math.sin(a)) / det;
+      if (written[i]!.length + di <= 0 || written[j]!.length + dj <= 0) continue;
+      if (!best || Math.max(Math.abs(di), Math.abs(dj)) < Math.max(Math.abs(best.di), Math.abs(best.dj)))
+        best = { i, j, di, dj };
+    }
+  requireInput(best, '/plan', 'No two straights close the lap');
+  written[best.i]!.length += best.di;
+  written[best.j]!.length += best.dj;
+  const closed = laid(written).end;
+  requireInput(
+    Math.hypot(closed.x, closed.y) < 1e-9 && Math.abs(closed.h - Math.PI / 2 + 2 * Math.PI) < 1e-12,
+    '/plan',
+    'The lap does not close',
+  );
+  return { written, changed: [last, best.i, best.j], starts: laid(written).starts, error: end };
+}
+
+/** What a course is laid with beside its tables. */
+interface CourseContext {
+  readonly marks: {
+    readonly surface: (palette: number) => number;
+    readonly centre: (palette: number) => number;
+    readonly grid: (mark: (typeof GRID_MARKS)[number], palette: number) => number;
+    readonly start: (palette: number) => { from: number; to: number; color: number }[];
+  };
+  readonly ground: number;
+}
+
+/** One circuit: its plan, Sections, strips, gates and skies. */
+function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonacoGpCourse, context: CourseContext) {
+  const { main, sub } = programs;
+  const descriptor = readDescriptor(sub, course.course);
+  const headings = readHeadings(sub, descriptor.headings);
+  const N = headings.length;
+  /** A step of the original as a step of the lap, which begins at the line. */
+  const lap = (step: number) => (((step - LAP_LINE) % N) + N) % N;
+  const spots = spotsOf(sub, descriptor.scenery, N);
+
+  // The plan: the headings from the line round to it again, as SUPER HANG-ON's road paths, laid once a lap.
+  const turned = Array.from({ length: N + 1 }, (_, k) => (2 * Math.PI * headings[(LAP_LINE + k) % N]!) / 1024);
+  const plan = sectionPlan(
+    { x: turned.map((t) => 4096 * Math.sin(t)), y: turned.map((t) => 4096 * Math.cos(t)) } as never,
+    STEP_METRES,
+  );
+
+  // The Sections: one a sector between the checkpoints, halved where its boards would pass 2048.
+  const boards = spots
+    .filter(({ object }) => !isSurface(object))
+    .map(({ step }) => lap(step))
+    .sort((a, b) => a - b);
+  const sectors = [0, ...course.checkpoints.map(lap), N];
+  const sections: { id: string; from: number; to: number }[] = [];
+  for (let k = 0; k + 1 < sectors.length; k++) {
+    const [from, to] = [sectors[k]!, sectors[k + 1]!];
+    const inside = boards.filter((q) => q >= from && q < to);
+    if (inside.length <= 2048) sections.push({ id: `sector-${k + 1}`, from, to });
+    else {
+      const middle = inside[inside.length >> 1]!;
+      sections.push({ id: `sector-${k + 1}a`, from, to: middle }, { id: `sector-${k + 1}b`, from: middle, to });
+    }
+  }
+
+  // The plan's elements cut at the Sections' borders, and closed on the written plane.
+  const elements: Element[] = [];
+  sections.forEach((section, s) => {
+    for (const e of plan.segments) {
+      const [a, b] = [Math.max(e.from, section.from), Math.min(e.to, section.to)];
+      if (b <= a) continue;
+      elements.push({
+        section: s,
+        from: a,
+        to: b,
+        turn: (e.turn * (b - a)) / (e.to - e.from),
+        free: e.turn === 0 && a > 0 && b < N,
+      });
+    }
+  });
+  const closed = closedPlan(elements);
+  const { written } = closed;
+  const stations = written.reduce((o, w) => [...o, o.at(-1)! + w.length], [0]);
+  /** The station across from step q of the lap: each element's steps spread evenly over its written length. */
+  const stationOf = (q: number) => {
+    let i = elements.findIndex((e) => q >= e.from && q < e.to);
+    if (i < 0) i = elements.length - 1;
+    const e = elements[i]!;
+    return stations[i]! + ((q - e.from) / (e.to - e.from)) * written[i]!.length;
+  };
+  const origins = sections.map(
+    (section) => stations[elements.findIndex((e) => e.section === sections.indexOf(section))]!,
+  );
+  origins.push(stations.at(-1)!);
+
+  // The materials' edges each side, units from P, by step of the lap: each band's, moving to the next's over the
+  // 4 steps about their border.
+  const bands = readCourseBands(main, course.course, N);
+  const left = bandEdges(bands.left, lap, N),
+    right = bandEdges(bands.right, lap, N);
+
+  // The surface boards' bands: each flat surface board across the road (x 0) colors the road from the board before it.
+  const surface = spots
+    .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x === 0)
+    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & 0xff }))
+    .sort((a, b) => a.q - b.q);
+  const paving = spots
+    .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x !== 0)
+    .map(({ step, mirrored, object }) => ({
+      q: lap(step) || N,
+      side: Math.sign(mirrored ? -object.x : object.x),
+      palette: object.flags & 0xff,
+    }))
+    .sort((a, b) => a.q - b.q);
+  const startBoards = spots
+    .filter(({ object }) => object.kind === 0x04 && object.frames === START_BOARD)
+    .map(({ step, object }) => ({ q: lap(step), palette: object.flags & 0xff }));
+  const gridPalette = spots.find(({ object }) => object.frames === GRID_BOARD)!.object.flags & 0xff;
+
+  const documents = sections.map((section, s) =>
+    sectionDocument({
+      course,
+      section,
+      index: s,
+      last: s === sections.length - 1,
+      elements: elements.map((e, i) => ({ e, w: written[i]! })).filter(({ e }) => e.section === s),
+      origin: origins[s]!,
+      size: origins[s + 1]! - origins[s]!,
+      stationOf,
+      lap,
+      N,
+      headingAt: (i: number) => closed.starts[i]!.h,
+      firstElement: elements.findIndex((e) => e.section === s),
+      edgeAt: (side: number, which: 'paving' | 'limit', q: number) => (side < 0 ? left : right).at(which, q),
+      borders: [...new Set([...left.borders, ...right.borders])],
+      surface,
+      paving,
+      startBoards,
+      gridPalette,
+      context,
+    }),
+  );
+  const links = sections.map((section, s) => {
+    const next = sections[(s + 1) % sections.length]!;
+    return { id: `${section.id}-to-${next.id}`, from: { section: section.id, lane: 'a' }, to: next.id };
+  });
+  return {
+    course,
+    document: {
+      format: 'superoutride.course',
+      version: 52,
+      name: course.name,
+      entry: sections[0]!.id,
+      maxLaps: 30,
+      bearing: 0,
+      sections: documents,
+      links,
+    },
+    plan,
+    elements,
+    closed,
+    sections: sections.map((section, s) => ({
+      ...section,
+      steps: [section.from, section.to].map((q) => (q + LAP_LINE) % N),
+      boards: boards.filter((q) => q >= section.from && q < section.to).length,
+      origin: origins[s]!,
+    })),
+    stationOf,
+    lap,
+    /** The original's step of step q of the lap. */
+    stepOf: (q: number) => (q + LAP_LINE) % N,
+    N,
+    spots,
+  };
+}
+
+/** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
+interface Edges {
+  readonly paving: number;
+  readonly limit: number;
+}
+
+/** A band kind's edges: |t1| 2 an escape area, 0 open, any other (1 or 4) a barrier. */
+function edgesOf(t1: number): Edges {
+  const kind = Math.abs(t1);
+  if (kind === 2) return { paving: ESCAPE_PAVING, limit: ESCAPE };
+  if (kind === 0) return { paving: OPEN, limit: OPEN };
+  return { paving: BARRIER, limit: BARRIER };
+}
+
+/**
+ * A side's edges by step of the lap: its bands in lap order (each from the entry before it, the first from step 0),
+ * runs of equal edges joined, and between two runs the edges moving linearly over the 4 steps about their border.
+ */
+function bandEdges(side: readonly Band[], lap: (step: number) => number, N: number) {
+  const starts = side.map((band, i) => ({ start: lap(i === 0 ? 0 : side[i - 1]!.end), edges: edgesOf(band.t1) }));
+  starts.sort((a, b) => a.start - b.start);
+  const runs = starts.filter((r, i) => {
+    const before = starts[(i - 1 + starts.length) % starts.length]!.edges;
+    return starts.length === 1 || before.paving !== r.edges.paving || before.limit !== r.edges.limit;
+  });
+  const plain = (q: number) => {
+    const w = ((q % N) + N) % N;
+    return ([...runs].reverse().find((r) => r.start <= w) ?? runs.at(-1)!).edges;
+  };
+  const borders = runs.length > 1 ? runs.map((r) => r.start) : [];
+  return {
+    borders,
+    at(which: keyof Edges, q: number) {
+      for (const b of [...borders, ...borders.map((x) => x + N), ...borders.map((x) => x - N)])
+        if (Math.abs(q - b) <= BAND_RAMP) {
+          const [before, after] = [plain(b - 1)[which], plain(b)[which]];
+          return before + ((after - before) * (q - (b - BAND_RAMP))) / (2 * BAND_RAMP);
+        }
+      return plain(q)[which];
+    },
+  };
+}
+
+/** One Section's document. */
+function sectionDocument(input: {
+  readonly course: SuperMonacoGpCourse;
+  readonly section: { readonly id: string; readonly from: number; readonly to: number };
+  readonly index: number;
+  readonly last: boolean;
+  readonly elements: readonly { readonly e: Element; readonly w: Written }[];
+  readonly origin: number;
+  readonly size: number;
+  readonly stationOf: (q: number) => number;
+  readonly lap: (step: number) => number;
+  readonly N: number;
+  readonly headingAt: (element: number) => number;
+  readonly firstElement: number;
+  readonly edgeAt: (side: number, which: 'paving' | 'limit', q: number) => number;
+  readonly borders: readonly number[];
+  readonly surface: readonly { readonly q: number; readonly palette: number }[];
+  readonly paving: readonly { readonly q: number; readonly side: number; readonly palette: number }[];
+  readonly startBoards: readonly { readonly q: number; readonly palette: number }[];
+  readonly gridPalette: number;
+  readonly context: CourseContext;
+}) {
+  const { section, origin, size, stationOf, context, course } = input;
+  const plan = input.elements.map(({ w }, i) => {
+    const id = `${w.kind === 'straight' ? 's' : 'c'}${i}`;
+    // The closing lengths stay as solved; the others are written to the micrometre.
+    const length = w.length;
+    return w.kind === 'straight'
+      ? { kind: 'straight', id, length }
+      : { kind: 'arc', id, length, radius: w.radius!, turn: w.right ? 'right' : 'left' };
+  });
+  const joint = plan[0]!.id;
+  const at = (s: number) => {
+    const offset = round(s - origin);
+    return { joint, offset: offset > size - EPSILON ? size : Math.max(0, offset) };
+  };
+  const end = { joint, offset: size };
+  const lateral = (units: number) => round(OFFSET + units * UNIT);
+  const strips: unknown[] = [];
+  type Edge = number | { boundary: string; offset: number } | null;
+  const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => {
+    const [start, stop] = [at(a), at(b)];
+    if (stop.offset - start.offset > EPSILON)
+      strips.push({ kind: 'strip', start, end: stop, left, right, color, material });
+  };
+  const span = (from: number, to: number) => {
+    const [a, b] = [Math.max(from, section.from), Math.min(to, section.to)];
+    return b > a ? [stationOf(a), b >= section.to ? origin + size : stationOf(b)] : null;
+  };
+
+  // The ground: the road layer's ground color, the tunnel's dark from its mouth to its exit.
+  strips.push({
+    kind: 'strip',
+    start: at(origin),
+    end,
+    left: null,
+    right: null,
+    color: context.ground,
+    material: null,
+  });
+  if (course.course === 1) {
+    const dark = span(input.lap(TUNNEL.ground[0]), input.lap(TUNNEL.ground[1]));
+    if (dark) strip(dark[0]!, dark[1]!, null, null, TUNNEL_DARK, null);
+  }
+
+  // The materials: paving between the paving edges, grass out to the limits; the limits are the materials' outer edges.
+  const knotSteps = [
+    section.from,
+    ...input.borders.flatMap((b) => [b - BAND_RAMP, b + BAND_RAMP]).filter((q) => q > section.from && q < section.to),
+    section.to,
+  ].sort((a, b) => a - b);
+  const boundary = (id: string, side: number, which: 'paving' | 'limit') => ({
+    id,
+    knots: [...new Set(knotSteps)].map((q) => ({
+      at: q === section.to ? end : at(stationOf(q)),
+      lateral: lateral(side * input.edgeAt(side, which, q)),
+    })),
+  });
+  const boundaries = [
+    boundary('paving-left', -1, 'paving'),
+    boundary('limit-left', -1, 'limit'),
+    boundary('paving-right', 1, 'paving'),
+    boundary('limit-right', 1, 'limit'),
+  ];
+  const ref = (id: string) => ({ boundary: id, offset: 0 });
+  strips.push(
+    {
+      kind: 'strip',
+      start: at(origin),
+      end,
+      left: ref('paving-left'),
+      right: ref('paving-right'),
+      color: null,
+      material: 'ASPHALT',
+    },
+    {
+      kind: 'strip',
+      start: at(origin),
+      end,
+      left: ref('limit-left'),
+      right: ref('paving-left'),
+      color: null,
+      material: 'GRASS',
+    },
+    {
+      kind: 'strip',
+      start: at(origin),
+      end,
+      left: ref('paving-right'),
+      right: ref('limit-right'),
+      color: null,
+      material: 'GRASS',
+    },
+  );
+
+  // The road's surface: each surface board's color from the board before it (the same colors one stretch), the side
+  // paving likewise, the centre line at each band's far end.
+  let previous = 0;
+  let run: { from: number; to: number; color: number } | null = null;
+  const flush = () => {
+    if (!run) return;
+    const r = span(run.from, run.to);
+    if (r) strip(r[0]!, r[1]!, lateral(-SURFACE_HALF), lateral(SURFACE_HALF), run.color, null);
+    run = null;
+  };
+  for (const board of input.surface) {
+    const color = context.marks.surface(board.palette);
+    if (run && run.color === color) run.to = board.q;
+    else {
+      flush();
+      run = { from: previous, to: board.q, color };
+    }
+    previous = board.q;
+  }
+  flush();
+  for (const side of [-1, 1]) {
+    const boards = input.paving.filter((p) => p.side === side);
+    boards.forEach((board, k) => {
+      const before = boards[k - 1];
+      const from = before && board.q - before.q <= 10 ? before.q : board.q - 10;
+      const r = span(from, board.q);
+      const [l, rr] = side < 0 ? [-SIDE_PAVING.to, -SIDE_PAVING.from] : [SIDE_PAVING.from, SIDE_PAVING.to];
+      if (r) strip(r[0]!, r[1]!, lateral(l), lateral(rr), context.marks.surface(board.palette), null);
+    });
+  }
+  for (const board of input.surface) {
+    const r = span(board.q - CENTRE_LINE.steps, board.q);
+    if (r)
+      strip(
+        r[0]!,
+        r[1]!,
+        lateral(-CENTRE_LINE.half),
+        lateral(CENTRE_LINE.half),
+        context.marks.centre(board.palette),
+        null,
+      );
+  }
+  // The grid's marks, each slot's, then the start line over them.
+  for (let slot = 0; slot < GRID.slots; slot++) {
+    const q = input.lap(GRID.first - GRID.spacing * slot);
+    const side = slot % 2 ? 1 : -1;
+    for (const mark of GRID_MARKS) {
+      const r = span(q - mark.back, q - mark.back + MARK_STEPS);
+      const [l, rr] = side < 0 ? [-mark.to, -mark.from] : [mark.from, mark.to];
+      if (r) strip(r[0]!, r[1]!, lateral(l), lateral(rr), context.marks.grid(mark, input.gridPalette), null);
+    }
+  }
+  for (const board of input.startBoards) {
+    const r = span(board.q - START_LINE.steps, board.q);
+    if (r)
+      for (const block of context.marks.start(board.palette))
+        strip(r[0]!, r[1]!, lateral(block.from), lateral(block.to), block.color, null);
+  }
+
+  // The gates: the start's grid in the first Section, the checkpoints at the sectors' ends, the finish at the lap's.
+  const gates: unknown[] = [];
+  if (input.index === 0)
+    gates.push({
+      kind: 'start',
+      grid: Array.from({ length: GRID.slots }, (_, slot) => ({
+        at: at(stationOf(input.lap(GRID.first - GRID.spacing * slot))),
+        lane: slot % 2 ? 'b' : 'a',
+      })),
+      bikeGrid: null,
+    });
+  if (input.last) gates.push({ kind: 'finish', id: `${course.id}-FINISH`, at: end });
+  else {
+    const k = course.checkpoints.findIndex((c) => input.lap(c) === section.to);
+    if (k >= 0) gates.push({ kind: 'checkpoint', id: `${course.id}-CP${k + 1}`, at: end });
+  }
+
+  // The skies: the fine sky, the tunnel's dark one as the camera reaches 9054, the fine one again at 10750.
+  const changes =
+    course.course === 1
+      ? [
+          { q: input.lap(TUNNEL.sky[0]), sky: SKIES.tunnel },
+          { q: input.lap(TUNNEL.sky[1]), sky: SKIES.fine },
+        ]
+      : [];
+  const skyAt = (q: number) => {
+    let sky: string = SKIES.fine;
+    for (const c of changes) if (q >= c.q) sky = c.sky;
+    return sky;
+  };
+  const theta0 = Math.PI / 2 - input.headingAt(input.firstElement);
+  let yaw = ((-theta0 - (SKY_AT_HEADING - CAMERA_DEFINITION.centerX) / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
+  const period = ((SKY_WIDTH / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
+  while (yaw < -360) yaw += period;
+  while (yaw > 360) yaw -= period;
+  const environment = (s: number, q: number) => ({
+    at: at(s),
+    name: course.name,
+    background: { image: skyAt(q), horizonY: SKY_HORIZON, yawOrigin: round(yaw) },
+    arrival: 'cut',
+  });
+  const environments = [
+    environment(origin, section.from),
+    ...changes.filter((c) => c.q > section.from && c.q < section.to).map((c) => environment(stationOf(c.q), c.q)),
+  ];
+
+  return {
+    id: section.id,
+    plan,
+    profile: sectionProfile(profileOf([]), origin, origin + size, true, true).map(({ s, y, curveLength }) => ({
+      at: { joint, offset: computedValue(s - origin) },
+      y,
+      curveLength,
+    })),
+    lanes: [
+      { kind: 'lane', id: 'a', width: round(LANE) },
+      { kind: 'lane', id: 'b', width: round(LANE) },
+    ],
+    centerLane: 'a',
+    boundaries,
+    strips,
+    walls: [],
+    openLimits: [],
+    sprites: [],
+    environments,
+    gates,
+  };
+}

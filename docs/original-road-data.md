@@ -1711,3 +1711,73 @@ scenery list and band tables; the groups the lists name; the view tables; the fr
 background's records, tile pages, tile palettes and road layer's colors. The amounts in the program's code (the grid's
 rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from Stage
 MG's description.
+
+### SUPER MONACO GP's courses
+
+`npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
+CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
+QUALIFYING, the qualifying's), conversion version 1, and their skies, or with `--check` fails where one differs; it
+reports a step's metres and each course's elements, tightest arc, lap, the error closed and the three lengths that close
+it, and its Sections with their boards. Both have `maxLaps` 30 and `bearing` 0.
+
+- **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
+  its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
+  qualifying's 2.28 km. Across, 1640 units, the space between the barriers, are a real Monaco street's 10 m: a unit is
+  6.0976 mm, 15/14 of that up. The original's world keeps one scale across and along the road, so the road here is
+  0.64 times as long against its width as the original looks. The alternatives for K: (R) the real lap, 3.328 km (a
+  step 0.235095 m); (C) the rivals' cars as wide as TESTAROSSA (a unit 9.4095 mm); (A) both, one scale (a step
+  0.903314 m).
+- **Lap.** A lap runs from the race's line, step 288, round to it again; the qualifying's own line, step 276, is 12
+  steps (4.5 m) behind it.
+- **Plan.** The headings from step 288 round to it again, N + 1 of them as SUPER HANG-ON's road path vectors (4096 sin
+  θ, 4096 cos θ), become straights and arcs by `sectionPlan` once a lap: the race's 50 elements (38 arcs), the
+  tightest arc 49.7 m; the qualifying's 17 (13), 53.4 m; each at most 0.25 m off its line. The elements are cut at the
+  Sections' borders (2333, 4697, 7115, 9538 and 12110 are inside elements).
+- **Closing.** On the plane as written (lane a's centre, 256 units, 1.561 m, left of P; arcs' lengths and radii to the
+  micrometre) the lap does not quite close (the race's end lies (−2.088, +2.166) m from its start, the qualifying's
+  (+1.487, −0.101) m). The last arc's length is solved so that the lap turns exactly once to the right, and two
+  straights' lengths so that it closes: of the straights off the line's straight (a straight a Section's border cuts
+  counts as two), the two whose headings differ by at least 30° (|sin| ≥ 0.5) with the least of their larger change.
+  The race's are 7198–7620 (+2.11 m, to 159.214 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
+  qualifying's 1788–2035 (−1.79 m, to 90.162 m) and 4541–4697 (−1.09 m, to 56.980 m), its last arc 5782–5903. These
+  three lengths are written as solved; a changed element's steps spread evenly over its length.
+- **Plane and stations.** A step of the lap is the station across from P there on the plane, each element's steps
+  spread evenly over its written length.
+- **Lanes.** a and b, 512 units (3.122 m) each, either side of P; their centres at ±256 units, the grid's. The road
+  out to the barriers is one surface: the original has no lane lines.
+- **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
+  `ASPHALT` to 820 units (5.000 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
+  (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge). The materials'
+  outer edges are the course's limits. Between two bands the edges move linearly over the 4 steps about their border.
+  No walls are made, and no object has a body: the original's band table alone acts on its car.
+- **Colors** (strips of color alone):
+  - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the race's tunnel's,
+    9032–10860, dark (0x0842).
+  - **Surface.** ±992 units, each surface board across the road (0x0DA4 at x 0) coloring the road from the board before
+    it in the linear-light mean of its picture's colored pixels in its palette (the plain, the tunnel's and the
+    bridge's); stretches of one color are one.
+  - **Side paving.** The surface boards beside the road (±1720) color 728–2712 units on their side alike, from the
+    board before or, first of a run, 10 steps before.
+  - **Centre line.** At each surface board, 2 steps long and 80 units wide, the mean of its top row's columns 120–129.
+  - **Grid marks.** At each grid slot, on its side, the grid board's row 2 (80–896 units out) 0.5 steps long from the
+    slot and its row 22 (64–808) 4 steps before it, each the mean of its line's pixels.
+  - **Start line.** At steps 290, 300 and 310, 2 steps long before each, the start board's row 6 across the road as
+    its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
+  - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
+- **Sections.** One a sector between the original's CHECKPOINTs (the race's 288–4697, 4697–9538 and 9538–288; the
+  qualifying's 288–4697 and 4697–288), halved where its boards (MG-5's objects but the surface boards) would pass a
+  Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's `sector-1a`/`1b`,
+  `2a`/`2b`, `3a`/`3b` split at 2333, 7115 and 12110 (1429/1430, 1585/1586, 1661/1664 boards), the qualifying's
+  `sector-1a`/`1b` at 2333 and its `sector-2` (1055). No Section's domain passes over itself. They join by lane a, the
+  last to the first.
+- **Gates.** The grid's 24 slots, from the front, slot s at step 588 − 12s (lap step 300 − 12s), lane a for even s and
+  b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as TSUKUBA's are, 12 steps further
+  than the original's line moves them so that the rearmost leaves the camera's 6 m behind it (the format asks it).
+  `bikeGrid` is null. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
+  finish `<course>-FINISH` ends the lap.
+- **Skies.** `smgp-sky` from each Section's start; in the race the tunnel's `smgp-tunnel-sky` as the camera reaches
+  step 9054, where the original's background is wholly dark, and `smgp-sky` again at 10750, the middle of its
+  brightening (10655–10847), each a `cut`. At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
+  edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −
+  (346.625 − 160) / 240 rad, within ±360° by the sky's period, 1504 / 240 rad.
+- **Profile.** Level: the courses do not cross themselves.
