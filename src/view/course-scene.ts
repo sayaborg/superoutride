@@ -10,6 +10,7 @@ import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
 import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
+import type { SpriteAsset } from '../image/sprite.js';
 import type { VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
 import { createCourseWorld } from '../race/course-world.js';
 import type { CourseLoadingWindow } from '../race/loading-coverage.js';
@@ -132,10 +133,19 @@ export function createCourseScene(
         const pictures = renderData.knockedPictures(k.section, k.sprite);
         const reach = squareReach(renderData.movableBody(k.section, k.sprite).width);
         // A knocked object's picture stands at its square's centre at its own height, its shadow on the road beneath.
-        const show = (s: number, l: number, asset: CourseSprite['asset']) => {
+        const show = (s: number, l: number, asset: SpriteAsset) => {
           const position = readers.coordinates.toWorld(s, l, sample);
           const shadow = { y: readers.height.sample(s), reach };
-          worldSprites.push({ name: asset.name, x: position.x, y: k.y, z: position.z, sRender: s, asset, shadow });
+          worldSprites.push({
+            name: asset.name,
+            x: position.x,
+            y: k.y,
+            z: position.z,
+            sRender: s,
+            asset,
+            views: null,
+            shadow,
+          });
         };
         if (k.state === 'airborne') {
           if (runtime.window.at(k.s)) show(k.s, k.l, pictures.airborne);

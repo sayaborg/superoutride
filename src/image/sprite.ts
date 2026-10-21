@@ -134,14 +134,15 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
     4,
   );
   const name = readString(document.name, '/name');
-  const extent = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
-  const width = readNumber(document.width, '/width', extent);
-  const height = readNumber(document.height, '/height', extent);
-  requireAdmission(Number.isSafeInteger(width * height), 'resource_limit', '/height', 'Sprite extent is too large');
-  const anchorX = readNumber(document.anchorX, '/anchorX');
-  const anchorY = readNumber(document.anchorY, '/anchorY');
-  const layout = spriteLodLayout(width, height);
-  const levelDocuments = readArray(document.levels, '/levels', (level) => level, { min: 1, max: layout.length });
+  const { palettes, defaultPalette } = readSpritePalettes(document);
+  const picture = readSpritePicture(document, '', palettes, defaultPalette, (count) =>
+    document.shadow === undefined ? null : readShadow(document.shadow, count),
+  );
+  return Object.freeze({ name, ...picture, defaultPalette, palettes });
+}
+
+/** An image's named palettes and the default one, which names one of them. */
+export function readSpritePalettes(document: Record<string, unknown>) {
   const palettes = readDictionary(document.palettes, '/palettes', (value, path) =>
     Object.freeze({ colors: readIndexedPalette(readRecord(value, path, ['colors']).colors, `${path}/colors`) }),
   );
@@ -152,29 +153,56 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
     '/defaultPalette',
     'Default palette must name an image palette',
   );
+  return { palettes, defaultPalette };
+}
+
+/**
+ * A picture at `path` in its image: its master extent and anchor, and its levels, every one at most the LOD's, the
+ * master's colors those of the image's default palette; `readShadows` reads its shadow's levels, as many as its own.
+ */
+export function readSpritePicture(
+  record: Record<string, unknown>,
+  path: string,
+  palettes: Readonly<Record<string, SpritePalette>>,
+  defaultPalette: string,
+  readShadows: (count: number) => readonly SpriteFrame[] | null,
+) {
+  const extent = { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true };
+  const width = readNumber(record.width, `${path}/width`, extent);
+  const height = readNumber(record.height, `${path}/height`, extent);
+  requireAdmission(
+    Number.isSafeInteger(width * height),
+    'resource_limit',
+    `${path}/height`,
+    'Sprite extent is too large',
+  );
+  const anchorX = readNumber(record.anchorX, `${path}/anchorX`);
+  const anchorY = readNumber(record.anchorY, `${path}/anchorY`);
+  const layout = spriteLodLayout(width, height);
+  const levelDocuments = readArray(record.levels, `${path}/levels`, (level) => level, { min: 1, max: layout.length });
   const levelFields = ['paletteRgb555', 'indices', 'mixtures'];
   const base = readIndexedPalette(
-    readRecord(levelDocuments[0], '/levels/0', levelFields).paletteRgb555,
-    '/levels/0/paletteRgb555',
+    readRecord(levelDocuments[0], `${path}/levels/0`, levelFields).paletteRgb555,
+    `${path}/levels/0/paletteRgb555`,
   );
   requireAdmission(
     base.every((color, i) => color === palettes[defaultPalette]!.colors[i]),
     'invalid_value',
-    '/levels/0/paletteRgb555',
+    `${path}/levels/0/paletteRgb555`,
     'Master colors must equal the named default palette',
   );
-  const shadows = document.shadow === undefined ? null : readShadow(document.shadow, levelDocuments.length);
+  const shadows = readShadows(levelDocuments.length);
   const levels = levelDocuments.map((value, k) => {
-    const path = `/levels/${k}`;
-    const level = readRecord(value, path, levelFields);
-    const paletteRgb555 = k === 0 ? base : readIndexedPalette(level.paletteRgb555, `${path}/paletteRgb555`);
+    const at = `${path}/levels/${k}`;
+    const level = readRecord(value, at, levelFields);
+    const paletteRgb555 = k === 0 ? base : readIndexedPalette(level.paletteRgb555, `${at}/paletteRgb555`);
     const mixtures = Object.freeze(
-      readArray(level.mixtures, `${path}/mixtures`, (value) => value, { length: 16 }).map((value, slot) =>
-        readMixture(value, `${path}/mixtures/${slot}`, k, slot, base, paletteRgb555),
+      readArray(level.mixtures, `${at}/mixtures`, (value) => value, { length: 16 }).map((value, slot) =>
+        readMixture(value, `${at}/mixtures/${slot}`, k, slot, base, paletteRgb555),
       ),
     );
     const { width: w, height: h } = layout[k]!;
-    const indices = readPatternSymbols(level.indices, `${path}/indices`, w * h, {
+    const indices = readPatternSymbols(level.indices, `${at}/indices`, w * h, {
       test: (index) => !index || mixtures[index]!.length > 0,
       message: 'Opaque index requires a palette mixture',
     });
@@ -189,17 +217,14 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       shadow: shadows?.[k] ?? null,
     });
   });
-  return Object.freeze({
-    name,
+  return {
     width,
     height,
     anchorX,
     anchorY,
     worldWidthMeters: width / SPRITE_SOURCE_TEXELS_PER_METER,
-    defaultPalette,
-    palettes,
     levels: Object.freeze(levels),
-  });
+  };
 }
 
 /**

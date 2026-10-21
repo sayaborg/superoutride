@@ -8,6 +8,8 @@ import { createCourseRenderResources } from './course-render-resources.js';
 import { courseBoundaryAt } from '../course/course-boundaries.js';
 import type { RouteWall } from './course-wall.js';
 import type { RouteEnvironment } from './background-transition.js';
+import type { CourseSprite } from './course-sprite.js';
+import { wrapAngle } from '../core/math.js';
 
 /** Visual content over the same route ruler as the physical readers. Derived lists change with the route. */
 export function createCourseRouteVisualReaders(route: RouteWindow) {
@@ -82,11 +84,23 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
         .map((entry, index) => ({ ...entry, index }))
         .filter(({ sprite }) => route.at(routeS(occurrence, sprite.sRender)) === occurrence)
         .map(({ sprite, unselectedLink, knocked, index }) => {
-          const positioned = Object.freeze({
-            ...sprite,
+          const place = {
             ...transformPlanarPoint(occurrence.worldFromSection, sprite),
             sRender: routeS(occurrence, sprite.sRender),
-          });
+          };
+          // A board with views reads its road's heading in the Route frame, the camera's.
+          const positioned: CourseSprite = Object.freeze(
+            sprite.views
+              ? {
+                  ...sprite,
+                  ...place,
+                  views: Object.freeze({
+                    ...sprite.views,
+                    heading: wrapAngle(sprite.views.heading + occurrence.rotation),
+                  }),
+                }
+              : { ...sprite, ...place },
+          );
           return { occurrence, sprite: positioned, unselectedLink, movable: knocked !== null, index };
         }),
     );

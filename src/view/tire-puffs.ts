@@ -248,7 +248,7 @@ function createPuff(): Puff {
     sizes: [],
     palette: '',
     serial: 0,
-    sprite: { name: 'puff', x: 0, y: 0, z: 0, sRender: 0, asset: null!, shadow: null },
+    sprite: { name: 'puff', x: 0, y: 0, z: 0, sRender: 0, asset: null!, views: null, shadow: null },
   };
 }
 

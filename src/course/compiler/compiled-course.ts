@@ -325,11 +325,14 @@ export async function compileCourseDocument(
     const sourceSha256 = sha256,
       materialsSha256 = materials.sha256;
     // The master dimensions of the solid sprites' images, in texels, by name: they size the roadside objects. Their
-    // pixels and colors change no driving and stay out of the identity.
+    // pixels and colors change no driving and stay out of the identity. A solid sprite's image is a course image: the
+    // objects' compilation refused any other.
     const solidImages = Object.freeze(
       Object.fromEntries(
         courseSolidImageNames(document).map((name) => {
-          const { image } = assets.get(name)!;
+          const asset = assets.get(name)!;
+          if (asset.kind !== 'sprite') throw new Error(`Solid image ${name} is not a course image`);
+          const { image } = asset;
           return [name, Object.freeze({ width: image.width, height: image.height })];
         }),
       ),

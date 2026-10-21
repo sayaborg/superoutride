@@ -54,9 +54,30 @@ through the [content admission toolkit](architecture.md#content-admission-toolki
 first failure at its JSON Pointer. Coarse colors must agree with their mixtures. Readers own packed buffers and immutable metadata.
 A course image is saved with every level of its LOD, compiled from its master when it is written; the build admits it
 as it is and compiles no level, and refuses a saved sprite without every level. Every tool that writes a course image
-writes it through one function (`courseImageFile`), which compiles the levels from the master, so no saved image holds a
-master without its levels or levels of another master. A master alone (one normalized level) is the LOD compiler's
+writes it through one function (`courseImageFile`, and `courseViewsFile` for a [view set](#view-sets)), which compiles
+the levels from the master, so no saved image holds a master without its levels or levels of another master. A master alone (one normalized level) is the LOD compiler's
 input.
+
+## View sets
+
+A view set is the image of a board with views: one course image file holding the board's distinct pictures and the
+picture of each of its 32 views, which drawing selects by the angle the board is seen at
+([Boards with views](architecture.md#boards-with-views)):
+
+```text
+{
+  format: "superoutride.sprite-views", version: 1, name,
+  defaultPalette, palettes,
+  pictures: [{width, height, anchorX, anchorY, levels: [...]}, ...],
+  views: [32 picture indices]
+}
+```
+
+`name`, `defaultPalette` and `palettes` are a completed sprite image's, shared by every picture. Each picture is a
+completed sprite image's extent, anchor and levels, admitted by the same rules: its master colors are the default
+palette's and it is saved with every level of its LOD. A picture has no shadow. There are one to 32 pictures, `views`
+names one for each view, and every picture is some view's; a mirrored view is a picture of its own. A course names a
+view set as it names a sprite image, and a placement selects one of its palettes by name.
 
 ## Common prefilter rules
 
@@ -374,9 +395,9 @@ the new image. Naming it in a course is the course's edit.
 
 ## Course image sources
 
-Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile picture
-format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an immutable reader,
-a `SpriteAsset` or a tile picture; Section membership resolves to those, and rendering borrows them without
+Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite, view set
+or tile picture format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an
+immutable reader, a `SpriteAsset`, a view set or a tile picture; Section membership resolves to those, and rendering borrows them without
 decoding. Delivery checks the bytes against the manifest digest before they reach admission.
 
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)

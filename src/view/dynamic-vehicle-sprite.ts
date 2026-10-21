@@ -24,7 +24,7 @@ export function createDynamicVehicleCourseSprite(
   const relativeYaw = wrapAngle(vehicle.yaw - camera.yaw - viewYaw);
   const selected = selectVehicleSprite(spriteSet, relativeYaw, deriveVehicleLeanRadians(vehicle), heldYawIndex);
   return {
-    sprite: { name, x: base.x, y: base.y, z: base.z, sRender: base.s, asset: selected.asset, shadow },
+    sprite: { name, x: base.x, y: base.y, z: base.z, sRender: base.s, asset: selected.asset, views: null, shadow },
     yawIndex: selected.yawIndex,
   };
 }

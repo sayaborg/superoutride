@@ -15,6 +15,7 @@ import { readRgb555, rgba, unpackRgba } from '../../src/image/rgb555.js';
 import type { ContentStore } from '../authoring/content-store.js';
 import { decodeSpritePng } from './sprite-png.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
+import { readSpriteViewsAsset, SPRITE_VIEWS_FORMAT, type SpriteViewsDocument } from '../../src/image/sprite-views.js';
 import { generateSpritePalette } from './sprite-palette.js';
 import { normalizeSpriteSource, type SourceImage, type SpriteCrop } from './sprite-source-compiler.js';
 
@@ -150,4 +151,34 @@ export function courseImageFile(master: SpriteLodDocument) {
     path: `images/${master.name}.json`,
     bytes: new TextEncoder().encode(formatSavedJson(compileSpriteLod(master))),
   };
+}
+
+/**
+ * A view set's masters as its named file, `images/<name>.json`, each picture compiled with every level it is delivered
+ * with, as `courseImageFile` compiles a course image's: the one way a view set is written. `views` names each of the 32
+ * views' master.
+ */
+export function courseViewsFile(
+  name: string,
+  masters: readonly SpriteLodDocument[],
+  views: readonly number[],
+): { readonly path: string; readonly bytes: Uint8Array } {
+  const [first] = masters;
+  const colors = (master: SpriteLodDocument) => JSON.stringify([master.defaultPalette, master.palettes]);
+  if (!first || masters.some((master) => colors(master) !== colors(first)))
+    throw new RangeError('A view set has pictures in one default palette and one palette dictionary');
+  const document: SpriteViewsDocument = {
+    format: SPRITE_VIEWS_FORMAT,
+    version: 1,
+    name,
+    defaultPalette: first.defaultPalette,
+    palettes: first.palettes,
+    pictures: masters.map((master) => {
+      const { width, height, anchorX, anchorY, levels } = compileSpriteLod(master);
+      return { width, height, anchorX, anchorY, levels };
+    }),
+    views,
+  };
+  readSpriteViewsAsset(document);
+  return { path: `images/${name}.json`, bytes: new TextEncoder().encode(formatSavedJson(document)) };
 }

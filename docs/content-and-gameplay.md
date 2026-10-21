@@ -127,7 +127,8 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedLink,body}`.
-`image` names a sprite image; `palette` is a required nonempty name
+`image` names a sprite image or a [view set](image-assets.md#view-sets), a board with views whose picture the view
+selects as it is drawn ([Boards with views](architecture.md#boards-with-views)); `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
@@ -144,8 +145,8 @@ for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (
 `launchDegrees` the elevation a hit throws it at (0 or more, under 90; one `invalid_numeric_domain` outside), and
 `airborne` and `landed` the sprite images it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
-wider than the image's world width (its master width at 40 texels/m) and a body on a state-selected sign
-(`invalid_placement`); the appearance compiler resolves the knocked images like the placement's own and requires a
+wider than the image's world width (its master width at 40 texels/m), a body on a state-selected sign and a body on a
+board with views, whose size changes with its picture (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the placement's own and requires a
 movable body's image and its airborne and landed images each to carry a shadow (`invalid_placement` at the image's
 pointer), which the object casts ([Shadows](architecture.md#shadows)).
 
@@ -448,7 +449,8 @@ Slab crossings and moving-edge preblend event counts depend on geometry, so inpu
 cannot guarantee derived counts; compilation checks the actual products and rejects excess.
 The 21 km density case, a nearly 42 km case reaching plan element/PVI/knot/Boundary/Strip/placement ceilings,
 and 50- and 128-Section three-choice graphs are disposable measured probes; their times, memory and
-compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source. Authored
+compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source, a view set
+too, whose pictures each meet `imageMasterTexels` and whose levels all count toward `imageTotalLevelTexels`. Authored
 JSON size does not include the separately supplied image bytes.
 
 A Section's plan is its centreline from its origin facing +Z: straights and arcs in order, each `length` metres along
@@ -464,8 +466,8 @@ are format values, not entries in the resource table. Run rival/lap/time-margin 
 `RUN_RULE_LIMITS`, shared with run admission and controls rather than copied into document limits.
 
 Limit-only revisions retain the format version. The compiler identity identifies compiled products: it advances
-when a revision can change the product of an accepted input, and a revision that only narrows admission keeps it,
-since every course it still accepts compiles to the same product. Existing inputs must still satisfy the current
+when a revision can change the product of an accepted input, and a revision that only narrows or only widens
+admission keeps it, since every course accepted both before and after compiles to the same product. Existing inputs must still satisfy the current
 ceilings; no migration reader or grandfathered limit set is provided.
 
 Course compilation owns the route-count ceiling. `enumerateCourseRoutes` is the one enumeration of a course's

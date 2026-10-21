@@ -4,7 +4,12 @@ import { type CoursePosition, type SectionDocument } from '../course-document.js
 import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
-import type { CourseAppearance, CourseSpriteResource, CourseWallAppearance } from '../course-appearance.js';
+import type {
+  CourseAppearance,
+  CourseSpriteImage,
+  CourseSpriteResource,
+  CourseWallAppearance,
+} from '../course-appearance.js';
 import type { StripGround } from '../strip-ground.js';
 import type { CompiledWall } from './course-walls.js';
 import type { CourseSpritePlacement } from './course-objects.js';
@@ -23,8 +28,12 @@ function compileWallAppearance(wall: CompiledWall & { readonly color: StripGroun
 
 /** Share one immutable image/palette binding across every Section in a compilation. */
 export function createCourseSpriteResources() {
-  const images = new Map<CourseSpriteResource['asset']['image'], Map<string, CourseSpriteResource>>();
-  return (asset: CourseSpriteResource['asset'], palette: string, path: string): CourseSpriteResource => {
+  const images = new Map<CourseSpriteImage['image'], Map<string, CourseSpriteResource>>();
+  return <Image extends CourseSpriteImage>(
+    asset: Image,
+    palette: string,
+    path: string,
+  ): CourseSpriteResource<Image> => {
     requireCourse(
       Object.hasOwn(asset.image.palettes, palette),
       path,
@@ -36,7 +45,7 @@ export function createCourseSpriteResources() {
       variants = new Map();
       images.set(asset.image, variants);
     }
-    let resource = variants.get(palette);
+    let resource = variants.get(palette) as CourseSpriteResource<Image> | undefined;
     if (!resource) {
       resource = Object.freeze({ asset, palette });
       variants.set(palette, resource);
@@ -143,9 +152,9 @@ export function compileCourseAppearance(
     // A movable placement's knocked pictures share its palette; its standing, flying and landed pictures each cast a
     // shadow, so each has one.
     const movable = placement.body?.movable ?? null;
-    const shadowed = (picture: typeof asset, pictureAt: string) => {
+    const shadowed = <Picture extends CourseSpriteImage>(picture: Picture, pictureAt: string) => {
       requireCourse(
-        picture.image.levels[0]!.shadow !== null,
+        picture.kind === 'sprite' && picture.image.levels[0]!.shadow !== null,
         pictureAt,
         "A movable object's pictures have shadows",
         'invalid_placement',

@@ -1,6 +1,7 @@
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { SpriteLodAsset } from '../image/sprite.js';
+import type { SpriteViewsAsset } from '../image/sprite-views.js';
 import type { CompiledBoundary } from './course-boundaries.js';
 import type { StripGround } from './strip-ground.js';
 import type { BackgroundArrival } from './course-document.js';
@@ -10,9 +11,14 @@ interface DecodedImage<Image> {
   readonly image: Image;
 }
 
-export interface CourseSpriteResource {
+/** A placement's image: a course image, or a view set, whose picture its board's view selects. */
+export type CourseSpriteImage =
+  | (DecodedImage<SpriteLodAsset> & { readonly kind: 'sprite' })
+  | (DecodedImage<SpriteViewsAsset> & { readonly kind: 'views' });
+
+export interface CourseSpriteResource<Image extends CourseSpriteImage = CourseSpriteImage> {
   readonly palette: string;
-  readonly asset: DecodedImage<SpriteLodAsset>;
+  readonly asset: Image;
 }
 
 /**
@@ -47,7 +53,10 @@ export interface CourseAppearance {
     readonly l: number;
     readonly groundOffset: number;
     /** A movable placement's pictures while flying and once landed, in its palette; null for any other. */
-    readonly knocked: { readonly airborne: CourseSpriteResource; readonly landed: CourseSpriteResource } | null;
+    readonly knocked: {
+      readonly airborne: CourseSpriteResource<CourseSpriteImage & { readonly kind: 'sprite' }>;
+      readonly landed: CourseSpriteResource<CourseSpriteImage & { readonly kind: 'sprite' }>;
+    } | null;
   }[];
   /** The visible walls, in authored order; invisible walls draw nothing. */
   readonly walls: readonly CourseWallAppearance[];
