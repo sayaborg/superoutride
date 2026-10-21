@@ -488,7 +488,7 @@ evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
 runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` (TURBO OUTRUN's in
 `reference-media/turbo-outrun/rom/`, SUPER HANG-ON's in `reference-media/super-hang-on/rom/`, ENDURO RACER's two in
-`reference-media/enduro-racer/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
+`reference-media/enduro-racer/rom/`, SUPER MONACO GP's in `reference-media/super-monaco-gp/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
 from the ROMs under `content/`:
 
 | Command                | Purpose                                                                                                                                                                                                                  |
@@ -505,6 +505,7 @@ from the ROMs under `content/`:
 | `super-hang-on-course` | Write SUPER HANG-ON's four courses, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures their objects show and their skies to `content/images/`, or with `--check` fail where one differs         |
 | `enduro-racer-read`    | Read ENDURO RACER's two ROM zips (`--zip`, else `enduror.zip`, and `--bootleg-zip`, else `endurobl.zip`, in its ROM directory), finding each ROM by its CRC, and write every table its course uses to its dump (`--out`) |
 | `enduro-racer-course`  | Write ENDURO RACER's course, raised from its two ROM zips (`--zip`, `--bootleg-zip`), to `content/courses/`, and its skies to `content/images/`, or with `--check` fail where one differs                                |
+| `super-monaco-gp-read` | Read SUPER MONACO GP's ROM zip (`--zip`, else the one zip in its ROM directory), finding each ROM by its CRC, and write every table its courses use to its dump (`--out`)                                                |
 
 ### Local originals
 

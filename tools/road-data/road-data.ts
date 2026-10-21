@@ -41,6 +41,8 @@ import { startDepth } from './object-approach.js';
 import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figures.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import { enduroRacerDump } from './enduro-racer-dump.js';
+import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
+import { superMonacoGpFiles } from './super-monaco-gp-rom.js';
 import { filesByCrc } from './enduro-racer-rom.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
@@ -83,6 +85,9 @@ const ENDURO_RACER_ZIPS = Object.freeze({
   '--bootleg-zip': 'reference-media/enduro-racer/rom/endurobl.zip',
 } as const);
 const ENDURO_RACER_DUMP_DIRECTORY = 'reference-media/enduro-racer/rom-data';
+/** Where K's SUPER MONACO GP ROM zip and the tool's dumps of it lie: never committed. */
+const SUPER_MONACO_GP_ROM_DIRECTORY = 'reference-media/super-monaco-gp/rom';
+const SUPER_MONACO_GP_DUMP_DIRECTORY = 'reference-media/super-monaco-gp/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -932,6 +937,46 @@ try {
           ),
           pictures: built.pictures.length,
           skies: skies.length,
+        }),
+      );
+      break;
+    }
+    case 'super-monaco-gp-read': {
+      // SUPER MONACO GP's ROM zip read, never decrypted; every table its courses use to the dump.
+      const zip = await oneZip(options.get('--zip'), SUPER_MONACO_GP_ROM_DIRECTORY, '--zip');
+      const dump = superMonacoGpDump(superMonacoGpFiles(readZip(new Uint8Array(await readFile(zip)))));
+      const out = options.get('--out') ?? SUPER_MONACO_GP_DUMP_DIRECTORY;
+      await atomicWrite(path.join(out, 'super-monaco-gp.json'), JSON.stringify(dump) + '\n');
+      const objects = Object.values(dump.groups).flat();
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          out,
+          courses: dump.courses.map(({ form, descriptor, headings, path: p, scenery, bands }) => {
+            // The objects the course shows, by kind, and the kinds (kind, frames, palette, b1) among them.
+            const shown = scenery.flatMap((s) => dump.groups[s.group] ?? []);
+            const count = (kind: number) => shown.filter((o) => o.kind === kind).length;
+            return {
+              form,
+              descriptor: Object.fromEntries(Object.entries(descriptor).map(([k, v]) => [k, `0x${v.toString(16)}`])),
+              steps: headings.length,
+              listWords: scenery.length,
+              length: Math.round(p.dx.reduce((sum, dx, k) => sum + Math.hypot(dx, p.dy[k]!, p.dz[k]!), 0)),
+              objects: shown.length,
+              byKind: { flat: count(0x04), standing: count(0x08), viewed: count(VIEWED) },
+              bands: {
+                left: bands.left.map((b) => [b.end, b.t1]),
+                right: bands.right.map((b) => [b.end, b.t1]),
+              },
+            };
+          }),
+          groups: Object.keys(dump.groups).length,
+          kinds: new Set(objects.map((o) => `${o.kind} ${o.frames} ${o.flags & 0xff} ${o.b1}`)).size,
+          viewTables: Object.keys(dump.views).map((v) => `0x${Number(v).toString(16)}`),
+          frameTables: Object.keys(dump.frameTables).length,
+          pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
+          roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
         }),
       );
       break;

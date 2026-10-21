@@ -1613,3 +1613,101 @@ Rev B, FD1094 317-0126a). Its main CPU's program is encrypted for instruction fe
 ROMs' bytes, and the program is never decrypted. The courses' tables lie in the sub CPU's program, which is not
 encrypted. Its ROM set, programs and tables are described here as
 [Stage MG](NEXT.md#stage-mg--super-monaco-gp-from-the-roms) reads them.
+
+### SUPER MONACO GP's ROM set
+
+Each CPU's program is interleaved from a ROM of its even bytes and a ROM of its odd bytes, 128 KiB each:
+
+| CPU  | Addresses       | Even bytes                 | Odd bytes                  |
+| ---- | --------------- | -------------------------- | -------------------------- |
+| main | 0x00000–0x3FFFF | `epr-12563b.58` `baf1f333` | `epr-12564b.63` `b5191af0` |
+| sub  | 0x00000–0x3FFFF | `epr-12576a.20` `2c9599c1` | `epr-12577a.29` `abf9a50b` |
+
+The main CPU's program is encrypted (FD1094) for instruction fetches alone: the tables it holds are read as its ROMs'
+bytes. The sub CPU's program, which holds the courses, is not encrypted; the main CPU sees it at 0x200000.
+
+The tiles are three 64 KiB ROMs, one bit plane each, the lowest first, 8 bytes a tile, 8192 tiles: `epr-12429.154`
+`5851e614`, `epr-12430.153` `05e00134`, `epr-12431.152` `35572f4a`. The sprites are 16 ROMs of 128 KiB in four sets of
+four, each ROM one byte of a 32-bit word, the least significant first; set g's words are banks 2g (its first half) and
+2g + 1, banks of 0x10000 words as OUTRUN's (`SUPER_MONACO_GP_SPRITE_ROMS`): `mpr-12425.90` `14bf2a15`, `mpr-12426.94`
+`28b60dc0`, `mpr-12427.98` `0a367928`, `mpr-12428.102` `efa80ad5` (banks 0–1); `mpr-12421.91` `25f46140`,
+`mpr-12422.95` `cb51c8f6`, `mpr-12423.99` `0be9818e`, `mpr-12424.103` `0ce00dfc` (2–3); `mpr-12417.92` `a806eabf`,
+`mpr-12418.96` `ed1a0f2b`, `mpr-12419.100` `ce4568cb`, `mpr-12420.104` `679442eb` (4–5); `epr-12609.93` `a867812f`,
+`epr-12610.97` `53b99417`, `epr-12611.101` `bd5c6ab0`, `epr-12612.105` `ac86e890` (6–7). There is no road ROM: the X
+board's road layer draws lines of colors from RAM.
+
+The tool finds each ROM by its CRC-32 and size, whatever the zip names it, and refuses a set without one. It reads no
+key (`317-0126a.key`) and no sound or link ROM, and never decrypts.
+
+### SUPER MONACO GP's courses' tables
+
+Both CPUs are 68000s. The sub CPU holds the courses:
+
+- **Descriptors.** The eight longs at 0x42BE name course 0's (the qualifying's) at 0x30BC and course 1's (the race's)
+  at 0x30AC. A descriptor is four longs, their low 20 bits sub CPU addresses: the heading table, the scenery list, the
+  road path and the map.
+
+  | Course       | Steps N | Headings | Road path | Scenery list | Map     |
+  | ------------ | ------- | -------- | --------- | ------------ | ------- |
+  | 0 qualifying | 6136    | 0x20B02  | 0x23AF4   | 0xB472       | 0x282DC |
+  | 1 race       | 14156   | 0x2845C  | 0x2F2F6   | 0x45D6       | 0x398DA |
+
+- **Headings (T1).** A word N, then N words, each a step's heading in 1024ths of a turn, atan2(dx, dy) with x right and
+  y ahead: a growing heading turns right. Both courses turn +1024 in all, once round to the right.
+- **Road path.** N steps of {signed byte dx, dy, dz}; both close, their sums (0, 0, 0). A step is 96 units long in
+  three dimensions (the race's 1,358,993 against 96 × 14156 = 1,358,976). The two forms share their headings to step
+  4932 and part at 4933–5000: the race turns left, the qualifying runs on and turns right, taking its own short way,
+  and rejoins the race's road at its step 5876 (the race's 13896), each closing on its own path.
+- **Scenery list.** A long, its bytes, then a word a step (the race's exactly N, the qualifying's N + 1): bit 15
+  mirrors, its low 15 bits a group (0x05CA the empty one).
+- **Groups.** A word 4n, then n objects of 10 bytes {byte size class b1, byte kind (0x04 a flat board, 0x08 a
+  standing one, 0x0C one that changes with the angle), word sprite flags (its low byte the palette, bit 10 mirrored,
+  bit 11 flipped, bit 13 its middle its base point), word frame table (a 0x0C object's view table), signed word x (4 to
+  a unit), signed word height}. The qualifying shows 4596 objects (3019 of kind 0x0C, 1037 of 0x04, 540 of 0x08), the
+  race 10826 (7248, 2537, 1041); 147 kinds of object (kind, frames, palette, b1) in 242 groups.
+
+The main CPU holds the barriers' band tables: the race's left at 0xC4AE and right at 0xC50E, the qualifying's at 0xC4E4
+and 0xC556. A table is 6-byte entries {word end step (before it), signed word t1, signed word t2} (the left table's t1
+negative), each from the entry before it to its end, up to the first whose end is at least N. |t1| 1 or 4 is a barrier,
+2 an escape area, 0 open.
+
+### SUPER MONACO GP's sprites
+
+The X board's sprites are OUTRUN's pixels: words of eight 4-bit pixels, the most significant first, banks of 0x10000
+words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`sprite-pixels` as OUTRUN reads them).
+
+- **Frame tables.** Five entries of 6 bytes, v0 the largest, {word bank << 9, word first word in the bank, signed word
+  from the word after it to its size record}; a size record {word words across << 8, word height << 6, word words a
+  row, word words a row × (height − 1)}. Only v0 is drawn; the tool checks its record. Some smaller sizes' records are
+  not records (0x04FE's v3).
+- **Width.** The pictures are as wide as their records give; within it no colored pixel lies past a row's end mark,
+  so the hardware's rows and the records' agree.
+- **View tables.** An object of kind 0x0C names a view table on the sub CPU, 32 words, view i's frame table: 0x040A
+  (the barriers along the road), 0x044A (the barriers across it), 0x04CA (the concrete walls), 0x050A (the kerbs) and
+  0x058A (the advertising boards). View i and 31 − i are the same frame.
+- **Palettes.** Sprite palette p is the 14 [palette words](#palette-words) at 0x49BE + 28p, pixels 1–14, p from 0x00
+  to 0xEE.
+- **The rivals' cars.** Their frame table is at 0x10E0; they are not converted.
+
+### SUPER MONACO GP's background
+
+- **Pages.** The fine set's tile RAM is drawn from the records at 0x37FF8 and 0x39F9A, in turn: a record is {word kind,
+  word runs}, then runs {word byte offset into the tile RAM, then groups {byte count c, byte high, c bytes low} up to a
+  c of 0}, each group writing c tile words of its high byte over each low byte. The tile RAM is 16 pages of 64 × 32
+  tile words.
+- **Tiles.** A tile word's bits 0–12 are its tile, bits 6–12 its palette; pixel 0 is transparent.
+- **Tile palettes.** Colors 1–7 of palettes 8–127 from 0x432E + 14(p − 8) at power on; at a race's start the fine set
+  loads palettes 8–42 from 0x432E again and 50–58 from 0x457A + 14(p − 50).
+- **Road layer.** Color c of the fine set is the word at 0x63E2 + 2c: 0x31 the sky just above the horizon (RGB555
+  3a9a), 0x00 above it (01da), 0x32 the ground (1144).
+
+### SUPER MONACO GP's dump
+
+`npm run road-data -- super-monaco-gp-read` ([Development](development.md#road-data-commands)) reads the zip and writes
+`superoutride.super-monaco-gp-road-data` version 1, `super-monaco-gp.json` in
+`reference-media/super-monaco-gp/rom-data/`: the ROMs' names and CRCs; each course's descriptor, headings, road path,
+scenery list and band tables; the groups the lists name; the view tables; the frame tables the objects and views name
+(and the rivals' cars'), each with its colored pixels past its rows' end marks; the sprites' palettes; and the
+background's records, tile pages, tile palettes and road layer's colors. The amounts in the program's code (the grid's
+rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from Stage
+MG's description.

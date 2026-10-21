@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s from MG-2;
+Next PR: [Stage MG](#stage-mg--super-monaco-gp-from-the-roms)'s from MG-3;
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
@@ -545,11 +545,11 @@ Rules of the stage, beside the earlier stages':
   courses' form (a circuit that does not close, a board whose angle cannot be chosen as the original chooses it; the
   nearest form it can make is then shown); every other open point is decided by its default and reported in its PR.
 
-The PRs, in order (each one too large for one review is split and the split reported):
+MG-2 read SUPER MONACO GP's ROMs into its dump: the set found by CRC, the main CPU's bytes as they are, the courses'
+tables, the sprites' frame tables, view tables and palettes, and the background's pages
+([SUPER MONACO GP](original-road-data.md#super-monaco-gp)). The PRs left, in order (each one too large for one review
+is split and the split reported):
 
-- MG-2: SUPER MONACO GP's ROMs read: the set found by CRC, the main CPU's bytes as they are, and every table the
-  courses use written to the dump `super-monaco-gp.json` (`superoutride.super-monaco-gp-road-data` version 1) by
-  `super-monaco-gp-read`. No course yet.
 - MG-3: the two circuits without objects: the plan from the heading tables by `sectionPlan`, closed exactly on the
   written plane, lanes, materials and limits from the band tables, the surface and its marks as strips, Sections split
   where their boards would pass the format's bound, the tunnel's dark sky, gates and grid, no class, their racing lines
