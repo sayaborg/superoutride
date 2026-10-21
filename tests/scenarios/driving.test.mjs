@@ -1,6 +1,6 @@
 import { scenarioTests } from './driving-harness.mjs';
 
-// Short deterministic scenarios on the product courses TSUKUBA and OUTRUN TEST and the trial course OUTRUN TRIAL A.
+// Short deterministic scenarios on the product course TSUKUBA.
 scenarioTests({
   tsukuba: [
     // On the home straight the player steers into the left course limit, which pushes it back.
@@ -30,30 +30,14 @@ scenarioTests({
       seconds: 120,
       expect: { outcome: 'ENDED', position: 'P1/1' },
     },
-  ],
-  // A BRANCH course: the rival, driving from the grid while the player waits there, takes its intended exit's racing line
-  // through the first fork (the opposite exit to the player's), holds it and does not recover.
-  'outrun-test': [
+    // RACE with traffic on TSUKUBA, the test series' traffic class: a bounded stretch in which traffic appears ahead and
+    // leaves the view behind the player; the outcome is open.
     {
-      name: "a rival takes its intended exit's line through a fork",
-      policy: 'branch',
-      rivals: 1,
-      seed: 2,
-      exit: 0,
-      seconds: 150,
-      bounded: true,
-      lineTolerance: 2,
-    },
-  ],
-  'outrun-trial-a': [
-    {
-      name: 'RACE with the TRIAL series traffic',
+      name: 'RACE with the test series traffic',
       mode: 'RACE',
-      series: 'trial',
-      class: 'a',
+      class: 'traffic',
       policy: 'finish',
       seed: 7,
-      // A bounded stretch: traffic appears ahead and leaves the view behind the player; the outcome is open.
       seconds: 30,
       bounded: true,
       expect: { traffic: true },

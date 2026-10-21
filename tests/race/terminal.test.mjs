@@ -24,7 +24,7 @@ const materials = await loadSurfaceMaterials(definitionContent);
 const load = (stem) => loadDeliveredCourse(definitionContent, stem, materials);
 
 test('outside projection follows previous chainage across clamped and tangent-ray candidates', async () => {
-  const course = await load('outrun-trial-a');
+  const course = await load('super-hang-on-africa');
   // The linear chain loaded through its terminal Section.
   const chain = createCourseRoute(course.entry);
   chain.extendThrough(Infinity);
@@ -58,7 +58,7 @@ test('outside projection follows previous chainage across clamped and tangent-ra
 });
 
 test('Run rejects short terminal runout, including solo play; a loop is not a terminal', async () => {
-  const course = await load('outrun-trial-a');
+  const course = await load('super-hang-on-africa');
   const vehicle = createRunVehicle(
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,

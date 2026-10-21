@@ -137,7 +137,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-2a, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-2b, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -725,11 +725,9 @@ PRs:
 - PG-1 drew kind 2's rows below the anchor on the ground nearer than it
   ([Sprites and Painter](architecture.md#sprites-and-painter)): the vehicles' near sides show; the boards' lower parts
   stay hidden by nearer ground until their PRs below change them.
-- PG-2a: the tests using OUTRUN TEST and TRIAL move before those go. Traffic is driven on TSUKUBA by a class with
-  traffic added to the test series (`tests/scenarios/run-rules.series.json`, its `image` `tsukuba-clubman`); the tests
-  needing a straight course (`terminal`, `course-strip-ground`) use `super-hang-on-africa`; the screens smoke reads the
-  test series too (it has race tracks) and draws SELECT MUSIC's tracks and the series' change as today (if it cannot,
-  they are left out and reported); the scenario driving through a fork goes.
+- PG-2a moved the tests off OUTRUN TEST and TRIAL: traffic is driven on TSUKUBA by the test series' `traffic` class
+  (the series on TSUKUBA CLUBMAN's picture), `terminal` and `course-strip-ground` read `super-hang-on-africa`, the
+  screens smoke reads the test series beside the delivered ones, and the fork scenario is gone.
 - PG-2b: OUTRUN TEST and OUTRUN TRIAL (TRIAL A, TRIAL A STEEP and the TRIAL series) are deleted with their measured
   products, the images only they use and their sources (`sprite-sources`' 53, every `sky-sources`), the series
   pictures `trial` and `outrun-test` and their sources, the tools making them (`tools/course/outrun-test.ts` and

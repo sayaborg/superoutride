@@ -13,8 +13,8 @@ import { createStripGroundSampler, createStripRenderMetrics } from '../../src/vi
 test('visual Strips can erase all ground without changing material slabs, support or material readings', async () => {
   const content = new URL('../../content/', import.meta.url);
   const read = await readCourseDocumentBytes(
-    new Uint8Array(await readFile(new URL('courses/outrun-trial-a.course.json', content))),
-    'outrun-trial-a.course.json',
+    new Uint8Array(await readFile(new URL('courses/super-hang-on-africa.course.json', content))),
+    'super-hang-on-africa.course.json',
   );
   assert.ok(read.ok);
   const document = read.value;
@@ -26,7 +26,7 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   const prepared = await compileCourseImages(document, images);
   const original = await compileCourseDocument(
     prepared.document,
-    'outrun-trial-a',
+    'super-hang-on-africa',
     await courseFileSha256(prepared.document),
     prepared.images,
     materials,
@@ -41,7 +41,7 @@ test('visual Strips can erase all ground without changing material slabs, suppor
   assert.ok(admitted.ok);
   const replacement = await compileCourseDocument(
     admitted.value,
-    'outrun-trial-a',
+    'super-hang-on-africa',
     await courseFileSha256(admitted.value),
     prepared.images,
     materials,

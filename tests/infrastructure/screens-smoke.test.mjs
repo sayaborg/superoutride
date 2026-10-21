@@ -1,14 +1,15 @@
 import { PNG } from 'pngjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
-import { loadSeriesCatalog } from '../../src/content/series-catalog.js';
+import { compileSeriesCatalog } from '../../src/content/series-catalog.js';
+import { requireLoaded } from '../../src/content/content-load-error.js';
 import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
@@ -38,7 +39,35 @@ test('the front end screens render from the delivered content', async () => {
   const player = openPlayerRecord(null);
   const music = await loadMusic(content, TEXT_COLUMNS);
   const courses = await loadCourseIndex(content);
-  const series = await loadSeriesCatalog(content, vehicles, pictures, music);
+  // The delivered series and the test series of the driving scenarios (never delivered), a DEV series with race tracks.
+  const testSeries = new URL('../scenarios/run-rules.series.json', import.meta.url);
+  const sources = [
+    ...(await Promise.all(
+      content.manifest.files
+        .filter((file) => file.kind === 'series')
+        .map(async (file) => ({
+          id: file.id,
+          path: file.path,
+          value: await content.json('series', file.id),
+          sha256: file.sha256,
+        })),
+    )),
+    {
+      id: 'scenario-rules',
+      path: testSeries.pathname,
+      value: JSON.parse(await readFile(testSeries, 'utf8')),
+      sha256: '',
+    },
+  ];
+  const series = requireLoaded(
+    compileSeriesCatalog(
+      sources,
+      content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id),
+      vehicles,
+      pictures,
+      music,
+    ),
+  );
   // Until the screen host joins at the end, the shown screen is current at once.
   let screen = null,
     host = null,
@@ -106,12 +135,13 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM');
   await capture('title');
   send('CONFIRM');
-  // TRIAL, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC OFF.
-  const trial = series.series.find((s) => s.id === 'trial');
-  while (screen.wallpaper !== trial.image) send('RIGHT');
+  // The test series, a DEV series with race tracks: its title track plays and SELECT MUSIC offers both tracks and MUSIC
+  // OFF. It stands on TSUKUBA CLUBMAN's picture, so its title track tells them apart.
+  const rules = series.series.find((s) => s.id === 'scenario-rules');
+  while (screen.wallpaper !== rules.image || titleTrack !== rules.music.title.id) send('RIGHT');
   await capture('select-series');
   assert.equal(titleTrack, 'placeholder-two');
-  // Halfway through a slide to the next series, then back to TRIAL.
+  // Halfway through a slide to the next series, then back to the test series.
   screen.command('RIGHT');
   for (let i = 0; i < SERIES_SLIDE_STEPS / 2; i++) screen.tick();
   await capture('select-series-slide');
@@ -136,7 +166,7 @@ test('the front end screens render from the delivered content', async () => {
   send('LEFT');
   await capture('select-music-off');
   send('CONFIRM');
-  assert.equal(requested?.seriesId, 'trial');
+  assert.equal(requested?.seriesId, 'scenario-rules');
   assert.equal(requested.session, 'RACE');
   assert.equal(requested.track, null);
   // TSUKUBA CLUBMAN has no race tracks: the run starts from SELECT VEHICLE with MUSIC OFF, for each of its classes.

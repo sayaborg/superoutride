@@ -24,7 +24,7 @@ import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
-import { admitSeriesClass, compileSeriesCatalog, loadSeriesCatalog } from '../../src/content/series-catalog.js';
+import { admitSeriesClass, compileSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
@@ -33,7 +33,6 @@ import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
 import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
-import { LINE } from '../../src/race/course-fork-field.js';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -76,9 +75,6 @@ const scenarioSeries = requireLoaded(
   ),
 );
 
-// The delivered series, for scenarios that run a course's delivered RACE settings (TRIAL's traffic).
-const productSeries = await loadSeriesCatalog(content, definitions.vehicles, screenPictures, music);
-
 export async function loadScenarioCourse(stem) {
   return { course: await loadDeliveredCourse(content, stem, materials) };
 }
@@ -97,20 +93,11 @@ export function scenarioTests(courses) {
     });
 }
 
-/** The RACE class a scenario names: `class` of the test series, or of the delivered series `series`. */
-function scenarioClass(course, { series, class: classId }) {
-  const settings = series
-    ? productSeries.seriesClass(series, classId)
-    : scenarioSeries.seriesClass('scenario-rules', classId);
+/** The RACE or TIME ATTACK class a scenario names: `class` of the test series. */
+function scenarioClass(course, { class: classId }) {
+  const settings = scenarioSeries.seriesClass('scenario-rules', classId);
   assert.ok(settings && settings.course === course.id, `No class ${classId} on ${course.id}`);
-  return requireLoaded(
-    admitSeriesClass(
-      settings,
-      course,
-      definitions.vehicles,
-      series ? `${series}.series.json` : SCENARIO_SERIES_PATH.pathname,
-    ),
-  );
+  return requireLoaded(admitSeriesClass(settings, course, definitions.vehicles, SCENARIO_SERIES_PATH.pathname));
 }
 
 // Every numeric leaf in live state, including nested wheel/control telemetry and derived getters.
@@ -226,7 +213,7 @@ function pavementBounds(scene, vehicle) {
  * the series, initial conditions and input policy differ from the browser.
  */
 export async function runScenario({ course }, scenario) {
-  // RACE and TIME ATTACK take their class of the test series, or of the delivered series `scenario.series`.
+  // RACE and TIME ATTACK take their class of the test series.
   const runClass = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
   const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : 'TESTAROSSA');
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
@@ -340,8 +327,6 @@ export async function runScenario({ course }, scenario) {
     // Toward a course limit for a while, then back to the reference line.
     else if (scenario.policy === 'limit' && race.clock.elapsedSeconds < scenario.steerSeconds)
       input = { ...idle, steering: scenario.steering, throttle: true };
-    // The player waits on the grid while the rival drives to the first fork.
-    else if (scenario.policy === 'branch') input = idle;
     // The player's run driver drives.
     else input = null;
     const step = race.advance(input);
@@ -521,17 +506,6 @@ export async function runScenario({ course }, scenario) {
     )
       render();
     if (ending && tick - ending.tick < (scenario.afterEndingSeconds ?? 0) / SIM_DT) continue;
-    if (scenario.policy === 'branch') {
-      // The rival's farthest departure from its line from the fork's lock line to its closure, then the run ends.
-      const rival = race.rivals[0];
-      const fork = scene.runtime.route.occurrences.find((occurrence) => occurrence.section.fork);
-      const { s, l } = rival.actor.vehicle.course;
-      if (fork && s > fork.start + fork.section.fork.lock.s && s < fork.start + fork.section.fork.closure.s) {
-        evidence.branchDeparture = Math.max(evidence.branchDeparture ?? 0, Math.abs(l - rival.body.driving.target(s)));
-        evidence.branchOffLine ||= rival.body.driving.intent.lane !== LINE;
-      }
-      if (fork && s > fork.start + fork.section.fork.closure.s) break;
-    }
     if (ended) break;
   }
   // A run into a course limit succeeds by lasting its time on the course.
@@ -556,26 +530,6 @@ export async function runScenario({ course }, scenario) {
     // The gear held while the spinning wheels took the engine past redline in the air: shifts read the vehicle's speed.
     assert.equal(evidence.airShifts, 0, 'a gear changed in the air');
     assert.ok(evidence.airborneRedline > 1, 'the engine never passed redline in the air');
-  }
-  if (scenario.policy === 'branch') {
-    // The rival reached the first fork first and took its intended exit, holding its line through it.
-    const fork = scene.runtime.route.occurrences.find((occurrence) => occurrence.section.fork);
-    const rival = race.rivals[0];
-    const intended = fork.section.fork.exits[rival.body.driving.intent.exit(fork)].link;
-    assert.ok(
-      rival.actor.vehicle.course.s > fork.start + fork.section.fork.closure.s,
-      'the rival never passed the fork',
-    );
-    // Links compare by ID: a failing comparison would otherwise print the course graph.
-    assert.equal(race.forks.choice(fork)?.id, intended.id, 'the rival did not take its intended exit');
-    assert.notEqual(
-      intended.id,
-      fork.section.fork.exits[scenario.exit].link.id,
-      `seed ${scenario.seed}: the premise changed`,
-    );
-    assert.ok(!evidence.branchOffLine, 'the rival drove a lane through the fork, not the racing line');
-    assert.ok(evidence.branchDeparture < scenario.lineTolerance, 'the rival left its line through the fork');
-    evidence.branch = { exit: intended.id, departure: Math.round(evidence.branchDeparture * 100) / 100 };
   }
   // Rivals and traffic, which only their drivers drive, never recover and no wall or course limit pushes them.
   assert.deepEqual(evidence.otherRecoveries, {}, 'a rival or traffic vehicle recovered');
