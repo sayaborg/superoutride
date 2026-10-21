@@ -66,6 +66,7 @@
     "SHOULDER": { "kind": "dust", "palette": "verge", "metersPerPuff": 3, "joulesPerPuff": 10000 },
     "GRASS": { "kind": "dust", "palette": "grass", "metersPerPuff": null, "joulesPerPuff": 10000 },
     "DIRT": { "kind": "dust", "palette": "dirt", "metersPerPuff": 2, "joulesPerPuff": 10000 },
-    "SAND": { "kind": "dust", "palette": "sand", "metersPerPuff": 2, "joulesPerPuff": 10000 }
+    "SAND": { "kind": "dust", "palette": "sand", "metersPerPuff": 2, "joulesPerPuff": 10000 },
+    "WATER": { "kind": "spray", "palette": "spray", "metersPerPuff": 1, "joulesPerPuff": 10000 }
   }
 }

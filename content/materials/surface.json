@@ -7,6 +7,7 @@
     { "id": "SHOULDER", "gripFactor": 0.78, "rollingResistance": 0.025 },
     { "id": "GRASS", "gripFactor": 0.43, "rollingResistance": 0.065 },
     { "id": "DIRT", "gripFactor": 0.52, "rollingResistance": 0.045 },
-    { "id": "SAND", "gripFactor": 0.33, "rollingResistance": 0.11 }
+    { "id": "SAND", "gripFactor": 0.33, "rollingResistance": 0.11 },
+    { "id": "WATER", "gripFactor": 0.6, "rollingResistance": 0.06 }
   ]
 }

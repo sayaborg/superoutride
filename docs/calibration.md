@@ -356,6 +356,7 @@ changes ([Browser](browser.md#sound-controls)). Friction roughness and susceptib
 | GRASS       | 0.85        | 0.12         | 1.4 m          | 0.45          | 0.375              | 0.04                    |
 | DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 0.75               | 0.12                    |
 | SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 0.55               | 0.02                    |
+| WATER       | 0.9         | 0.72         | 0.3 m          | 0.12          | 0.5                | 0.6                     |
 
 WET*ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
 about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, \_Tyre/Road Noise Reference Book*, 2002), taken
@@ -363,6 +364,11 @@ as 6 dB on the high band (0.18 × 2); and its friction susceptibility, the tende
 scales with the friction it lubricates away, by the wet-road friction ratio 0.7 ([Surface materials](#surface-materials)).
 The texture, a property of the asphalt under the water, is unchanged. The document keeps this derivation; a DEV change
 to either surface does not carry over to the other.
+
+WATER's surface sound is WET_ASPHALT's derivation carried from a film to a layer of standing water: the spray and
+drainage noise on the high band doubled again, 12 dB over ASPHALT's (0.18 × 4), and the friction susceptibility scaled
+by its grip factor, 0.6 ([Surface materials](#surface-materials)). The texture under the water is ASPHALT's. Both are
+starting points to set by ear with DEV's SURFACES panel.
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), the noise band's numerical domain
@@ -394,11 +400,13 @@ Dust is fine and settles slowly. Per surface:
 | GRASS       | dust  | grass   | null            | 10000           |
 | DIRT        | dust  | dirt    | 2               | 10000           |
 | SAND        | dust  | sand    | 2               | 10000           |
+| WATER       | spray | spray   | 1               | 10000           |
 
 With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the peak lies at a
 lateral slip speed of 3 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of about 170 kW, about
 17 puffs a second, and a light slide at 5 m/s about 5 a second. Rolling at 30 m/s throws 10 a second per axle on a
-surface of 3 m per puff.
+surface of 3 m per puff. WATER throws spray rolling every metre, three times as often as WET_ASPHALT: a tire rolling
+through standing water lifts it all the time, not only from a film.
 
 ## Surface materials
 
@@ -413,11 +421,19 @@ law's friction) and rolling resistance coefficient.
 | GRASS       | 0.43        | 0.065              |
 | DIRT        | 0.52        | 0.045              |
 | SAND        | 0.33        | 0.11               |
+| WATER       | 0.6         | 0.06               |
 
 WET*ASPHALT is ASPHALT with a water film: its grip factor is the wet-road friction ratio, 0.7, from the typical peak
 adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, \_Theory of Ground Vehicles*, 4th ed., 2008, Table 1.1),
 the ratio of the ranges' midpoints (0.6 / 0.85 ≈ 0.71) rounded. Its rolling resistance is ASPHALT's: the film's extra
 resistance at speed is not modelled.
+
+WATER is shallow standing water (a puddle, a ford, the sea's edge) over an unknown bed; no deep water exists, and only
+course limits stop a vehicle. Its grip factor 0.6 lies between wet asphalt's low end (0.5) and a wet earth road (0.55)
+over dry asphalt's 0.85 (Wong, Table 1.1): 0.59–0.65, taken as 0.6. Its rolling resistance 0.06 stands for the drag of
+pushing water aside, `½ρv²·C·A`: a 0.2 m wide tire in 2 cm of water (A = 0.004 m², C ≈ 1) at 10 m/s meets about 200 N,
+0.057 of a 3.5 kN wheel load, rounded to 0.06. A drag growing with speed is not modelled, so the coefficient is too
+little at speed and too much when slow. Both are document values with no DEV control.
 
 ## MIX settings
 

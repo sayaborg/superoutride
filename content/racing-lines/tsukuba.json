@@ -1,26 +1,26 @@
 {
   "format": "superoutride.racing-line",
   "version": 2,
-  "courseBuildSha256": "c52cfa69f1a88c8aec2ba8a6049f5a09d90cabbb59c8d4dd3fc8ff8f1eef56e5",
+  "courseBuildSha256": "54ad1fbb6cf49caf0a8e62dd3db4ad871f47d06e60d903f641e6fdbf04b50209",
   "procedureSha256": "a02d84163d6c8544c90dd66d617de1a50d041b397856c697933f7124c64c2ef8",
   "spacing": 5,
   "lengthWeight": 0.000316,
   "vehicles": [
     {
       "vehicleId": "911_TURBO_3_3",
-      "vehicleSha256": "65c4cd9e962ca815486bbdc0eec099023009163c28d2a74bdb05fb5d0cefc234",
+      "vehicleSha256": "52ac3d5008e482400ed53f4a17bd89141c474c64c012a41ba26d1a2691a3a7ad",
       "seconds": 54.462,
       "minimumCurvatureSeconds": 55.311
     },
     {
       "vehicleId": "GOLF_GTI_16V",
-      "vehicleSha256": "6f195d00ad1693f03f8be193b0ccc6d66ab510039944ee57c4dea1d5b11b8999",
+      "vehicleSha256": "bd3f982148c0bfeb89cc7646d192929ae1f45601e3072ab33238f5f5fb8c6f72",
       "seconds": 58.274,
       "minimumCurvatureSeconds": 59.17
     },
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "73f9bf1bd504ee87f480cfb8641222ae31f61a3c03153eecc445309808107518",
+      "vehicleSha256": "002848f14d52bad298374cc56151db43abb7b508759aeb83cc777041b2c10027",
       "seconds": 53.003,
       "minimumCurvatureSeconds": 53.858
     }

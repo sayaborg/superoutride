@@ -25,6 +25,10 @@
     "SAND": {
       "rolling": { "low": 0.3, "high": 0.8, "textureLengthMeters": 0.12, "textureDepth": 0.2 },
       "friction": { "roughness": 0.55, "susceptibility": 0.02 }
+    },
+    "WATER": {
+      "rolling": { "low": 0.9, "high": 0.72, "textureLengthMeters": 0.3, "textureDepth": 0.12 },
+      "friction": { "roughness": 0.5, "susceptibility": 0.6 }
     }
   }
 }

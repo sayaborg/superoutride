@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-4, then the rest of Stage PG; then Stage RH (RACING
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-5, then the rest of Stage PG; then Stage RH (RACING
 HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -733,10 +733,9 @@ PRs:
   pictures (the tire puffs' and the guidance's among them) again, and corrected `cone`'s anchorY. A master whose last
   row is padding (its height rounded up from the crop's) keeps its anchor on the source's bottom edge, within a texel
   above H − 0.5.
-- PG-4: `WATER`, one entry each in the material, tire audio and tire puff documents (the puffs' kind and color today's
-  spray). Its drag is the rolling resistance coefficient, with no drag growing with speed; grip and rolling resistance
-  are document values like every material's, their grounds in the PR (no material DEV); tire sound and spray are tuned
-  with today's DEV (SURFACES, PUFFS). Stage 16's materials list's shallow water is corrected.
+- PG-4 added `WATER`, shallow water, to the material catalog (grip 0.6, rolling resistance 0.06), the surface sounds
+  and the tire puffs (spray every metre rolling); its values and their grounds are
+  [Calibration](calibration.md#surface-materials)'s.
 - PG-5: boards extending sideways: the image's optional field, the drawing and the admission (an extending board's
   placement has no body); [Image assets](image-assets.md) and [Architecture](architecture.md) rewritten.
 - PG-6a: OUTRUN's rising strips become extending boards at their bottoms, by the table.
@@ -983,7 +982,7 @@ outer-to-outer travel, response time, bike attitude, combined tire demand, yaw/s
 transitions. Review pre-lock query coverage and parent-specific exit visibility separately from transfer
 space. Record margins and remaster departures with the content.
 
-Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow, mud and shallow water (off-road), and cobblestones. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
+Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4, its values to tune on those courses). Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
 palettes (for example a night section), adding a lighting axis beside color in the set's palettes, each recoloring
