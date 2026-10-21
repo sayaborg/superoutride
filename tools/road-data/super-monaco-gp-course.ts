@@ -2,7 +2,7 @@
  * SUPER MONACO GP's circuits from its ROMs ([Original road data](../../docs/original-road-data.md#super-monaco-gps-courses)):
  * each course's heading table laid as straights and arcs from the race's line, closed exactly on the written plane, the
  * road level, its lanes, its materials and limits from the barriers' band tables, the road's surface and its marks as
- * strips, its Sections, sky, checkpoints, finish and grid.
+ * strips, every other object a board, its Sections, sky, checkpoints, finish and grid.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
@@ -28,11 +28,22 @@ import {
   type Band,
   type SceneryObject,
 } from './super-monaco-gp-road.js';
-import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
+import { largestPixels, largestSize, readSpritePalette } from './super-monaco-gp-sprites.js';
+import { VIEWED } from './super-monaco-gp-dump.js';
+import {
+  boardName,
+  FLAG,
+  pixelUnits,
+  superMonacoGpBoards,
+  viewsName,
+  type BoardUse,
+  type ViewsUse,
+} from './super-monaco-gp-boards.js';
+import { paletteName } from './pixel-grid.js';
 import { readRoadLayerColors } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 1;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 2;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -93,6 +104,12 @@ const TUNNEL = { ground: [9032, 10860], sky: [9054, 10750] } as const;
 const SKY_HORIZON = 320;
 /** At heading 0 the road vanishes at the sky's column 354 × 1504 / 1536 (the layers' left edge 354 of 1536). */
 const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
+/** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
+const BOARD_KINDS = Object.freeze(new Set([0x04, 0x08, VIEWED]));
+/** An object's height h that stands on the ground. */
+const GROUND = -50;
+/** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
+const INSIDE_MARGIN = 2;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 const EPSILON = 1e-5;
@@ -171,12 +188,22 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
     },
     start: (palette: number) => startBlocks(picture(START_BOARD), readSpritePalette(main, palette).rgb555),
   };
-  return COURSES.map((course) =>
+  const courses = COURSES.map((course) =>
     superMonacoGpCourse(programs, course, {
       marks,
       ground: roadLayer[GROUND_COLOR]!,
+      height: (frames: number) => largestSize(main, frames).height,
     }),
   );
+  const boards = superMonacoGpBoards(
+    main,
+    programs.sub,
+    words,
+    courses.flatMap((c) => c.uses.boards),
+    courses.flatMap((c) => c.uses.views),
+    UNIT,
+  );
+  return { courses, boards };
 }
 
 /**
@@ -302,6 +329,8 @@ interface CourseContext {
     readonly start: (palette: number) => { from: number; to: number; color: number }[];
   };
   readonly ground: number;
+  /** A frame table's largest size's rows. */
+  readonly height: (frames: number) => number;
 }
 
 /** One circuit: its plan, Sections, strips, gates and skies. */
@@ -392,6 +421,57 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     .map(({ step, object }) => ({ q: lap(step), palette: object.flags & 0xff }));
   const gridPalette = spots.find(({ object }) => object.frames === GRID_BOARD)!.object.flags & 0xff;
 
+  // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
+  // centre's distance less `INSIDE_MARGIN` is left out.
+  const uses = { boards: [] as BoardUse[], views: [] as ViewsUse[] };
+  const objects: ObjectSpot[] = [];
+  const inside: { step: number; x: number; image: string }[] = [];
+  for (const { step, mirrored, object } of spots) {
+    if (isSurface(object)) continue;
+    requireInput(BOARD_KINDS.has(object.kind), '/scenery', `An object of kind ${object.kind} is not a board`);
+    const q = lap(step);
+    const units = (mirrored ? -object.x : object.x) / 4;
+    const palette = object.flags & FLAG.palette;
+    const middle = (object.flags & FLAG.middle) !== 0;
+    let image: string, bottom: number;
+    if (object.kind === VIEWED) {
+      // A board with views turns through its view table, every view mirrored when its flags mirror it; it stands by
+      // its picture's bottom or middle at h.
+      const use = {
+        table: object.frames,
+        b1: object.b1,
+        mirrored: (object.flags & FLAG.mirrored) !== 0,
+        middle,
+        palette,
+      };
+      uses.views.push(use);
+      image = viewsName(use);
+      bottom = object.height;
+    } else {
+      // A board shows its picture mirrored as its flags and the list's word, together, mirror it; one with its base
+      // point at its middle has its bottom half its height below h.
+      const use = {
+        frames: object.frames,
+        b1: object.b1,
+        mirrored: ((object.flags & FLAG.mirrored) !== 0) !== mirrored,
+        flipped: (object.flags & FLAG.flipped) !== 0,
+        middle: false,
+        palette,
+      };
+      uses.boards.push(use);
+      image = boardName(use);
+      bottom = middle ? object.height - (context.height(object.frames) * pixelUnits(object.b1)) / 2 : object.height;
+    }
+    const e = elements.findIndex((el) => q >= el.from && q < el.to);
+    const w = written[e < 0 ? elements.length - 1 : e]!;
+    const lateralMetres = OFFSET + units * UNIT;
+    if (w.kind === 'arc' && (w.right ? lateralMetres : -lateralMetres) > w.radius! - INSIDE_MARGIN) {
+      inside.push({ step, x: units, image });
+      continue;
+    }
+    objects.push({ q, units, image, palette, groundOffset: (bottom - GROUND) * UNIT_DOWN });
+  }
+
   const documents = sections.map((section, s) =>
     sectionDocument({
       course,
@@ -412,6 +492,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       paving,
       startBoards,
       gridPalette,
+      objects: objects.filter(({ q }) => q >= section.from && q < section.to),
       context,
     }),
   );
@@ -446,7 +527,19 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     stepOf: (q: number) => (q + LAP_LINE) % N,
     N,
     spots,
+    uses,
+    objects,
+    inside,
   };
+}
+
+/** A board to place: its step of the lap, lateral units from P, image, palette and height above the road (metres). */
+interface ObjectSpot {
+  readonly q: number;
+  readonly units: number;
+  readonly image: string;
+  readonly palette: number;
+  readonly groundOffset: number;
 }
 
 /** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
@@ -512,6 +605,7 @@ function sectionDocument(input: {
   readonly paving: readonly { readonly q: number; readonly side: number; readonly palette: number }[];
   readonly startBoards: readonly { readonly q: number; readonly palette: number }[];
   readonly gridPalette: number;
+  readonly objects: readonly ObjectSpot[];
   readonly context: CourseContext;
 }) {
   const { section, origin, size, stationOf, context, course } = input;
@@ -729,7 +823,16 @@ function sectionDocument(input: {
     strips,
     walls: [],
     openLimits: [],
-    sprites: [],
+    sprites: input.objects.map((o) => ({
+      kind: 'sprite',
+      image: o.image,
+      palette: paletteName(o.palette),
+      at: at(stationOf(o.q)),
+      lateral: lateral(o.units),
+      groundOffset: round(o.groundOffset),
+      unselectedLink: null,
+      body: null,
+    })),
     environments,
     gates,
   };

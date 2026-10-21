@@ -993,7 +993,7 @@ try {
       const zip = await oneZip(options.get('--zip'), SUPER_MONACO_GP_ROM_DIRECTORY, '--zip');
       const built = superMonacoGpCourses(superMonacoGpFiles(readZip(new Uint8Array(await readFile(zip)))));
       const courses = [];
-      for (const { course, document, plan, elements, closed, sections, stepOf } of built) {
+      for (const { course, document, plan, elements, closed, sections, stepOf, objects, inside } of built.courses) {
         const file = await saveCourse(course.id, document, check);
         const arcs = elements.filter((e) => e.turn !== 0);
         const radius = (e: (typeof arcs)[number]) => ((e.to - e.from) * SUPER_MONACO_GP_STEP) / Math.abs(e.turn);
@@ -1012,7 +1012,23 @@ try {
             length: closed.written[i]!.length,
           })),
           sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
+          // The boards placed, those with views among them, and those left out on a curve's inside.
+          boards: objects.length,
+          withViews: objects.filter((o) => o.image.startsWith('smgp-views-')).length,
+          inside,
         });
+      }
+      // The boards' and view sets' images, as the ROMs' pictures are.
+      for (const { image } of built.boards) {
+        const picture = `content/${image.path}`;
+        if (check) {
+          const committed = await readFile(picture).catch(() => null);
+          requireInput(
+            committed && Buffer.compare(committed, image.bytes) === 0,
+            `/${picture}`,
+            `${picture} is not the ROMs'`,
+          );
+        } else await atomicWrite(picture, image.bytes);
       }
       // The skies as published: the generic coast sky under their own names.
       const generic = JSON.parse(await readFile('content/images/coast-sky.json', 'utf8')) as Record<string, unknown>;
@@ -1032,6 +1048,11 @@ try {
           checked: check,
           metresAStep: SUPER_MONACO_GP_STEP,
           courses,
+          images: {
+            boards: built.boards.filter((b) => !b.name.startsWith('smgp-views-')).length,
+            viewSets: built.boards.filter((b) => b.name.startsWith('smgp-views-')).length,
+            masterTexels: built.boards.reduce((sum, b) => sum + b.texels, 0),
+          },
         }),
       );
       break;

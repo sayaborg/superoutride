@@ -1778,7 +1778,8 @@ has no class: it is driven in FREE PLAY alone, untimed, the player from the grid
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` SUPER
 MONACO GP QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
 data](original-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials and
-limits, strips, Sections, gates and skies; run the conversion rather than editing the documents. The race has its
+limits, strips, Sections, gates, skies and objects, every object but the road's surface a board without a body, its
+barriers, kerbs, walls and advertising boards boards with views; run the conversion rather than editing the documents. The race has its
 checkpoints where the original's CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their
 hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last
 slot.

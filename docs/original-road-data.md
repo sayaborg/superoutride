@@ -1716,9 +1716,10 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 1, and their skies, or with `--check` fails where one differs; it
-reports a step's metres and each course's elements, tightest arc, lap, the error closed and the three lengths that close
-it, and its Sections with their boards. Both have `maxLaps` 30 and `bearing` 0.
+QUALIFYING, the qualifying's), conversion version 2, their skies and their [objects](#super-monaco-gps-objects)'
+images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
+lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
+left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
@@ -1781,3 +1782,38 @@ it, and its Sections with their boards. Both have `maxLaps` 30 and `bearing` 0.
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −
   (346.625 − 160) / 240 rad, within ±360° by the sky's period, 1504 / 240 rad.
 - **Profile.** Level: the courses do not cross themselves.
+
+### SUPER MONACO GP's objects
+
+Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
+strips) is a board: the race's 9355, 7248 of them boards with views, the qualifying's 3914 and 3019. None has a body:
+the original's band table alone acts on its car.
+
+- **Place.** List word k's objects stand at the station of lap step k's P (each element's steps spread evenly), their
+  lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p` and three decimal
+  digits).
+- **Height.** h = −50 is the ground. A board stands by the middle of its bottom, `groundOffset` (bottom − (−50))
+  × 6.5331 mm, its bottom h, or h less half its picture's height for an object with flag bit 13 (negative too: the far
+  buildings and cliffs stand from as much as 9.34 m below the road, as the original draws them).
+- **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [chosen lines](#chosen-lines): a pixel
+  8 / 2^b1 units across (16 for b1 0xFF) and 15/14 of that down at 40 texels/m, so a 2-unit pixel is 0.49 texel
+  across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A flat or standing board (kinds 0x04, 0x08)
+  shows its picture mirrored as its flag bit 10 and the word's bit 15 together mirror it, and flipped by bit 11, the
+  unturned picture's lines turned. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]` (hexadecimal), in
+  every palette it is shown in, the lowest its default: 131 images.
+- **Boards with views** (kind 0x0C: the barriers along and across the road, the concrete walls, the kerbs, the
+  advertising boards) are [view sets](image-assets.md#view-sets), drawn as the original selects their views
+  ([Boards with views](architecture.md#boards-with-views)): view i shows its view table's frame i, mirrored for i ≥ 16
+  or, for an object with flag bit 10, always. A set is its view table at a size class, mirrored or not,
+  `smgp-views-<view table>-<b1>[-mirrored]`; its distinct pictures stand by their bottom's middle, or the kerbs' (bit 13) by their middle, `groundOffset` (h − (−50)) × 6.5331 mm. The word's bit 15 mirrors only their lateral. Eight
+  sets hold 142 pictures: 0x040A at b1 2 (22) and mirrored (11), 0x044A at b1 2 (22), 0x04CA at b1 1 and 2 (20 each),
+  0x050A at b1 2 (24) and mirrored (12), 0x058A at b1 1 mirrored (11).
+- **Curves' insides.** An object on an arc's inside farther from lane a's centre than the arc's radius less 2 m is
+  left out (none is: the nearest, a far building at the race's and the qualifying's step 2166, stands 0.40 of its
+  arc's radius inside lane a's centre).
+- **Images.** 139 in all, 14.68 M master texels; the 2-unit class drops about half its lines, among them 20
+  one-pixel columns (the kerbs' stripes' edges, 0x0774–0x0828, and one each in 0x060C and 0x0AAA) and no row.
+
+The near barriers stand as steps, one picture a board, where the original draws a continuous band: its pictures are
+drawn for its eye about 0.57 m above the road at the car, this game's camera 6 m behind and 2 m above it. The pictures
+and their selection are the original's as they are.

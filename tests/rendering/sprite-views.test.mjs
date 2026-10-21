@@ -149,7 +149,7 @@ test("a board on a turned occurrence draws the view of its road's heading in the
   const readers = createCourseRouteReaders(route);
   const [board] = createCourseRouteVisualReaders(route)
     .read()
-    .worldSprites.filter((sprite) => sprite.views);
+    .worldSprites.filter((sprite) => sprite.name === VIEWS);
   assert.ok(board);
   const at = readers.coordinates.toWorld(board.sRender, LATERAL, createPlanCoordinateSample());
   assert.ok(Math.abs(wrapAngle(board.views.heading - at.heading)) < 1e-9, 'the Route heading');
