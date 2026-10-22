@@ -22,16 +22,26 @@ function crossingEffect(event: RaceFacts['events'][number], race: RaceFacts): Ef
  */
 export function createRunEffects(play: (effect: EffectRecording) => RecordingHandle) {
   let setup: object | null = null,
+    explosionSequence = 0,
+    explosion: RecordingHandle | null = null,
     lamps = 0,
     status: RaceFacts['outcome']['status'] = 'WAITING',
     outcome: RecordingHandle | null = null;
   return {
     /** After each fixed step: the current run (any object identifying it) and its race facts. */
-    step(current: object, race: RaceFacts): void {
+    step(current: object, race: RaceFacts, contactSequence = 0): void {
       if (current !== setup) {
         outcome?.stop();
+        explosion?.stop();
+        explosion = null;
+        explosionSequence = 0;
         [setup, lamps, status, outcome] = [current, 0, 'WAITING', null];
       }
+      if (contactSequence > explosionSequence) {
+        explosion?.stop();
+        explosion = play('explosion');
+      }
+      explosionSequence = contactSequence;
       const { signalLamps } = race.countdown;
       if (signalLamps > lamps) play('countdown-lamp');
       lamps = signalLamps;
@@ -59,6 +69,7 @@ export function createRunEffects(play: (effect: EffectRecording) => RecordingHan
     /** The run is left: its outcome effect stops. */
     stop(): void {
       outcome?.stop();
+      explosion?.stop();
     },
   };
 }

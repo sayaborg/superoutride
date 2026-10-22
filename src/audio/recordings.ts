@@ -20,6 +20,7 @@ export const EFFECT_RECORDINGS = Object.freeze([
   'prerace',
   'final-lap',
   'new-record',
+  'explosion',
 ] as const);
 export type EffectRecording = (typeof EFFECT_RECORDINGS)[number];
 

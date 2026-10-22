@@ -22,7 +22,8 @@ import { ENGINE_LOUDNESS_ID, engineLoudnessSources, readEngineLoudness } from '.
 import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256 } from './engine-loudness.js';
 import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import { admitPuffPicture, compilePuffs, puffPictureNames } from '../../src/content/puff-catalog.js';
-import type { SpriteLodAsset } from '../../src/image/sprite.js';
+import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
+import { CONTACT_EXPLOSION_PICTURES } from '../../src/content/contact-explosion-pictures.js';
 import { admit } from '../../src/core/admission.js';
 import { compileTextTiles } from '../../src/image/text-tiles.js';
 import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
@@ -259,6 +260,24 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     },
   );
 
+  const explosionSources = await Promise.all(
+    CONTACT_EXPLOSION_PICTURES.map(async (name) => ({
+      name,
+      bytes: await store.read(`images/${name}.json`),
+    })),
+  );
+  const explosions = await stage(
+    'contact-explosion-pictures',
+    explosionSources.flatMap(({ name, bytes }) => [name, bytes]),
+    () =>
+      explosionSources.map(({ name, bytes }) => {
+        const document = `content/images/${name}.json`,
+          value = parseJson(bytes, document);
+        requireLoaded(admit(document, () => readSpriteLodAsset(value)));
+        return deliveredFile('image', name, encodeContentJson(value));
+      }),
+  );
+
   const audioFiles = await read('audio');
   const audio = await stage('audio', inputs(audioFiles), async () => {
     const documents = await sources('audio', audioFiles);
@@ -411,6 +430,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...materials.value.files,
     ...surfaceSounds.value,
     ...puffs.value,
+    ...explosions.value,
     ...audio.value.files,
     ...recordings.value.files,
     ...freePlay.value.files,

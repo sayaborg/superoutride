@@ -1,6 +1,7 @@
 import { createVehicleSprites, type VehicleSpriteStates } from './vehicle-sprites.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
+import { contactResponseStopped } from '../race/contact-response.js';
 import type { CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 import { createDynamicVehicleCourseSprite } from './dynamic-vehicle-sprite.js';
@@ -45,6 +46,7 @@ export function createRaceSprites(vehicles: readonly CompiledVehicleDefinition[]
     [held, shown] = [shown, held];
     shown.clear();
     for (const actor of actors) {
+      if (contactResponseStopped(actor.contactResponse)) continue;
       const states = statesOf(actor.vehicleId, actor.color);
       basePoint(world.coordinates, actor, base, sample);
       const place = (places[sprites.length] ??= { y: 0, reach: 0 });

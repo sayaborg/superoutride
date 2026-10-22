@@ -39,6 +39,9 @@ import type { MusicCatalog } from '../content/recording-catalog.js';
 import { createRunMusic } from './run-music.js';
 import { createRunEffects } from './run-effects.js';
 import type { WorkSlices } from '../core/work-slices.js';
+import type { SpriteAsset } from '../image/sprite.js';
+import { createContactExplosionSprites } from '../view/contact-explosion-sprites.js';
+import { contactResponseStopped } from '../race/contact-response.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
@@ -57,6 +60,7 @@ export interface RunPage {
   readonly raceSprites: ReturnType<typeof createRaceSprites>;
   /** The tire puffs' document and pictures, loaded once. */
   readonly puffs: CompiledPuffs;
+  readonly explosionPictures: readonly SpriteAsset[];
   /** The puff records new puffs are thrown with: the delivered document's until DEV's PUFFS changes them. */
   puffRecords(): PuffDocument;
   readonly shell: ReturnType<typeof createBrowserDrivingShell>;
@@ -366,9 +370,10 @@ async function assembleCourseRun(
     // A lap that set a record sounds NEW RECORD as it completes.
     if (active.records?.step(race.events, race.player.id, routeGoal)) effects.newRecord();
     if (!demo) {
-      effects.step(race, race);
+      effects.step(race, race, observed.player.contactResponse.sequence);
       // Each contact of the player's that began in the step sounds once, as it begins.
-      for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
+      if (!contactResponseStopped(observed.player.contactResponse))
+        for (const start of race.playerContacts.starts) shell.playImpact(start.counterpart, start.work);
       performanceHud?.step(performance.now() - started);
     }
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
@@ -406,6 +411,7 @@ async function assembleCourseRun(
   // Rivals and traffic are drawn and voiced by the same rules: one reused list of their observations per frame. Every
   // vehicle, the player included, casts its picture's shadow by one rule.
   const otherVehicles: CompetitorObservation[] = [];
+  const explosionSprites = createContactExplosionSprites(page.explosionPictures);
   // The other vehicles' pictures and the puffs', reused frame to frame.
   const others: CourseSprite[] = [],
     puffSprites: CourseSprite[] = [];
@@ -419,15 +425,18 @@ async function assembleCourseRun(
     others.push(...raceSprites(otherVehicles, lifecycle.camera, scene.world));
     puffSprites.length = 0;
     puffSprites.push(...puffs.sprites(scene.world.coordinates));
+    puffSprites.push(...explosionSprites([observations.player, ...otherVehicles], scene.world.coordinates));
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
       shell.framebuffer,
-      {
-        vehicle: observations.player,
-        set: observations.player.brakeLampOn ? sprites.on : sprites.off,
-        reach: entry.compiledVehicle.reach,
-      },
+      contactResponseStopped(observations.player.contactResponse)
+        ? null
+        : {
+            vehicle: observations.player,
+            set: observations.player.brakeLampOn ? sprites.on : sprites.off,
+            reach: entry.compiledVehicle.reach,
+          },
       lifecycle.camera,
       others,
       puffSprites,

@@ -1652,6 +1652,15 @@ owns its phase, elapsed time and event sequence, copied into its borrowed observ
 at sequence zero. Explosion affects no other vehicle beyond the ordinary contact force: there is no blast damage.
 These durations, the stop and protection are game design, not claims about a real vehicle's fuel or safety.
 
+While `exploding`, eight delivered frames replace the vehicle at its common base point, without a shadow, in the
+scene's ordinary depth order. During `recovering` neither the vehicle nor a blast is drawn; recovery makes the
+vehicle visible again. The player's sequence increment sounds one `explosion` recording and suppresses the ordinary
+impact recordings while stopped. Leaving or replacing the run stops the recording; other vehicles' explosions are
+visual only, like their ordinary contacts. Frames and sound are reproducible with `npm run contact-explosion`
+(Node 24 and FFmpeg): seeded code drawing, 200 × 200 texels at 40 texels/m, source PNGs and import recipes under
+`content/sprite-sources/`, shared sprite LODs under `content/images/`, and the 1.2 s synthesized AAC recording under
+`content/effects/`. These are original provisional game effects, not sampled recordings or images from POLE POSITION.
+
 ## Recovery
 
 Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
