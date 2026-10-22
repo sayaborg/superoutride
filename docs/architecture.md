@@ -282,8 +282,10 @@ The domain uses the material slab's half-open station ownership, including the S
 It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
 The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
 different coordinate pairs occupy different points. The local part of this condition is
-`J = 1-kappa*l > 0` throughout the domain. Compilation checks every circular segment at
-incident domain stations and checks separated longitudinal cells against one another using
+`J = 1-kappa*l > 0` throughout the domain. The domain's stations are the Section's
+ends and each material slab end where an outer covered edge's line changes: a material that splits the slab table
+without moving an outer edge (a patch on the road, a material reaching out to the edge) adds none. Compilation checks
+every circular segment at incident domain stations and checks separated longitudinal cells against one another using
 conservative plan envelopes. `plan_coordinate_inversion` reports a local metric failure;
 `plan_coordinate_overlap` reports the Section and two overlapping s intervals. An overpass
 uses separate Sections for its two passages.

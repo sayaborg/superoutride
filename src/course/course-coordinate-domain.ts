@@ -1,4 +1,4 @@
-import { stripEdgeAt, stripSlabAt } from './strip-slabs.js';
+import { stripEdgeAt, stripSlabAt, type StripEdgeLine } from './strip-slabs.js';
 import type { StripMaterial } from './strip-material.js';
 import type { Writable } from '../core/writable.js';
 import { CourseInputError, requireCourse } from './course-diagnostics.js';
@@ -52,10 +52,35 @@ export function materialOuterEdges(material: StripMaterial, path: string) {
   });
 }
 
+/** Whether two edge lines are one line: both open, or the same affine line and offset. */
+const sameLine = (a: StripEdgeLine | null, b: StripEdgeLine | null) =>
+  a === b ||
+  (a !== null &&
+    b !== null &&
+    a.start === b.start &&
+    a.end === b.end &&
+    a.from === b.from &&
+    a.to === b.to &&
+    a.offset === b.offset);
+
+/**
+ * The domain's lateral extent: the material's outer edges widened by `MAXIMUM_VEHICLE_REACH`. Its stations are where
+ * those edges change (the Section's ends, and each slab end where an outer edge's line differs), so a material that
+ * splits the table without moving an outer edge (a patch on the road, water out to the edge) adds none.
+ */
 function lateralDomain(material: StripMaterial, path: string): CompiledPlanLateralDomain {
   const edges = materialOuterEdges(material, path);
+  const outer = material.slabs.map((slab) => {
+    const spans = slab.spans.filter((span) => span.value !== null);
+    return { left: spans[0]!, right: spans.at(-1)! };
+  });
+  const changes = edges.stations.filter((_, i) => {
+    if (i === 0 || i === outer.length) return true;
+    const [a, b] = [outer[i - 1]!, outer[i]!];
+    return !(sameLine(a.left.left, b.left.left) && sameLine(a.right.right, b.right.right));
+  });
   return Object.freeze({
-    stations: edges.stations,
+    stations: Object.freeze(changes),
     lateralAt(s: number, out: Writable<{ left: number; right: number }>) {
       edges.at(s, out);
       out.left -= MAXIMUM_VEHICLE_REACH;
