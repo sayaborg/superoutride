@@ -1838,7 +1838,7 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 5, their skies and their [objects](#super-monaco-gps-objects)'
+QUALIFYING, the qualifying's), conversion version 6, their skies and their [objects](#super-monaco-gps-objects)'
 images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
 lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
 left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
@@ -1878,9 +1878,13 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
 - **Colors** (strips of color alone):
   - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the race's tunnel's,
     9032–10860, dark (0x0842).
-  - **Surface.** ±992 units, each surface board across the road (0x0DA4 at x 0) coloring the road from the board before
-    it in the linear-light mean of its picture's colored pixels in its palette (the plain, the tunnel's and the
-    bridge's); stretches of one color are one.
+  - **Surface.** ±992 units, each surface board and each of the grid's boards across the road (0x0DA4 and 0x0DFE at x
+    0; the grid's board is asphalt with the grid's lines, drawn only where the grid stands, below) coloring the road
+    from the board before it in the linear-light mean of the surface board's colored pixels in its palette (the plain,
+    the tunnel's and the bridge's); stretches of one color are one. The lap closes: from the last board to the line,
+    the first board's color. The conversion stops where the surface does not cover the lap. The other boards on the
+    road (0x0E1C, 0x0E3A, 0x1F92, the start's 0x1F4A) color nothing: the surface boards about them color the road
+    already.
   - **Side paving.** The surface boards beside the road (±1720) color 728–2712 units on their side alike, from the
     board before or, first of a run, 10 steps before.
   - **Centre line.** At each surface board, 2 steps long and 80 units wide, the mean of its top row's columns 120–129.

@@ -37,7 +37,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 5;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 6;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -441,6 +441,32 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x === 0)
     .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & 0xff }))
     .sort((a, b) => a.q - b.q);
+  // The road's asphalt: each surface board and each of the grid's boards across the road (x 0), asphalt drawn with
+  // the grid's lines, colors it from the board before it, the same colors one band; the lap closes, from the last
+  // board to the line in the first's color. The bands must cover the lap.
+  const grid = spots
+    .filter(({ object }) => object.frames === GRID_BOARD && object.x === 0)
+    .map(({ step, object }) => ({ q: lap(step) || N, palette: object.flags & 0xff }));
+  const asphalt: { from: number; to: number; color: number }[] = [];
+  const band = (from: number, to: number, color: number) => {
+    const last = asphalt.at(-1);
+    if (last && last.color === color) last.to = to;
+    else asphalt.push({ from, to, color });
+  };
+  let previous = 0;
+  for (const board of [...surface, ...grid].sort((a, b) => a.q - b.q)) {
+    band(previous, board.q, context.marks.surface(board.palette));
+    previous = board.q;
+  }
+  if (asphalt.length && previous < N) band(previous, N, asphalt[0]!.color);
+  requireInput(
+    asphalt.length > 0 &&
+      asphalt[0]!.from === 0 &&
+      asphalt.at(-1)!.to === N &&
+      asphalt.every((b, i) => i === 0 || b.from === asphalt[i - 1]!.to),
+    `/${course.id}/surface`,
+    "The road's surface does not cover the lap",
+  );
   const paving = spots
     .filter(({ object }) => object.kind === 0x04 && object.frames === SURFACE_BOARD && object.x !== 0)
     .map(({ step, mirrored, object }) => ({
@@ -530,6 +556,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       edgeAt: (side: number, which: 'paving' | 'limit', q: number) => (side < 0 ? left : right).at(which, q),
       borders: [...new Set([...left.borders, ...right.borders])],
       surface,
+      asphalt,
       paving,
       startBoards,
       gridPalette,
@@ -676,6 +703,8 @@ function sectionDocument(input: {
   readonly edgeAt: (side: number, which: 'paving' | 'limit', q: number) => number;
   readonly borders: readonly number[];
   readonly surface: readonly { readonly q: number; readonly palette: number }[];
+  /** The road's asphalt bands over the lap, steps, and their colors. */
+  readonly asphalt: readonly { readonly from: number; readonly to: number; readonly color: number }[];
   readonly paving: readonly { readonly q: number; readonly side: number; readonly palette: number }[];
   readonly startBoards: readonly { readonly q: number; readonly palette: number }[];
   readonly gridPalette: number;
@@ -781,26 +810,12 @@ function sectionDocument(input: {
     },
   );
 
-  // The road's surface: each surface board's color from the board before it (the same colors one stretch), the side
-  // paving likewise, the centre line at each band's far end.
-  let previous = 0;
-  let run: { from: number; to: number; color: number } | null = null;
-  const flush = () => {
-    if (!run) return;
-    const r = span(run.from, run.to);
-    if (r) strip(r[0]!, r[1]!, lateral(-SURFACE_HALF), lateral(SURFACE_HALF), run.color, null);
-    run = null;
-  };
-  for (const board of input.surface) {
-    const color = context.marks.surface(board.palette);
-    if (run && run.color === color) run.to = board.q;
-    else {
-      flush();
-      run = { from: previous, to: board.q, color };
-    }
-    previous = board.q;
+  // The road's surface: its asphalt bands, the side paving each board's color from the board before it, the centre
+  // line at each surface board.
+  for (const band of input.asphalt) {
+    const r = span(band.from, band.to);
+    if (r) strip(r[0]!, r[1]!, lateral(-SURFACE_HALF), lateral(SURFACE_HALF), band.color, null);
   }
-  flush();
   for (const side of [-1, 1]) {
     const boards = input.paving.filter((p) => p.side === side);
     boards.forEach((board, k) => {

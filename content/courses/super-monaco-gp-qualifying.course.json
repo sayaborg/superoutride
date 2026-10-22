@@ -32146,7 +32146,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
-          "end": { "joint": "end", "offset": -92.322133303 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -4.487805,
           "right": 7.609756,
           "color": 12683,

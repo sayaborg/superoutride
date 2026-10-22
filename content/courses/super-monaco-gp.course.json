@@ -84343,7 +84343,7 @@
         {
           "kind": "strip",
           "start": { "joint": "c3", "offset": -4.467951 },
-          "end": { "joint": "c10", "offset": 15.264665 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -4.487805,
           "right": 7.609756,
           "color": 12683,

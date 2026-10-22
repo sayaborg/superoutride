@@ -720,11 +720,14 @@ Decided after the reports (K, 2026-10-22, evening):
   `WATER`); OUTRUN's none (the original's patches change no driving, and `SAND` stops the planned driver on DESOLATION
   HILL).
 
-K's decision (2026-10-23):
+K's decisions (2026-10-23):
 
 - A picture beyond a crest shows no lying row over the nearer slope: its rows below the anchor lie only on the ground in
   front of the anchor as far as that ground faces the camera (PG-1 and PG-1b drew them over the nearer slope). PG-1c
   makes it, within Stage PG and before Stage TD.
+- SUPER MONACO GP's road over the grid's stretch before the line is asphalt: the grid's boards across the road color it
+  as the surface boards do, and the lap closes (from the last board to the line, the first's color). The ground's
+  green showed there for 92 m. PG-9c makes it, after PG-1c.
 
 The materials of what lies (PG-6c, PG-7c; the baking of PG-6b2 and PG-7b keeps only this):
 
@@ -865,6 +868,11 @@ The evening's PRs, in this order:
   vehicles, no longer draw bands over the road before a crest. Seen every 25 m, TURBO OUTRUN's frames change at 237
   places of 1,894 and OUTRUN's courses' at 63 to 247 (DESERT, DESOLATION HILL), ENDURO RACER's, SUPER HANG-ON's,
   SUPER MONACO GP's and TSUKUBA's at none; no course document, image or measured product changed.
+- PG-9c colored SUPER MONACO GP's road over the grid's stretch before the line (conversion version 6): the grid's
+  boards across the road (0x0DFE at x 0) color it as the surface boards do, and the lap closes from the last board to
+  the line in the first board's color, so the ground's green no longer shows there (the race's `sector-3b` 776.5 to
+  868.9 m, the qualifying's `sector-2` 555.5 to 647.8 m); the conversion checks that the road's surface covers the
+  lap. Its asphalt band now reaches the line in both courses, one Strip as before.
 
 Left by Stage PG to later stages: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next
 to each other in order as neighbours; mended, it would need no way round such as PG-6b1's.
