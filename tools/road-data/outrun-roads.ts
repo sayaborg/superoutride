@@ -44,6 +44,8 @@ import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
+import type { SpriteLodDocument } from '../../src/image/sprite.js';
+import { bakeGround, type GroundPiece } from './ground-baking.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
 /** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
@@ -145,26 +147,28 @@ const drawnAt = (span: Span, p: number) =>
     .sort((a, b) => lineOf(span, a.road.centre, p) - lineOf(span, b.road.centre, p));
 
 /** The verge's knots with their ramps placed: each NaN knot a ramp's length from the knot whose road it ramps to. */
+/** The road position at a span's plan station. */
+function positionAt(span: Span, plan: OffsetPlan, station: number): number {
+  let [lo, hi] = [0, span.length];
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (plan.station(mid) < station) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
 function placedVerges(span: Span, plan: OffsetPlan, knots: readonly VergeKnot[]): VergeKnot[] {
   const lateral = (k: VergeKnot, p: number) => lineOf(span, k.ref, p) * UNIT_METRES + k.metres;
-  const positionAt = (station: number) => {
-    let [lo, hi] = [0, span.length];
-    for (let i = 0; i < 60; i++) {
-      const mid = (lo + hi) / 2;
-      if (plan.station(mid) < station) lo = mid;
-      else hi = mid;
-    }
-    return (lo + hi) / 2;
-  };
   return knots.map((k, i) => {
     if (!Number.isNaN(k.at)) return k;
     const [before, after] = [knots[i - 1]!, knots[i + 1]!];
     if (JSON.stringify(before.ref) !== JSON.stringify(k.ref)) {
       const along = rampLength(lateral(k, before.at) - lateral(before, before.at));
-      return { ...k, at: positionAt(plan.station(before.at) + along) };
+      return { ...k, at: positionAt(span, plan, plan.station(before.at) + along) };
     }
     const along = rampLength(lateral(after, after.at) - lateral(k, after.at));
-    return { ...k, at: positionAt(plan.station(after.at) - along) };
+    return { ...k, at: positionAt(span, plan, plan.station(after.at) - along) };
   });
 }
 
@@ -279,6 +283,8 @@ function roadCrossings(laid: readonly Laid[], sides: (span: Span, p: number) => 
 /** What a road's course takes beside its spans. */
 export interface RoadOptions {
   readonly id: string;
+  /** The pictures of what lies on the ground, by image name: the objects showing them are baked into Strips. */
+  readonly lying: ReadonlyMap<string, SpriteLodDocument>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -645,7 +651,7 @@ function roadGuidance(laid: readonly Laid[]): Guide[] {
   });
 }
 
-type Lateral = Record<string, unknown>;
+type Lateral = Record<string, unknown> | number;
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
@@ -803,6 +809,26 @@ function sectionDocument(
     return [around(from), ...inside, around(to)].map((k) => ({ at: at(k.at), lateral: ref(k.ref, k.metres) }));
   };
 
+  // A verge's lateral at a Section station, metres: its knots' lines straight between them by station.
+  const vergeAt = (side: 'left' | 'right') => {
+    const placed = placedVerges(span, plan, span.verges[side]);
+    const stationOf = placed.map((k) => plan.station(k.at) - origin);
+    const lateral = (k: VergeKnot, p: number) => lineOf(span, k.ref, p) * UNIT_METRES + k.metres;
+    return (s: number) => {
+      const p = positionAt(span, plan, s + origin);
+      const i = Math.max(
+        1,
+        Math.min(
+          placed.length - 1,
+          stationOf.findIndex((k) => k >= s),
+        ),
+      );
+      const [a, b] = [placed[i - 1]!, placed[i]!];
+      const t = Math.max(0, Math.min(1, (s - stationOf[i - 1]!) / (stationOf[i]! - stationOf[i - 1]! || 1)));
+      return lateral(a, p) + (lateral(b, p) - lateral(a, p)) * t;
+    };
+  };
+
   // The strips.
   const { colors } = span.stages[0]!.stage;
   const ground = span.stages[0]!.stage.groundStripes;
@@ -909,6 +935,47 @@ function sectionDocument(
         color: GUIDANCE.white,
       });
 
+  // What lies on the ground, baked: the sea's and lakes' edges (water, `WATER` from the waterline inside the verges)
+  // and the patches of sand on the road (color alone), over everything else.
+  const lyingPieces: GroundPiece[] = [];
+  const standing: (typeof section.objects)[number][] = [];
+  for (const placed of section.objects) {
+    const master = section.options.lying.get(placed.object.image);
+    if (!master) {
+      standing.push(placed);
+      continue;
+    }
+    const colors = master.palettes[placed.object.palette]!.colors;
+    // A strip's pieces stand by their edge, a patch by its middle.
+    const strip = master.anchorX < 0 || master.anchorX > master.width - 1;
+    lyingPieces.push({
+      s: plan.station(placed.p) - origin,
+      l: placed.lateral,
+      picture: {
+        width: master.width,
+        height: master.height,
+        anchorX: master.anchorX,
+        anchorY: master.anchorY,
+        colors: master.levels[0]!.indices.map((i) => (i ? colors[i]! : null)),
+      },
+      strip: strip
+        ? { key: `${placed.object.image} ${placed.object.palette}`, outward: master.anchorX < 0 ? 1 : -1 }
+        : null,
+      // A patch is its color alone: as `SAND` it stops the planned driver on DESOLATION HILL's steepest grades.
+      material: strip ? 'WATER' : null,
+    });
+  }
+  const baked = bakeGround(lyingPieces, {
+    length: size,
+    outer: { left: { id: 'outer-left', at: vergeAt('left') }, right: { id: 'outer-right', at: vergeAt('right') } },
+  });
+  const edgeOf = (edge: string | number | null) =>
+    edge === null ? null : typeof edge === 'string' ? boundary(edge) : round(edge);
+  for (const g of baked.strips) {
+    const [a, b] = [round(g.start), round(g.end)];
+    if (b > a) strips.push(strip(a, b, edgeOf(g.left), edgeOf(g.right), g.color, g.material));
+  }
+
   // The gates.
   const gates: unknown[] = [];
   if (section.first)
@@ -960,12 +1027,16 @@ function sectionDocument(
     boundaries: [
       { id: 'outer-left', knots: verge(span.verges.left) },
       { id: 'outer-right', knots: verge(span.verges.right) },
+      ...baked.boundaries.map(({ id, knots }) => ({
+        id,
+        knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
+      })),
     ],
     strips,
     walls: [],
     openLimits: [],
     sprites: repeated([
-      ...section.objects.map(({ p, lateral, object: o }) => ({
+      ...standing.map(({ p, lateral, object: o }) => ({
         kind: 'sprite',
         image: o.image,
         palette: o.palette,

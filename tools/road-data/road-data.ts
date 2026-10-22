@@ -9,7 +9,7 @@ import { atomicWrite, reportError, requireInput } from '../course/authoring-io.j
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
-import { sceneryBoards, type SpriteUse } from './outrun-boards.js';
+import { lyingPictures, sceneryBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
@@ -403,6 +403,8 @@ try {
         idOf: (stage: Stage) => slug(nameOf(stage)),
         shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
       };
+      // What lies on the ground, baked into the roads' Strips from its pictures.
+      const lying = lyingPictures(programs.main, assembleSprites(files), outrunSceneryUses(programs).uses);
       const courses = [];
       const starts = startObjects(programs.main);
       for (const route of OUTRUN_ROUTES) {
@@ -414,6 +416,7 @@ try {
           cameraDistance: cameraDistance(CAMERA_DEFINITION),
           stageName: nameOf,
           sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
+          lying,
           objects: (points, road) => {
             const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
               ...road,
@@ -585,44 +588,7 @@ try {
       const { zip, programs } = await readPrograms(options.get('--zip'));
       const files = readZip(new Uint8Array(await readFile(zip)));
       const words = assembleSprites(files);
-      const length = stageLength(programs.main);
-      const uses: SpriteUse[] = [];
-      const skipped = new Map<number, number>();
-      // The stages' points to their length, and every point of the fork and goal stretches.
-      const points = [
-        ...OUTRUN_STAGES.flat().flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
-        ...readForkStretch(programs).scenery,
-        ...readGoalStretches(programs).stretches.flatMap((s) => s.scenery),
-      ];
-      const types = [...new Set(points.map((p) => p.type))].sort((a, b) => a - b);
-      for (const type of types)
-        for (const e of readSceneryType(programs.main, type).entries) {
-          const shown = sceneryRoutine(programs.main, e.flags, e.y);
-          if (!shown) {
-            skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
-            continue;
-          }
-          uses.push({
-            sprite: e.sprite,
-            mirrored: (e.flags & 1) !== 0,
-            palette: e.palette,
-            shadow: (e.flags & 2) !== 0,
-            ...shown,
-          });
-        }
-      // The figures after each goal.
-      readGoalStretches(programs).stretches.forEach((_, g) =>
-        uses.push(...goalFigures(programs.main, g).map((figure) => figureUse(programs.main, figure))),
-      );
-      for (const o of startObjects(programs.main))
-        uses.push({
-          sprite: o.sprite,
-          mirrored: (o.flags & 1) !== 0,
-          anchor: o.anchor & 15,
-          routine: o.routine,
-          palette: o.palette,
-          shadow: (o.flags & 0x10) !== 0,
-        });
+      const { uses, skipped } = outrunSceneryUses(programs);
       const boards = sceneryBoards(programs.main, words, uses);
       for (const board of boards) {
         const file = `content/${board.image.path}`;
@@ -1060,4 +1026,49 @@ try {
   }
 } catch (error) {
   reportError(error);
+}
+
+/**
+ * Every way OUTRUN's scenery shows a sprite: its stages' points to their length, every point of its fork and goal
+ * stretches, the figures after each goal and the objects at the start; and how many entries of each drawing are no
+ * object.
+ */
+function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['programs']) {
+  const length = stageLength(programs.main);
+  const uses: SpriteUse[] = [];
+  const skipped = new Map<number, number>();
+  const points = [
+    ...OUTRUN_STAGES.flat().flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
+    ...readForkStretch(programs).scenery,
+    ...readGoalStretches(programs).stretches.flatMap((s) => s.scenery),
+  ];
+  const types = [...new Set(points.map((p) => p.type))].sort((a, b) => a - b);
+  for (const type of types)
+    for (const e of readSceneryType(programs.main, type).entries) {
+      const shown = sceneryRoutine(programs.main, e.flags, e.y);
+      if (!shown) {
+        skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
+        continue;
+      }
+      uses.push({
+        sprite: e.sprite,
+        mirrored: (e.flags & 1) !== 0,
+        palette: e.palette,
+        shadow: (e.flags & 2) !== 0,
+        ...shown,
+      });
+    }
+  readGoalStretches(programs).stretches.forEach((_, g) =>
+    uses.push(...goalFigures(programs.main, g).map((figure) => figureUse(programs.main, figure))),
+  );
+  for (const o of startObjects(programs.main))
+    uses.push({
+      sprite: o.sprite,
+      mirrored: (o.flags & 1) !== 0,
+      anchor: o.anchor & 15,
+      routine: o.routine,
+      palette: o.palette,
+      shadow: (o.flags & 0x10) !== 0,
+    });
+  return { uses, skipped };
 }

@@ -182,11 +182,6 @@ export interface Family {
   readonly nearest: number;
   readonly reach: number;
   readonly shrink?: (k: number) => number;
-  /**
-   * Whether it lies on the ground (the sea's and lakes' edge), its board restored from its sizes; every other family
-   * rises from the ground and is its nearest size extending sideways.
-   */
-  readonly lies?: true;
 }
 
 /**
@@ -199,8 +194,13 @@ export interface ObjectRoutine {
   readonly pixelUnits: 1 | 2 | 4;
   readonly hits: boolean;
   readonly keepsLeftWhenApart: boolean;
-  /** A strip's or cloud's sizes. */
+  /** A strip's or cloud's sizes: a board of its nearest size extending sideways, unless it lies on the ground. */
   readonly family?: Family;
+  /**
+   * Whether what it draws lies on the ground (the sea's and lakes' edge, the patches of sand on the road): baked into
+   * the course's Strips from its nearest size, never a board.
+   */
+  readonly lies?: true;
   /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
   readonly grantsTime?: boolean;
   /**
@@ -216,13 +216,12 @@ export interface ObjectRoutine {
 }
 
 /** A strip's sizes: 16 for the depths, the nearest last; size k, where reduced, the nearest shrunk to (k + 1)/16. */
-const strip = (address: number, reduced: boolean, lies = false): Family => ({
+const strip = (address: number, reduced: boolean): Family => ({
   address,
   sizes: 16,
   nearest: 15,
   reach: 16,
   ...(reduced ? { shrink: (k: number) => (k + 1) / 16 } : {}),
-  ...(lies ? { lies: true } : {}),
 });
 /**
  * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
@@ -237,7 +236,8 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
-  [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  // Drawing 13: a patch lying on the road.
+  [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, lies: true }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
   [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false }],
   [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true }],
@@ -247,7 +247,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true, true) }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true), lies: true }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
   [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true) }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.

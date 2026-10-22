@@ -249,10 +249,10 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
 - **Sampling.** By [chosen lines](#chosen-lines) (`chosenLines`), each axis at its pixel's texels: a pixel of 2 units
   is two texels across and down, one more where a window's chosen line repeats, so a line a texel wider stands where
-  the picture is flat; the sea's restored picture is laid as a whole. A mirrored board is the
+  the picture is flat. A mirrored board is the
   unmirrored board's output mirrored. Every board keeps the size the scale rounds to.
 - **Picture.** The board's indices are the largest size's own pixels (a strip's, cloud's or trees' its nearest size's,
-  the sea's restored from its sizes, [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
+  [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
 - **Base point.** At the bottom or middle its anchor gives; a board extending sideways at its bottom. Across, an object anchored by an edge that has no body (its
@@ -318,15 +318,16 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   and setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 79
   at the top speed. Its board, `outrun-strip-<family>`, stands at that edge (Stage PG): the grass, sand and stones
   rise from the ground, so each is its nearest size, standing on its bottom edge and extending sideways away from the
-  road (`extend`: right, or left mirrored); the sea's or a lake's edge lies on the ground and is restored from its sizes,
-  its base point at its middle.
+  road (`extend`: right, or left mirrored). The sea's or a lake's edge lies on the ground: it is no board, but its
+  nearest size, standing by that edge and its middle, is [baked](#baking) into the course's Strips, in water's colors,
+  `WATER` inside the verges.
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
   stands as tall for its width as a near one, and narrows. An extending board repeats its nearest size at one size to
   the frame's edge, where the original shrinks the far sizes outward (the sand and stones); standing on its bottom
   edge at the original's middle anchor's place, it stands half its height higher (K, 2026-10-22).
-- **Restored** (`restoredStrip`, the sea's alone since Stage PG). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
+- **Restored** (`restoredStrip`, none of OUTRUN's since Stage PG). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
   and their own rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the
   nearest's width, which is only the inner 1/16 of the strip. The board is 16 times the nearest's width; its column
   `d` nearest pixels from the edge by the road takes, from the largest size k that covers it ((k + 1)d < 16 × width:
@@ -334,14 +335,46 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   floor(d(k + 1)/16) and, for row y, its row floor(y × its height / the nearest's). The grass's far sizes are not
   shrunk across, so its nearest size repeats outward to the same width. The boards are 7564 × 68 texels (grass), 8086 ×
   68 (sea, sand) and 8086 × 33 (stones: their sizes are 0 to 15 rows tall, so the outer half, size 0's, is
-  transparent), within a course image's 1,048,576 texels. Only the sea's is still made: 8086 × 68. The extending boards
-  are 473 × 68 texels (grass), 505 × 68 (sand) and 505 × 33 (stones).
+  transparent), within a course image's 1,048,576 texels. None is made since Stage PG: the extending boards are 473 × 68
+  texels (grass), 505 × 68 (sand) and 505 × 33 (stones), and the sea is baked.
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
-  DESOLATION HILL's drifts of sand, 248 by 31 px.
+  DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road: it is no board, but one Strip of its
+  footprint, in its picture's mean color and no material, as in the original ([Baking](#baking)).
 - **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is
   on them, near the camera: for 12 frames a spray from the table at 0xAD06 is drawn at the car, by the effect's kind
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
   spray is not converted.
+
+### Baking
+
+What lies on the ground (the sea's and lakes' edges, the patches) is baked into the course's Strips by the road data
+tool's shared baking (`ground-baking.ts`), as the camera sees each piece pass beside the player: the camera
+definition's, 2 m high and 6 m behind (the original's eye, 1.965 m and 6.1 m, is not matched). A piece's picture is its
+nearest size, its board's as it would stand. Its columns keep their laterals (40 texels a metre); its row r m below the
+anchor lies 6r / (2 + r) m nearer than the piece (beyond it for negative r).
+
+- **Strips** (`bakeStrip`). A strip's consecutive pieces on one side (each within 16 m of the next) are painted far to
+  near, the nearer, which the original draws later, on top, on samples 0.5 m apart along s and a texel across; beyond a
+  piece's outermost column its color reaches on. Every texel is light or dark, split at the largest gap in the colors'
+  luminances; the class the outermost columns mostly hold (the water) is the ground the others lie on, one Strip from
+  the pieces' edge outward. Each run of the other class (the sand and foam) at a sample is a band, the nearest first,
+  up to 3 (the farther ones joined to the last); a run narrower than 0.2 m, a fine pattern such as the foam's dots, takes
+  its neighbours' class. Each band is one Strip between two Boundaries, a missing band closing at the end of the one
+  before it. The colors are each class's mean in linear light, from the original's palettes. A strip's material
+  (`WATER`) runs from the waterline, where the water first appears, out to the verge (`outer-left` or `outer-right`),
+  over each stretch where the waterline lies 1 m inside it; beyond the verge water is color alone, and the verges, the
+  course limits, do not move.
+- **Boundaries.** One set a side, `ground-<side>-<set>-edge`, `-a1` to `-b3` and `-water`, while the strips on that
+  side follow one another (another set where one overlaps another); a set's Boundaries keep the same stations, within
+  0.05 m of their samples (doubled until they fit 1024 knots), so that a band's edges stay ordered.
+- **Patches** (`bakePatch`). A patch is one Strip, the rectangle its rows and columns cover on the ground, in its
+  picture's mean color, its material beneath.
+
+On OUTRUN's roads the sea and lakes (drawing 3) are baked on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE in up to
+2 sets a side (at most 18 Boundaries and 974 knots in a Section), and DESERT's 1149, its second Section's 169 and
+DESOLATION HILL's 482 and 543 patches (drawing 13) are each a color Strip on the road, with no material: the original's
+patches change no driving. `SAND` beneath them would stop the planned driver on DESOLATION HILL, whose patches lie on
+grades of up to 40 %, and leave its roads' racing lines unmeasurable.
 
 ### Clouds
 
@@ -578,7 +611,7 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 12 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 13 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
 program draws them:
 

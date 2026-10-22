@@ -3,7 +3,7 @@
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it at the top
  * speed, beside its road, as the main CPU runs them tick by tick.
  */
-import { boardName, boardsAcross, standsByEdge, type SpriteUse } from './outrun-boards.js';
+import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
@@ -115,18 +115,15 @@ export function roadObjects(
       : (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
         (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
     const [left, right] = hitExtents(main, use.sprite);
-    // Its boards side by side, reaching outward from its edge.
-    const boards = boardsAcross(main, routine);
-    for (let k = 0; k < boards.count; k++)
-      placements.push({
-        position,
-        x: lateral + (across === 1 ? 1 : -1) * k * boards.units,
-        y: fromMiddle?.up ?? y,
-        image: boardName(use),
-        palette: paletteName(use.palette),
-        hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
-        width,
-      });
+    placements.push({
+      position,
+      x: lateral,
+      y: fromMiddle?.up ?? y,
+      image: boardName(use),
+      palette: paletteName(use.palette),
+      hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
+      width,
+    });
   };
 
   // What an object does when it passes the car.

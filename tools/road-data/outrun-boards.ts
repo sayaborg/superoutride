@@ -7,19 +7,9 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import {
-  familySizes,
-  OBJECT_ROUTINES,
-  objectAside,
-  objectSize,
-  shadowSizes,
-  spritePalette,
-  type Family,
-  type ObjectRoutine,
-} from './outrun-sprites.js';
+import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette, type Family } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels, type SpriteSize } from './sprite-pixels.js';
-import { boardGrid, chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
+import { chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -59,12 +49,40 @@ export const standsByEdge = (use: Pick<SpriteUse, 'anchor' | 'routine'>) =>
   (use.anchor & 3) !== 0 && (use.anchor & 3) !== 3 && !OBJECT_ROUTINES.get(use.routine)!.hits;
 
 /**
- * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
- * number, its default). Each is made from the largest size's pixels (a strip's restored, `restoredStrip`) on its texel
- * grid by chosen lines (`chosenLines`), a mirrored one the unmirrored output mirrored, in the palettes' own colors. Its base point is its anchor's bottom or middle, and across, an object standing by its edge
- * (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a solid object's body stands.
+ * The boards `uses` need, those lying on the ground left out: each written as its course image (`boardMasters`).
  */
 export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readonly SpriteUse[]): BoardFiles[] {
+  return boardMasters(main, words, uses)
+    .filter((board) => !board.lies)
+    .map(({ name, master }) => ({ name, image: courseImageFile(master) }));
+}
+
+/** The pictures of what `uses` show lying on the ground, by image name: the masters the course's Strips are baked from. */
+export function lyingPictures(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly SpriteUse[],
+): Map<string, SpriteLodDocument> {
+  return new Map(
+    boardMasters(main, words, uses)
+      .filter((board) => board.lies)
+      .map(({ name, master }) => [name, master]),
+  );
+}
+
+/**
+ * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
+ * number, its default). Each is made from the largest size's pixels (a family's nearest size) on its texel grid by
+ * chosen lines (`chosenLines`), a mirrored one the unmirrored output mirrored, in the palettes' own colors. Its base
+ * point is its anchor's bottom or middle (a family rising from the ground, extending sideways, its bottom), and across,
+ * an object standing by its edge (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a
+ * solid object's body stands. What lies on the ground is marked: it is baked, never a board.
+ */
+function boardMasters(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly SpriteUse[],
+): { name: string; master: SpriteLodDocument; lies: boolean }[] {
   const groups = new Map<string, SpriteUse[]>();
   for (const use of uses) {
     const name = boardName(use);
@@ -79,7 +97,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     }
     return shadows.get(address)!;
   };
-  const boards: BoardFiles[] = [];
+  const boards: { name: string; master: SpriteLodDocument; lies: boolean }[] = [];
   for (const [name, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
     const [first] = group;
     const routine = OBJECT_ROUTINES.get(first!.routine)!;
@@ -90,13 +108,10 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
-    // A family lying on the ground is restored from its sizes; one rising from it is its nearest size, extending away
-    // from the road (right, or left mirrored).
-    const lies = routine.family?.lies === true;
+    // A family rising from the ground extends away from the road (right, or left mirrored).
+    const lies = routine.lies === true;
     const extending = routine.family !== undefined && !lies;
-    const size = lies
-      ? restoredStrip(words, familySizes(main, routine.family!), routine.family!, boardsAcross(main, routine).count)
-      : { ...largest, pixels: spritePixels(words, largest) };
+    const size = { ...largest, pixels: spritePixels(words, largest) };
     // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
     const texels = texelsAPixel(routine.pixelUnits);
     const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
@@ -136,28 +151,9 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
         : {}),
     });
     const board = master((k) => [0, ...spritePalette(main, palettes[k]!).slice(1)], indices);
-    boards.push({ name, image: courseImageFile(board) });
+    boards.push({ name, master: board, lies });
   }
   return boards;
-}
-
-/**
- * The boards a lying family's reach is split into, side by side outward, and each one's width (road units): the fewest,
- * halving, whose board fits a course image's texels (one for the sea's). Any other object's board is one, a rising
- * family's extending sideways.
- */
-export function boardsAcross(main: Uint8Array, routine: ObjectRoutine): { count: number; units: number } {
-  const { family } = routine;
-  if (!family?.lies) return { count: 1, units: 0 };
-  const { width, height } = familySizes(main, family)[family.nearest]!;
-  for (let count = 1; count <= family.reach; count *= 2) {
-    const grid = boardGrid((family.reach / count) * width, height, routine.pixelUnits);
-    if (grid.width * grid.height <= COURSE_DOCUMENT_LIMITS.imageMasterTexels) {
-      if (count > 1 && family.shrink) throw new Error(`Family ${family.address} needs several boards`);
-      return { count, units: (family.reach / count) * width * routine.pixelUnits };
-    }
-  }
-  throw new Error(`Family ${family.address} does not fit a course image`);
 }
 
 /**

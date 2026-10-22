@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6b, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-7a, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -746,8 +746,14 @@ PRs:
   their nearest size, standing on their bottom edge and extending away from the road (the clouds from the roads'
   middle, at their height), in place of the pictures restored from their far sizes; the clouds take one board a side
   instead of four. The sea 4608 waits for PG-6b.
-- PG-6b: the baking as a shared part of the road data tool, and OUTRUN's sea, lakes and patches baked into Strips;
-  [Original road data](original-road-data.md) updated.
+- PG-6b was split. PG-6b1 made the coordinate domain's stations those where its outer edges change, so a material
+  splitting the slab table without moving an outer edge adds no cell to the plan's injectivity check (DESERT's patches
+  and the sea's water reported overlaps on curves). PG-6b2 made the baking a shared part of the road data tool
+  (`ground-baking.ts`, [Baking](original-road-data.md#baking)) and baked OUTRUN's sea, lakes and patches into Strips
+  (conversion version 13): the sea and lakes in water's colors with `WATER` from the waterline to the verges, the
+  patches each a color Strip on the road with no material (`SAND`, the default, stopped the planned driver on
+  DESOLATION HILL's grades of up to 40 %). Their boards (`outrun-strip-4608`, `outrun-001`) are no
+  longer written; PG-10 deletes them.
 - PG-7a, PG-7b: TURBO OUTRUN's two, by PG-6b's baking.
 - PG-8: ENDURO RACER's water `WATER` by the table; its boards' anchors (0.8 texel below the bottom) at the bottom;
   [ENDURO RACER's Materials](original-road-data.md) and NEXT's water (Stage ER's Water, ER-6, what Stages ER and MG
