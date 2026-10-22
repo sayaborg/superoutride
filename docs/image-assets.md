@@ -580,8 +580,10 @@ its own camera sees it.
 
 **Drawing.** Each size of each direction is drawn by its contract camera ([Picture contract](#picture-contract)) at 6
 camera pixels per texel side at full size and twice as many at each smaller size. A texel is opaque when at least
-half of it is covered, and paint, glass or lamp when at least half of its covered part is. The shadow is the solid's
-outline seen from above, on the road, drawn the same way.
+half of it is covered, and paint, glass or lamp when at least half of its covered part is. If an entire silhouette
+falls below half coverage, its fullest covered texel remains opaque in its ordinary classified palette color;
+ties choose the first texel in row order. This keeps a distant narrow vehicle visible without changing its camera
+or anchor. The shadow is the solid's outline seen from above, on the road, drawn the same way.
 
 The generator's fixed values are author values, neither derived from a model nor recipe fields: a mirror part covers
 more than 40 cells (40 cm²) of a facing outline; the wheels are the solid within 0.37 m of the body's side and within 1.05
@@ -613,8 +615,10 @@ each). GOLF GTI 16V's saved set is the command's output for its recipe: red, whi
 
 Authored provisional shapes can use `tools/graphics/procedural-vehicle-solid.ts`: deterministic surface samples of
 boxes, ellipsoids, capped cylinders and wheels, or individually authored points, in metres about the common base
-point. Colors and outward normals belong to those surfaces. `finish` banks the shape about its longitudinal ground
-line and raises its lowest surface to the road. These shapes have no brake-lamp classification.
+point. Colors and outward normals belong to those surfaces. A surface can optionally be classified as paint,
+glass or a brake lamp for the existing palette and lamp rules; the default is unclassified, preserving the
+racing shapes. A wheel can specify its rim radius independently of its outside radius. `finish` banks the shape
+about its longitudinal ground line and raises its lowest surface to the road.
 
 The existing picture baker accepts either one solid or an array of banks ordered from negative to positive lean,
 evenly spaced across the declared `bankDegrees`. It draws every yaw and all six sizes with the same camera, lighting,

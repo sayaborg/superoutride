@@ -219,6 +219,10 @@ function drawSize(
     shadow = new Uint8Array(width * height);
   const lampShare = new Float32Array(width * height);
   const pixels = sub * sub;
+  let fullestCoverage = 0,
+    fullestAt = -1,
+    fullestSlot = 0,
+    opaque = false;
   for (let ty = 0; ty < height; ty++)
     for (let tx = 0; tx < width; tx++) {
       let covered = 0,
@@ -246,7 +250,7 @@ function drawSize(
       }
       const texelAt = ty * width + tx;
       shadow[texelAt] = +(shade / pixels >= SHARE);
-      if (covered / pixels < SHARE) continue;
+      if (!covered) continue;
       r /= covered;
       g /= covered;
       b /= covered;
@@ -293,8 +297,19 @@ function drawSize(
           }
         }
       }
-      indices[texelAt] = slot;
+      if (covered / pixels >= SHARE) {
+        indices[texelAt] = slot;
+        opaque = true;
+      }
+      if (covered > fullestCoverage) {
+        fullestCoverage = covered;
+        fullestAt = texelAt;
+        fullestSlot = slot;
+      }
     }
+  // A subpixel silhouette remains visible: retain its fullest texel in its ordinary classified color.
+  // Ties keep the first texel in row order. This does not alter frames which already reached half coverage.
+  if (!opaque && fullestAt >= 0) indices[fullestAt] = fullestSlot;
   // The lamp never vanishes while the tail shows: each lamp's fullest texel stays a lamp texel.
   if (size >= 1 && size <= LAMP_KEPT_TO_SIZE)
     for (const [from, to] of [

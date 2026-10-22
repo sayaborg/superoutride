@@ -4,6 +4,9 @@ import type { VehicleSolid } from './vehicle-solid.js';
 /** Authored geometry in metres: right, up, forward, about the common vehicle base point. */
 export type Point3 = readonly [number, number, number];
 export type SurfaceColor = Rgb | ((position: Point3, normal: Point3) => Rgb);
+/** Semantic surfaces use the ordinary picture baker's paint, glass and reserved brake-lamp slots. */
+type SurfaceKind = 'plain' | 'paint' | 'glass' | 'lamp';
+export type SurfaceMaterial = SurfaceKind | ((position: Point3, normal: Point3) => SurfaceKind);
 const BLACK: Rgb = [16, 16, 18],
   METAL: Rgb = [140, 144, 148];
 const length = (a: Point3) => Math.hypot(...a);
@@ -25,14 +28,21 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
   if (!(spacing > 0 && Number.isFinite(spacing))) throw new RangeError('Surface spacing must be finite and positive');
   const positions: number[] = [],
     normals: number[] = [],
-    colors: number[] = [];
-  const point = (position: Point3, normal: Point3, color: SurfaceColor) => {
+    colors: number[] = [],
+    paint: number[] = [],
+    glass: number[] = [],
+    lamp: number[] = [];
+  const point = (position: Point3, normal: Point3, color: SurfaceColor, material: SurfaceMaterial = 'plain') => {
+    const kind = typeof material === 'function' ? material(position, normal) : material;
     positions.push(...position);
     normals.push(...normal);
     colors.push(...(typeof color === 'function' ? color(position, normal) : color));
+    paint.push(+(kind === 'paint'));
+    glass.push(+(kind === 'glass'));
+    lamp.push(+(kind === 'lamp'));
   };
   const segments = (extent: number) => Math.max(1, Math.ceil(extent / spacing));
-  const box = (center: Point3, half: Point3, color: SurfaceColor) => {
+  const box = (center: Point3, half: Point3, color: SurfaceColor, material: SurfaceMaterial = 'plain') => {
     for (let axis = 0; axis < 3; axis++) {
       const u = (axis + 1) % 3,
         v = (axis + 2) % 3;
@@ -47,11 +57,11 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
             p[u] = p[u]! + half[u]! * ((2 * i) / nu - 1);
             p[v] = p[v]! + half[v]! * ((2 * j) / nv - 1);
             n[axis] = side;
-            point(p, n, color);
+            point(p, n, color, material);
           }
     }
   };
-  const ellipsoid = (center: Point3, radius: Point3, color: SurfaceColor) => {
+  const ellipsoid = (center: Point3, radius: Point3, color: SurfaceColor, material: SurfaceMaterial = 'plain') => {
     const rings = segments(Math.PI * Math.max(...radius));
     for (let j = 0; j <= rings; j++) {
       const phi = (j * Math.PI) / rings,
@@ -66,11 +76,18 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
           [center[0] + x * radius[0], center[1] + y * radius[1], center[2] + z * radius[2]],
           unit([x / radius[0], y / radius[1], z / radius[2]]),
           color,
+          material,
         );
       }
     }
   };
-  const cylinder = (from: Point3, to: Point3, radius: number, color: SurfaceColor) => {
+  const cylinder = (
+    from: Point3,
+    to: Point3,
+    radius: number,
+    color: SurfaceColor,
+    material: SurfaceMaterial = 'plain',
+  ) => {
     const delta: Point3 = [to[0] - from[0], to[1] - from[1], to[2] - from[2]],
       span = length(delta);
     if (!(span > 0 && radius > 0)) throw new RangeError('A cylinder needs positive length and radius');
@@ -95,6 +112,7 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
           ],
           n,
           color,
+          material,
         );
       }
     for (const end of [0, 1])
@@ -112,12 +130,13 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
             ],
             [axis[0] * sign, axis[1] * sign, axis[2] * sign],
             color,
+            material,
           );
         }
       }
   };
   /** A dry tire with rounded shoulders, sidewalls, hub and authored spoke count; no tire motion is simulated. */
-  const wheel = (center: Point3, radius: number, width: number, rim: Rgb, spokes: number) => {
+  const wheel = (center: Point3, radius: number, width: number, rim: Rgb, spokes: number, rimRadius?: number) => {
     const around = Math.ceil(segments(2 * Math.PI * radius) / 4) * 4,
       across = segments(width);
     for (let j = 0; j <= across; j++) {
@@ -143,7 +162,9 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
           const a = (i * 2 * Math.PI) / steps,
             fraction = r / radius;
           const spoke = Math.cos(a * spokes) > 0.77;
-          const color = fraction < 0.14 ? METAL : fraction < 0.68 && (fraction > 0.6 || spoke) ? rim : BLACK;
+          const outer = rimRadius === undefined ? 0.68 : rimRadius / radius,
+            inner = rimRadius === undefined ? 0.6 : outer - 0.08;
+          const color = fraction < 0.14 ? METAL : fraction < outer && (fraction > inner || spoke) ? rim : BLACK;
           point(
             [center[0] + (side * width) / 2, center[1] + r * Math.cos(a), center[2] + r * Math.sin(a)],
             [side, 0, 0],
@@ -196,9 +217,9 @@ export function createProceduralVehicleSolid(spacing = 0.008) {
         normals: n,
         colors: Float32Array.from(colors),
         edge: new Float32Array(count),
-        paint: new Uint8Array(count),
-        glass: new Uint8Array(count),
-        lamp: new Uint8Array(count),
+        paint: Uint8Array.from(paint),
+        glass: Uint8Array.from(glass),
+        lamp: Uint8Array.from(lamp),
         footprint: Float32Array.from([...columns.values()].flat()),
         reach,
         height,

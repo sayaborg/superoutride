@@ -66,3 +66,58 @@ test('procedural banks keep ground contact and bake into the common direction, s
     drawVehicleSpriteSet([banks[1]], style, CAMERA_DEFINITION),
   );
 });
+
+test('a subpixel silhouette keeps its own paint or lamp color and the shared shadow grid', () => {
+  const neutral = [
+    [18, 18, 20],
+    [55, 55, 60],
+    [145, 145, 150],
+    [200, 200, 205],
+    [245, 245, 245],
+  ];
+  const accents = [
+    [20, 35, 45],
+    [110, 150, 165],
+    [210, 28, 32],
+    [240, 140, 20],
+    [28, 62, 160],
+    [115, 110, 105],
+  ];
+  const palette = (body) => [body, body.map((v) => v * 0.7), body.map((v) => v * 0.38), ...neutral, ...accents];
+  const style = {
+    yawVariants: 4,
+    slots: { body: 3, neutral: 5, glass: 2, accent: 4 },
+    bodyKeys: [240, 170, 90],
+    palettes: {
+      stock: palette([200, 200, 200]),
+      red: palette([210, 28, 32]),
+      blue: palette([28, 62, 160]),
+      black: palette([45, 47, 52]),
+    },
+    paint: { exposure: 1 },
+    glass: { glint: 240 },
+    brakeLamp: { off: [115, 15, 18], on: [255, 45, 32] },
+  };
+  for (const material of ['paint', 'lamp']) {
+    const shape = createProceduralVehicleSolid();
+    // Less than 0.1 texel wide at size 5: ordinary half coverage cannot preserve this silhouette.
+    shape.box([0, 0.4, 0], [0.03, 0.4, 0.04], [180, 180, 180], () => material);
+    const solid = shape.finish();
+    const baked = drawVehicleSpriteSet(solid, style, CAMERA_DEFINITION);
+    readVehicleSpriteSet(baked, `narrow-${material}`);
+    assert.notEqual(baked.brakeLamp.off, baked.brakeLamp.on);
+    assert.notDeepEqual(baked.palettes.stock, baked.palettes.red);
+    for (const picture of baked.pictures) {
+      for (const size of picture.sizes) {
+        const pixels = size.rows.join('').replaceAll('0', '');
+        assert.ok(pixels.length > 0, `${material} remains visible at every size`);
+        assert.match(pixels, material === 'lamp' ? /^f+$/ : /^[123]+$/);
+        assert.ok(size.shadow.rows.join('').includes('1'));
+        assert.ok(Number.isInteger(size.anchorX - size.shadow.anchorX));
+        assert.ok(Number.isInteger(size.anchorY - size.shadow.anchorY));
+      }
+      assert.equal(picture.sizes[5].rows.join('').replaceAll('0', '').length, 1);
+    }
+    assert.deepEqual(drawVehicleSpriteSet(solid, style, CAMERA_DEFINITION), baked);
+  }
+});
