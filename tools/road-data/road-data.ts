@@ -49,16 +49,6 @@ import {
   superMonacoGpCourses,
 } from './super-monaco-gp-course.js';
 import { filesByCrc } from './enduro-racer-rom.js';
-import { racingHeroDump } from './racing-hero-dump.js';
-import { expandObjects } from './racing-hero-road.js';
-import {
-  courseId as racingHeroCourseId,
-  POSITION_METRES as RACING_HERO_POSITION,
-  RACING_HERO_CONVERSION_VERSION,
-  racingHeroCourses,
-  SKY_REPEATS as RACING_HERO_SKY_REPEATS,
-  SKY_SCALE as RACING_HERO_SKY_SCALE,
-} from './racing-hero-course.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
   ENDURO_RACER_CONVERSION_VERSION,
@@ -103,9 +93,6 @@ const ENDURO_RACER_DUMP_DIRECTORY = 'reference-media/enduro-racer/rom-data';
 /** Where K's SUPER MONACO GP ROM zip and the tool's dumps of it lie: never committed. */
 const SUPER_MONACO_GP_ROM_DIRECTORY = 'reference-media/super-monaco-gp/rom';
 const SUPER_MONACO_GP_DUMP_DIRECTORY = 'reference-media/super-monaco-gp/rom-data';
-/** Where K's RACING HERO ROM zip and the tool's dumps of it lie: never committed. */
-const RACING_HERO_ROM_DIRECTORY = 'reference-media/racing-hero/rom';
-const RACING_HERO_DUMP_DIRECTORY = 'reference-media/racing-hero/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -961,123 +948,6 @@ try {
           frameTables: Object.keys(dump.frameTables).length,
           pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
           roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
-        }),
-      );
-      break;
-    }
-    case 'racing-hero-read': {
-      // RACING HERO's ROM zip read, never decrypted; every table its courses use to the dump.
-      const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
-      const dump = racingHeroDump(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
-      const out = options.get('--out') ?? RACING_HERO_DUMP_DIRECTORY;
-      await atomicWrite(path.join(out, 'racing-hero.json'), JSON.stringify(dump) + '\n');
-      const types = Object.values(dump.types);
-      console.log(
-        JSON.stringify({
-          ok: true,
-          zip,
-          out,
-          countries: dump.countries.map(({ id, sections, background }) => ({
-            id,
-            background,
-            motion: dump.background.paletteSets[background + 1]!.flatMap((c) => ('motion' in c ? [c.motion] : [])),
-            layers: dump.background.lists[background]!.length,
-            sections: sections.map((k) => {
-              const { road, grades, scenery, surface } = dump.sections[k]!;
-              return {
-                section: k,
-                length: road.entries.reduce((sum, e) => sum + e.length, 0),
-                entries: road.entries.length,
-                tightest: Math.min(...road.entries.filter((e) => e.radius).map((e) => Math.abs(e.radius))),
-                grades: grades.length,
-                scenery: expandObjects(scenery).length,
-                surface: expandObjects(surface).length,
-              };
-            }),
-          })),
-          types: types.length,
-          empty: types.filter((d) => !d).length,
-          routines: [...new Set(types.flatMap((d) => (d ? [d.routine] : [])))].sort((a, b) => a - b),
-          pictures: Object.keys(dump.pictures).length,
-          pixelsPastEnd: Object.values(dump.pictures).reduce((sum, p) => sum + p.pastEnd, 0),
-        }),
-      );
-      break;
-    }
-    case 'racing-hero-course': {
-      // RACING HERO's ten courses from its ROM zip, written to content, or with `--check` compared.
-      const check = options.has('--check');
-      const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
-      const { courses, boards } = racingHeroCourses(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
-      for (const { image } of boards) {
-        const picture = `content/${image.path}`;
-        if (check) {
-          const committed = await readFile(picture).catch(() => null);
-          requireInput(
-            committed && Buffer.compare(committed, image.bytes) === 0,
-            `/${picture}`,
-            `${picture} is not the ROMs'`,
-          );
-        } else await atomicWrite(picture, image.bytes);
-      }
-      const report = [];
-      for (const course of courses) {
-        const file = await saveCourse(racingHeroCourseId(course.country), course.document, check);
-        // Its sky, baked from its background; course images are saved as their exact compact bytes.
-        const text = JSON.stringify(course.sky.document);
-        const skyFile = `content/images/${course.sky.name}.json`;
-        if (check) {
-          const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
-        } else await atomicWrite(skyFile, text);
-        const arcs = course.path.elements.filter((e) => e.turn !== 0);
-        const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
-        const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
-        const why = new Map<string, number>();
-        for (const l of course.left) why.set(l.why, (why.get(l.why) ?? 0) + 1);
-        report.push({
-          id: course.id,
-          file,
-          palettes: course.set,
-          metres: round1(course.path.planeLength),
-          elements: course.path.elements.length,
-          tightest: { at: round1(course.path.station(tightest.start)), radius: round1(radius(tightest)) },
-          sections: course.pieces.map((p) => ({
-            id: p.id,
-            from: round1(p.origin),
-            sprites: p.sprites,
-            strips: p.strips,
-          })),
-          left: Object.fromEntries(why),
-          crossings: course.crossings.map((c) => ({
-            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-            levels: c.levels,
-            held: c.held,
-            half: c.half,
-            heights: c.heights.map(round1),
-          })),
-          steepest: round3(course.steepest),
-          waters: course.waters.length,
-          runOut: round1(course.runOut),
-          sky: course.sky.layers.map((l) => ({
-            ...l,
-            start: round1(l.start),
-            stretch: round3(l.stretch),
-          })),
-        });
-      }
-      console.log(
-        JSON.stringify({
-          ok: true,
-          zip,
-          conversion: RACING_HERO_CONVERSION_VERSION,
-          checked: check,
-          metresAPosition: RACING_HERO_POSITION,
-          boards: boards.length,
-          texels: boards.reduce((sum, b) => sum + b.texels, 0),
-          skyScale: round3(RACING_HERO_SKY_SCALE),
-          skyRepeats: RACING_HERO_SKY_REPEATS,
-          courses: report,
         }),
       );
       break;
