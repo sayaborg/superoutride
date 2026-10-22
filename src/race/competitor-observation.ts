@@ -4,6 +4,7 @@ import type { VehicleMotionRead, VehicleRenderRead } from '../vehicle/physics/ve
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { TireObservation, VehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 import type { RunVehicle } from '../content/run-vehicle.js';
+import type { ContactResponseObservation } from './contact-response.js';
 
 /**
  * One competitor's values for display, camera and audio, copied by the race at the end of every fixed
@@ -44,6 +45,7 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
     readonly shiftSeconds: number | null;
   };
   readonly tires: VehicleTireObservation;
+  readonly contactResponse: ContactResponseObservation;
 }
 
 type Mutable<T> = { -readonly [Key in keyof T]: T[Key] };
@@ -108,6 +110,7 @@ export function createCompetitorObservation(
       shiftSeconds: null,
     },
     tires: { front: tire(), rear: tire() },
+    contactResponse: { phase: 'driving', seconds: 0, sequence: 0 },
   };
   return slot;
 }
@@ -121,6 +124,7 @@ export function writeCompetitorObservation(
   vehicle: VehicleState,
   input: DrivingInput,
   simulationSeconds: number,
+  contactResponse: ContactResponseObservation = { phase: 'driving', seconds: 0, sequence: 0 },
 ): void {
   const out = observation as CompetitorObservationSlot;
   out.x = vehicle.x;
@@ -136,6 +140,11 @@ export function writeCompetitorObservation(
   out.lateralAcceleration = vehicle.lateralAcceleration;
   out.brakeLampOn = Number(input.brake) > 0;
   out.speed = vehicle.speed;
+  Object.assign(out.contactResponse, {
+    phase: contactResponse.phase,
+    seconds: contactResponse.seconds,
+    sequence: contactResponse.sequence,
+  });
   out.frontSteerAngle = vehicle.frontSteerAngle;
   writeCompetitorPowertrain(observation, vehicle, simulationSeconds);
   Object.assign(out.tires.front, vehicle.tires.front);

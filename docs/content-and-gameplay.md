@@ -1626,11 +1626,38 @@ wrong-course recovery does the same on the selected road. A recovery that reache
 without a free place, like an appearance whose place is occupied, waits: the vehicle does not recover that step, and
 the next step judges it again. A manual recovery without a free place does nothing. These choose where a vehicle is placed; they move no vehicle.
 
+### Authored contact response
+
+A vehicle listing may add `contactResponse: "explode"` (an optional addition to listing version 5). With the field
+absent, contacts keep their existing physical response. Only this authored policy enables the game sequence;
+vehicle identifiers do not choose it. It applies equally to the player, rivals and traffic.
+
+A new contact with another vehicle, a wall or physical course limit, a fixed collision object or a movable collision
+object starts the sequence at any speed, including rest. Tire support, painted lines, visual scenery and timing gates
+do not report solid contacts and cannot start it. Contact detection finishes before the race applies responses.
+
+- `driving` → `exploding`: increment the event sequence once, stop body and wheel motion at the contact pose and
+  reset controls and tire slip observations. This is an explicit gameplay stop, outside ordinary vehicle integration.
+- The first 1.2 s are the explosion. From 1.2 s the phase is `recovering`; the vehicle stays stopped and input cannot
+  drive it. Manual recovery and the wrong-route recovery cannot bypass this interval.
+- From 2.4 s, try the existing safe placement behind the vehicle, avoiding other vehicles and standing objects. If no
+  place is free, keep waiting without another event. Successful recovery reconstructs the ordinary vehicle state at
+  **0 m/s** and marks the step recovered, so route observers grant no gate or lap credit for the relocation.
+- `protected` lasts 1 s after recovery. Driving resumes, but new contacts cannot start another explosion during this
+  interval. Continuous contact never restarts a sequence: contact detection emits a start only after separation.
+  After protection the response returns to `driving`.
+
+Race time continues during the sequence; pausing the run pauses it with every other fixed-step activity. Each actor
+owns its phase, elapsed time and event sequence, copied into its borrowed observation for effects. A fresh run starts
+at sequence zero. Explosion affects no other vehicle beyond the ordinary contact force: there is no blast damage.
+These durations, the stop and protection are game design, not claims about a real vehicle's fuel or safety.
+
 ## Recovery
 
 Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
 exit, an inverted landing, falling through the heightfield, being held against a fixed object (blocked), leaving the
-locked fork route (wrong course) or a manual request. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the conditions. It reconstructs
+locked fork route (wrong course) or a manual request. The authored contact response above also requests recovery after
+its stopped interval. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the ordinary conditions. Recovery reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
 player: the ordinary recovery toward the centre of its road, the legal-road check, a progress baseline reset that awards

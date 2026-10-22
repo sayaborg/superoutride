@@ -146,6 +146,26 @@ Implement the stages in order. Each PR's restart instructions supply its detaile
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
+## Stage RV — Five racing vehicles
+
+The owner's 2026-10-22 instruction selects Gardner's 1987 NSR500, Lawson's 1988 YZR500 0W98, Senna's 1988
+MP4/4, Mansell's 1989 F1-89/640, and Andretti's 1978 Lotus 79 SPECIAL. All five enter FREE PLAY. Existing series
+membership and the stopped RACING HERO work stay as they are. The owner clarified the scope during implementation:
+**vehicle data, pictures and sound, plus contact explosion and recovery; any other physics addition needs the owner's
+prior confirmation.** The proposed axle downforce and timed shifts were discarded before any PR or main change.
+Use existing vehicle physics and document its omissions, including downforce and shift interruption.
+
+Remaining reviewable PRs:
+
+- RV-2: explosion pictures and one-shot audio from the contact response's published sequence.
+- RV-3: reproducible provisional racing silhouettes through the common picture camera and anchor.
+- RV-4: sourced specification ledger, five catalogs and sounds, two-speed Lotus tuning to 345–355 km/h,
+  driving/contact checks and direction/bank/LOD review.
+
+The Lotus has two actual forward ratios. Its powertrain data and contact explosion are game design, never historical
+Lotus specifications. Clutch heat, wear and durability are outside this work. Unknown historical values are explicitly
+estimated with their derivation; they do not block a complete, declared vehicle specification.
+
 ## Stage VC — Courses from footage
 
 K stopped Stage VC on 2026-10-18: OUTRUN's courses are raised from the original's road data

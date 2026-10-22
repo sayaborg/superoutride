@@ -73,6 +73,8 @@ export interface VehicleListingDocument {
   readonly version: typeof VEHICLE_LISTING_VERSION;
   readonly form: VehicleForm;
   readonly selectionOrder: number;
+  /** Optional game response to a solid contact; absence retains ordinary physical contact. */
+  readonly contactResponse?: 'explode';
   readonly visuals: Readonly<{
     spriteSet: string;
     palette: string;
@@ -209,12 +211,24 @@ export function compileVehicleListingDocument(
   sounds: EngineSoundCatalog,
 ): AdmissionResult<CompiledVehicleListing> {
   return admit(document, () => {
+    const response = typeof value === 'object' && value !== null && Object.hasOwn(value, 'contactResponse');
     const v = readDocument(
       value,
-      ['format', 'version', 'form', 'selectionOrder', 'visuals', 'sound', 'metadata'],
+      [
+        'format',
+        'version',
+        'form',
+        'selectionOrder',
+        'visuals',
+        'sound',
+        'metadata',
+        ...(response ? ['contactResponse'] : []),
+      ],
       VEHICLE_LISTING_FORMAT,
       VEHICLE_LISTING_VERSION,
     );
+    if (response)
+      requireAdmission(v.contactResponse === 'explode', 'invalid_value', '/contactResponse', 'Expected explode');
     requireAdmission(v.form === 'car' || v.form === 'bike', 'invalid_value', '/form', 'Expected car or bike');
     const selectionOrder = readNumber(v.selectionOrder, '/selectionOrder');
     requireAdmission(
@@ -333,6 +347,7 @@ export function compileVehicleListingDocument(
       version: VEHICLE_LISTING_VERSION,
       form: v.form,
       selectionOrder,
+      ...(response ? { contactResponse: 'explode' as const } : {}),
       visuals,
       sound: soundId,
       metadata,

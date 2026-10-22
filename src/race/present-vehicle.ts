@@ -1,19 +1,21 @@
 import type { Writable } from '../core/writable.js';
 import type { Vec3 } from '../core/vector3.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
-import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
+import { updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import type { createPlannedDriverWorkspace, PlannedDriver } from './planned-driver.js';
 import type { LaneIntent, PathOffset, VehicleSighting } from './lane-following.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
-import { advanceVehicleWithRecovery, type RecoveryState, type RecoveryTarget } from './recovery.js';
+import { advanceVehicleWithRecovery, recoverVehicle, type RecoveryState, type RecoveryTarget } from './recovery.js';
+import { advanceContactResponse, contactResponseStopped, type ContactResponseState } from './contact-response.js';
 
 /** A vehicle's mechanics: its live state, its model and its recovery state. */
 export interface VehicleActor {
   readonly vehicle: VehicleState;
   readonly model: VehicleModel;
   readonly recovery: RecoveryState;
+  readonly contactResponse: ContactResponseState;
 }
 
 /**
@@ -126,5 +128,19 @@ export function advancePresentVehicle(
   previous.l = vehicle.course.l;
   body.step.input = input;
   body.step.steering = steering;
+  const response = body.actor.contactResponse;
+  if (contactResponseStopped(response)) {
+    body.step.input = IDLE;
+    updateVehicle(world, vehicle, body.model, IDLE, steering, true);
+    body.recovered = advanceContactResponse(response, body.model.step, () =>
+      recoverVehicle(world, vehicle, body.model, {
+        state: body.actor.recovery,
+        place: body.step.place,
+        reason: 'explosion',
+      }),
+    );
+    return;
+  }
+  advanceContactResponse(response, body.model.step, () => false);
   body.recovered = advanceVehicleWithRecovery(world, vehicle, body.model, body.step) !== null;
 }

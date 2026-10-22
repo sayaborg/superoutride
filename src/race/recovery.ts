@@ -26,7 +26,8 @@ import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
-type RecoveryReason = 'surface-penetration' | 'outside-domain' | 'blocked' | 'overturned' | 'manual' | 'wrong-course';
+type RecoveryReason =
+  'surface-penetration' | 'outside-domain' | 'blocked' | 'overturned' | 'manual' | 'wrong-course' | 'explosion';
 
 // Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
 // At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
@@ -230,7 +231,7 @@ export function recoverVehicleToPlanCoordinate(
   // A vehicle a fixed object held had stopped against it: it recovers at rest behind it, since a recovery speed would
   // carry it back into the same object. Every other recovery keeps a bounded share of its forward speed.
   const speed =
-    reason === 'blocked'
+    reason === 'blocked' || reason === 'explosion'
       ? 0
       : clamp(
           Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,

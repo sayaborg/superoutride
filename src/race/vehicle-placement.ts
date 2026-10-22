@@ -7,6 +7,7 @@ import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import type { PresentVehicle } from './present-vehicle.js';
+import { contactResponseStopped } from './contact-response.js';
 import { RECOVERY_POLICY, recoverVehicleToPlanCoordinate, type RecoveryTarget } from './recovery.js';
 
 /**
@@ -82,6 +83,7 @@ export function createVehiclePlacement(options: {
      * way, the selected road's centre. A return marks the body recovered; with no free place it waits for a later step.
      */
     legalRecovery(body: PresentVehicle): void {
+      if (contactResponseStopped(body.actor.contactResponse)) return;
       const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
       if (!target) return;
       const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l);

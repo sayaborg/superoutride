@@ -8,6 +8,7 @@ import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField, LINE } from './course-fork-field.js';
 import { rivalExit } from './rival-exit.js';
 import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
+import { beginContactResponse, createContactResponse, contactResponseStopped } from './contact-response.js';
 import { createBodyContacts, createContactFaces } from './body-contacts.js';
 import { createContactLog, type PlayerContacts } from './contact-log.js';
 import type { LaneIntent, PathOffset } from './lane-following.js';
@@ -226,7 +227,12 @@ export function createCourseRace(options: {
   const spawn = (entry: RunEntry, at: { s: number; l: number; initialSpeed: number }): VehicleActor => {
     const model = modelOf(entry.vehicle);
     const vehicle = createVehicle(model, runtime.readers, at);
-    return { vehicle, model, recovery: createRecoveryState(vehicle) };
+    return {
+      vehicle,
+      model,
+      recovery: createRecoveryState(vehicle),
+      contactResponse: createContactResponse(entry.vehicle.vehicleDefinition.listing.contactResponse),
+    };
   };
   const [playerEntry, ...rivalEntries] = entries;
   const playerSlot = playerEntry!.slot!;
@@ -292,7 +298,8 @@ export function createCourseRace(options: {
   // driving definition holds the spring-damper.
   const contactFaces = createContactFaces(runtime.readers.coordinates, options.setup.bodyContact);
   // The player's contacts of each step, published at its end.
-  const contactLog = createContactLog(player.id);
+  const contactStarts = new Set<string>();
+  const contactLog = createContactLog(player.id, (id) => contactStarts.add(id));
   let playerContacts: PlayerContacts = contactLog.publish();
   const bodyContacts = createBodyContacts(contactFaces, SIM_DT, contactLog);
   // Walls and course limits push every present vehicle back with the same spring-damper.
@@ -432,10 +439,22 @@ export function createCourseRace(options: {
   const publish = () => {
     for (let i = 0; i < competitors.length; i += 1) {
       const { body } = competitors[i]!;
-      writeCompetitorObservation(competitorObservations[i]!, body.vehicle, body.step.input, simulationSeconds);
+      writeCompetitorObservation(
+        competitorObservations[i]!,
+        body.vehicle,
+        body.step.input,
+        simulationSeconds,
+        body.actor.contactResponse,
+      );
     }
     for (const vehicle of traffic)
-      writeCompetitorObservation(vehicle.observation, vehicle.vehicle, vehicle.step.input, simulationSeconds);
+      writeCompetitorObservation(
+        vehicle.observation,
+        vehicle.vehicle,
+        vehicle.step.input,
+        simulationSeconds,
+        vehicle.actor.contactResponse,
+      );
   };
   // Only rivals and traffic in the resident window are observable; this is the single residency decision.
   const visible: CompetitorObservation[] = [];
@@ -548,6 +567,9 @@ export function createCourseRace(options: {
       if (!pushedIds.includes(body.id)) pushedIds.push(body.id);
     });
     roadsideObjects.contacts(bodies);
+    for (const body of bodies)
+      if (contactStarts.has(body.id)) beginContactResponse(body.actor.contactResponse, body.vehicle);
+    contactStarts.clear();
     // A vehicle a fixed object holds may recover; the step's recovery reads it.
     for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
     move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
@@ -803,6 +825,7 @@ export function createCourseRace(options: {
      * progress baseline reset that award no progress, then a fresh observation.
      */
     recoverPlayer() {
+      if (contactResponseStopped(playerActor.contactResponse)) return;
       // With no free place behind it, the request does nothing.
       const recovered = recoverVehicle(runtime.readers, playerActor.vehicle, playerActor.model, {
         state: playerActor.recovery,

@@ -18,11 +18,12 @@ const NONE: PlayerContacts = Object.freeze({ starts: Object.freeze([]) });
  * The race's record of the contacts the player's vehicle takes part in during a step: the contacts report every body's
  * contacts and the log keeps the player's. `publish` closes the step and returns its frozen record.
  */
-export function createContactLog(playerId: string) {
+export function createContactLog(playerId: string, onStart: (id: string) => void = () => {}) {
   let starts: ContactStart[] = [];
   return Object.freeze({
     /** A contact of the body `id` with `counterpart` began this step, its damper term dissipating `work`. */
     start(id: string, counterpart: ContactCounterpart, work: number): void {
+      onStart(id);
       if (id === playerId) starts.push(Object.freeze({ counterpart, work }));
     },
     publish(): PlayerContacts {

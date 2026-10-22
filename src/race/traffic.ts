@@ -6,6 +6,7 @@ import type { createLaneDriving } from './lane-driving.js';
 import type { createVehiclePlacement } from './vehicle-placement.js';
 import { createPlannedDriverWorkspace } from './planned-driver.js';
 import { createRecoveryState } from './recovery.js';
+import { createContactResponse } from './contact-response.js';
 import {
   advancePresentVehicle,
   createPresentVehicle,
@@ -148,7 +149,12 @@ export function createTrafficField(options: {
         const motion: TrafficMotion = Object.assign(
           createPresentVehicle(
             id,
-            { vehicle, model, recovery: createRecoveryState(vehicle) },
+            {
+              vehicle,
+              model,
+              recovery: createRecoveryState(vehicle),
+              contactResponse: createContactResponse(candidate.vehicle.vehicleDefinition.listing.contactResponse),
+            },
             driving,
             candidate.driver.steering,
             (self, station) => placement.vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
