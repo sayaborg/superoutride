@@ -100,7 +100,7 @@ export interface SuperHangOnCourseInputs {
   readonly endingAt: number;
   readonly gates: readonly GatePart[];
   readonly banners: { readonly start: number; readonly check: number; readonly goal: number };
-  readonly picture: (list: number, mirrored: boolean, palette: number) => PictureNames;
+  readonly picture: (list: number, mirrored: boolean, palette: number, raised: boolean) => PictureNames;
   readonly spriteList: (sprite: number) => number;
   readonly hitWidth: (sprite: number) => number;
   /** Each section's sky image, by its place in the course (0 from). */
@@ -228,7 +228,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const across = (x: number) => OFFSET + x * unit;
   for (const spot of inputs.scenery) {
     const { item } = spot;
-    const picture = inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette);
+    const picture = inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette, false);
     placed.push({
       s: stationOf(length * spot.section + spot.position),
       lateral: across(item.x),
@@ -242,11 +242,12 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       const part = inputs.gates[k]!;
       // The signal stands as at GO; the banner reads START, CHECK or GOAL.
       const palette = k === 2 ? part.palette + 3 : k === 5 ? banner : part.palette;
+      const groundOffset = part.lift * GATE_LIFT * unit * PIXEL_ASPECT;
       placed.push({
         s: stationOf(q),
         lateral: across(part.x * GATE_X),
-        picture: inputs.picture(part.sprite, part.mirrored, palette),
-        groundOffset: part.lift * GATE_LIFT * unit * PIXEL_ASPECT,
+        picture: inputs.picture(part.sprite, part.mirrored, palette, groundOffset !== 0),
+        groundOffset,
         body: null,
       });
     }
@@ -258,7 +259,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     placed.push({
       s: stationOf(length * count + inputs.crowdAt),
       lateral: across(item.x),
-      picture: inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette),
+      picture: inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette, false),
       groundOffset: 0,
       body: null,
     });
@@ -266,7 +267,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     placed.push({
       s: stationOf(length * count + inputs.endingAt),
       lateral: across(figure.x),
-      picture: inputs.picture(figure.list, false, figure.palette),
+      picture: inputs.picture(figure.list, false, figure.palette, figure.height !== 0),
       groundOffset: figure.height * unit * PIXEL_ASPECT,
       body: null,
     });

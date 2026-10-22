@@ -9,7 +9,7 @@ import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
 import { shadowFrame } from './outrun-boards.js';
-import { chosenLines, mirror, paletteName, texelsAPixel } from './pixel-grid.js';
+import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
@@ -33,6 +33,8 @@ export interface PictureUse {
   readonly shadow: boolean;
   readonly anchor: number;
   readonly aside: number;
+  /** Whether its kind's pixel 10 shades (its flags' bit 2): it is drawn with shadows allowed. */
+  readonly shades: boolean;
   /** A strip's family: its nearest size, extending sideways away from the road. */
   readonly strip?: StripFamily;
 }
@@ -67,8 +69,12 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
  * scale and base point. A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the
  * part that repeats.
  */
-export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
-  const groups = new Map<string, PictureUse[]>();
+export function turboOutrunBoards(
+  main: Uint8Array,
+  words: Uint32Array,
+  uses: readonly (PictureUse & { readonly raised: boolean })[],
+) {
+  const groups = new Map<string, (PictureUse & { readonly raised: boolean })[]>();
   for (const use of uses) {
     const name = pictureName(use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
@@ -78,7 +84,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, group]) => {
-      const [first] = group as [PictureUse];
+      const [first] = group as [PictureUse & { readonly raised: boolean }];
       if (group.some((u) => u.anchor !== first.anchor || u.aside !== first.aside || u.units !== first.units))
         throw new RangeError(`Board ${name} is shown with different base points or scales`);
       const size = picturePixels(main, words, first);
@@ -90,6 +96,11 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
       const aside = (first.aside / first.units) * scale.x;
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
+      // A picture standing on the ground stands at its foot where a kind showing it there draws it with shadows allowed.
+      const standing = point.y === grid.height - 0.5;
+      const foot =
+        standing && group.some((u) => u.shades && !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
+      const anchorY = foot ?? point.y;
       const board: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
         version: 6,
@@ -97,7 +108,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
         width: grid.width,
         height: grid.height,
         anchorX: point.x + aside,
-        ...(point.y !== grid.height - 0.5 ? { anchorY: point.y } : {}),
+        ...(anchorY !== grid.height - 0.5 ? { anchorY } : {}),
         defaultPalette: paletteName(palettes[0]!),
         palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [
@@ -112,15 +123,22 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
           : {}),
         ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
-      const whole = { master: board, anchorY: point.y };
-      const entry = (master: SpriteLodDocument, edge?: string) => ({
+      const whole = { master: board, anchorY };
+      const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
         whole,
         image: courseImageFile(master),
+        split,
         ...(edge ? { edge } : {}),
       });
-      if (!first.strip) return [entry(board)];
+      // Shown raised off the ground too, a picture at its foot is shown so by its `-raised` image on its bottom edge.
+      const split = foot !== undefined && group.some((u) => u.raised);
+      if (split && first.strip) throw new RangeError(`Strip ${name} stands at its foot and raised`);
+      if (!first.strip) {
+        const { anchorY: _, ...bottom } = board;
+        return [entry(board, undefined, split), ...(split ? [entry({ ...bottom, name: `${name}-raised` })] : [])];
+      }
       const { edge, repeat } = cutBoard(board, name.replace(/^(toutrun-strip-[0-9a-f]+)/, '$1-edge'));
       return [entry(edge), entry(repeat, edge.name)];
     });

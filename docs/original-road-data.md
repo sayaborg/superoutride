@@ -205,6 +205,46 @@ LOD levels below the master mix them). Each axis is planned from the picture on 
 Base points, bodies' widths and LOD levels are each original's own rules ([Boards](#boards),
 [SUPER HANG-ON's courses](#super-hang-ons-courses)); a separate shadow picture is put on the grid the same way.
 
+## Foot shadows
+
+The sprite hardware of OUTRUN, SUPER HANG-ON, TURBO OUTRUN and ENDURO RACER draws pixel 10 of a sprite drawn with
+shadows allowed as a shadow: it darkens what lies behind it, its palette color unused. Many pictures (trees, rocks,
+signs, people, lamps, fences) carry rows of it below their foot, their shadow on the ground. Such a picture standing on
+the ground stands at its foot (`footAnchorY`, K, 2026-10-22): its anchor is the bottom edge of its lowest row holding a
+pixel other than pixel 10, and the shadow's rows below lie on the nearer ground as every picture's rows below its
+anchor do; the foot stands at the original's point, so the picture is drawn lower than the original by its shadow's
+rows. Pixel 10 keeps its color in the board. A picture whose other pixels reach its last row, and one shown only raised
+off the ground (a nonzero `groundOffset`), stands on its bottom edge. A picture at its foot that is shown raised too is
+shown so by its `-raised` image on its bottom edge (`raisedSplit`).
+
+- **OUTRUN.** The sprite list's builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
+  at 0x9676). The scenery's spawn (0x3DA2) sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
+  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3, 10,
+  13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte (0x3B7C)
+  and the flag waver's from its template (0x582E). The goal's scene sets no figure's (0x58B4 to 0x5B3A): the figures
+  stand on their bottom edge.
+- **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
+  of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
+- **TURBO OUTRUN.** A kind's flags' bit 2 marks its pixel 10 as shading. A picture stands at its foot where a kind
+  showing it on the ground shades: 0x275A2 is shown by kinds that do (375 times) and kinds that do not (76), whose pixel
+  10 is then a color drawn on the nearer ground.
+- **ENDURO RACER.** Pixel 10 is the board's shadow picture ([ENDURO RACER's objects](#enduro-racers-objects)); a board
+  with transparent rows below its other pixels stands at its foot, its shadow picture anchored as it is. The jumps
+  stand on their bottom edge.
+
+The anchors raised, texels above the bottom edge (a mirrored and a shadowed board as the plain one):
+
+| Original      | Pictures                                                                                                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OUTRUN        | 9: 041; 7: 015, 032, 034, 088, 089; 5: 029, 090, 110, 129; 2: 030, 036, 037, 038, 052, 091, 093, 097, 130, 132, 147; 1: 028, 144                                                                                                      |
+| SUPER HANG-ON | 6: 089; 5: 048, 071, 072; 4: 056, 067, 068, 069, 087; 3: 000, 037, 047, 055, 063, 070, 074, 080; 2: 002, 004, 058, 062, 076, 079; 1: 009, 039, 040, 043, 044, 045, 046, 051, 053, 065, 073, 078, 081, 082, 083, 084, 085, frame 13734 |
+| TURBO OUTRUN  | 9: 26E18; 5: 277DC; 2: 26A62, 26A94, 26BF2, 26C56, 26D50, 26E4A, 26EE0, 275A2, 27778; 1: 26E4A at 1 unit a pixel                                                                                                                      |
+| ENDURO RACER  | 3: 10AD2; 2: 10550; 1: 103CA, 10582, 109D8, 111F8, 1141E                                                                                                                                                                              |
+
+Shown raised too, by their `-raised` image: OUTRUN's 052 (and mirrored), 129 and 132; TURBO OUTRUN's 26A62 (and
+mirrored) and 26E4A at 1 unit a pixel. SUPER HANG-ON's and ENDURO RACER's pictures at their foot are shown only on the
+ground.
+
 ## Sky baking
 
 Each original's background becomes one published sky the same way (`bakeSky`). The original's own module gives, from
@@ -255,7 +295,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
 - **Base point.** On its bottom edge, but what lies on the ground ([Lying boards](#lying-boards)) at the bottom or
-  middle its anchor gives. Across, an object
+  middle its anchor gives, and a picture with a shadow at its foot at its foot ([Foot shadows](#foot-shadows)). Across,
+  an object
   anchored by an edge that has no body (its routine never hits: the strips) stands by that edge (`standsByEdge`), and
   its base point is there; any other's is at the middle of the sprite's hit extents, so a solid object's body stands
   there.
@@ -621,7 +662,7 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 13 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 15 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
 program draws them:
 
@@ -1120,7 +1161,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 2, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 3, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects and crossings:
 
@@ -1149,7 +1190,8 @@ each course's Sections, length, objects and crossings:
   original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,
   224/191 units each, either side) or its picture's width where narrower. A picture is its sprite's largest size on its
   texel grid by [chosen lines](#chosen-lines), a pixel 224/191 units across and 224/191 × the pixel aspect down, its base point the
-  middle of its bottom, in every palette it is shown in; the pictures are published, provisionally.
+  middle of its bottom or at its foot ([Foot shadows](#foot-shadows)), in every palette it is shown in; the pictures
+  are published, provisionally.
 - **Gates.** START, all six parts, its signal lit as at GO, stands where it passes the bike, 1.70 positions past GO;
   each CHECK, five parts, where it passes the bike, 38.31 positions after it comes out (⌈0x1FF0 / the depth step⌉
   ticks at the top speed); GOAL, five parts, at goal position 38.31. A part stands x × 224/191 units right of P, its
@@ -1301,7 +1343,7 @@ stage's description.
 ### TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 4, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 5, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -1378,7 +1420,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Picture.** Its kind's size list, but the walkers' (routines 0x34, 0x38) and routine 0x60's the first of their frame
   lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit
   0; in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on the
-  middle of its bottom, and across at the middle of its kind's hit extents.
+  middle of its bottom or at its foot ([Foot shadows](#foot-shadows)), and across at the middle of its kind's hit
+  extents.
 - **Lying on the ground.** What routine 0x08 and the puddles of 0x4C and 0x50 draw on the road lies on it, but the
   grass and stones 0x27570, which rise from it: the puddles (0x274DA, 892), the patches (0x27872, 1,133) and the
   pebbles (0x27840, 474) are boards on their middle as OUTRUN's patches are, at height 0, with no body
@@ -1576,7 +1619,7 @@ the tile palettes.
 ### ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 4, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 5, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
 and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
 crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -1682,8 +1725,8 @@ hit narrows and the objects left out:
   rows (0 to height − 2) on the texel grid by [chosen lines](#chosen-lines), a pixel 128/125 lateral units across and
   15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other pixels and its shadow
   pixel 10, so neither is a texel off the other. A board's base point is the middle of its words' width on its bottom
-  edge (the program puts a size's bottom edge a row below its last drawn row, 0.8 texel lower), in every palette it is
-  shown in, the lowest its default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.
+  edge (the program puts a size's bottom edge a row below its last drawn row, 0.8 texel lower) or at its foot
+  ([Foot shadows](#foot-shadows)), in every palette it is shown in, the lowest its default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.
 
 ## SUPER MONACO GP
 

@@ -77,11 +77,11 @@ function lowestDifference(a, b) {
 test("a board's rows below the ground are hidden by the nearer drawn ground and seen through transparent ground", async () => {
   const board = {
     kind: 'sprite',
-    image: 'shangon-076',
+    image: 'shangon-075',
     palette: 'p045',
     at: { joint: 's0', offset: 100 },
     lateral: 0,
-    groundOffset: -2,
+    groundOffset: -1,
     unselectedLink: null,
     body: null,
   };

@@ -40,7 +40,7 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import { repeated, sectionProfile, simplified } from './outrun-course.js';
+import { raisedSplit, repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -287,6 +287,8 @@ export interface RoadOptions {
   readonly lying: ReadonlyMap<string, LyingBoard>;
   /** Each extending board's edge, by its image name: standing once where the board does. */
   readonly edges: ReadonlyMap<string, string>;
+  /** The pictures standing at their foot shown raised too, by their `-raised` image. */
+  readonly split: ReadonlySet<string>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -1023,47 +1025,50 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: repeated([
-      ...section.objects.map(({ p, lateral, object: o }) => {
-        const board = {
-          kind: 'sprite',
-          image: o.image,
-          palette: o.palette,
-          at: at(p),
-          lateral: round(lateral),
-          groundOffset: round(o.y * UNIT_METRES * PIXEL_ASPECT),
-          unselectedLink: null,
-          // As wide as its hit extents, at most its board's width in whole texels.
-          body:
-            o.hit === null
-              ? null
-              : {
-                  width: round(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
-                  movable: null,
+    sprites: raisedSplit(
+      repeated([
+        ...section.objects.map(({ p, lateral, object: o }) => {
+          const board = {
+            kind: 'sprite',
+            image: o.image,
+            palette: o.palette,
+            at: at(p),
+            lateral: round(lateral),
+            groundOffset: round(o.y * UNIT_METRES * PIXEL_ASPECT),
+            unselectedLink: null,
+            // As wide as its hit extents, at most its board's width in whole texels.
+            body:
+              o.hit === null
+                ? null
+                : {
+                    width: round(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
+                    movable: null,
+                  },
+          };
+          // An extending board's edge stands once where it does, repeated with it.
+          const edge = section.options.edges.get(o.image);
+          return edge ? [board, { ...board, image: edge }] : board;
+        }),
+        // The guidance's signs, passed through.
+        ...section.guidance.flatMap((g) =>
+          g.kind === 'sign'
+            ? [
+                {
+                  kind: 'sprite',
+                  image: g.image,
+                  palette: 'original',
+                  at: at(g.p),
+                  lateral: laneLateral(g.lane, g.side, g.offset),
+                  groundOffset: 0,
+                  unselectedLink: null,
+                  body: null,
                 },
-        };
-        // An extending board's edge stands once where it does, repeated with it.
-        const edge = section.options.edges.get(o.image);
-        return edge ? [board, { ...board, image: edge }] : board;
-      }),
-      // The guidance's signs, passed through.
-      ...section.guidance.flatMap((g) =>
-        g.kind === 'sign'
-          ? [
-              {
-                kind: 'sprite',
-                image: g.image,
-                palette: 'original',
-                at: at(g.p),
-                lateral: laneLateral(g.lane, g.side, g.offset),
-                groundOffset: 0,
-                unselectedLink: null,
-                body: null,
-              },
-            ]
-          : [],
-      ),
-    ]),
+              ]
+            : [],
+        ),
+      ]),
+      section.options.split,
+    ),
     environments,
     gates,
   };

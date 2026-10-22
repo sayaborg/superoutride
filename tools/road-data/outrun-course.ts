@@ -10,7 +10,7 @@ import type { Profile } from './road-profile.js';
 import type { CurvePoint, Path, WidthHeightPoint } from './road-tables.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 14;
+export const CONVERSION_VERSION = 15;
 
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
 export const WIDTH_RATE = 16 / 303;
@@ -160,6 +160,19 @@ export function repeated<T extends { readonly at: { readonly offset: number }; r
       i += count;
     }
     return out;
+  });
+}
+
+/**
+ * Sprite elements, each raised off the ground (a nonzero `groundOffset`) whose picture `split` names shown by that
+ * picture's `-raised` image: a picture standing at its foot on the ground stands on its bottom edge raised off it
+ * ([Original road data](../../docs/original-road-data.md#foot-shadows)).
+ */
+export function raisedSplit<T>(elements: readonly T[], split: ReadonlySet<string>): T[] {
+  return elements.map((e) => {
+    const element = e as { kind?: string; image?: string; groundOffset?: number; elements?: readonly unknown[] };
+    if (element.kind === 'repeat') return { ...e, elements: raisedSplit(element.elements!, split) };
+    return element.groundOffset && split.has(element.image!) ? { ...e, image: `${element.image}-raised` } : e;
   });
 }
 

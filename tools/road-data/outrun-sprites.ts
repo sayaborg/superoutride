@@ -105,10 +105,13 @@ export interface StartObject {
   readonly y: number;
   readonly line: number;
   readonly routine: number;
+  /** Whether it is drawn with shadows allowed: its object's byte 7's bit 2, the sprite entry's shadow bit (0x9670). */
+  readonly shadows: boolean;
 }
 /**
  * The objects at a stage's start: the word at 0x2B6E counts 16-byte records after it, {u8 flags, u8 anchor, u8
- * priority, u8 palette, word sprite × 4, signed word x, word y × 128, word line, long routine}.
+ * priority (its object's byte 7, 0x3B7C), u8 palette, word sprite × 4, signed word x, word y × 128, word line, long
+ * routine}.
  */
 export function readStartObjects(main: Uint8Array): StartObject[] {
   return Array.from({ length: word(main, START_OBJECTS) }, (_, k) => {
@@ -122,6 +125,7 @@ export function readStartObjects(main: Uint8Array): StartObject[] {
       y: word(main, a + 8) / 128,
       line: word(main, a + 10),
       routine: long(main, a + 12),
+      shadows: (main[a + 2]! & 4) !== 0,
     };
   });
 }
@@ -150,6 +154,7 @@ export function readFlagWaver(main: Uint8Array): StartObject {
     y: (main[block + 5]! << 24) >> 24,
     line: word(main, FLAG_WAVER_LINE),
     routine: FLAG_WAVER_ROUTINE,
+    shadows: (main[FLAG_WAVER_OBJECT + 7]! & 4) !== 0,
   };
 }
 /** The flag waver's lists, the countdown's state, its object's template, its start line's immediate and its routine. */
@@ -200,6 +205,11 @@ export interface ObjectRoutine {
   /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
   readonly grantsTime?: boolean;
   /**
+   * Whether the scenery's spawn draws it with shadows allowed: its object's byte 7 is 7, not 3 (0x3DFA to 0x3FD4),
+   * which the sprite list's builder puts in its entry's shadow bit (0x9670), so its pixel 10 shades.
+   */
+  readonly shadows?: true;
+  /**
    * Its shadow where not the scenery's (the size list at 0xFF56 at its own scale): another size list, drawn at `scale`
    * times its own.
    */
@@ -220,29 +230,29 @@ const strip = (address: number): Family => ({ address, sizes: 16, nearest: 15 })
 const CLOUDS_UP = 2 * 151 + 72;
 /** The routines read so far, by address: the others are not converted. */
 export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<number, ObjectRoutine>([
-  [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true }],
-  [0x4048, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
-  [0x4658, { pixelUnits: 2, hits: true, keepsLeftWhenApart: false }],
-  [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
-  [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true }],
-  [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
+  [0x4042, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, shadows: true }],
+  [0x4048, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
+  [0x4658, { pixelUnits: 2, hits: true, keepsLeftWhenApart: false, shadows: true }],
+  [0x4828, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
+  [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
+  [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadows: true }],
   // Drawing 13: a patch lying on the road.
   [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, lies: { material: null } }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
-  [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false }],
-  [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true }],
+  [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, shadows: true }],
+  [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true, shadows: true }],
   // The start's flag waver.
   [0x5ea8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true }],
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548) }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548), shadows: true }],
   [
     0x4408,
     { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: { material: 'WATER' } },
   ],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588), lies: { material: null } }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8) }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8), shadows: true }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
   [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588), lies: { material: null } }],
   // VINEYARD's trees: 9 sizes, the nearest first.
@@ -253,6 +263,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       hits: false,
       keepsLeftWhenApart: false,
       family: { address: 0x435c, sizes: 9, nearest: 0 },
+      shadows: true,
     },
   ],
   [

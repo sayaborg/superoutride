@@ -218,6 +218,7 @@ export function turboOutrunPlacements(
       mirrored,
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
+      shades: (kind.flags & 4) !== 0,
       anchor: lies ? 0 : 8,
       aside,
     };
@@ -254,6 +255,7 @@ export function turboOutrunPlacements(
           mirrored: f.mirrored,
           palette: f.palette,
           shadow: false,
+          shades: false,
           anchor: 8,
           aside: 0,
         },
@@ -304,6 +306,7 @@ function stripPiece(
     mirrored,
     palette: kind.palette,
     shadow: false,
+    shades: (kind.flags & 4) !== 0,
     anchor: (lies ? 0 : 8) | (mirrored ? 2 : 1),
     aside: 0,
     strip: strip ?? FAR,

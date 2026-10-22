@@ -7,19 +7,20 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { chosenLines, paletteName, PIXEL_ASPECT } from './pixel-grid.js';
+import { chosenLines, footAnchorY, paletteName, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
-/** Pixel 10 is a shadow: it darkens what lies behind it. */
-const SHADOW = 10;
+/** Pixel 10 is a shadow: scenery is drawn with shadows allowed, and it darkens what lies behind it. */
+const SHADOW = SHADOW_PEN;
 
-/** One way an object shows a picture: its size set, mirrored or not, in a palette. */
+/** One way an object shows a picture: its size set, mirrored or not, in a palette, raised off the ground or not. */
 export interface PictureUse {
   readonly sizes: number;
   readonly mirrored: boolean;
   readonly palette: number;
+  readonly raised: boolean;
 }
 /** A jump's board: its kind's halves' size set, the halves' bottom middles in lateral units, in a palette. */
 export interface MoundUse {
@@ -36,6 +37,8 @@ export const pictureName = (use: Pick<PictureUse, 'sizes' | 'mirrored'>) =>
 
 /** A picture's source, unmirrored: its pixels (`width` wide) and its base point's column, pixels from its left edge. */
 interface Source {
+  /** Whether it stands at its foot: a picture's, on the ground, does; a jump's does not. */
+  readonly footed: boolean;
   readonly width: number;
   readonly height: number;
   readonly pixels: Uint8Array;
@@ -77,7 +80,7 @@ function moundSource(main: Uint8Array, words: Uint32Array, use: MoundUse): Sourc
         if (v) pixels[y * width + starts[k]! - from + x] = v;
       }
   });
-  return { width, height: half.height, pixels, middle: -from };
+  return { width, height: half.height, pixels, middle: -from, footed: false };
 }
 
 /**
@@ -94,25 +97,28 @@ export function enduroRacerBoards(
   mounds: readonly MoundUse[],
   unit: number,
 ) {
-  const sources = new Map<string, { source: Source; palettes: Set<number> }>();
-  const add = (name: string, source: () => Source, palette: number) => {
-    if (!sources.has(name)) sources.set(name, { source: source(), palettes: new Set() });
-    sources.get(name)!.palettes.add(palette);
+  const sources = new Map<string, { source: Source; palettes: Set<number>; ground: boolean; raised: boolean }>();
+  const add = (name: string, source: () => Source, palette: number, raised: boolean) => {
+    if (!sources.has(name)) sources.set(name, { source: source(), palettes: new Set(), ground: false, raised: false });
+    const entry = sources.get(name)!;
+    entry.palettes.add(palette);
+    entry[raised ? 'raised' : 'ground'] = true;
   };
   for (const use of uses)
     add(
       pictureName(use),
       () => {
         const { width, height, pixels } = sizeSetPixels(main, words, use.sizes);
-        return { width, height, pixels, middle: width / 2 };
+        return { width, height, pixels, middle: width / 2, footed: true };
       },
       use.palette,
+      use.raised,
     );
-  for (const mound of mounds) add(mound.name, () => moundSource(main, words, mound), mound.palette);
+  for (const mound of mounds) add(mound.name, () => moundSource(main, words, mound), mound.palette, false);
   const across = PIXEL_UNITS * unit * SPRITE_SOURCE_TEXELS_PER_METER;
   const boards = [...sources]
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([name, { source, palettes }]) => {
+    .flatMap(([name, { source, palettes, ground, raised }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
       const mirrored = name.endsWith('-mirrored');
       const grid = chosenLines(source.pixels, source.width, across, across * PIXEL_ASPECT);
@@ -120,30 +126,45 @@ export function enduroRacerBoards(
       const indices = Array.from(chosen, (v) => (v === SHADOW ? 0 : v));
       const shadow = Array.from(chosen, (v) => (v === SHADOW ? 1 : 0));
       const scale = { x: grid.width / source.width, y: grid.height / source.height };
-      const anchorX = (mirrored ? source.width - source.middle : source.middle) * scale.x - 0.5,
-        anchorY = grid.height - 0.5;
+      const anchorX = (mirrored ? source.width - source.middle : source.middle) * scale.x - 0.5;
       const sorted = [...palettes].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555.slice(1, 15), 0];
-      const board: SpriteLodDocument = {
+      const board = (named: string, anchorY: number | undefined): SpriteLodDocument => ({
         format: 'superoutride.sprite-lod',
         version: 6,
-        name,
+        name: named,
         width: grid.width,
         height: grid.height,
         anchorX,
+        ...(anchorY === undefined ? {} : { anchorY }),
         defaultPalette: paletteName(sorted[0]!),
         palettes: Object.fromEntries(sorted.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [{ paletteRgb555: colors(sorted[0]!), indices, mixtures: spriteIdentityMixtures() }],
+        // The shadow on the picture's grid, anchored as the picture is.
         ...(shadow.some((v) => v)
-          ? { shadow: { width: grid.width, height: grid.height, anchorX, anchorY, levels: [{ indices: shadow }] } }
+          ? {
+              shadow: {
+                width: grid.width,
+                height: grid.height,
+                anchorX,
+                anchorY: anchorY ?? grid.height - 0.5,
+                levels: [{ indices: shadow }],
+              },
+            }
           : {}),
-      };
-      return {
-        name,
+      });
+      const entry = (master: SpriteLodDocument) => ({
+        name: master.name,
         colored: coloredWidth(source, unit),
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        image: courseImageFile(board),
-      };
+        image: courseImageFile(master),
+        split: false,
+      });
+      // On the ground a picture stands at its foot; raised off it, on its bottom edge (`-raised` where both are).
+      const foot = source.footed && ground ? footAnchorY(indices, grid.width, null) : undefined;
+      if (foot === undefined) return [entry(board(name, undefined))];
+      if (!raised) return [entry(board(name, foot))];
+      return [{ ...entry(board(name, foot)), split: true }, entry(board(`${name}-raised`, undefined))];
     });
   return boards;
 }

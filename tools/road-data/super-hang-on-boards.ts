@@ -7,7 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { chosenLines, PIXEL_ASPECT } from './pixel-grid.js';
+import { chosenLines, footAnchorY, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
@@ -16,11 +16,12 @@ import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from 
  */
 export const PIXEL_UNITS = 224 / 191;
 
-/** One way an object shows a picture: its size list, mirrored or not, in a palette. */
+/** One way an object shows a picture: its size list, mirrored or not, in a palette, raised off the ground or not. */
 export interface PictureUse {
   readonly list: number;
   readonly mirrored: boolean;
   readonly palette: number;
+  readonly raised: boolean;
 }
 
 /**
@@ -45,7 +46,9 @@ export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number
 
 /**
  * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
- * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres.
+ * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres. Every sprite is
+ * drawn with shadows allowed: a picture shown on the ground stands at its foot (`footAnchorY`), its shadow's rows below
+ * it lying on the nearer ground, and is shown raised off it by its `-raised` image (`split`) on its bottom edge.
  */
 export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
   const groups = new Map<string, PictureUse[]>();
@@ -55,7 +58,7 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
   }
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([name, group]) => {
+    .flatMap(([name, group]) => {
       const [first] = group as [PictureUse];
       const grid = chosenPicture(main, words, first.list, metres);
       // A mirrored picture is the unmirrored one's lines mirrored.
@@ -64,13 +67,15 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
         : grid.indices;
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
-      const master: SpriteLodDocument = {
+      const foot = group.some((u) => !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
+      const master = (named: string, anchorY: number | undefined): SpriteLodDocument => ({
         format: 'superoutride.sprite-lod',
         version: 6,
-        name,
+        name: named,
         width: grid.width,
         height: grid.height,
         anchorX: grid.width / 2 - 0.5,
+        ...(anchorY === undefined ? {} : { anchorY }),
         defaultPalette: paletteName(palettes[0]!),
         palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [
@@ -80,7 +85,15 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
             mixtures: spriteIdentityMixtures(),
           },
         ],
-      };
-      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(master) };
+      });
+      const picture = (named: string, anchorY: number | undefined, split = false) => ({
+        name: named,
+        width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
+        image: courseImageFile(master(named, anchorY)),
+        split,
+      });
+      return foot !== undefined && group.some((u) => u.raised)
+        ? [picture(name, foot, true), picture(`${name}-raised`, undefined)]
+        : [picture(name, foot)];
     });
 }

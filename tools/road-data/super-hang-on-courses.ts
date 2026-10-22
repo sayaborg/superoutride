@@ -29,9 +29,10 @@ import {
   type PictureUse,
 } from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
+import { raisedSplit } from './outrun-course.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 2;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 3;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;
@@ -111,8 +112,8 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
     (180 / Math.PI);
   const uses: PictureUse[] = [];
   const widths = new Map<number, number>();
-  const picture = (list: number, mirrored: boolean, palette: number) => {
-    uses.push({ list, mirrored, palette });
+  const picture = (list: number, mirrored: boolean, palette: number, raised: boolean) => {
+    uses.push({ list, mirrored, palette, raised });
     if (!widths.has(list))
       widths.set(list, chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER);
     return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), width: widths.get(list)! };
@@ -164,5 +165,17 @@ export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
     return { course, plans, dropped, road, skies };
   });
   const pictures = superHangOnPictures(main, words, uses, unit);
-  return { built, pictures, metres, cross, unit, rules, amounts };
+  // A picture shown both on the ground and raised off it shows its `-raised` image raised.
+  const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
+  const raised = built.map((b) => ({
+    ...b,
+    road: {
+      ...b.road,
+      document: {
+        ...b.road.document,
+        sections: b.road.document.sections.map((s) => ({ ...s, sprites: raisedSplit(s.sprites, split) })),
+      },
+    },
+  }));
+  return { built: raised, pictures, metres, cross, unit, rules, amounts };
 }

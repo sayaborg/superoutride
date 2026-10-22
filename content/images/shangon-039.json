@@ -5,6 +5,7 @@
   "width": 50,
   "height": 182,
   "anchorX": 24.5,
+  "anchorY": 180.5,
   "defaultPalette": "p125",
   "palettes": {
     "p125": {

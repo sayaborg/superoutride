@@ -42,7 +42,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 4;
+export const ENDURO_RACER_CONVERSION_VERSION = 5;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -176,6 +176,11 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
   const objects = enduroRacerObjects(main, unit);
   const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
+  // A picture shown both on the ground and raised off it shows its `-raised` image raised.
+  const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
+  const spots = objects.spots.map((spot) =>
+    spot.height !== 0 && split.has(spot.image) ? { ...spot, image: `${spot.image}-raised` } : spot,
+  );
   const built = layCourse({
     plans: plans.map((p) => p.segments),
     metres,
@@ -190,7 +195,7 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
     skyChanges,
     stages,
     yawOrigin,
-    spots: objects.spots,
+    spots,
     colored: (image) => colored.get(image)!,
   });
   // Each stage's sky, baked from its background over its ground's color (stage 5's the sea).

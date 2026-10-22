@@ -139,8 +139,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-1b and the rest of its evening addendum (PG-9b, PG-4b,
-PG-6c, PG-7c, PG-12); then Stage TD, the tidying of the road data tool and the documents after the five Sega originals,
+Next PR: Stage TD, the tidying of the road data tool and the documents after the five Sega originals,
 from K's instructions (no new original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's
 recordings come; [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K
 decides; then [Stage 16](#stage-16--produce-product-courses).
@@ -844,7 +843,12 @@ The evening's PRs, in this order:
   `SNOW` 429) and nothing beneath the dunes and pebbles; every strip, the far strip's fog too, cut into its edge and
   the part that repeats (`cutBoard`, shared with OUTRUN), every Section within 2048 sprite elements (at most 1960, SAN
   ANTONIO's). The baking (`ground-baking.ts`) is deleted: what lies keeps only its materials (`ground-materials.ts`).
-- PG-12: shadows at the foot (OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER).
+- PG-12 stood the pictures with a shadow at their foot at their foot ([Foot shadows](original-road-data.md#foot-shadows),
+  `footAnchorY`): those drawn with shadows allowed (OUTRUN's by its objects' byte 7, SUPER HANG-ON's all, TURBO OUTRUN's
+  by its kinds' bit 2) and ENDURO RACER's with transparent rows below their foot, on the ground: OUTRUN 23 pictures,
+  SUPER HANG-ON 41, TURBO OUTRUN 12, ENDURO RACER 7, 1 to 9 texels higher; those shown raised too by a `-raised` image
+  (`raisedSplit`: OUTRUN's 052, 129 and 132, TURBO OUTRUN's 26A62 and 26E4A at 1 unit a pixel). Conversion versions:
+  OUTRUN 15, SUPER HANG-ON 3, TURBO OUTRUN 5, ENDURO RACER 5.
 
 Left by Stage PG to later stages: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next
 to each other in order as neighbours; mended, it would need no way round such as PG-6b1's.

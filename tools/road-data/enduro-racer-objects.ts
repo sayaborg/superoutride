@@ -67,7 +67,12 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
     spots.push({
       position: item.position,
       x: scaled ? scaledX[item.type - 0x48]! : item.x * X_UNITS,
-      image: show({ sizes: type.sizes, mirrored: (type.flags & MIRRORED) !== 0, palette: type.palette }),
+      image: show({
+        sizes: type.sizes,
+        mirrored: (type.flags & MIRRORED) !== 0,
+        palette: type.palette,
+        raised: (item.height ?? 0) !== 0,
+      }),
       palette: type.palette,
       height: lift(item.height ?? 0),
       hit: (type.flags & HIT) !== 0,
@@ -81,7 +86,12 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
     spots.push({
       position: template.position,
       x: template.x,
-      image: show({ sizes: template.sizes, mirrored: (template.flags & MIRRORED) !== 0, palette: template.palette }),
+      image: show({
+        sizes: template.sizes,
+        mirrored: (template.flags & MIRRORED) !== 0,
+        palette: template.palette,
+        raised: template.height !== 0,
+      }),
       palette: template.palette,
       height: lift(template.height),
       hit: (template.flags & HIT) !== 0,

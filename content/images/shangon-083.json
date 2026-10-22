@@ -5,6 +5,7 @@
   "width": 131,
   "height": 101,
   "anchorX": 65,
+  "anchorY": 99.5,
   "defaultPalette": "p100",
   "palettes": {
     "p100": {

@@ -7,7 +7,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { repeated, sectionProfile, simplified } from './outrun-course.js';
+import { raisedSplit, repeated, sectionProfile, simplified } from './outrun-course.js';
 import { STRIPE_PERIOD } from './outrun-roads.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { readHeightTable } from './road-tables.js';
@@ -41,7 +41,7 @@ import type { ZipFile } from './zip.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 4;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 5;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -206,7 +206,7 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
   const boards = turboOutrunBoards(
     programs.main,
     assembleTurboOutrunSprites(files),
-    placing.placed.map((o) => o.use),
+    placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 })),
   );
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
 
@@ -216,6 +216,7 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
       widths: new Map(boards.map((b) => [b.name, b.width])),
       wholes: new Map(boards.map((b) => [b.name, b.whole])),
       edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : []))),
+      split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
       objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
       first: i === 0,
       last: i === pieces.length - 1,
@@ -268,6 +269,8 @@ function sectionDocument(
     readonly wholes: ReadonlyMap<string, LyingPicture>;
     /** Each extending board's edge, by its name: standing once where the board does. */
     readonly edges: ReadonlyMap<string, string>;
+    /** The pictures at their foot shown raised too, by their `-raised` image. */
+    readonly split: ReadonlySet<string>;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -618,28 +621,31 @@ function sectionDocument(
     strips,
     walls: [],
     openLimits: [],
-    sprites: repeated(
-      [...context.objects]
-        .sort((a, b) => a.g - b.g || a.x - b.x)
-        .map((o) => {
-          const board = {
-            kind: 'sprite',
-            image: pictureName(o.use),
-            palette: paletteName(o.use.palette),
-            at: at(o.g),
-            lateral: round(o.x - offset.at(o.g)),
-            groundOffset: round(o.height),
-            unselectedLink: null,
-            // As wide as its hit extents, at most its picture.
-            body:
-              o.body === null
-                ? null
-                : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
-          };
-          // An extending board's edge stands once where it does, repeated with it.
-          const edge = context.edges.get(board.image);
-          return edge ? [board, { ...board, image: edge }] : board;
-        }),
+    sprites: raisedSplit(
+      repeated(
+        [...context.objects]
+          .sort((a, b) => a.g - b.g || a.x - b.x)
+          .map((o) => {
+            const board = {
+              kind: 'sprite',
+              image: pictureName(o.use),
+              palette: paletteName(o.use.palette),
+              at: at(o.g),
+              lateral: round(o.x - offset.at(o.g)),
+              groundOffset: round(o.height),
+              unselectedLink: null,
+              // As wide as its hit extents, at most its picture.
+              body:
+                o.body === null
+                  ? null
+                  : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
+            };
+            // An extending board's edge stands once where it does, repeated with it.
+            const edge = context.edges.get(board.image);
+            return edge ? [board, { ...board, image: edge }] : board;
+          }),
+      ),
+      context.split,
     ),
     environments,
     gates,

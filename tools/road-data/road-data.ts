@@ -9,8 +9,8 @@ import { atomicWrite, reportError, requireInput } from '../course/authoring-io.j
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
-import { boardShapes, sceneryBoards, type SpriteUse } from './outrun-boards.js';
-import { assembleSprites, sceneryRoutine, startObjects } from './outrun-sprites.js';
+import { boardShapes, sceneryBoards, type BoardUse } from './outrun-boards.js';
+import { assembleSprites, OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
@@ -404,7 +404,11 @@ try {
         shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
       };
       // What lies on the ground, its materials beneath it, and the extending boards' edges.
-      const { lying, edges } = boardShapes(programs.main, assembleSprites(files), outrunSceneryUses(programs).uses);
+      const { lying, edges, split } = boardShapes(
+        programs.main,
+        assembleSprites(files),
+        outrunSceneryUses(programs).uses,
+      );
       const courses = [];
       const starts = startObjects(programs.main);
       for (const route of OUTRUN_ROUTES) {
@@ -418,6 +422,7 @@ try {
           sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
           lying,
           edges,
+          split,
           objects: (points, road) => {
             const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
               ...road,
@@ -1050,7 +1055,7 @@ try {
  */
 function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['programs']) {
   const length = stageLength(programs.main);
-  const uses: SpriteUse[] = [];
+  const uses: BoardUse[] = [];
   const skipped = new Map<number, number>();
   const points = [
     ...OUTRUN_STAGES.flat().flatMap((n) => readStage(programs, n).scenery.filter((p) => p.position < length)),
@@ -1065,16 +1070,26 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
         skipped.set(e.flags >> 4, (skipped.get(e.flags >> 4) ?? 0) + 1);
         continue;
       }
+      const routine = OBJECT_ROUTINES.get(shown.routine)!;
       uses.push({
         sprite: e.sprite,
         mirrored: (e.flags & 1) !== 0,
         palette: e.palette,
         shadow: (e.flags & 2) !== 0,
         ...shown,
+        shadows: routine.shadows === true,
+        raised: e.y !== 0 || routine.fromMiddle !== undefined,
       });
     }
   readGoalStretches(programs).stretches.forEach((_, g) =>
-    uses.push(...goalFigures(programs.main, g).map((figure) => figureUse(programs.main, figure))),
+    uses.push(
+      ...goalFigures(programs.main, g).map((figure) => ({
+        ...figureUse(programs.main, figure),
+        // The goal's scene sets no figure's byte 7 (0x58B4 to 0x5B3A): not drawn with shadows allowed for certain.
+        shadows: false,
+        raised: figure.y !== 0,
+      })),
+    ),
   );
   for (const o of startObjects(programs.main))
     uses.push({
@@ -1084,6 +1099,8 @@ function outrunSceneryUses(programs: Awaited<ReturnType<typeof readPrograms>>['p
       routine: o.routine,
       palette: o.palette,
       shadow: (o.flags & 0x10) !== 0,
+      shadows: o.shadows,
+      raised: o.y !== 0,
     });
   return { uses, skipped };
 }
