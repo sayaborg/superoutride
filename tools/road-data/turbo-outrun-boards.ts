@@ -90,7 +90,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
       const board: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
-        version: 5,
+        version: 6,
         name,
         width: grid.width,
         height: grid.height,

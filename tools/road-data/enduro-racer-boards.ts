@@ -126,7 +126,7 @@ export function enduroRacerBoards(
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555.slice(1, 15), 0];
       const board: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
-        version: 5,
+        version: 6,
         name,
         width: grid.width,
         height: grid.height,

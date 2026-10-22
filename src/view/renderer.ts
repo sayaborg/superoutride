@@ -80,10 +80,8 @@ interface RenderScene {
    */
   readonly player: RenderPlayer | null;
   readonly terrainParameters: TerrainRenderParameters;
-  /** The boards: course images and tire puffs. */
+  /** The pictures but the player's: course images, tire puffs and the other vehicles' pictures. */
   readonly worldSprites: readonly CourseSprite[];
-  /** The other vehicles' pictures: things with depth along the road. */
-  readonly vehicleSprites: readonly CourseSprite[];
   /** The visible walls on the resident Route. */
   readonly walls: readonly RouteWall[];
 }
@@ -116,7 +114,7 @@ export function createRenderWorkspace() {
     rowFirst: new Int32Array(0),
     rowLines: [] as number[],
     /**
-     * The vehicle picture rows drawn after a terrain row and its walls: each terrain row's first and last entry, and each
+     * The picture rows drawn after a terrain row and its walls, lying on the ground: each terrain row's first and last entry, and each
      * entry's picture, screen row and next entry (-1 ends).
      */
     laidFirst: [] as number[],
@@ -135,7 +133,7 @@ interface RenderOptions {
 
 export function renderDriving(
   target: SoftwareSurface,
-  { background, guide, camera, player, terrainParameters, worldSprites, vehicleSprites, walls }: RenderScene,
+  { background, guide, camera, player, terrainParameters, worldSprites, walls }: RenderScene,
   { ground, workspace }: RenderOptions,
   measurements: RenderMeasurements | null = null,
 ): void {
@@ -143,9 +141,7 @@ export function renderDriving(
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   background.draw(target, renderCamera);
-  const sprites = visible
-    ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd, vehicleSprites)
-    : [];
+  const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
   const playerProjection = player && pseudoProject(player.base, camera);
   const relativeYaw = player ? wrapAngle(player.vehicle.yaw - renderCamera.yaw) : NaN;
   const selected = player && selectVehicleSprite(player.set, relativeYaw, deriveVehicleLeanRadians(player.vehicle));
@@ -185,7 +181,7 @@ export function renderDriving(
 
   const stripStats = workspace.strips;
   stripStats.activeStrips = stripStats.outputPixels = 0;
-  // Each screen row's terrain rows, far to near, for the vehicle picture rows lying on the ground.
+  // Each screen row's terrain rows, far to near, for the picture rows lying on the ground.
   const height = target.height;
   if (workspace.rowFirst.length < height + 1) workspace.rowFirst = new Int32Array(height + 1);
   const rowFirst = workspace.rowFirst,
@@ -208,11 +204,13 @@ export function renderDriving(
     spriteOutputSamples += stats.outputSamples;
     spriteWrittenPixels += stats.writtenPixels;
   };
-  // A board, and a vehicle's rows on and above its anchor's screen row, draw at the anchor's depth. Each vehicle row below
-  // lies on the ground nearer than the anchor: it draws after that screen row's farthest terrain row nearer than the
-  // anchor, or at the anchor's depth where there is none.
+  // A picture folds at its anchor's screen row: the rows on and above it draw at the anchor's depth. Each row below lies
+  // on the ground nearer than the anchor: it draws after that screen row's farthest terrain row nearer than the anchor,
+  // or at the anchor's depth where there is none. A picture anchored at its full size's bottom edge all stands (a
+  // reduced level's last row, rounded up, reaches below it by less than a texel).
   const drawSprite = (sprite: VisibleCourseSprite, index: number) => {
-    if (!sprite.vehicle) return drawRows(sprite, 0, height);
+    const full = sprite.asset.levels[0]!;
+    if (full.anchorY >= full.height - 0.5) return drawRows(sprite, 0, height);
     const { y, scale } = sprite.projection;
     const bounds = scaledSpriteBounds(sprite.asset, scale);
     const anchorRow = Math.floor(y),
@@ -270,7 +268,7 @@ export function renderDriving(
         if (line.s >= wall.start && line.s <= wall.end)
           wallX[i] = drawWallColumn(target, wall, line, renderCamera, wallX[i]!, wallWorkspace);
       }
-      // Then the vehicle picture rows lying on this ground row, far anchors to near.
+      // Then the picture rows lying on this ground row, far anchors to near.
       for (let entry = laidFirst[lineIndex++]!; entry >= 0; entry = laidNext[entry]!)
         drawRows(sprites[laidSprite[entry]!]!, laidRow[entry]!, laidRow[entry]! + 1);
     },

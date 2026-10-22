@@ -65,12 +65,14 @@ export interface SpriteShadowDocument {
 
 export interface SpriteLodDocument {
   readonly format: 'superoutride.sprite-lod';
-  readonly version: 5;
+  readonly version: 6;
   readonly name: string;
   readonly width: number;
   readonly height: number;
-  /** Its base point across; down, the middle of its bottom row's lower edge, `height − 0.5`. */
+  /** Its base point across. */
   readonly anchorX: number;
+  /** Its base point down, texel centres, where it folds; absent, its bottom edge, `height − 0.5`. */
+  readonly anchorY?: number;
   readonly defaultPalette: string;
   readonly palettes: Readonly<Record<string, SpritePalette>>;
   readonly levels: readonly {
@@ -133,6 +135,7 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       'width',
       'height',
       'anchorX',
+      ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'anchorY') ? ['anchorY'] : []),
       'defaultPalette',
       'palettes',
       'levels',
@@ -140,7 +143,7 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'extend') ? ['extend'] : []),
     ],
     'superoutride.sprite-lod',
-    5,
+    6,
   );
   const name = readString(document.name, '/name');
   const { palettes, defaultPalette } = readSpritePalettes(document);
@@ -192,8 +195,11 @@ export function readSpritePicture(
     'Sprite extent is too large',
   );
   const anchorX = readNumber(record.anchorX, `${path}/anchorX`);
-  // A picture stands on its bottom edge: its anchor's height follows from its own.
-  const anchorY = height - 0.5;
+  // A picture stands on its bottom edge unless its anchor's height is given, within the picture.
+  const anchorY =
+    record.anchorY === undefined
+      ? height - 0.5
+      : readNumber(record.anchorY, `${path}/anchorY`, { min: -0.5, max: height - 0.5 });
   const layout = spriteLodLayout(width, height);
   const levelDocuments = readArray(record.levels, `${path}/levels`, (level) => level, { min: 1, max: layout.length });
   const levelFields = ['paletteRgb555', 'indices', 'mixtures'];

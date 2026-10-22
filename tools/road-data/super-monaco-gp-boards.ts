@@ -84,7 +84,7 @@ export function superMonacoGpBoards(main: Uint8Array, words: Uint32Array, boards
     const g = grid(frames, b1);
     return {
       format: 'superoutride.sprite-lod',
-      version: 5,
+      version: 6,
       name,
       width: g.width,
       height: g.height,

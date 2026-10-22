@@ -131,7 +131,9 @@ Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
-`groundOffset` is height above the authoritative road height, in metres.
+`groundOffset` is height above the authoritative road height, in metres, negative for a board reaching below the
+ground. An image not anchored at its bottom edge (its `anchorY` given) folds at its anchor, so it is placed at the
+ground alone: a `groundOffset` other than 0 is `invalid_placement` at `/groundOffset`.
 Each expanded placement resolves `lateral` at its own s, so repetitions follow referenced Boundaries.
 Compilation shares one immutable resource for each image/palette-name pair across Sections; the
 renderer borrows the compiled decoded image and materializes one palette variant per resource. Sprites have no authored identity: compilation expands a Section's sprites once, in document order and within
@@ -142,12 +144,12 @@ index is its identity; the solid objects and the appearance are both compiled fr
 positive width in metres, and `movable` null for a fixed object or `{mass, launchDegrees, knocked: {airborne, landed}}`
 for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (positive, up to `objectMassKilograms`),
 `launchDegrees` the elevation a hit throws it at (0 or more, under 90; one `invalid_numeric_domain` outside), and
-`airborne` and `landed` the sprite images it shows while
-flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
-wider than the image's world width (its master width at 40 texels/m), a body on a state-selected sign and a body on a
-board extending sideways (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the
-placement's own and requires a movable body's image and its airborne and landed images each to carry a shadow, and the
-knocked images not to extend sideways (`invalid_placement` at the image's pointer); the object casts the shadow
+`airborne` and `landed` the sprite images it shows while flying and once landed, drawn in the placement's palette (they
+may name one image twice). Compilation rejects a width wider than the image's world width (its master width at 40
+texels/m), a body on a state-selected sign and a body on a board extending sideways (`invalid_placement` at `/body`);
+the appearance compiler resolves the knocked images like the placement's own and requires a movable body's image and its
+airborne and landed images each to carry a shadow, and the knocked images not to extend sideways and to stand on their
+bottom edge (`invalid_placement` at the image's pointer); the object casts the shadow
 ([Shadows](architecture.md#shadows)).
 
 `unselectedLink` is null for ordinary sprites or names, by id, a Link leaving the Section's fork. A state-selected

@@ -35,8 +35,6 @@ export interface VisibleCourseSprite extends CourseSpritePlace {
   asset: SpriteAsset;
   d: number;
   projection: PseudoProjection;
-  /** Given as a vehicle's picture: a thing with depth along the road, not a board. */
-  vehicle: boolean;
 }
 
 export function compileCourseSprite(
@@ -50,24 +48,20 @@ export function compileCourseSprite(
   return { ...place, asset: source.asset };
 }
 
-/** The boards `sprites` and the vehicles' pictures `vehicles` within the depth interval, far to near. */
+/** The pictures `sprites` within the depth interval, far to near. */
 export function collectVisibleCourseSprites(
   sprites: readonly CourseSprite[],
   camera: PseudoCamera,
   dStart: number,
   dEnd: number,
-  vehicles: readonly CourseSprite[] = [],
 ): readonly VisibleCourseSprite[] {
   const visible: VisibleCourseSprite[] = [];
-  for (const sprite of sprites) collect(sprite, false);
-  for (const sprite of vehicles) collect(sprite, true);
+  for (const sprite of sprites) {
+    const d = pseudoDepth(sprite.sRender, camera.s);
+    if (d < dStart || d > dEnd) continue;
+    const projection = pseudoProject({ x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender }, camera);
+    visible.push({ ...sprite, d, projection });
+  }
   visible.sort((a, b) => b.d - a.d);
   return visible;
-
-  function collect(sprite: CourseSprite, vehicle: boolean) {
-    const d = pseudoDepth(sprite.sRender, camera.s);
-    if (d < dStart || d > dEnd) return;
-    const projection = pseudoProject({ x: sprite.x, y: sprite.y, z: sprite.z, s: sprite.sRender }, camera);
-    visible.push({ ...sprite, d, projection, vehicle });
-  }
 }

@@ -51,6 +51,13 @@ export function compileCourseSpritePlacements(
       if (!image) throw new CourseInputError('unresolved_reference', `${at}/image`, 'Unknown course asset');
       if (image.kind !== 'sprite')
         throw new CourseInputError('invalid_image_role', `${at}/image`, 'Sprites require sprite patterns');
+      // A picture folding at an anchor above its bottom edge lies on the ground below it: it stands at the ground alone.
+      requireCourse(
+        image.image.anchorY === image.image.height - 0.5 || source.groundOffset === 0,
+        `${at}/groundOffset`,
+        'A picture not anchored at its bottom edge stands at height 0',
+        'invalid_placement',
+      );
       const position = shiftedCoursePosition(resolve, offset, length)(source.at, `${at}/at`);
       placements.push(
         Object.freeze({

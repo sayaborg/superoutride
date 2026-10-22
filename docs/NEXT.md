@@ -816,8 +816,9 @@ The evening's PRs, in this order:
 
 - PG-0b: the evening's decisions here and the review's fixes in the documents; a movable body's knocked pictures may
   not extend sideways.
-- PG-1b: one rule for every picture in the drawing, the course image's version 6 with its optional anchorY and the
-  placement rule, and a test of the parts below the ground.
+- PG-1b made one rule for every picture in the drawing (the renderer's `vehicle` mark and the scene's separate vehicle
+  pictures gone), the course image's version 6 with its optional anchorY (every course image written again; none
+  carries it yet) and the placement rule, and tested the parts below the ground: no course draws otherwise.
 - PG-9b: SUPER MONACO GP's boards below the ground in their three groups.
 - PG-4b: `SNOW`, snow lying thin on the road, in the materials, surface sounds and tire puffs.
 - PG-6c: OUTRUN's lying things as boards with their materials, the extending boards trimmed and their ends stood once;

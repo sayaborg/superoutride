@@ -14,8 +14,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 
 ```text
 {
-  format: "superoutride.sprite-lod", version: 5, name,
-  width: W, height: H, anchorX,
+  format: "superoutride.sprite-lod", version: 6, name,
+  width: W, height: H, anchorX, anchorY?,
   defaultPalette: "original",
   palettes: {original: {colors: [RGB555 integers]},
              alternate: {colors: [RGB555 integers]}},
@@ -26,11 +26,13 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 }
 ```
 
-An image stands on its bottom edge: its anchor is `(anchorX, H − 0.5)`, the height following from `H` alone (admission
-sets it; a shadow keeps its own `anchorY`). The default anchor, which drawn pictures and new recipes take, is the middle
-of the bottom edge, `((W − 1)/2, H − 0.5)` (`defaultSpriteAnchor`). Master width at 40 texels/m defines physical width;
-a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height.
-Each level has at most 15 opaque colors.
+An image stands on its bottom edge: its anchor is `(anchorX, H − 0.5)`, the height following from `H` alone, unless it
+carries `anchorY` (texel centres, −0.5 ≤ anchorY ≤ H − 0.5), written only for a picture folding above its bottom edge:
+what lies on the ground at the original's anchor, a picture whose shadow at its foot lies below it, a roadside wall
+folding at the ground's row. A shadow keeps its own `anchorY`. The default anchor, which drawn pictures and new recipes
+take, is the middle of the bottom edge, `((W − 1)/2, H − 0.5)` (`defaultSpriteAnchor`). Master width at 40 texels/m
+defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the
+solid object's height. Each level has at most 15 opaque colors.
 Level zero preserves semantic palette slots and identity mixtures for slots 1 through 15.
 A coarse slot is a positive-weight mixture of original opaque slots summing to one; unused slots
 have empty mixtures. Its normal color is the mixture evaluated in the original palette.
@@ -399,12 +401,12 @@ the constructs and builds private numeric fields; these are not image assets or 
 
 ## Picture contract
 
-Every picture stands upright at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's
-position seen from above at its body's underside, an object's placement at its height. Its anchor is that point. A
-course image is a board without depth, one plane at its anchor's depth; a vehicle's picture is a thing with depth along
-the road, its rows below the anchor lying on the ground nearer than the anchor. Pictures come in sizes; size `k` (`k =
-0` full size) is drawn at `40 / 2^k` texels per metre at the base point, and the renderer draws the size nearest its
-scale ([Shared image level selection](architecture.md#shared-image-level-selection)). Vehicle pictures and their
+Every picture is drawn at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's position
+seen from above at its body's underside, an object's placement at its height. Its anchor is that point. Every picture
+folds at its anchor: what lies above stands at the anchor's depth, what lies below lies on the ground nearer than the
+anchor. A course image stands on its bottom edge unless it carries its anchor's height. Pictures come in sizes; size `k`
+(`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point, and the renderer draws the size nearest
+its scale ([Shared image level selection](architecture.md#shared-image-level-selection)). Vehicle pictures and their
 generator follow this contract; this section is its only statement:
 
 - **Camera.** Size `k` is the vehicle seen in true perspective from a camera `D_cam × 2^k` behind its base point

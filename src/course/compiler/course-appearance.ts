@@ -162,13 +162,20 @@ export function compileCourseAppearance(
       return picture;
     };
     if (movable !== null) shadowed(asset, `${at}/image`);
-    // A knocked picture is the solid object's too, so, like its standing one, it does not extend sideways.
+    // A knocked picture is the solid object's too, so, like its standing one, it does not extend sideways; it flies,
+    // so it stands on its bottom edge.
     const knockedPicture = (name: string, pictureAt: string) => {
       const picture = shadowed(image(name, pictureAt), pictureAt);
       requireCourse(
         picture.image.extend === undefined,
         pictureAt,
         'A board extending sideways cannot be solid',
+        'invalid_placement',
+      );
+      requireCourse(
+        picture.image.anchorY === picture.image.height - 0.5,
+        pictureAt,
+        'A picture not anchored at its bottom edge stands at height 0',
         'invalid_placement',
       );
       return resource(picture, placement.palette, `${at}/palette`);

@@ -128,7 +128,7 @@ function boardMasters(
     const castScale = routine.shadow?.scale ?? 1;
     const master = (palette: (k: number) => number[], indices: number[]): SpriteLodDocument => ({
       format: 'superoutride.sprite-lod',
-      version: 5,
+      version: 6,
       name,
       width: grid.width,
       height: grid.height,

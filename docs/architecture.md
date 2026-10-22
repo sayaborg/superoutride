@@ -381,16 +381,15 @@ hills to overdraw earlier rows. A degenerate thin span occupies one row with its
 
 ## Camera and fixed metric
 
-The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m
-player reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for
-the field of view and the player depth, which derives from it (`cameraDistance`): `f=240 px` and `D_cam=f/40=6 m`
-from the camera to the player's base point; near/far depths are 2.5/200 m. Every
-picture is a plane without depth standing upright at its base point (`basePoint`): a vehicle's route position seen
-from above, the physical authority's position, at its body's underside `renderY` (its centre-of-mass height less its
-desired centre-of-mass height); an object's placement at its own height. The camera thus stands `D_cam` behind the
-player's route position, for every vehicle alike. The scene builds its loading window from the product camera with
-that distance, so the race's view and the renderer place the camera at the same station. Ground and sprites share this
-depth interval.
+The player-depth display scale is fixed at 40 px/m, a display fact independent of vehicle dimensions: a 2 m player
+reference is 80 source texels and 80 screen pixels. The camera definition's focal length is the one authority for the
+field of view and the player depth, which derives from it (`cameraDistance`): `f=240 px` and `D_cam=f/40=6 m` from the
+camera to the player's base point; near/far depths are 2.5/200 m. Every picture is drawn at its base point
+(`basePoint`), folding there ([Sprites and Painter](#sprites-and-painter)): a vehicle's route position seen from above,
+the physical authority's position, at its body's underside `renderY` (its centre-of-mass height less its desired
+centre-of-mass height); an object's placement at its own height. The camera thus stands `D_cam` behind the player's
+route position, for every vehicle alike. The scene builds its loading window from the product camera with that distance,
+so the race's view and the renderer place the camera at the same station. Ground and sprites share this depth interval.
 
 Camera chainage is `s_player-D_cam`; its drawn XZ is the player's base point's route-world XZ minus `D_cam` along
 the camera yaw. There is one camera. Its yaw follows a yaw source, the player's setting for the vehicle's form
@@ -515,25 +514,30 @@ BG do not enter the average. [Browser](browser.md#performance-hud) owns the HUD'
 
 ## Sprites and Painter
 
-Every picture stands upright at its base point, its anchor, and is drawn at the projected scale `f/d` px/m there
+Every picture is drawn at its base point, its anchor, at the projected scale `f/d` px/m there
 ([picture contract](image-assets.md#picture-contract)). Course anchors use known chainage and render height; vehicles
-and movable objects stand at their base points, from their observed chainage and lateral. A picture is one of two kinds,
-which the drawing decides by what it is given as; course and image documents carry no mark:
+and movable objects stand at their base points, from their observed chainage and lateral. Every picture (a vehicle's, a
+course image, a tire puff) folds at its anchor's screen row (`floor` of its projected y), and no document carries a
+mark for it:
 
-1. **A board without depth**: every picture not given as a vehicle's (course images, tire puffs). It is one plane at
-   its anchor's depth: every row, those below the anchor too, is ordered at that depth, and nearer ground hides it pixel
-   by pixel.
-2. **A thing with depth along the road**: a picture chosen from a vehicle's picture set. The screen rows whose centres
-   lie on or above the anchor's screen row (`floor` of its projected y) are drawn at the anchor's depth. Each row below
-   lies on the ground nearer than the anchor: of the terrain rows on that screen row, transparent ones included, the
-   farthest nearer than the anchor is found, and the picture's row is drawn right after that terrain row and its walls,
-   so nearer ground and walls draw over it; a screen row with no terrain row nearer than the anchor is drawn at the
-   anchor's depth. Rows laid on one terrain row draw from far anchors to near.
+- **Standing rows.** The screen rows whose centres lie on or above the anchor's screen row stand at the anchor's depth:
+  they are ordered at that depth, and nearer ground hides them pixel by pixel.
+- **Lying rows.** Each row below lies on the ground nearer than the anchor: of the terrain rows on that screen row,
+  transparent ones included, the farthest nearer than the anchor is found, and the picture's row is drawn right after
+  that terrain row and its walls, so nearer ground and walls draw over it; a screen row with no terrain row nearer than
+  the anchor is drawn at the anchor's depth. Rows laid on one terrain row draw from far anchors to near. A lying row is
+  drawn where the picture puts it on the screen: the ground's perspective does not shorten it, it lies only in how it
+  overlaps.
+
+How much of a picture lies follows from where its anchor is in it alone: anchored at its bottom edge (every course
+image by default) it all stands, at its middle half of it lies. A board's part below the ground (anchored at its bottom,
+a negative `groundOffset`) stands at the anchor's depth like the rest, so the nearer drawn ground hides it and
+transparent ground shows it, as a cliff's face.
 
 A board whose image extends sideways (`extend`, [Image assets](image-assets.md#completed-sprite-images)) repeats within
 its plane, at its anchor's depth, from the picture toward the frame's edge the image names, left or right: the level
 drawn is the one its scale picks, repeated every image width, `W/40` m, at every level and never shrunk, so it is the
-true form of one plane at one depth. Each repetition is drawn as the picture is, row for row.
+true form of one plane at one depth. Each repetition is drawn as the picture is, row for row, and folds alike.
 
 Yaw/bank variants are authored images. Rendering uses nearest sampling, binary alpha and one SINGLE sprite per
 vehicle; bank is visual. One drawing serves every image, course images and vehicle pictures alike: a level `k` is a
@@ -549,17 +553,17 @@ The product render draws the frame and returns nothing. Measurements of a frame 
 sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV (the
 performance HUD and the bike lean indicator, with `dev=1`), the course tool and tests; the product path passes none and
 carries no DEV value. Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge of the pictures
-whose base points lie at the player's depth `D_cam` or beyond (a vehicle's rows below its anchor laid on their terrain
-rows), the player, the nearer pictures far to near, then, under the PAUSE menu or RESULT, the whole frame halved to half
-brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per frame over a freshly drawn scene), then
-HUD and the [text layer](#text-layer). The BG writes every pixel of every frame, so there is no clear step and no pixel
-keeps a previous frame. Transparent ground, including ground rows outside the Route, writes nothing and keeps the
-Painter image beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before
-sprites. Pictures are ordered by their base points' depth and the player is one of them, at `D_cam`: a picture at the
-player's depth draws before it, and a nearer one after it, whole, over the player and over every ground row and wall.
-Ground and walls never cover the player; a vehicle or object between the camera and the player is drawn over the player,
-and a ground row nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn
-without a player, its picture and its shadow: the footage tool's replay draws the course alone ([Courses from
+whose base points lie at the player's depth `D_cam` or beyond (their lying rows laid on their terrain rows), the player,
+the nearer pictures far to near, then, under the PAUSE menu or RESULT, the whole frame halved to half brightness
+(`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per frame over a freshly drawn scene), then HUD and the
+[text layer](#text-layer). The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a
+previous frame. Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
+beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites. Pictures
+are ordered by their base points' depth and the player is one of them, at `D_cam`: a picture at the player's depth draws
+before it, and a nearer one after it, whole, over the player and over every ground row and wall. Ground and walls never
+cover the player; a vehicle or object between the camera and the player is drawn over the player, and a ground row
+nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn without a player,
+its picture and its shadow: the footage tool's replay draws the course alone ([Courses from
 footage](footage.md#replay-comparison)); its measurements then hold NaN for the player's point and -1 for its variants.
 
 ### Shadows

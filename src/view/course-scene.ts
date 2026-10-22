@@ -90,7 +90,7 @@ export function createCourseScene(
       camera: CameraState,
       /** Every other vehicle's picture, its shadow place included. */
       vehicles: readonly CourseSprite[],
-      /** The other pictures to draw as boards: the tire puffs'. */
+      /** The other pictures: the tire puffs'. */
       pictures: readonly CourseSprite[],
       /** The race's knocked movable objects; every other movable placement stands. */
       knocked: readonly KnockedObjectObservation[],
@@ -158,6 +158,7 @@ export function createCourseScene(
             show(occurrence.start + k.at!.s, k.at!.l - occurrence.lateralOrigin, pictures.landed);
       }
       for (const sprite of pictures) worldSprites.push(sprite);
+      for (const sprite of vehicles) worldSprites.push(sprite);
       if (player) {
         playerShadow.y = readers.height.sample(player.vehicle.course.s);
         playerShadow.reach = player.reach;
@@ -176,7 +177,6 @@ export function createCourseScene(
           },
           terrainParameters,
           worldSprites,
-          vehicleSprites: vehicles,
           walls: renderData.walls,
         },
         { ground: renderData.ground, workspace: renderWorkspace },
