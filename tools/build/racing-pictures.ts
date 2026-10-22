@@ -7,9 +7,9 @@ import { requireLoaded } from '../../src/content/content-load-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
 import { readVehicleSpriteSet } from '../../src/vehicle/vehicle-sprite-library.js';
-import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { drawVehicleSpriteSet } from '../graphics/vehicle-pictures.js';
+import { vehiclePictureSheet } from '../graphics/vehicle-picture-sheet.js';
 import { VEHICLE_SPRITE_SET_FORMAT, VEHICLE_SPRITE_SET_VERSION } from '../graphics/vehicle-sprite-sets.js';
 import {
   RACING_PICTURES,
@@ -62,40 +62,15 @@ try {
     );
     const directory = new URL('../../dist/racing-pictures/', import.meta.url);
     await mkdir(directory, { recursive: true });
-    const palette = [0, ...document.palettes.race!, document.brakeLamp.off].map((c) => unpackRgba(rgb555ToRgba(c)));
+    const palette = [0, ...document.palettes.race!, document.brakeLamp.off];
     // Each sheet: banks in declaration order, then all 64 yaws, eight per row, at their native texel size.
     for (let lod = 0; lod < 6; lod++) {
       const frames = solids.flatMap((_, bank) =>
         document.assets.map((row) => document.pictures[row[bank]!]!.sizes[lod]!),
       );
-      const extent = (of: (frame: (typeof frames)[number]) => number) => Math.ceil(Math.max(...frames.map(of))) + 2;
-      const left = extent((f) => Math.max(f.anchorX, f.shadow.anchorX)),
-        right = extent((f) => Math.max(f.width - f.anchorX, f.shadow.width - f.shadow.anchorX));
-      const up = extent((f) => Math.max(f.anchorY, f.shadow.anchorY)),
-        down = extent((f) => Math.max(f.height - f.anchorY, f.shadow.height - f.shadow.anchorY));
-      const cw = left + right,
-        ch = up + down,
-        sheet = new PNG({ width: cw * 8, height: (ch * frames.length) / 8 });
-      for (let i = 0; i < sheet.data.length; i += 4) sheet.data.set([96, 104, 104, 255], i);
-      frames.forEach((frame, index) => {
-        const ox = (index % 8) * cw + left,
-          oy = Math.floor(index / 8) * ch + up;
-        for (const [picture, shadow] of [
-          [frame.shadow, true],
-          [frame, false],
-        ] as const) {
-          const x0 = ox - Math.round(picture.anchorX + 0.5),
-            y0 = oy - Math.round(picture.anchorY + 0.5);
-          picture.rows.forEach((row, y) =>
-            Array.from(row, (digit, x) => {
-              const slot = parseInt(digit, 16);
-              if (!slot) return;
-              const c = palette[slot]!;
-              sheet.data.set(shadow ? [40, 46, 46, 255] : [c.r, c.g, c.b, 255], ((y0 + y) * sheet.width + x0 + x) * 4);
-            }),
-          );
-        }
-      });
+      const { width, height, data } = vehiclePictureSheet(frames, palette);
+      const sheet = new PNG({ width, height });
+      sheet.data.set(data);
       await writeFile(new URL(`${RACING_PICTURES[id]}-lod${lod}.png`, directory), PNG.sync.write(sheet));
     }
     console.log(`Saved ${output.pathname}; six complete check sheets under dist/racing-pictures/`);
