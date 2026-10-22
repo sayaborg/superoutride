@@ -85,7 +85,7 @@ function moundSource(main: Uint8Array, words: Uint32Array, use: MoundUse): Sourc
  * carrying every palette it is shown in (the lowest its default), its pixels (a size set's drawn rows, a mirrored
  * picture the unmirrored one's mirrored) by chosen lines onto its texel grid, a pixel `PIXEL_UNITS` across and
  * `PIXEL_ASPECT` times that down at 40 texels/m, chosen once with pixel 10 among the colors: the board its other
- * pixels, its shadow its pixel 10. Its base point is its middle, a row below its last drawn row.
+ * pixels, its shadow its pixel 10. Its base point is its middle on its bottom edge.
  */
 export function enduroRacerBoards(
   main: Uint8Array,
@@ -121,7 +121,7 @@ export function enduroRacerBoards(
       const shadow = Array.from(chosen, (v) => (v === SHADOW ? 1 : 0));
       const scale = { x: grid.width / source.width, y: grid.height / source.height };
       const anchorX = (mirrored ? source.width - source.middle : source.middle) * scale.x - 0.5,
-        anchorY = grid.height + scale.y - 0.5;
+        anchorY = grid.height - 0.5;
       const sorted = [...palettes].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555.slice(1, 15), 0];
       const board: SpriteLodDocument = {

@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-8, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-9, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -424,10 +424,9 @@ K's decisions (2026-10-21):
   half the road surface, of 3.5 m: one lateral unit is 0.018392 m and the road 7.00 m. The original's world does not
   keep one scale across and along the road, so no scale follows from it alone; its objects' ratio (road 7.48 m) and
   its road's look (road about 9.8 m) were the alternatives, and K kept the 3.5 m lane (2026-10-21).
-- **Water.** This game has no water material: the water off the road (stage 3's water, stage 5's sea) is `SAND`, and
-  where the road crosses water its surface stays the road's `DIRT` in the water's color. No water material (spray,
-  grip and drag) is made (K, 2026-10-21); a later stage of its own makes one if it is needed. Stage PG replaced this
-  with `WATER` ([Stage PG](#stage-pg--pictures-and-the-ground)).
+- **Water.** Stage 3's water, stage 5's and the goal's sea (left of P) and the three water crossings' surface are
+  `WATER`, shallow water ([Stage PG](#stage-pg--pictures-and-the-ground), replacing K's 2026-10-21 "no water
+  material").
 - **Product.** The five stages, in running order, are one LINEAR course `enduro-racer` (ENDURO RACER), as the original
   runs them without stopping. It is the reference course of a later ENDURO RACER series
   ([Series](product.md#5-series)).
@@ -475,7 +474,7 @@ stage's reports left open (2026-10-21: "go on with the recommendations; only pla
 and K drives the course in FREE PLAY on Pages and asks for changes as they show.
 
 - The scale stays (a position 1.185185 m, a lane 3.5 m); alternatives (a) and (b) are not used.
-- The water off the road stays `SAND`, the three crossings' surface `DIRT` in the water's color.
+- The water is `WATER` since Stage PG: stage 3's ground, stage 5's sea and the three crossings' surface.
 - The 183 objects on the road keep passing through. Their bodies come back only once the drivers (who measure the
   racing lines and drive) can avoid objects standing on the road, not with the hills before that.
 - The jumps and jumping are made with the hills, which also decide the 5 jump mounds not placed for standing on another
@@ -763,9 +762,10 @@ PRs:
   `WATER`) and gravel patches (1,133, `DIRT`) by PG-6b's baking (conversion version 3); every strip is now its nearest
   size, so TURBO OUTRUN no longer restores strips. Their boards (`toutrun-strip-2725a`, `toutrun-274da`,
   `toutrun-27872`) are no longer written; PG-10 deletes them.
-- PG-8: ENDURO RACER's water `WATER` by the table; its boards' anchors (0.8 texel below the bottom) at the bottom;
-  [ENDURO RACER's Materials](original-road-data.md) and NEXT's water (Stage ER's Water, ER-6, what Stages ER and MG
-  left) corrected.
+- PG-8 made ENDURO RACER's water `WATER` (stage 3's ground, stage 5's and the goal's sea left of P, the three water
+  crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND`) and its boards' base points, 0.8
+  texel below their bottom, their bottom edge (conversion version 4); NEXT's water (Stage ER's Water, ER-6, what
+  Stages ER and MG left) follows.
 - PG-9: SUPER MONACO GP: the boards with 32 views as single pictures, the kerbs `curb`s, the flat boards Strips of
   their mean colors.
 - PG-10, the stage's cleanup: the view sets (the image format `superoutride.sprite-views`, `src/image/sprite-views.ts`,
@@ -1077,7 +1077,6 @@ Left by Stages ER and MG to later stages (K, 2026-10-21):
 - The hills and jumping: ENDURO RACER's grade tables, its jumps and the 5 jump mounds standing on another passage's
   road, its crossings made again, and SUPER MONACO GP's hills.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
-- A water material (spray, grip and drag), in a stage of its own if it is needed.
 - The SUPER MONACO GP series and its overcast set.
 - BRANCH removed from the engine; TSUKUBA made again; then the walls' feature removed, replaced by rows of boards
   (K, 2026-10-22).

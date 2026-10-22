@@ -5,7 +5,7 @@
   "width": 145,
   "height": 126,
   "anchorX": 72,
-  "anchorY": 126.3076923076923,
+  "anchorY": 125.5,
   "defaultPalette": "p046",
   "palettes": {
     "p046": {
@@ -1738,7 +1738,7 @@
     "width": 145,
     "height": 126,
     "anchorX": 72,
-    "anchorY": 126.3076923076923,
+    "anchorY": 125.5,
     "levels": [
       {
         "indices": [

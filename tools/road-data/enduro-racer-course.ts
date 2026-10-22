@@ -42,7 +42,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 3;
+export const ENDURO_RACER_CONVERSION_VERSION = 4;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -60,10 +60,20 @@ export const LANE = 3.5;
 const OFFSET = LANE / 2;
 /** The ground reaches this far beyond the edge bands, metres: past the farthest scenery's outer edge. */
 const GROUND = 18;
-/** The ground's material by stage: water is SAND, as this game has no water material. */
-const GROUND_MATERIALS = ['GRASS', 'SAND', 'SAND', 'SAND', 'SAND'] as const;
-/** The road's material, its surface and edge bands: the original's road is dirt. */
+/**
+ * The ground's material by stage, left and right of P: stage 1's grass, stage 3's water and stage 5's sea (left of P)
+ * `WATER`, stages 2's and 4's ground and stage 5's white sand `SAND`.
+ */
+const GROUND_MATERIALS = [
+  { left: 'GRASS', right: 'GRASS' },
+  { left: 'SAND', right: 'SAND' },
+  { left: 'WATER', right: 'WATER' },
+  { left: 'SAND', right: 'SAND' },
+  { left: 'WATER', right: 'SAND' },
+] as const;
+/** The road's material, its surface and edge bands: the original's road is dirt, `WATER` over the water crossings. */
 const ROAD_MATERIAL = 'DIRT';
+const CROSSING_MATERIAL = 'WATER';
 /**
  * The road's stripes: bands A and B change every 2 positions, and from position 0 band B comes first (the sub CPU's
  * colors 0x00FF0000 swapped on the position's bit 1, toggled by the pattern's 27 borders to the road's nearest line).
@@ -117,6 +127,8 @@ interface ColorStretch {
   readonly stage: number;
   readonly ground: { readonly left: number; readonly right: number };
   readonly road: RoadColors;
+  /** Over a water crossing. */
+  readonly wet: boolean;
 }
 
 /** One Section to write: its id, P's metres it spans, and its stage (0 from; the goal's the last stage's). */
@@ -303,11 +315,11 @@ function layCourse(inputs: CourseInputs) {
     } as const;
     let at = from;
     for (const [a, b] of wet) {
-      stretches.push({ from: at, to: a, stage, ground, road });
-      stretches.push({ from: a, to: b, stage, ground, road: water });
+      stretches.push({ from: at, to: a, stage, ground, road, wet: false });
+      stretches.push({ from: a, to: b, stage, ground, road: water, wet: true });
       at = b;
     }
-    stretches.push({ from: at, to, stage, ground, road });
+    stretches.push({ from: at, to, stage, ground, road, wet: false });
   });
 
   // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
@@ -539,7 +551,10 @@ function sectionDocument(
   for (const t of own) {
     strips.push(strip(t.from, t.to, null, null, t.ground.right, null));
     if (t.ground.left !== t.ground.right) strips.push(strip(t.from, t.to, null, lateral(0), t.ground.left, null));
-    strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, GROUND_MATERIALS[t.stage]!));
+    const material = GROUND_MATERIALS[t.stage]!;
+    strips.push(strip(t.from, t.to, boundary('outer-left'), boundary('outer-right'), null, material.right));
+    if (material.left !== material.right)
+      strips.push(strip(t.from, t.to, boundary('outer-left'), lateral(0), null, material.left));
   }
   // The road: its surface to the edge bands' outer edges in band B, band A over it, then the edge bands' narrow and
   // middle bands over that.
@@ -558,7 +573,7 @@ function sectionDocument(
   ];
   for (const t of own) {
     const [a, b] = t.road.surface;
-    strips.push(strip(t.from, t.to, lateral(-edges), lateral(edges), b, ROAD_MATERIAL));
+    strips.push(strip(t.from, t.to, lateral(-edges), lateral(edges), b, t.wet ? CROSSING_MATERIAL : ROAD_MATERIAL));
     if (a !== b) banded(0, t.from, t.to, lateral(-edges), lateral(edges), a);
   }
   for (const f of features.slice(1))

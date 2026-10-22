@@ -1553,7 +1553,7 @@ the tile palettes.
 ### ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 3, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 4, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
 and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
 crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -1595,9 +1595,10 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
   of P's elements lays them evenly and writes them as repeats. Over the water
   crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color. The ground's
   rows where the stripes change are not drawn.
-- **Materials.** The surface and edge bands are `DIRT`. The ground reaches 18 m beyond the edge bands (22.32 m from
-  P), past the farthest scenery: `GRASS` on stage 1 and `SAND` on the others, for the water (stage 3's water, stage 5's
-  sea) has no material of its own here and `SAND` grips least and drags most. The water crossings stay `DIRT`.
+- **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER`. The ground reaches 18 m
+  beyond the edge bands (22.32 m from P), past the farthest scenery: `GRASS` on stage 1, `WATER` on stage 3 (its water)
+  and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4 and right of P on stage 5 (its white
+  sand).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
   and `goal` from 10240, each cut again where its coordinate domain (to the ground's edges and the vehicles' reach)
   passes over itself (`stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut
@@ -1657,9 +1658,9 @@ hit narrows and the objects left out:
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`) and the jumps' three: the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](#chosen-lines), a pixel 128/125 lateral units across and
   15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other pixels and its shadow
-  pixel 10, so neither is a texel off the other. A board's base point is the middle of its words' width, a row below
-  its last drawn row (the program puts a size's bottom edge there), in every palette it is shown in, the lowest its
-  default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.
+  pixel 10, so neither is a texel off the other. A board's base point is the middle of its words' width on its bottom
+  edge (the program puts a size's bottom edge a row below its last drawn row, 0.8 texel lower), in every palette it is
+  shown in, the lowest its default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.
 
 ## SUPER MONACO GP
 
