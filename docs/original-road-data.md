@@ -1766,7 +1766,7 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 4, their skies and their [objects](#super-monaco-gps-objects)'
+QUALIFYING, the qualifying's), conversion version 5, their skies and their [objects](#super-monaco-gps-objects)'
 images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
 lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
 left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
@@ -1853,9 +1853,29 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
 - **Place.** List word k's objects stand at the station of lap step k's P (each element's steps spread evenly), their
   lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p` and three decimal
   digits).
-- **Height.** h = −50 is the ground. A board stands by the middle of its bottom edge, its bottom h, or h less half its
-  picture's height for an object with flag bit 13, `groundOffset` (bottom − (−50)) × 6.5331 mm, and from the road where
-  that is below it (the far buildings and cliffs, which the original draws from as much as 9.34 m below the road).
+- **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
+  height for an object with flag bit 13; it stands by the middle of its bottom edge, `groundOffset` (foot − (−50))
+  × 6.5331 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
+  and the barriers, 0.80 m, stand higher than its eye, 0.52 m), and places some boards with their foot below it. Those
+  stand by three groups (K, 2026-10-22), the race's and the qualifying's counts each:
+  - **At the original's height** (76, 20): every flat board (kind 0x04) but the roadside ones below, the supports and
+    the tunnel mouths' rocks, placed so that their heads meet what they hold. The flag poles 051C (−2.051 m), the
+    signs' pipes 143A flipped (−1.111 m), the start's and checkpoints' gate posts 141C and the bridge's piers 1B9C
+    (−1.013 m), the crane 099C (−1.189 m), the tunnel entrance's rocks 0D86 b1 0 (−3.378 m) and 0D68 b1 0 (−0.725 m)
+    and its exit's 0D86 b1 0xFF (−9.336 m once, by its middle, and −0.261 m four times) and 0D68 b1 0xFF (−3.443 m)
+    keep their negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
+    ([Sprites and Painter](architecture.md#sprites-and-painter)).
+  - **Folded at the ground's row** (127, 12): the flat boards at h −80, 30 units (0.196 m) below the ground, the
+    roadside buildings, stone walls and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E,
+    1BD8), stand at height 0 with their anchor 30 units above their bottom edge (anchorY = H − 0.5 − 7.8397): their
+    slanted foot lies on the nearer ground.
+  - **Standing on the ground** (665, 414): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.287 m
+    below; 0738, 0756, 1.633 m), stand on the ground.
+
+  The SUPER MONACO GP ground is one colored Strip without Boundaries, so beyond the player no part below the ground
+  shows, as in the original. Nearer than the player a board is drawn after it, over the ground, so a flag pole passed
+  close by the left barrier may show its 2 m below the ground at the frame's lower left for a few frames.
+
 - **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [chosen lines](#chosen-lines): a pixel
   8 / 2^b1 units across (16 for b1 0xFF) and 15/14 of that down at 40 texels/m, so a 2-unit pixel is 0.49 texel
   across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A board shows its picture mirrored as its flag

@@ -18,18 +18,22 @@ const TRANSPARENT = 15;
 /** The lateral units a largest-size pixel spans at size class `b1`: 8 / 2^b1, and 16 for 0xFF. */
 export const pixelUnits = (b1: number) => (b1 === 0xff ? 16 : 8 / 2 ** b1);
 
-/** One way an object shows a picture: its frame table at a size class, mirrored, flipped, in a palette. */
+/**
+ * One way an object shows a picture: its frame table at a size class, mirrored, flipped, in a palette, and, folding
+ * at the ground's row, how many texels above its bottom edge it folds.
+ */
 export interface BoardUse {
   readonly frames: number;
   readonly b1: number;
   readonly mirrored: boolean;
   readonly flipped: boolean;
   readonly palette: number;
+  readonly fold?: number;
 }
 
 const hex = (value: number, digits: number) => value.toString(16).padStart(digits, '0');
 /** A board's image name: `smgp-<frame table>-<size class>`, then whether mirrored and flipped. */
-export const boardName = (use: Omit<BoardUse, 'palette'>) =>
+export const boardName = (use: Omit<BoardUse, 'palette' | 'fold'>) =>
   `smgp-${hex(use.frames, 4)}-${hex(use.b1, 2)}${use.mirrored ? '-mirrored' : ''}${use.flipped ? '-flipped' : ''}`;
 
 /** A picture's indices turned as an object shows it: mirrored across, flipped upside down. */
@@ -72,13 +76,14 @@ export function superMonacoGpBoards(main: Uint8Array, words: Uint32Array, boards
     return grids.get(key)!;
   };
   // A master: the grid turned as shown (the unturned grid's lines turned, so a turned picture keeps its lines), its
-  // base point the middle of its bottom edge.
+  // base point the middle of its bottom edge, or `fold` texels above it.
   const master = (
     name: string,
     frames: number,
     b1: number,
     mirrored: boolean,
     flipped: boolean,
+    fold: number | undefined,
     colors: ReturnType<typeof palettesOf>,
   ): SpriteLodDocument => {
     const g = grid(frames, b1);
@@ -89,6 +94,7 @@ export function superMonacoGpBoards(main: Uint8Array, words: Uint32Array, boards
       width: g.width,
       height: g.height,
       anchorX: g.width / 2 - 0.5,
+      ...(fold === undefined ? {} : { anchorY: g.height - 0.5 - fold }),
       defaultPalette: colors.defaultPalette,
       palettes: colors.palettes,
       levels: [
@@ -111,7 +117,9 @@ export function superMonacoGpBoards(main: Uint8Array, words: Uint32Array, boards
   };
   const images: { name: string; texels: number; image: { path: string; bytes: Uint8Array } }[] = [];
   for (const [name, { use, palettes }] of group(boards, boardName)) {
-    const board = master(name, use.frames, use.b1, use.mirrored, use.flipped, palettesOf(palettes));
+    if (boards.some((u) => boardName(u) === name && u.fold !== use.fold))
+      throw new RangeError(`Board ${name} is shown folded and standing alike`);
+    const board = master(name, use.frames, use.b1, use.mirrored, use.flipped, use.fold, palettesOf(palettes));
     images.push({ name, texels: board.width * board.height, image: courseImageFile(board) });
   }
   return images;

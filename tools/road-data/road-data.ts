@@ -990,6 +990,10 @@ try {
           sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
           // The boards placed, the kerbs drawn as curbs, and the boards left out on a curve's inside.
           boards: objects.length,
+          // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
+          below: Object.fromEntries(
+            (['original', 'folded', 'standing'] as const).map((g) => [g, objects.filter((o) => o.below === g).length]),
+          ),
           kerbs: kerbs.length,
           inside,
         });

@@ -819,7 +819,10 @@ The evening's PRs, in this order:
 - PG-1b made one rule for every picture in the drawing (the renderer's `vehicle` mark and the scene's separate vehicle
   pictures gone), the course image's version 6 with its optional anchorY (every course image written again; none
   carries it yet) and the placement rule, and tested the parts below the ground: no course draws otherwise.
-- PG-9b: SUPER MONACO GP's boards below the ground in their three groups.
+- PG-9b stood SUPER MONACO GP's boards below the ground by their three groups (conversion version 5): the supports
+  and the tunnel mouths' rocks at the original's negative heights (76 on the race, 20 on the qualifying), the roadside
+  buildings, stone walls and rock faces folded at the ground's row (127, 12), the far buildings on the ground (665,
+  414).
 - PG-4b: `SNOW`, snow lying thin on the road, in the materials, surface sounds and tire puffs.
 - PG-6c: OUTRUN's lying things as boards with their materials, the extending boards trimmed and their ends stood once;
   the grass strip 894 m below ALPS's road (the original's height −32768) not placed.

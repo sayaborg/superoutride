@@ -33,10 +33,11 @@ import { largestPixels, largestSize, readSpritePalette, readViewTable } from './
 import { VIEWED } from './super-monaco-gp-dump.js';
 import { boardName, FLAG, pixelUnits, superMonacoGpBoards, type BoardUse } from './super-monaco-gp-boards.js';
 import { paletteName } from './pixel-grid.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 4;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 5;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -115,6 +116,15 @@ const KERB_GAP = 8;
 const STRIPE_HAIR = 1e-3;
 /** An object's height h that stands on the ground. */
 const GROUND = -50;
+/**
+ * The boards whose foot is below the ground: an upright one (kind 8, the far buildings) stands on the ground; a flat
+ * one 30 units below (h −80: the roadside buildings, stone walls and rock faces) folds at the ground's row, its
+ * slanted foot lying on the nearer ground; any other (the supports and the tunnel mouths' rocks) keeps the original's
+ * height, the head where what it holds is, its part below the ground hidden by the nearer ground.
+ */
+const UPRIGHT = 0x08;
+const FLAT = 0x04;
+const FOLDED = GROUND - 30;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
 const INSIDE_MARGIN = 2;
 
@@ -471,16 +481,26 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     // bottom half its height below h.
     const viewed = object.kind === VIEWED;
     const frames = viewed ? readViewTable(sub, object.frames)[0]! : object.frames;
+    const bottom = middle ? object.height - (context.height(frames) * pixelUnits(object.b1)) / 2 : object.height;
+    const below = bottom < GROUND;
+    requireInput(!below || !viewed, '/scenery', 'A board turning through views stands below the ground');
+    const group = !below
+      ? null
+      : object.kind === UPRIGHT
+        ? 'standing'
+        : object.kind === FLAT && object.height === FOLDED
+          ? 'folded'
+          : 'original';
     const use = {
       frames,
       b1: object.b1,
       mirrored: ((object.flags & FLAG.mirrored) !== 0) !== (!viewed && mirrored),
       flipped: (object.flags & FLAG.flipped) !== 0,
       palette,
+      ...(group === 'folded' ? { fold: (GROUND - FOLDED) * UNIT_DOWN * SPRITE_SOURCE_TEXELS_PER_METER } : {}),
     };
     uses.boards.push(use);
     const image = boardName(use);
-    const bottom = middle ? object.height - (context.height(frames) * pixelUnits(object.b1)) / 2 : object.height;
     const e = elements.findIndex((el) => q >= el.from && q < el.to);
     const w = written[e < 0 ? elements.length - 1 : e]!;
     const lateralMetres = OFFSET + units * UNIT;
@@ -488,8 +508,9 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       inside.push({ step, x: units, image });
       continue;
     }
-    // It stands on its bottom edge, from the road where the original's bottom lies below it.
-    objects.push({ q, units, image, palette, groundOffset: Math.max(0, bottom - GROUND) * UNIT_DOWN });
+    // It stands on its bottom edge at the original's height, but a board below the ground as its group stands.
+    const groundOffset = group === 'standing' || group === 'folded' ? 0 : (bottom - GROUND) * UNIT_DOWN;
+    objects.push({ q, units, image, palette, groundOffset, ...(group ? { below: group } : {}) });
   }
 
   const documents = sections.map((section, s) =>
@@ -555,13 +576,17 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   };
 }
 
-/** A board to place: its step of the lap, lateral units from P, image, palette and height above the road (metres). */
+/**
+ * A board to place: its step of the lap, lateral units from P, image, palette, height above the road (metres) and,
+ * where its foot is below the ground, its group.
+ */
 interface ObjectSpot {
   readonly q: number;
   readonly units: number;
   readonly image: string;
   readonly palette: number;
   readonly groundOffset: number;
+  readonly below?: 'original' | 'folded' | 'standing';
 }
 
 /** A Section's sprite elements and Strip elements at most (the course format's bounds). */
