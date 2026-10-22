@@ -151,7 +151,7 @@ const isSurface = (o: SceneryObject) => o.kind === 0x04 && SURFACE_FRAMES.has(o.
 const isKerb = (o: SceneryObject) => o.kind === VIEWED && o.frames === KERBS;
 
 /** The linear-light mean of RGB555 colors. */
-function meanColor(colors: readonly number[]): number {
+export function meanColor(colors: readonly number[]): number {
   const sum = [0, 0, 0];
   for (const c of colors)
     [(c >> 10) & 31, (c >> 5) & 31, c & 31].forEach((v, i) => (sum[i]! += rgb555LinearChannel(v)));
@@ -370,7 +370,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     STEP_METRES,
   );
 
-  // The Sections: one a sector between the checkpoints, halved where its boards would pass 2048.
+  // The Sections: one a sector between the checkpoints, cut into the fewest parts where its boards would pass 2048.
   const boards = spots
     .filter(({ object }) => !isSurface(object) && !isKerb(object))
     .map(({ step }) => lap(step))
@@ -379,12 +379,15 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   const sections: { id: string; from: number; to: number }[] = [];
   for (let k = 0; k + 1 < sectors.length; k++) {
     const [from, to] = [sectors[k]!, sectors[k + 1]!];
-    const inside = boards.filter((q) => q >= from && q < to);
-    if (inside.length <= 2048) sections.push({ id: `sector-${k + 1}`, from, to });
-    else {
-      const middle = inside[inside.length >> 1]!;
-      sections.push({ id: `sector-${k + 1}a`, from, to: middle }, { id: `sector-${k + 1}b`, from: middle, to });
-    }
+    const cuts = cutsByCount(
+      boards.filter((q) => q >= from && q < to),
+      SPRITE_ELEMENTS,
+    );
+    if (!cuts.length) sections.push({ id: `sector-${k + 1}`, from, to });
+    else
+      [from, ...cuts].forEach((a, j) =>
+        sections.push({ id: `sector-${k + 1}${String.fromCharCode(0x61 + j)}`, from: a, to: cuts[j] ?? to }),
+      );
   }
 
   // The plan's elements cut at the Sections' borders, and closed on the written plane.
@@ -561,6 +564,36 @@ interface ObjectSpot {
   readonly groundOffset: number;
 }
 
+/** A Section's sprite elements and Strip elements at most (the course format's bounds). */
+export const SPRITE_ELEMENTS = 2048;
+export const STRIP_ELEMENTS = 2048;
+
+/**
+ * Where a stretch's objects at sorted places `at` (n of them) are cut into the fewest parts of at most `limit` each
+ * that `fits` takes (by default every cut does): k parts, the j-th cut (1 ≤ j < k) at the place of the ⌊j·n/k⌋-th
+ * object (0 from), whose place's objects go to the later part. No cut where all fit in one part.
+ */
+export function cutsByCount(
+  at: readonly number[],
+  limit: number,
+  fits: (cuts: readonly number[]) => boolean = () => true,
+): number[] {
+  for (let k = Math.max(1, Math.ceil(at.length / limit)); k <= at.length + 1; k++) {
+    const cuts = Array.from({ length: k - 1 }, (_, j) => at[Math.floor(((j + 1) * at.length) / k)]!);
+    const ends = [-Infinity, ...cuts, Infinity];
+    const counts = cuts
+      .map((_, j) => j)
+      .concat(k - 1)
+      .map((j) => at.filter((q) => q >= ends[j]! && q < ends[j + 1]!).length);
+    if (counts.every((n) => n <= limit) && fits(cuts)) return cuts;
+  }
+  throw new RangeError(`No cuts part ${at.length} objects into parts of at most ${limit}`);
+}
+
+/** A value moving linearly from `before` at `border − ramp` to `after` at `border + ramp`, at `q` between them. */
+export const ramped = (before: number, after: number, border: number, ramp: number, q: number) =>
+  before + ((after - before) * (q - (border - ramp))) / (2 * ramp);
+
 /** A band's edges, units from P: its paving's and its materials' outer edge, the course's limit. */
 interface Edges {
   readonly paving: number;
@@ -595,10 +628,7 @@ function bandEdges(side: readonly Band[], lap: (step: number) => number, N: numb
     borders,
     at(which: keyof Edges, q: number) {
       for (const b of [...borders, ...borders.map((x) => x + N), ...borders.map((x) => x - N)])
-        if (Math.abs(q - b) <= BAND_RAMP) {
-          const [before, after] = [plain(b - 1)[which], plain(b)[which]];
-          return before + ((after - before) * (q - (b - BAND_RAMP))) / (2 * BAND_RAMP);
-        }
+        if (Math.abs(q - b) <= BAND_RAMP) return ramped(plain(b - 1)[which], plain(b)[which], b, BAND_RAMP, q);
       return plain(q)[which];
     },
   };

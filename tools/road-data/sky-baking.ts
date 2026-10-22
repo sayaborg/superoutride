@@ -55,7 +55,7 @@ const linear = (rgb555: number): readonly [number, number, number] => [
  * The difference of two pixels: the mean of their channels' differences in linear light, 1 between transparency and
  * any color.
  */
-function pixelDifference(a: number, b: number): number {
+export function pixelDifference(a: number, b: number): number {
   if (a === TRANSPARENT || b === TRANSPARENT) return a === b ? 0 : 1;
   const [p, q] = [linear(a), linear(b)];
   return (Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2])) / 3;

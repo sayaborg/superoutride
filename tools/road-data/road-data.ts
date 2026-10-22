@@ -52,6 +52,13 @@ import { filesByCrc } from './enduro-racer-rom.js';
 import { racingHeroDump } from './racing-hero-dump.js';
 import { expandObjects } from './racing-hero-road.js';
 import {
+  courseId as racingHeroCourseId,
+  POSITION_METRES as RACING_HERO_POSITION,
+  RACING_HERO_CONVERSION_VERSION,
+  racingHeroCourses,
+  skyName as racingHeroSky,
+} from './racing-hero-course.js';
+import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
   ENDURO_RACER_CONVERSION_VERSION,
   enduroRacerCourse,
@@ -98,6 +105,8 @@ const SUPER_MONACO_GP_DUMP_DIRECTORY = 'reference-media/super-monaco-gp/rom-data
 /** Where K's RACING HERO ROM zip and the tool's dumps of it lie: never committed. */
 const RACING_HERO_ROM_DIRECTORY = 'reference-media/racing-hero/rom';
 const RACING_HERO_DUMP_DIRECTORY = 'reference-media/racing-hero/rom-data';
+/** The sky RACING HERO's courses show until their own are baked: a copy under each country's sky's name. */
+const RACING_HERO_SKY_STAND_IN = 'shangon-africa-1-sky';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -992,6 +1001,67 @@ try {
           routines: [...new Set(types.flatMap((d) => (d ? [d.routine] : [])))].sort((a, b) => a - b),
           pictures: Object.keys(dump.pictures).length,
           pixelsPastEnd: Object.values(dump.pictures).reduce((sum, p) => sum + p.pastEnd, 0),
+        }),
+      );
+      break;
+    }
+    case 'racing-hero-course': {
+      // RACING HERO's ten courses from its ROM zip, written to content, or with `--check` compared.
+      const check = options.has('--check');
+      const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
+      const courses = racingHeroCourses(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
+      const standIn = JSON.parse(await readFile(`content/images/${RACING_HERO_SKY_STAND_IN}.json`, 'utf8')) as {
+        name: string;
+      };
+      const report = [];
+      for (const course of courses) {
+        const file = await saveCourse(racingHeroCourseId(course.country), course.document, check);
+        const sky = racingHeroSky(course.country);
+        const text = JSON.stringify({ ...standIn, name: sky });
+        const skyFile = `content/images/${sky}.json`;
+        if (check) {
+          const committed = await readFile(skyFile, 'utf8').catch(() => null);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the stand-in sky`);
+        } else await atomicWrite(skyFile, text);
+        const arcs = course.path.elements.filter((e) => e.turn !== 0);
+        const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
+        const tightest = arcs.reduce((a, b) => (radius(b) < radius(a) ? b : a));
+        const why = new Map<string, number>();
+        for (const l of course.left) why.set(l.why, (why.get(l.why) ?? 0) + 1);
+        report.push({
+          id: course.id,
+          file,
+          palettes: course.set,
+          metres: round1(course.path.planeLength),
+          elements: course.path.elements.length,
+          tightest: { at: round1(course.path.station(tightest.start)), radius: round1(radius(tightest)) },
+          sections: course.pieces.map((p) => ({
+            id: p.id,
+            from: round1(p.origin),
+            sprites: p.sprites,
+            strips: p.strips,
+          })),
+          left: Object.fromEntries(why),
+          crossings: course.crossings.map((c) => ({
+            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+            levels: c.levels,
+            held: c.held,
+            half: c.half,
+            heights: c.heights.map(round1),
+          })),
+          steepest: round3(course.steepest),
+          waters: course.waters.length,
+          runOut: round1(course.runOut),
+        });
+      }
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          conversion: RACING_HERO_CONVERSION_VERSION,
+          checked: check,
+          metresAPosition: RACING_HERO_POSITION,
+          courses: report,
         }),
       );
       break;

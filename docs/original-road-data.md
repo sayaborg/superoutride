@@ -2018,3 +2018,71 @@ records, each with its colored pixels past its rows' end marks; the sprites' pal
 command list with its blocks, the tile palettes at power on, the palette sets and the sky's colors. The amounts in the
 program's code (the curve's rule, the objects' lateral, the limits, the size classes, the clock and the speed
 readout, the background's start) are not tables: the courses take them as constants from Stage RH's description.
+
+### RACING HERO's courses
+
+`npm run road-data -- racing-hero-course` (conversion version 1) writes the ten countries' courses from the zip,
+`racing-hero-<country>` (`australia`, `france`, `brazil`, `china`, `japan`, `italy`, `the-netherlands`, `usa`, `egypt`,
+`great-britain`) named as COURSE SELECT names them (`U.S.A` without its last point), each a LINEAR course of one lap,
+bearing 0; with `--check` it fails where a document differs.
+
+- **Scale.** A position is 0.045862 m: the displayed km/h is 317/1024 of the 16 positions a tick moves (the readout's
+  table at 0xBB78), and the clock counts a second each 30 ticks, so km/h is 4.9531 positions a tick. A step is 8
+  positions, 0.36690 m. A lateral unit is 0.0065 m, the road's picture's lanes about 3.5 m; heights are 15/14 of it,
+  0.006964 m (the original's pixels' aspect). Each object's lateral, PIT height and the road's sideways shift are
+  units of one projection, which never meets the positions.
+- **Plan.** P, the original's road line, is a 6 m straight before GO (A's position 0, where the bike stands), A's, B's
+  and the goal's section's road entries in turn, and a straight of 6400 positions (293.5 m) past the goal's section:
+  its 212.8 m past GOAL is shorter than the catalog's longest stop (S13 DRIFT TUNED's 438.6 m), so the run out is
+  506.3 m. An entry of radius r has CURVE = ((0x28BE0 / r) + 8) >> 4 (the division toward 0, the shift toward −∞), 0
+  straight; the sub CPU turns the road by CURVE / 512 units a step a step, so an entry turns CURVE × 0.0065 /
+  (512 × 0.36690) radians a step, right where r is positive: its radius is 10603 / |CURVE| m (r 800 is 815.6 m, the
+  tightest, JAPAN's r 60, 60.9 m). Entries one after another with the same CURVE are one element; a course's P has 27
+  to 49 elements.
+- **Plane and lanes.** Every Section has lanes a and b of 392 units (2.548 m) either side of P, a left; the plane is
+  lane a's centre, 196 units left of P. A course position q lies on the plane's station across from P's point there.
+  The original's three and two lanes are only colors: the lanes do not change.
+- **Materials and limits.** `ASPHALT` reaches from P each side to the fences' and walls' inner faces: 688 units
+  (4.472 m) on road type 4 and from the goal's section's 1120 on, 406 (2.639 m) on type 3. They are the course's
+  limits, where the original's bike is pushed back (its centre held within 624 and 368). Between road types the
+  limit moves linearly over the two steps either side of their border (at A's end, the Sections' border, the middle).
+- **Surface.** Each surface object whose type has parts lying on the road (y 0) colors the road from the surface
+  object before it to its own position (A's first from the entry): its parts' colored width (±825 units for three
+  lanes, ±542 for two) in the mean of their pixels other than 6 and 7, in linear light, in the country's palette set;
+  equal stretches one after another are one Strip. The parts' pixels 6 and 7, all in their top five rows, are the
+  marks: each run of their columns is a Strip of the 20 positions before the object (what the five rows cover seen
+  from the original's eye at the next object), in their mean color, where it differs from the surface's by at least
+  0.1 (`sky-baking`'s pixel difference). So the three lanes' lines and edge lines are white one type in four (C64,
+  every 320 positions) and the two lanes' centre line where its type's palette makes it white; the CHECK and GOAL
+  surface (EB4) is white from 480 to 560. Past the goal's section's last surface object (its 1360) the run out keeps
+  C68's surface without marks.
+- **Water.** Each side's runs of scenery objects 0EC (water and its shore, gaps of at most 256 positions) are one Strip
+  from the run's first object to past its last by the gap before it, its inner edge each object's X (a Boundary
+  through them, a number where it does not change), its outer edge open, in the mean of 0EC's colored pixels, with no
+  material (beyond the limits). AUSTRALIA, THE NETHERLANDS (8), U.S.A and EGYPT have them, all in A.
+- **Ground.** Beyond the road the ground is transparent: the sky shows its ground below the horizon, as the original
+  shows its background there.
+- **Objects' places.** An object's X is 0 where its lateral word is, else sign × (w + 4 |lateral|) units (positive
+  left), w 624 on road type 4, 224 on type 3 and 0 from the goal's section's 1120. RH-3 counts the sprites RH-4 will
+  stand to cut the Sections: every scenery object but the unused types and 0EC, the chevron signs 254, and each
+  surface type's standing part (y ≠ 0) apart, each at its picture's middle across. Left out: FRANCE A's 150 scenery
+  objects past its road (to 105536), the goal's section's scenery over 800–1256 and 1760–1832 (30 a country, standing
+  on the road after the goal), any whose base point lies on another passage's visible road (16 to 43 in FRANCE,
+  CHINA, JAPAN, THE NETHERLANDS and U.S.A) or on a curve's inside beyond its centre's distance less 2 m (none).
+- **Sections.** A (`a`), B (`b`) and the goal's section with the run out (`goal`), each cut into the fewest parts whose
+  sprites and Strips stay within 2048 (`cutsByCount`: A and B in two, about 1850–1970 and 1380–1500 sprites, 860–960
+  and 380–420 Strips a part; the goal's 50–52 sprites and 8 Strips), then where its coordinate domain passes over
+  itself (JAPAN's A a third time), named `a-2`, `a-3` on; Links in lane a.
+- **Crossings.** Passages at least 200 m apart whose visible roads overlap are kept 6 m apart on the level road
+  ([Profile](#profile)): FRANCE's B over its GO (the GO passage held level, B raised 6.2 m over a 760 m half), JAPAN's
+  A over itself, THE NETHERLANDS' A twice, U.S.A's A over itself and its B over A's end, and CHINA's run out over its
+  B (the run out held level near the course's end, B lowered 8.2 m over a long, shallow overlap); the steepest grade
+  is 1.9 %. The road is otherwise level: the PIT tables are not made.
+- **Gates and grid.** GO is A's position 0; the grid is SUPER HANG-ON's and ENDURO RACER's (16 slots from GO forward,
+  the last at GO in lane a, bikes 3 m apart and cars 12, lanes a and b in turn). The checkpoint
+  (`racing-hero-<country>-CP1`) is at B's 480 and the finish (`racing-hero-<country>-GOAL`) at the goal's section's
+  480, under the CHECK and GOAL banners, where their white surface begins.
+- **Sky.** Every Section starts with its country's sky, `rachero-<country>-sky`, cut, `horizonY` 320, its `yawOrigin`
+  SUPER MONACO GP's rule with the background's point straight ahead at the race's start at the sky's column 0 and θ0
+  the Section's start's turn from the course's start. Until the skies are baked from the backgrounds, each is
+  `shangon-africa-1-sky` under its name.

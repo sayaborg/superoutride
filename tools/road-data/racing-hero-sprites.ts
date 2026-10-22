@@ -111,3 +111,39 @@ export function readSpritePalette(main: Uint8Array, p: number, set: keyof typeof
   const address = (p >= COUNTRY_PALETTES ? PALETTE_SETS[set] : PALETTE_SETS.A) + 2 * PALETTE_WORDS * p;
   return { address, words: Array.from({ length: PALETTE_WORDS }, (_, k) => word(main, address + 2 * k)) };
 }
+
+/**
+ * The size classes κ by a definition's routine: a largest size's pixel is 2.2165 / κ lateral units across. Routines
+ * 0x20 and 0x30 draw the strips (1:1 across in the original, their height shrinking with distance) and 0x34 and 0x38
+ * the road's surface types.
+ */
+const SIZE_CLASSES: ReadonlyMap<number, number> = new Map([
+  [0x00, 2],
+  [0x04, 4 / 3],
+  [0x08, 1],
+  [0x0c, 0.8],
+  [0x10, 2 / 3],
+  [0x14, 4 / 7],
+  [0x18, 0.5],
+  [0x1c, 0.5],
+  [0x20, 2],
+  [0x24, 0.3391],
+  [0x28, 0.4],
+  [0x2c, 1 / 3],
+  [0x30, 1],
+  [0x34, 2 / 3],
+  [0x38, 2 / 3],
+  [0x3c, 0.3391],
+  [0x40, 0.3906],
+]);
+const PIXEL_UNITS = 2.2165;
+
+/** A largest size's pixel of a definition of routine `routine`, lateral units across. */
+export function pixelUnits(routine: number): number {
+  const kappa = SIZE_CLASSES.get(routine);
+  if (kappa === undefined) throw new RangeError(`Routine 0x${routine.toString(16)} has no size class`);
+  return PIXEL_UNITS / kappa;
+}
+
+/** The routines of the road's surface types, whose parts lying on the road (y 0) draw the surface. */
+export const SURFACE_ROUTINES = Object.freeze(new Set([0x34, 0x38]));

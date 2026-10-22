@@ -136,8 +136,8 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-3 (RACING HERO's courses without objects), then the rest of Stage
-RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
+Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-5 (RACING HERO's skies), then RH-4 (its objects, the
+stage's last); then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -902,10 +902,14 @@ PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
   [Profile](original-road-data.md#profile): a passage whose middle lies less than 100 m from the road's start or end
   makes no bump and stays level, the crossing's other passages taking all of the 6 m. Every other original's `--check`
   stayed unchanged. It came before RH-2, which waited on K's `rachero.zip`.
-- RH-3: the courses without objects (`racing-hero-course`, conversion version 1, with `--check`): plan, lanes,
-  materials and limits, every Strip (the surface, the marks, the water and its shore), the transparent ground, the
-  Sections split by the objects RH-4 will place, the crossings by RH-3a's rule, gates and grid, and skies named with a
-  copy of a sky in main; the racing lines measured. Not at once with PG-9.
+- RH-3 laid the ten courses without objects ([RACING HERO's courses](original-road-data.md#racing-heros-courses)):
+  `racing-hero-course` (conversion version 1, with `--check`) writes the plan from the road tables (equal curves one
+  element, a straight past the goal's section so every vehicle stops), lanes a and b, `ASPHALT` to the fences' inner
+  faces as the limits, the surface, its marks and the water as Strips over a transparent ground, the Sections cut by
+  the sprites RH-4 will stand (`cutsByCount`, made general from SUPER MONACO GP's halving, with its linear-light mean
+  color and the limits' ramp) and where their domains pass over themselves, the crossings by RH-3a's rule (FRANCE's
+  GO passage and CHINA's run out held level), gates and grid, and each country's sky by name, `shangon-africa-1-sky`
+  standing in until RH-5; their racing lines were measured.
 - RH-5: the ten skies baked from the tile ROMs by `sky-baking`'s second baking (pixels alone; nothing measured).
 - RH-4, the stage's last, after all of Stage PG: the objects as boards in the ROMs' pictures by chosen lines (the
   scenery, the chevron signs 254, the standing parts of the surface types, the strips extending sideways, what spans

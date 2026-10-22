@@ -324,7 +324,7 @@ function layCourse(inputs: CourseInputs) {
 
   // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
   // passage's road (to its edge bands' outer edges), which the original never shows together.
-  const onOtherPassage = otherPassages(path, edges);
+  const onOtherPassage = otherPassages(path, () => edges);
   const placed: Placed[] = [];
   const dropped: { position: number; x: number; what: string }[] = [];
   const passedThrough: { position: number; x: number; what: string }[] = [];
@@ -666,22 +666,23 @@ const PASSAGE_STEP = 1;
 
 /**
  * Whether a point `lateral` metres right of P `u` metres along it, widened `half` metres either side, lies on another
- * passage's road: within `edges` of P (and half a step along) where P is at least `PASSAGES_APART` from `u`.
+ * passage's road: within `edges(v)` of P at v (and half a step along) where v is at least `PASSAGES_APART` from `u`.
  */
-function otherPassages(path: CoursePath, edges: number) {
+export function otherPassages(path: CoursePath, edges: (u: number) => number) {
   const samples = Array.from({ length: Math.floor(path.length / PASSAGE_STEP) + 1 }, (_, k) => ({
     u: k * PASSAGE_STEP,
     pose: path.pose(k * PASSAGE_STEP),
+    edges: edges(k * PASSAGE_STEP),
   }));
   return (u: number, lateral: number, half: number) => {
     const point = path.aside(u, lateral);
-    return samples.some(({ u: v, pose }) => {
+    return samples.some(({ u: v, pose, edges: e }) => {
       if (Math.abs(v - u) < PASSAGES_APART) return false;
       const [dx, dy] = [point.x - pose.x, point.y - pose.y];
-      if (Math.abs(dx) > edges + half + PASSAGE_STEP || Math.abs(dy) > edges + half + PASSAGE_STEP) return false;
+      if (Math.abs(dx) > e + half + PASSAGE_STEP || Math.abs(dy) > e + half + PASSAGE_STEP) return false;
       const along = dx * Math.cos(pose.heading) + dy * Math.sin(pose.heading);
       const across = dx * Math.sin(pose.heading) - dy * Math.cos(pose.heading);
-      return Math.abs(along) <= PASSAGE_STEP / 2 && Math.abs(across) <= edges + half;
+      return Math.abs(along) <= PASSAGE_STEP / 2 && Math.abs(across) <= e + half;
     });
   };
 }

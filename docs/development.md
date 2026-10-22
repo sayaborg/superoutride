@@ -479,6 +479,7 @@ from the ROMs under `content/`:
 | `super-monaco-gp-read`   | Read SUPER MONACO GP's ROM zip (`--zip`, else the one zip in its ROM directory), finding each ROM by its CRC, and write every table its courses use to its dump (`--out`)                                                |
 | `super-monaco-gp-course` | Write SUPER MONACO GP's two circuits, raised from its ROM zip (`--zip`), to `content/courses/`, and their skies and boards to `content/images/`, or with `--check` fail where one differs                                |
 | `racing-hero-read`       | Read RACING HERO's ROM zip (`--zip`, else the one zip in its ROM directory), finding each ROM by its CRC, and write every table its courses use to its dump (`--out`)                                                    |
+| `racing-hero-course`     | Write RACING HERO's ten courses, raised from its ROM zip (`--zip`), to `content/courses/`, and their skies' stand-ins to `content/images/`, or with `--check` fail where one differs                                     |
 
 ### Local originals
 

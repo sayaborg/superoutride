@@ -7,6 +7,7 @@ import type { ZipFile } from './zip.js';
 import { assembleRacingHeroMain, assembleRacingHeroSprites, racingHeroRoms } from './racing-hero-rom.js';
 import {
   COUNTRIES,
+  countrySections,
   DESCRIPTION_COUNT,
   readCourseSelect,
   readDescription,
@@ -42,23 +43,16 @@ export const RACING_HERO_DUMP_FORMAT = Object.freeze({
   version: 1,
 } as const);
 
-/** The one section a road table's two next-section longs both name. */
-function nextSection(main: Uint8Array, section: number): number {
-  const [left, right] = readRoad(main, readDescription(main, section).road).next;
-  if (left !== right) throw new RangeError(`Section ${section} goes on to two sections`);
-  return left;
-}
-
 /** Every table the courses use, from the ROM set's files by CRC-32. */
 export function racingHeroDump(files: ReadonlyMap<number, ZipFile>) {
   const main = assembleRacingHeroMain(files);
   const words = assembleRacingHeroSprites(files);
   const descriptions = Array.from({ length: DESCRIPTION_COUNT }, (_, k) => readDescription(main, k));
-  const countries = COUNTRIES.map((country) => {
-    const b = nextSection(main, country.section);
-    const background = backgroundNumber(main, country.section);
-    return { ...country, sections: [country.section, b, nextSection(main, b)], background };
-  });
+  const countries = COUNTRIES.map((country) => ({
+    ...country,
+    sections: countrySections(main, country.section),
+    background: backgroundNumber(main, country.section),
+  }));
   const sections = Object.fromEntries(
     countries
       .flatMap((c) => c.sections)

@@ -131,3 +131,19 @@ export const SKY_COLORS = Object.freeze({ blue: 0x3f4fa, grey: 0x3f5fa, orange: 
 const SKY_COLOR_COUNT = 64;
 export const readSkyColors = (main: Uint8Array, address: number) =>
   Array.from({ length: SKY_COLOR_COUNT }, (_, k) => word(main, address + 2 * k));
+
+/** The palette motion numbers that choose the sprites' palette set for palettes 0x80–0xFF. */
+const MOTION_SETS: ReadonlyMap<number, 'A' | 'B'> = new Map([
+  [2, 'A'],
+  [1, 'B'],
+]);
+
+/** Country `section`'s sprite palette set: its background's palette set's palette motion number's. */
+export function spritePaletteSet(main: Uint8Array, section: number): 'A' | 'B' {
+  const motions = readPaletteSet(main, backgroundNumber(main, section) + 1).flatMap((c) =>
+    'motion' in c ? [c.motion] : [],
+  );
+  const set = motions.length === 1 ? MOTION_SETS.get(motions[0]!) : undefined;
+  if (!set) throw new RangeError(`Country ${section}'s palette set starts no known palette motion`);
+  return set;
+}

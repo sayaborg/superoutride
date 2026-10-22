@@ -89,6 +89,19 @@ export function readRoad(main: Uint8Array, address: number) {
   return { next, entries: road };
 }
 
+/** The one section a section's road table's two next-section longs both name. */
+function nextSection(main: Uint8Array, section: number): number {
+  const [left, right] = readRoad(main, readDescription(main, section).road).next;
+  if (left !== right) throw new RangeError(`Section ${section} goes on to two sections`);
+  return left;
+}
+
+/** A country's sections from its first (A): A, B and the goal's, each the one the section before goes on to. */
+export function countrySections(main: Uint8Array, first: number): readonly [number, number, number] {
+  const b = nextSection(main, first);
+  return [first, b, nextSection(main, b)];
+}
+
 /** A PIT table's entry: its length in positions and the height it reaches. */
 export interface GradeEntry {
   readonly length: number;
