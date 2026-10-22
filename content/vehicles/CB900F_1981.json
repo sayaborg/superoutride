@@ -1,0 +1,60 @@
+{
+  "format": "superoutride.vehicle-mechanics",
+  "version": 7,
+  "frontTrack": 0,
+  "rearTrack": 0,
+  "frontRideFrequency": 1.5,
+  "rearRideFrequency": 1.5,
+  "frontDampingRatio": 0.4,
+  "rearDampingRatio": 0.4,
+  "frontQTravel": 0.3,
+  "rearQTravel": 0.3,
+  "frontDriveTorqueFraction": 0,
+  "overallLength": 2.195,
+  "overallWidth": 0.85,
+  "overallHeight": 1.145,
+  "mass": 335.5,
+  "yawInertia": 194,
+  "pitchInertia": 220,
+  "frontAxle": 0.7878,
+  "rearAxle": 0.7272,
+  "desiredCgHeight": 0.4545,
+  "frontWheelRadius": 0.3203,
+  "rearWheelRadius": 0.3265,
+  "frontWheelInertia": 0.6,
+  "rearWheelInertia": 0.8,
+  "frontBrakeTorqueMax": 800,
+  "rearBrakeTorqueMax": 350,
+  "quadraticDrag": 0.3,
+  "powertrain": {
+    "displacementCc": 902,
+    "cycle": 4,
+    "compressionRatio": 8.8,
+    "idleRpm": 1000,
+    "redlineRpm": 9500,
+    "finalDriveRatio": 5.282108,
+    "gearRatios": [2.533, 1.789, 1.391, 1.16, 1.0],
+    "torqueCurve": [
+      {
+        "rpm": 1000,
+        "torqueNewtonMeters": 30
+      },
+      {
+        "rpm": 4500,
+        "torqueNewtonMeters": 60
+      },
+      {
+        "rpm": 7500,
+        "torqueNewtonMeters": 76.49187
+      },
+      {
+        "rpm": 9000,
+        "torqueNewtonMeters": 70.41788023768386
+      },
+      {
+        "rpm": 9500,
+        "torqueNewtonMeters": 65
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [
+    0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "exhaust": {
+    "valve": {
+      "diameter": 0.03493107499061545,
+      "open": 0.4027777777777778
+    },
+    "primaries": [
+      {
+        "length": 0.55,
+        "diameter": 0.032,
+        "to": 0
+      },
+      {
+        "length": 0.6,
+        "diameter": 0.032,
+        "to": 0
+      },
+      {
+        "length": 0.6,
+        "diameter": 0.032,
+        "to": 1
+      },
+      {
+        "length": 0.55,
+        "diameter": 0.032,
+        "to": 1
+      }
+    ],
+    "pipes": [
+      {
+        "length": 0.22,
+        "diameter": 0.038,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "length": 0.85,
+        "diameter": 0.04,
+        "from": 0,
+        "to": null
+      },
+      {
+        "length": 0.85,
+        "diameter": 0.04,
+        "from": 1,
+        "to": null
+      }
+    ]
+  },
+  "metadata": {
+    "note": "1984 UK ZX900-A1: four-stroke inline four, manual firing order 1-2-4-3; evenly spaced 180-degree events. Four headers pair into left/right silencers with a balance pipe (A1 UK parts diagram). Primary event order maps cylinders 1,2,4,3 to left,left,right,right; that cylinder-to-collector identification is an engineering interpretation of the diagram. Every tube length/diameter is estimated. Silencer internals are represented by straight pipes. Equivalent valve diameter sqrt(2)*24.7 mm uses two exhaust valves per cylinder (period review); 290/720 opening fraction uses manual 65 BBDC /45 ATDC timing."
+  }
+}

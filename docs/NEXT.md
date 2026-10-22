@@ -7,6 +7,10 @@
 - The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
   content and this contact response; any other physics addition needs prior confirmation.
+- The [five production road motorcycles](road-bikes.md) are FREE PLAY entries with original provisional sprites,
+  four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
+  specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
+  still requires prior confirmation.
 - No course uses these features any more (since PG-2b deleted OUTRUN TEST and OUTRUN TRIAL): BRANCH (forks, seam joins
   and signs shown by a fork's choice), solid walls (TSUKUBA's walls are looks alone), open course limits, movable
   objects (and their knocked pictures), and the `WET_ASPHALT` and `SHOULDER` materials. They stay in the engine; BRANCH

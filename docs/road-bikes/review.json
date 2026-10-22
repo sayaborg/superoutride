@@ -1,0 +1,202 @@
+[
+  {
+    "id": "CB900F_1981",
+    "sprite": "cb900f-1981",
+    "sha256": "a9266ba38aa1784e1c1726f34231191b9f1817b7ae2f93a0b0cb5847e52d90c2",
+    "yawVariants": 64,
+    "bankVariants": 7,
+    "bankDegrees": 45,
+    "counts": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 248
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 292
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 265
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 229
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 168
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "GSX1100SZ",
+    "sprite": "gsx1100sz",
+    "sha256": "e3451f06a4dce6864cc2319d4dc8ff6e43392bb5172ad052610ba5a29ff0f7cc",
+    "yawVariants": 64,
+    "bankVariants": 7,
+    "bankDegrees": 45,
+    "counts": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 238
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 287
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 250
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 232
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 163
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "GPZ900R_A1",
+    "sprite": "gpz900r-a1",
+    "sha256": "5203c24c31d89eace04c2ec7955c3bd61ce3ec94338afa5f252a78c35a276a64",
+    "yawVariants": 64,
+    "bankVariants": 7,
+    "bankDegrees": 45,
+    "counts": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 240
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 293
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 265
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 226
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 153
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "GSX_R750_1985",
+    "sprite": "gsx-r750-1985",
+    "sha256": "933298c65cac30c16201136ec08409a13254135694a53762871e86f8c40ac03f",
+    "yawVariants": 64,
+    "bankVariants": 7,
+    "bankDegrees": 45,
+    "counts": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 240
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 285
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 259
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 222
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 131
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "VMAX1200_1985",
+    "sprite": "vmax1200-1985",
+    "sha256": "976022d18d744fa373e00f3b9da367aeab511cdfa8f30be896c89351863abf86",
+    "yawVariants": 64,
+    "bankVariants": 7,
+    "bankDegrees": 45,
+    "counts": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 236
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 289
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 266
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 228
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 146
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  }
+]

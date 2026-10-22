@@ -1,0 +1,207 @@
+[
+  {
+    "id": "CB900F_1981",
+    "name": "cb900f-1981",
+    "banks": [
+      {
+        "bankDegrees": -45,
+        "frontTireMinY": 0.005339685827493668,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -30,
+        "frontTireMinY": 0.0037854621186852455,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -15,
+        "frontTireMinY": 0.0015608700923621655,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 0,
+        "frontTireMinY": 0,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 15,
+        "frontTireMinY": 0.0015608700923621655,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 30,
+        "frontTireMinY": 0.0037854621186852455,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 45,
+        "frontTireMinY": 0.005339685827493668,
+        "rearTireMinY": 0
+      }
+    ]
+  },
+  {
+    "id": "GSX1100SZ",
+    "name": "gsx1100sz",
+    "banks": [
+      {
+        "bankDegrees": -45,
+        "frontTireMinY": 0.007156094536185265,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -30,
+        "frontTireMinY": 0.005076478235423565,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -15,
+        "frontTireMinY": 0.0020359274931252003,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 0,
+        "frontTireMinY": 0,
+        "rearTireMinY": 9.998113448261847e-12
+      },
+      {
+        "bankDegrees": 15,
+        "frontTireMinY": 0.0020359274931252003,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 30,
+        "frontTireMinY": 0.005076478235423565,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 45,
+        "frontTireMinY": 0.007156094536185265,
+        "rearTireMinY": 0
+      }
+    ]
+  },
+  {
+    "id": "GPZ900R_A1",
+    "name": "gpz900r-a1",
+    "banks": [
+      {
+        "bankDegrees": -45,
+        "frontTireMinY": 0.0022901780903339386,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -30,
+        "frontTireMinY": 0.0019113123416900635,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -15,
+        "frontTireMinY": 0.0006187055259943008,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 0,
+        "frontTireMinY": 5.41461320224812e-12,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 15,
+        "frontTireMinY": 0.0006187055259943008,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 30,
+        "frontTireMinY": 0.0019113123416900635,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 45,
+        "frontTireMinY": 0.0022901780903339386,
+        "rearTireMinY": 0
+      }
+    ]
+  },
+  {
+    "id": "GSX_R750_1985",
+    "name": "gsx-r750-1985",
+    "banks": [
+      {
+        "bankDegrees": -45,
+        "frontTireMinY": 0.008719824254512787,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -30,
+        "frontTireMinY": 0.006066279485821724,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -15,
+        "frontTireMinY": 0.002569889649748802,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 0,
+        "frontTireMinY": 0,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 15,
+        "frontTireMinY": 0.002569889649748802,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 30,
+        "frontTireMinY": 0.006066279485821724,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 45,
+        "frontTireMinY": 0.008719824254512787,
+        "rearTireMinY": 0
+      }
+    ]
+  },
+  {
+    "id": "VMAX1200_1985",
+    "name": "vmax1200-1985",
+    "banks": [
+      {
+        "bankDegrees": -45,
+        "frontTireMinY": 0.01206863671541214,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -30,
+        "frontTireMinY": 0.008167693391442299,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": -15,
+        "frontTireMinY": 0.003622308373451233,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 0,
+        "frontTireMinY": 0,
+        "rearTireMinY": 1.4875878306952472e-12
+      },
+      {
+        "bankDegrees": 15,
+        "frontTireMinY": 0.003622308373451233,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 30,
+        "frontTireMinY": 0.008167693391442299,
+        "rearTireMinY": 0
+      },
+      {
+        "bankDegrees": 45,
+        "frontTireMinY": 0.01206863671541214,
+        "rearTireMinY": 0
+      }
+    ]
+  }
+]

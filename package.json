@@ -30,7 +30,9 @@
     "guidance-pictures": "node --import tsx tools/build/guidance-pictures.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs",
     "racing-pictures": "node --import tsx tools/build/racing-pictures.ts",
-    "racing-validation": "node --import tsx tools/build/racing-validation.ts"
+    "racing-validation": "node --import tsx tools/build/racing-validation.ts",
+    "road-bike-pictures": "node --import tsx tools/build/road-bike-pictures.ts",
+    "road-bike-validation": "node --import tsx tools/build/road-bike-validation.ts"
   },
   "devDependencies": {
     "@types/node": "24.13.6",

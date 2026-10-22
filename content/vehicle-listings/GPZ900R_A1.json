@@ -1,0 +1,34 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 27,
+  "visuals": {
+    "spriteSet": "gpz900r-a1",
+    "palette": "stock",
+    "steeringPicture": "top-bridge",
+    "colorNames": {
+      "stock": "RED/GRAY",
+      "red": "RED",
+      "blue": "BLUE",
+      "black": "BLACK"
+    }
+  },
+  "sound": "GPZ900R_A1",
+  "metadata": {
+    "manufacturer": "Kawasaki",
+    "model": "GPZ900R",
+    "period": "1984",
+    "mobileLabel": "GPZ900R",
+    "engine": "I4",
+    "identifier": {
+      "officialLabel": "ZX900-A1",
+      "shortLabel": "ZX900-A1"
+    },
+    "selectedSpecification": [],
+    "physicsAnchor": {
+      "modelYear": "1984",
+      "market": "UK standard"
+    }
+  }
+}

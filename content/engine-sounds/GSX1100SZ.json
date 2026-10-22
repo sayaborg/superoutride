@@ -1,0 +1,69 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.25, 0.5, 0.75],
+  "exhaust": {
+    "valve": {
+      "diameter": 0.03252691193458119,
+      "open": 0.4
+    },
+    "primaries": [
+      {
+        "length": 0.56,
+        "diameter": 0.031,
+        "to": 0
+      },
+      {
+        "length": 0.62,
+        "diameter": 0.031,
+        "to": 0
+      },
+      {
+        "length": 0.56,
+        "diameter": 0.031,
+        "to": 1
+      },
+      {
+        "length": 0.62,
+        "diameter": 0.031,
+        "to": 1
+      }
+    ],
+    "pipes": [
+      {
+        "length": 0.3,
+        "diameter": 0.028,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "length": 0.76,
+        "diameter": 0.043,
+        "from": 0,
+        "to": 2
+      },
+      {
+        "length": 0.76,
+        "diameter": 0.043,
+        "from": 1,
+        "to": 3
+      },
+      {
+        "length": 0.08,
+        "diameter": 0.032,
+        "from": 2,
+        "to": null
+      },
+      {
+        "length": 0.08,
+        "diameter": 0.032,
+        "from": 3,
+        "to": null
+      }
+    ]
+  },
+  "metadata": {
+    "note": "1982 GSX1100SZ: four-stroke inline four, evenly spaced events in the manufacturer's 1-2-4-3 order (99501-37000-01E p58). Stock 4-into-2 with a balance link and two tailpipes; collector pairing and all tube dimensions are acoustic estimates. Equivalent valve diameter is sqrt(2) times the specified 23 mm exhaust valve (p52); open fraction is an unmeasured acoustic estimate. Silencer bodies are approximated by straight pipes, not measured recordings. See docs/road-bikes.md."
+  }
+}

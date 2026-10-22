@@ -101,6 +101,36 @@
       "vehicleSha256": "8959481e9b12322af2bd562975c3e9a94d6aec9b518b08d1ad342f376d563d88",
       "seconds": 676.486,
       "minimumCurvatureSeconds": 676.486
+    },
+    {
+      "vehicleId": "CB900F_1981",
+      "vehicleSha256": "b564db605f2cdac8ae64001e7efb2aade98919fa08e1551e73d8f9d604ca81a3",
+      "seconds": 677.552,
+      "minimumCurvatureSeconds": 677.552
+    },
+    {
+      "vehicleId": "GSX1100SZ",
+      "vehicleSha256": "2214f07c8406756a8e1d6248478328ac195dc485297c08164f5a10466b662303",
+      "seconds": 637.811,
+      "minimumCurvatureSeconds": 637.811
+    },
+    {
+      "vehicleId": "GPZ900R_A1",
+      "vehicleSha256": "93a589ac9e9a5671474276da1c16cbb14a8857bfb4243bfe92e3d96a3ad553cb",
+      "seconds": 640.451,
+      "minimumCurvatureSeconds": 640.451
+    },
+    {
+      "vehicleId": "GSX_R750_1985",
+      "vehicleSha256": "eb5ac0665619822a492c8b035bf7d09f5f3e0191a5d02677595bdd25b27a418e",
+      "seconds": 642.698,
+      "minimumCurvatureSeconds": 642.698
+    },
+    {
+      "vehicleId": "VMAX1200_1985",
+      "vehicleSha256": "7e228b5e897d12546e0936b24aead7357379325231a0494401cb80699e7a401b",
+      "seconds": 645.663,
+      "minimumCurvatureSeconds": 645.663
     }
   ],
   "lines": [

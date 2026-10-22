@@ -99,6 +99,36 @@
       "vehicleSha256": "51d6c4acc135083edcf7edcd047cb65d8f9576dde9d7759a674175c18e604aaa",
       "soundSha256": "89fdab84f8b452856ab794c8016eaec65ba95ddc916121a62a31cdef3fea333c",
       "lufs": -19.018831829410562
+    },
+    {
+      "vehicleId": "CB900F_1981",
+      "vehicleSha256": "2ab2afa6f7161f3d4fd20dc6f09d84eb16c0392d31330fe65b4a78557c395551",
+      "soundSha256": "527deb71525556f5040a10d4f0eb69efd66fc28d34745cf4ec3bb5ce558afc02",
+      "lufs": -15.894909913629562
+    },
+    {
+      "vehicleId": "GSX1100SZ",
+      "vehicleSha256": "0134807cb9dd07f5627d726b9bcbd10b7769328caafd091969de6f3aa45face5",
+      "soundSha256": "49826836d7fd10af6e92523f801afe2b814fd7c62d27778042e5a62eb508d9e7",
+      "lufs": -14.402346571836615
+    },
+    {
+      "vehicleId": "GPZ900R_A1",
+      "vehicleSha256": "c7f65063fbdcd8033f3a58940fe9350d5aa5ceca4de964e8dae83b5eec608560",
+      "soundSha256": "9cc33df76b3d23c58f6d1a1c3f04cab26890ea32227a932f3c87c21489b75fce",
+      "lufs": -18.263420168202344
+    },
+    {
+      "vehicleId": "GSX_R750_1985",
+      "vehicleSha256": "9ccab8dc216c13dd1a25c8bcaf5b39b8eef3695923ac2e20013731c2a8afba30",
+      "soundSha256": "9d6db87aa466da9bc250e3a0ef881c6d69f4cac92d6c072feba513c54e5c7520",
+      "lufs": -17.117003567925437
+    },
+    {
+      "vehicleId": "VMAX1200_1985",
+      "vehicleSha256": "0afd8204b56099765f52c1fb4f38423edea0efabecf3ad34108bd2ef66ea5d2d",
+      "soundSha256": "f27ea17a39e6ee0ac774edf81583ed2cda4c1db82a6fdcc470e3bdeba1864aeb",
+      "lufs": -13.596061247126073
     }
   ]
 }

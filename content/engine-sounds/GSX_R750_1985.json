@@ -1,0 +1,56 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [
+    0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "exhaust": {
+    "valve": {
+      "diameter": 0.03252691193458119,
+      "open": 0.3958333333333333
+    },
+    "primaries": [
+      {
+        "length": 0.62,
+        "diameter": 0.03,
+        "to": 0
+      },
+      {
+        "length": 0.58,
+        "diameter": 0.03,
+        "to": 0
+      },
+      {
+        "length": 0.6,
+        "diameter": 0.03,
+        "to": 0
+      },
+      {
+        "length": 0.64,
+        "diameter": 0.03,
+        "to": 0
+      }
+    ],
+    "pipes": [
+      {
+        "length": 0.45,
+        "diameter": 0.048,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "length": 0.55,
+        "diameter": 0.04,
+        "from": 1,
+        "to": null
+      }
+    ]
+  },
+  "metadata": {
+    "note": "1985 UK E02 GSX-R750F: four-stroke inline four, assumed conventional 180-degree crank and even 180-degree firing events; assumed cylinder order 1-2-4-3 is not verified from an F UK manual. Four headers merge into the single right-side stock silencer (F part 1430527A00; later G/H replacements are not the authored reference). All tube dimensions, two 23 mm exhaust valves and 285-degree seat-to-seat duration are engineering estimates. Collector and baffled silencer are approximated by straight pipes; no claim of measured factory audio."
+  }
+}

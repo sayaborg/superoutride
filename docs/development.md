@@ -662,3 +662,17 @@ The five IDs, historic evidence and visual limitations are in the [racing vehicl
 from rest for 240 seconds, then brakes and restarts, and checks a separate cornering transient. It writes
 `dist/racing-validation/measurements.json`; no measurements alter the vehicle data. The racing-vehicle scenario tests
 also save actual shared-scene driving frames to that directory.
+
+## Production road motorcycle authoring
+
+`npm run road-bike-pictures -- <vehicle ID|all> [replace]` bakes the five selections in the
+[road motorcycle ledger](road-bikes.md). `tools/graphics/road-bike-shapes.ts` supplies their provisional geometry,
+surface classifications and palettes to the existing common picture baker. Its `all` selects only these five
+road motorcycles, leaving the racing sets untouched. Saved sets require `replace` to overwrite.
+
+`npm run road-bike-validation` measures these five admitted vehicles through the shared solver and writes
+`dist/road-bike-validation/measurements.json`. It records 240 seconds of acceleration, the final speed range and
+whether it has settled, actual upshifts and downshifts, braking, an eight-second restart, left/right steering
+transients and a separate braking run starting at exactly 100 km/h. The report states the surface, inputs,
+initial conditions and stop criteria. The delivered-catalog tests save actual game frames to the same directory.
+The racing validation command keeps its original targets. Neither measurement command edits vehicle data.

@@ -1,0 +1,37 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 29,
+  "visuals": {
+    "spriteSet": "vmax1200-1985",
+    "palette": "stock",
+    "steeringPicture": "top-bridge",
+    "colorNames": {
+      "stock": "MAROON",
+      "red": "RED",
+      "blue": "BLUE",
+      "black": "BLACK"
+    }
+  },
+  "sound": "VMAX1200_1985",
+  "metadata": {
+    "manufacturer": "Yamaha",
+    "model": "VMAX1200",
+    "period": "1985",
+    "mobileLabel": "VMAX",
+    "engine": "V4",
+    "identifier": {
+      "officialLabel": "VMX12N / 1FK",
+      "shortLabel": "1FK"
+    },
+    "selectedSpecification": [
+      "5-SPEED SHAFT",
+      "V-BOOST"
+    ],
+    "physicsAnchor": {
+      "modelYear": "1985",
+      "market": "US 49-state"
+    }
+  }
+}

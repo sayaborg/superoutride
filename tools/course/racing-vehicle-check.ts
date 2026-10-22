@@ -4,8 +4,8 @@ import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
-import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-physics.js';
-import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
+import { createVehicle, updateVehicle, type VehicleState } from '../../src/vehicle/physics/vehicle-physics.js';
+import { createVehicleModel, type VehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { sampleEngineTorque } from '../../src/vehicle/physics/automatic-powertrain.js';
 import { createSteeringRule, driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
@@ -26,6 +26,83 @@ export function racingValidationWorld() {
   return { extent: coordinates.domain, coordinates, height, surfaces: { sample: () => surface } };
 }
 
+function checkFinite(vehicle: VehicleState, id: string) {
+  for (const value of [
+    vehicle.x,
+    vehicle.y,
+    vehicle.z,
+    vehicle.speed,
+    vehicle.yaw,
+    vehicle.pitch,
+    vehicle.longitudinalAcceleration,
+    vehicle.lateralAcceleration,
+    vehicle.powertrain.engineRpm,
+    vehicle.frontWheelOmega,
+    vehicle.rearWheelOmega,
+  ])
+    if (!Number.isFinite(value)) throw new Error(`${id}: non-finite driving state`);
+}
+
+function brakeVehicle(
+  vehicle: VehicleState,
+  model: VehicleModel,
+  world: ReturnType<typeof racingValidationWorld>,
+  steering: ReturnType<typeof driverSteering>,
+) {
+  const start = vehicle.course.s,
+    speed = vehicle.speed,
+    samples = [],
+    shifts = [];
+  let seconds = 0,
+    gear = vehicle.powertrain.gear;
+  for (; seconds < 30 && vehicle.speed > 0.1; seconds += SIM_DT) {
+    updateVehicle(world, vehicle, model, { steering: 0, throttle: 0, brake: 1 }, steering);
+    checkFinite(vehicle, model.compiledVehicle.id);
+    const sample = {
+      time: seconds + SIM_DT,
+      kph: vehicle.speed * 3.6,
+      distance: vehicle.course.s - start,
+      rpm: vehicle.powertrain.engineRpm,
+      gear: vehicle.powertrain.gear,
+      acceleration: vehicle.longitudinalAcceleration,
+    };
+    samples.push(sample);
+    if (sample.gear !== gear) {
+      shifts.push({
+        time: sample.time,
+        kph: sample.kph,
+        from: gear,
+        to: sample.gear,
+        fromRpm: vehicle.powertrain.shift.fromRpm,
+        toRpm: vehicle.powertrain.shift.toRpm,
+      });
+      gear = sample.gear;
+    }
+  }
+  return {
+    fromKph: speed * 3.6,
+    seconds,
+    metres: vehicle.course.s - start,
+    endKph: vehicle.speed * 3.6,
+    stopped: vehicle.speed <= 0.1,
+    shifts,
+    samples,
+  };
+}
+
+/** Fresh rolling vehicle, controls initially released; full brake to below 0.1 m/s, or a 30-second timeout. */
+export function measureVehicleBraking(
+  entry: CompiledVehicleDefinition,
+  driving: CompiledDrivingDefinition,
+  fromKph: number,
+) {
+  if (!Number.isFinite(fromKph) || fromKph <= 0) throw new RangeError('Braking start speed must be positive');
+  const model = createVehicleModel(createRunVehicle(entry, driving), SIM_DT);
+  const world = racingValidationWorld();
+  const vehicle = createVehicle(model, world, { s: 100, l: 0, initialSpeed: fromKph / 3.6 });
+  return brakeVehicle(vehicle, model, world, driverSteering(driving.compiledDriving.defaultSteering, model));
+}
+
 /** Reproducible acceleration, wheel/road power balance, full braking and low-speed restart through the solver. */
 export function measureRacingVehicle(
   entry: CompiledVehicleDefinition,
@@ -44,25 +121,9 @@ export function measureRacingVehicle(
   let gear = 1;
   let minimumEndSpeed = Infinity,
     maximumEndSpeed = 0;
-  const checkFinite = () => {
-    for (const value of [
-      vehicle.x,
-      vehicle.y,
-      vehicle.z,
-      vehicle.speed,
-      vehicle.yaw,
-      vehicle.pitch,
-      vehicle.longitudinalAcceleration,
-      vehicle.lateralAcceleration,
-      vehicle.powertrain.engineRpm,
-      vehicle.frontWheelOmega,
-      vehicle.rearWheelOmega,
-    ])
-      if (!Number.isFinite(value)) throw new Error(`${entry.compiledVehicle.id}: non-finite driving state`);
-  };
   for (let tick = 0; tick < seconds / SIM_DT; tick++) {
     updateVehicle(world, vehicle, model, { steering: 0, throttle: 1, brake: 0 }, steering);
-    checkFinite();
+    checkFinite(vehicle, entry.compiledVehicle.id);
     const time = (tick + 1) * SIM_DT,
       speed = vehicle.speed,
       kph = speed * 3.6;
@@ -121,28 +182,18 @@ export function measureRacingVehicle(
       });
     }
   }
-  const brakeStart = vehicle.course.s,
-    brakeSpeed = vehicle.speed;
-  let brakeTime = 0;
-  for (; brakeTime < 30 && vehicle.speed > 0.1; brakeTime += SIM_DT) {
-    updateVehicle(world, vehicle, model, { steering: 0, throttle: 0, brake: 1 }, steering);
-    checkFinite();
-  }
-  const braking = {
-    fromKph: brakeSpeed * 3.6,
-    seconds: brakeTime,
-    metres: vehicle.course.s - brakeStart,
-    endKph: vehicle.speed * 3.6,
-  };
+  const braking = brakeVehicle(vehicle, model, world, steering);
   for (let tick = 0; tick < 8 / SIM_DT; tick++) {
     updateVehicle(world, vehicle, model, { steering: 0, throttle: 1, brake: 0 }, steering);
-    checkFinite();
+    checkFinite(vehicle, entry.compiledVehicle.id);
   }
   const restartKph = vehicle.speed * 3.6;
   // A second fresh vehicle follows gentle alternating steering after launch, checking transient cornering state.
   const turner = createVehicle(model, world, { s: 100, l: 0, initialSpeed: 25 });
   const turnSteering = driverSteering(createSteeringRule('front', 0.8), model);
-  let lateral = 0;
+  let lateral = 0,
+    minimumLateral = 0,
+    maximumLateral = 0;
   for (let tick = 0; tick < 12 / SIM_DT; tick++) {
     updateVehicle(
       world,
@@ -151,9 +202,10 @@ export function measureRacingVehicle(
       { steering: 0.25 * Math.sin(tick * SIM_DT), throttle: 0.3, brake: 0 },
       turnSteering,
     );
-    for (const value of [turner.speed, turner.yaw, turner.y, turner.lateralAcceleration])
-      if (!Number.isFinite(value)) throw new Error(`${entry.compiledVehicle.id}: non-finite cornering state`);
+    checkFinite(turner, entry.compiledVehicle.id);
     lateral = Math.max(lateral, Math.abs(turner.lateralAcceleration));
+    minimumLateral = Math.min(minimumLateral, turner.lateralAcceleration);
+    maximumLateral = Math.max(maximumLateral, turner.lateralAcceleration);
   }
   return {
     id: entry.compiledVehicle.id,
@@ -170,5 +222,6 @@ export function measureRacingVehicle(
     braking,
     restartKph,
     maximumLateralAcceleration: lateral,
+    lateralAccelerationRange: [minimumLateral, maximumLateral],
   };
 }

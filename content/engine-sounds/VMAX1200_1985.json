@@ -1,0 +1,74 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [
+    0,
+    0.25,
+    0.5972222222222222,
+    0.8472222222222222
+  ],
+  "exhaust": {
+    "valve": {
+      "diameter": 0.0353553,
+      "open": 0.375
+    },
+    "primaries": [
+      {
+        "length": 0.34,
+        "diameter": 0.032,
+        "to": 0
+      },
+      {
+        "length": 0.36,
+        "diameter": 0.032,
+        "to": 0
+      },
+      {
+        "length": 0.8,
+        "diameter": 0.032,
+        "to": 0
+      },
+      {
+        "length": 0.82,
+        "diameter": 0.032,
+        "to": 0
+      }
+    ],
+    "pipes": [
+      {
+        "length": 0.18,
+        "diameter": 0.065,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "length": 0.55,
+        "diameter": 0.045,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "length": 0.55,
+        "diameter": 0.045,
+        "from": 1,
+        "to": 3
+      },
+      {
+        "length": 0.1,
+        "diameter": 0.035,
+        "from": 2,
+        "to": null
+      },
+      {
+        "length": 0.1,
+        "diameter": 0.035,
+        "from": 3,
+        "to": null
+      }
+    ]
+  },
+  "metadata": {
+    "note": "1985 US VMX12N, four-stroke 70-degree V4. Yamaha LIT-11616-04-67 p7-61 combustion diagram gives cylinders 1,3,2,4 at 0,180,430,610 degrees over 720; primaries use that order. Manual p3-6 identifies front/rear headers and the stock muffler chamber; modeled as four paths into a common chamber and two side silencers. Internal chamber connectivity and all pipe dimensions are acoustic estimates, not measured baffles. Equivalent valve diameter combines two nominal 25 mm exhaust valve heads from p8-4; 270-degree opening duration is estimated. V-Boost is already included once in the mechanics full-throttle curve; no additional sound or power multiplier."
+  }
+}

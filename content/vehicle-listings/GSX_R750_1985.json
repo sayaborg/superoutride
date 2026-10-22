@@ -1,0 +1,34 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 28,
+  "visuals": {
+    "spriteSet": "gsx-r750-1985",
+    "palette": "stock",
+    "steeringPicture": "top-bridge",
+    "colorNames": {
+      "stock": "WHITE/BLUE",
+      "red": "RED",
+      "blue": "BLUE",
+      "black": "BLACK"
+    }
+  },
+  "sound": "GSX_R750_1985",
+  "metadata": {
+    "manufacturer": "Suzuki",
+    "model": "GSX-R750",
+    "period": "1985",
+    "mobileLabel": "GSX-R750",
+    "engine": "I4",
+    "identifier": {
+      "officialLabel": "GSX-R750F",
+      "shortLabel": "GSX-R750F"
+    },
+    "selectedSpecification": [],
+    "physicsAnchor": {
+      "modelYear": "1985",
+      "market": "UK E02"
+    }
+  }
+}
