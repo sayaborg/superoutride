@@ -136,11 +136,10 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-4 (RACING HERO's objects, the stage's last); then Stage
-TD, the tidying of the road data tool and the documents after the five Sega originals, from K's instructions (no new
-original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
-[DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: Stage TD, the tidying of the road data tool and the documents after the six Sega originals, from K's
+instructions (no new original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings
+come; [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides;
+then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -913,10 +912,11 @@ PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
   shrunk across alone to whole repeats in the sky (σ 0.5875, the horizon's layers twice at their size, the far layer
   once 1.333 times wider), laid over the sky's lines in the original's rows and averaged down
   ([RACING HERO's skies](original-road-data.md#racing-heros-skies)).
-- RH-4, the stage's last, after all of Stage PG: the objects as boards in the ROMs' pictures by chosen lines (the
-  scenery, the chevron signs 254, the standing parts of the surface types, the strips extending sideways, what spans
-  the road, the gates), none with a body, and those not placed; the racing lines measured again; the default scale set
-  beside (H) and (A).
+- RH-4, the stage's last, stood the objects as boards without bodies in the ROMs' pictures by chosen lines
+  ([RACING HERO's objects](original-road-data.md#racing-heros-objects)): the scenery, the chevron signs 254, the
+  surface types' standing parts apart, the strips extending sideways, what spans the road and the gates, each on its
+  picture's bottom edge at its picture's middle; the Sections as RH-3 cut them; the racing lines measured again. Its
+  report set the default scale beside (H) and (A) for K.
 
 Each PR updates its specifications (Original road data, the content documents, NEXT's progress) with it.
 

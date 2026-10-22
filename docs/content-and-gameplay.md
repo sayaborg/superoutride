@@ -1734,8 +1734,9 @@ RACING HERO's courses (`racing-hero-australia` AUSTRALIA, `racing-hero-france` F
 NETHERLANDS, `racing-hero-usa` U.S.A, `racing-hero-egypt` EGYPT and `racing-hero-great-britain` GREAT BRITAIN) are
 LINEAR courses, one a country of the original, written by the road data tool from the original's ROMs ([Original
 road data](original-road-data.md#racing-heros-courses)), which owns their plan, lanes, materials and limits, strips,
-Sections, gates and skies; run the conversion rather than editing the documents. Each has its checkpoint at its CHECK
-banner and its finish at its GOAL banner; the ground beyond the road is transparent. Until their hills are made they
+Sections, gates, skies and objects; run the conversion rather than editing the documents. Each has its checkpoint at
+its CHECK banner and its finish at its GOAL banner; the ground beyond the road is transparent, and every object but the
+road's surface, its marks and the water is a board without a body, its pictures the original's, provisionally. Until their hills are made they
 have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
 ## Observation formats

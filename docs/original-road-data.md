@@ -2034,7 +2034,7 @@ readout, the background's start) are not tables: the courses take them as consta
 
 ### RACING HERO's courses
 
-`npm run road-data -- racing-hero-course` (conversion version 1) writes the ten countries' courses from the zip,
+`npm run road-data -- racing-hero-course` (conversion version 2) writes the ten countries' courses from the zip,
 `racing-hero-<country>` (`australia`, `france`, `brazil`, `china`, `japan`, `italy`, `the-netherlands`, `usa`, `egypt`,
 `great-britain`) named as COURSE SELECT names them (`U.S.A` without its last point), each a LINEAR course of one lap,
 bearing 0; with `--check` it fails where a document differs.
@@ -2076,12 +2076,11 @@ bearing 0; with `--check` it fails where a document differs.
 - **Ground.** Beyond the road the ground is transparent: the sky shows its ground below the horizon, as the original
   shows its background there.
 - **Objects' places.** An object's X is 0 where its lateral word is, else sign × (w + 4 |lateral|) units (positive
-  left), w 624 on road type 4, 224 on type 3 and 0 from the goal's section's 1120. RH-3 counts the sprites RH-4 will
-  stand to cut the Sections: every scenery object but the unused types and 0EC, the chevron signs 254, and each
-  surface type's standing part (y ≠ 0) apart, each at its picture's middle across. Left out: FRANCE A's 150 scenery
-  objects past its road (to 105536), the goal's section's scenery over 800–1256 and 1760–1832 (30 a country, standing
-  on the road after the goal), any whose base point lies on another passage's visible road (16 to 43 in FRANCE,
-  CHINA, JAPAN, THE NETHERLANDS and U.S.A) or on a curve's inside beyond its centre's distance less 2 m (none).
+  left), w 624 on road type 4, 224 on type 3 and 0 from the goal's section's 1120. The boards ([RACING HERO's
+  objects](#racing-heros-objects)) stand there, each at its picture's middle across. Left out: FRANCE A's 150 scenery
+  objects past its road (to 105536), the goal's section's scenery over 800–1256 and 1760–1832 (30 a country, standing on
+  the road after the goal), any whose base point lies on another passage's visible road (16 to 43 in FRANCE, CHINA,
+  JAPAN, THE NETHERLANDS and U.S.A) or on a curve's inside beyond its centre's distance less 2 m (none).
 - **Sections.** A (`a`), B (`b`) and the goal's section with the run out (`goal`), each cut into the fewest parts whose
   sprites and Strips stay within 2048 (`cutsByCount`: A and B in two, about 1850–1970 and 1380–1500 sprites, 860–960
   and 380–420 Strips a part; the goal's 50–52 sprites and 8 Strips), then where its coordinate domain passes over
@@ -2098,6 +2097,32 @@ bearing 0; with `--check` it fails where a document differs.
 - **Sky.** Every Section starts with its country's sky, `rachero-<country>-sky`, cut, `horizonY` 320, its `yawOrigin`
   SUPER MONACO GP's rule with the background's point straight ahead at the race's start at the sky's column 0 and θ0
   the Section's start's turn from the course's start.
+
+### RACING HERO's objects
+
+`racing-hero-course` stands every object but the road's surface, its marks and the water as a
+board without a body, in the ROMs' pictures, provisionally:
+
+- **Which.** Every scenery object but the unused types and 0EC, the chevron signs 254 of the surface tables, and each
+  standing part (y ≠ 0) of a surface type's object apart (its fences, walls, stone blocks and curve signs); those
+  left out are [RACING HERO's courses](#racing-heros-courses)'. A course stands 6562 to 6965 boards.
+- **Pictures.** A board's picture is its type's largest size's parts drawn together at their x and y, the first part
+  on top (the program sends the parts last first, and a later sprite draws over an earlier), pixels 0 and 15
+  transparent; a part is mirrored where its object's flag or its own (one of them) mirrors it. A standing part is its
+  picture alone. On the texel grid by [chosen lines](#chosen-lines), a pixel 2.2165 / κ units across (κ the type's
+  size class by its routine) and 15/14 of that down; a mirrored board is its unmirrored picture's grid mirrored.
+- **Names.** `rachero-<type>` (three hexadecimal digits, as `rachero-024`), a standing part's `rachero-<picture>` (its
+  record's five, as `rachero-63714`), then `-mirrored`; each image holds every palette its boards are drawn in,
+  `paletteName`'s, set B's 0x80–0xFF 256 more (0xBC is `p188` in set A and `p444` in set B). The signal 1EC (palette
+  0x2B) is drawn lit: its color 12 is 0x6FF0, as while the race runs. 240 images, 3.26 M texels.
+- **Place.** A board stands on its picture's bottom edge (the default anchor) at its position's station, across at
+  its picture's middle: −X + the middle's x × a pixel's units from P. Its `groundOffset` is the object's height less
+  the rows its picture reaches below the point, both × 0.006964 m: a fence's 12 rows below are −0.28 m, a banner hangs
+  0.74 m up, a curve sign stands 0.58–0.63 m up on its fence. Nearer road hides the rows below the road as in the
+  original; the transparent ground beyond hides none.
+- **Strips.** The strips of routines 0x20 and 0x30 (grass 0E4, bushes 0E8, dunes 0DC) are boards extending sideways
+  away from the road, the way their picture lies from the point (0E4 and 0DC left, 0E8 right, mirrored the other
+  way): where the original draws them 392 pixels wide at every distance, a strip far away repeats in finer pattern.
 
 ### RACING HERO's skies
 

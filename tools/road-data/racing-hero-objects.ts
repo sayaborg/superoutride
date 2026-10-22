@@ -66,7 +66,8 @@ export interface Spot {
   readonly type: number;
   readonly mirrored: boolean;
   readonly parts: readonly DrawnPart[];
-  /** A largest size's pixel, lateral units across. */
+  /** Its definition's routine and a largest size's pixel, lateral units across. */
+  readonly routine: number;
   readonly pixel: number;
   readonly height: number;
   readonly what: 'scenery' | 'chevron' | 'standing';
@@ -115,6 +116,7 @@ export function sectionSpots(main: Uint8Array, section: SectionObjects, isEmpty:
         type: o.type,
         mirrored: (o.flags & PART_MIRRORED) !== 0,
         parts: [part],
+        routine,
         pixel: pixelUnits(routine),
         height: o.height,
         what: 'standing',
@@ -125,13 +127,15 @@ export function sectionSpots(main: Uint8Array, section: SectionObjects, isEmpty:
 
 function spot(main: Uint8Array, o: PlacedObject, position: number, roadType: number, what: Spot['what']): Spot {
   const mirrored = (o.flags & PART_MIRRORED) !== 0;
+  const { routine } = readDefinition(main, o.type);
   return {
     position,
     x: objectX(o.lateral, roadType),
     type: o.type,
     mirrored,
     parts: drawnParts(main, o.type, mirrored),
-    pixel: pixelUnits(readDefinition(main, o.type).routine),
+    routine,
+    pixel: pixelUnits(routine),
     height: o.height,
     what,
   };

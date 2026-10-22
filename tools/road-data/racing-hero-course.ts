@@ -39,10 +39,12 @@ import {
   typeDefinition,
 } from './racing-hero-sprites.js';
 import { racingHeroSkyLayers, spritePaletteSet } from './racing-hero-backgrounds.js';
+import { boardName, boardPalette, racingHeroBoards } from './racing-hero-boards.js';
 import {
   drawnParts,
   objectX,
   sectionSpots,
+  spotBox,
   spotLateralUnits,
   WATER_TYPE,
   type DrawnPart,
@@ -50,7 +52,7 @@ import {
 } from './racing-hero-objects.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const RACING_HERO_CONVERSION_VERSION = 1;
+export const RACING_HERO_CONVERSION_VERSION = 2;
 
 /**
  * A position, metres: the displayed km/h is 317/1024 of 16 positions a tick, a tick two of the clock's 60 frames a
@@ -131,6 +133,8 @@ const SKY_AT_START = 0;
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 /** Stations nearer than this are one: ten times the micrometre stations are written to. */
 const EPSILON = 1e-5;
+/** Course positions nearer than this are one (a Section's ends are found from P's metres). */
+const POSITION_HAIR = 1e-6;
 
 export type RacingHeroCountry = (typeof COUNTRIES)[number];
 export const courseId = (country: RacingHeroCountry) => `racing-hero-${country.id}`;
@@ -142,7 +146,7 @@ export function racingHeroCourses(files: ReadonlyMap<number, ZipFile>) {
   const main = assembleRacingHeroMain(files);
   const words = assembleRacingHeroSprites(files);
   const tiles = assembleRacingHeroTiles(files);
-  return COUNTRIES.map((country) => {
+  const courses = COUNTRIES.map((country) => {
     const { layers, ramp } = racingHeroSkyLayers(main, tiles, country.section);
     return {
       ...racingHeroCourse(main, words, country),
@@ -160,6 +164,13 @@ export function racingHeroCourses(files: ReadonlyMap<number, ZipFile>) {
       },
     };
   });
+  const boards = racingHeroBoards(
+    main,
+    words,
+    courses.flatMap((c) => c.spots.map((spot) => ({ spot, set: c.set }))),
+    UNIT,
+  );
+  return { courses, boards };
 }
 
 /** A surface type's look: its surface's half-width (units), its color and its marks across, each with its color. */
@@ -385,6 +396,16 @@ function racingHeroCourse(main: Uint8Array, words: Uint32Array, country: RacingH
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1));
   const startHeading = path.pose(along(0)).heading;
+  // The sprites: each at its position's station and its picture's middle across, standing on its picture's bottom
+  // edge: the object's height less the rows its picture reaches below the point.
+  const sprites = spots.map((spot) => ({
+    position: spot.position,
+    s: stationOf(spot.position),
+    lateral: spot.lateral,
+    image: boardName(spot),
+    palette: boardPalette(spot.parts[0]!.palette, set),
+    groundOffset: (spot.height - spotBox(spot).bottom * spot.pixel) * UNIT_DOWN,
+  }));
   const documents = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout: context,
@@ -398,6 +419,9 @@ function racingHeroCourse(main: Uint8Array, words: Uint32Array, country: RacingH
       finish: { id: `${id}-GOAL`, s: stationOf(gates[2]!) },
       grid: stationOf(0),
       startHeading,
+      sprites: sprites.filter(
+        (o) => o.position >= positionAt(piece.from) - 1e-9 && o.position < positionAt(piece.to) - 1e-9,
+      ),
     }),
   );
   const links = pieces.slice(1).map((piece, i) => ({
@@ -588,7 +612,7 @@ function stripsOf(layout: Layout, from: number, to: number) {
   // the X does not change; its outer edge open.
   layout.waters.forEach((water, w) => {
     const [a, b] = clip(water.knots[0]!.q, water.knots.at(-1)!.q);
-    if (b <= a) return;
+    if (b - a <= POSITION_HAIR) return;
     const xs = new Set(water.knots.map((k) => k.x));
     let edge: number | string;
     if (xs.size === 1) edge = -water.knots[0]!.x;
@@ -600,7 +624,10 @@ function stripsOf(layout: Layout, from: number, to: number) {
         const [p, n] = [water.knots[k - 1]!, water.knots[k]!];
         return p.x + ((n.x - p.x) * (q - p.q)) / (n.q - p.q);
       };
-      const inner = water.knots.filter((k) => k.q > a && k.q < b).map((k) => ({ q: k.q, units: -k.x }));
+      // Knots within a hair of the ends (a cut at an object's position) are the ends'.
+      const inner = water.knots
+        .filter((k) => k.q > a + POSITION_HAIR && k.q < b - POSITION_HAIR)
+        .map((k) => ({ q: k.q, units: -k.x }));
       boundaries.push({ id, knots: [{ q: a, units: -xAt(a) }, ...inner, { q: b, units: -xAt(b) }] });
       edge = id;
     }
@@ -622,7 +649,7 @@ function stripsOf(layout: Layout, from: number, to: number) {
   const flush = () => {
     if (!run) return;
     const [a, b] = clip(run.from, run.to);
-    if (b > a)
+    if (b - a > POSITION_HAIR)
       strips.push({
         from: a,
         to: b,
@@ -645,7 +672,7 @@ function stripsOf(layout: Layout, from: number, to: number) {
   for (const s of layout.surfaces) {
     if (!s.marks) continue;
     const [a, b] = clip(s.to - MARK_POSITIONS, s.to);
-    if (b <= a) continue;
+    if (b - a <= POSITION_HAIR) continue;
     for (const mark of s.look.marks)
       strips.push({ from: a, to: b, left: mark.from, right: mark.to, color: mark.color, material: null });
   }
@@ -667,6 +694,13 @@ function sectionDocument(
     readonly finish: { readonly id: string; readonly s: number };
     readonly grid: number;
     readonly startHeading: number;
+    readonly sprites: readonly {
+      readonly s: number;
+      readonly lateral: number;
+      readonly image: string;
+      readonly palette: string;
+      readonly groundOffset: number;
+    }[];
   },
 ) {
   const { layout, elements, origin } = context;
@@ -742,7 +776,18 @@ function sectionDocument(
     })),
     walls: [],
     openLimits: [],
-    sprites: [],
+    sprites: [...context.sprites]
+      .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+      .map((o) => ({
+        kind: 'sprite',
+        image: o.image,
+        palette: o.palette,
+        at: at(o.s),
+        lateral: round(OFFSET + o.lateral),
+        groundOffset: round(o.groundOffset),
+        unselectedLink: null,
+        body: null,
+      })),
     environments: [
       {
         at: at(origin),

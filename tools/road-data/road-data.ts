@@ -1008,7 +1008,18 @@ try {
       // RACING HERO's ten courses from its ROM zip, written to content, or with `--check` compared.
       const check = options.has('--check');
       const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
-      const courses = racingHeroCourses(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
+      const { courses, boards } = racingHeroCourses(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
+      for (const { image } of boards) {
+        const picture = `content/${image.path}`;
+        if (check) {
+          const committed = await readFile(picture).catch(() => null);
+          requireInput(
+            committed && Buffer.compare(committed, image.bytes) === 0,
+            `/${picture}`,
+            `${picture} is not the ROMs'`,
+          );
+        } else await atomicWrite(picture, image.bytes);
+      }
       const report = [];
       for (const course of courses) {
         const file = await saveCourse(racingHeroCourseId(course.country), course.document, check);
@@ -1062,6 +1073,8 @@ try {
           conversion: RACING_HERO_CONVERSION_VERSION,
           checked: check,
           metresAPosition: RACING_HERO_POSITION,
+          boards: boards.length,
+          texels: boards.reduce((sum, b) => sum + b.texels, 0),
           skyScale: round3(RACING_HERO_SKY_SCALE),
           skyRepeats: RACING_HERO_SKY_REPEATS,
           courses: report,
