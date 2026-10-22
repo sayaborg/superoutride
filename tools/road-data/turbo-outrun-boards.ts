@@ -7,6 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
+import { cutBoard } from './extending-boards.js';
 import { shadowFrame } from './outrun-boards.js';
 import { chosenLines, mirror, paletteName, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
@@ -32,15 +33,14 @@ export interface PictureUse {
   readonly shadow: boolean;
   readonly anchor: number;
   readonly aside: number;
+  /** A strip's family: its nearest size, extending sideways away from the road. */
   readonly strip?: StripFamily;
-  /** A strip rising from the ground: its family's nearest size, extending sideways away from the road. */
-  readonly extends?: true;
 }
 
 /**
  * A picture's image name: `toutrun-<size list, five hex digits>`, then its scale where a pixel is not 2 road units
  * (`-u<thousandths of a unit>`), whether mirrored and whether shadowed; a strip's `toutrun-strip-<size list>`, whether
- * mirrored.
+ * mirrored, its edge's `-edge` after the size list.
  */
 export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored' | 'shadow' | 'strip'>) {
   const list = use.sizes.toString(16).padStart(5, '0');
@@ -62,8 +62,10 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
  * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
  * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
  * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
- * palette's color), with its width in metres, its master and its base point's height (for what is baked lying). Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
- * (the size list at 0x2667A) at its scale and base point.
+ * palette's color), with its width in metres and its whole picture (`lying`: what lies keeps its footprint). Its base
+ * point is its anchor's, `aside` across; a shadowed board carries the shadow picture (the size list at 0x2667A) at its
+ * scale and base point. A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the
+ * part that repeats.
  */
 export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
   const groups = new Map<string, PictureUse[]>();
@@ -75,7 +77,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
   const shadowPixels = outline(spritePixels(words, shadow!), shadow!.width);
   return [...groups]
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([name, group]) => {
+    .flatMap(([name, group]) => {
       const [first] = group as [PictureUse];
       if (group.some((u) => u.anchor !== first.anchor || u.aside !== first.aside || u.units !== first.units))
         throw new RangeError(`Board ${name} is shown with different base points or scales`);
@@ -95,6 +97,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
         width: grid.width,
         height: grid.height,
         anchorX: point.x + aside,
+        ...(point.y !== grid.height - 0.5 ? { anchorY: point.y } : {}),
         defaultPalette: paletteName(palettes[0]!),
         palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [
@@ -107,14 +110,18 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
         ...(first.shadow
           ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
           : {}),
-        ...(first.extends ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
+        ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
-      return {
-        name,
-        width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        master: board,
-        anchorY: point.y,
-        image: courseImageFile(board),
-      };
+      const whole = { master: board, anchorY: point.y };
+      const entry = (master: SpriteLodDocument, edge?: string) => ({
+        name: master.name,
+        width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
+        whole,
+        image: courseImageFile(master),
+        ...(edge ? { edge } : {}),
+      });
+      if (!first.strip) return [entry(board)];
+      const { edge, repeat } = cutBoard(board, name.replace(/^(toutrun-strip-[0-9a-f]+)/, '$1-edge'));
+      return [entry(edge), entry(repeat, edge.name)];
     });
 }

@@ -796,7 +796,7 @@ PRs:
 - PG-6b was split. PG-6b1 made the coordinate domain's stations those where its outer edges change, so a material
   splitting the slab table without moving an outer edge adds no cell to the plan's injectivity check (DESERT's patches
   and the sea's water reported overlaps on curves); it changed no course. PG-6b2 made the baking a shared part of the
-  road data tool (`ground-baking.ts`, [Baking](original-road-data.md#baking)) and baked OUTRUN's sea, lakes and patches
+  road data tool (`ground-baking.ts`, deleted by PG-7c) and baked OUTRUN's sea, lakes and patches
   into Strips (conversion version 13): the sea and lakes in water's colors with `WATER` from the waterline to the
   verges, the patches each a color Strip on the road with no material (`SAND`, the default, stopped the planned driver
   on DESOLATION HILL's grades of up to 40 %). Their boards (`outrun-strip-4608`, `outrun-001`) are no longer written;
@@ -853,7 +853,12 @@ The evening's PRs, in this order:
   with TURBO OUTRUN); a board and its edge are repeated together, so every Section keeps within 2048 sprite elements
   (at most 1564, OLD CAPITAL's). ALPS's grass strip 894 m below the road (the original's height −32768) is not placed.
   OUTRUN's roads no longer bake colors.
-- PG-7c: TURBO OUTRUN's lying things likewise; the baking's color parts deleted.
+- PG-7c made TURBO OUTRUN's lying things boards (conversion version 4): the waves 2725a and dunes 272fa (strip B),
+  the puddles 274da, the patches 27872 and the pebbles 27840 at the original's middle anchor, at height 0, with `WATER`
+  beneath the waves and puddles, the patches' material by what they show (gravel `DIRT` 117, sand `SAND` 587, snow
+  `SNOW` 429) and nothing beneath the dunes and pebbles; every strip, the far strip's fog too, cut into its edge and
+  the part that repeats (`cutBoard`, shared with OUTRUN), every Section within 2048 sprite elements (at most 1960, SAN
+  ANTONIO's). The baking (`ground-baking.ts`) is deleted: what lies keeps only its materials (`ground-materials.ts`).
 - PG-12: shadows at the foot (OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER).
 
 Left by Stage PG to later stages: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next

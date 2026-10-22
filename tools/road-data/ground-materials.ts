@@ -3,9 +3,25 @@
  * a lying board is drawn as the original's picture, and its material lies beneath it as a colorless Strip: water from
  * a strip's waterline out to the ground's outer Boundary, a patch's under its foot.
  */
-import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { cameraDistance } from '../../src/view/camera.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import { rowNearer, type BakePicture } from './ground-baking.js';
+
+/** The camera a piece is seen from: the camera definition's, its height and its distance behind the player. */
+const EYE = { height: CAMERA_DEFINITION.height, behind: cameraDistance(CAMERA_DEFINITION) };
+
+/**
+ * Where on the ground the camera sees a picture's row `r` metres below its anchor: that many metres nearer than the
+ * piece (beyond it for a negative `r`), `behind · r / (height + r)`.
+ */
+const rowNearer = (r: number) => (EYE.behind * r) / (EYE.height + r);
+
+/** What lies on the ground as its board shows it: its whole master (index 0 transparent) and its anchor's height. */
+export interface LyingPicture {
+  readonly master: SpriteLodDocument;
+  readonly anchorY: number;
+}
 
 /** Consecutive pieces of a strip: one reaching within this of the next, metres. */
 const GAP = 16;
@@ -18,7 +34,7 @@ const THINNING = 0.25;
 export interface LyingPiece {
   readonly s: number;
   readonly l: number;
-  readonly picture: BakePicture;
+  readonly picture: LyingPicture;
   /** A strip's pieces share its key and reach `outward` from the road, its edge the waterline; a patch has none. */
   readonly strip: { readonly key: string; readonly outward: 1 | -1 } | null;
   /** Its material, or null for none. */
@@ -41,14 +57,14 @@ export interface MaterialBoundary {
 }
 
 /** A picture's opaque rows and columns, first and last. */
-function opaqueExtent(picture: BakePicture) {
-  let top = picture.height,
+function opaqueExtent({ master }: LyingPicture) {
+  let top = master.height,
     bottom = -1,
-    left = picture.width,
+    left = master.width,
     right = -1;
-  picture.colors.forEach((c, i) => {
-    if (c === null) return;
-    const [x, y] = [i % picture.width, Math.floor(i / picture.width)];
+  master.levels[0]!.indices.forEach((k, i) => {
+    if (!k) return;
+    const [x, y] = [i % master.width, Math.floor(i / master.width)];
     [top, bottom, left, right] = [Math.min(top, y), Math.max(bottom, y), Math.min(left, x), Math.max(right, x)];
   });
   return { top, bottom, left, right };
@@ -100,8 +116,8 @@ export function lyingMaterials(
         strips.push({
           start,
           end,
-          left: piece.l + (left - 0.5 - piece.picture.anchorX) / TEXELS,
-          right: piece.l + (right + 0.5 - piece.picture.anchorX) / TEXELS,
+          left: piece.l + (left - 0.5 - piece.picture.master.anchorX) / TEXELS,
+          right: piece.l + (right + 0.5 - piece.picture.master.anchorX) / TEXELS,
           material: piece.material,
         });
       continue;

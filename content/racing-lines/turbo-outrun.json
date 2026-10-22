@@ -1,7 +1,7 @@
 {
   "format": "superoutride.racing-line",
   "version": 2,
-  "courseBuildSha256": "e4f15054bebba83bcecce10c5a83d74bccfdc57920a22c515da8cdf751505402",
+  "courseBuildSha256": "920cb732b6ceca9c6b93931a09efe1adbb2eac3dd75add6221f7f7700e752ce1",
   "procedureSha256": "a02d84163d6c8544c90dd66d617de1a50d041b397856c697933f7124c64c2ef8",
   "spacing": 5,
   "lengthWeight": 0.0001,
@@ -9,68 +9,68 @@
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "feb1c8e834943836d84e691ec8a86de71f1af2ec2be43a92d08dbf66ecb85bf7",
-      "seconds": 887.12,
-      "minimumCurvatureSeconds": 891.365
+      "seconds": 899.06,
+      "minimumCurvatureSeconds": 905.915
     },
     {
       "vehicleId": "911_TURBO_3_3",
       "vehicleSha256": "c6f2629947817a44b57a8c847bf089a3415f5b42a6b31b14803cc9b3b54ac382",
-      "seconds": 911.514,
-      "minimumCurvatureSeconds": 910.898
+      "seconds": 924.327,
+      "minimumCurvatureSeconds": 926.364
     },
     {
       "vehicleId": "CORVETTE_C4",
       "vehicleSha256": "6fac2eda83cdfc9d71fb5a9526e7c08d5f4e199e51552325a89ed8a90a031c53",
-      "seconds": 926.84,
-      "minimumCurvatureSeconds": 929.922
+      "seconds": 941.814,
+      "minimumCurvatureSeconds": 947.99
     },
     {
       "vehicleId": "GOLF_GTI_16V",
       "vehicleSha256": "46f221a10fa92e820946e580c39537585556218b1bf5ad39e9d20cf1a1d7acec",
-      "seconds": 1001.015,
-      "minimumCurvatureSeconds": 1003.03
+      "seconds": 1018.009,
+      "minimumCurvatureSeconds": 1022.647
     },
     {
       "vehicleId": "DELTA_HF_INTEGRALE",
       "vehicleSha256": "b505a08d1d6fa2085900a5bc509c937f296ba05eaf9edce7219cc84e3c2d580c",
-      "seconds": 961.161,
-      "minimumCurvatureSeconds": 964.243
+      "seconds": 976.694,
+      "minimumCurvatureSeconds": 982.446
     },
     {
       "vehicleId": "S13_DRIFT_TUNED",
       "vehicleSha256": "d7b270c3db23adfb17661f2cac07d49a98ed738f713d1829a234ab9252001377",
-      "seconds": 1326.417,
-      "minimumCurvatureSeconds": 1329.6
+      "seconds": 1344.623,
+      "minimumCurvatureSeconds": 1351.345
     },
     {
       "vehicleId": "AE86_DRIFT_TUNED",
       "vehicleSha256": "3726287068bfb7f6d45a86c97897f38b6cea8633918a2eb40cdc00fc5108a713",
-      "seconds": 1423.403,
-      "minimumCurvatureSeconds": 1427.233
+      "seconds": 1442.917,
+      "minimumCurvatureSeconds": 1450.62
     },
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "b2642499a7eab90476f109508a5aa472abdfe35e6c89293a307b1a8223a3ec3c",
-      "seconds": 904.204,
-      "minimumCurvatureSeconds": 908.351
+      "seconds": 915.117,
+      "minimumCurvatureSeconds": 921.393
     },
     {
       "vehicleId": "R80_GS_PARIS_DAKAR",
       "vehicleSha256": "a5b3bb827b3b93b068fbc2cea9612bdc798dca96f76980a280150105458eac31",
-      "seconds": 1142.744,
-      "minimumCurvatureSeconds": 1150.852
+      "seconds": 1156.331,
+      "minimumCurvatureSeconds": 1166.944
     },
     {
       "vehicleId": "FXRT_SPORT_GLIDE",
       "vehicleSha256": "5b2b74bd587e5cd59febf5a06bbf5c78fcb1bde472ab605884ef32bfc2d87c9d",
-      "seconds": 1146.106,
-      "minimumCurvatureSeconds": 1154.335
+      "seconds": 1159.252,
+      "minimumCurvatureSeconds": 1169.939
     },
     {
       "vehicleId": "PX200E_ARCOBALENO",
       "vehicleSha256": "5e864a0bfa3ddd7f14484d202cf8fd132de9e61c86e08d73800fb9c61afa4c49",
-      "seconds": 1783.25,
-      "minimumCurvatureSeconds": 1799.981
+      "seconds": 1786.783,
+      "minimumCurvatureSeconds": 1803.816
     }
   ],
   "lines": [

@@ -44,7 +44,6 @@ import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import { bakePicture } from './ground-baking.js';
 import type { LyingBoard } from './outrun-boards.js';
 import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
@@ -950,7 +949,7 @@ function sectionDocument(
     lyingPieces.push({
       s: plan.station(placed.p) - origin,
       l: placed.lateral,
-      picture: bakePicture(lying, placed.object.palette),
+      picture: lying,
       strip: strip ? { key: placed.object.image, outward: master.extend === 'right' ? 1 : -1 } : null,
       material: lying.material,
     });

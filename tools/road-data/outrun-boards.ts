@@ -7,7 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import type { LyingPicture } from './ground-baking.js';
+import type { LyingPicture } from './ground-materials.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';

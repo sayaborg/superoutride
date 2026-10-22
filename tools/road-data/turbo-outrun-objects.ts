@@ -25,16 +25,25 @@ const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 };
 const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 };
 const FAR_STRIP = 0x24;
 /**
- * What lies on the ground, by size list, baked into the course's Strips with the material beneath it: strip B's waves
- * (0x2725A) and the puddles (0x274DA) `WATER`, the gravel patches (0x27872) `DIRT`, the nearest material.
+ * What lies on the ground, by size list, a board by its middle with the material beneath it (K, 2026-10-22): strip B's
+ * waves (0x2725A) and the puddles (0x274DA) `WATER`, strip B's dunes (0x272FA) and the pebbles (0x27840) none; the
+ * patches (0x27872) by what they show (`PATCHES`).
  */
-const GROUND: ReadonlyMap<number, string> = new Map([
+const LYING_MATERIALS: ReadonlyMap<number, string | null> = new Map([
   [0x2725a, 'WATER'],
   [0x274da, 'WATER'],
-  [0x27872, 'DIRT'],
+  [0x272fa, null],
+  [0x27840, null],
 ]);
-/** The objects on the road that rise from it, standing on their bottom: the grass and stones, the pebbles. */
-const RISING_ON_ROAD: readonly number[] = [0x27570, 0x27840];
+/** The patches' material, by their kind: gravel `DIRT`, sand `SAND`, snow `SNOW`. */
+const PATCH_SIZES = 0x27872;
+const PATCHES: ReadonlyMap<number, string> = new Map([
+  [104, 'DIRT'],
+  [134, 'SAND'],
+  [108, 'SNOW'],
+]);
+/** The objects on the road that rise from it, standing on their bottom: the grass and stones. */
+const RISING_ON_ROAD = 0x27570;
 const FAR = { sizes: 9, nearest: 8 };
 /**
  * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
@@ -45,11 +54,11 @@ const FAR_UNITS = 4;
 const FAR_EDGE = 32;
 const FAR_UP = 2 * 151 + 72;
 /**
- * The routines drawing objects lying on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles) and the puddles
- * that splash when hit (0x4C, 0x50), their base point their middle, as OUTRUN's patches'.
+ * The routines drawing objects on the road: 0x08 (half scale: gravel, earth, snow, sand, puddles, pebbles; the grass and
+ * stones) and the puddles that splash when hit (0x4C, 0x50). Each lies on the ground but the grass and stones.
  */
 const ON_ROAD = 0x08;
-const LYING: readonly number[] = [ON_ROAD, 0x4c, 0x50];
+const ON_ROAD_ROUTINES: readonly number[] = [ON_ROAD, 0x4c, 0x50];
 /** Routines whose picture is the first of a frame list, not their kind's: the walkers' (0x34, 0x38) and 0x60's. */
 const FRAME_LISTS: ReadonlyMap<number, number> = new Map([
   [0x34, 0x8a0e],
@@ -75,7 +84,8 @@ const SOLID = 3;
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width
- * by its hit extents (at most its picture's, which the course takes); lying on the ground, the material beneath it.
+ * by its hit extents (at most its picture's, which the course takes); lying on the ground, the material beneath it
+ * (null for none).
  */
 export interface PlacedObject {
   readonly g: number;
@@ -83,7 +93,15 @@ export interface PlacedObject {
   readonly height: number;
   readonly use: PictureUse;
   readonly body: number | null;
-  readonly ground?: string;
+  readonly lies?: { readonly material: string | null };
+}
+
+/** The material beneath an object of size list `sizes` and kind `kind` lying on the ground, or undefined if it rises. */
+function lyingMaterial(sizes: number, kind: number): string | null | undefined {
+  if (sizes !== PATCH_SIZES) return LYING_MATERIALS.get(sizes);
+  const material = PATCHES.get(kind);
+  if (material === undefined) throw new RangeError(`Patch kind ${kind} shows no known ground`);
+  return material;
 }
 
 /** What the placing reports. */
@@ -98,7 +116,7 @@ export interface PlacingReport {
   /** The strips' pieces and the far strips', and the items below the road (never seen). */
   readonly strips: number;
   readonly farStrips: number;
-  /** What lies on the ground, baked: by size list, how many. */
+  /** What lies on the ground: by size list and material, how many. */
   readonly lying: Readonly<Record<string, number>>;
   readonly below: number;
 }
@@ -181,10 +199,18 @@ export function turboOutrunPlacements(
     const apart = width.at(inputs.start(o.from.stage) + o.from.position) > rightFromLeftWidth;
     const fromP = !(o.item.flags & 2) && o.item.b7 !== 0;
     const x = holding ? 32 * o.item.x : 16 * o.item.x + (fromP ? 0 : o.item.x < 0 || apart ? -w : w);
+    const material = lyingMaterial(sizes, o.item.kind);
+    if (ON_ROAD_ROUTINES.includes(kind.routine) && material === undefined && sizes !== RISING_ON_ROAD)
+      throw new RangeError(`Object of size list 0x${sizes.toString(16)} on the road neither lies nor rises`);
+    const lies = material !== undefined;
     // A body where the original's hit stops or spins the car and the object stands on the ground, as wide as its hit
     // extents (a pixel 2 units, half scale 1).
     const hits =
-      kind.collision <= SOLID && o.item.y === 0 && !(kind.routine === ON_ROAD && half) && kind.hit[1] > kind.hit[0];
+      !lies &&
+      kind.collision <= SOLID &&
+      o.item.y === 0 &&
+      !(kind.routine === ON_ROAD && half) &&
+      kind.hit[1] > kind.hit[0];
     const aside = ((mirrored ? -1 : 1) * (kind.hit[0] + kind.hit[1]) * pixel) / 2;
     const use: PictureUse = {
       sizes,
@@ -192,21 +218,21 @@ export function turboOutrunPlacements(
       mirrored,
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
-      anchor: LYING.includes(kind.routine) && !RISING_ON_ROAD.includes(sizes) ? 0 : 8,
+      anchor: lies ? 0 : 8,
       aside,
     };
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
     if (body !== null) bodies++;
     if (kind.collision >= 11 && kind.collision <= 17) breakable[kind.collision] = (breakable[kind.collision] ?? 0) + 1;
-    const height = holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
-    const ground = GROUND.get(sizes);
+    // What lies on the ground lies at its height 0.
+    const height = lies ? 0 : holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
     placed.push({
       g,
       x: units(x + aside),
       height: units(height) * PIXEL_ASPECT,
       use,
       body,
-      ...(ground ? { ground } : {}),
+      ...(lies ? { lies: { material } } : {}),
     });
   }
 
@@ -247,12 +273,11 @@ export function turboOutrunPlacements(
       breakable,
       strips,
       farStrips,
-      lying: Object.fromEntries(
-        [...GROUND.keys()].map((sizes) => [
-          sizes.toString(16),
-          placed.filter((o) => o.ground && o.use.sizes === sizes).length,
-        ]),
-      ),
+      lying: placed.reduce<Record<string, number>>((counts, o) => {
+        const key = o.lies && `${o.use.sizes.toString(16)} ${o.lies.material ?? 'none'}`;
+        if (key) counts[key] = (counts[key] ?? 0) + 1;
+        return counts;
+      }, {}),
       below,
     },
   };
@@ -260,8 +285,8 @@ export function turboOutrunPlacements(
 
 /**
  * A strip where it stands: strip A's and B's edge nearest the road at its x × 16 units from road 0's centre (x < 0, drawn
- * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. A strip rising from the ground stands
- * on its bottom and extends sideways away from the road; the waves, lying on the ground, by their middle.
+ * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. Each extends sideways away from the
+ * road, a strip rising from the ground standing on its bottom, the waves and dunes lying on it by their middle.
  */
 function stripPiece(
   o: StandingObject,
@@ -271,20 +296,20 @@ function stripPiece(
 ): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
-  const ground = GROUND.get(kind.sizes);
+  const material = LYING_MATERIALS.get(kind.sizes);
+  const lies = material !== undefined;
   const use: PictureUse = {
     sizes: kind.sizes,
     units: strip ? 2 : FAR_UNITS,
     mirrored,
     palette: kind.palette,
     shadow: false,
-    anchor: (ground ? 0 : 8) | (mirrored ? 2 : 1),
+    anchor: (lies ? 0 : 8) | (mirrored ? 2 : 1),
     aside: 0,
     strip: strip ?? FAR,
-    ...(ground ? {} : { extends: true as const }),
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
-  const height = (strip ? o.item.y : FAR_UP) * UNIT_METRES * PIXEL_ASPECT;
-  return { g, x: edge * UNIT_METRES, height, use, body: null, ...(ground ? { ground } : {}) };
+  const height = lies ? 0 : (strip ? o.item.y : FAR_UP) * UNIT_METRES * PIXEL_ASPECT;
+  return { g, x: edge * UNIT_METRES, height, use, body: null, ...(lies ? { lies: { material } } : {}) };
 }

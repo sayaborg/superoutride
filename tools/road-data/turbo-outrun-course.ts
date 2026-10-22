@@ -38,10 +38,10 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { ZipFile } from './zip.js';
-import { bakeGround, bakePicture, type GroundPiece, type LyingPicture } from './ground-baking.js';
+import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 3;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 4;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -208,18 +208,14 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
     assembleTurboOutrunSprites(files),
     placing.placed.map((o) => o.use),
   );
-  // What lies on the ground is baked into the Sections' Strips from its masters; every other board is a picture.
-  const lying = new Set(placing.placed.filter((o) => o.ground).map((o) => pictureName(o.use)));
-  const pictures = boards.filter((b) => !lying.has(b.name));
-  const masters = new Map(
-    boards.filter((b) => lying.has(b.name)).map((b) => [b.name, { master: b.master, anchorY: b.anchorY }]),
-  );
+  const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout,
-      widths: new Map(pictures.map((p) => [p.name, p.width])),
-      masters,
+      widths: new Map(boards.map((b) => [b.name, b.width])),
+      wholes: new Map(boards.map((b) => [b.name, b.whole])),
+      edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : []))),
       objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
       first: i === 0,
       last: i === pieces.length - 1,
@@ -268,8 +264,10 @@ function sectionDocument(
     readonly objects: readonly PlacedObject[];
     /** Each picture's width, metres, by name. */
     readonly widths: ReadonlyMap<string, number>;
-    /** The pictures of what lies on the ground, by name. */
-    readonly masters: ReadonlyMap<string, LyingPicture>;
+    /** Each picture's whole, by name: what lies on the ground keeps its footprint. */
+    readonly wholes: ReadonlyMap<string, LyingPicture>;
+    /** Each extending board's edge, by its name: standing once where the board does. */
+    readonly edges: ReadonlyMap<string, string>;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -529,8 +527,8 @@ function sectionDocument(
     }
   }
 
-  // What lies on the ground, baked over everything else: the waves (water, `WATER` from the waterline inside the
-  // verges), the puddles (`WATER`) and the gravel patches (`DIRT`).
+  // What lies on the ground's materials, colorless beneath its boards: the waves' `WATER` from the waterline out to the
+  // verges, the puddles' `WATER` and the patches' by what they show.
   const positionAt = (s: number) => {
     let [lo, hi] = [from, to];
     for (let i = 0; i < 60; i++) {
@@ -540,33 +538,30 @@ function sectionDocument(
     }
     return (lo + hi) / 2;
   };
-  const lyingPieces: GroundPiece[] = [];
-  const standing: PlacedObject[] = [];
-  for (const o of context.objects) {
-    if (!o.ground) {
-      standing.push(o);
-      continue;
-    }
-    lyingPieces.push({
-      s: plan.station(o.g),
-      l: o.x - offset.at(o.g),
-      picture: bakePicture(context.masters.get(pictureName(o.use))!, paletteName(o.use.palette)),
-      strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
-      material: o.ground,
-    });
-  }
-  const baked = bakeGround(lyingPieces, {
+  const lyingPieces: LyingPiece[] = context.objects.flatMap((o) =>
+    o.lies
+      ? [
+          {
+            s: plan.station(o.g),
+            l: o.x - offset.at(o.g),
+            picture: context.wholes.get(pictureName(o.use))!,
+            strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
+            material: o.lies.material,
+          },
+        ]
+      : [],
+  );
+  const materials = lyingMaterials(lyingPieces, {
     length: size,
     outer: {
       left: { id: 'outer-left', at: (s) => vergeAt(0, positionAt(s)) },
       right: { id: 'outer-right', at: (s) => vergeAt(1, positionAt(s)) },
     },
   });
-  const edgeOf = (edge: string | number | null) =>
-    edge === null ? null : typeof edge === 'string' ? boundary(edge) : round(edge);
-  for (const b of baked.strips) {
+  const edgeOf = (edge: string | number) => (typeof edge === 'string' ? boundary(edge) : round(edge));
+  for (const b of materials.strips) {
     const [sa, sb] = [round(b.start), round(b.end)];
-    if (sb > sa) strips.push(strip(sa, sb, edgeOf(b.left), edgeOf(b.right), b.color, b.material));
+    if (sb > sa) strips.push(strip(sa, sb, edgeOf(b.left), edgeOf(b.right), null, b.material));
   }
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
@@ -615,7 +610,7 @@ function sectionDocument(
     boundaries: [
       { id: 'outer-left', knots: verge(0) },
       { id: 'outer-right', knots: verge(1) },
-      ...baked.boundaries.map(({ id, knots }) => ({
+      ...materials.boundaries.map(({ id, knots }) => ({
         id,
         knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
       })),
@@ -624,22 +619,27 @@ function sectionDocument(
     walls: [],
     openLimits: [],
     sprites: repeated(
-      [...standing]
+      [...context.objects]
         .sort((a, b) => a.g - b.g || a.x - b.x)
-        .map((o) => ({
-          kind: 'sprite',
-          image: pictureName(o.use),
-          palette: paletteName(o.use.palette),
-          at: at(o.g),
-          lateral: round(o.x - offset.at(o.g)),
-          groundOffset: round(o.height),
-          unselectedLink: null,
-          // As wide as its hit extents, at most its picture.
-          body:
-            o.body === null
-              ? null
-              : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
-        })),
+        .map((o) => {
+          const board = {
+            kind: 'sprite',
+            image: pictureName(o.use),
+            palette: paletteName(o.use.palette),
+            at: at(o.g),
+            lateral: round(o.x - offset.at(o.g)),
+            groundOffset: round(o.height),
+            unselectedLink: null,
+            // As wide as its hit extents, at most its picture.
+            body:
+              o.body === null
+                ? null
+                : { width: round(Math.min(o.body, context.widths.get(pictureName(o.use))!)), movable: null },
+          };
+          // An extending board's edge stands once where it does, repeated with it.
+          const edge = context.edges.get(board.image);
+          return edge ? [board, { ...board, image: edge }] : board;
+        }),
     ),
     environments,
     gates,

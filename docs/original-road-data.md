@@ -386,31 +386,6 @@ have `WATER` beneath them; the sand strips (drawings 10 and 14, `outrun-strip-45
 driver on DESOLATION HILL, whose patches lie on grades of up to 40 %. ALPS's grass strip at the original's lowest
 height (−32768, 894 m below the road), never seen, is not placed.
 
-### Baking
-
-What lies on TURBO OUTRUN's ground (the waves, the patches and puddles) is baked into the course's
-Strips by the road data tool's shared baking (`ground-baking.ts`), as the camera sees each piece pass beside the player:
-the camera definition's, 2 m high and 6 m behind (the original's eye, 1.965 m and 6.1 m, is not matched). A piece's
-picture is its nearest size, its board's as it would stand. Its columns keep their laterals (40 texels a metre); its row
-r m below the anchor lies 6r / (2 + r) m nearer than the piece (beyond it for negative r).
-
-- **Strips** (`bakeStrip`). A strip's consecutive pieces on one side (each within 16 m of the next) are painted far to
-  near, the nearer, which the original draws later, on top, on samples 0.5 m apart along s and a texel across; beyond a
-  piece's outermost column its color reaches on. Every texel is light or dark, split at the largest gap in the colors'
-  luminances; the class the outermost columns mostly hold (the water) is the ground the others lie on, one Strip from
-  the pieces' edge outward. Each run of the other class (the sand and foam) at a sample is a band, the nearest first, up
-  to 3 (the farther ones joined to the last); a run narrower than 0.2 m, a fine pattern such as the foam's dots, takes
-  its neighbours' class. Each band is one Strip between two Boundaries, a missing band closing at the end of the one
-  before it. The colors are each class's mean in linear light, from the original's palettes. A strip's material
-  (`WATER`) runs from the waterline, where the water first appears, out to the verge (`outer-left` or `outer-right`),
-  over each stretch where the waterline lies 1 m inside it; beyond the verge water is color alone, and the verges, the
-  course limits, do not move.
-- **Boundaries.** One set a side, `ground-<side>-<set>-edge`, `-a1` to `-b3` and `-water`, while the strips on that
-  side follow one another (another set where one overlaps another); a set's Boundaries keep the same stations, within
-  0.05 m of their samples (doubled until they fit 1024 knots), so that a band's edges stay ordered.
-- **Patches** (`bakePatch`). A patch is one Strip, the rectangle its rows and columns cover on the ground, in its
-  picture's mean color, its material beneath.
-
 ### Clouds
 
 Drawing 2 (0x4144), on CLOUDY MOUNTAIN alone (its points' types 10, 117 and 119; 7 and 120 have cloud entries no
@@ -1326,7 +1301,7 @@ stage's description.
 ### TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 3, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 4, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -1403,14 +1378,16 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Picture.** Its kind's size list, but the walkers' (routines 0x34, 0x38) and routine 0x60's the first of their frame
   lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit
   0; in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on the
-  middle of its bottom, but one lying on the road (routine 0x08, the puddles of 0x4C and 0x50) on its middle as
-  OUTRUN's patches do (the grass and stones 0x27570 and the pebbles 0x27840, which rise from the road, on their bottom:
-  Stage PG), and across at the middle of its kind's hit extents.
-- **Lying on the ground.** The puddles (0x274DA, 892) and the gravel patches (0x27872, 1,133) are not boards: each is
-  baked ([Baking](#baking)) into a patch, a Strip of its footprint in its picture's mean color, `WATER` beneath a
-  puddle and `DIRT`, the nearest material, beneath gravel.
+  middle of its bottom, and across at the middle of its kind's hit extents.
+- **Lying on the ground.** What routine 0x08 and the puddles of 0x4C and 0x50 draw on the road lies on it, but the
+  grass and stones 0x27570, which rise from it: the puddles (0x274DA, 892), the patches (0x27872, 1,133) and the
+  pebbles (0x27840, 474) are boards on their middle as OUTRUN's patches are, at height 0, with no body
+  ([Lying boards](#lying-boards)). Beneath a puddle lies `WATER`; beneath a patch what it shows, by its kind (K,
+  2026-10-22): gravel `DIRT` (kind 104, palette 217: SAN ANTONIO, DALLAS; 117), sand `SAND` (kind 134, palette 240:
+  ATLANTA, MIAMI; 587) and snow `SNOW` (kind 108, palette 219: PITTSBURGH, DENVER; 429); beneath the pebbles
+  nothing.
 - **Body.** Where its kind's collision class is 0 to 3 (the original stops or spins the car) and it stands on the
-  ground (y 0), but for the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
+  ground (y 0), but for what lies and the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
   scale 1), at most its board's width. Classes 11 to 17, thrown or broken when hit (fences, snow, stones, shrubs,
   puddles: 2,372 at 324 km/h), and the rest pass through.
 - **The start.** Each leg's start objects (330) stand where they pass the car or where they look as large as the
@@ -1426,7 +1403,7 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
   2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by
   [chosen lines](#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a body is at
-  most its board's width. 166 boards, and the strips' 8, published provisionally.
+  most its board's width. Published provisionally, with the strips' boards.
 
 ### TURBO OUTRUN's strips
 
@@ -1434,27 +1411,38 @@ The strips beside the road and the far strip are brought out, approach and stand
 by the families OUTRUN's strips are ([Strips and patches](#strips-and-patches)): each far size is the nearest drawn
 again smaller, with its own dithering, so the families are read by their shape (where a crest, a tree or the edge of
 what lies beyond falls) rather than pixel by pixel. At 324 km/h 6,855 strip pieces stand and 372 far strips. Since
-Stage PG every strip but the waves rises from the ground: its board is its nearest size, standing on its bottom edge by
-its edge nearest the road and extending sideways away from the road (`extend`: right, or left mirrored), where the
-original shrinks its far sizes outward. The waves (735 pieces) lie on the ground: they are baked
-([Baking](#baking)) from their nearest size by their middle, the water `WATER` from the waterline inside the verges, on
-MIAMI and its second Section and DALLAS's third (at most 2 sets of Boundaries, 18 Boundaries and 961 knots in a
-Section).
+Stage PG each strip's board is its nearest size by its edge nearest the road, extending sideways away from the road
+(`extend`: right, or left mirrored) where the original shrinks its far sizes outward, cut as
+[Extending boards](#extending-boards) says. The grass bank, the flower beds and the far strip stand on their bottom
+edge; the waves (735 pieces) and the dunes (1,924) lie on the ground ([Lying boards](#lying-boards)) by their middle:
+`WATER` beneath the waves from the waterline out to the verges, on MIAMI and its second Section and DALLAS's third (a
+Boundary a side, at most 282 knots), nothing beneath the dunes (on PITTSBURGH and DENVER snow-colored: K, 2026-10-22).
+
+TURBO OUTRUN's cuts, in texel columns of the nearest size:
+
+| Strip                 | Width | Edge `[start, repeat)` | Repeats `[repeat, end)` |
+| --------------------- | ----: | ---------------------: | ----------------------: |
+| 2603a fog (far strip) |  1011 |                  9–216 |                 216–628 |
+| 26fda grass bank      |   456 |                  5–112 |                 112–248 |
+| 2725a waves           |   505 |                  5–200 |                 200–348 |
+| 272fa dunes           |   505 |                  5–155 |                 155–285 |
+| 2743a flower beds     |   456 |                  5–183 |                 183–386 |
 
 - **Strip A** (routines 0x0C to 0x14, the grass bank and its flowers, 0x26FDA): VINEYARD's trees' family drawn the
   other way round, 9 sizes 224 wide and 3 to 63 rows, the nearest last; size k (1 to 7) is the nearest shrunk to k/8
-  with more beyond, size 0 too small to read. Its board is its nearest size (456 × 138 texels), extending sideways.
+  with more beyond, size 0 too small to read. Its board is its nearest size (456 × 138 texels).
 - **Strip B** (routines 0x18 to 0x20: the waves 0x2725A, the dunes 0x272FA, the flower beds 0x2743A): OUTRUN's
-  strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. The dunes' and
-  flower beds' boards are their nearest size (505 × 68 and 456 × 65), extending sideways.
+  strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. Their boards
+  are their nearest size (505 × 68, and the flower beds' 456 × 65).
 - **Across.** A strip's edge nearest the road stands at its item's x × 16 units from road 0's centre (x < 0, drawn
   mirrored on the left) or road 1's, whatever the road's width or b7; at its y.
 - **The far strip** (routine 0x24, the fog 0x2603A) is OUTRUN's clouds' family: 9 sizes 248 wide and 1 to 31 rows, the
   nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size, 1011 ×
-  135 texels, extending sideways. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
+  135 texels. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
   32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
   above the road, its item's x unused.
-- **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.
+- **Boards.** `toutrun-strip-<size list>` and `-mirrored`, its edge's `toutrun-strip-<size list>-edge`, by chosen
+  lines as the other boards.
 
 ## ENDURO RACER
 
