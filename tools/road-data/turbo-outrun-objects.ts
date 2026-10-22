@@ -36,6 +36,10 @@ const STRIP_B = {
   down: 0,
 };
 const FAR_STRIP = 0x24;
+/** Strip B's waves (the size list at 0x2725A) lie on the ground; every other strip rises from it. */
+const WAVES = 0x2725a;
+/** The objects on the road that rise from it, standing on their bottom: the grass and stones, the pebbles. */
+const RISING_ON_ROAD: readonly number[] = [0x27570, 0x27840];
 const FAR = { sizes: 9, nearest: 8, reach: 16, down: 8 };
 /**
  * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
@@ -190,7 +194,7 @@ export function turboOutrunPlacements(
       mirrored,
       palette: kind.palette,
       shadow: (kind.flags & 2) !== 0,
-      anchor: LYING.includes(kind.routine) ? 0 : 8,
+      anchor: LYING.includes(kind.routine) && !RISING_ON_ROAD.includes(sizes) ? 0 : 8,
       aside,
     };
     const body = hits ? units((kind.hit[1] - kind.hit[0]) * pixel) : null;
@@ -250,11 +254,15 @@ function stripPieces(
   const sizes = readSizeList(main, kind.sizes, strip?.sizes ?? FAR.sizes);
   const nearest = sizes[strip?.nearest ?? FAR.nearest]!;
   const reach = strip?.reach ?? FAR.reach;
+  // A strip rising from the ground is its nearest size extending sideways, one board on its bottom; the waves are
+  // restored from their sizes, side by side outward.
+  const extending = kind.sizes !== WAVES;
   let boards = 1;
   while (
+    !extending &&
     boardGrid((reach / boards) * nearest.width, nearest.height, units).width *
       boardGrid(1, nearest.height, units).height >
-    COURSE_DOCUMENT_LIMITS.imageMasterTexels
+      COURSE_DOCUMENT_LIMITS.imageMasterTexels
   )
     boards *= 2;
   if (strip && boards > 1) throw new Error(`Strip ${kind.sizes.toString(16)} needs several boards`);
@@ -267,9 +275,10 @@ function stripPieces(
     mirrored,
     palette: kind.palette,
     shadow: false,
-    anchor: (strip?.down ?? FAR.down) | (mirrored ? 2 : 1),
+    anchor: (extending ? 8 : (strip?.down ?? FAR.down)) | (mirrored ? 2 : 1),
     aside: 0,
     strip: family,
+    ...(extending ? { extends: true as const } : {}),
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;

@@ -1291,7 +1291,7 @@ stage's description.
 ### TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 1, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 2, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -1369,7 +1369,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit
   0; in its kind's palette, a blinking kind's (0x2C, 0x30, 0x40, 0x44) as its record has it. A board stands on the
   middle of its bottom, but one lying on the road (routine 0x08, the puddles of 0x4C and 0x50) on its middle as
-  OUTRUN's patches do, and across at the middle of its kind's hit extents.
+  OUTRUN's patches do (the grass and stones 0x27570 and the pebbles 0x27840, which rise from the road, on their bottom:
+  Stage PG), and across at the middle of its kind's hit extents.
 - **Body.** Where its kind's collision class is 0 to 3 (the original stops or spins the car) and it stands on the
   ground (y 0), but for the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
   scale 1), at most its board's width. Classes 11 to 17, thrown or broken when hit (fences, snow, stones, shrubs,
@@ -1392,23 +1393,26 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 ### TURBO OUTRUN's strips
 
 The strips beside the road and the far strip are brought out, approach and stand as the other objects do, with no body,
-by the families OUTRUN's strips restore from ([Strips and patches](#strips-and-patches), `restoredStrip`): each far
-size is the nearest drawn again smaller, with its own dithering, so the families are read by their shape (where a
-crest, a tree or the edge of what lies beyond falls) rather than pixel by pixel. At 324 km/h 6,855 strip pieces stand
-and 372 far strips.
+by the families OUTRUN's strips are ([Strips and patches](#strips-and-patches)): each far size is the nearest drawn
+again smaller, with its own dithering, so the families are read by their shape (where a crest, a tree or the edge of
+what lies beyond falls) rather than pixel by pixel. At 324 km/h 6,855 strip pieces stand and 372 far strips. Since
+Stage PG every strip but the waves rises from the ground: its board is its nearest size, standing on its bottom edge by
+its edge nearest the road and extending sideways away from the road (`extend`: right, or left mirrored), where the
+original shrinks its far sizes outward; the waves, which lie on the ground, are restored from their sizes
+(`restoredStrip`).
 
 - **Strip A** (routines 0x0C to 0x14, the grass bank and its flowers, 0x26FDA): VINEYARD's trees' family drawn the
   other way round, 9 sizes 224 wide and 3 to 63 rows, the nearest last; size k (1 to 7) is the nearest shrunk to k/8
-  with more beyond, size 0 too small to read. Its board is 8 times the nearest's width (3652 × 138 texels), standing on
-  its bottom by its edge nearest the road.
+  with more beyond, size 0 too small to read. Its board is its nearest size (456 × 138 texels), extending sideways.
 - **Strip B** (routines 0x18 to 0x20: the waves 0x2725A, the dunes 0x272FA, the flower beds 0x2743A): OUTRUN's
-  strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond; boards 16
-  times the nearest's width (8086 × 68 and 7303 × 65), standing on their middle by their edge nearest the road.
+  strips' family, 16 sizes, the nearest last, size k the nearest shrunk to (k + 1)/16 with more beyond. The dunes' and
+  flower beds' boards are their nearest size (505 × 68 and 456 × 65), extending sideways; the waves' 16 times the
+  nearest's width (8086 × 68), standing on their middle by their edge nearest the road.
 - **Across.** A strip's edge nearest the road stands at its item's x × 16 units from road 0's centre (x < 0, drawn
   mirrored on the left) or road 1's, whatever the road's width or b7; at its y.
 - **The far strip** (routine 0x24, the fog 0x2603A) is OUTRUN's clouds' family: 9 sizes 248 wide and 1 to 31 rows, the
-  nearest squashed down, so the nearest repeats outward to 16 times its width, a pixel 4 road units, in 4 boards
-  (4043 × 135) side by side. It approaches at half the rate, so it stands where it passes the car at that rate, its
+  nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size
+  (1011 × 135) extending sideways. It approaches at half the rate, so it stands where it passes the car at that rate, its
   edge 32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units
   (10.2 m) above the road, its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.

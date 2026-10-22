@@ -40,7 +40,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { ZipFile } from './zip.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 1;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 2;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 

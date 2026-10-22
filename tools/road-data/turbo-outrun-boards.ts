@@ -40,6 +40,8 @@ export interface PictureUse {
   readonly anchor: number;
   readonly aside: number;
   readonly strip?: StripFamily;
+  /** A strip rising from the ground: its family's nearest size, extending sideways away from the road. */
+  readonly extends?: true;
 }
 
 /**
@@ -55,11 +57,16 @@ export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored'
   return `toutrun-${list}${scale}${mirrored}${use.shadow ? '-shadowed' : ''}`;
 }
 
-/** A picture's pixels, its edge nearest the road on the left for a strip: its largest size's, or its restored strip. */
-function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUse, 'sizes' | 'strip'>) {
-  if (!use.strip) {
-    const [size] = readSizeList(main, use.sizes, 1);
-    return { pixels: spritePixels(words, size!), width: size!.width, height: size!.height };
+/**
+ * A picture's pixels, its edge nearest the road on the left for a strip: its largest size's, an extending strip's
+ * nearest size's, or a lying strip's restored from its sizes.
+ */
+function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUse, 'sizes' | 'strip' | 'extends'>) {
+  if (!use.strip || use.extends) {
+    const size = use.strip
+      ? readSizeList(main, use.sizes, use.strip.sizes)[use.strip.nearest]!
+      : readSizeList(main, use.sizes, 1)[0]!;
+    return { pixels: spritePixels(words, size), width: size.width, height: size.height };
   }
   return restoredStrip(words, readSizeList(main, use.sizes, use.strip.sizes), use.strip, use.strip.boards);
 }
@@ -115,6 +122,7 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
         ...(first.shadow
           ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
           : {}),
+        ...(first.extends ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
       return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(board) };
     });
