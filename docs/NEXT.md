@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-7b, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-8, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -759,7 +759,10 @@ PRs:
   away from the road, and the grass and stones 27570 and the pebbles 27840 stand on their bottom (27570's body
   unchanged) (conversion version 2; 29,077 objects placed instead of 30,193, bodies unchanged). The waves 2725a wait
   for PG-7b.
-- PG-7b: TURBO OUTRUN's waves, puddles and gravel patches baked by PG-6b's baking.
+- PG-7b baked TURBO OUTRUN's waves (735 pieces, `WATER` from the waterline inside the verges), puddles (892,
+  `WATER`) and gravel patches (1,133, `DIRT`) by PG-6b's baking (conversion version 3); every strip is now its nearest
+  size, so TURBO OUTRUN no longer restores strips. Their boards (`toutrun-strip-2725a`, `toutrun-274da`,
+  `toutrun-27872`) are no longer written; PG-10 deletes them.
 - PG-8: ENDURO RACER's water `WATER` by the table; its boards' anchors (0.8 texel below the bottom) at the bottom;
   [ENDURO RACER's Materials](original-road-data.md) and NEXT's water (Stage ER's Water, ER-6, what Stages ER and MG
   left) corrected.

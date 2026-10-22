@@ -9,38 +9,33 @@ import { long } from './program-words.js';
 import type { Quadratic } from './offset-plan.js';
 import { POSITION_METRES } from './offset-plan.js';
 import { startDepth } from './object-approach.js';
-import { boardGrid, PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
-import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import { readSizeList } from './turbo-outrun-road.js';
-import { type PictureUse, type StripFamily } from './turbo-outrun-boards.js';
+import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
+import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
 import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
- * The strips, by routine, as OUTRUN's families are restored ([Strips and patches](../../docs/original-road-data.md#strips-and-patches)):
- * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes 224 wide, 3 to 63 rows, the nearest
- * last, far size k the nearest shrunk to k/8 with more beyond; strip B (0x18 to 0x20: waves, dunes, flower beds)
- * OUTRUN's strips', its 16 sizes the nearest last, size k the nearest shrunk to (k + 1)/16; the far strip (0x24, fog)
- * the clouds', its 9 sizes 248 wide, 1 to 31 rows, the nearest squashed, so the nearest repeats 16 times outward.
- * Strip A and the far strip stand on their bottom, strip B on its middle, each by its edge nearest the road.
+ * The strips, by routine, as OUTRUN's families ([Strips and patches](../../docs/original-road-data.md#strips-and-patches)):
+ * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes, the nearest last; strip B (0x18 to
+ * 0x20: waves, dunes, flower beds) OUTRUN's strips', its 16 sizes, the nearest last; the far strip (0x24, fog) the
+ * clouds', its 9 sizes, the nearest last. Each shows its nearest size by its edge nearest the road.
  */
-const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8, reach: 8, shrink: (k: number) => k / 8, down: 8 };
-const STRIP_B = {
-  from: 0x18,
-  to: 0x20,
-  sizes: 16,
-  nearest: 15,
-  reach: 16,
-  shrink: (k: number) => (k + 1) / 16,
-  down: 0,
-};
+const STRIP_A = { from: 0x0c, to: 0x14, sizes: 9, nearest: 8 };
+const STRIP_B = { from: 0x18, to: 0x20, sizes: 16, nearest: 15 };
 const FAR_STRIP = 0x24;
-/** Strip B's waves (the size list at 0x2725A) lie on the ground; every other strip rises from it. */
-const WAVES = 0x2725a;
+/**
+ * What lies on the ground, by size list, baked into the course's Strips with the material beneath it: strip B's waves
+ * (0x2725A) and the puddles (0x274DA) `WATER`, the gravel patches (0x27872) `DIRT`, the nearest material.
+ */
+const GROUND: ReadonlyMap<number, string> = new Map([
+  [0x2725a, 'WATER'],
+  [0x274da, 'WATER'],
+  [0x27872, 'DIRT'],
+]);
 /** The objects on the road that rise from it, standing on their bottom: the grass and stones, the pebbles. */
 const RISING_ON_ROAD: readonly number[] = [0x27570, 0x27840];
-const FAR = { sizes: 9, nearest: 8, reach: 16, down: 8 };
+const FAR = { sizes: 9, nearest: 8 };
 /**
  * The far strip approaches at half the rate, so it stands still twice as far and twice as large as drawn, a pixel 4
  * road units: its edge 32 of its pixels from P as the original's is from the screen's middle, reaching away from it,
@@ -80,7 +75,7 @@ const SOLID = 3;
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width
- * by its hit extents (at most its picture's, which the course takes).
+ * by its hit extents (at most its picture's, which the course takes); lying on the ground, the material beneath it.
  */
 export interface PlacedObject {
   readonly g: number;
@@ -88,6 +83,7 @@ export interface PlacedObject {
   readonly height: number;
   readonly use: PictureUse;
   readonly body: number | null;
+  readonly ground?: string;
 }
 
 /** What the placing reports. */
@@ -102,6 +98,8 @@ export interface PlacingReport {
   /** The strips' pieces and the far strips', and the items below the road (never seen). */
   readonly strips: number;
   readonly farStrips: number;
+  /** What lies on the ground, baked: by size list, how many. */
+  readonly lying: Readonly<Record<string, number>>;
   readonly below: number;
 }
 
@@ -140,7 +138,7 @@ export function turboOutrunPlacements(
     const kind = readKind(main, o.item.kind);
     const strip = [STRIP_A, STRIP_B].find((f) => kind.routine >= f.from && kind.routine <= f.to);
     if (strip || kind.routine === FAR_STRIP) {
-      placed.push(...stripPieces(main, o, kind, strip, inputs));
+      placed.push(stripPiece(o, kind, strip, inputs));
       if (strip) strips++;
       else farStrips++;
       continue;
@@ -201,7 +199,15 @@ export function turboOutrunPlacements(
     if (body !== null) bodies++;
     if (kind.collision >= 11 && kind.collision <= 17) breakable[kind.collision] = (breakable[kind.collision] ?? 0) + 1;
     const height = holding ? 2 * o.item.y : half ? o.item.y / 2 : o.item.y;
-    placed.push({ g, x: units(x + aside), height: units(height) * PIXEL_ASPECT, use, body });
+    const ground = GROUND.get(sizes);
+    placed.push({
+      g,
+      x: units(x + aside),
+      height: units(height) * PIXEL_ASPECT,
+      use,
+      body,
+      ...(ground ? { ground } : {}),
+    });
   }
 
   // The start figures: each leg's, at its first stage, where it passes the car or looks as large as drawn.
@@ -232,63 +238,53 @@ export function turboOutrunPlacements(
   });
   return {
     placed,
-    report: { placed: placed.length, start, figures, girls, bodies, breakable, strips, farStrips, below },
+    report: {
+      placed: placed.length,
+      start,
+      figures,
+      girls,
+      bodies,
+      breakable,
+      strips,
+      farStrips,
+      lying: Object.fromEntries(
+        [...GROUND.keys()].map((sizes) => [
+          sizes.toString(16),
+          placed.filter((o) => o.ground && o.use.sizes === sizes).length,
+        ]),
+      ),
+      below,
+    },
   };
 }
 
 /**
- * A strip's boards where it stands, side by side outward: strip A's and B's edge nearest the road at its x × 16 units
- * from road 0's centre (x < 0, drawn mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused.
- * The far strip's reach is split into the fewest boards, halving, that fit a course image.
+ * A strip where it stands: strip A's and B's edge nearest the road at its x × 16 units from road 0's centre (x < 0, drawn
+ * mirrored on the left) or road 1's, at its y; the far strip's by P, its x unused. A strip rising from the ground stands
+ * on its bottom and extends sideways away from the road; the waves, lying on the ground, by their middle.
  */
-function stripPieces(
-  main: Uint8Array,
+function stripPiece(
   o: StandingObject,
   kind: ReturnType<typeof readKind>,
   strip: typeof STRIP_A | typeof STRIP_B | undefined,
   inputs: { readonly start: (stage: number) => number; readonly width: Quadratic },
-): PlacedObject[] {
+): PlacedObject {
   const mirrored = (o.item.flags & 1) !== 0;
   const g = inputs.start(o.stage) + o.position;
-  const units = strip ? 2 : FAR_UNITS;
-  const sizes = readSizeList(main, kind.sizes, strip?.sizes ?? FAR.sizes);
-  const nearest = sizes[strip?.nearest ?? FAR.nearest]!;
-  const reach = strip?.reach ?? FAR.reach;
-  // A strip rising from the ground is its nearest size extending sideways, one board on its bottom; the waves are
-  // restored from their sizes, side by side outward.
-  const extending = kind.sizes !== WAVES;
-  let boards = 1;
-  while (
-    !extending &&
-    boardGrid((reach / boards) * nearest.width, nearest.height, units).width *
-      boardGrid(1, nearest.height, units).height >
-      COURSE_DOCUMENT_LIMITS.imageMasterTexels
-  )
-    boards *= 2;
-  if (strip && boards > 1) throw new Error(`Strip ${kind.sizes.toString(16)} needs several boards`);
-  const family: StripFamily = strip
-    ? { sizes: strip.sizes, nearest: strip.nearest, reach, shrink: strip.shrink, boards }
-    : { sizes: FAR.sizes, nearest: FAR.nearest, reach, boards };
+  const ground = GROUND.get(kind.sizes);
   const use: PictureUse = {
     sizes: kind.sizes,
-    units,
+    units: strip ? 2 : FAR_UNITS,
     mirrored,
     palette: kind.palette,
     shadow: false,
-    anchor: (extending ? 8 : (strip?.down ?? FAR.down)) | (mirrored ? 2 : 1),
+    anchor: (ground ? 0 : 8) | (mirrored ? 2 : 1),
     aside: 0,
-    strip: family,
-    ...(extending ? { extends: true as const } : {}),
+    strip: strip ?? FAR,
+    ...(ground ? {} : { extends: true as const }),
   };
   const w = inputs.width.at(g);
   const edge = strip ? 16 * o.item.x + (o.item.x < 0 ? -w : w) : (mirrored ? 1 : -1) * FAR_EDGE * FAR_UNITS;
   const height = (strip ? o.item.y : FAR_UP) * UNIT_METRES * PIXEL_ASPECT;
-  const across = (reach / boards) * nearest.width * units;
-  return Array.from({ length: boards }, (_, k) => ({
-    g,
-    x: (edge + (mirrored ? -1 : 1) * k * across) * UNIT_METRES,
-    height,
-    use,
-    body: null,
-  }));
+  return { g, x: edge * UNIT_METRES, height, use, body: null, ...(ground ? { ground } : {}) };
 }

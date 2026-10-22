@@ -7,29 +7,22 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { mirror, restoredStrip, shadowFrame } from './outrun-boards.js';
+import { mirror, shadowFrame } from './outrun-boards.js';
 import { chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
-/**
- * A strip's family: how many sizes its list holds, the nearest's place, how many times the nearest's width it reaches,
- * how each far size shrinks the nearest across (with what lies beyond; none where the far sizes are the nearest
- * squashed, which then repeats outward), and how many boards side by side its reach is split into.
- */
+/** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {
   readonly sizes: number;
   readonly nearest: number;
-  readonly reach: number;
-  readonly shrink?: (k: number) => number;
-  readonly boards: number;
 }
 
 /**
  * One way an object shows a picture: its size list, the road units a pixel of its largest size spans, mirrored or not,
  * in a palette, shadowed or not, its base point by `anchor` (`anchorPoint`: across its middle, left or right edge, down
  * its middle or bottom), and across from a middle anchor the road units its base point stands aside, as shown: where
- * its body stands. A strip's picture is restored from its family's sizes.
+ * its body stands. A strip's picture is its family's nearest size.
  */
 export interface PictureUse {
   readonly sizes: number;
@@ -57,26 +50,19 @@ export function pictureName(use: Pick<PictureUse, 'sizes' | 'units' | 'mirrored'
   return `toutrun-${list}${scale}${mirrored}${use.shadow ? '-shadowed' : ''}`;
 }
 
-/**
- * A picture's pixels, its edge nearest the road on the left for a strip: its largest size's, an extending strip's
- * nearest size's, or a lying strip's restored from its sizes.
- */
-function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUse, 'sizes' | 'strip' | 'extends'>) {
-  if (!use.strip || use.extends) {
-    const size = use.strip
-      ? readSizeList(main, use.sizes, use.strip.sizes)[use.strip.nearest]!
-      : readSizeList(main, use.sizes, 1)[0]!;
-    return { pixels: spritePixels(words, size), width: size.width, height: size.height };
-  }
-  return restoredStrip(words, readSizeList(main, use.sizes, use.strip.sizes), use.strip, use.strip.boards);
+/** A picture's pixels: its largest size's, a strip's nearest size's (its edge nearest the road on the left). */
+function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUse, 'sizes' | 'strip'>) {
+  const size = use.strip
+    ? readSizeList(main, use.sizes, use.strip.sizes)[use.strip.nearest]!
+    : readSizeList(main, use.sizes, 1)[0]!;
+  return { pixels: spritePixels(words, size), width: size.width, height: size.height };
 }
 
 /**
  * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
- * size's pixels (a strip's restored, `restoredStrip`) by chosen lines (`chosenLines`, a mirrored picture the unmirrored
- * one's mirrored) onto the texel grid
- * of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its palette's color),
- * with its width in metres. Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
+ * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
+ * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
+ * palette's color), with its width in metres and its master. Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
  * (the size list at 0x2667A) at its scale and base point.
  */
 export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
@@ -124,6 +110,6 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
           : {}),
         ...(first.extends ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
-      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, image: courseImageFile(board) };
+      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, master: board, image: courseImageFile(board) };
     });
 }

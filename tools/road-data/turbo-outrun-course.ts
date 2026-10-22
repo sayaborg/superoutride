@@ -38,9 +38,11 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { ZipFile } from './zip.js';
+import type { SpriteLodDocument } from '../../src/image/sprite.js';
+import { bakeGround, type GroundPiece } from './ground-baking.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 2;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 3;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -78,7 +80,7 @@ const SAMPLE = 0.25;
 const THIN = 1e-5;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
-type Lateral = Record<string, unknown>;
+type Lateral = Record<string, unknown> | number;
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
 const wrapDegrees = (degrees: number) => ((((degrees + 180) % 360) + 360) % 360) - 180;
@@ -202,16 +204,21 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
-  const pictures = turboOutrunBoards(
+  const boards = turboOutrunBoards(
     programs.main,
     assembleTurboOutrunSprites(files),
     placing.placed.map((o) => o.use),
   );
+  // What lies on the ground is baked into the Sections' Strips from its masters; every other board is a picture.
+  const lying = new Set(placing.placed.filter((o) => o.ground).map((o) => pictureName(o.use)));
+  const pictures = boards.filter((b) => !lying.has(b.name));
+  const masters = new Map(boards.filter((b) => lying.has(b.name)).map((b) => [b.name, b.master]));
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout,
       widths: new Map(pictures.map((p) => [p.name, p.width])),
+      masters,
       objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
       first: i === 0,
       last: i === pieces.length - 1,
@@ -260,6 +267,8 @@ function sectionDocument(
     readonly objects: readonly PlacedObject[];
     /** Each picture's width, metres, by name. */
     readonly widths: ReadonlyMap<string, number>;
+    /** The masters of what lies on the ground, by name. */
+    readonly masters: ReadonlyMap<string, SpriteLodDocument>;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -380,6 +389,13 @@ function sectionDocument(
 
   // The verges: the sand beyond each outer lane's asphalt, narrowed where the layout narrows it.
   const asphaltBeyond = (ROAD_HALF - CENTRE_INSIDE) * UNIT_METRES;
+  // A verge's lateral at position `g`, metres right of lane b's centre, as its knots write it.
+  const vergeAt = (side: 0 | 1, g: number) => {
+    const lines = written(g);
+    return side === 0
+      ? lines.get('a')!.left * UNIT_METRES - asphaltBeyond - sand.at(g, 0)
+      : lines.get('f')!.right * UNIT_METRES + asphaltBeyond + sand.at(g, 1);
+  };
   const verge = (side: 0 | 1) => {
     const inside = sand.knots[side].map(([g]) => g).filter((g) => g > from && g < to);
     return [from, ...inside, to].map((g) => ({
@@ -512,6 +528,54 @@ function sectionDocument(
     }
   }
 
+  // What lies on the ground, baked over everything else: the waves (water, `WATER` from the waterline inside the
+  // verges), the puddles (`WATER`) and the gravel patches (`DIRT`).
+  const positionAt = (s: number) => {
+    let [lo, hi] = [from, to];
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (plan.station(mid) < s) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  };
+  const lyingPieces: GroundPiece[] = [];
+  const standing: PlacedObject[] = [];
+  for (const o of context.objects) {
+    if (!o.ground) {
+      standing.push(o);
+      continue;
+    }
+    const master = context.masters.get(pictureName(o.use))!;
+    const colors = master.palettes[paletteName(o.use.palette)]!.colors;
+    lyingPieces.push({
+      s: plan.station(o.g),
+      l: o.x - offset.at(o.g),
+      picture: {
+        width: master.width,
+        height: master.height,
+        anchorX: master.anchorX,
+        anchorY: master.anchorY,
+        colors: master.levels[0]!.indices.map((i) => (i ? colors[i]! : null)),
+      },
+      strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
+      material: o.ground,
+    });
+  }
+  const baked = bakeGround(lyingPieces, {
+    length: size,
+    outer: {
+      left: { id: 'outer-left', at: (s) => vergeAt(0, positionAt(s)) },
+      right: { id: 'outer-right', at: (s) => vergeAt(1, positionAt(s)) },
+    },
+  });
+  const edgeOf = (edge: string | number | null) =>
+    edge === null ? null : typeof edge === 'string' ? boundary(edge) : round(edge);
+  for (const b of baked.strips) {
+    const [sa, sb] = [round(b.start), round(b.end)];
+    if (sb > sa) strips.push(strip(sa, sb, edgeOf(b.left), edgeOf(b.right), b.color, b.material));
+  }
+
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: unknown[] = [];
   if (context.first)
@@ -558,12 +622,16 @@ function sectionDocument(
     boundaries: [
       { id: 'outer-left', knots: verge(0) },
       { id: 'outer-right', knots: verge(1) },
+      ...baked.boundaries.map(({ id, knots }) => ({
+        id,
+        knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
+      })),
     ],
     strips,
     walls: [],
     openLimits: [],
     sprites: repeated(
-      [...context.objects]
+      [...standing]
         .sort((a, b) => a.g - b.g || a.x - b.x)
         .map((o) => ({
           kind: 'sprite',
