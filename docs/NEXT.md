@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
+Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-3 (RACING HERO's courses without objects), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -891,16 +891,17 @@ PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
 
 - RH-1: this section, RACING HERO's reference courses in [Product](product.md#5-series), and the place of its section in
   [Original road data](original-road-data.md#racing-hero).
-- RH-2: RACING HERO's ROMs read into its dump: `racing-hero-read` writes
+- RH-2 read RACING HERO's ROMs into its dump: `racing-hero-read` writes
   `reference-media/racing-hero/rom-data/racing-hero.json` (`superoutride.racing-hero-road-data`, version 1) with the
   section descriptions, the ten countries' road, PIT, scenery and surface tables, COURSE SELECT's choices and next
-  countries and their names, the type table and the types used with their parts and pictures, the sprite palettes in
-  both sets, the background numbers, command lists and blocks, the tile palettes and their sets with their palette
-  motion numbers, and the sky's colors. The program's values that are no tables are the tool's constants.
+  countries, the type table and the types used with their parts and pictures, the sprite palettes in both sets, the
+  background numbers, command lists and blocks, the tile palettes and their sets with their palette motion numbers,
+  and the sky's colors ([RACING HERO](original-road-data.md#racing-hero)). SUPER MONACO GP's ROM module gives both X
+  board sets their ROMs' reading.
 - RH-3a made the crossings' rule for passages near a road's end, in `road-profile` and
   [Profile](original-road-data.md#profile): a passage whose middle lies less than 100 m from the road's start or end
   makes no bump and stays level, the crossing's other passages taking all of the 6 m. Every other original's `--check`
-  stayed unchanged. It came before RH-2, which waits on K's `rachero.zip`.
+  stayed unchanged. It came before RH-2, which waited on K's `rachero.zip`.
 - RH-3: the courses without objects (`racing-hero-course`, conversion version 1, with `--check`): plan, lanes,
   materials and limits, every Strip (the surface, the marks, the water and its shore), the transparent ground, the
   Sections split by the objects RH-4 will place, the crossings by RH-3a's rule, gates and grid, and skies named with a

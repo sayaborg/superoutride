@@ -13,8 +13,8 @@ Stage SH, Stage TO, Stage ER, Stage MG, Stage RH).
 
 The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
 `reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/`, `reference-media/turbo-outrun/rom/`,
-`reference-media/enduro-racer/rom/` and `reference-media/super-monaco-gp/rom/`, the tool's dumps beside them in
-`rom-data/`. The formats are read by this project's own code from this description and the ROMs themselves.
+`reference-media/enduro-racer/rom/`, `reference-media/super-monaco-gp/rom/` and `reference-media/racing-hero/rom/`, the
+tool's dumps beside them in `rom-data/`. The formats are read by this project's own code from this description and the ROMs themselves.
 
 The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
@@ -1882,4 +1882,139 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
 RACING HERO's ten countries are raised from MAME's `rachero` (Racing Hero, FD1094 317-0144). Its main CPU's program is
 encrypted for instruction fetches alone: its tables (the courses', the sprites' and the background's, all in the main
 CPU's program) are read as the ROMs' bytes, and the program is never decrypted. Its ROM set, programs and tables are
-described here as [Stage RH](NEXT.md#stage-rh--racing-hero-from-the-roms) reads them, from RH-2.
+described here as [Stage RH](NEXT.md#stage-rh--racing-hero-from-the-roms) reads them. What the stage's description says
+of the program's code was found by decrypting it for the description and confirmed on the original in a harness; the
+tool cannot check it and takes it as described.
+
+### RACING HERO's ROM set
+
+Each CPU's program is interleaved from ROMs of its even bytes and of its odd bytes, 128 KiB each:
+
+| CPU  | Addresses       | Even bytes                  | Odd bytes                   |
+| ---- | --------------- | --------------------------- | --------------------------- |
+| main | 0x00000–0x3FFFF | `epr-13129.ic58` `ad9f32e7` | `epr-13130.ic63` `6022777b` |
+| main | 0x40000–0x7FFFF | `epr-12855.ic57` `cecf1e73` | `epr-12856.ic62` `da900ebb` |
+| sub  | 0x00000–0x3FFFF | `epr-12857.ic20` `8a2328cc` | `epr-12858.ic29` `38a248b7` |
+
+The main CPU's program is encrypted (FD1094) for instruction fetches alone: the tables it holds are read as its ROMs'
+bytes. The sub CPU's program holds no table the conversion reads; its ROMs are checked alone.
+
+The tiles are three 64 KiB ROMs, one bit plane each, the lowest first, 8 bytes a tile, 8192 tiles: `epr-12879.ic154`
+`c1a9de7a`, `epr-12880.ic153` `27ff04a5`, `epr-12881.ic152` `72f14491`. The sprites are 16 ROMs of 128 KiB in four sets
+of four, each ROM one byte of a 32-bit word, the least significant first; set g's words are banks 2g and 2g + 1, banks
+of 0x10000 words as OUTRUN's (`RACING_HERO_SPRITE_ROMS`): `epr-12872.ic90` `68d56139`, `epr-12873.ic94` `3d3ec450`,
+`epr-12874.ic98` `7d6bde23`, `epr-12875.ic102` `e33092bf` (banks 0–1); `epr-12868.ic91` `96289583`, `epr-12869.ic95`
+`2ef0de02`, `epr-12870.ic99` `c76630e1`, `epr-12871.ic103` `23401b1a` (2–3); `epr-12864.ic92` `77d6cff4`,
+`epr-12865.ic96` `1e7e685b`, `epr-12866.ic100` `fdf31329`, `epr-12867.ic104` `b25e37fd` (4–5); `epr-12860.ic93`
+`86b64119`, `epr-12861.ic97` `bccff19b`, `epr-12862.ic101` `7d4c3b05`, `epr-12863.ic105` `85095053` (6–7). There is no
+road ROM: the road layer draws only the sky's lines, and every object on the road, the surface among them, is a sprite.
+
+The tool finds each ROM by its CRC-32 and size, whatever the zip names it, and refuses a set without one. It reads no
+key (`317-0144.key`, `8740bbff`) and no sound ROM (`epr-12859.ic17`, `epr-12876`–`12878`), and never decrypts. SUPER
+MONACO GP's ROM module gives both X board sets their ROMs' reading (`romData`, `xBoardSpriteWords`, `xBoardTiles`).
+
+### RACING HERO's courses' tables
+
+The main CPU (a 68000: words and longs big-endian) holds the courses:
+
+- **Section descriptions.** 32 of 22 bytes from 0x1793C: a word, the section's number, then five longs: its road
+  table, its PIT (grade) table, its scenery table, its traffic table and its surface table. A road table begins with
+  two longs, the next sections' descriptions (left and right); a country's first section (A, START to CHECK) goes on
+  to its second (B, CHECK to GOAL) and B to its goal's section, both longs alike. The original does not go on from
+  the goal's section: COURSE SELECT reads the chosen country's description again. Sections 29 and 30 are the demo's.
+
+  | Country         | A   | B   | Goal | Background | A and B, positions |
+  | --------------- | --- | --- | ---- | ---------- | ------------------ |
+  | AUSTRALIA       | 0   | 1   | 20   | 16         | 96000 + 83200      |
+  | FRANCE          | 2   | 4   | 21   | 23         | 96000 + 88000      |
+  | BRAZIL          | 3   | 5   | 24   | 19         | 96000 + 83200      |
+  | CHINA           | 6   | 9   | 25   | 18         | 96000 + 83200      |
+  | JAPAN           | 7   | 10  | 28   | 22         | 96000 + 83200      |
+  | ITALY           | 8   | 11  | 31   | 25         | 96000 + 80000      |
+  | THE NETHERLANDS | 12  | 16  | 22   | 17         | 96000 + 83200      |
+  | U.S.A           | 13  | 17  | 23   | 24         | 96000 + 83200      |
+  | EGYPT           | 14  | 18  | 26   | 21         | 96000 + 83200      |
+  | GREAT BRITAIN   | 15  | 19  | 27   | 20         | 96000 + 83200      |
+
+  Every goal's section is 1120 positions of road type 3, then 4000 of road type 7.
+
+- **Road tables.** After the two longs, entries of 6 bytes {word length in positions (a multiple of 8), byte event (0
+  in every table), byte type (bits 0–2 the road type: 4 three lanes, 3 two lanes, 7 the goal's section's run out; bit
+  6, set on A's last entry, only copied to the sub CPU), signed word radius (0 straight, negative left)}, up to the
+  word 0x8000. The countries' sections hold 31 to 54 entries, the tightest radius 60 (JAPAN's B).
+- **PIT tables.** Entries of 4 bytes {word length in positions, signed word height}, up to one whose first byte has
+  bit 7 set; the hills are not made in Stage RH.
+- **Object tables.** Each section has two, its scenery and its surface (the road's surface boards, its fences and
+  curve signs), both of entries of 12 bytes {word distance, signed word lateral (positive left), word 0, signed word
+  height, byte flags (0x20 mirrored), byte 0, word type}, up to an entry whose first byte has bit 7 set. An entry
+  whose first word is 0x7FFF begins a repetition of the entries up to one whose first word is 0x7FFE, its second word
+  the count; repetitions do not nest. Written out (`expandObjects`), an object stands at the sum of the distances of
+  the objects before it from its section's start; every distance is a multiple of 8 and at least 8. A country's
+  sections hold 2157 to 2791 scenery objects and 2238 to 2454 surface objects; FRANCE's A scenery runs 150 objects
+  past its road, to position 105536.
+- **COURSE SELECT.** Six longs from 0x5D58, each a choice of two entries {long text, word, word, signed word x, signed
+  word y}, the left first: FRANCE or BRAZIL; JAPAN or ITALY; CHINA or JAPAN; EGYPT or GREAT BRITAIN; U.S.A or EGYPT;
+  THE NETHERLANDS or U.S.A. The texts end with a byte 0, 0x0A a line break (" THE" and "NETHERLANDS"; "U.S.A"
+  without its last point). Six pairs of words from 0x5C50 give the next country of each choice's right and left by
+  its first section's description. A play runs four countries from AUSTRALIA: FRANCE or BRAZIL; from FRANCE, CHINA or
+  JAPAN, from BRAZIL, JAPAN or ITALY; from CHINA, THE NETHERLANDS or U.S.A, from JAPAN, U.S.A or EGYPT, from ITALY,
+  EGYPT or GREAT BRITAIN.
+
+### RACING HERO's sprites
+
+The X board's sprites are OUTRUN's pixels, read by `sprite-pixels`: words of eight 4-bit pixels, the most significant
+first, banks of 0x10000 words, 0 and 15 transparent.
+
+- **Type table.** 1024 longs from 0x50000: type t (a byte offset, a multiple of 4) is defined at the long at
+  0x50000 + t. Every unused type points to 0x51000, which draws nothing; 06C, 070, 074, 078 and 0B4, in AUSTRALIA's
+  B, are such types.
+- **Definitions.** {word routine (which sets the size class), word parts' count, word the last size's byte offset (the
+  sizes are it / 4 + 1), then a long a size, the largest first}. A size's list holds up to the count of parts of 12
+  bytes {word palette, word flags (bit 5 mirrors the part), long picture record, signed word x, signed word y (from
+  the object's point in the size's pixels, x on the screen, negative left; y negative up)}, a palette word with bit 15
+  ending a smaller size's list early.
+- **Picture records.** 16 bytes {word width in pixels, word height, word 16-bit words a row << 8, four words the
+  top-left, bottom-left, top-right and bottom-right 32-bit words in its bank (the other three serve the flips), word
+  its bank << 9}. A picture is read on from its top-left word, two 16-bit words to a 32-bit one; the tool checks each
+  record (a whole 32-bit word a row, its width four pixels a 16-bit word, its corners its rows'). No picture the
+  countries use has an odd count of 16-bit words a row, and none has a colored pixel past a row's end mark.
+- **Palettes.** Sprite palette p is the 16 [palette words](#palette-words) at 0x3A808 + 32p, pixels 0–15, for
+  palettes 0x00–0x7F, and for 0x80–0xFF in set A, which is every country's but ITALY's and U.S.A's; their set B (the
+  evening's colors) has 0x80–0xFF at 0x3E72E + 32(p − 0x80). The background's palette set chooses the set: its
+  palette motion number is 2 for set A and 1 for set B.
+- The countries' sections use 196 types (5 of them unused), 155 pictures and 178 pairs of picture and palette.
+
+### RACING HERO's backgrounds
+
+- **Background.** A country's background number is the word at 0x518C + 2 × its first section's description; its
+  command list is the long at 0x40000 + 4 × the number, and its palette set the number + 1. It does not change within
+  the country.
+- **Command lists.** Commands of 10 bytes {word kind, word the layer's bottom row (0–63 of its plane), word its speed,
+  long its blocks}, up to a kind of 0: kind 4 a layer on the front plane (tile pages 1–4), kind 8 on the back plane
+  (pages 5–8); the lists use no other kind. The blocks are a list of longs up to 0, each block {word (not read), word
+  rows h, h rows of 8 tile words}, 64 pixels wide, standing on the layer's bottom row. Every country has 3 to 10
+  layers: the ground below the horizon (front, rows 48–63, speed 0x200, 1280 pixels), the horizon's (front, bottom
+  47, speed 0x200, 1280 pixels), the far one (back, bottom 47, speed 0x300, 1920 pixels, CHINA's and EGYPT's 1984)
+  and clouds.
+- **Tiles.** A tile word's bits 0–12 are its tile (SUPER MONACO GP's 16B tiles), bits 6–12 its palette: pixel v of
+  palette c is palette word 0x1C00 + 8c + v; pixel 0 is transparent.
+- **Tile palettes.** Palette words 0x1C00–0x1FFF are loaded at power on from 0x3A008 (a word each), then by the
+  country's palette set. The long at 0x3A000 points to the sets' list: set n's commands begin at 2n plus the word
+  there. Commands, in turn, up to a word 0: 1–0x7FFF copy that many words {long from, long to}; 0xFF00 fills {word
+  value, word count, long to}; another word from 0xC000 repeats a block (word & 0x3FF times) {word size, long from,
+  long to}; 0x8000–0xBFFF start palette motion number word − 0x8000. A `to` is 0x120000 plus twice the palette word.
+- **Sky colors.** The road layer's sky line of color c is palette word 0x1780 + c, which the palette set loads from 64
+  words: blue at 0x3F4FA (AUSTRALIA, FRANCE, BRAZIL, JAPAN, THE NETHERLANDS, GREAT BRITAIN), grey at 0x3F5FA (CHINA,
+  EGYPT) or orange at 0x3F67A (ITALY, U.S.A).
+
+### RACING HERO's dump
+
+`npm run road-data -- racing-hero-read` ([Development](development.md#road-data-commands)) reads the zip and writes
+`superoutride.racing-hero-road-data` version 1, `racing-hero.json` in `reference-media/racing-hero/rom-data/`: the
+ROMs' names and CRCs; the 32 section descriptions; each country's sections and background number; each of its
+sections' road, PIT, scenery and surface tables as they are (repetitions not written out); COURSE SELECT's choices and
+next countries; the type table, the definitions of the types the sections use and their largest size's picture
+records, each with its colored pixels past its rows' end marks; the sprites' palettes of both sets; and each country's
+command list with its blocks, the tile palettes at power on, the palette sets and the sky's colors. The amounts in the
+program's code (the curve's rule, the objects' lateral, the limits, the size classes, the clock and the speed
+readout, the background's start) are not tables: the courses take them as constants from Stage RH's description.

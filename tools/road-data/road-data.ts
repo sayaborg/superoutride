@@ -49,6 +49,8 @@ import {
   superMonacoGpCourses,
 } from './super-monaco-gp-course.js';
 import { filesByCrc } from './enduro-racer-rom.js';
+import { racingHeroDump } from './racing-hero-dump.js';
+import { expandObjects } from './racing-hero-road.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
   ENDURO_RACER_CONVERSION_VERSION,
@@ -93,6 +95,9 @@ const ENDURO_RACER_DUMP_DIRECTORY = 'reference-media/enduro-racer/rom-data';
 /** Where K's SUPER MONACO GP ROM zip and the tool's dumps of it lie: never committed. */
 const SUPER_MONACO_GP_ROM_DIRECTORY = 'reference-media/super-monaco-gp/rom';
 const SUPER_MONACO_GP_DUMP_DIRECTORY = 'reference-media/super-monaco-gp/rom-data';
+/** Where K's RACING HERO ROM zip and the tool's dumps of it lie: never committed. */
+const RACING_HERO_ROM_DIRECTORY = 'reference-media/racing-hero/rom';
+const RACING_HERO_DUMP_DIRECTORY = 'reference-media/racing-hero/rom-data';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -948,6 +953,45 @@ try {
           frameTables: Object.keys(dump.frameTables).length,
           pixelsPastEnd: Object.values(dump.frameTables).reduce((sum, f) => sum + f.pastEnd, 0),
           roadLayer: { sky: dump.background.roadLayer.rgb555[0x31], top: dump.background.roadLayer.rgb555[0] },
+        }),
+      );
+      break;
+    }
+    case 'racing-hero-read': {
+      // RACING HERO's ROM zip read, never decrypted; every table its courses use to the dump.
+      const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
+      const dump = racingHeroDump(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
+      const out = options.get('--out') ?? RACING_HERO_DUMP_DIRECTORY;
+      await atomicWrite(path.join(out, 'racing-hero.json'), JSON.stringify(dump) + '\n');
+      const types = Object.values(dump.types);
+      console.log(
+        JSON.stringify({
+          ok: true,
+          zip,
+          out,
+          countries: dump.countries.map(({ id, sections, background }) => ({
+            id,
+            background,
+            motion: dump.background.paletteSets[background + 1]!.flatMap((c) => ('motion' in c ? [c.motion] : [])),
+            layers: dump.background.lists[background]!.length,
+            sections: sections.map((k) => {
+              const { road, grades, scenery, surface } = dump.sections[k]!;
+              return {
+                section: k,
+                length: road.entries.reduce((sum, e) => sum + e.length, 0),
+                entries: road.entries.length,
+                tightest: Math.min(...road.entries.filter((e) => e.radius).map((e) => Math.abs(e.radius))),
+                grades: grades.length,
+                scenery: expandObjects(scenery).length,
+                surface: expandObjects(surface).length,
+              };
+            }),
+          })),
+          types: types.length,
+          empty: types.filter((d) => !d).length,
+          routines: [...new Set(types.flatMap((d) => (d ? [d.routine] : [])))].sort((a, b) => a - b),
+          pictures: Object.keys(dump.pictures).length,
+          pixelsPastEnd: Object.values(dump.pictures).reduce((sum, p) => sum + p.pastEnd, 0),
         }),
       );
       break;

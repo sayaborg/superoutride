@@ -4,7 +4,7 @@ import { spriteWords } from './sprite-pixels.js';
 import type { ZipFile } from './zip.js';
 
 /** A ROM by its name in MAME's set and its CRC-32: the tool finds it by the latter. */
-interface Rom {
+export interface Rom {
   readonly name: string;
   readonly crc: number;
 }
@@ -56,7 +56,8 @@ export const SUPER_MONACO_GP_SPRITE_ROMS = Object.freeze([
   ],
 ] as const);
 
-const PROGRAM_ROM_SIZE = 0x20000;
+/** The X board's program, tile and sprite ROMs' sizes, bytes. */
+export const PROGRAM_ROM_SIZE = 0x20000;
 const TILE_ROM_SIZE = 0x10000;
 const SPRITE_ROM_SIZE = 0x20000;
 
@@ -67,13 +68,14 @@ export function superMonacoGpFiles(zip: ReadonlyMap<string, ZipFile>): Map<numbe
   return new Map([...zip.values()].map((file) => [file.crc, file]));
 }
 
-/** A ROM of the set: present by its CRC-32 and `size` bytes. */
-function romData(files: ReadonlyMap<number, ZipFile>, rom: Rom, size: number): Uint8Array {
+/** A ROM of MAME's set `set`: present by its CRC-32 and `size` bytes. */
+export function romData(files: ReadonlyMap<number, ZipFile>, rom: Rom, size: number, set: string): Uint8Array {
   const file = files.get(rom.crc);
-  requireInput(file, `/rom/${rom.name}`, `The ROM set has no ${rom.name} (CRC ${hex(rom.crc)}): it is not MAME smgp`);
+  requireInput(file, `/rom/${rom.name}`, `The ROM set has no ${rom.name} (CRC ${hex(rom.crc)}): it is not MAME ${set}`);
   requireInput(file.data.length === size, `/rom/${rom.name}`, `${rom.name} is ${file.data.length} bytes, not ${size}`);
   return file.data;
 }
+const SET = 'smgp';
 
 /** The two CPUs' programs as each CPU addresses them. */
 export interface SuperMonacoGpPrograms {
@@ -86,10 +88,10 @@ export interface SuperMonacoGpPrograms {
  * size; the main CPU's program is not decrypted.
  */
 export function assembleSuperMonacoGpPrograms(files: ReadonlyMap<number, ZipFile>): SuperMonacoGpPrograms {
-  for (const rom of SUPER_MONACO_GP_TILE_ROMS) romData(files, rom, TILE_ROM_SIZE);
-  for (const rom of SUPER_MONACO_GP_SPRITE_ROMS.flat()) romData(files, rom, SPRITE_ROM_SIZE);
+  xBoardTiles(files, SUPER_MONACO_GP_TILE_ROMS, SET);
+  xBoardSpriteWords(files, SUPER_MONACO_GP_SPRITE_ROMS, SET);
   const program = ({ even, odd }: { readonly even: Rom; readonly odd: Rom }) =>
-    interleave(romData(files, even, PROGRAM_ROM_SIZE), romData(files, odd, PROGRAM_ROM_SIZE));
+    interleave(romData(files, even, PROGRAM_ROM_SIZE, SET), romData(files, odd, PROGRAM_ROM_SIZE, SET));
   return { main: program(SUPER_MONACO_GP_PROGRAM_ROMS.main), sub: program(SUPER_MONACO_GP_PROGRAM_ROMS.sub) };
 }
 
@@ -103,15 +105,30 @@ export const superMonacoGpRoms = (): Record<string, string> =>
     ].map(({ name, crc }) => [name, hex(crc)]),
   );
 
-/** The sprite ROMs' words (`spriteWords`), set after set: banks of 0x10000 words, OUTRUN's. */
-export function assembleSuperMonacoGpSprites(files: ReadonlyMap<number, ZipFile>): Uint32Array {
-  const words = new Uint32Array(SUPER_MONACO_GP_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
-  SUPER_MONACO_GP_SPRITE_ROMS.forEach((set, g) =>
-    words.set(spriteWords(set.map((rom) => romData(files, rom, SPRITE_ROM_SIZE))), g * SPRITE_ROM_SIZE),
+/**
+ * The X board's sprite ROMs' words (`spriteWords`) of MAME's set `set`, set of four after set of four: banks of 0x10000
+ * words, OUTRUN's.
+ */
+export function xBoardSpriteWords(
+  files: ReadonlyMap<number, ZipFile>,
+  sets: readonly (readonly Rom[])[],
+  set: string,
+): Uint32Array {
+  const words = new Uint32Array(sets.length * SPRITE_ROM_SIZE);
+  sets.forEach((roms, g) =>
+    words.set(spriteWords(roms.map((rom) => romData(files, rom, SPRITE_ROM_SIZE, set))), g * SPRITE_ROM_SIZE),
   );
   return words;
 }
 
+/** The X board's tile ROMs' bit planes of MAME's set `set`, the lowest first, 8 bytes a tile. */
+export const xBoardTiles = (files: ReadonlyMap<number, ZipFile>, roms: readonly Rom[], set: string) =>
+  roms.map((rom) => romData(files, rom, TILE_ROM_SIZE, set));
+
+/** The sprite ROMs' words (`spriteWords`), set after set: banks of 0x10000 words, OUTRUN's. */
+export const assembleSuperMonacoGpSprites = (files: ReadonlyMap<number, ZipFile>): Uint32Array =>
+  xBoardSpriteWords(files, SUPER_MONACO_GP_SPRITE_ROMS, SET);
+
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
 export const assembleSuperMonacoGpTiles = (files: ReadonlyMap<number, ZipFile>): readonly Uint8Array[] =>
-  SUPER_MONACO_GP_TILE_ROMS.map((rom) => romData(files, rom, TILE_ROM_SIZE));
+  xBoardTiles(files, SUPER_MONACO_GP_TILE_ROMS, SET);
