@@ -10,7 +10,7 @@ import type { Profile } from './road-profile.js';
 import type { CurvePoint, Path, WidthHeightPoint } from './road-tables.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 11;
+export const CONVERSION_VERSION = 12;
 
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
 export const WIDTH_RATE = 16 / 303;

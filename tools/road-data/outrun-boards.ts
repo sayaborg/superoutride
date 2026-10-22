@@ -90,10 +90,13 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     )
       throw new RangeError(`Board ${name} is shown by different anchors or scales`);
     const largest = objectSize(main, first!);
-    const size =
-      routine.family === undefined
-        ? { ...largest, pixels: spritePixels(words, largest) }
-        : restoredStrip(words, familySizes(main, routine.family), routine.family, boardsAcross(main, routine).count);
+    // A family lying on the ground is restored from its sizes; one rising from it is its nearest size, extending away
+    // from the road (right, or left mirrored).
+    const lies = routine.family?.lies === true;
+    const extending = routine.family !== undefined && !lies;
+    const size = lies
+      ? restoredStrip(words, familySizes(main, routine.family!), routine.family!, boardsAcross(main, routine).count)
+      : { ...largest, pixels: spritePixels(words, largest) };
     // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
     const texels = texelsAPixel(routine.pixelUnits);
     const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
@@ -102,6 +105,8 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const byEdge = standsByEdge(first!);
     const point = anchorPoint(byEdge ? first!.anchor : first!.anchor & 12, grid.width, grid.height);
+    // A board extending sideways stands on its bottom edge.
+    if (extending) point.y = grid.height - 0.5;
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
@@ -116,6 +121,7 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
       defaultPalette: paletteName(palettes[0]!),
       palettes: Object.fromEntries(palettes.map((p, k) => [paletteName(p), { colors: palette(k) }])),
       levels: [{ paletteRgb555: palette(0), indices, mixtures: spriteIdentityMixtures() }],
+      ...(extending ? { extend: first!.mirrored ? ('left' as const) : ('right' as const) } : {}),
       // The shadow: the original's, drawn at its scale against the object's and at the object's anchor.
       ...(first!.shadow
         ? {
@@ -136,12 +142,13 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
 }
 
 /**
- * The boards a family's reach is split into, side by side outward, and each one's width (road units): the fewest,
- * halving, whose board fits a course image's texels. A strip's or the trees' is one; the clouds', twice as large, four.
+ * The boards a lying family's reach is split into, side by side outward, and each one's width (road units): the fewest,
+ * halving, whose board fits a course image's texels (one for the sea's). Any other object's board is one, a rising
+ * family's extending sideways.
  */
 export function boardsAcross(main: Uint8Array, routine: ObjectRoutine): { count: number; units: number } {
   const { family } = routine;
-  if (!family) return { count: 1, units: 0 };
+  if (!family?.lies) return { count: 1, units: 0 };
   const { width, height } = familySizes(main, family)[family.nearest]!;
   for (let count = 1; count <= family.reach; count *= 2) {
     const grid = boardGrid((family.reach / count) * width, height, routine.pixelUnits);

@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6a, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6b, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -741,7 +741,11 @@ PRs:
   within its plane, every image width, to the frame's edge
   ([Sprites and Painter](architecture.md#sprites-and-painter)); an extending image's placement has no body
   (`invalid_placement`). No image extends yet; PG-6a and PG-7a give it to the rising strips.
-- PG-6a: OUTRUN's rising strips become extending boards at their bottoms, by the table.
+- PG-6a made OUTRUN's rising strips extending boards (conversion version 12): the grass 4548, the sand 4588 (by the
+  default: it stands, as the dunes do), the stones 45c8, VINEYARD's trees 435c and CLOUDY MOUNTAIN's clouds 4246 are each
+  their nearest size, standing on their bottom edge and extending away from the road (the clouds from the roads'
+  middle, at their height), in place of the pictures restored from their far sizes; the clouds take one board a side
+  instead of four. The sea 4608 waits for PG-6b.
 - PG-6b: the baking as a shared part of the road data tool, and OUTRUN's sea, lakes and patches baked into Strips;
   [Original road data](original-road-data.md) updated.
 - PG-7a, PG-7b: TURBO OUTRUN's two, by PG-6b's baking.

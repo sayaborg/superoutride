@@ -249,13 +249,13 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   4:3). A pixel of 2 units is 2.0377 texels across and 2.1833 down; one of 1 unit half that.
 - **Sampling.** By [chosen lines](#chosen-lines) (`chosenLines`), each axis at its pixel's texels: a pixel of 2 units
   is two texels across and down, one more where a window's chosen line repeats, so a line a texel wider stands where
-  the picture is flat; a strip's, cloud's or trees' restored picture is laid as a whole. A mirrored board is the
+  the picture is flat; the sea's restored picture is laid as a whole. A mirrored board is the
   unmirrored board's output mirrored. Every board keeps the size the scale rounds to.
-- **Picture.** The board's indices are the largest size's own pixels (a strip's restored from its sizes,
-  [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
+- **Picture.** The board's indices are the largest size's own pixels (a strip's, cloud's or trees' its nearest size's,
+  the sea's restored from its sizes, [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
-- **Base point.** At the bottom or middle its anchor gives. Across, an object anchored by an edge that has no body (its
+- **Base point.** At the bottom or middle its anchor gives; a board extending sideways at its bottom. Across, an object anchored by an edge that has no body (its
   routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
   at the middle of the sprite's hit extents, so a solid object's body stands there.
 - **Shadow.** A shadowed board's shadow is the original's shadow by chosen lines at the board's scale (a figure's at
@@ -316,13 +316,17 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11
   DEATH VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart
   and setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 79
-  at the top speed. Its board, `outrun-strip-<family>`, is the strip restored from its sizes, its base point at that
-  edge.
+  at the top speed. Its board, `outrun-strip-<family>`, stands at that edge (Stage PG): the grass, sand and stones
+  rise from the ground, so each is its nearest size, standing on its bottom edge and extending sideways away from the
+  road (`extend`: right, or left mirrored); the sea's or a lake's edge lies on the ground and is restored from its sizes,
+  its base point at its middle.
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
-  stands as tall for its width as a near one, and narrows.
-- **Restored** (`restoredStrip`). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
+  stands as tall for its width as a near one, and narrows. An extending board repeats its nearest size at one size to
+  the frame's edge, where the original shrinks the far sizes outward (the sand and stones); standing on its bottom
+  edge at the original's middle anchor's place, it stands half its height higher (K, 2026-10-22).
+- **Restored** (`restoredStrip`, the sea's alone since Stage PG). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
   and their own rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the
   nearest's width, which is only the inner 1/16 of the strip. The board is 16 times the nearest's width; its column
   `d` nearest pixels from the edge by the road takes, from the largest size k that covers it ((k + 1)d < 16 × width:
@@ -330,7 +334,8 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   floor(d(k + 1)/16) and, for row y, its row floor(y × its height / the nearest's). The grass's far sizes are not
   shrunk across, so its nearest size repeats outward to the same width. The boards are 7564 × 68 texels (grass), 8086 ×
   68 (sea, sand) and 8086 × 33 (stones: their sizes are 0 to 15 rows tall, so the outer half, size 0's, is
-  transparent), within a course image's 1,048,576 texels.
+  transparent), within a course image's 1,048,576 texels. Only the sea's is still made: 8086 × 68. The extending boards
+  are 473 × 68 texels (grass), 505 × 68 (sand) and 505 × 33 (stones).
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
   DESOLATION HILL's drifts of sand, 248 by 31 px.
 - **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is
@@ -359,9 +364,9 @@ cloud stands still:
   edge, left mirrored.
 - **Height.** Its base point is (2 × 151 + 72) × 15/14 road units (10.2 m) above the road: twice its row above the
   eye, which stays 151 road units at every depth, and the original's eye, 72 (row 223 to 151).
-- **Picture.** Its nearest size repeated outward, 16 times its width as the far sizes cover, in boards of 4 repetitions
-  (`boardsAcross`: the fewest, halving, that fit a course image), 4043 × 135 texels, side by side:
-  `outrun-strip-4246` and `-mirrored`, named by the family's address as the strips are. No body.
+- **Picture.** Its nearest size, 1011 × 135 texels, a board extending sideways away from the roads' middle (right, or
+  left mirrored) to the frame's edge, standing on its bottom edge: `outrun-strip-4246` and `-mirrored`, named by the
+  family's address as the strips are. No body.
 
 ### Banners and the flag waver
 
@@ -393,10 +398,9 @@ nearer than line 256 the size and zoom the table at 0x30A00 gives, from it the n
 pixel 2 road units), in its entry's palette, 228. It tests no hit, so it has no body.
 
 A far size k (to 7) is the nearest shrunk to (8 − k)/8 across and down with more trees beyond, covering 8/(8 − k)
-times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is restored as a
-strip's is (`restoredStrip`): 8 times the nearest's width, each column d from the size shrunk least that still covers
-it (d × (8 − k)/8 within the nearest's width), its column d(8 − k)/8 and its rows its height's share of the nearest's:
-3652 × 138 texels. 1343 trees stand at the top speed.
+times the nearest's width; size 8, 3 rows, is too small to read. Its board, `outrun-strip-435c`, is its nearest size,
+456 × 138 texels, standing on its bottom edge and extending sideways away from the road as the strips do. 1343 trees
+stand at the top speed.
 
 ### The figures after the goals
 
@@ -574,7 +578,7 @@ the holds counted at `--kmh` (293 unless told), and prints each height point's h
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- look` takes each stage piece alone.
 
-The conversion, version 11 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 12 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
 program draws them:
 

@@ -182,6 +182,11 @@ export interface Family {
   readonly nearest: number;
   readonly reach: number;
   readonly shrink?: (k: number) => number;
+  /**
+   * Whether it lies on the ground (the sea's and lakes' edge), its board restored from its sizes; every other family
+   * rises from the ground and is its nearest size extending sideways.
+   */
+  readonly lies?: true;
 }
 
 /**
@@ -211,12 +216,13 @@ export interface ObjectRoutine {
 }
 
 /** A strip's sizes: 16 for the depths, the nearest last; size k, where reduced, the nearest shrunk to (k + 1)/16. */
-const strip = (address: number, reduced: boolean): Family => ({
+const strip = (address: number, reduced: boolean, lies = false): Family => ({
   address,
   sizes: 16,
   nearest: 15,
   reach: 16,
   ...(reduced ? { shrink: (k: number) => (k + 1) / 16 } : {}),
+  ...(lies ? { lies: true } : {}),
 });
 /**
  * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
@@ -241,7 +247,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true) }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true, true) }],
   [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
   [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true) }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
