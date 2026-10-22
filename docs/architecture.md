@@ -642,8 +642,8 @@ sizes are such levels, each its own picture ([Image assets](image-assets.md#vehi
 
 A course image's master `W` by `H` has untrimmed, top-left-aligned level `k` storage `ceil(W/2^k)` by `ceil(H/2^k)`,
 the master reduced by `2^k`; a contiguous prefix through `ceil(log2(max(W,H)))` is valid, and builds supply the whole.
-The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`. Default anchor is `((W-1)/2,H-0.5)`, the middle of the bottom edge; fractional and
-outside-frame anchors are valid. The anchor is the picture's base point; every row of the picture is drawn, those below
+The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`. A course image's `aY` is `H-0.5`, its bottom edge, and
+its default anchor `((W-1)/2,H-0.5)`, the middle of the bottom edge; fractional and outside-frame `aX` are valid. The anchor is the picture's base point; every row of the picture is drawn, those below
 the anchor included. The master represents `W/40` by `H/40` metres, independent of opaque bounds.
 [Image assets](image-assets.md#completed-sprite-images) owns the level/mixture encoding.
 

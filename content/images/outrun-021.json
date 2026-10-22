@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "outrun-021",
   "width": 505,
   "height": 90,
   "anchorX": 252,
-  "anchorY": 89.5,
   "defaultPalette": "p206",
   "palettes": {
     "p206": {

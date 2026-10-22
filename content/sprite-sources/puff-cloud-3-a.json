@@ -1,9 +1,9 @@
 {
   "format": "superoutride.sprite-recipe",
-  "version": 3,
+  "version": 4,
   "crop": { "x": 0, "y": 0, "width": 28, "height": 28 },
   "widthMeters": 0.7,
-  "anchor": { "x": 13.5, "y": 27.5 },
+  "anchor": { "x": 13.5 },
   "mask": [],
   "palettes": {
     "smoke": [0, 14832, 21174, 26458, 31710, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

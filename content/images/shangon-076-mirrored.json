@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "shangon-076-mirrored",
   "width": 114,
   "height": 102,
   "anchorX": 56.5,
-  "anchorY": 101.5,
   "defaultPalette": "p045",
   "palettes": {
     "p045": {

@@ -473,7 +473,6 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       b1: object.b1,
       mirrored: ((object.flags & FLAG.mirrored) !== 0) !== (!viewed && mirrored),
       flipped: (object.flags & FLAG.flipped) !== 0,
-      middle: false,
       palette,
     };
     uses.boards.push(use);

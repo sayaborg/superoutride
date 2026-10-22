@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-27dcc-mirrored-shadowed",
   "width": 130,
   "height": 275,
   "anchorX": 93.953125,
-  "anchorY": 274.5,
   "defaultPalette": "p183",
   "palettes": {
     "p183": {

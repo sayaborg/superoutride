@@ -23,16 +23,16 @@ import { normalizeSpriteSource, type SourceImage, type SpriteCrop } from './spri
  * production-only data, saved beside its PNG under `content/sprite-sources/`, which the build does not deliver.
  */
 export const SPRITE_RECIPE_FORMAT = 'superoutride.sprite-recipe';
-export const SPRITE_RECIPE_VERSION = 3;
+export const SPRITE_RECIPE_VERSION = 4;
 /** The directory of sources and recipes: `<name>.png` and `<name>.json`, the master's name being `<name>`. */
 export const SPRITE_SOURCES_DIRECTORY = 'sprite-sources';
 
 /**
- * The default anchor of a source `width` by `height` texels, in texel-centre coordinates: the middle of its bottom edge,
- * where a board stands.
+ * The default anchor of a source `width` texels wide, in texel-centre coordinates: its middle, where a board stands on
+ * its bottom edge.
  */
-export function defaultSpriteAnchor(width: number, height: number): { readonly x: number; readonly y: number } {
-  return { x: (width - 1) / 2, y: height - 0.5 };
+export function defaultSpriteAnchor(width: number): { readonly x: number } {
+  return { x: (width - 1) / 2 };
 }
 
 export interface SpriteRecipe {
@@ -40,7 +40,8 @@ export interface SpriteRecipe {
   readonly version: typeof SPRITE_RECIPE_VERSION;
   readonly crop: SpriteCrop;
   readonly widthMeters: number;
-  readonly anchor: { readonly x: number; readonly y: number };
+  /** Across, the base point; a picture stands on its bottom edge. */
+  readonly anchor: { readonly x: number };
   /** Rectangles hidden (made transparent) or shown again, applied in order. */
   readonly mask: readonly (SpriteCrop & { readonly hidden: boolean })[];
   /**
@@ -67,7 +68,7 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
   );
   const crop = readRectangle(document.crop, '/crop').rectangle;
   const widthMeters = readNumber(document.widthMeters, '/widthMeters', { min: 0, exclusiveMin: true });
-  const anchor = readRecord(document.anchor, '/anchor', ['x', 'y']);
+  const anchor = readRecord(document.anchor, '/anchor', ['x']);
   const mask = readArray(document.mask, '/mask', (item, path) => {
     const { record, rectangle } = readRectangle(item, path, ['hidden']);
     return { ...rectangle, hidden: readBoolean(record.hidden, `${path}/hidden`) };
@@ -89,7 +90,7 @@ export function readSpriteRecipe(value: unknown): SpriteRecipe {
     version: SPRITE_RECIPE_VERSION,
     crop,
     widthMeters,
-    anchor: { x: readNumber(anchor.x, '/anchor/x'), y: readNumber(anchor.y, '/anchor/y') },
+    anchor: { x: readNumber(anchor.x, '/anchor/x') },
     mask,
     palettes,
   };
@@ -121,7 +122,7 @@ export function importSprite(image: SourceImage, recipe: SpriteRecipe, name: str
   const palettes = Object.entries(recipePalettes(image, recipe));
   const master = normalizeSpriteSource(maskedSource(image, recipe.mask), {
     format: 'superoutride.sprite-source',
-    version: 2,
+    version: 3,
     name,
     crop: recipe.crop,
     widthMeters: recipe.widthMeters,

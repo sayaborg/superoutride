@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "enduror-mound-0",
   "width": 335,
   "height": 40,
   "anchorX": 167,
-  "anchorY": 39.5,
   "defaultPalette": "p027",
   "palettes": {
     "p027": {

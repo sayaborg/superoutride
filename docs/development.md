@@ -267,8 +267,8 @@ recording it cannot decode is not played and the module says so.
 
 The Sprites module edits course images through the [sprite operations](image-assets.md#sprite-operations), each edit
 one step. Its import screen opens a source of `content/sprite-sources/` or adds one (a named PNG and a recipe over the
-whole image); the source shows its crop, mask and anchor, and dragging on it with the crop, hide, show or anchor tool
-edits the recipe, as do its fields. The master is imported as the build would and previewed with the product's sprite
+whole image); the source shows its crop, mask and anchor (across, on the crop's bottom edge), and dragging on it with
+the crop, hide, show or anchor tool edits the recipe, as do its fields. The master is imported as the build would and previewed with the product's sprite
 drawing and LOD at a chosen depth; it is written as its named file, replacing one of that name.
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),

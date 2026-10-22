@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "tsukuba-signal",
   "width": 240,
   "height": 343,
   "anchorX": 119.5,
-  "anchorY": 342.35714285714283,
   "defaultPalette": "original",
   "palettes": {
     "original": {

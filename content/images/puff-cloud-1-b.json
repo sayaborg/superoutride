@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "puff-cloud-1-b",
   "width": 14,
   "height": 14,
   "anchorX": 6.5,
-  "anchorY": 13.5,
   "defaultPalette": "smoke",
   "palettes": {
     "smoke": {

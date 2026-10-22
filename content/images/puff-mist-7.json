@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "puff-mist-7",
   "width": 113,
   "height": 113,
   "anchorX": 56,
-  "anchorY": 112.5,
   "defaultPalette": "spray",
   "palettes": {
     "spray": {

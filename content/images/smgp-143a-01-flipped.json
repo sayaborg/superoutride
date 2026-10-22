@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "smgp-143a-01-flipped",
   "width": 23,
   "height": 258,
   "anchorX": 11,
-  "anchorY": 257.5,
   "defaultPalette": "p139",
   "palettes": {
     "p139": {

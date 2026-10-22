@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "outrun-000-shadowed",
   "width": 261,
   "height": 271,
   "anchorX": 183.015625,
-  "anchorY": 270.5,
   "defaultPalette": "p000",
   "palettes": {
     "p000": {

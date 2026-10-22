@@ -44,8 +44,7 @@ import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { bakeGround, type GroundPiece } from './ground-baking.js';
+import { bakeGround, bakePicture, type GroundPiece, type LyingPicture } from './ground-baking.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
 /** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
@@ -284,7 +283,7 @@ function roadCrossings(laid: readonly Laid[], sides: (span: Span, p: number) => 
 export interface RoadOptions {
   readonly id: string;
   /** The pictures of what lies on the ground, by image name: the objects showing them are baked into Strips. */
-  readonly lying: ReadonlyMap<string, SpriteLodDocument>;
+  readonly lying: ReadonlyMap<string, LyingPicture>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -940,24 +939,18 @@ function sectionDocument(
   const lyingPieces: GroundPiece[] = [];
   const standing: (typeof section.objects)[number][] = [];
   for (const placed of section.objects) {
-    const master = section.options.lying.get(placed.object.image);
-    if (!master) {
+    const lying = section.options.lying.get(placed.object.image);
+    if (!lying) {
       standing.push(placed);
       continue;
     }
-    const colors = master.palettes[placed.object.palette]!.colors;
+    const { master } = lying;
     // A strip's pieces stand by their edge, a patch by its middle.
     const strip = master.anchorX < 0 || master.anchorX > master.width - 1;
     lyingPieces.push({
       s: plan.station(placed.p) - origin,
       l: placed.lateral,
-      picture: {
-        width: master.width,
-        height: master.height,
-        anchorX: master.anchorX,
-        anchorY: master.anchorY,
-        colors: master.levels[0]!.indices.map((i) => (i ? colors[i]! : null)),
-      },
+      picture: bakePicture(lying, placed.object.palette),
       strip: strip
         ? { key: `${placed.object.image} ${placed.object.palette}`, outward: master.anchorX < 0 ? 1 : -1 }
         : null,

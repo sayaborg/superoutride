@@ -65,12 +65,12 @@ export interface SpriteShadowDocument {
 
 export interface SpriteLodDocument {
   readonly format: 'superoutride.sprite-lod';
-  readonly version: 4;
+  readonly version: 5;
   readonly name: string;
   readonly width: number;
   readonly height: number;
+  /** Its base point across; down, the middle of its bottom row's lower edge, `height − 0.5`. */
   readonly anchorX: number;
-  readonly anchorY: number;
   readonly defaultPalette: string;
   readonly palettes: Readonly<Record<string, SpritePalette>>;
   readonly levels: readonly {
@@ -133,7 +133,6 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       'width',
       'height',
       'anchorX',
-      'anchorY',
       'defaultPalette',
       'palettes',
       'levels',
@@ -141,7 +140,7 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'extend') ? ['extend'] : []),
     ],
     'superoutride.sprite-lod',
-    4,
+    5,
   );
   const name = readString(document.name, '/name');
   const { palettes, defaultPalette } = readSpritePalettes(document);
@@ -193,7 +192,8 @@ export function readSpritePicture(
     'Sprite extent is too large',
   );
   const anchorX = readNumber(record.anchorX, `${path}/anchorX`);
-  const anchorY = readNumber(record.anchorY, `${path}/anchorY`);
+  // A picture stands on its bottom edge: its anchor's height follows from its own.
+  const anchorY = height - 0.5;
   const layout = spriteLodLayout(width, height);
   const levelDocuments = readArray(record.levels, `${path}/levels`, (level) => level, { min: 1, max: layout.length });
   const levelFields = ['paletteRgb555', 'indices', 'mixtures'];

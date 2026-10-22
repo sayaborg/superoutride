@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-27cbe",
   "width": 196,
   "height": 68,
   "anchorX": 97.5,
-  "anchorY": 67.5,
   "defaultPalette": "p348",
   "palettes": {
     "p348": {

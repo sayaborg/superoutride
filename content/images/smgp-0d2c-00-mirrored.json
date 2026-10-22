@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "smgp-0d2c-00-mirrored",
   "width": 297,
   "height": 266,
   "anchorX": 148,
-  "anchorY": 265.5,
   "defaultPalette": "p157",
   "palettes": {
     "p157": {

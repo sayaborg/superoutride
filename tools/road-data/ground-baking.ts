@@ -5,7 +5,7 @@
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 
@@ -25,6 +25,27 @@ export interface BakePicture {
   readonly anchorX: number;
   readonly anchorY: number;
   readonly colors: readonly (number | null)[];
+}
+
+/**
+ * What lies on the ground as a board would show it: its master and its anchor's height, the original's base point down
+ * the picture (a course image stands on its bottom edge; what lies is laid by the original's).
+ */
+export interface LyingPicture {
+  readonly master: SpriteLodDocument;
+  readonly anchorY: number;
+}
+
+/** A lying picture in its palette `palette`, to bake. */
+export function bakePicture({ master, anchorY }: LyingPicture, palette: string): BakePicture {
+  const colors = master.palettes[palette]!.colors;
+  return {
+    width: master.width,
+    height: master.height,
+    anchorX: master.anchorX,
+    anchorY,
+    colors: master.levels[0]!.indices.map((i) => (i ? colors[i]! : null)),
+  };
 }
 
 /** A piece: its picture standing at station `s` (metres) and lateral `l`, its anchor's place, in drawing order. */

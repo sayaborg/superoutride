@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "tsukuba-house",
   "width": 880,
   "height": 404,
   "anchorX": 439.50000000000006,
-  "anchorY": 402.83333333333337,
   "defaultPalette": "original",
   "palettes": {
     "original": {

@@ -136,8 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-11, then the rest of Stage PG, and beside it
-[Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
+Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
@@ -776,13 +775,12 @@ PRs:
   `tests/rendering/sprite-views.test.mjs` and their document sections), the strips' restoration (`restoredStrip` and
   the families' `reach` and `shrink`; `boardsAcross` went in PG-6b2) and the 20 images no longer used (OUTRUN's sea
   and patches, TURBO OUTRUN's waves, puddles and gravel patches, SUPER MONACO GP's eight view sets).
-- PG-11: one authority for the anchor's height. Once every kind-1 picture stands at its bottom, anchorY follows from H:
-  the course image's anchorY (the tire puffs' pictures share its format) and the sprite recipe's `anchor.y` go, their
-  versions rising, with what else reads or writes them (the image writing tools, the sprite source compiler,
-  the workbench's y field, road-data's `anchorPoint` and its test). Admission (`src/image/sprite.ts`) sets
-  anchorY = H − 0.5 and the drawing uses the picture's anchor as today; shadows' anchorY and vehicle pictures (another
-  format) stay. Every image and recipe is written again and every original's `--check` passes; if the compiler's
-  version rises, every course is measured again.
+- PG-11 made the anchor's height one authority: a course image (version 5) and a sprite recipe (version 4) carry no
+  anchor height; admission sets anchorY = H − 0.5 and the drawing uses the picture's anchor as before. The image
+  writers, the sprite source compiler (version 3) and the workbench's y field went with it; what is baked lying
+  keeps the original's anchor beside its master. Shadows' anchorY and vehicle pictures stay. Every image and recipe
+  was written again, 28 drawn pictures of TSUKUBA's 0.01 to 0.95 texel lower (their recipes' anchors mapped a fraction
+  above the padded bottom row); no compiler's version rose and the measured products stayed current.
 
 Each PR passes Node 24's `npm test` and the driving scenarios with current measured products, carries before and after
 images (PG-1: the COCONUT BEACH scene above with the rival's tires and the sea strip seen, and pictures beyond a crest

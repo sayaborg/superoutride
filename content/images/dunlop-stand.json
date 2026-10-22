@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "dunlop-stand",
   "width": 880,
   "height": 308,
   "anchorX": 439.49999999999994,
-  "anchorY": 307.5,
   "defaultPalette": "original",
   "palettes": {
     "original": {

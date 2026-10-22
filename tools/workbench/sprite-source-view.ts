@@ -43,7 +43,6 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     cropWidth: make('input', '', { type: 'number', step: '1' }),
     cropHeight: make('input', '', { type: 'number', step: '1' }),
     anchorX: make('input', '', { type: 'number', step: 'any' }),
-    anchorY: make('input', '', { type: 'number', step: 'any' }),
   };
   const tools = make('span');
   let tool: Tool = 'crop';
@@ -92,7 +91,6 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     field('height', fields.cropHeight),
     ' ',
     field('Anchor x', fields.anchorX),
-    field('y', fields.anchorY),
     make('p'),
     'Drag on the source: ',
     tools,
@@ -148,8 +146,9 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     };
     outline(recipe.crop, '#77ffe0');
     if (drag) outline(rectangle(drag), '#ffffff');
+    // The base point: across at the anchor, down at the crop's bottom edge, where the picture stands.
     const ax = (recipe.anchor.x + 0.5) * ZOOM,
-      ay = (recipe.anchor.y + 0.5) * ZOOM;
+      ay = (recipe.crop.y + recipe.crop.height) * ZOOM;
     graphics.strokeStyle = '#ffd33d';
     graphics.beginPath();
     graphics.moveTo(ax - 6, ay);
@@ -204,7 +203,6 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
         cropWidth: String(recipe.crop.width),
         cropHeight: String(recipe.crop.height),
         anchorX: String(recipe.anchor.x),
-        anchorY: String(recipe.anchor.y),
       };
       for (const [key, input] of Object.entries(fields))
         if (document.activeElement !== input) input.value = values[key as keyof typeof fields];
@@ -248,7 +246,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
         version: SPRITE_RECIPE_VERSION,
         crop: { x: 0, y: 0, width: decodedNew.width, height: decodedNew.height },
         widthMeters: decodedNew.width / 40,
-        anchor: defaultSpriteAnchor(decodedNew.width, decodedNew.height),
+        anchor: defaultSpriteAnchor(decodedNew.width),
         mask: [],
         palettes: null,
       } satisfies SpriteRecipe,
@@ -273,8 +271,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     ['height', fields.cropHeight],
   ] as const)
     recipeField(input, finiteNumber, (r, value) => ({ ...r, crop: { ...r.crop, [key]: value } }), 'Set crop');
-  recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { ...r.anchor, x } }), 'Set anchor');
-  recipeField(fields.anchorY, finiteNumber, (r, y) => ({ ...r, anchor: { ...r.anchor, y } }), 'Set anchor');
+  recipeField(fields.anchorX, finiteNumber, (r, x) => ({ ...r, anchor: { x } }), 'Set anchor');
   generate.addEventListener('click', () => {
     // The generated colors replace the default palette's, keeping its name and the other palettes.
     if (recipe && image) {
@@ -317,7 +314,7 @@ export function mountSourceView(element: HTMLElement, context: WorkbenchContext)
     commit: (pending) => {
       if (!recipe || !image) return;
       const rect = clip(rectangle(pending), image);
-      if (tool === 'anchor') save({ ...recipe, anchor: { x: pending.x1, y: pending.y1 } }, 'Set anchor');
+      if (tool === 'anchor') save({ ...recipe, anchor: { x: pending.x1 } }, 'Set anchor');
       else if (!rect) return;
       else if (tool === 'crop') save({ ...recipe, crop: rect }, 'Set crop');
       else

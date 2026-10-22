@@ -38,8 +38,7 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { ZipFile } from './zip.js';
-import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { bakeGround, type GroundPiece } from './ground-baking.js';
+import { bakeGround, bakePicture, type GroundPiece, type LyingPicture } from './ground-baking.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
 export const TURBO_OUTRUN_CONVERSION_VERSION = 3;
@@ -212,7 +211,9 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
   // What lies on the ground is baked into the Sections' Strips from its masters; every other board is a picture.
   const lying = new Set(placing.placed.filter((o) => o.ground).map((o) => pictureName(o.use)));
   const pictures = boards.filter((b) => !lying.has(b.name));
-  const masters = new Map(boards.filter((b) => lying.has(b.name)).map((b) => [b.name, b.master]));
+  const masters = new Map(
+    boards.filter((b) => lying.has(b.name)).map((b) => [b.name, { master: b.master, anchorY: b.anchorY }]),
+  );
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
@@ -267,8 +268,8 @@ function sectionDocument(
     readonly objects: readonly PlacedObject[];
     /** Each picture's width, metres, by name. */
     readonly widths: ReadonlyMap<string, number>;
-    /** The masters of what lies on the ground, by name. */
-    readonly masters: ReadonlyMap<string, SpriteLodDocument>;
+    /** The pictures of what lies on the ground, by name. */
+    readonly masters: ReadonlyMap<string, LyingPicture>;
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
@@ -546,18 +547,10 @@ function sectionDocument(
       standing.push(o);
       continue;
     }
-    const master = context.masters.get(pictureName(o.use))!;
-    const colors = master.palettes[paletteName(o.use.palette)]!.colors;
     lyingPieces.push({
       s: plan.station(o.g),
       l: o.x - offset.at(o.g),
-      picture: {
-        width: master.width,
-        height: master.height,
-        anchorX: master.anchorX,
-        anchorY: master.anchorY,
-        colors: master.levels[0]!.indices.map((i) => (i ? colors[i]! : null)),
-      },
+      picture: bakePicture(context.masters.get(pictureName(o.use))!, paletteName(o.use.palette)),
       strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
       material: o.ground,
     });

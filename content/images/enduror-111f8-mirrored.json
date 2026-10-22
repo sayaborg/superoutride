@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "enduror-111f8-mirrored",
   "width": 12,
   "height": 166,
   "anchorX": 5.5,
-  "anchorY": 165.5,
   "defaultPalette": "p076",
   "palettes": {
     "p076": {

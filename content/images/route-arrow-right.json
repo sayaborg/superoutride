@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "route-arrow-right",
   "width": 120,
   "height": 108,
   "anchorX": 59.5,
-  "anchorY": 107.5,
   "defaultPalette": "original",
   "palettes": {
     "original": {

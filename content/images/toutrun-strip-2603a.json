@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-strip-2603a",
   "width": 1011,
   "height": 135,
   "anchorX": -0.5,
-  "anchorY": 134.5,
   "defaultPalette": "p251",
   "palettes": {
     "p251": {

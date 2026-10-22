@@ -31,7 +31,7 @@ export async function writeDrawnSprite(
     version: SPRITE_RECIPE_VERSION,
     crop: { x: 0, y: 0, width: raster.width, height: raster.height },
     widthMeters: raster.width / TEXELS_PER_METRE,
-    anchor: defaultSpriteAnchor(raster.width, raster.height),
+    anchor: defaultSpriteAnchor(raster.width),
     mask: [],
     palettes,
   };

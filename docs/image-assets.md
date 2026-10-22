@@ -14,8 +14,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 
 ```text
 {
-  format: "superoutride.sprite-lod", version: 4, name,
-  width: W, height: H, anchorX, anchorY,
+  format: "superoutride.sprite-lod", version: 5, name,
+  width: W, height: H, anchorX,
   defaultPalette: "original",
   palettes: {original: {colors: [RGB555 integers]},
              alternate: {colors: [RGB555 integers]}},
@@ -26,7 +26,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 }
 ```
 
-Master width at 40 texels/m defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height. Each level has at most 15 opaque colors.
+An image stands on its bottom edge: its anchor is `(anchorX, H − 0.5)`, the height following from `H` alone (admission
+sets it; a shadow keeps its own `anchorY`). Master width at 40 texels/m defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height. Each level has at most 15 opaque colors.
 Level zero preserves semantic palette slots and identity mixtures for slots 1 through 15.
 A coarse slot is a positive-weight mixture of original opaque slots summing to one; unused slots
 have empty mixtures. Its normal color is the mixture evaluated in the original palette.
@@ -308,9 +309,9 @@ Decoded inputs are straight-alpha 8-bit sRGB pixels and this normalization recip
 
 ```text
 {
-  format: "superoutride.sprite-source", version: 2, name,
+  format: "superoutride.sprite-source", version: 3, name,
   crop: {x,y,width,height}, widthMeters,
-  anchor: {x,y}, paletteRgb555
+  anchor: {x}, paletteRgb555
 }
 ```
 
@@ -319,8 +320,8 @@ including transparency. Master width is `round(widthMeters*40)`, positive ties u
 actual width is that integer divided by 40. The uniform scale is master width/crop width. Master
 height is the ceiling of scaled crop height, with transparent fractional-row padding.
 
-Source anchors are original-image texel-center coordinates and map per axis to
-`(sourceAnchor+0.5-cropOrigin)*scale-0.5`. Fractional/outside anchors are valid. Exact overlap-area
+The source anchor is an original-image texel-center coordinate across and maps to
+`(sourceAnchor+0.5-cropOrigin)*scale-0.5`; the master stands on its bottom edge. Fractional/outside anchors are valid. Exact overlap-area
 integration applies to reduction and enlargement. Straight alpha weights opaque color before the
 common binary coverage threshold. The supplied palette has 16 slots, including unused slot zero.
 Output is one normalized master level.
@@ -352,15 +353,15 @@ generator ([Vehicle sprite library](#vehicle-sprite-library)).
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
 published with each build, so the workbench reopens them. The master's name is `<name>`. The recipe is
-`superoutride.sprite-recipe` version 3:
+`superoutride.sprite-recipe` version 4:
 
 ```text
-{format, version, crop: {x,y,width,height}, widthMeters, anchor: {x,y},
+{format, version, crop: {x,y,width,height}, widthMeters, anchor: {x},
  mask: [{x,y,width,height,hidden}, ...], palettes: {name: [rgb555, ...], ...} | null}
 ```
 
-A new recipe's anchor is the source's default, the middle of its bottom edge, `((W − 1)/2, H − 0.5)` for a source `W` by
-`H` (`defaultSpriteAnchor`); every saved recipe's anchor stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
+A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
+the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
 source alpha back. `palettes` names one or more palettes of 16 slots: the first is the default, which the source is
 normalized with, and the others color the same slots otherwise. Null generates one, `original`, from the masked crop
 ([Candidate palettes](#candidate-palettes)) with 15 colors.

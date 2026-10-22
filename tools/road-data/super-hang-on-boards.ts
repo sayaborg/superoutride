@@ -66,12 +66,11 @@ export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: 
       const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
       const master: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
-        version: 4,
+        version: 5,
         name,
         width: grid.width,
         height: grid.height,
         anchorX: grid.width / 2 - 0.5,
-        anchorY: grid.height - 0.5,
         defaultPalette: paletteName(palettes[0]!),
         palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [

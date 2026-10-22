@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "tsukuba-hairpin-stand",
   "width": 1360,
   "height": 178,
   "anchorX": 679.5,
-  "anchorY": 177.27777777777777,
   "defaultPalette": "original",
   "palettes": {
     "original": {

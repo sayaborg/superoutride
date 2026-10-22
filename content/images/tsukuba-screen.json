@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "tsukuba-screen",
   "width": 440,
   "height": 310,
   "anchorX": 219.5,
-  "anchorY": 309.0057034220533,
   "defaultPalette": "original",
   "palettes": {
     "original": {

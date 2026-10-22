@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "marshal-tower",
   "width": 280,
   "height": 291,
   "anchorX": 139.5,
-  "anchorY": 290.3888888888889,
   "defaultPalette": "original",
   "palettes": {
     "original": {

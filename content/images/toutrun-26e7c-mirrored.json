@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-26e7c-mirrored",
   "width": 359,
   "height": 391,
   "anchorX": 187.1590909090909,
-  "anchorY": 390.5,
   "defaultPalette": "p110",
   "palettes": {
     "p110": {

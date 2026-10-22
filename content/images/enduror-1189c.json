@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "enduror-1189c",
   "width": 78,
   "height": 44,
   "anchorX": 38.5,
-  "anchorY": 43.5,
   "defaultPalette": "p070",
   "palettes": {
     "p070": {

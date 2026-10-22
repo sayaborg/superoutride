@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "enduror-10582",
   "width": 48,
   "height": 36,
   "anchorX": 23.5,
-  "anchorY": 35.5,
   "defaultPalette": "p008",
   "palettes": {
     "p008": {

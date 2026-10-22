@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "outrun-140-mirrored",
   "width": 33,
   "height": 64,
   "anchorX": 16,
-  "anchorY": 63.5,
   "defaultPalette": "p191",
   "palettes": {
     "p191": {

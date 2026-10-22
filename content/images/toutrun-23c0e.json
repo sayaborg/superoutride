@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-23c0e",
   "width": 179,
   "height": 94,
   "anchorX": 89,
-  "anchorY": 93.5,
   "defaultPalette": "p001",
   "palettes": {
     "p001": {

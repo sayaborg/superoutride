@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-2653a-shadowed",
   "width": 163,
   "height": 275,
   "anchorX": 81,
-  "anchorY": 274.5,
   "defaultPalette": "p186",
   "palettes": {
     "p186": {

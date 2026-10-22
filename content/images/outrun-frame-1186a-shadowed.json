@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "outrun-frame-1186a-shadowed",
   "width": 41,
   "height": 62,
   "anchorX": 20,
-  "anchorY": 61.5,
   "defaultPalette": "p011",
   "palettes": {
     "p011": {

@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "outrun-strip-4548-mirrored",
   "width": 473,
   "height": 68,
   "anchorX": 472.5,
-  "anchorY": 67.5,
   "defaultPalette": "p023",
   "palettes": {
     "p023": {

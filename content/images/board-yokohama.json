@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "board-yokohama",
   "width": 280,
   "height": 89,
   "anchorX": 139.5,
-  "anchorY": 87.96905537459283,
   "defaultPalette": "original",
   "palettes": {
     "original": {

@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "shangon-042",
   "width": 57,
   "height": 167,
   "anchorX": 28,
-  "anchorY": 166.5,
   "defaultPalette": "p128",
   "palettes": {
     "p128": {

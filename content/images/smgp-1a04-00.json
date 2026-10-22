@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "smgp-1a04-00",
   "width": 297,
   "height": 268,
   "anchorX": 148,
-  "anchorY": 267.5,
   "defaultPalette": "p211",
   "palettes": {
     "p211": {

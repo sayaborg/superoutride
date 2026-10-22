@@ -62,7 +62,7 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
  * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
  * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
  * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
- * palette's color), with its width in metres and its master. Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
+ * palette's color), with its width in metres, its master and its base point's height (for what is baked lying). Its base point is its anchor's, `aside` across; a shadowed board carries the shadow picture
  * (the size list at 0x2667A) at its scale and base point.
  */
 export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[]) {
@@ -90,12 +90,11 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
       const board: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
-        version: 4,
+        version: 5,
         name,
         width: grid.width,
         height: grid.height,
         anchorX: point.x + aside,
-        anchorY: point.y,
         defaultPalette: paletteName(palettes[0]!),
         palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
         levels: [
@@ -110,6 +109,12 @@ export function turboOutrunBoards(main: Uint8Array, words: Uint32Array, uses: re
           : {}),
         ...(first.extends ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
-      return { name, width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER, master: board, image: courseImageFile(board) };
+      return {
+        name,
+        width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
+        master: board,
+        anchorY: point.y,
+        image: courseImageFile(board),
+      };
     });
 }

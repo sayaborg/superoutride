@@ -23,11 +23,11 @@ export interface SpriteCrop {
 /** Editable source settings; compilation rejects incomplete or invalid values. */
 export interface SpriteSourceRecipe {
   readonly format: 'superoutride.sprite-source';
-  readonly version: 2;
+  readonly version: 3;
   readonly name: string;
   readonly crop: SpriteCrop;
   readonly widthMeters: number | null;
-  readonly anchor: { readonly x: number; readonly y: number };
+  readonly anchor: { readonly x: number };
   readonly paletteRgb555: readonly number[];
 }
 
@@ -47,7 +47,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     recipe,
     ['format', 'version', 'name', 'crop', 'widthMeters', 'anchor', 'paletteRgb555'],
     'superoutride.sprite-source',
-    2,
+    3,
   );
   const name = readString(settings.name, '/name');
   const crop = readRecord(settings.crop, '/crop', ['x', 'y', 'width', 'height']);
@@ -66,15 +66,9 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     '/widthMeters',
     'Normalized master must contain 1 to 1048576 texels',
   );
-  const anchor = readRecord(settings.anchor, '/anchor', ['x', 'y']);
+  const anchor = readRecord(settings.anchor, '/anchor', ['x']);
   const anchorX = (readNumber(anchor.x, '/anchor/x') + 0.5 - x) * scale - 0.5;
-  const anchorY = (readNumber(anchor.y, '/anchor/y') + 0.5 - y) * scale - 0.5;
-  requireAdmission(
-    Number.isFinite(anchorX) && Number.isFinite(anchorY),
-    'invalid_numeric_domain',
-    '/anchor',
-    'Mapped anchor must be finite',
-  );
+  requireAdmission(Number.isFinite(anchorX), 'invalid_numeric_domain', '/anchor', 'Mapped anchor must be finite');
   const paletteRgb555 = readSpritePaletteRgb555(settings.paletteRgb555, '/paletteRgb555');
   const filter = createSpriteAreaFilter(paletteRgb555);
   const indices = Array<number>(width * height).fill(0);
@@ -90,12 +84,11 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     }
   return {
     format: 'superoutride.sprite-lod',
-    version: 4,
+    version: 5,
     name,
     width,
     height,
     anchorX,
-    anchorY,
     defaultPalette: 'original',
     palettes: { original: { colors: paletteRgb555 } },
     levels: [{ paletteRgb555, indices, mixtures: spriteIdentityMixtures() }],

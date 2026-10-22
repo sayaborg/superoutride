@@ -7,6 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
+import type { LyingPicture } from './ground-baking.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
@@ -62,27 +63,27 @@ export function lyingPictures(
   main: Uint8Array,
   words: Uint32Array,
   uses: readonly SpriteUse[],
-): Map<string, SpriteLodDocument> {
+): Map<string, LyingPicture> {
   return new Map(
     boardMasters(main, words, uses)
       .filter((board) => board.lies)
-      .map(({ name, master }) => [name, master]),
+      .map(({ name, master, anchorY }) => [name, { master, anchorY }]),
   );
 }
 
 /**
  * The boards `uses` need: one a sprite, mirroring and shadow, carrying every palette it is shown in (the first, by
  * number, its default). Each is made from the largest size's pixels (a family's nearest size) on its texel grid by
- * chosen lines (`chosenLines`), a mirrored one the unmirrored output mirrored, in the palettes' own colors. Its base
- * point is its anchor's bottom or middle (a family rising from the ground, extending sideways, its bottom), and across,
- * an object standing by its edge (`standsByEdge`) at that edge, any other at the middle of its hit extents, where a
- * solid object's body stands. What lies on the ground is marked: it is baked, never a board.
+ * chosen lines (`chosenLines`), a mirrored one the unmirrored output mirrored, in the palettes' own colors. It stands
+ * on its bottom edge, across an object standing by its edge (`standsByEdge`) at that edge, any other at the middle of
+ * its hit extents, where a solid object's body stands. What lies on the ground is marked: it is baked, never a board,
+ * by its anchor's height (its anchor's bottom or middle).
  */
 function boardMasters(
   main: Uint8Array,
   words: Uint32Array,
   uses: readonly SpriteUse[],
-): { name: string; master: SpriteLodDocument; lies: boolean }[] {
+): { name: string; master: SpriteLodDocument; anchorY: number; lies: boolean }[] {
   const groups = new Map<string, SpriteUse[]>();
   for (const use of uses) {
     const name = boardName(use);
@@ -97,7 +98,7 @@ function boardMasters(
     }
     return shadows.get(address)!;
   };
-  const boards: { name: string; master: SpriteLodDocument; lies: boolean }[] = [];
+  const boards: { name: string; master: SpriteLodDocument; anchorY: number; lies: boolean }[] = [];
   for (const [name, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
     const [first] = group;
     const routine = OBJECT_ROUTINES.get(first!.routine)!;
@@ -127,12 +128,11 @@ function boardMasters(
     const castScale = routine.shadow?.scale ?? 1;
     const master = (palette: (k: number) => number[], indices: number[]): SpriteLodDocument => ({
       format: 'superoutride.sprite-lod',
-      version: 4,
+      version: 5,
       name,
       width: grid.width,
       height: grid.height,
       anchorX: point.x + aside,
-      anchorY: point.y,
       defaultPalette: paletteName(palettes[0]!),
       palettes: Object.fromEntries(palettes.map((p, k) => [paletteName(p), { colors: palette(k) }])),
       levels: [{ paletteRgb555: palette(0), indices, mixtures: spriteIdentityMixtures() }],
@@ -151,7 +151,7 @@ function boardMasters(
         : {}),
     });
     const board = master((k) => [0, ...spritePalette(main, palettes[k]!).slice(1)], indices);
-    boards.push({ name, master: board, lies });
+    boards.push({ name, master: board, anchorY: point.y, lies });
   }
   return boards;
 }

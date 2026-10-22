@@ -1,11 +1,10 @@
 {
   "format": "superoutride.sprite-lod",
-  "version": 4,
+  "version": 5,
   "name": "toutrun-26cba-mirrored-shadowed",
   "width": 163,
   "height": 129,
   "anchorX": 81,
-  "anchorY": 128.5,
   "defaultPalette": "p294",
   "palettes": {
     "p294": {
