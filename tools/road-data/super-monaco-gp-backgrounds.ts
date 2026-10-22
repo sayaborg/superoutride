@@ -91,6 +91,13 @@ const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as co
 const TILE = 8;
 const PLANES = 3;
 
+/** Pixel (x, y) of tile `tile` (the X board's 16B tiles: three bit planes, the lowest first, 8 bytes a tile); 0 none. */
+export function tilePixel(tiles: readonly Uint8Array[], tile: number, x: number, y: number): number {
+  let v = 0;
+  for (let p = 0; p < PLANES; p++) v |= ((tiles[p]![tile * TILE + y]! >> (7 - x)) & 1) << p;
+  return v;
+}
+
 /**
  * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in
  * its palette (pixel 0 transparent), both layers' bottom rows the first below the horizon; the road layer's ramp.
@@ -106,9 +113,7 @@ export function superMonacoGpSkyBands(main: Uint8Array, tiles: readonly Uint8Arr
       for (let y = rows[0]; y <= rows[1]; y++)
         for (let x = 0; x < PAGE_COLUMNS * TILE; x++) {
           const tileWord = ram[page * PAGE_COLUMNS * PAGE_ROWS + (y >> 3) * PAGE_COLUMNS + (x >> 3)]!;
-          const tile = tileWord & 0x1fff;
-          let v = 0;
-          for (let p = 0; p < PLANES; p++) v |= ((tiles[p]![tile * TILE + (y & 7)]! >> (7 - (x & 7))) & 1) << p;
+          const v = tilePixel(tiles, tileWord & 0x1fff, x & 7, y & 7);
           if (!v) continue;
           const colors = palettes.get((tileWord >> 6) & 0x7f);
           if (!colors) throw new RangeError(`Tile palette ${(tileWord >> 6) & 0x7f} is not loaded`);

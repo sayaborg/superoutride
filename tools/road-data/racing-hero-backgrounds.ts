@@ -5,6 +5,9 @@
  * the sky's colors.
  */
 import { entries, long, sword, word } from './program-words.js';
+import { paletteRgb555 } from './road-tables.js';
+import { TRANSPARENT, type FittedLayer, type SkyBands } from './sky-baking.js';
+import { tilePixel } from './super-monaco-gp-backgrounds.js';
 
 /** The background numbers: a word a country, by its first section's description, from 0x518C. */
 const BACKGROUND_NUMBERS = 0x518c;
@@ -146,4 +149,95 @@ export function spritePaletteSet(main: Uint8Array, section: number): 'A' | 'B' {
   const set = motions.length === 1 ? MOTION_SETS.get(motions[0]!) : undefined;
   if (!set) throw new RangeError(`Country ${section}'s palette set starts no known palette motion`);
   return set;
+}
+
+/** A palette RAM address's palette word: the RAM is 0x120000 on, a word a palette word. */
+const PALETTE_RAM = 0x120000;
+/** The road layer's sky line of color c is palette word 0x1780 + c. */
+const SKY_LINE = 0x1780;
+/**
+ * The sky's lines up from the horizon: the first two color 0x37, then one less a line to 0x01 at the 56th, 0x00 above
+ * (the sub CPU's lines, from S 0x16A8).
+ */
+const SKY_LINE_TOP = 0x37;
+const SKY_LINES = 56;
+/** A layer's tile rows are its plane's 0–63; row 48 is the first below the horizon, 8 pixels a tile row. */
+const HORIZON_ROW = 48;
+const TILE_ROWS = 64;
+/**
+ * At the race's start a layer of speed v stands at 96 + 1534 v / 0x200 (the start's show turns the background), and the
+ * screen's column x shows the layer's (x + 192 − its position): the road vanishes at column 158, so straight ahead is
+ * the layer's 350 − its position.
+ */
+const START_POSITION = { base: 96, turn: 1534, speed: 0x200 } as const;
+const AHEAD = 158 + 192;
+
+/**
+ * The palette words after power on and country `section`'s palette set: the tile palettes from 0x3A008, then the set's
+ * commands in turn (a repeat copies the same block to each of its places, one after another).
+ */
+export function paletteWords(main: Uint8Array, section: number): Map<number, number> {
+  const ram = new Map<number, number>();
+  readTilePaletteWords(main).forEach((w, k) => ram.set(TILE_PALETTE_FIRST + k, w));
+  for (const c of readPaletteSet(main, backgroundNumber(main, section) + 1)) {
+    if ('motion' in c) continue;
+    const to = (c.to - PALETTE_RAM) / 2;
+    if ('copy' in c) for (let i = 0; i < c.copy; i++) ram.set(to + i, word(main, c.from + 2 * i));
+    else if ('fill' in c) for (let i = 0; i < c.count; i++) ram.set(to + i, c.fill);
+    else
+      for (let n = 0; n < c.repeat; n++)
+        for (let i = 0; i < c.size; i++) ram.set(to + n * c.size + i, word(main, c.from + 2 * i));
+  }
+  return ram;
+}
+
+/** A layer of country `section`'s background as `sky-baking` fits it, with its command's speed and width. */
+export interface RacingHeroSkyLayer extends FittedLayer {
+  readonly kind: typeof FRONT | typeof BACK;
+  readonly speed: number;
+}
+
+/**
+ * Country `section`'s background as `bakeFittedSky` takes it: its layers' pixels from their blocks (each block's tile
+ * rows standing on the layer's bottom row, a tile word's pixel v its palette word 0x1C00 + 8 × palette + v, pixel 0
+ * none), the back plane's layers first and then the front's, each in the command list's order, each placed so the
+ * sky's left edge is its point straight ahead at the race's start; the ground's layer (to the plane's last row) goes on
+ * down; and the sky's lines as the ramp.
+ */
+export function racingHeroSkyLayers(main: Uint8Array, tiles: readonly Uint8Array[], section: number) {
+  const ram = paletteWords(main, section);
+  const color = (p: number) => paletteRgb555(ram.get(p) ?? 0);
+  const layers: RacingHeroSkyLayer[] = readCommandList(main, backgroundNumber(main, section)).map((layer) => {
+    const width = 64 * layer.blocks.length;
+    const height = 8 * Math.max(...layer.blocks.map((b) => b.rows.length));
+    const pixels = new Int32Array(width * height).fill(TRANSPARENT);
+    layer.blocks.forEach((block, k) =>
+      block.rows.forEach((row, r) =>
+        row.forEach((tileWord, c) => {
+          for (let y = 0; y < 8; y++)
+            for (let x = 0; x < 8; x++) {
+              const v = tilePixel(tiles, tileWord & 0x1fff, x, y);
+              if (!v) continue;
+              const at = (height - 8 * (block.rows.length - r) + y) * width + 64 * k + 8 * c + x;
+              pixels[at] = color(TILE_PALETTE_FIRST + 8 * ((tileWord >> 6) & 0x7f) + v);
+            }
+        }),
+      ),
+    );
+    const position = START_POSITION.base + (START_POSITION.turn * layer.speed) / START_POSITION.speed;
+    return {
+      kind: layer.kind,
+      speed: layer.speed,
+      width,
+      pixels,
+      bottom: 8 * (layer.bottom - HORIZON_ROW) + 7,
+      start: (((AHEAD - position) % width) + width) % width,
+      extendsDown: layer.bottom === TILE_ROWS - 1,
+    };
+  });
+  const lines = Array.from({ length: SKY_LINES + 1 }, (_, i) =>
+    color(SKY_LINE + (i < 2 ? SKY_LINE_TOP : i < SKY_LINES ? SKY_LINE_TOP - (i - 1) : 0)),
+  );
+  const ramp: SkyBands['ramp'] = { rows: lines, below: lines[0]! };
+  return { layers: [...layers.filter((l) => l.kind === BACK), ...layers.filter((l) => l.kind === FRONT)], ramp };
 }

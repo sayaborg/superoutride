@@ -136,10 +136,9 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-5 (RACING HERO's skies), then RH-4 (its objects, the
-stage's last); then Stage TD, the tidying of the road data tool and the documents after the five Sega
-originals, from K's instructions (no new original before it);
-[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+Next PR: [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-4 (RACING HERO's objects, the stage's last); then Stage
+TD, the tidying of the road data tool and the documents after the five Sega originals, from K's instructions (no new
+original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -910,7 +909,10 @@ PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
   color and the limits' ramp) and where their domains pass over themselves, the crossings by RH-3a's rule (FRANCE's
   GO passage and CHINA's run out held level), gates and grid, and each country's sky by name, `shangon-africa-1-sky`
   standing in until RH-5; their racing lines were measured.
-- RH-5: the ten skies baked from the tile ROMs by `sky-baking`'s second baking (pixels alone; nothing measured).
+- RH-5 baked the ten skies from the tile ROMs by `sky-baking`'s second way, `bakeFittedSky`: each layer stretched or
+  shrunk across alone to whole repeats in the sky (σ 0.5875, the horizon's layers twice at their size, the far layer
+  once 1.333 times wider), laid over the sky's lines in the original's rows and averaged down
+  ([RACING HERO's skies](original-road-data.md#racing-heros-skies)).
 - RH-4, the stage's last, after all of Stage PG: the objects as boards in the ROMs' pictures by chosen lines (the
   scenery, the chevron signs 254, the standing parts of the surface types, the strips extending sideways, what spans
   the road, the gates), none with a body, and those not placed; the racing lines measured again; the default scale set

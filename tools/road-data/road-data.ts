@@ -56,7 +56,8 @@ import {
   POSITION_METRES as RACING_HERO_POSITION,
   RACING_HERO_CONVERSION_VERSION,
   racingHeroCourses,
-  skyName as racingHeroSky,
+  SKY_REPEATS as RACING_HERO_SKY_REPEATS,
+  SKY_SCALE as RACING_HERO_SKY_SCALE,
 } from './racing-hero-course.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
@@ -105,8 +106,6 @@ const SUPER_MONACO_GP_DUMP_DIRECTORY = 'reference-media/super-monaco-gp/rom-data
 /** Where K's RACING HERO ROM zip and the tool's dumps of it lie: never committed. */
 const RACING_HERO_ROM_DIRECTORY = 'reference-media/racing-hero/rom';
 const RACING_HERO_DUMP_DIRECTORY = 'reference-media/racing-hero/rom-data';
-/** The sky RACING HERO's courses show until their own are baked: a copy under each country's sky's name. */
-const RACING_HERO_SKY_STAND_IN = 'shangon-africa-1-sky';
 /** Where the originals' assets lie, each in its published path: a local build may use them in place of the published. */
 const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
@@ -1010,18 +1009,15 @@ try {
       const check = options.has('--check');
       const zip = await oneZip(options.get('--zip'), RACING_HERO_ROM_DIRECTORY, '--zip');
       const courses = racingHeroCourses(filesByCrc([readZip(new Uint8Array(await readFile(zip)))]));
-      const standIn = JSON.parse(await readFile(`content/images/${RACING_HERO_SKY_STAND_IN}.json`, 'utf8')) as {
-        name: string;
-      };
       const report = [];
       for (const course of courses) {
         const file = await saveCourse(racingHeroCourseId(course.country), course.document, check);
-        const sky = racingHeroSky(course.country);
-        const text = JSON.stringify({ ...standIn, name: sky });
-        const skyFile = `content/images/${sky}.json`;
+        // Its sky, baked from its background; course images are saved as their exact compact bytes.
+        const text = JSON.stringify(course.sky.document);
+        const skyFile = `content/images/${course.sky.name}.json`;
         if (check) {
           const committed = await readFile(skyFile, 'utf8').catch(() => null);
-          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the stand-in sky`);
+          requireInput(committed === text, `/${skyFile}`, `${skyFile} is not the ROMs'`);
         } else await atomicWrite(skyFile, text);
         const arcs = course.path.elements.filter((e) => e.turn !== 0);
         const radius = (e: (typeof arcs)[number]) => e.length / Math.abs(e.turn);
@@ -1052,6 +1048,11 @@ try {
           steepest: round3(course.steepest),
           waters: course.waters.length,
           runOut: round1(course.runOut),
+          sky: course.sky.layers.map((l) => ({
+            ...l,
+            start: round1(l.start),
+            stretch: round3(l.stretch),
+          })),
         });
       }
       console.log(
@@ -1061,6 +1062,8 @@ try {
           conversion: RACING_HERO_CONVERSION_VERSION,
           checked: check,
           metresAPosition: RACING_HERO_POSITION,
+          skyScale: round3(RACING_HERO_SKY_SCALE),
+          skyRepeats: RACING_HERO_SKY_REPEATS,
           courses: report,
         }),
       );

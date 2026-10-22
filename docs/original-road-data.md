@@ -235,6 +235,19 @@ The sky is baked in four steps:
 The skies face as the original's backgrounds by the back layer: its pixel x is the sky's x × 1536/1504, whatever the
 front's columns removed.
 
+A background of many layers turning at speeds of their own (RACING HERO's) is baked the second way
+(`bakeFittedSky`), from its layers, each with its width, its bottom row's place, its pixel coordinate at the sky's left
+edge and whether its bottom row goes on down to the sky's bottom, a ramp as above, and the scale σ, the sky's pixels
+an original pixel across:
+
+1. **Across.** Each layer alone is stretched or shrunk to whole repeats in the sky's 1504 columns: n repeats, n of
+   at least 1 whose stretch 1504 / (n × width × σ) or its inverse is least (`wholeRepeats`); no column is removed.
+   Each sky column holds the linear-light sum of the layer's pixels it covers and their coverage.
+2. **Layers.** Row by row in the original's rows, the ramp, then each layer in order over it by its coverage.
+3. **Down.** Each sky row is the linear-light mean of the original's rows it covers, σ × 15/14 sky rows a row, the
+   horizon between rows 319 and 320.
+4. **Tiles.** As above.
+
 ## Boards
 
 `npm run road-data -- boards` writes a board for each sprite OUTRUN's stages
@@ -2084,5 +2097,29 @@ bearing 0; with `--check` it fails where a document differs.
   480, under the CHECK and GOAL banners, where their white surface begins.
 - **Sky.** Every Section starts with its country's sky, `rachero-<country>-sky`, cut, `horizonY` 320, its `yawOrigin`
   SUPER MONACO GP's rule with the background's point straight ahead at the race's start at the sky's column 0 and θ0
-  the Section's start's turn from the course's start. Until the skies are baked from the backgrounds, each is
-  `shangon-africa-1-sky` under its name.
+  the Section's start's turn from the course's start.
+
+### RACING HERO's skies
+
+Each country's sky is its background baked by [`bakeFittedSky`](#sky-baking):
+
+- **Palettes.** The tile palettes at power on, then the country's palette set's commands; a repeat copies the same
+  block to each of its places, one after another (the clouds' colors; a source moving with them breaks them).
+- **Layers.** Each command's blocks side by side, each block's tile rows standing on the layer's bottom row, its tile
+  row r the horizon's rows 8(r − 48) to 8(r − 48) + 7 (0 the first below it); the back plane's layers first, then the
+  front's, each in the command list's order. The ground's layer (rows 48–63, 128 rows below the horizon) goes on down
+  in its bottom row.
+- **Ramp.** The sky's lines up from the horizon: palette word 0x1780 + 0x37 for the first two, then one less a line to
+  0x01 at the 56th, 0x00 above (blue, grey or orange by the set's colors).
+- **Scale.** The original's heading turns 1/(2r) a step where this game's P turns 0.3609 / r, 1.3854 times less; the
+  horizon's layers (1280 pixels, speed 0x200) move 2048 pixels a turn of the original's heading, so 2.217 repeats a
+  turn of the plane: σ = 1504 / (2 × 1280) = 0.5875, and they repeat twice in the sky at their own size. The far layer
+  (1920 pixels, CHINA's and EGYPT's 1984) repeats once, 1.333 (1.290) times wider; the clouds 2 to 6 times, 0.83 to
+  1.18 times their size. Its landmarks (Ayers Rock, Mount Fuji, the pyramids) show once a turn.
+- **Place.** At the race's start a layer of speed v stands at 96 + 1534v / 0x200 and the road vanishes at the
+  layer's 350 less that, modulo its width (the horizon's layers' 0): that point lies at the sky's left edge.
+
+What the one sky cannot show: each layer's own speed (the sky turns at one), the start's show turning the background,
+and the background rising and falling on the hills (the road is level). At σ the background shows 0.59 times its size
+on the original's screen; the ground's layer covers about 81 rows below the horizon and below them (about 40 rows of
+this game's frame) its bottom row's colors.

@@ -12,14 +12,14 @@ import type { ZipFile } from './zip.js';
 import { sectionProfile } from './outrun-course.js';
 import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
-import { pixelDifference, SKY_WIDTH } from './sky-baking.js';
+import { bakeFittedSky, pixelDifference, SKY_WIDTH, wholeRepeats } from './sky-baking.js';
 import { paletteRgb555 } from './road-tables.js';
 import { spritePixels } from './sprite-pixels.js';
 import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
 import { domainCuts, writtenPlan, type WrittenElement } from './super-hang-on-course.js';
 import { otherPassages } from './enduro-racer-course.js';
 import { cutsByCount, meanColor, ramped, SPRITE_ELEMENTS, STRIP_ELEMENTS } from './super-monaco-gp-course.js';
-import { assembleRacingHeroMain, assembleRacingHeroSprites } from './racing-hero-rom.js';
+import { assembleRacingHeroMain, assembleRacingHeroSprites, assembleRacingHeroTiles } from './racing-hero-rom.js';
 import {
   COUNTRIES,
   countrySections,
@@ -38,7 +38,7 @@ import {
   SURFACE_ROUTINES,
   typeDefinition,
 } from './racing-hero-sprites.js';
-import { spritePaletteSet } from './racing-hero-backgrounds.js';
+import { racingHeroSkyLayers, spritePaletteSet } from './racing-hero-backgrounds.js';
 import {
   drawnParts,
   objectX,
@@ -114,6 +114,16 @@ const INSIDE_MARGIN = 2;
 const GRID_SLOTS = 16;
 const CAR_SPACING = 12;
 const BIKE_SPACING = 3;
+/**
+ * The background on the sky: the original's heading turns 1/(2r) radians a step where P turns CURVE × UNIT /
+ * (512 × a step's metres), CURVE about 0x28BE0 / (16r); the horizon's layers, 1280 pixels at speed 0x200, move
+ * 4 × speed pixels a turn of the original's heading. Of their repeats in a turn of the plane, the whole number nearest
+ * sets σ, the sky's pixels an original pixel across, so that they repeat whole in the sky's width.
+ */
+const HEADING_RATIO = (0.5 * 512 * STEP_METRES * 16) / (CURVE_DIVIDEND * UNIT);
+const HORIZON_LAYER = { width: 1280, speed: 0x200 } as const;
+export const SKY_REPEATS = Math.round(((4 * HORIZON_LAYER.speed) / HORIZON_LAYER.width) * HEADING_RATIO);
+export const SKY_SCALE = SKY_WIDTH / (SKY_REPEATS * HORIZON_LAYER.width);
 /** The skies' horizon row, the generic skies'; the background's point straight ahead at the race's start is column 0. */
 const SKY_HORIZON = 320;
 const SKY_AT_START = 0;
@@ -127,11 +137,29 @@ export const courseId = (country: RacingHeroCountry) => `racing-hero-${country.i
 export const skyName = (country: RacingHeroCountry) => `rachero-${country.id}-sky`;
 const SECTION_IDS = ['a', 'b', 'goal'] as const;
 
-/** Every country's course document and report, from the ROM set's files by CRC-32. */
+/** Every country's course document and report and its sky, from the ROM set's files by CRC-32. */
 export function racingHeroCourses(files: ReadonlyMap<number, ZipFile>) {
   const main = assembleRacingHeroMain(files);
   const words = assembleRacingHeroSprites(files);
-  return COUNTRIES.map((country) => racingHeroCourse(main, words, country));
+  const tiles = assembleRacingHeroTiles(files);
+  return COUNTRIES.map((country) => {
+    const { layers, ramp } = racingHeroSkyLayers(main, tiles, country.section);
+    return {
+      ...racingHeroCourse(main, words, country),
+      sky: {
+        name: skyName(country),
+        document: bakeFittedSky(skyName(country), layers, ramp, SKY_SCALE),
+        layers: layers.map((l) => ({
+          kind: l.kind,
+          speed: l.speed,
+          width: l.width,
+          bottom: l.bottom,
+          start: l.start,
+          ...wholeRepeats(l.width, SKY_SCALE),
+        })),
+      },
+    };
+  });
 }
 
 /** A surface type's look: its surface's half-width (units), its color and its marks across, each with its color. */

@@ -181,3 +181,98 @@ export function bakeSky(name: string, bands: SkyBands): TilePictureDocument {
     { columns: SKY_WIDTH / TILE_PICTURE_TILE_SIZE, rows: SKY_TILE_ROWS, fit: 'fill' },
   );
 }
+
+/**
+ * A layer of a background whose layers turn at speeds of their own: RGB555 pixels row by row, `width` a row
+ * (`TRANSPARENT` where none), its bottom row `bottom` rows below the horizon (0 the first row below it), its pixel
+ * coordinate `start` at the sky's left edge, and whether its bottom row goes on down to the sky's bottom.
+ */
+export interface FittedLayer {
+  readonly width: number;
+  readonly pixels: Int32Array;
+  readonly bottom: number;
+  readonly start: number;
+  readonly extendsDown: boolean;
+}
+
+/**
+ * A layer's whole repeats across the sky at `scale` (at least one): of the counts about `SKY_WIDTH / (width × scale)`,
+ * the one whose stretch (the sky's width over the repeats' at `scale`) or its inverse is least.
+ */
+export function wholeRepeats(width: number, scale: number): { repeats: number; stretch: number } {
+  const ideal = SKY_WIDTH / (width * scale);
+  const stretch = (repeats: number) => ideal / repeats;
+  const far = (repeats: number) => Math.max(stretch(repeats), 1 / stretch(repeats));
+  const [low, high] = [Math.max(1, Math.floor(ideal)), Math.max(1, Math.ceil(ideal))];
+  const repeats = far(high) < far(low) ? high : low;
+  return { repeats, stretch: stretch(repeats) };
+}
+
+/**
+ * Sky `name` baked from layers that turn at speeds of their own, the original's pixels `scale` of the sky's across
+ * and 15/14 of that down: each layer stretched or shrunk across alone to its whole repeats in the sky's width
+ * (`wholeRepeats`), each sky column the linear-light mean of its covered pixels and their coverage; then, row by row in
+ * the original's rows, the ramp with the layers over it in order, each by its coverage; then each of the sky's rows the
+ * linear-light mean of the rows it covers, the horizon at row 320, drawn as a tile picture as `bakeSky` draws one.
+ */
+export function bakeFittedSky(
+  name: string,
+  layers: readonly FittedLayer[],
+  ramp: SkyBands['ramp'],
+  scale: number,
+): TilePictureDocument {
+  const sy = (scale * 15) / 14;
+  const top = Math.floor(-SKY_HORIZON / sy);
+  const rows = Math.ceil((SKY_HEIGHT - SKY_HORIZON) / sy) - top;
+  // Each layer across: per its row and the sky's column, its covered pixels' linear-light sum and their coverage.
+  const across = layers.map((layer) => {
+    const { repeats } = wholeRepeats(layer.width, scale);
+    const height = layer.pixels.length / layer.width;
+    const columns = areaWeights(SKY_WIDTH, SKY_WIDTH / (repeats * layer.width), layer.start);
+    const sums = new Float64Array(height * SKY_WIDTH * 4);
+    for (let r = 0; r < height; r++)
+      for (let x = 0; x < SKY_WIDTH; x++) {
+        const at = (r * SKY_WIDTH + x) * 4;
+        for (const [i, w] of columns[x]!) {
+          const v = layer.pixels[r * layer.width + (((i % layer.width) + layer.width) % layer.width)]!;
+          if (v === TRANSPARENT) continue;
+          const [red, green, blue] = linear(v);
+          sums[at]! += red * w;
+          sums[at + 1]! += green * w;
+          sums[at + 2]! += blue * w;
+          sums[at + 3]! += w;
+        }
+      }
+    return { layer, height, sums };
+  });
+  const source = new Float64Array(rows * SKY_WIDTH * 3);
+  for (let j = 0; j < rows; j++) {
+    const y = top + j;
+    const sky = linear(y < 0 ? ramp.rows[Math.min(ramp.rows.length - 1, -y - 1)]! : ramp.below);
+    for (let x = 0; x < SKY_WIDTH; x++) {
+      const color = [...sky];
+      for (const { layer, height, sums } of across) {
+        let row = height - 1 - (layer.bottom - y);
+        if (row >= height && layer.extendsDown) row = height - 1;
+        if (row < 0 || row >= height) continue;
+        const at = (row * SKY_WIDTH + x) * 4,
+          coverage = sums[at + 3]!;
+        for (let c = 0; c < 3; c++) color[c] = color[c]! * (1 - coverage) + sums[at + c]!;
+      }
+      source.set(color, (j * SKY_WIDTH + x) * 3);
+    }
+  }
+  const lines = areaWeights(SKY_HEIGHT, sy, -SKY_HORIZON / sy - top);
+  const pixels = new Uint32Array(SKY_WIDTH * SKY_HEIGHT);
+  for (let y = 0; y < SKY_HEIGHT; y++)
+    for (let x = 0; x < SKY_WIDTH; x++) {
+      const mean = [0, 0, 0];
+      for (const [j, w] of lines[y]!) for (let c = 0; c < 3; c++) mean[c]! += source[(j * SKY_WIDTH + x) * 3 + c]! * w;
+      pixels[y * SKY_WIDTH + x] = rgb555ToRgba(linearToRgb555(mean[0]!, mean[1]!, mean[2]!));
+    }
+  return drawScreenPicture(
+    name,
+    { width: SKY_WIDTH, height: SKY_HEIGHT, pixels },
+    { columns: SKY_WIDTH / TILE_PICTURE_TILE_SIZE, rows: SKY_TILE_ROWS, fit: 'fill' },
+  );
+}
