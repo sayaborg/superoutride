@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 22,
+  "visuals": {
+    "spriteSet": "mclaren-mp4-4",
+    "palette": "race",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "race": "MARLBORO", "race-2": "MARLBORO", "race-3": "MARLBORO", "race-4": "MARLBORO" }
+  },
+  "sound": "MCLAREN_MP4_4",
+  "metadata": {
+    "manufacturer": "McLaren Honda",
+    "model": "MP4/4",
+    "period": "1988",
+    "mobileLabel": "MP4/4",
+    "engine": "V6",
+    "identifier": { "officialLabel": "MP4/4", "shortLabel": "MP4/4" },
+    "selectedSpecification": ["Senna #12", "Italian GP", "PROVISIONAL"],
+    "physicsAnchor": { "modelYear": "1988", "market": "Italian GP" }
+  }
+}

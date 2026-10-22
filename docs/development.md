@@ -650,3 +650,15 @@ the core in Node). `CHROME_BIN` selects a local Chromium executable.
 The Pages workflow runs it twice: every build, a pull request's included, stages the site under its exact source
 commit and checks it served locally (`http://127.0.0.1:8000/`) before anything is deployed, so a build whose site
 cannot start never reaches main; a push to main checks the deployed site again.
+
+## Racing vehicle authoring
+
+`npm run racing-pictures -- <vehicle ID|all> [replace]` bakes the original procedural provisional shapes in
+`tools/graphics/racing-vehicle-shapes.ts` through the shared vehicle picture camera. It refuses to overwrite a saved
+set without `replace`, and writes six complete direction/bank check sheets to `dist/racing-pictures/`.
+The five IDs, historic evidence and visual limitations are in the [racing vehicle ledger](racing-vehicles.md).
+
+`npm run racing-validation` compiles the authored catalog and measures all five through the ordinary solver on a flat 60 km dry straight
+from rest for 240 seconds, then brakes and restarts, and checks a separate cornering transient. It writes
+`dist/racing-validation/measurements.json`; no measurements alter the vehicle data. The racing-vehicle scenario tests
+also save actual shared-scene driving frames to that directory.

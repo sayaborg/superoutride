@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 21,
+  "visuals": {
+    "spriteSet": "yzr500-0w98",
+    "palette": "race",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "race": "MARLBORO", "race-2": "MARLBORO", "race-3": "MARLBORO", "race-4": "MARLBORO" }
+  },
+  "sound": "YZR500_0W98",
+  "metadata": {
+    "manufacturer": "Yamaha",
+    "model": "YZR500",
+    "period": "1988",
+    "mobileLabel": "0W98",
+    "engine": "V4",
+    "identifier": { "officialLabel": "0W98", "shortLabel": "0W98" },
+    "selectedSpecification": ["Lawson #3", "USA GP", "PROVISIONAL"],
+    "physicsAnchor": { "modelYear": "1988", "market": "USA GP" }
+  }
+}

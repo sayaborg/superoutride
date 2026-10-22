@@ -33,16 +33,16 @@ const original = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TEST
 const idle = { steering: 0, throttle: false, brake: false };
 const throttle = { ...idle, throttle: true };
 
-async function run(enabled = true, rivals = 0) {
+async function run(enabled = true, rivals = 0, source = original) {
   const listing = compileVehicleListingDocument(
-    { ...original.listing, ...(enabled ? { contactResponse: 'explode' } : {}) },
+    { ...source.listing, ...(enabled ? { contactResponse: 'explode' } : {}) },
     'contact-response fixture',
     sprites,
     sounds,
   );
   assert.ok(listing.ok);
-  const entry = { ...original, listing: listing.value.source };
-  const vehicles = definitions.vehicles.map((v) => (v === original ? entry : v));
+  const entry = { ...source, listing: listing.value.source };
+  const vehicles = definitions.vehicles.map((v) => (v === source ? entry : v));
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const prepared = await prepareRun(
     content,
@@ -192,5 +192,32 @@ test('every solid counterpart uses the same response, occupied recovery waits, a
     }
     assert.equal(state.sequence, 1);
     assert.equal(state.phase, 'protected');
+  }
+});
+
+test('the delivered two-speed Lotus explodes on a stationary wall contact, recovers once and resets on a fresh run', async () => {
+  const lotus = definitions.vehicles.find((v) => v.compiledVehicle.id === 'LOTUS_79_SPECIAL');
+  assert.equal(lotus.listing.contactResponse, 'explode');
+  assert.equal(lotus.compiledVehicle.powertrain.gearRatios.length, 2);
+  const { race, scene, actor } = await run(true, 0, lotus);
+  touchWall(scene, actor);
+  race.advance(idle);
+  assert.equal(actor.contactResponse.sequence, 1);
+  assert.equal(actor.contactResponse.phase, 'exploding');
+  assert.equal(actor.vehicle.speed, 0);
+  const gates = race.player.crossingSeconds.length;
+  for (let tick = 0; tick < 240; tick++) race.advance(idle);
+  assert.equal(actor.contactResponse.sequence, 1);
+  assert.equal(actor.contactResponse.phase, 'driving');
+  assert.equal(actor.recovery.lastReason, 'explosion');
+  assert.equal(race.player.crossingSeconds.length, gates);
+  assert.equal((await run(true, 0, lotus)).actor.contactResponse.sequence, 0);
+  for (const id of ['NSR500_1987', 'YZR500_0W98', 'MCLAREN_MP4_4', 'FERRARI_640']) {
+    const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
+    assert.equal(entry.listing.contactResponse, undefined);
+    const normal = await run(false, 0, entry);
+    touchWall(normal.scene, normal.actor);
+    normal.race.advance(idle);
+    assert.equal(normal.actor.contactResponse.sequence, 0);
   }
 });

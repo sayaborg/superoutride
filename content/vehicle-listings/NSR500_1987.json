@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 20,
+  "visuals": {
+    "spriteSet": "nsr500-1987",
+    "palette": "race",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "race": "ROTHMANS", "race-2": "ROTHMANS", "race-3": "ROTHMANS", "race-4": "ROTHMANS" }
+  },
+  "sound": "NSR500_1987",
+  "metadata": {
+    "manufacturer": "Honda",
+    "model": "NSR500",
+    "period": "1987",
+    "mobileLabel": "NSR500",
+    "engine": "V4",
+    "identifier": { "officialLabel": "NSR500", "shortLabel": "NSR500" },
+    "selectedSpecification": ["Gardner #2", "Japan GP", "PROVISIONAL"],
+    "physicsAnchor": { "modelYear": "1987", "market": "Japan GP" }
+  }
+}

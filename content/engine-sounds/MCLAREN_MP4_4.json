@@ -1,0 +1,26 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.0368, "open": 0.4 },
+    "primaries": [
+      { "length": 0.3, "diameter": 0.032, "to": 0 },
+      { "length": 0.33, "diameter": 0.032, "to": 1 },
+      { "length": 0.36, "diameter": 0.032, "to": 0 },
+      { "length": 0.3, "diameter": 0.032, "to": 1 },
+      { "length": 0.33, "diameter": 0.032, "to": 0 },
+      { "length": 0.36, "diameter": 0.032, "to": 1 }
+    ],
+    "pipes": [
+      { "length": 0.08, "diameter": 0.026, "from": 0, "to": 2 },
+      { "length": 0.08, "diameter": 0.026, "from": 1, "to": 3 },
+      { "length": 0.6, "diameter": 0.07, "from": 2, "to": null },
+      { "length": 0.6, "diameter": 0.07, "from": 3, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "6 cylinders, four stroke; evenly spaced acoustic events with alternating collector assignment. Firing order, valve timing, valve areas and all pipe dimensions are engineering estimates, not measured race-car sound. Twin turbo throats are narrow acoustic pipes only: no turbine dynamics or transient turbo lag is simulated. See docs/racing-vehicles.md."
+  }
+}

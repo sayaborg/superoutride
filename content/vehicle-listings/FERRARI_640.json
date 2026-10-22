@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 23,
+  "visuals": {
+    "spriteSet": "ferrari-640",
+    "palette": "race",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "race": "ROSSO CORSA", "race-2": "ROSSO CORSA", "race-3": "ROSSO CORSA", "race-4": "ROSSO CORSA" }
+  },
+  "sound": "FERRARI_640",
+  "metadata": {
+    "manufacturer": "Ferrari",
+    "model": "640 / F1-89",
+    "period": "1989",
+    "mobileLabel": "F1-89",
+    "engine": "V12",
+    "identifier": { "officialLabel": "F1-89", "shortLabel": "F1-89" },
+    "selectedSpecification": ["Mansell #27", "Belgian GP dry", "PROVISIONAL"],
+    "physicsAnchor": { "modelYear": "1989", "market": "Belgian GP dry" }
+  }
+}

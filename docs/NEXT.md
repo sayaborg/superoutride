@@ -4,6 +4,9 @@
 
 - One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE, TIME ATTACK and
   FREE PLAY runs. Without DEV, FREE PLAY offers TSUKUBA alone; the originals' courses, in no series, are DEV's.
+- The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
+  Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
+  content and this contact response; any other physics addition needs prior confirmation.
 - No course uses these features any more (since PG-2b deleted OUTRUN TEST and OUTRUN TRIAL): BRANCH (forks, seam joins
   and signs shown by a fork's choice), solid walls (TSUKUBA's walls are looks alone), open course limits, movable
   objects (and their knocked pictures), and the `WET_ASPHALT` and `SHOULDER` materials. They stay in the engine; BRANCH
@@ -145,24 +148,6 @@ decides; then [Stage 16](#stage-16--produce-product-courses).
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage RV — Five racing vehicles
-
-The owner's 2026-10-22 instruction selects Gardner's 1987 NSR500, Lawson's 1988 YZR500 0W98, Senna's 1988
-MP4/4, Mansell's 1989 F1-89/640, and Andretti's 1978 Lotus 79 SPECIAL. All five enter FREE PLAY. Existing series
-membership and the stopped RACING HERO work stay as they are. The owner clarified the scope during implementation:
-**vehicle data, pictures and sound, plus contact explosion and recovery; any other physics addition needs the owner's
-prior confirmation.** The proposed axle downforce and timed shifts were discarded before any PR or main change.
-Use existing vehicle physics and document its omissions, including downforce and shift interruption.
-
-Remaining reviewable PRs:
-
-- RV-4: sourced specification ledger, five catalogs and sounds, two-speed Lotus tuning to 345–355 km/h,
-  driving/contact checks and direction/bank/LOD review.
-
-The Lotus has two actual forward ratios. Its powertrain data and contact explosion are game design, never historical
-Lotus specifications. Clutch heat, wear and durability are outside this work. Unknown historical values are explicitly
-estimated with their derivation; they do not block a complete, declared vehicle specification.
 
 ## Stage VC — Courses from footage
 

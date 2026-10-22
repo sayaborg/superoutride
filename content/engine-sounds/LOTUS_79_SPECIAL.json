@@ -1,0 +1,26 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "valve": { "diameter": 0.0382, "open": 0.4167 },
+    "primaries": [
+      { "length": 0.48, "diameter": 0.04, "to": 0 },
+      { "length": 0.51, "diameter": 0.04, "to": 1 },
+      { "length": 0.54, "diameter": 0.04, "to": 0 },
+      { "length": 0.57, "diameter": 0.04, "to": 1 },
+      { "length": 0.48, "diameter": 0.04, "to": 0 },
+      { "length": 0.51, "diameter": 0.04, "to": 1 },
+      { "length": 0.54, "diameter": 0.04, "to": 0 },
+      { "length": 0.57, "diameter": 0.04, "to": 1 }
+    ],
+    "pipes": [
+      { "length": 0.75, "diameter": 0.05, "from": 0, "to": null },
+      { "length": 0.75, "diameter": 0.05, "from": 1, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "8 cylinders, four stroke; evenly spaced acoustic events with alternating collector assignment. Firing order, valve timing, valve areas and all pipe dimensions are engineering estimates, not measured race-car sound. Two four-into-one collectors, DFV-based game engine; 500 kW and two forward ratios are project design, not 1978 specifications. See docs/racing-vehicles.md."
+  }
+}

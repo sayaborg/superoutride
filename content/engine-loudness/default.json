@@ -69,6 +69,36 @@
       "vehicleSha256": "43bc8ef76c458b4962648f415745ce2d43e44669465e72f25aca84d4f2a2368f",
       "soundSha256": "c999d8aa8e7398969dab9a21b5dfdc5e6fe0700668b5449fe3db8642300e8d74",
       "lufs": 0.5408209108448289
+    },
+    {
+      "vehicleId": "NSR500_1987",
+      "vehicleSha256": "06fd75ba55692bc3936c06cdb5c112b06535626dd6b74dc5b04b5642f6b619ba",
+      "soundSha256": "35825e65056be881f82f29b83b19daadb89094b10fe7de30a7ec3f74aac58ab7",
+      "lufs": -16.34714208310257
+    },
+    {
+      "vehicleId": "YZR500_0W98",
+      "vehicleSha256": "5f87b0ba97f58322a2692289e39f3f98986904ef690fb1b4d2554f2d34c38086",
+      "soundSha256": "b847685a04721c9e59960638266642bf361d7cc350101fc25a26ed63c5019a21",
+      "lufs": -15.519812680842117
+    },
+    {
+      "vehicleId": "MCLAREN_MP4_4",
+      "vehicleSha256": "5b66102659ed386dbe80d197d661c5ca16b2d1c503eec0153a4109fac4afce7d",
+      "soundSha256": "bc82a2aed365d0746ca51cbe1c2568c7a6e5adc7c6da3b6052d255bb3c74ee55",
+      "lufs": -23.310387444197392
+    },
+    {
+      "vehicleId": "FERRARI_640",
+      "vehicleSha256": "a1ea8874ac2717e9fb116c22e553efe8a5134ed33f2e699a0e1af3f006ffdb0a",
+      "soundSha256": "cefeb33b69085edc58ff5d077f93f4d02c4a41f26665ad88ebbc25362d0783b1",
+      "lufs": -19.579867987939295
+    },
+    {
+      "vehicleId": "LOTUS_79_SPECIAL",
+      "vehicleSha256": "51d6c4acc135083edcf7edcd047cb65d8f9576dde9d7759a674175c18e604aaa",
+      "soundSha256": "89fdab84f8b452856ab794c8016eaec65ba95ddc916121a62a31cdef3fea333c",
+      "lufs": -19.018831829410562
     }
   ]
 }

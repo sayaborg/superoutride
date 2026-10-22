@@ -1,0 +1,24 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 24,
+  "visuals": {
+    "spriteSet": "lotus-79-special",
+    "palette": "race",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "race": "JPS", "race-2": "JPS", "race-3": "JPS", "race-4": "JPS" }
+  },
+  "sound": "LOTUS_79_SPECIAL",
+  "metadata": {
+    "manufacturer": "Lotus",
+    "model": "79 SPECIAL",
+    "period": "1978",
+    "mobileLabel": "Type 79",
+    "engine": "V8",
+    "identifier": { "officialLabel": "Type 79", "shortLabel": "Type 79" },
+    "selectedSpecification": ["Andretti #5", "Dutch GP base", "PROVISIONAL", "2-SPEED", "CONTACT EXPLOSION"],
+    "physicsAnchor": { "modelYear": "1978", "market": "Dutch GP base" }
+  },
+  "contactResponse": "explode"
+}

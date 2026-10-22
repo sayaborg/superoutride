@@ -1,0 +1,28 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 1,
+  "firingPhases": [0, 0.3111111111111111, 0.5, 0.8111111111111111],
+  "exhaust": {
+    "valve": { "diameter": 0.028, "open": 0.5556 },
+    "primaries": [
+      { "length": 0.58, "diameter": 0.032, "to": 0 },
+      { "length": 0.66, "diameter": 0.032, "to": 1 },
+      { "length": 0.48, "diameter": 0.032, "to": 2 },
+      { "length": 0.52, "diameter": 0.032, "to": 3 }
+    ],
+    "pipes": [
+      { "length": 0.3, "diameter": 0.07, "from": 0, "to": 4 },
+      { "length": 0.3, "diameter": 0.07, "from": 1, "to": 5 },
+      { "length": 0.3, "diameter": 0.07, "from": 2, "to": 6 },
+      { "length": 0.3, "diameter": 0.07, "from": 3, "to": 7 },
+      { "length": 0.28, "diameter": 0.02, "from": 4, "to": null },
+      { "length": 0.28, "diameter": 0.02, "from": 5, "to": null },
+      { "length": 0.28, "diameter": 0.02, "from": 6, "to": null },
+      { "length": 0.28, "diameter": 0.02, "from": 7, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "1987 112-degree single-crank V4 timing is unverified; assumed 180-degree crank with bank offset, not the later Big Bang. One cycle per revolution. Four independent pipes; straight chamber and stinger surrogates. Port area approximated by a 28 mm equivalent circle, 200 degrees open. All pipe dimensions and port timing are engineering estimates; see docs/racing-vehicles.md."
+  }
+}
