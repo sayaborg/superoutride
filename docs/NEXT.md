@@ -157,7 +157,6 @@ Use existing vehicle physics and document its omissions, including downforce and
 
 Remaining reviewable PRs:
 
-- RV-3: reproducible provisional racing silhouettes through the common picture camera and anchor.
 - RV-4: sourced specification ledger, five catalogs and sounds, two-speed Lotus tuning to 345–355 km/h,
   driving/contact checks and direction/bank/LOD review.
 

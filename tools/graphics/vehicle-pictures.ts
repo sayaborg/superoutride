@@ -5,6 +5,15 @@ import { PLAYER_DEPTH_PIXELS_PER_METER } from '../../src/view/display-scale.js';
 import type { Rgb, VehiclePictureRecipe } from './vehicle-picture-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
 
+/** The drawing style shared by four-view solids and authored procedural solids. */
+export interface VehiclePictureStyle extends Pick<
+  VehiclePictureRecipe,
+  'yawVariants' | 'slots' | 'bodyKeys' | 'palettes' | 'brakeLamp'
+> {
+  readonly paint: Pick<VehiclePictureRecipe['paint'], 'exposure'>;
+  readonly glass: Pick<VehiclePictureRecipe['glass'], 'glint'>;
+}
+
 /**
  * Vehicle pictures by the [picture contract](../../docs/image-assets.md#picture-contract): every direction and size of
  * a vehicle's solid drawn by that size's camera, lit as under an open sky, in the set's one palette, each with its
@@ -58,7 +67,7 @@ interface DrawnSize {
 }
 
 /** The colors of the slots a texel can take, in slot order, and the ranges of each kind. */
-function slotColors(recipe: VehiclePictureRecipe) {
+function slotColors(recipe: VehiclePictureStyle) {
   const reference = Object.values(recipe.palettes)[0]!;
   const body = recipe.slots.body,
     neutral = recipe.slots.neutral;
@@ -84,7 +93,7 @@ function slotColors(recipe: VehiclePictureRecipe) {
  */
 function drawSize(
   solid: VehicleSolid,
-  recipe: VehiclePictureRecipe,
+  recipe: VehiclePictureStyle,
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   yaw: number,
   size: number,
@@ -351,7 +360,7 @@ function frame(cells: Uint8Array, width: number, height: number, anchorX: number
 /** One direction's picture: every size with its shadow. */
 function drawPicture(
   solid: VehicleSolid,
-  recipe: VehiclePictureRecipe,
+  recipe: VehiclePictureStyle,
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   yaw: number,
 ): { sizes: Frame[] } {
@@ -385,24 +394,36 @@ const rgb555 = ([r, g, b]: Rgb) => rgbaToRgb555(rgba(r, g, b));
 /**
  * The vehicle sprite set of a solid: `recipe.yawVariants` directions, image 0 seen from behind and each next one turned
  * right by one step, every size drawn by its own camera. `progress` hears each finished direction.
+ * A bank array runs from negative to positive lean, evenly spaced over ±bankDegrees, including both extremes.
  */
 export function drawVehicleSpriteSet(
-  solid: VehicleSolid,
-  recipe: VehiclePictureRecipe,
+  solid: VehicleSolid | readonly VehicleSolid[],
+  recipe: VehiclePictureStyle,
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   progress: (done: number) => void = () => {},
+  bankDegrees = 0,
 ): VehicleSpriteSetDocument {
+  const banks = 'count' in solid ? [solid] : solid;
+  if (!banks.length || (banks.length > 1 ? !(bankDegrees > 0 && bankDegrees < 90) : bankDegrees !== 0))
+    throw new RangeError('Multiple bank solids need an angle in (0,90); one solid needs zero');
   const pictures = [];
+  const assets: number[][] = [];
   for (let i = 0; i < recipe.yawVariants; i++) {
-    pictures.push(drawPicture(solid, recipe, camera, (i * 2 * Math.PI) / recipe.yawVariants));
+    const row: number[] = [];
+    for (const bank of banks) {
+      row.push(pictures.length);
+      pictures.push(drawPicture(bank, recipe, camera, (i * 2 * Math.PI) / recipe.yawVariants));
+    }
+    assets.push(row);
     progress(i + 1);
   }
   return {
     yawVariants: recipe.yawVariants,
-    bankVariants: 1,
+    bankVariants: banks.length,
+    ...(banks.length > 1 ? { bankDegrees } : {}),
     palettes: Object.fromEntries(Object.entries(recipe.palettes).map(([name, colors]) => [name, colors.map(rgb555)])),
     brakeLamp: { off: rgb555(recipe.brakeLamp.off), on: rgb555(recipe.brakeLamp.on) },
-    assets: pictures.map((_, index) => [index]),
+    assets,
     pictures,
   };
 }
