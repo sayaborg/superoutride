@@ -204,6 +204,11 @@ its course. Each class also has its time margin and whether it fixes colors.
   then its reference courses, the original's race and qualifying courses as CIRCUIT courses of 5.27 km and 2.28 km
   raised from the ROMs of MAME's `smgp` ([Original road data](original-road-data.md#super-monaco-gp)), are FREE PLAY
   courses in no series.
+- **RACING HERO** is a series of a later stage: four countries in a row chosen at COURSE SELECT, its bikes, rivals,
+  the road's cars, time and bonus are decided then. Until then its reference courses, the original's ten countries as
+  ten LINEAR courses of 8.09–8.46 km from START to GOAL (8.31–8.67 km to the end of the goal's section, with a straight
+  run beyond) raised from the ROMs of MAME's `rachero` ([Original road data](original-road-data.md#racing-hero)), are
+  FREE PLAY courses in no series.
 
 ## 6. Flow and screens
 

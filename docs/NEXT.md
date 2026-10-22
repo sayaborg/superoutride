@@ -136,8 +136,9 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6a, then the rest of Stage PG; then Stage RH (RACING
-HERO, made by Stage PG's rules); then Stage TD, the tidying of the road data tool and the documents after the five Sega
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-6a, then the rest of Stage PG, and beside it
+[Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
+RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
 [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -766,6 +767,136 @@ images (PG-1: the COCONUT BEACH scene above with the rival's tires and the sea s
 hidden as today; PG-6 and PG-7: the standing strips and the sea and patches baked, before and after conversion and
 beside the original; PG-9: the boards with 32 views made one), and leaves Pages ready for K's devices.
 
+## Stage RH — RACING HERO from the ROMs
+
+Stage RH follows Stages RD2, SH, TO, ER and MG and raises RACING HERO's ten countries (Sega, 1989, developed by Aicom,
+on the X board) from the original's ROMs into ten LINEAR courses, with the tools and rules those stages made and the
+picture rules [Stage PG](#stage-pg--pictures-and-the-ground) sets: the ROMs' pictures put on the texel grid by chosen
+lines, the background baked into a sky by `sky-baking`, SUPER HANG-ON's plan and lanes, SUPER MONACO GP's reading of
+the X board's pictures and its surface boards made Strips, ENDURO RACER's crossings and objects, and PRs ordered so
+that the courses are measured as seldom as possible. Its aim is the earlier stages': exact, true to the ROMs, fair to
+look at, simple, and fitted to this game's physics; the look comes first, and lengthy checks (the reference times'
+review among them) are left out. Its PRs are numbered from RH-1, and the earlier stages' rules hold where this section
+does not change them. It closes the Sega originals (K, 2026-10-22: OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER,
+SUPER MONACO GP and RACING HERO); Stage TD, the tidying of the road data tool and the documents, follows it.
+
+Words: a position is RACING HERO's unit along the road (0.045862 m; eight positions are one step), a unit its unit
+across the road and in height (0.0065 m across, 0.006964 m in height); a road type (4, 3 or 7) is not an object type
+(three hexadecimal digits, such as C64, 5BC or 254); the background's layers are `sky-baking`'s layers, and the
+original's strip sprites are Stage PG's boards extending sideways.
+
+K's decisions (2026-10-22):
+
+- **Kept from the earlier stages.** All physics stays as it is; distances come from the original's displayed speed and
+  its clock. Pictures are resampled at the best quality there is (ROM pictures by chosen lines, backgrounds by area
+  averages in linear light). Everything that moves is placed standing still. The background's near layers are drawn
+  before its far layers at the same scale into one picture by `sky-baking`; to leave no seam, each of RACING HERO's
+  layers is stretched or shrunk across alone. The horizon's ground gradient is not made. The bikes and the road's cars
+  are baked from 3D models, so the original's are not converted. The sprites' and backgrounds' pictures converted from
+  the ROMs are committed and shown on Pages, provisionally (drawn again for the product); sounds (PCM) stay local
+  originals alone, and the ROM zip and the raw dumps stay out of Git and PRs. What the original draws as a sprite is a
+  board, but what lies on the ground is a Strip by Stage PG's rule; a report names, on the line after where the
+  courses can be seen, what was made a Strip and what was added where the original draws nothing (K, 2026-10-18 and
+  2026-10-22). The hills are made again in a later stage (the one that mends the six originals' courses and decides
+  how hills are made); crossings keep the 6 m rule, with RH-3a's rule for passes near a road's end. No class is made
+  until the hills: the courses are driven in FREE PLAY alone and only their racing lines are measured.
+- **No walls, no view sets.** The walls' feature goes in a later stage, replaced by rows of boards, and the view sets in
+  PG-10 ([Stage PG](#stage-pg--pictures-and-the-ground), [Courses of the originals](#courses-of-the-originals)); this
+  stage uses neither (the original has no views either). The fences and the curve signs stay boards.
+- **Set.** MAME's `rachero` (Racing Hero, FD1094 317-0144, the parent; all 30 of K's zip's names and CRCs match
+  today's MAME). Its main CPU's program is encrypted by FD1094 for instruction fetches alone, so its tables are the
+  ROMs' bytes as they are; the tool decrypts nothing.
+- **Scale.** Lengths from the original's km/h and its clock: one position is 0.045862 m. Across, the road's picture
+  gives a lane of about 3.5 m: one lateral unit is 0.0065 m, and one unit of height 15/14 of it, 0.006964 m (the
+  original's pixels' aspect, as in SUPER MONACO GP). The alternatives are (H) 0.0090 m, at which a step turns the
+  heading as much as the original's background turns, and (A) 0.011466 m, a quarter of a position, at which the
+  objects, the eye and the field of view agree as real ones would. RH-4's report draws the same places at the default,
+  (H) and (A) for K to choose.
+- **Product.** The ten countries are ten LINEAR courses, one each: the original starts each country from standing,
+  stops at its GOAL and chooses the next at COURSE SELECT (four countries a play), so a country is one race. Four
+  countries in a row (the choice through the pyramid) belong to the series' stage. The demo's course (descriptions 29
+  and 30) is not made.
+- **Everything but the surface and the water is a board.** The original's road layer draws the sky's lines alone and
+  every object on the road, the surface included, is a sprite. The surface with its white marks, and the water and its
+  shore 0EC, lie on the ground and are Strips; everything else is a board (K, 2026-10-22: "keep the fences and the curve
+  signs sprites too"): the fences, walls and stone blocks at the surface's ends, the curve signs, the scenery, the
+  strips of grass, bushes and dunes (Stage PG's boards extending sideways) and what spans the road.
+- **The ground beyond the road.** The original shows the ground beyond the road with its background (layers of tiles,
+  with rivers and lakes). Here too the ground beyond the road is transparent, and the sky shows that layer baked below
+  its horizon.
+- **Hills.** The original's grade tables (PIT) are dumped for the hills' stage and not made: the courses are flat but
+  for the crossings' bumps.
+- **The road's traffic** (the original's traffic tables) is vehicles and is not made.
+
+Rules of the stage, beside the earlier stages':
+
+- K's zip lies in `reference-media/racing-hero/rom/rachero.zip`, the tool's dump in
+  `reference-media/racing-hero/rom-data/`. The tool finds each ROM by its CRC and refuses another set. No code of MAME
+  or of other projects is copied or ported: the formats are read by this project's own code from the stage's
+  description and the ROMs themselves.
+- **No decryption.** No decrypting code and no key (the zip's `317-0144.key`) enter the repository or are used. What
+  the stage's description says of the program's code (what it reads and how, its clock and speed readout, how it
+  places objects across and turns the road) was found by decrypting it for the description and confirmed on the
+  original in a harness; the tool cannot check it and takes it as described.
+- The road data tool gains RACING HERO's modules (`racing-hero-*.ts`): its ROM set, addresses and formats (the section
+  descriptions, the road, object and type tables and definitions, the background's command lists) and the courses'
+  assembly. What it shares with the other originals (`program-words`, `pixel-grid`'s `chosenLines` and `paletteName`,
+  `sprite-pixels`, `sky-baking`, `road-profile`, `crossings`, `--check`) serves it; what the X board shares with SUPER
+  MONACO GP (its sprite ROMs' words, the 16B tiles' pixels, colors averaged in linear light, limits moved over two steps
+  either side of a border, Sections split by their objects' count) becomes general functions both use, SUPER MONACO
+  GP's `--check` unchanged, and is not copied. What it adds to a shared module (`road-profile`'s crossing rule,
+  `sky-baking`'s second baking) leaves every other original's `--check` unchanged; `bakeSky` itself does not change.
+- **Every original's results stay.** Before each PR main is taken in and every original's `--check` on main (OUTRUN's,
+  SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, SUPER MONACO GP's and, once it exists, RACING HERO's) passes on the
+  local ROMs; a PR changing a shared rule says which course of which original changes, and by how much.
+- The stage stops only where the ROMs disagree with the stage's description (an address holding other contents, an
+  unknown format, a CRC that does not match), where a rule above would break, where the format cannot make the
+  courses' form (the nearest form it can make is then shown), or where RH-3a's crossing rule changes another original's
+  course; every other open point is decided by its default and reported in its PR.
+
+**Beside Stage PG.** Stage RH runs beside Stage PG in another session. It waits on Stage PG at two points alone:
+
+- RH-3 and PG-9 are not worked on at once: both touch SUPER MONACO GP's modules (RH-3 makes its surface colors' mean,
+  its limits' slope, its Sections' split and its sprite ROMs' words general functions; PG-9 makes its boards with
+  views and its flat boards again). While one's PR is open the other does not start, and the later is built on the
+  earlier in main.
+- RH-4 waits until all of Stage PG is in main (after PG-11): its strips are PG-5's boards extending sideways and its
+  anchors PG-3's bottom default, and PG-11 takes anchorY out of the image format, which would write RH's images again.
+
+Where a PR of one stage would rewrite the same file as an open PR of the other, it is built on whichever reaches main
+first and says so; when a PG PR in main changes a conversion or a material, RH takes it in, passes every `--check`
+again and measures again where the measured products went stale.
+
+PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
+
+- RH-1: this section, RACING HERO's reference courses in [Product](product.md#5-series), and the place of its section in
+  [Original road data](original-road-data.md#racing-hero).
+- RH-2: RACING HERO's ROMs read into its dump: `racing-hero-read` writes
+  `reference-media/racing-hero/rom-data/racing-hero.json` (`superoutride.racing-hero-road-data`, version 1) with the
+  section descriptions, the ten countries' road, PIT, scenery and surface tables, COURSE SELECT's choices and next
+  countries and their names, the type table and the types used with their parts and pictures, the sprite palettes in
+  both sets, the background numbers, command lists and blocks, the tile palettes and their sets with their palette
+  motion numbers, and the sky's colors. The program's values that are no tables are the tool's constants.
+- RH-3a: the crossings' rule for passes near a road's end in `road-profile` and in
+  [Profile](original-road-data.md#profile): a pass whose middle lies less than 100 m from the road's start or end makes
+  no bump and stays flat, the crossing's other passes taking all of the 6 m. Every other original's `--check` stays.
+- RH-3: the courses without objects (`racing-hero-course`, conversion version 1, with `--check`): plan, lanes,
+  materials and limits, every Strip (the surface, the marks, the water and its shore), the transparent ground, the
+  Sections split by the objects RH-4 will place, the crossings by RH-3a's rule, gates and grid, and skies named with a
+  copy of a sky in main; the racing lines measured. Not at once with PG-9.
+- RH-5: the ten skies baked from the tile ROMs by `sky-baking`'s second baking (pixels alone; nothing measured).
+- RH-4, the stage's last, after all of Stage PG: the objects as boards in the ROMs' pictures by chosen lines (the
+  scenery, the chevron signs 254, the standing parts of the surface types, the strips extending sideways, what spans
+  the road, the gates), none with a body, and those not placed; the racing lines measured again; the default scale set
+  beside (H) and (A).
+
+Each PR updates its specifications (Original road data, the content documents, NEXT's progress) with it.
+
+Not in this stage: the hills (the original's PIT tables), the RACING HERO series itself (four countries in a row,
+COURSE SELECT, the bikes, rivals, the road's cars, time and bonus), the demo's course, sounds and music, the motion of
+what moves and the start's show (the great flag man, GO's letters, the background's turn), and the product's pictures
+drawn again.
+
 ## Stage DT — DRIFT TUNED trial vehicles
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
@@ -917,8 +1048,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
 SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), TURBO
 OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms), ENDURO RACER's in
-[Stage ER](#stage-er--enduro-racer-from-the-roms) and SUPER MONACO GP's in
-[Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
+[Stage ER](#stage-er--enduro-racer-from-the-roms), SUPER MONACO GP's in
+[Stage MG](#stage-mg--super-monaco-gp-from-the-roms) and RACING HERO's in
+[Stage RH](#stage-rh--racing-hero-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
 Their time limits come from reference driving, as for every course.
 
 Left by Stages ER and MG to later stages (K, 2026-10-21):

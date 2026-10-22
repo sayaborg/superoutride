@@ -2,13 +2,14 @@
 
 OUTRUN's courses are raised from the road data in the original's program ROMs, and [Stage
 SH](NEXT.md#stage-sh--super-hang-on-from-the-roms), [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms), [Stage
-ER](NEXT.md#stage-er--enduro-racer-from-the-roms) and [Stage MG](NEXT.md#stage-mg--super-monaco-gp-from-the-roms) raise
-SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's from their own the same way. This document owns
-how each original's ROMs are read: the ROM set, its programs, the tables' format and addresses, the dump the road data
-tool writes, and how the tables become course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on),
-[TURBO OUTRUN](#turbo-outrun), [ENDURO RACER](#enduro-racer) and [SUPER MONACO GP](#super-monaco-gp) have their own.
+ER](NEXT.md#stage-er--enduro-racer-from-the-roms), [Stage MG](NEXT.md#stage-mg--super-monaco-gp-from-the-roms) and
+[Stage RH](NEXT.md#stage-rh--racing-hero-from-the-roms) raise SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, SUPER
+MONACO GP's and RACING HERO's from their own the same way. This document owns how each original's ROMs are read: the
+ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how the tables become
+course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on), [TURBO OUTRUN](#turbo-outrun),
+[ENDURO RACER](#enduro-racer), [SUPER MONACO GP](#super-monaco-gp) and [RACING HERO](#racing-hero) have their own.
 What the conversion does not yet cover is NEXT's ([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data),
-Stage SH, Stage TO, Stage ER, Stage MG).
+Stage SH, Stage TO, Stage ER, Stage MG, Stage RH).
 
 The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
 `reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/`, `reference-media/turbo-outrun/rom/`,
@@ -1837,3 +1838,10 @@ The near barriers stand as steps, one picture a board, where the original draws 
 drawn for its eye about 0.57 m above the road at the car, this game's camera 6 m behind and 2 m above it (with the
 camera lowered to 0.6 m at the car, the same pictures and selection make the original's continuous band). The pictures
 and their selection are the original's as they are, and K kept them so (2026-10-21).
+
+## RACING HERO
+
+RACING HERO's ten countries are raised from MAME's `rachero` (Racing Hero, FD1094 317-0144). Its main CPU's program is
+encrypted for instruction fetches alone: its tables (the courses', the sprites' and the background's, all in the main
+CPU's program) are read as the ROMs' bytes, and the program is never decrypted. Its ROM set, programs and tables are
+described here as [Stage RH](NEXT.md#stage-rh--racing-hero-from-the-roms) reads them, from RH-2.
