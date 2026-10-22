@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-10, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-11, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -569,9 +569,8 @@ the heading tables closed exactly on the written plane, lanes, materials and lim
 and its marks as strips, Sections split where their boards would pass the format's bound, the tunnel's dark sky, the
 grid (one slot further past the line than the original's, for the camera's room), checkpoints and finish, their racing
 lines measured ([SUPER MONACO GP's courses](original-road-data.md#super-monaco-gps-courses)). MG-4 gave the drawing
-and the course format boards with views: a [view set](image-assets.md#view-sets) is one image holding a board's
-pictures and the picture of each of its 32 views, drawn as the original selects it
-([Boards with views](architecture.md#boards-with-views)); no version rose and every other course draws and identifies
+and the course format boards with views: a view set was one image holding a board's pictures and the picture of each
+of its 32 views, drawn as the original selects it (Stage PG's PG-10 deleted them); no version rose and every other course draws and identifies
 as before. MG-5 placed their objects: every object but the surface boards a board without a body, in the ROMs'
 pictures by chosen lines, the barriers, kerbs, walls and advertising boards in eight view sets
 ([SUPER MONACO GP's objects](original-road-data.md#super-monaco-gps-objects)); the racing lines were measured again.
@@ -772,10 +771,11 @@ PRs:
 - PG-9 made SUPER MONACO GP's boards with 32 views single pictures, each its view 0, and its kerbs `curb`s (517 on the
   race, 163 on the qualifying), and stood every board on its bottom edge from the road (conversion version 4). The
   view sets are no longer written; PG-10 deletes them and their format.
-- PG-10, the stage's cleanup: the view sets (the image format `superoutride.sprite-views`, `src/image/sprite-views.ts`,
-  `courseViewsFile`, `CourseSpriteViews`, `selectCourseSpriteView`, `tests/rendering/sprite-views.test.mjs` and their
-  document sections), the strips' restoration (`restoredStrip`, `boardsAcross`) and the boards and images no longer
-  used are deleted.
+- PG-10, the stage's cleanup, deleted the view sets (the image format `superoutride.sprite-views`,
+  `src/image/sprite-views.ts`, `courseViewsFile`, `CourseSpriteViews`, `selectCourseSpriteView`,
+  `tests/rendering/sprite-views.test.mjs` and their document sections), the strips' restoration (`restoredStrip` and
+  the families' `reach` and `shrink`; `boardsAcross` went in PG-6b2) and the 20 images no longer used (OUTRUN's sea
+  and patches, TURBO OUTRUN's waves, puddles and gravel patches, SUPER MONACO GP's eight view sets).
 - PG-11: one authority for the anchor's height. Once every kind-1 picture stands at its bottom, anchorY follows from H:
   the course image's anchorY (the tire puffs' pictures share its format) and the sprite recipe's `anchor.y` go, their
   versions rising, with what else reads or writes them (the image writing tools, the sprite source compiler,

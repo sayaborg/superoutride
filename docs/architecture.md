@@ -563,17 +563,6 @@ row nearer than the player (a crest between them) does not cover a nearer pictur
 replay draws the course alone ([Courses from footage](footage.md#replay-comparison)); its measurements then hold NaN
 for the player's point and -1 for its variants.
 
-### Boards with views
-
-A board with views ([view set](image-assets.md#view-sets)) draws, in every frame it is seen, the picture of one of its
-32 views, selected where its base point is projected as SUPER MONACO GP selects it:
-`i = ⌊α / (π/32)⌋ mod 32` with `α = (θ − ψ) − (π/4) tan β`. `θ` is the heading of the road at the board's station in
-the Route frame (its Section's heading plus its occurrence's rotation, as the Route readers' `toWorld` gives it), `ψ`
-the camera's yaw, and `tan β = x / d` the base point's camera-right distance over its depth, so `(π/4) tan β`
-approximates the bearing at which the camera sees it. Thirty-two steps of `π/32` make half a turn: a board seen from
-behind shows the view it shows from in front. Nothing is held from the previous frame. The picture stands at the base
-point like any other; the board has no shadow and no body.
-
 ### Shadows
 
 A shadow is a picture of its own, drawn with the picture it belongs to: the same level, at the same scale, with its

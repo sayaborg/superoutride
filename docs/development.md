@@ -477,7 +477,7 @@ from the ROMs under `content/`:
 | `enduro-racer-read`      | Read ENDURO RACER's two ROM zips (`--zip`, else `enduror.zip`, and `--bootleg-zip`, else `endurobl.zip`, in its ROM directory), finding each ROM by its CRC, and write every table its course uses to its dump (`--out`) |
 | `enduro-racer-course`    | Write ENDURO RACER's course, raised from its two ROM zips (`--zip`, `--bootleg-zip`), to `content/courses/`, and its skies to `content/images/`, or with `--check` fail where one differs                                |
 | `super-monaco-gp-read`   | Read SUPER MONACO GP's ROM zip (`--zip`, else the one zip in its ROM directory), finding each ROM by its CRC, and write every table its courses use to its dump (`--out`)                                                |
-| `super-monaco-gp-course` | Write SUPER MONACO GP's two circuits, raised from its ROM zip (`--zip`), to `content/courses/`, and their skies, boards and view sets to `content/images/`, or with `--check` fail where one differs                     |
+| `super-monaco-gp-course` | Write SUPER MONACO GP's two circuits, raised from its ROM zip (`--zip`), to `content/courses/`, and their skies and boards to `content/images/`, or with `--check` fail where one differs                                |
 
 ### Local originals
 

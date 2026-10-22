@@ -1,7 +1,6 @@
 import type { CompiledCoursePosition } from './course-geometry.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { SpriteLodAsset } from '../image/sprite.js';
-import type { SpriteViewsAsset } from '../image/sprite-views.js';
 import type { CompiledBoundary } from './course-boundaries.js';
 import type { StripGround } from './strip-ground.js';
 import type { BackgroundArrival } from './course-document.js';
@@ -11,10 +10,8 @@ interface DecodedImage<Image> {
   readonly image: Image;
 }
 
-/** A placement's image: a course image, or a view set, whose picture its board's view selects. */
-export type CourseSpriteImage =
-  | (DecodedImage<SpriteLodAsset> & { readonly kind: 'sprite' })
-  | (DecodedImage<SpriteViewsAsset> & { readonly kind: 'views' });
+/** A placement's image: a course image. */
+export type CourseSpriteImage = DecodedImage<SpriteLodAsset> & { readonly kind: 'sprite' };
 
 export interface CourseSpriteResource<Image extends CourseSpriteImage = CourseSpriteImage> {
   readonly palette: string;

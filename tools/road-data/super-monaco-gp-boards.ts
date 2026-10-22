@@ -1,16 +1,14 @@
 /**
  * SUPER MONACO GP's objects as boards ([Original road data](../../docs/original-road-data.md#super-monaco-gps-objects)):
  * each picture an object shows, as it shows it (mirrored, flipped), becomes a course image of its frame table's largest
- * size in every palette it is shown in, on the texel grid by chosen lines; each view table an object turns through, at
- * its size class and mirrored or not, becomes a view set of those pictures. The pictures are the ROMs', provisional:
- * the product draws its own.
+ * size in every palette it is shown in, on the texel grid by chosen lines. The pictures are the ROMs', provisional: the
+ * product draws its own.
  */
-import { courseImageFile, courseViewsFile } from '../graphics/sprite-import.js';
+import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { SPRITE_VIEW_COUNT } from '../../src/image/sprite-views.js';
 import { chosenLines, paletteName, PIXEL_ASPECT } from './pixel-grid.js';
-import { largestPixels, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
+import { largestPixels, readSpritePalette } from './super-monaco-gp-sprites.js';
 
 /** An object's sprite flags: its palette, mirrored, flipped, and its base point at its picture's middle. */
 export const FLAG = Object.freeze({ palette: 0xff, mirrored: 0x400, flipped: 0x800, middle: 0x2000 } as const);
@@ -29,22 +27,11 @@ export interface BoardUse {
   readonly middle: boolean;
   readonly palette: number;
 }
-/** One way an object turns through a view table: at a size class, every view mirrored or not, about its bottom or middle. */
-export interface ViewsUse {
-  readonly table: number;
-  readonly b1: number;
-  readonly mirrored: boolean;
-  readonly middle: boolean;
-  readonly palette: number;
-}
 
 const hex = (value: number, digits: number) => value.toString(16).padStart(digits, '0');
 /** A board's image name: `smgp-<frame table>-<size class>`, then whether mirrored and flipped. */
 export const boardName = (use: Omit<BoardUse, 'middle' | 'palette'>) =>
   `smgp-${hex(use.frames, 4)}-${hex(use.b1, 2)}${use.mirrored ? '-mirrored' : ''}${use.flipped ? '-flipped' : ''}`;
-/** A view set's image name: `smgp-views-<view table>-<size class>`, then whether every view is mirrored. */
-export const viewsName = (use: Omit<ViewsUse, 'middle' | 'palette'>) =>
-  `smgp-views-${hex(use.table, 4)}-${hex(use.b1, 2)}${use.mirrored ? '-mirrored' : ''}`;
 
 /** A picture's indices turned as an object shows it: mirrored across, flipped upside down. */
 function turned(indices: ArrayLike<number>, width: number, mirrored: boolean, flipped: boolean): number[] {
@@ -55,15 +42,8 @@ function turned(indices: ArrayLike<number>, width: number, mirrored: boolean, fl
   });
 }
 
-/** The boards' and view sets' images, at `unit` metres a lateral unit, and their sizes for the report. */
-export function superMonacoGpBoards(
-  main: Uint8Array,
-  sub: Uint8Array,
-  words: Uint32Array,
-  boards: readonly BoardUse[],
-  views: readonly ViewsUse[],
-  unit: number,
-) {
+/** The boards' images, at `unit` metres a lateral unit, and their sizes for the report. */
+export function superMonacoGpBoards(main: Uint8Array, words: Uint32Array, boards: readonly BoardUse[], unit: number) {
   const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555, 0];
   const palettesOf = (palettes: ReadonlySet<number>) => {
     const sorted = [...palettes].sort((a, b) => a - b);
@@ -136,25 +116,6 @@ export function superMonacoGpBoards(
   for (const [name, { use, palettes }] of group(boards, boardName)) {
     const board = master(name, use.frames, use.b1, use.mirrored, use.flipped, use.middle, palettesOf(palettes));
     images.push({ name, texels: board.width * board.height, image: courseImageFile(board) });
-  }
-  for (const [name, { use, palettes }] of group(views, viewsName)) {
-    if (views.some((u) => viewsName(u) === name && u.middle !== use.middle))
-      throw new RangeError(`The objects of view set ${name} stand by different base points`);
-    // View i shows its frame table mirrored from view 16 on, or every view mirrored when the object is.
-    const table = readViewTable(sub, use.table);
-    const shown = table.map((frames, i) => ({ frames, mirrored: use.mirrored || i >= SPRITE_VIEW_COUNT / 2 }));
-    const distinct = [...new Map(shown.map((s) => [`${s.frames} ${s.mirrored}`, s])).values()];
-    const colors = palettesOf(palettes);
-    const masters = distinct.map((s) => master(name, s.frames, use.b1, s.mirrored, false, use.middle, colors));
-    images.push({
-      name,
-      texels: masters.reduce((sum, m) => sum + m.width * m.height, 0),
-      image: courseViewsFile(
-        name,
-        masters,
-        shown.map((s) => distinct.findIndex((d) => d.frames === s.frames && d.mirrored === s.mirrored)),
-      ),
-    });
   }
   return images;
 }

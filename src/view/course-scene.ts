@@ -145,7 +145,6 @@ export function createCourseScene(
             z: position.z,
             sRender: s,
             asset,
-            views: null,
             shadow,
           });
         };

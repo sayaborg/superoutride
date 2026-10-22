@@ -12,9 +12,8 @@ export const RESERVED_IMAGE_NAMES: readonly string[] = ['vehicles', 'text-tiles'
 
 /**
  * Build-only image delivery: the delivered bytes of each image a course names, by that name, each its saved document as
- * compact JSON. A sprite, a placement's or a movable body's knocked image alike, and each picture of a view set are saved
- * with every level of their LOD (`courseImageFile`, `courseViewsFile`), so the build admits them as they are and
- * compiles no level; a background has no LOD.
+ * compact JSON. A sprite, a placement's or a movable body's knocked image alike, is saved with every level of its LOD
+ * (`courseImageFile`), so the build admits it as it is and compiles no level; a background has no LOD.
  * The course document itself is unchanged.
  */
 export async function compileCourseImages(document: CourseDocument, inputs: readonly CourseImageBytes[]) {
@@ -29,11 +28,7 @@ export async function compileCourseImages(document: CourseDocument, inputs: read
   const admitted = requireLoaded(await readCourseImageSources(names, inputs));
   const complete = (picture: SpriteLodAsset) =>
     picture.levels.length === spriteLodLayout(picture.width, picture.height).length;
-  const partial = admitted.filter(
-    (image) =>
-      (image.kind === 'sprite' && !complete(image.image)) ||
-      (image.kind === 'views' && !image.image.pictures.every(complete)),
-  );
+  const partial = admitted.filter((image) => image.kind === 'sprite' && !complete(image.image));
   if (partial.length)
     requireLoaded(
       courseFailures(

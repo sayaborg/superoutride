@@ -1,26 +1,18 @@
 import type { ProfileReader } from '../course/geometry/profile.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { createSpritePalette, type SpriteAsset } from '../image/sprite.js';
-import { createSpriteViewsPalette } from '../image/sprite-views.js';
-import type { CourseAppearance, CourseSpriteImage, CourseSpriteResource } from '../course/course-appearance.js';
+import type { CourseAppearance, CourseSpriteResource } from '../course/course-appearance.js';
 import { EnvironmentTimeline } from '../course/environment-timeline.js';
 import { compileCourseSprite } from './course-sprite.js';
 
 /** Rendering resources over the compiled course's decoded images, which are borrowed read-only. */
 export function createCourseRenderResources() {
-  // Only palette instances are materialized here; the compiled images are shared, never decoded again. A view set's
-  // instance is its pictures in the palette and the picture of each view.
-  type Instance = SpriteAsset | { readonly pictures: readonly SpriteAsset[]; readonly views: readonly number[] };
-  const instances = new Map<CourseSpriteResource, Instance>();
-  function instanceImage(instance: CourseSpriteResource<CourseSpriteImage & { readonly kind: 'sprite' }>): SpriteAsset;
-  function instanceImage(instance: CourseSpriteResource): Instance;
-  function instanceImage(instance: CourseSpriteResource): Instance {
+  // Only palette instances are materialized here; the compiled images are shared, never decoded again.
+  const instances = new Map<CourseSpriteResource, SpriteAsset>();
+  function instanceImage(instance: CourseSpriteResource): SpriteAsset {
     let asset = instances.get(instance);
     if (!asset) {
-      asset =
-        instance.asset.kind === 'sprite'
-          ? createSpritePalette(instance.asset.image, instance.palette)
-          : createSpriteViewsPalette(instance.asset.image, instance.palette);
+      asset = createSpritePalette(instance.asset.image, instance.palette);
       instances.set(instance, asset);
     }
     return asset;

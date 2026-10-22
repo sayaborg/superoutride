@@ -7,8 +7,8 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette, type Family } from './outrun-sprites.js';
-import { anchorPoint, outline, spritePixels, type SpriteSize } from './sprite-pixels.js';
+import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
+import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { chosenLines, paletteName, texelsAPixel } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
@@ -154,42 +154,6 @@ function boardMasters(
     boards.push({ name, master: board, lies });
   }
   return boards;
-}
-
-/**
- * A strip's, cloud's or trees' picture restored from its family's `sizes`, its reach times its nearest size's width over
- * `boards` boards (one board's share) and as tall, its edge nearest the road on the left. Each column `d` nearest pixels
- * from that edge: where the far sizes are the nearest shrunk across with what lies beyond, size k (shrunk by s) covering
- * d where d·s is within the nearest's width, from the largest size that covers it, its column d·s and its rows its
- * height's share of the nearest's (a size without rows leaves it transparent); where they are not shrunk, the nearest
- * size's, repeating outward.
- */
-export function restoredStrip(
-  words: Uint32Array,
-  sizes: readonly SpriteSize[],
-  family: Pick<Family, 'nearest' | 'reach' | 'shrink'>,
-  boards: number,
-) {
-  const sized = sizes.map((size) => spritePixels(words, size));
-  const { width, height } = sizes[family.nearest]!;
-  const reach = (family.reach / boards) * width;
-  const { shrink } = family;
-  const pixels = new Uint8Array(reach * height);
-  for (let d = 0; d < reach; d++) {
-    // The largest size that covers d: the one shrunk least that still holds it.
-    let k = family.nearest;
-    if (shrink) {
-      k = -1;
-      for (let j = 0; j < sizes.length; j++) if (d * shrink(j) < width && (k < 0 || shrink(j) > shrink(k))) k = j;
-    }
-    const size = sizes[k]!;
-    const column = shrink ? Math.floor(d * shrink(k)) : d % width;
-    for (let y = 0; y < height; y++) {
-      const row = Math.floor((y * size.height) / height);
-      if (row < size.height) pixels[y * reach + d] = sized[k]![row * size.width + column]!;
-    }
-  }
-  return { pixels, width: reach, height };
 }
 
 /** `pixels`, `width` wide, mirrored left to right. */

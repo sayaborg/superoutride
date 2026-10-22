@@ -12,7 +12,7 @@ import type { CompiledCourseImageSource } from './course-image-source.js';
 
 /**
  * One expanded sprite placement of a Section: its authored record, its document path, its resolved position and
- * lateral, and its image, a course image or a view set. Its index among the Section's placements is the sprite identity
+ * lateral, and its image, a course image. Its index among the Section's placements is the sprite identity
  * race and appearance share.
  */
 export interface CourseSpritePlacement {
@@ -20,7 +20,7 @@ export interface CourseSpritePlacement {
   readonly path: string;
   readonly at: CompiledCoursePosition;
   readonly l: number;
-  readonly image: CompiledCourseImageSource & { readonly kind: 'sprite' | 'views' };
+  readonly image: CompiledCourseImageSource & { readonly kind: 'sprite' };
 }
 
 /**
@@ -49,7 +49,7 @@ export function compileCourseSpritePlacements(
       );
       const image = assets.get(source.image);
       if (!image) throw new CourseInputError('unresolved_reference', `${at}/image`, 'Unknown course asset');
-      if (image.kind !== 'sprite' && image.kind !== 'views')
+      if (image.kind !== 'sprite')
         throw new CourseInputError('invalid_image_role', `${at}/image`, 'Sprites require sprite patterns');
       const position = shiftedCoursePosition(resolve, offset, length)(source.at, `${at}/at`);
       placements.push(
@@ -69,9 +69,8 @@ export function compileCourseSpritePlacements(
 /**
  * The Section's solid sprites as objects, one per placement with a body: its width, no wider than the image's world
  * width, from the road height plus `groundOffset` up the image's world height, and, for a movable body, its mass and
- * launch elevation. The image's size is read here once; a state-selected sign cannot be solid, nor a board with views,
- * whose picture, and so whose size, changes with the view, nor a board extending sideways, which is for looks alone. Each object keeps its placement's index, the sprite
- * identity.
+ * launch elevation. The image's size is read here once; a state-selected sign cannot be solid, nor a board extending
+ * sideways, which is for looks alone. Each object keeps its placement's index, the sprite identity.
  */
 export function compileCourseSpriteObjects(
   placements: readonly CourseSpritePlacement[],
@@ -81,8 +80,6 @@ export function compileCourseSpriteObjects(
   placements.forEach(({ source, path, at, l, image }, sprite) => {
     const body = source.body;
     if (body === null) return;
-    if (image.kind !== 'sprite')
-      throw new CourseInputError('invalid_placement', `${path}/body`, 'A board with views cannot be solid');
     requireCourse(
       image.image.extend === undefined,
       `${path}/body`,

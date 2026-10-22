@@ -212,10 +212,8 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
   );
   const boards = superMonacoGpBoards(
     main,
-    programs.sub,
     words,
     courses.flatMap((c) => c.uses.boards),
-    [],
     UNIT,
   );
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.

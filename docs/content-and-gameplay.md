@@ -127,8 +127,7 @@ resolve authored references.
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
 `{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedLink,body}`.
-`image` names a sprite image or a [view set](image-assets.md#view-sets), a board with views whose picture the view
-selects as it is drawn ([Boards with views](architecture.md#boards-with-views)); `palette` is a required nonempty name
+`image` names a sprite image; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
 names with `unresolved_reference` at the sprite's `/palette` JSON Pointer.
@@ -146,7 +145,7 @@ for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (
 `airborne` and `landed` the sprite images it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
 wider than the image's world width (its master width at 40 texels/m), a body on a state-selected sign and a body on a
-board with views, whose size changes with its picture (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the placement's own and requires a
+board extending sideways (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the placement's own and requires a
 movable body's image and its airborne and landed images each to carry a shadow (`invalid_placement` at the image's
 pointer), which the object casts ([Shadows](architecture.md#shadows)).
 
@@ -449,8 +448,8 @@ Slab crossings and moving-edge preblend event counts depend on geometry, so inpu
 cannot guarantee derived counts; compilation checks the actual products and rejects excess.
 The 21 km density case, a nearly 42 km case reaching plan element/PVI/knot/Boundary/Strip/placement ceilings,
 and 50- and 128-Section three-choice graphs are disposable measured probes; their times, memory and
-compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source, a view set
-too, whose pictures each meet `imageMasterTexels` and whose levels all count toward `imageTotalLevelTexels`. Authored
+compiled counts belong in the PR. Images have their own aggregate bound; each named image is one source, which meets
+`imageMasterTexels` and whose levels all count toward `imageTotalLevelTexels`. Authored
 JSON size does not include the separately supplied image bytes.
 
 A Section's plan is its centreline from its origin facing +Z: straights and arcs in order, each `length` metres along
@@ -1724,8 +1723,8 @@ has no class: it is driven in FREE PLAY alone, untimed, the player from the grid
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` SUPER
 MONACO GP QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
 data](original-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials and
-limits, strips, Sections, gates, skies and objects, every object but the road's surface a board without a body, its
-barriers, kerbs, walls and advertising boards boards with views; run the conversion rather than editing the documents. The race has its
+limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board without
+a body; run the conversion rather than editing the documents. The race has its
 checkpoints where the original's CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their
 hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last
 slot.

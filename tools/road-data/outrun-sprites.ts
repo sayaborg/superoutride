@@ -172,16 +172,12 @@ export const startObjects = (main: Uint8Array) => [...readStartObjects(main), re
 
 /**
  * The sizes a routine draws whatever sprite its entry names, choosing one by depth: the longs at `address` point at
- * them, `sizes` of them, `nearest` the index of the nearest. Its far sizes show more than its nearest, `reach` times its
- * width at the farthest: each size k its nearest shrunk across by `shrink(k)` with what lies beyond (0 where too small
- * to read), or, with no `shrink`, its nearest unshrunk, repeating.
+ * them, `sizes` of them, `nearest` the index of the nearest.
  */
 export interface Family {
   readonly address: number;
   readonly sizes: number;
   readonly nearest: number;
-  readonly reach: number;
-  readonly shrink?: (k: number) => number;
 }
 
 /**
@@ -215,14 +211,8 @@ export interface ObjectRoutine {
   readonly fromMiddle?: { readonly edge: number; readonly up: number };
 }
 
-/** A strip's sizes: 16 for the depths, the nearest last; size k, where reduced, the nearest shrunk to (k + 1)/16. */
-const strip = (address: number, reduced: boolean): Family => ({
-  address,
-  sizes: 16,
-  nearest: 15,
-  reach: 16,
-  ...(reduced ? { shrink: (k: number) => (k + 1) / 16 } : {}),
-});
+/** A strip's sizes: 16 for the depths, the nearest last. */
+const strip = (address: number): Family => ({ address, sizes: 16, nearest: 15 });
 /**
  * The clouds' row stays 151 above the eye in road units at every depth (the horizon's row on a flat road, its row ×
  * (1 − z/512)); standing twice as far, twice that, above the original's eye, 72 (rows 223 to 151).
@@ -246,20 +236,20 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // The figures after a goal, each casting its shadow object's (0x5C48) size list at 0x103B6, at 3/8 of its scale
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
-  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548, false) }],
-  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608, true), lies: true }],
-  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588, true) }],
-  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8, true) }],
+  [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548) }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: true }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588) }],
+  [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8) }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
-  [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588, true) }],
-  // VINEYARD's trees: size k ≤ 7 the nearest shrunk to (8 − k)/8, more trees beyond; size 8 (3 rows) too small.
+  [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588) }],
+  // VINEYARD's trees: 9 sizes, the nearest first.
   [
     0x428a,
     {
       pixelUnits: 2,
       hits: false,
       keepsLeftWhenApart: false,
-      family: { address: 0x435c, sizes: 9, nearest: 0, reach: 8, shrink: (k) => (k < 8 ? (8 - k) / 8 : 0) },
+      family: { address: 0x435c, sizes: 9, nearest: 0 },
     },
   ],
   [
@@ -268,7 +258,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
       pixelUnits: 4,
       hits: false,
       keepsLeftWhenApart: false,
-      family: { address: 0x4246, sizes: 9, nearest: 0, reach: 16 },
+      family: { address: 0x4246, sizes: 9, nearest: 0 },
       fromMiddle: { edge: 32, up: CLOUDS_UP },
     },
   ],

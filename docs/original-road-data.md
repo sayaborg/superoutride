@@ -327,16 +327,10 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   stands as tall for its width as a near one, and narrows. An extending board repeats its nearest size at one size to
   the frame's edge, where the original shrinks the far sizes outward (the sand and stones); standing on its bottom
   edge at the original's middle anchor's place, it stands half its height higher (K, 2026-10-22).
-- **Restored** (`restoredStrip`, none of OUTRUN's since Stage PG). The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across
-  and their own rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the
-  nearest's width, which is only the inner 1/16 of the strip. The board is 16 times the nearest's width; its column
-  `d` nearest pixels from the edge by the road takes, from the largest size k that covers it ((k + 1)d < 16 × width:
-  15 within the nearest width, 7 from twice it, 3 from four times, 1 from eight times, 0 from sixteen), its column
-  floor(d(k + 1)/16) and, for row y, its row floor(y × its height / the nearest's). The grass's far sizes are not
-  shrunk across, so its nearest size repeats outward to the same width. The boards are 7564 × 68 texels (grass), 8086 ×
-  68 (sea, sand) and 8086 × 33 (stones: their sizes are 0 to 15 rows tall, so the outer half, size 0's, is
-  transparent), within a course image's 1,048,576 texels. None is made since Stage PG: the extending boards are 473 × 68
-  texels (grass), 505 × 68 (sand) and 505 × 33 (stones), and the sea is baked.
+- **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own
+  rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The
+  grass's far sizes are not shrunk across, so its nearest size repeats outward. No board is restored from them: the
+  extending boards are 473 × 68 texels (grass), 505 × 68 (sand) and 505 × 33 (stones), and the sea is baked.
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
   DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road: it is no board, but one Strip of its
   footprint, in its picture's mean color and no material, as in the original ([Baking](#baking)).

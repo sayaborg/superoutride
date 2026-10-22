@@ -15,13 +15,6 @@ import {
   type SpriteLodAsset,
   type SpriteLodDocument,
 } from '../../image/sprite.js';
-import {
-  readSpriteViewsAsset,
-  SPRITE_VIEW_COUNT,
-  SPRITE_VIEWS_FORMAT,
-  type SpriteViewsAsset,
-  type SpriteViewsDocument,
-} from '../../image/sprite-views.js';
 
 /** Offline source admission bounds, not resident image/device budgets or art-quality settings. */
 export const COURSE_IMAGE_SOURCE_RECIPE = Object.freeze({
@@ -37,7 +30,6 @@ export interface CourseImageBytes {
 
 type AdmittedImage =
   | { readonly kind: 'sprite'; readonly image: SpriteLodAsset; readonly document: SpriteLodDocument }
-  | { readonly kind: 'views'; readonly image: SpriteViewsAsset; readonly document: SpriteViewsDocument }
   | { readonly kind: 'background'; readonly image: TilePicture; readonly document: TilePictureDocument };
 
 /**
@@ -46,7 +38,6 @@ type AdmittedImage =
  */
 export type CompiledCourseImageSource = { readonly id: string; readonly sha256: string } & (
   | { readonly kind: 'sprite'; readonly image: SpriteLodAsset }
-  | { readonly kind: 'views'; readonly image: SpriteViewsAsset }
   | { readonly kind: 'background'; readonly image: TilePicture }
 );
 
@@ -67,9 +58,7 @@ export async function compileCourseImageSources(
         Object.freeze(
           image.kind === 'sprite'
             ? { id, sha256, kind: image.kind, image: image.image }
-            : image.kind === 'views'
-              ? { id, sha256, kind: image.kind, image: image.image }
-              : { id, sha256, kind: image.kind, image: image.image },
+            : { id, sha256, kind: image.kind, image: image.image },
         ),
       ),
     ),
@@ -146,16 +135,9 @@ async function admitCourseImageSources(
       error('asset_parse_failure', name, 'Saved image must be UTF-8 JSON', inputIndex);
       continue;
     }
-    // Bound the image readers' transient decoded allocation before format validation: a sprite's picture, or each of a
-    // view set's pictures.
-    const candidate = value as { readonly format?: unknown; readonly pictures?: unknown } | null;
-    const viewSet = candidate?.format === SPRITE_VIEWS_FORMAT;
-    const pictures = viewSet
-      ? Array.isArray(candidate.pictures) && candidate.pictures.length <= SPRITE_VIEW_COUNT
-        ? (candidate.pictures as readonly Partial<SpriteLodDocument>[])
-        : []
-      : [value as Partial<SpriteLodDocument> | null];
-    const texels = pictureTexels(pictures);
+    // Bound the image reader's transient decoded allocation before format validation.
+    const candidate = value as { readonly format?: unknown } | null;
+    const texels = pictureTexels([value as Partial<SpriteLodDocument> | null]);
     if (texels === null) {
       error('resource_limit', name, 'Image master exceeds source texel admission', inputIndex);
       continue;
@@ -179,8 +161,6 @@ async function admitCourseImageSources(
         const image = compileTilePicture(value);
         levelTexels += background.patterns.length * 256;
         admitted = { kind: 'background', image, document: background };
-      } else if (viewSet) {
-        admitted = { kind: 'views', image: readSpriteViewsAsset(value), document: value as SpriteViewsDocument };
       } else {
         // Sprite-LOD admission establishes the saved document's shape.
         admitted = { kind: 'sprite', image: readSpriteLodAsset(value), document: value as SpriteLodDocument };
