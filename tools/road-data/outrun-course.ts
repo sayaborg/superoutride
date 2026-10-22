@@ -10,7 +10,7 @@ import type { Profile } from './road-profile.js';
 import type { CurvePoint, Path, WidthHeightPoint } from './road-tables.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 13;
+export const CONVERSION_VERSION = 14;
 
 /** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
 export const WIDTH_RATE = 16 / 303;
@@ -127,31 +127,36 @@ const REPEAT_TOLERANCE = 2e-6;
 
 /**
  * Sprite elements with each run of equal sprites without a body (all but `at`) at equal spacing written as one repeat
- * of its first: the original brings out a strip's pieces, and many objects, at a steady rate. Runs are found in station
- * order, each as long as it keeps its spacing; the rest stay as they are, a body where its station is exactly.
+ * of its first: the original brings out a strip's pieces, and many objects, at a steady rate. An entry may be a unit,
+ * sprites at one station (a board and its edge), repeated together. Runs are found in station order, each as long as it
+ * keeps its spacing; the rest stay as they are, a body where its station is exactly.
  */
 export function repeated<T extends { readonly at: { readonly offset: number }; readonly body: unknown }>(
-  sprites: readonly T[],
+  sprites: readonly (T | readonly T[])[],
 ) {
-  const groups = new Map<string, T[]>();
-  for (const [k, sprite] of sprites.entries()) {
-    const key = sprite.body === null ? JSON.stringify({ ...sprite, at: null }) : `body ${k}`;
-    groups.set(key, [...(groups.get(key) ?? []), sprite]);
+  const groups = new Map<string, (readonly T[])[]>();
+  for (const [k, entry] of sprites.entries()) {
+    const unit: readonly T[] = Array.isArray(entry) ? entry : [entry as T];
+    const key = unit.every((s) => s.body === null)
+      ? JSON.stringify(unit.map((s) => ({ ...s, at: null })))
+      : `body ${k}`;
+    groups.set(key, [...(groups.get(key) ?? []), unit]);
   }
   return [...groups.values()].flatMap((group) => {
-    const sorted = [...group].sort((a, b) => a.at.offset - b.at.offset);
-    const out: (T | { kind: 'repeat'; every: number; count: number; elements: [T] })[] = [];
+    const sorted = [...group].sort((a, b) => a[0]!.at.offset - b[0]!.at.offset);
+    const out: (T | { kind: 'repeat'; every: number; count: number; elements: T[] })[] = [];
     for (let i = 0; i < sorted.length;) {
       const first = sorted[i]!;
-      const every = round((sorted[i + 1]?.at.offset ?? first.at.offset) - first.at.offset);
+      const offset = (n: number) => sorted[n]![0]!.at.offset;
+      const every = round((sorted[i + 1] ? offset(i + 1) : offset(i)) - offset(i));
       let count = 1;
       while (
         every > 0 &&
         i + count < sorted.length &&
-        Math.abs(sorted[i + count]!.at.offset - (first.at.offset + count * every)) <= REPEAT_TOLERANCE
+        Math.abs(offset(i + count) - (offset(i) + count * every)) <= REPEAT_TOLERANCE
       )
         count++;
-      out.push(count > 1 ? { kind: 'repeat', every, count, elements: [first] } : first);
+      out.push(...(count > 1 ? [{ kind: 'repeat' as const, every, count, elements: [...first] }] : first));
       i += count;
     }
     return out;

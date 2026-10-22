@@ -18,6 +18,9 @@ import {
   sceneryRoutine,
 } from './outrun-sprites.js';
 
+/** The original's lowest height, a signed word. */
+const LOWEST = -32768;
+
 /** Where the road width exceeds this as an object appears, the roads are apart: some routines keep it by the left road. */
 const RIGHT_FROM_LEFT_WIDTH = 280;
 /** An object appears at the road's first line; the first of a tick's two turns a 1/64 line nearer (0x3C76, 0x3CA2). */
@@ -99,7 +102,8 @@ export function roadObjects(
   const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean, solid = true) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
-    if (position >= options.end) return;
+    // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
+    if (position >= options.end || y === LOWEST) return;
     const size = objectSize(main, use);
     const width = size.width * routine.pixelUnits;
     // Across from the roads' middle: an object is from the left road's centre, a right-side one from the right's

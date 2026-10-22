@@ -845,8 +845,14 @@ The evening's PRs, in this order:
   surface sounds and the tire puffs (a white powder); its values and their grounds are
   [Calibration](calibration.md#surface-materials)'s. No course uses it yet (PG-7c gives it to PITTSBURGH's and DENVER's
   snow); every course was measured again.
-- PG-6c: OUTRUN's lying things as boards with their materials, the extending boards trimmed and their ends stood once;
-  the grass strip 894 m below ALPS's road (the original's height −32768) not placed.
+- PG-6c made OUTRUN's lying things boards again (conversion version 14): the sea and lakes 4608, the sand 4588 and
+  the patches `outrun-001` at the original's middle anchor, at height 0, with `WATER` beneath the sea and lakes from
+  their waterline to the verges and nothing beneath the sand ([Lying boards](original-road-data.md#lying-boards),
+  `ground-materials.ts`); every extending board cut into its edge, a board of its own standing once with each piece,
+  and the part that repeats ([Extending boards](original-road-data.md#extending-boards), `extending-boards.ts`, shared
+  with TURBO OUTRUN); a board and its edge are repeated together, so every Section keeps within 2048 sprite elements
+  (at most 1564, OLD CAPITAL's). ALPS's grass strip 894 m below the road (the original's height −32768) is not placed.
+  OUTRUN's roads no longer bake colors.
 - PG-7c: TURBO OUTRUN's lying things likewise; the baking's color parts deleted.
 - PG-12: shadows at the foot (OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER).
 

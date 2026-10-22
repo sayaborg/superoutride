@@ -239,8 +239,8 @@ front's columns removed.
 `npm run road-data -- boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
 mirrored and shadowed as shown, and the figures after each goal: the course image
-`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>`, a figure's frame no sprite names
-`outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
+`outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>` and its edge's `outrun-strip-<family>-edge`,
+a figure's frame no sprite names `outrun-frame-<address>`); with `--check` it rebuilds them and fails where one differs. Each is made from the largest
 size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 
 - **Scale.** A road unit is `UNIT_METRES` = 3.6 × 3 / 424 = 0.0254717 m (a lane, 424/3 units, is 3.6 m). A pixel spans
@@ -254,7 +254,8 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
-- **Base point.** At the bottom or middle its anchor gives; a board extending sideways at its bottom. Across, an object
+- **Base point.** On its bottom edge, but what lies on the ground ([Lying boards](#lying-boards)) at the bottom or
+  middle its anchor gives. Across, an object
   anchored by an edge that has no body (its routine never hits: the strips) stands by that edge (`standsByEdge`), and
   its base point is there; any other's is at the middle of the sprite's hit extents, so a solid object's body stands
   there.
@@ -316,32 +317,78 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   and others), 3 the sea's or a lake's edge (COCONUT BEACH, ALPS, SEASIDE TOWN, LAKESIDE), 10 DESERT's sand and 11
   DEATH VALLEY's stones. Drawing 14 (0x4380) is the sand strip again, kept by the left road where the roads were apart
   and setting no surface effect: DESOLATION HILL's sand before its goal (types 206 and 207 of the goal stretch), 79
-  at the top speed. Its board, `outrun-strip-<family>`, stands at that edge (Stage PG): the grass, sand and stones
-  rise from the ground, so each is its nearest size, standing on its bottom edge and extending sideways away from the
-  road (`extend`: right, or left mirrored). The sea's or a lake's edge lies on the ground: it is no board, but its
-  nearest size, standing by that edge and its middle, is [baked](#baking) into the course's Strips, in water's colors,
-  `WATER` inside the verges.
+  at the top speed. Its board, `outrun-strip-<family>`, is its nearest size at that edge, extending sideways away
+  from the road (`extend`: right, or left mirrored), its edge's shape a board of its own
+  ([Extending boards](#extending-boards)). The grass and stones rise from the ground, standing on their bottom edge;
+  the sea's or a lake's edge and the sand lie on it ([Lying boards](#lying-boards)).
 - **Depth.** From line 256 on (half its approach) the nearest size is drawn at the objects' scale; before it, the size
   its line chooses (one each 16 lines) at line 256's scale, as wide but fewer rows, so a far strip lies flatter
   than a near one and no narrower. A board is one picture at every depth, reduced as the camera draws it: a far strip
   stands as tall for its width as a near one, and narrows. An extending board repeats its nearest size at one size to
   the frame's edge, where the original shrinks the far sizes outward (the sand and stones); standing on its bottom
-  edge at the original's middle anchor's place, it stands half its height higher (K, 2026-10-22).
+  edge at the original's middle anchor's place, the grass and stones stand half their height higher (K, 2026-10-22).
 - **Far sizes.** The far sizes of the sea, sand and stones are the nearest shrunk, (k + 1)/16 across and their own
   rows' share of the nearest's down, with what lies beyond it: size k covers 16/(k + 1) times the nearest's width. The
-  grass's far sizes are not shrunk across, so its nearest size repeats outward. No board is restored from them: the
-  extending boards are 473 × 68 texels (grass), 505 × 68 (sand) and 505 × 33 (stones), and the sea is baked.
+  grass's far sizes are not shrunk across, so its nearest size repeats outward. No board is restored from them.
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
-  DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road: it is no board, but one Strip of its
-  footprint, in its picture's mean color and no material, as in the original ([Baking](#baking)).
+  DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road ([Lying boards](#lying-boards)), with no
+  material beneath, as in the original.
 - **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is
   on them, near the camera: for 12 frames a spray from the table at 0xAD06 is drawn at the car, by the effect's kind
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
   spray is not converted.
 
+### Extending boards
+
+A board extending sideways (`stripCut`, `extending-boards.ts`, shared with [TURBO OUTRUN's
+strips](#turbo-outruns-strips)) is its strip's nearest size, its edge nearest the road on the left (a mirrored one's
+columns mirrored), cut in three: its transparent end columns are left out; the part that repeats, `[repeat, end)`,
+is at least a quarter of its opaque width, and its two ends join; the shape before it, `[start, repeat)`, is the
+edge's, a board of its own (`-edge`) standing once with each placement, not extending. The shape of the outer end,
+which nothing continues (a rise, a tapering border), is not used. The cut compares the 8 columns either side of each
+candidate seam: first their outline (each column's top and bottom opaque rows) the closest, then the most equal
+texels, then the longest repeating part, then the nearest the road. A board and its edge repeat together where the
+original brings out its pieces at a steady rate.
+
+OUTRUN's cuts, in texel columns of the nearest size:
+
+| Strip                         | Width | Edge `[start, repeat)` | Repeats `[repeat, end)` |
+| ----------------------------- | ----: | ---------------------: | ----------------------: |
+| 4246 CLOUDY MOUNTAIN's clouds |  1011 |                   9–53 |                  53–787 |
+| 435c VINEYARD's trees         |   456 |                  5–222 |                 222–342 |
+| 4548 grass                    |   473 |                  5–149 |                 149–401 |
+| 4588 sand                     |   505 |                  5–330 |                 330–468 |
+| 45c8 stones                   |   505 |                  8–112 |                 112–432 |
+| 4608 sea and lakes            |   505 |                  5–169 |                 169–308 |
+
+### Lying boards
+
+What lies on the ground is a board, its nearest size at the original's anchor (the middle of its picture, H/2 − 0.5,
+for OUTRUN's and TURBO OUTRUN's), at height 0, with no body: its rows below the anchor lie on the nearer ground as
+every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). Its material lies beneath it as a
+colorless Strip (`lyingMaterials`, `ground-materials.ts`), as the camera sees the piece pass beside the player: the
+camera definition's, 2 m high and 6 m behind. A row r m below the anchor lies 6r / (2 + r) m nearer than the piece
+(beyond it for negative r).
+
+- **Strips.** A strip's material runs from its waterline, a Boundary `water-<side>` through each piece's road-side
+  edge at its foot (where its bottom opaque row meets the ground), out to the outer Boundary of its side
+  (`outer-left` or `outer-right`), along from the first piece's foot to the last's of each run (pieces within 16 m of
+  the next), over each stretch where the waterline lies 1 m inside the outer Boundary: none beyond the course limits,
+  which do not move. A side's runs share its Boundary while they follow one another, a knot at each piece and at each
+  run's ends; past 1024 knots they are thinned to within 0.25 m, each run's ends kept (the conversion stops beyond
+  that).
+- **Patches.** A patch's material is the rectangle of its foot: across its picture's opaque columns, along from where
+  its bottom to where its top opaque row meets the ground.
+
+On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE)
+have `WATER` beneath them; the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing
+13, `outrun-001`) none (K, 2026-10-22): the original's sand changes no driving, and `SAND` would stop the planned
+driver on DESOLATION HILL, whose patches lie on grades of up to 40 %. ALPS's grass strip at the original's lowest
+height (−32768, 894 m below the road), never seen, is not placed.
+
 ### Baking
 
-What lies on the ground (the sea's and lakes' edges, the waves, the patches and puddles) is baked into the course's
+What lies on TURBO OUTRUN's ground (the waves, the patches and puddles) is baked into the course's
 Strips by the road data tool's shared baking (`ground-baking.ts`), as the camera sees each piece pass beside the player:
 the camera definition's, 2 m high and 6 m behind (the original's eye, 1.965 m and 6.1 m, is not matched). A piece's
 picture is its nearest size, its board's as it would stand. Its columns keep their laterals (40 texels a metre); its row
@@ -363,12 +410,6 @@ r m below the anchor lies 6r / (2 + r) m nearer than the piece (beyond it for ne
   0.05 m of their samples (doubled until they fit 1024 knots), so that a band's edges stay ordered.
 - **Patches** (`bakePatch`). A patch is one Strip, the rectangle its rows and columns cover on the ground, in its
   picture's mean color, its material beneath.
-
-On OUTRUN's roads the sea and lakes (drawing 3) are baked on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE in up to
-2 sets a side (at most 18 Boundaries and 974 knots in a Section), and DESERT's 1149, its second Section's 169 and
-DESOLATION HILL's 482 and 543 patches (drawing 13) are each a color Strip on the road, with no material: the original's
-patches change no driving. `SAND` beneath them would stop the planned driver on DESOLATION HILL, whose patches lie on
-grades of up to 40 %, and leave its roads' racing lines unmeasurable.
 
 ### Clouds
 

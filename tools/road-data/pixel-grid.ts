@@ -1,8 +1,12 @@
 /**
  * The originals' pixels on this game's texel grid ([Original road data](../../docs/original-road-data.md#boards)):
- * a road unit's metres, the pixels' aspect, a board's grid, chosen lines and a palette's name.
+ * a road unit's metres, the pixels' aspect, a board's grid, chosen lines, mirroring and a palette's name.
  */
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
+
+/** `pixels`, `width` wide, mirrored left to right. */
+export const mirror = <T>(pixels: readonly T[], width: number) =>
+  pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
 
 /** A palette's name in a board. */
 export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;

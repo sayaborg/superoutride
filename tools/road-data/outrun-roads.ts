@@ -44,7 +44,9 @@ import { repeated, sectionProfile, simplified } from './outrun-course.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import { bakeGround, bakePicture, type GroundPiece, type LyingPicture } from './ground-baking.js';
+import { bakePicture } from './ground-baking.js';
+import type { LyingBoard } from './outrun-boards.js';
+import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
 /** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
@@ -282,8 +284,10 @@ function roadCrossings(laid: readonly Laid[], sides: (span: Span, p: number) => 
 /** What a road's course takes beside its spans. */
 export interface RoadOptions {
   readonly id: string;
-  /** The pictures of what lies on the ground, by image name: the objects showing them are baked into Strips. */
-  readonly lying: ReadonlyMap<string, LyingPicture>;
+  /** The pictures of what lies on the ground, by image name: their materials lie beneath the objects showing them. */
+  readonly lying: ReadonlyMap<string, LyingBoard>;
+  /** Each extending board's edge, by its image name: standing once where the board does. */
+  readonly edges: ReadonlyMap<string, string>;
   readonly name: string;
   readonly tables: ReadonlyMap<number, HeightTable>;
   readonly kmh: number;
@@ -934,39 +938,31 @@ function sectionDocument(
         color: GUIDANCE.white,
       });
 
-  // What lies on the ground, baked: the sea's and lakes' edges (water, `WATER` from the waterline inside the verges)
-  // and the patches of sand on the road (color alone), over everything else.
-  const lyingPieces: GroundPiece[] = [];
-  const standing: (typeof section.objects)[number][] = [];
+  // What lies on the ground's materials, colorless beneath its boards: the sea's and lakes' `WATER` from the waterline
+  // out to the verges; the sand drifts and the patches of sand on the road none.
+  const lyingPieces: LyingPiece[] = [];
   for (const placed of section.objects) {
     const lying = section.options.lying.get(placed.object.image);
-    if (!lying) {
-      standing.push(placed);
-      continue;
-    }
+    if (!lying) continue;
     const { master } = lying;
     // A strip's pieces stand by their edge, a patch by its middle.
-    const strip = master.anchorX < 0 || master.anchorX > master.width - 1;
+    const strip = master.extend !== undefined;
     lyingPieces.push({
       s: plan.station(placed.p) - origin,
       l: placed.lateral,
       picture: bakePicture(lying, placed.object.palette),
-      strip: strip
-        ? { key: `${placed.object.image} ${placed.object.palette}`, outward: master.anchorX < 0 ? 1 : -1 }
-        : null,
-      // A patch is its color alone: as `SAND` it stops the planned driver on DESOLATION HILL's steepest grades.
-      material: strip ? 'WATER' : null,
+      strip: strip ? { key: placed.object.image, outward: master.extend === 'right' ? 1 : -1 } : null,
+      material: lying.material,
     });
   }
-  const baked = bakeGround(lyingPieces, {
+  const materials = lyingMaterials(lyingPieces, {
     length: size,
     outer: { left: { id: 'outer-left', at: vergeAt('left') }, right: { id: 'outer-right', at: vergeAt('right') } },
   });
-  const edgeOf = (edge: string | number | null) =>
-    edge === null ? null : typeof edge === 'string' ? boundary(edge) : round(edge);
-  for (const g of baked.strips) {
+  const edgeOf = (edge: string | number) => (typeof edge === 'string' ? boundary(edge) : round(edge));
+  for (const g of materials.strips) {
     const [a, b] = [round(g.start), round(g.end)];
-    if (b > a) strips.push(strip(a, b, edgeOf(g.left), edgeOf(g.right), g.color, g.material));
+    if (b > a) strips.push(strip(a, b, edgeOf(g.left), edgeOf(g.right), null, g.material));
   }
 
   // The gates.
@@ -1020,7 +1016,7 @@ function sectionDocument(
     boundaries: [
       { id: 'outer-left', knots: verge(span.verges.left) },
       { id: 'outer-right', knots: verge(span.verges.right) },
-      ...baked.boundaries.map(({ id, knots }) => ({
+      ...materials.boundaries.map(({ id, knots }) => ({
         id,
         knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
       })),
@@ -1029,23 +1025,28 @@ function sectionDocument(
     walls: [],
     openLimits: [],
     sprites: repeated([
-      ...standing.map(({ p, lateral, object: o }) => ({
-        kind: 'sprite',
-        image: o.image,
-        palette: o.palette,
-        at: at(p),
-        lateral: round(lateral),
-        groundOffset: round(o.y * UNIT_METRES * PIXEL_ASPECT),
-        unselectedLink: null,
-        // As wide as its hit extents, at most its board's width in whole texels.
-        body:
-          o.hit === null
-            ? null
-            : {
-                width: round(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
-                movable: null,
-              },
-      })),
+      ...section.objects.map(({ p, lateral, object: o }) => {
+        const board = {
+          kind: 'sprite',
+          image: o.image,
+          palette: o.palette,
+          at: at(p),
+          lateral: round(lateral),
+          groundOffset: round(o.y * UNIT_METRES * PIXEL_ASPECT),
+          unselectedLink: null,
+          // As wide as its hit extents, at most its board's width in whole texels.
+          body:
+            o.hit === null
+              ? null
+              : {
+                  width: round(Math.min(o.hit * UNIT_METRES, Math.round(o.width * UNIT_METRES * TEXELS) / TEXELS)),
+                  movable: null,
+                },
+        };
+        // An extending board's edge stands once where it does, repeated with it.
+        const edge = section.options.edges.get(o.image);
+        return edge ? [board, { ...board, image: edge }] : board;
+      }),
       // The guidance's signs, passed through.
       ...section.guidance.flatMap((g) =>
         g.kind === 'sign'

@@ -9,7 +9,7 @@ import { atomicWrite, reportError, requireInput } from '../course/authoring-io.j
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
-import { lyingPictures, sceneryBoards, type SpriteUse } from './outrun-boards.js';
+import { boardShapes, sceneryBoards, type SpriteUse } from './outrun-boards.js';
 import { assembleSprites, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
@@ -403,8 +403,8 @@ try {
         idOf: (stage: Stage) => slug(nameOf(stage)),
         shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
       };
-      // What lies on the ground, baked into the roads' Strips from its pictures.
-      const lying = lyingPictures(programs.main, assembleSprites(files), outrunSceneryUses(programs).uses);
+      // What lies on the ground, its materials beneath it, and the extending boards' edges.
+      const { lying, edges } = boardShapes(programs.main, assembleSprites(files), outrunSceneryUses(programs).uses);
       const courses = [];
       const starts = startObjects(programs.main);
       for (const route of OUTRUN_ROUTES) {
@@ -417,6 +417,7 @@ try {
           stageName: nameOf,
           sky: (stage) => ({ image: skyName(stage.number), horizonY: SKY_HORIZON }),
           lying,
+          edges,
           objects: (points, road) => {
             const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
               ...road,
