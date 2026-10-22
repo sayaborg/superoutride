@@ -29,22 +29,14 @@ import {
   type Band,
   type SceneryObject,
 } from './super-monaco-gp-road.js';
-import { largestPixels, largestSize, readSpritePalette } from './super-monaco-gp-sprites.js';
+import { largestPixels, largestSize, readSpritePalette, readViewTable } from './super-monaco-gp-sprites.js';
 import { VIEWED } from './super-monaco-gp-dump.js';
-import {
-  boardName,
-  FLAG,
-  pixelUnits,
-  superMonacoGpBoards,
-  viewsName,
-  type BoardUse,
-  type ViewsUse,
-} from './super-monaco-gp-boards.js';
+import { boardName, FLAG, pixelUnits, superMonacoGpBoards, type BoardUse } from './super-monaco-gp-boards.js';
 import { paletteName } from './pixel-grid.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 3;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 4;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -107,6 +99,20 @@ const SKY_HORIZON = 320;
 const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 /** The kinds of the objects that stand as boards: flat, upright, and turning with the angle. */
 const BOARD_KINDS = Object.freeze(new Set([0x04, 0x08, VIEWED]));
+/**
+ * The kerbs: the objects turning through view table 0x050A, 4 steps apart, each a blue and a white stripe (its pixels
+ * 1–6 and 7–12, the next kerb's palette swapping them), drawn as curbs.
+ */
+const KERBS = 0x050a;
+const KERB_STEPS = 4;
+const KERB_CLASSES = [
+  [1, 6],
+  [7, 12],
+] as const;
+/** A kerb stands on from the one before it within this many steps, alternating its palette. */
+const KERB_GAP = 8;
+/** A curb's end this near a whole stripe, metres, is drawn back this far short of it. */
+const STRIPE_HAIR = 1e-3;
 /** An object's height h that stands on the ground. */
 const GROUND = -50;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
@@ -139,8 +145,10 @@ function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
   );
 }
 
-/** Whether an object is drawn as strips: a flat board of the road's surface. */
+/** Whether an object is a flat board of the road's surface, drawn as strips. */
 const isSurface = (o: SceneryObject) => o.kind === 0x04 && SURFACE_FRAMES.has(o.frames);
+/** Whether an object is a kerb, drawn as curbs. */
+const isKerb = (o: SceneryObject) => o.kind === VIEWED && o.frames === KERBS;
 
 /** The linear-light mean of RGB555 colors. */
 function meanColor(colors: readonly number[]): number {
@@ -188,12 +196,18 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
       return meanColor(colorsOf(GRID_BOARD, palette, (x, y) => y === mark.row && x >= a && x < b));
     },
     start: (palette: number) => startBlocks(picture(START_BOARD), readSpritePalette(main, palette).rgb555),
+    // A kerb's two stripes: the mean colors of its view 0 picture's two classes of pixels.
+    kerb: (palette: number) =>
+      KERB_CLASSES.map(([a, b]) =>
+        meanColor(colorsOf(readViewTable(programs.sub, KERBS)[0]!, palette, (_x, _y, v) => v >= a && v <= b)),
+      ),
   };
   const courses = COURSES.map((course) =>
     superMonacoGpCourse(programs, course, {
       marks,
       ground: roadLayer[GROUND_COLOR]!,
       height: (frames: number) => largestSize(main, frames).height,
+      width: (frames: number) => largestSize(main, frames).width,
     }),
   );
   const boards = superMonacoGpBoards(
@@ -201,7 +215,7 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
     programs.sub,
     words,
     courses.flatMap((c) => c.uses.boards),
-    courses.flatMap((c) => c.uses.views),
+    [],
     UNIT,
   );
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
@@ -333,10 +347,12 @@ interface CourseContext {
     readonly centre: (palette: number) => number;
     readonly grid: (mark: (typeof GRID_MARKS)[number], palette: number) => number;
     readonly start: (palette: number) => { from: number; to: number; color: number }[];
+    readonly kerb: (palette: number) => number[];
   };
   readonly ground: number;
-  /** A frame table's largest size's rows. */
+  /** A frame table's largest size's rows and columns. */
   readonly height: (frames: number) => number;
+  readonly width: (frames: number) => number;
 }
 
 /** One circuit: its plan, Sections, strips, gates and skies. */
@@ -358,7 +374,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
 
   // The Sections: one a sector between the checkpoints, halved where its boards would pass 2048.
   const boards = spots
-    .filter(({ object }) => !isSurface(object))
+    .filter(({ object }) => !isSurface(object) && !isKerb(object))
     .map(({ step }) => lap(step))
     .sort((a, b) => a - b);
   const sectors = [0, ...course.checkpoints.map(lap), N];
@@ -429,45 +445,42 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
 
   // Every other object a board at its step's station, its lateral from P; on a curve's inside, one past the curve's
   // centre's distance less `INSIDE_MARGIN` is left out.
-  const uses = { boards: [] as BoardUse[], views: [] as ViewsUse[] };
+  const uses = { boards: [] as BoardUse[] };
+  // The kerbs: each at its step, its middle's lateral and width units from P.
+  const kerbs = spots
+    .filter(({ object }) => isKerb(object))
+    .map(({ step, mirrored, object }) => ({
+      q: lap(step),
+      units: (mirrored ? -object.x : object.x) / 4,
+      width: context.width(readViewTable(sub, KERBS)[0]!) * pixelUnits(object.b1),
+      palette: object.flags & FLAG.palette,
+    }))
+    .sort((a, b) => a.units - b.units || a.q - b.q);
   const objects: ObjectSpot[] = [];
   const inside: { step: number; x: number; image: string }[] = [];
   for (const { step, mirrored, object } of spots) {
-    if (isSurface(object)) continue;
+    if (isSurface(object) || isKerb(object)) continue;
     requireInput(BOARD_KINDS.has(object.kind), '/scenery', `An object of kind ${object.kind} is not a board`);
     const q = lap(step);
     const units = (mirrored ? -object.x : object.x) / 4;
     const palette = object.flags & FLAG.palette;
     const middle = (object.flags & FLAG.middle) !== 0;
-    let image: string, bottom: number;
-    if (object.kind === VIEWED) {
-      // A board with views turns through its view table, every view mirrored when its flags mirror it; it stands by
-      // its picture's bottom or middle at h.
-      const use = {
-        table: object.frames,
-        b1: object.b1,
-        mirrored: (object.flags & FLAG.mirrored) !== 0,
-        middle,
-        palette,
-      };
-      uses.views.push(use);
-      image = viewsName(use);
-      bottom = object.height;
-    } else {
-      // A board shows its picture mirrored as its flags and the list's word, together, mirror it; one with its base
-      // point at its middle has its bottom half its height below h.
-      const use = {
-        frames: object.frames,
-        b1: object.b1,
-        mirrored: ((object.flags & FLAG.mirrored) !== 0) !== mirrored,
-        flipped: (object.flags & FLAG.flipped) !== 0,
-        middle: false,
-        palette,
-      };
-      uses.boards.push(use);
-      image = boardName(use);
-      bottom = middle ? object.height - (context.height(object.frames) * pixelUnits(object.b1)) / 2 : object.height;
-    }
+    // A board shows its picture mirrored as its flags and the list's word, together, mirror it; one turning through a
+    // view table shows its view 0, mirrored as its flags alone mirror it. One with its base point at its middle has its
+    // bottom half its height below h.
+    const viewed = object.kind === VIEWED;
+    const frames = viewed ? readViewTable(sub, object.frames)[0]! : object.frames;
+    const use = {
+      frames,
+      b1: object.b1,
+      mirrored: ((object.flags & FLAG.mirrored) !== 0) !== (!viewed && mirrored),
+      flipped: (object.flags & FLAG.flipped) !== 0,
+      middle: false,
+      palette,
+    };
+    uses.boards.push(use);
+    const image = boardName(use);
+    const bottom = middle ? object.height - (context.height(frames) * pixelUnits(object.b1)) / 2 : object.height;
     const e = elements.findIndex((el) => q >= el.from && q < el.to);
     const w = written[e < 0 ? elements.length - 1 : e]!;
     const lateralMetres = OFFSET + units * UNIT;
@@ -475,7 +488,8 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       inside.push({ step, x: units, image });
       continue;
     }
-    objects.push({ q, units, image, palette, groundOffset: (bottom - GROUND) * UNIT_DOWN });
+    // It stands on its bottom edge, from the road where the original's bottom lies below it.
+    objects.push({ q, units, image, palette, groundOffset: Math.max(0, bottom - GROUND) * UNIT_DOWN });
   }
 
   const documents = sections.map((section, s) =>
@@ -499,6 +513,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       startBoards,
       gridPalette,
       objects: objects.filter(({ q }) => q >= section.from && q < section.to),
+      kerbs,
       context,
     }),
   );
@@ -535,6 +550,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     spots,
     uses,
     objects,
+    kerbs,
     inside,
   };
 }
@@ -612,6 +628,12 @@ function sectionDocument(input: {
   readonly startBoards: readonly { readonly q: number; readonly palette: number }[];
   readonly gridPalette: number;
   readonly objects: readonly ObjectSpot[];
+  readonly kerbs: readonly {
+    readonly q: number;
+    readonly units: number;
+    readonly width: number;
+    readonly palette: number;
+  }[];
   readonly context: CourseContext;
 }) {
   const { section, origin, size, stationOf, context, course } = input;
@@ -749,6 +771,40 @@ function sectionDocument(input: {
         null,
       );
   }
+  // The kerbs: each run of kerbs at one lateral, KERB_STEPS apart (up to KERB_GAP) with their palettes alternating, a
+  // curb from half a kerb's steps before the first to half after the last, two stripes a kerb in the first's colors.
+  const curb = (run: typeof input.kerbs) => {
+    const [first, last] = [run[0]!, run.at(-1)!];
+    const [from, to] = [Math.max(0, first.q - KERB_STEPS / 2), Math.min(input.N, last.q + KERB_STEPS / 2)];
+    const r = span(from, to);
+    if (!r) return;
+    // An end within a hair past a whole stripe is drawn back a little short of it, so no stripe is empty.
+    const stripe = round((stationOf(to) - stationOf(from)) / (2 * run.length));
+    const [a, b] = [round(r[0]!), round(r[1]!)];
+    const whole = Math.floor((b - a) / stripe + STRIPE_HAIR / stripe);
+    const end = Math.abs(b - a - whole * stripe) < STRIPE_HAIR ? a + whole * stripe - STRIPE_HAIR : b;
+    if (end - a <= EPSILON) return;
+    strips.push({
+      kind: 'curb',
+      start: at(a),
+      end: at(end),
+      left: lateral(first.units - first.width / 2),
+      right: lateral(first.units + first.width / 2),
+      stripe,
+      colors: context.marks.kerb(first.palette),
+    });
+  };
+  let kerbRun: (typeof input.kerbs)[number][] = [];
+  for (const kerb of input.kerbs) {
+    const before = kerbRun.at(-1);
+    if (before && (kerb.units !== before.units || kerb.q - before.q > KERB_GAP || kerb.palette === before.palette)) {
+      curb(kerbRun);
+      kerbRun = [];
+    }
+    kerbRun.push(kerb);
+  }
+  if (kerbRun.length) curb(kerbRun);
+
   // The grid's marks, each slot's, then the start line over them.
   for (let slot = 0; slot < GRID.slots; slot++) {
     const q = input.lap(GRID.first - GRID.spacing * slot);

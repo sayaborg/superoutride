@@ -136,7 +136,7 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-9, then the rest of Stage PG, and beside it
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-10, then the rest of Stage PG, and beside it
 [Stage RH](#stage-rh--racing-hero-from-the-roms)'s RH-2 (RACING HERO's ROMs read into its dump), then the rest of Stage
 RH; then Stage TD, the tidying of the road data tool and the documents after the five Sega
 originals, from K's instructions (no new original before it);
@@ -533,8 +533,8 @@ K's decisions (2026-10-21):
   the barriers, the barriers across the road, the concrete walls, the kerbs and the advertising boards are, as in the
   original, boards whose picture changes with the angle they are seen at (one of 32 chosen every frame), which this
   game's drawing and course format gain in MG-4 (Stage PG replaced the boards with views by single pictures and the
-  kerbs and flat boards by Strips: [Stage PG](#stage-pg--pictures-and-the-ground)). No walls are made: what limits the cars is the original's band table
-  alone, as material edges, and no board has a body.
+  kerbs by Strip `curb`s: [Stage PG](#stage-pg--pictures-and-the-ground)). No walls are made: what limits the cars is
+  the original's band table alone, as material edges, and no board has a body.
 - **Weather.** The fine set (the demo, qualifying and the first race); the overcast set is not made.
 - **Tunnel.** The race's 9032–10860 steps, made as this game makes tunnels: boards, strips and a `cut` to a dark sky.
 
@@ -649,22 +649,25 @@ K's decisions (2026-10-22):
   and the limits do not change). This replaces ER's "no water material" (K, 2026-10-21).
 - **SUPER MONACO GP's boards with 32 views** become single pictures (boards of kind 1) and the view sets are deleted;
   what lies on the road becomes Strips (the kerbs Strip `curb`s).
+- **SUPER MONACO GP: only the kerbs and the road's marks are Strips** (K, 2026-10-22, replacing the row below for its
+  flat boards). Every other object is a sprite's board, the flat boards (kind 0x04: buildings, trees, the gate, signs,
+  the far bridge and cliffs) among them, standing on its bottom edge from the road.
 
 Where each thing goes:
 
-| Thing                                                                                                                                 | Goes to                                                                                                                                                                                                                 |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vehicles                                                                                                                              | Kind 2                                                                                                                                                                                                                  |
-| Trees, signs, buildings, flags, people and the other boards anchored at their bottoms today                                           | Kind 1 as they are (their recipes' anchors move to the bottom in PG-3)                                                                                                                                                  |
-| OUTRUN's grass 4548 and stones 45c8, VINEYARD's row of trees 435c, TURBO OUTRUN's flower beds 2743a, dunes 272fa and grass bank 26fda | Kind 1 extending sideways, at the bottom                                                                                                                                                                                |
-| OUTRUN's clouds 4246, TURBO OUTRUN's mist 2603a                                                                                       | Kind 1 extending sideways, at today's `groundOffset`                                                                                                                                                                    |
-| TURBO OUTRUN's grass and stones on the road 27570, pebbles 27840                                                                      | Kind 1, anchored again at the bottom, not extending; 27570's body (298) stays                                                                                                                                           |
-| OUTRUN's sea and lakes 4608, TURBO OUTRUN's waves 2725a                                                                               | Strips in the water's colors, `WATER` inside the limits                                                                                                                                                                 |
-| TURBO OUTRUN's puddles 274da (and -u1000)                                                                                             | Strips in the water's colors, `WATER`; they have no body today                                                                                                                                                          |
-| OUTRUN's sand patches on the road outrun-001, TURBO OUTRUN's gravel patches 27872                                                     | Strips in sand's and gravel's colors, the nearest material there is                                                                                                                                                     |
-| SUPER MONACO GP's boards with 32 views                                                                                                | Kind 1, one picture; the kerbs Strip `curb`s                                                                                                                                                                            |
-| SUPER MONACO GP's flat boards (kind 0x04, the original's mark of a flat board)                                                        | All Strips by today's rule for the surface boards: the picture's mean color, from the previous board (a run's first from 10 steps before), the picture's width, without the baking; any that look standing are reported |
-| ENDURO RACER's water                                                                                                                  | `WATER` on stage 3's whole ground, stage 5's and the goal's sea (left of P, off the road) and the three water crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND`                          |
+| Thing                                                                                                                                 | Goes to                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vehicles                                                                                                                              | Kind 2                                                                                                                                                                                         |
+| Trees, signs, buildings, flags, people and the other boards anchored at their bottoms today                                           | Kind 1 as they are (their recipes' anchors move to the bottom in PG-3)                                                                                                                         |
+| OUTRUN's grass 4548 and stones 45c8, VINEYARD's row of trees 435c, TURBO OUTRUN's flower beds 2743a, dunes 272fa and grass bank 26fda | Kind 1 extending sideways, at the bottom                                                                                                                                                       |
+| OUTRUN's clouds 4246, TURBO OUTRUN's mist 2603a                                                                                       | Kind 1 extending sideways, at today's `groundOffset`                                                                                                                                           |
+| TURBO OUTRUN's grass and stones on the road 27570, pebbles 27840                                                                      | Kind 1, anchored again at the bottom, not extending; 27570's body (298) stays                                                                                                                  |
+| OUTRUN's sea and lakes 4608, TURBO OUTRUN's waves 2725a                                                                               | Strips in the water's colors, `WATER` inside the limits                                                                                                                                        |
+| TURBO OUTRUN's puddles 274da (and -u1000)                                                                                             | Strips in the water's colors, `WATER`; they have no body today                                                                                                                                 |
+| OUTRUN's sand patches on the road outrun-001, TURBO OUTRUN's gravel patches 27872                                                     | Strips in sand's and gravel's colors, the nearest material there is                                                                                                                            |
+| SUPER MONACO GP's boards with 32 views                                                                                                | Kind 1, one picture; the kerbs Strip `curb`s                                                                                                                                                   |
+| SUPER MONACO GP's flat boards (kind 0x04, the original's mark of a flat board)                                                        | Kind 1 at the bottom, from the road (K, 2026-10-22); the surface boards stay Strips                                                                                                            |
+| ENDURO RACER's water                                                                                                                  | `WATER` on stage 3's whole ground, stage 5's and the goal's sea (left of P, off the road) and the three water crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND` |
 
 Open, taken by default and put to K in the report:
 
@@ -766,8 +769,9 @@ PRs:
   crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND`) and its boards' base points, 0.8
   texel below their bottom, their bottom edge (conversion version 4); NEXT's water (Stage ER's Water, ER-6, what
   Stages ER and MG left) follows.
-- PG-9: SUPER MONACO GP: the boards with 32 views as single pictures, the kerbs `curb`s, the flat boards Strips of
-  their mean colors.
+- PG-9 made SUPER MONACO GP's boards with 32 views single pictures, each its view 0, and its kerbs `curb`s (517 on the
+  race, 163 on the qualifying), and stood every board on its bottom edge from the road (conversion version 4). The
+  view sets are no longer written; PG-10 deletes them and their format.
 - PG-10, the stage's cleanup: the view sets (the image format `superoutride.sprite-views`, `src/image/sprite-views.ts`,
   `courseViewsFile`, `CourseSpriteViews`, `selectCourseSpriteView`, `tests/rendering/sprite-views.test.mjs` and their
   document sections), the strips' restoration (`restoredStrip`, `boardsAcross`) and the boards and images no longer

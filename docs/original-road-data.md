@@ -1772,7 +1772,7 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 3, their skies and their [objects](#super-monaco-gps-objects)'
+QUALIFYING, the qualifying's), conversion version 4, their skies and their [objects](#super-monaco-gps-objects)'
 images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
 lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
 left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
@@ -1791,13 +1791,13 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
 - **Plan.** The headings from step 288 round to it again, N + 1 of them as SUPER HANG-ON's road path vectors (4096 sin
   θ, 4096 cos θ), become straights and arcs by `sectionPlan` once a lap: the race's 50 elements (38 arcs), the
   tightest arc 49.7 m; the qualifying's 17 (13), 53.4 m; each at most 0.25 m off its line. The elements are cut at the
-  Sections' borders (2333, 4697, 7115, 9538 and 12110 are inside elements).
+  Sections' borders (2224, 4697, 7393, 9538 and 12110 are inside elements).
 - **Closing.** On the plane as written (lane a's centre, 256 units, 1.561 m, left of P; arcs' lengths and radii to the
   micrometre) the lap does not quite close (the race's end lies (−2.088, +2.166) m from its start, the qualifying's
   (+1.487, −0.101) m). The last arc's length is solved so that the lap turns exactly once to the right, and two
   straights' lengths so that it closes: of the straights off the line's straight (a straight a Section's border cuts
   counts as two), the two whose headings differ by at least 30° (|sin| ≥ 0.5) with the least of their larger change.
-  The race's are 7198–7620 (+2.11 m, to 159.214 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
+  The race's are 7198–7393 (+2.11 m, to 74.710 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
   qualifying's 1788–2035 (−1.79 m, to 90.162 m) and 4541–4697 (−1.09 m, to 56.980 m), its last arc 5782–5903. These
   three lengths are written as solved; a changed element's steps spread evenly over its length.
 - **Plane and stations.** A step of the lap is the station across from P there on the plane, each element's steps
@@ -1824,10 +1824,10 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
     its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
   - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
 - **Sections.** One a sector between the original's CHECKPOINTs (the race's 288–4697, 4697–9538 and 9538–288; the
-  qualifying's 288–4697 and 4697–288), halved where its boards (MG-5's objects but the surface boards) would pass a
-  Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's `sector-1a`/`1b`,
-  `2a`/`2b`, `3a`/`3b` split at 2333, 7115 and 12110 (1429/1430, 1585/1586, 1661/1664 boards), the qualifying's
-  `sector-1a`/`1b` at 2333 and its `sector-2` (1055). No Section's domain passes over itself. They join by lane a, the
+  qualifying's 288–4697 and 4697–288), halved where its boards (MG-5's objects but the surface boards and the kerbs)
+  would pass a Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's
+  `sector-1a`/`1b`, `2a`/`2b`, `3a`/`3b` split at 2224, 7393 and 12110 (1348/1348, 1408/1409, 1661/1664 boards), the
+  qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by lane a, the
   last to the first.
 - **Gates.** The grid's 24 slots, from the front, slot s at step 588 − 12s (lap step 300 − 12s), lane a for even s and
   b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as TSUKUBA's are, 12 steps further
@@ -1852,40 +1852,36 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
 ### SUPER MONACO GP's objects
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
-strips) is a board: the race's 9355, 7248 of them boards with views, the qualifying's 3914 and 3019. None has a body:
-the original's band table alone acts on its car.
+strips) and the kerbs (curbs) is a board standing on its bottom edge: the race's 8838, the qualifying's 3751. Whatever
+its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
+stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car.
 
 - **Place.** List word k's objects stand at the station of lap step k's P (each element's steps spread evenly), their
   lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p` and three decimal
   digits).
-- **Height.** h = −50 is the ground. A board stands by the middle of its bottom, `groundOffset` (bottom − (−50))
-  × 6.5331 mm, its bottom h, or h less half its picture's height for an object with flag bit 13 (negative too: the far
-  buildings and cliffs stand from as much as 9.34 m below the road, as the original draws them).
+- **Height.** h = −50 is the ground. A board stands by the middle of its bottom edge, its bottom h, or h less half its
+  picture's height for an object with flag bit 13, `groundOffset` (bottom − (−50)) × 6.5331 mm, and from the road where
+  that is below it (the far buildings and cliffs, which the original draws from as much as 9.34 m below the road).
 - **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [chosen lines](#chosen-lines): a pixel
   8 / 2^b1 units across (16 for b1 0xFF) and 15/14 of that down at 40 texels/m, so a 2-unit pixel is 0.49 texel
-  across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A flat or standing board (kinds 0x04, 0x08)
-  shows its picture mirrored as its flag bit 10 and the word's bit 15 together mirror it, and flipped by bit 11, the
-  unturned picture's lines turned. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]` (hexadecimal), in
-  every palette it is shown in, the lowest its default: 131 images.
-- **Boards with views** (kind 0x0C: the barriers along and across the road, the concrete walls, the kerbs, the
-  advertising boards) are [view sets](image-assets.md#view-sets), drawn as the original selects their views
-  ([Boards with views](architecture.md#boards-with-views)): view i shows its view table's frame i, mirrored for i ≥ 16
-  or, for an object with flag bit 10, always. A set is its view table at a size class, mirrored or not,
-  `smgp-views-<view table>-<b1>[-mirrored]`; its distinct pictures stand by their bottom's middle, or the kerbs' (bit 13) by their middle, `groundOffset` (h − (−50)) × 6.5331 mm. The word's bit 15 mirrors only their lateral. Eight
-  sets hold 142 pictures: 0x040A at b1 2 (22) and mirrored (11), 0x044A at b1 2 (22), 0x04CA at b1 1 and 2 (20 each),
-  0x050A at b1 2 (24) and mirrored (12), 0x058A at b1 1 mirrored (11).
+  across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A board shows its picture mirrored as its flag
+  bit 10 and the word's bit 15 together mirror it, and flipped by bit 11, the unturned picture's lines turned. An
+  object turning through a view table (kind 0x0C: the barriers along and across the road, the concrete walls, the
+  advertising boards) shows its view 0's frame table, mirrored by its flag bit 10 alone (the word's bit 15 mirrors only
+  its lateral): 0x0B22 for the barriers along the road, 0x09F6 across it, 0x0648 for the walls and 0x18DE for the
+  boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]` (hexadecimal), in every palette it is shown in,
+  the lowest its default: 137 images.
+- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are curbs: each run of kerbs at one lateral,
+  4 steps apart (up to 8) with their palettes alternating, one curb from 2 steps before the first to 2 after the last,
+  as wide as view 0's picture (144 pixels, 1.76 m) about each kerb's x, two stripes a kerb, in the first kerb's
+  palette's mean colors of pixels 1–6 and 7–12 (blue and white, the next kerb's palette swapping them): 139 curbs on
+  the race, 4 on the qualifying. An end within 1 mm of a whole stripe is drawn 1 mm short of it.
 - **Curves' insides.** An object on an arc's inside farther from lane a's centre than the arc's radius less 2 m is
   left out (none is: the nearest, a far building at the race's and the qualifying's step 2166, stands 0.40 of its
   arc's radius inside lane a's centre).
-- **Images.** 139 in all, 14.68 M master texels, 76.0 MB of saved JSON (about 5.4 MB compressed, in Git and as Pages
-  serves it); the 16-unit class, the far buildings and cliffs, holds 45.3 MB of it, each of the original's pixels
-  about 4 × 4 texels. The 2-unit class drops about half its lines, among them 20 one-pixel columns (the kerbs'
-  stripes' edges, 0x0774–0x0828, and one each in 0x060C and 0x0AAA) and no row.
-
-The near barriers stand as steps, one picture a board, where the original draws a continuous band: its pictures are
-drawn for its eye about 0.57 m above the road at the car, this game's camera 6 m behind and 2 m above it (with the
-camera lowered to 0.6 m at the car, the same pictures and selection make the original's continuous band). The pictures
-and their selection are the original's as they are, and K kept them so (2026-10-21).
+- **Images.** 14.33 M master texels, 71.4 MB of saved JSON (about 4.4 MB compressed, in Git and as Pages serves it);
+  the 16-unit class, the far buildings and cliffs, holds 45.3 MB of it, each of the original's pixels about 4 × 4
+  texels. The 2-unit class drops about half its columns and no row.
 
 ## RACING HERO
 
