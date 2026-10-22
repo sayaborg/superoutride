@@ -657,8 +657,8 @@ K's decisions (2026-10-22):
 
 K's decisions (2026-10-22, evening), after a review of PG-0 to PG-7b:
 
-- **One rule for every picture.** Every picture (a vehicle's, a course image, a tire puff) folds at its anchor's screen
-  row. The rows on and above it stand at the anchor's depth, as today. Each row below lies on the ground nearer than the
+- **One rule for every picture** (amended 2026-10-23, below). Every picture (a vehicle's, a course image, a tire
+  puff) folds at its anchor's screen row. The rows on and above it stand at the anchor's depth, as today. Each row below lies on the ground nearer than the
   anchor: it is drawn after the farthest ground row nearer than the anchor on its screen row (transparent ground
   counted) and its walls, where the picture draws it on the screen (the ground's perspective does not shorten it), so it
   lies only in how it overlaps. How much lies follows from where the anchor is in the picture alone (at the bottom edge
@@ -715,6 +715,12 @@ Decided after the reports (K, 2026-10-22, evening):
 - The patches' materials: TURBO OUTRUN's by what they show (gravel `DIRT`, sand `SAND`, snow `SNOW`, puddles
   `WATER`); OUTRUN's none (the original's patches change no driving, and `SAND` stops the planned driver on DESOLATION
   HILL).
+
+K's decision (2026-10-23):
+
+- A picture beyond a crest shows no lying row over the nearer slope: its rows below the anchor lie only on the ground in
+  front of the anchor as far as that ground faces the camera (PG-1 and PG-1b drew them over the nearer slope). PG-1c
+  makes it, within Stage PG and before Stage TD.
 
 The materials of what lies (PG-6c, PG-7c; the baking of PG-6b2 and PG-7b keeps only this):
 
@@ -849,6 +855,12 @@ The evening's PRs, in this order:
   SUPER HANG-ON 41, TURBO OUTRUN 12, ENDURO RACER 7, 1 to 9 texels higher; those shown raised too by a `-raised` image
   (`raisedSplit`: OUTRUN's 052, 129 and 132, TURBO OUTRUN's 26A62 and 26E4A at 1 unit a pixel). Conversion versions:
   OUTRUN 15, SUPER HANG-ON 3, TURBO OUTRUN 5, ENDURO RACER 5.
+- PG-1c laid a picture's rows below the anchor only on the ground in front of it that faces the camera (a terrain row
+  facing away, `away`, stops them; [Sprites and Painter](architecture.md#sprites-and-painter)), so a picture beyond a
+  crest lays none over the nearer slope: TURBO OUTRUN's snow, waves and patches, OUTRUN's sand and patches, and the
+  vehicles, no longer draw bands over the road before a crest. Seen every 25 m, TURBO OUTRUN's frames change at 237
+  places of 1,894 and OUTRUN's courses' at 63 to 247 (DESERT, DESOLATION HILL), ENDURO RACER's, SUPER HANG-ON's,
+  SUPER MONACO GP's and TSUKUBA's at none; no course document, image or measured product changed.
 
 Left by Stage PG to later stages: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next
 to each other in order as neighbours; mended, it would need no way round such as PG-6b1's.

@@ -205,9 +205,11 @@ export function renderDriving(
     spriteWrittenPixels += stats.writtenPixels;
   };
   // A picture folds at its anchor's screen row: the rows on and above it draw at the anchor's depth. Each row below lies
-  // on the ground nearer than the anchor: it draws after that screen row's farthest terrain row nearer than the anchor,
-  // or at the anchor's depth where there is none. A picture anchored at its full size's bottom edge all stands (a
-  // reduced level's last row, rounded up, reaches below it by less than a texel).
+  // on the ground in front of the anchor as far as that ground faces the camera: from the anchor toward the camera, the
+  // terrain rows nearer than it are followed in Painter order up to the first facing away, to the picture's bottom row.
+  // A row below draws after its screen row's farthest terrain row nearer than the anchor where that is one of them, else
+  // at the anchor's depth, so a picture beyond a crest lays no row over the nearer slope. A picture anchored at its full
+  // size's bottom edge all stands (a reduced level's last row, rounded up, reaches below it by less than a texel).
   const drawSprite = (sprite: VisibleCourseSprite, index: number) => {
     const full = sprite.asset.levels[0]!;
     if (full.anchorY >= full.height - 0.5) return drawRows(sprite, 0, height);
@@ -215,6 +217,15 @@ export function renderDriving(
     const bounds = scaledSpriteBounds(sprite.asset, scale);
     const anchorRow = Math.floor(y),
       bottom = Math.min(height - 1, Math.ceil(y + bounds.bottom));
+    // The ground the rows below lie on: the merge has drawn every farther terrain row, so the nearer ones start at
+    // `lineIndex`; followed to the first facing away, or to the picture's bottom row.
+    let groundNear = sprite.d;
+    for (let i = lineIndex; i < terrain.length; i++) {
+      const line = terrain[i]!;
+      if (line.away) break;
+      groundNear = line.d;
+      if (line.y >= bottom) break;
+    }
     let runStart = 0;
     for (let row = Math.max(0, anchorRow + 1); row <= bottom; row++) {
       let line = -1;
@@ -223,7 +234,7 @@ export function renderDriving(
           line = rowLines[i]!;
           break;
         }
-      if (line < 0) continue;
+      if (line < 0 || terrain[line]!.d < groundNear) continue;
       drawRows(sprite, runStart, row);
       runStart = row + 1;
       const entry = laidSprite.length;

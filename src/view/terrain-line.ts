@@ -96,6 +96,11 @@ interface TerrainLine extends TerrainLineGeometry {
   deltaS: number;
   /** The footprint's nearer chainage: the row represents `[sNear, sNear + deltaS]`. */
   sNear: number;
+  /**
+   * Whether the row's ground faces away from the camera: its interval's line, carried to the camera, passes above the
+   * eye (`bY < 0`), so it is seen from below and always hidden by nearer ground.
+   */
+  away: boolean;
 }
 
 /** Reused by one renderer; outputs are borrowed until its next render. */
@@ -188,7 +193,10 @@ export function generateTerrainLines(
           footprint.length = intervalLength;
         }
         const line = createTerrainLine(plan, camera, parameters, d, y, footprint, workspace);
-        if (line) lines.push(line);
+        if (line) {
+          line.away = bY < 0;
+          lines.push(line);
+        }
       }
     } else {
       const minY = Math.min(y0, y1);
@@ -206,7 +214,10 @@ export function generateTerrainLines(
           continue;
         const footprint = computeTerrainRowFootprint(y, d, aY, bY, visible.dStart, visible.dEnd, workspace.footprint);
         const line = createTerrainLine(plan, camera, parameters, d, y, footprint, workspace);
-        if (line) lines.push(line);
+        if (line) {
+          line.away = bY < 0;
+          lines.push(line);
+        }
       }
     }
   }
@@ -296,6 +307,7 @@ function createTerrainLine(
       xGroundR: 0,
       deltaS: 0,
       sNear: 0,
+      away: false,
     };
     workspace.pool.push(line);
   }

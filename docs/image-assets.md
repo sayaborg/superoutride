@@ -404,7 +404,7 @@ the constructs and builds private numeric fields; these are not image assets or 
 Every picture is drawn at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's position
 seen from above at its body's underside, an object's placement at its height. Its anchor is that point. Every picture
 folds at its anchor: what lies above stands at the anchor's depth, what lies below lies on the ground nearer than the
-anchor. A course image stands on its bottom edge unless it carries its anchor's height. Pictures come in sizes; size `k`
+anchor as far as that ground faces the camera (beyond a crest, the nearer slope hides it). A course image stands on its bottom edge unless it carries its anchor's height. Pictures come in sizes; size `k`
 (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point, and the renderer draws the size nearest
 its scale ([Shared image level selection](architecture.md#shared-image-level-selection)). Vehicle pictures and their
 generator follow this contract; this section is its only statement:

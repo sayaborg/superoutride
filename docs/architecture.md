@@ -522,10 +522,14 @@ mark for it:
 
 - **Standing rows.** The screen rows whose centres lie on or above the anchor's screen row stand at the anchor's depth:
   they are ordered at that depth, and nearer ground hides them pixel by pixel.
-- **Lying rows.** Each row below lies on the ground nearer than the anchor: of the terrain rows on that screen row,
-  transparent ones included, the farthest nearer than the anchor is found, and the picture's row is drawn right after
-  that terrain row and its walls, so nearer ground and walls draw over it; a screen row with no terrain row nearer than
-  the anchor is drawn at the anchor's depth. Rows laid on one terrain row draw from far anchors to near. A lying row is
+- **Lying rows.** Each row below lies on the ground in front of the anchor, as far as that ground faces the camera:
+  from the anchor toward the camera, the terrain rows nearer than it are followed in Painter order up to the first
+  whose ground faces away (its interval's line passes above the eye, so it is seen from below and always hidden), to
+  the picture's bottom row. A row whose screen row's farthest terrain row nearer than the anchor (transparent ones
+  included) is one of them is drawn right after that terrain row and its walls, so nearer ground and walls draw over
+  it; any other row below the anchor is drawn at the anchor's depth, as a standing row is. So a picture beyond a crest
+  shows no lying row over the nearer slope, and beyond a valley its rows lie as far as the far ground is seen. Rows
+  laid on one terrain row draw from far anchors to near. A lying row is
   drawn where the picture puts it on the screen: the ground's perspective does not shorten it, it lies only in how it
   overlaps.
 
