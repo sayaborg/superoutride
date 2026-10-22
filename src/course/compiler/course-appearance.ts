@@ -162,25 +162,22 @@ export function compileCourseAppearance(
       return picture;
     };
     if (movable !== null) shadowed(asset, `${at}/image`);
+    // A knocked picture is the solid object's too, so, like its standing one, it does not extend sideways.
+    const knockedPicture = (name: string, pictureAt: string) => {
+      const picture = shadowed(image(name, pictureAt), pictureAt);
+      requireCourse(
+        picture.image.extend === undefined,
+        pictureAt,
+        'A board extending sideways cannot be solid',
+        'invalid_placement',
+      );
+      return resource(picture, placement.palette, `${at}/palette`);
+    };
     const knocked =
       movable !== null
         ? Object.freeze({
-            airborne: resource(
-              shadowed(
-                image(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
-                `${at}/body/movable/knocked/airborne`,
-              ),
-              placement.palette,
-              `${at}/palette`,
-            ),
-            landed: resource(
-              shadowed(
-                image(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
-                `${at}/body/movable/knocked/landed`,
-              ),
-              placement.palette,
-              `${at}/palette`,
-            ),
+            airborne: knockedPicture(movable.knocked.airborne, `${at}/body/movable/knocked/airborne`),
+            landed: knockedPicture(movable.knocked.landed, `${at}/body/movable/knocked/landed`),
           })
         : null;
     const unselectedLink = placement.unselectedLink;

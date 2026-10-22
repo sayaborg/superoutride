@@ -27,7 +27,10 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 ```
 
 An image stands on its bottom edge: its anchor is `(anchorX, H − 0.5)`, the height following from `H` alone (admission
-sets it; a shadow keeps its own `anchorY`). Master width at 40 texels/m defines physical width; a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height. Each level has at most 15 opaque colors.
+sets it; a shadow keeps its own `anchorY`). The default anchor, which drawn pictures and new recipes take, is the middle
+of the bottom edge, `((W − 1)/2, H − 0.5)` (`defaultSpriteAnchor`). Master width at 40 texels/m defines physical width;
+a course sprite's solid width is bounded by it, and its master height at the same scale is the solid object's height.
+Each level has at most 15 opaque colors.
 Level zero preserves semantic palette slots and identity mixtures for slots 1 through 15.
 A coarse slot is a positive-weight mixture of original opaque slots summing to one; unused slots
 have empty mixtures. Its normal color is the mixture evaluated in the original palette.
@@ -47,8 +50,8 @@ landed images each carry one ([Content and gameplay](content-and-gameplay.md#spr
 provisional ones are the object's square seen by the size-0 contract camera ([Picture contract](#picture-contract)).
 `extend` is optional: it makes the image a board extending sideways, which repeats within its plane the way it names
 to the frame's edge ([Architecture](architecture.md#sprites-and-painter)); an image without it is drawn once. An
-image's mirror image (`-mirrored`) extends the other way. A placement of an extending image has no body
-(`invalid_placement`): it is for looks alone.
+image's mirror image (`-mirrored`) extends the other way. It is for looks alone: an extending image is never a solid
+object's ([Sprites and environment](content-and-gameplay.md#sprites-and-environment)).
 Course sprites select one declared palette by its required name, including an explicit default name.
 The course compiler validates that reference and shares image/name resources. Rendering applies each
 selected palette once; no raw course replacement palettes or value-by-value LOD membership checks remain.
@@ -133,11 +136,11 @@ tiles (1504 pixels), 359 degrees at the product's 240 px. Frame changes transfor
 
 ## Drawn pictures
 
-Drawn pictures come from a deterministic production-only program
-([`tools/graphics/drawn/`](../tools/graphics/drawn)): outlined shapes in three tones of light, at most 15 colors a
-picture, at 40 texels per metre, standing on the middle of their bottom edge (the default anchor). Each picture is written as a source with
-its recipe, `content/sprite-sources/<name>.png` and `.json`, and imported as a course image; replacing a source with
-another image of the same name and size and running its command replaces the picture without touching a course.
+Drawn pictures come from a deterministic production-only program ([`tools/graphics/drawn/`](../tools/graphics/drawn)):
+outlined shapes in three tones of light, at most 15 colors a picture, at 40 texels per metre, standing on the middle of
+their bottom edge (the default anchor). Each picture is written as a source with its recipe,
+`content/sprite-sources/<name>.png` and `.json`, and imported as a course image; replacing a source with another image
+of the same name and size and running its command replaces the picture without touching a course.
 
 The guidance's pictures where OUTRUN's roads part ([Original road data](original-road-data.md#outruns-roads)) are
 drawn by this program, `npm run guidance-pictures` ([Development](development.md#guidance-pictures-command)), as
@@ -321,10 +324,10 @@ actual width is that integer divided by 40. The uniform scale is master width/cr
 height is the ceiling of scaled crop height, with transparent fractional-row padding.
 
 The source anchor is an original-image texel-center coordinate across and maps to
-`(sourceAnchor+0.5-cropOrigin)*scale-0.5`; the master stands on its bottom edge. Fractional/outside anchors are valid. Exact overlap-area
-integration applies to reduction and enlargement. Straight alpha weights opaque color before the
-common binary coverage threshold. The supplied palette has 16 slots, including unused slot zero.
-Output is one normalized master level.
+`(sourceAnchor+0.5-cropOrigin)*scale-0.5`; the master stands on its bottom edge. Fractional/outside anchors are valid.
+Exact overlap-area integration applies to reduction and enlargement. Straight alpha weights opaque color before the
+common binary coverage threshold. The supplied palette has 16 slots, including unused slot zero. Output is one
+normalized master level.
 
 Wrong/missing fields, invalid palettes, crops, anchors or metric values fail before output.
 Source limits are 16777216 decoded pixels and 1048576 master texels. PNG input is at most 32 MiB
@@ -361,10 +364,10 @@ published with each build, so the workbench reopens them. The master's name is `
 ```
 
 A new recipe's anchor is the source's default, its middle, `(W − 1)/2` for a source `W` wide (`defaultSpriteAnchor`);
-the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and takes alpha zero, and a shown one gets its
-source alpha back. `palettes` names one or more palettes of 16 slots: the first is the default, which the source is
-normalized with, and the others color the same slots otherwise. Null generates one, `original`, from the masked crop
-([Candidate palettes](#candidate-palettes)) with 15 colors.
+the picture stands on its crop's bottom edge. `mask` rectangles are applied in order: a hidden pixel keeps its color and
+takes alpha zero, and a shown one gets its source alpha back. `palettes` names one or more palettes of 16 slots: the
+first is the default, which the source is normalized with, and the others color the same slots otherwise. Null generates
+one, `original`, from the masked crop ([Candidate palettes](#candidate-palettes)) with 15 colors.
 
 **Import.** The masked source is normalized as [External source normalization](#external-source-normalization)
 describes, with the recipe's default palette, carries every named palette of the recipe, and is written as its named file, `content/images/<name>.json` with the master and
@@ -373,9 +376,9 @@ the new image. Naming it in a course is the course's edit.
 
 ## Course image sources
 
-Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite
-or tile picture format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an
-immutable reader, a `SpriteAsset` or a tile picture; Section membership resolves to those, and rendering borrows them without
+Each image a course names receives explicit `{name,bytes:Uint8Array}` input: valid UTF-8 JSON for the sprite or tile
+picture format. Admission works out each image's SHA-256 from its bytes and decodes each name once into an immutable
+reader, a `SpriteAsset` or a tile picture; Section membership resolves to those, and rendering borrows them without
 decoding. Delivery checks the bytes against the manifest digest before they reach admission.
 
 Course image admission uses the single [document resource table](content-and-gameplay.md#numeric-and-resource-domains)
@@ -399,9 +402,10 @@ the constructs and builds private numeric fields; these are not image assets or 
 Every picture stands upright at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's
 position seen from above at its body's underside, an object's placement at its height. Its anchor is that point. A
 course image is a board without depth, one plane at its anchor's depth; a vehicle's picture is a thing with depth along
-the road, its rows below the anchor lying on the ground nearer than the anchor. Pictures come in sizes; size `k` (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point,
-and the renderer draws the size nearest its scale ([Shared image level selection](architecture.md#shared-image-level-selection)).
-Vehicle pictures and their generator follow this contract; this section is its only statement:
+the road, its rows below the anchor lying on the ground nearer than the anchor. Pictures come in sizes; size `k` (`k =
+0` full size) is drawn at `40 / 2^k` texels per metre at the base point, and the renderer draws the size nearest its
+scale ([Shared image level selection](architecture.md#shared-image-level-selection)). Vehicle pictures and their
+generator follow this contract; this section is its only statement:
 
 - **Camera.** Size `k` is the vehicle seen in true perspective from a camera `D_cam × 2^k` behind its base point
   (`D_cam` = 6 m) and 2.0 m above it, with a focal length of 240 px and no pitch or roll: its scale at the base point

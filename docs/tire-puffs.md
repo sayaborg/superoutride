@@ -95,8 +95,9 @@ body until it has passed them, and a rear tire's are drawn over it.
 The observer owns the puffs as it owns its vehicle pictures (`createTirePuffs` in `src/view/tire-puffs.ts`); the race
 knows nothing of them. A run advances them in each fixed step after the race's advance, from `race.observe()`'s player,
 rivals and traffic, with the step's camera, and draws their pictures through the scene's `pictures`, beside the other
-vehicles' `vehicles`; each run assembly, a DEV rebuild's included, starts with none. The attract demo runs through the same step.
-The driving scenarios advance them every fixed step and draw them in the frames they render, checking the limit.
+vehicles' `vehicles`; each run assembly, a DEV rebuild's included, starts with none. The attract demo runs through the
+same step. The driving scenarios advance them every fixed step and draw them in the frames they render, checking the
+limit.
 
 ## DEV
 

@@ -545,23 +545,22 @@ the side nearer the centre of the screen. The player, on the camera's axis, take
 vehicle keeps its previous frame's yaw image until that angle passes a quarter step beyond the image's sector, so a
 turning vehicle changes image one step at a time and an angle wavering at a boundary keeps one image.
 
-The product render draws the frame and returns nothing. Measurements of a frame (the Strip ground's metrics, terrain
-and sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV
-(the performance HUD and the bike lean indicator, with `dev=1`), the course tool and tests; the product path passes
-none and carries no DEV value.
-Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge of the pictures whose base points lie at
-the player's depth `D_cam` or beyond (a vehicle's rows below its anchor laid on their terrain rows), the player, the nearer pictures far to near, then, under the PAUSE menu or
-RESULT, the whole frame halved to half brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per
-frame over a freshly drawn scene), then HUD and the [text layer](#text-layer).
-The BG writes every pixel of every frame, so there is no clear step and no pixel keeps a previous frame.
-Transparent ground, including ground rows outside the Route, writes nothing and keeps the Painter image
-beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before sprites.
-Pictures are ordered by their base points' depth and the player is one of them, at `D_cam`: a picture at the player's
-depth draws before it, and a nearer one after it, whole, over the player and over every ground row and wall. Ground and walls
-never cover the player; a vehicle or object between the camera and the player is drawn over the player, and a ground
-row nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn without a player, its picture and its shadow: the footage tool's
-replay draws the course alone ([Courses from footage](footage.md#replay-comparison)); its measurements then hold NaN
-for the player's point and -1 for its variants.
+The product render draws the frame and returns nothing. Measurements of a frame (the Strip ground's metrics, terrain and
+sprite counts, the player's screen point and image choice) go only to a measurement sink the caller passes: DEV (the
+performance HUD and the bike lean indicator, with `dev=1`), the course tool and tests; the product path passes none and
+carries no DEV value. Painter order is the opaque BG, a far-to-near terrain/wall/world-sprite merge of the pictures
+whose base points lie at the player's depth `D_cam` or beyond (a vehicle's rows below its anchor laid on their terrain
+rows), the player, the nearer pictures far to near, then, under the PAUSE menu or RESULT, the whole frame halved to half
+brightness (`halveRgb555Pixels`: each RGB555 channel halved, flooring, once per frame over a freshly drawn scene), then
+HUD and the [text layer](#text-layer). The BG writes every pixel of every frame, so there is no clear step and no pixel
+keeps a previous frame. Transparent ground, including ground rows outside the Route, writes nothing and keeps the
+Painter image beneath it, such as BG below the horizon. At equal depth terrain draws before walls and walls before
+sprites. Pictures are ordered by their base points' depth and the player is one of them, at `D_cam`: a picture at the
+player's depth draws before it, and a nearer one after it, whole, over the player and over every ground row and wall.
+Ground and walls never cover the player; a vehicle or object between the camera and the player is drawn over the player,
+and a ground row nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn
+without a player, its picture and its shadow: the footage tool's replay draws the course alone ([Courses from
+footage](footage.md#replay-comparison)); its measurements then hold NaN for the player's point and -1 for its variants.
 
 ### Shadows
 
@@ -642,9 +641,9 @@ sizes are such levels, each its own picture ([Image assets](image-assets.md#vehi
 
 A course image's master `W` by `H` has untrimmed, top-left-aligned level `k` storage `ceil(W/2^k)` by `ceil(H/2^k)`,
 the master reduced by `2^k`; a contiguous prefix through `ceil(log2(max(W,H)))` is valid, and builds supply the whole.
-The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5`. A course image's `aY` is `H-0.5`, its bottom edge, and
-its default anchor `((W-1)/2,H-0.5)`, the middle of the bottom edge; fractional and outside-frame `aX` are valid. The anchor is the picture's base point; every row of the picture is drawn, those below
-the anchor included. The master represents `W/40` by `H/40` metres, independent of opaque bounds.
+The master anchor `(aX,aY)` maps per axis to `(a+0.5)/2^k-0.5` ([Image assets](image-assets.md#completed-sprite-images)
+gives a course image's anchor and its default); fractional and outside-frame `aX` are valid. The anchor is the
+picture's base point; every row of the picture is drawn, those below the anchor included. The master represents `W/40` by `H/40` metres, independent of opaque bounds.
 [Image assets](image-assets.md#completed-sprite-images) owns the level/mixture encoding.
 
 ### Shared image level selection

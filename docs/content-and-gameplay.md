@@ -145,9 +145,10 @@ for a movable one ([Roadside objects](#roadside-objects)): `mass` in kilograms (
 `airborne` and `landed` the sprite images it shows while
 flying and once landed, drawn in the placement's palette (they may name one image twice). Compilation rejects a width
 wider than the image's world width (its master width at 40 texels/m), a body on a state-selected sign and a body on a
-board extending sideways (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the placement's own and requires a
-movable body's image and its airborne and landed images each to carry a shadow (`invalid_placement` at the image's
-pointer), which the object casts ([Shadows](architecture.md#shadows)).
+board extending sideways (`invalid_placement` at `/body`); the appearance compiler resolves the knocked images like the
+placement's own and requires a movable body's image and its airborne and landed images each to carry a shadow, and the
+knocked images not to extend sideways (`invalid_placement` at the image's pointer); the object casts the shadow
+([Shadows](architecture.md#shadows)).
 
 `unselectedLink` is null for ordinary sprites or names, by id, a Link leaving the Section's fork. A state-selected
 sign appears at a fork occurrence once that occurrence has a selected successor on the Route whose Link is not the

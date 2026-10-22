@@ -417,8 +417,9 @@ Start, checkpoints, forks and goals are placed precisely:
   The shape gives the station; the time checks it and tells which gate is the timing line. A difference beyond the
   time's quantization (the update period times half the speed) is reported.
 
-- **Order.** Whether a fork begins before or after its checkpoint is measured, not assumed. In the course format a
-  stage ends at its checkpoint, the Section's end, and the fork's lock and closure stand in the Section before it; an order that does not fit this stops the work.
+- **Order.** Whether a fork begins before or after its checkpoint is measured, not assumed. In the course format a stage
+  ends at its checkpoint, the Section's end, and the fork's lock and closure stand in the Section before it; an order
+  that does not fit this stops the work.
 - **Sections.** Seams stand at checkpoints; a fork's lock and closure follow from its measured beginning by the
   format's rules.
 
@@ -644,9 +645,10 @@ cabinet where known.
 10. **Product checks:** the course compiles; the course report; `npm run measure` (racing lines and reference times).
 11. **Report** ([below](#report)).
 
-The original's lap or stage times are never fitted: reference driving sets the game's time limits as for every course.
-A rule from the background's turn (the strongest curve at 0.75 of the lateral limit, the others in proportion to the background's
-turn) is not used; the lateral acceleration each curve needs at the original's displayed speed is only reported.
+The original's lap or stage times are never fitted: reference driving sets the game's time limits as for every course. A
+rule from the background's turn (the strongest curve at 0.75 of the lateral limit, the others in proportion to the
+background's turn) is not used; the lateral acceleration each curve needs at the original's displayed speed is only
+reported.
 
 ## Report
 

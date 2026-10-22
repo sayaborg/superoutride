@@ -136,11 +136,11 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s next PR (PG-0b); then Stage TD, the tidying of the road data
-tool and the documents after the five Sega originals, from K's instructions (no new original before it);
-[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
-[DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: [Stage PG](#stage-pg--pictures-and-the-ground)'s PG-1b and the rest of its evening addendum (PG-9b, PG-4b,
+PG-6c, PG-7c, PG-12); then Stage TD, the tidying of the road data tool and the documents after the five Sega originals,
+from K's instructions (no new original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's
+recordings come; [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K
+decides; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -201,8 +201,8 @@ K's decisions for the conversion (2026-10-18):
   recordings when they come. The sprites' and backgrounds' pictures converted from the ROMs are committed and shown on
   Pages, provisionally (K, 2026-10-19); every car, traffic included, is this game's.
 - What the original draws as a sprite is made as a sprite (K, 2026-10-18), never replaced by colors or Strips; where a
-  replacement cannot be avoided, the report says so first. For what lies on the ground, Stage PG replaced this
-  ([What lies on the ground is a Strip](#stage-pg--pictures-and-the-ground)).
+  replacement cannot be avoided, the report says so first. Stage PG keeps this: what lies on the ground is a board too
+  ([What lies on the ground is a board again](#stage-pg--pictures-and-the-ground)).
 - Order (K, 2026-10-18): each piece goes in runnable and to main at green CI, not batched; a report begins
   with one line saying where K can see it (Pages or local, series and class).
 
@@ -235,10 +235,10 @@ The stage's PRs left:
 
 - RD-4: scenery, done ([Placing scenery](original-road-data.md#placing-scenery)), what moved standing still. The
   ground's spray (the surface effect) is not converted
-  ([Strips and patches](original-road-data.md#strips-and-patches)). The strips' and patches' sizes by depth (flatter
-  far away) would need a drawing change: a board is one picture at every depth, a strip's rebuilt from the original's
-  far sizes. Stage PG replaced this: rising strips become boards extending sideways, and the sea, lakes and patches
-  are baked into Strips ([Stage PG](#stage-pg--pictures-and-the-ground)).
+  ([Strips and patches](original-road-data.md#strips-and-patches)); Stage PG's water material, `WATER`, throws its spray
+  instead. The strips' and patches' sizes by depth (flatter far away) would need a drawing change: a board is one
+  picture at every depth. Stage PG made the rising strips boards extending sideways, and the sea, lakes and patches
+  boards lying on the ground ([Stage PG](#stage-pg--pictures-and-the-ground)).
 - RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
 
 SUPER HANG-ON follows with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms).
@@ -410,9 +410,10 @@ K's decisions (2026-10-21):
   and only its racing line is measured.
 - **Sprites stay sprites** (K, 2026-10-18 and 2026-10-21). What the original draws as a sprite is a board, never a
   color or a strip; only what the road layer draws (the surface, the edge bands, the water crossings) and the ground's
-  color are strips. For what lies on the ground, Stage PG replaced this
-  ([Stage PG](#stage-pg--pictures-and-the-ground)). In ENDURO RACER every sprite but the bikes is a board, each jump mound one board. A report names
-  any place where a sprite had to be replaced, on the line after where the course can be seen.
+  color are strips. Stage PG keeps this: what lies on the ground is a board too
+  ([Stage PG](#stage-pg--pictures-and-the-ground)). In ENDURO RACER every sprite but the bikes is a board, each jump
+  mound one board. A report names any place where a sprite had to be replaced, on the line after where the course can
+  be seen.
 - **Set.** Graphics and the sub CPU are read from MAME's `enduror` (Enduro Racer, Rev A, YM2151, FD1089B 317-0013A).
   Its main CPU's program is encrypted (FD1089B encrypts instructions and data), so the main CPU's tables are read from
   the decrypted program in MAME's `endurobl` (bootleg set 1), which is the YM2203 set `enduror1` decrypted; its tables
@@ -527,7 +528,8 @@ K's decisions (2026-10-21):
 - **Everything but the road's surface is a sprite** (K, 2026-10-21). The original's road layer draws only the sky's and
   ground's colors; every object, the road's surface included, is a sprite. The surface boards, lying flat on the ground,
   are strips: the surface, its centre line, the grid's marks, the start line, the tire marks and rubber, and the side
-  paving the same boards draw. That replacement cannot be avoided and every report says so. Everything else is a board:
+  paving the same boards draw. That replacement cannot be avoided and every report says so; Stage PG keeps this
+  ([Stage PG](#stage-pg--pictures-and-the-ground)). Everything else is a board:
   the barriers, the barriers across the road, the concrete walls, the kerbs and the advertising boards are, as in the
   original, boards whose picture changes with the angle they are seen at (one of 32 chosen every frame), which this
   game's drawing and course format gain in MG-4 (Stage PG replaced the boards with views by single pictures and the
@@ -593,8 +595,8 @@ mirror and the cockpit, and the product's pictures drawn again.
 ## Stage PG — Pictures and the ground
 
 Stage PG sets the rules by which pictures meet the ground, fixes the pictures cut off below their anchors, sorts the
-originals' strips into boards and Strips, and adds a water material. It comes before Stage RH (RACING HERO), which is
-made by its rules, and Stage TD (the tidying of the road data tool and the documents). Its PRs are numbered from PG-0.
+originals' strips into boards and Strips, and adds a water material. It comes before Stage TD (the tidying of the road
+data tool and the documents). Its PRs are numbered from PG-0.
 Words: a board is a course's flat picture, a wall is a course's `walls` entry, a strip (board) is the originals' strip
 boards, a Strip is a course's ground color and material; a picture's anchor is its base point, its height
 `groundOffset`.
@@ -611,8 +613,8 @@ were one kind of board for things standing and lying alike, which neither rule f
 
 K's decisions (2026-10-22):
 
-- **Two kinds of picture.** The drawing decides the kind (whether a picture is given as a vehicle's); course and image
-  documents carry no mark.
+- **Two kinds of picture** (replaced in the evening by one rule for every picture, below). The drawing decides the kind
+  (whether a picture is given as a vehicle's); course and image documents carry no mark.
   1. **A board without depth**: every picture but the vehicles' (course images and tire puffs). Its anchor's height is
      its bottom edge alone (texel centres: anchorY = H − 0.5); its anchorX is as today. What floats or hangs (clouds,
      mist, flags, banners) and what reaches below the ground (a cliff's face) take their bottom edge's height from
@@ -637,9 +639,10 @@ K's decisions (2026-10-22):
   VINEYARD's trees 435c, the grass bank 26fda, dunes 272fa, flower beds 2743a) extend at one size too. An extending
   board's placement has no body (`invalid_placement`): it is for looks alone. Standing at its bottom, a board at the
   same place stands half its height higher than the original's middle anchor, which is accepted.
-- **What lies on the ground is a Strip.** What does not rise from the ground is no picture but a Strip; what lies wholly
-  flat is baked into ground-color Strips by the baking below. This replaces K's decision of 2026-10-18 (scenery, sea,
-  grass and sand never replaced by colors or Strips) for what lies on the ground alone; what rises stays a picture.
+- **What lies on the ground is a Strip** (replaced in the evening: it is a board again, below). What does not rise from
+  the ground is no picture but a Strip; what lies wholly flat is baked into ground-color Strips by the baking below.
+  This replaces K's decision of 2026-10-18 (scenery, sea, grass and sand never replaced by colors or Strips) for what
+  lies on the ground alone; what rises stays a picture.
 - **Water.** One shallow-water material, `WATER`; no deep water. Only the course limits (invisible walls) decide where
   a vehicle cannot go. Sea, lakes, puddles and water crossings are water-colored Strips, carrying `WATER` where they lie
   inside the course limits; water beyond a limit is color alone (a material carried beyond it would move the limit,
@@ -650,53 +653,80 @@ K's decisions (2026-10-22):
   flat boards). Every other object is a sprite's board, the flat boards (kind 0x04: buildings, trees, the gate, signs,
   the far bridge and cliffs) among them, standing on its bottom edge from the road.
 
+K's decisions (2026-10-22, evening), after a review of PG-0 to PG-7b:
+
+- **One rule for every picture.** Every picture (a vehicle's, a course image, a tire puff) folds at its anchor's screen
+  row. The rows on and above it stand at the anchor's depth, as today. Each row below lies on the ground nearer than the
+  anchor: it is drawn after the farthest ground row nearer than the anchor on its screen row (transparent ground
+  counted) and its walls, where the picture draws it on the screen (the ground's perspective does not shorten it), so it
+  lies only in how it overlaps. How much lies follows from where the anchor is in the picture alone (at the bottom edge
+  all stands, at the middle half lies); no mark is carried. An extending board folds so in every repetition.
+- **What lies on the ground is a board again.** K's rule of 2026-10-18 holds once more: what the original draws as a
+  picture lying on the ground (sea, lakes, waves, drifts of sand, patches, puddles, gravel, pebbles, snow) is a board
+  of the original's nearest size at the original's anchor, at the ground's height, with no body. Only the ground's
+  color, which the original draws as no picture, and the road itself (SUPER MONACO GP's surface boards and kerbs among
+  it) are Strips. The materials lie beneath as colorless Strips, `WATER` inside the course limits alone.
+- **Rules of drawing.** A background's picture is one board. An anchor is at the bottom edge and at height 0 by default;
+  a picture at height 0 whose anchor is elsewhere folds there. A standing thing stands on its bottom edge at the place
+  that fits it. A course image (version 6) may carry `anchorY` again (texel centres, −0.5 ≤ anchorY ≤ H − 0.5; absent,
+  the bottom edge), written for the pictures not anchored at their bottom alone, and such an image is placed at height 0
+  alone (`invalid_placement` otherwise).
+- **Below the ground.** A board's part below the ground (its anchor at the bottom, its `groundOffset` negative) stands
+  at the anchor's depth, so the nearer drawn ground hides it and transparent ground shows it (a cliff's face), as the
+  drawing does today. SUPER MONACO GP's supports (flag poles, the signs' pipes, the start's and checkpoints' gate posts,
+  the bridge's piers, the crane) and the tunnel mouths' rocks go back to the original's negative heights, which put
+  their heads where what they hold is; its roadside buildings, stone walls and rock faces (0.20 m below) fold at the
+  ground's row; its far buildings stand on the ground as PG-9 made them. Elsewhere one figure of SUPER HANG-ON ASIA's
+  goal stands below the ground (−0.039 m). A cliff's drop is for JALECO's BIG RUN later.
+- **Drifts of sand lie:** OUTRUN's sand 4588 and TURBO OUTRUN's dunes 272fa (the same strip picture), and TURBO
+  OUTRUN's pebbles 27840.
+- **Shadows at the foot.** A picture with the original's shadow pixels drawn at its foot keeps them and is anchored at
+  its foot (a trunk's base), the shadow below lying on the nearer ground.
+- **Extending boards** drop their transparent end columns and repeat the middle part, whose ends join; the shape of the
+  end by the road stands once, as a board of its own, and the outer end's shape is not used.
+- **Materials.** TURBO OUTRUN's patches and puddles carry materials (its racing lines 2–26 s slower, TESTAROSSA's
+  872.149 s becoming 887.120 s, accepted); its snow takes a new material, `SNOW`.
+- **Pictures nearer than the player** draw after it, as today: a lying board just behind the player may cover its
+  lower part, and a board's part below the ground nearer than the player is not hidden; both are accepted.
+- **RACING HERO is not made** (2026-10-22 23:59): RH-6 deleted it; RH-3a's crossing rule and the functions RH-3 made
+  general stay.
+
 Where each thing goes:
 
-| Thing                                                                                                                                 | Goes to                                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vehicles                                                                                                                              | Kind 2                                                                                                                                                                                         |
-| Trees, signs, buildings, flags, people and the other boards anchored at their bottoms today                                           | Kind 1 as they are (their recipes' anchors move to the bottom in PG-3)                                                                                                                         |
-| OUTRUN's grass 4548 and stones 45c8, VINEYARD's row of trees 435c, TURBO OUTRUN's flower beds 2743a, dunes 272fa and grass bank 26fda | Kind 1 extending sideways, at the bottom                                                                                                                                                       |
-| OUTRUN's clouds 4246, TURBO OUTRUN's mist 2603a                                                                                       | Kind 1 extending sideways, at today's `groundOffset`                                                                                                                                           |
-| TURBO OUTRUN's grass and stones on the road 27570, pebbles 27840                                                                      | Kind 1, anchored again at the bottom, not extending; 27570's body (298) stays                                                                                                                  |
-| OUTRUN's sea and lakes 4608, TURBO OUTRUN's waves 2725a                                                                               | Strips in the water's colors, `WATER` inside the limits                                                                                                                                        |
-| TURBO OUTRUN's puddles 274da (and -u1000)                                                                                             | Strips in the water's colors, `WATER`; they have no body today                                                                                                                                 |
-| OUTRUN's sand patches on the road outrun-001, TURBO OUTRUN's gravel patches 27872                                                     | Strips in sand's and gravel's colors, the nearest material there is                                                                                                                            |
-| SUPER MONACO GP's boards with 32 views                                                                                                | Kind 1, one picture; the kerbs Strip `curb`s                                                                                                                                                   |
-| SUPER MONACO GP's flat boards (kind 0x04, the original's mark of a flat board)                                                        | Kind 1 at the bottom, from the road (K, 2026-10-22); the surface boards stay Strips                                                                                                            |
-| ENDURO RACER's water                                                                                                                  | `WATER` on stage 3's whole ground, stage 5's and the goal's sea (left of P, off the road) and the three water crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND` |
+| Thing                                                                                                                                                               | Goes to                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vehicles                                                                                                                                                            | Kind 2                                                                                                                                                                                                                                                              |
+| Trees, signs, buildings, flags, people and the other boards anchored at their bottoms today                                                                         | Kind 1 as they are (their recipes' anchors move to the bottom in PG-3)                                                                                                                                                                                              |
+| OUTRUN's grass 4548 and stones 45c8, VINEYARD's row of trees 435c, TURBO OUTRUN's flower beds 2743a and grass bank 26fda                                            | Kind 1 extending sideways, at the bottom                                                                                                                                                                                                                            |
+| OUTRUN's clouds 4246, TURBO OUTRUN's mist 2603a                                                                                                                     | Kind 1 extending sideways, at today's `groundOffset`                                                                                                                                                                                                                |
+| TURBO OUTRUN's grass and stones on the road 27570                                                                                                                   | Kind 1, anchored again at the bottom, not extending; 27570's body (298) stays                                                                                                                                                                                       |
+| OUTRUN's sea and lakes 4608, sand 4588 and patches outrun-001; TURBO OUTRUN's waves 2725a, dunes 272fa, puddles 274da (and -u1000), patches 27872 and pebbles 27840 | Boards lying on the ground at the original's anchor (evening); beneath, `WATER` under the sea, lakes, waves and puddles inside the limits, the patches by what they show (gravel `DIRT`, sand `SAND`, snow `SNOW`; OUTRUN's none), the sand, dunes and pebbles none |
+| SUPER MONACO GP's boards with 32 views                                                                                                                              | Kind 1, one picture; the kerbs Strip `curb`s                                                                                                                                                                                                                        |
+| SUPER MONACO GP's flat boards (kind 0x04, the original's mark of a flat board)                                                                                      | Kind 1 at the bottom, from the road (K, 2026-10-22); the surface boards stay Strips                                                                                                                                                                                 |
+| SUPER MONACO GP's boards below the ground                                                                                                                           | The original's heights (the supports, the tunnel mouths' rocks), folded at the ground's row (the roadside buildings, stone walls and rock faces), standing on the ground (the far buildings) (evening)                                                              |
+| ENDURO RACER's water                                                                                                                                                | `WATER` on stage 3's whole ground, stage 5's and the goal's sea (left of P, off the road) and the three water crossings' surface; stages 2 and 4's ground and stage 5's white sand stay `SAND`                                                                      |
 
-Open, taken by default and put to K in the report:
+Decided after the reports (K, 2026-10-22, evening):
 
-- OUTRUN's sand strip 4588 (DESERT's and DESOLATION HILL's drawing 14, one picture): it stands, as the dunes do, by
-  default; a Strip if it is nearly flat. Both drawings go in the report.
-- The picture of a board with 32 views made one: view 0 (α = 0) by default. Along a road's fences, walls and boards it
-  is the thinnest, so the report sets it beside the widest view. Names follow the other boards:
-  `smgp-<frame table>-<b1>[-mirrored]`.
-- The gravel patches' material: the nearest existing material by default; the report says so if one must be added.
-- The road patches' and puddles' material: given by default (they throw spray and dust). The original's patches do
-  not change driving, so the report gives the driving, the drivers' upsets and the racing lines' changes on DESERT
-  (1149 patches), DESOLATION HILL (1025), TURBO OUTRUN's gravel (1133) and puddles (892) against color alone.
+- OUTRUN's sand strip 4588 lies (as TURBO OUTRUN's dunes 272fa do).
+- The picture of a board with 32 views made one stays its view 0.
+- The patches' materials: TURBO OUTRUN's by what they show (gravel `DIRT`, sand `SAND`, snow `SNOW`, puddles
+  `WATER`); OUTRUN's none (the original's patches change no driving, and `SAND` stops the planned driver on DESOLATION
+  HILL).
 
-Baking (what lies on the ground, OUTRUN's and TURBO OUTRUN's):
+The materials of what lies (PG-6c, PG-7c; the baking of PG-6b2 and PG-7b keeps only this):
 
-- A piece's picture is its nearest size (today's board's picture). Its columns keep the board's lateral (40 texels a
-  metre); only its rows move into depth, as the piece is seen passing beside the player by the camera definition
-  (2 m high, 6 m behind): the row r m below the anchor lies 6r/(2 + r) m nearer than the piece (beyond it for negative
-  r). The original's eye (1.965 m, 6.1 m) is not matched.
-- Where pieces overlap, the one the original draws later (the nearer) is on top. Beyond a piece's picture, its
-  outermost column's color reaches to the ground's edge.
-- Consecutive pieces make one Strip, their seam's shape a Boundary's knots, never a Strip per piece. A patch may be
-  one Strip (a rectangle at its foot, its mean color). Colors come from the original's palettes; fine patterns (the
-  foam's dots) take their mean.
+- The water's material (`WATER`) runs across from a strip's edge by the road (its item's x: its picture is foam and
+  water, the edge the waterline) out to the outer Boundary of today's ground material, and along the road from the
+  first piece's foot to the last's of a run (pieces within 16 m of the next). The waterline is a Boundary with knots at
+  the items, the run's first and last kept, and at its Strip's ends and the Section's ends, so that it covers its Strip;
+  where a Section's bounds require, its knots are thinned within 0.25 m. Nothing lies beyond the limits.
+- A patch's or puddle's material is the rectangle of its board's foot: across, its picture's opaque columns; along,
+  from where its top to where its bottom opaque row meets the ground as the camera (2 m high, 6 m behind) sees it, the
+  row r m below the anchor lying 6r/(2 + r) m nearer.
 - Bounds per Section: 2048 Strip elements, 32 Boundaries, 1024 Boundary knots, 64 Strips active at one point (hidden
-  ones counted). The tightest are TURBO OUTRUN's miami (1061 elements today, 576 pieces to bake) and OUTRUN's desert
-  (1149 patches); a course that does not fit stops the work and is reported.
-- Water's material runs from the waterline to the outer Boundary of today's ground material. Where the waterline lies
-  beyond a limit the material Strip is cut there (the water beyond is color alone); colors may open outward. The
-  course limits do not change.
-- The match may be close rather than exact. The report sets the baked ground beside the original boards at the 2 m
-  camera.
+  ones counted); a course that does not fit stops the work and is reported, as does a material that stops the planned
+  driver or leaves a racing line unmeasured.
 
 Rules of the stage:
 
@@ -747,12 +777,12 @@ PRs:
   instead of four. The sea 4608 waits for PG-6b.
 - PG-6b was split. PG-6b1 made the coordinate domain's stations those where its outer edges change, so a material
   splitting the slab table without moving an outer edge adds no cell to the plan's injectivity check (DESERT's patches
-  and the sea's water reported overlaps on curves). PG-6b2 made the baking a shared part of the road data tool
-  (`ground-baking.ts`, [Baking](original-road-data.md#baking)) and baked OUTRUN's sea, lakes and patches into Strips
-  (conversion version 13): the sea and lakes in water's colors with `WATER` from the waterline to the verges, the
-  patches each a color Strip on the road with no material (`SAND`, the default, stopped the planned driver on
-  DESOLATION HILL's grades of up to 40 %). Their boards (`outrun-strip-4608`, `outrun-001`) are no
-  longer written; PG-10 deletes them.
+  and the sea's water reported overlaps on curves); it changed no course. PG-6b2 made the baking a shared part of the
+  road data tool (`ground-baking.ts`, [Baking](original-road-data.md#baking)) and baked OUTRUN's sea, lakes and patches
+  into Strips (conversion version 13): the sea and lakes in water's colors with `WATER` from the waterline to the
+  verges, the patches each a color Strip on the road with no material (`SAND`, the default, stopped the planned driver
+  on DESOLATION HILL's grades of up to 40 %). Their boards (`outrun-strip-4608`, `outrun-001`) are no longer written;
+  PG-10 deletes them.
 - PG-7a made TURBO OUTRUN's rising strips (the flower beds 2743a, the dunes 272fa, the grass bank 26fda) and the far
   strip (the mist 2603a, at its height) each one board of its nearest size, standing on its bottom edge and extending
   away from the road, and the grass and stones 27570 and the pebbles 27840 stand on their bottom (27570's body
@@ -779,12 +809,33 @@ PRs:
   writers, the sprite source compiler (version 3) and the workbench's y field went with it; what is baked lying
   keeps the original's anchor beside its master. Shadows' anchorY and vehicle pictures stay. Every image and recipe
   was written again, 28 drawn pictures of TSUKUBA's 0.01 to 0.95 texel lower (their recipes' anchors mapped a fraction
-  above the padded bottom row); no compiler's version rose and the measured products stayed current.
+  above the padded bottom row); no compiler's version rose and the measured products stayed current. PG-1b brings
+  anchorY back as an optional field, for the pictures not anchored at their bottom.
+
+The evening's PRs, in this order:
+
+- PG-0b: the evening's decisions here and the review's fixes in the documents; a movable body's knocked pictures may
+  not extend sideways.
+- PG-1b: one rule for every picture in the drawing, the course image's version 6 with its optional anchorY and the
+  placement rule, and a test of the parts below the ground.
+- PG-9b: SUPER MONACO GP's boards below the ground in their three groups.
+- PG-4b: `SNOW`, snow lying thin on the road, in the materials, surface sounds and tire puffs.
+- PG-6c: OUTRUN's lying things as boards with their materials, the extending boards trimmed and their ends stood once;
+  the grass strip 894 m below ALPS's road (the original's height −32768) not placed.
+- PG-7c: TURBO OUTRUN's lying things likewise; the baking's color parts deleted.
+- PG-12: shadows at the foot (OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER).
+
+Left by Stage PG to later stages: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next
+to each other in order as neighbours; mended, it would need no way round such as PG-6b1's.
 
 Each PR passes Node 24's `npm test` and the driving scenarios with current measured products, carries before and after
 images (PG-1: the COCONUT BEACH scene above with the rival's tires and the sea strip seen, and pictures beyond a crest
 hidden as today; PG-6 and PG-7: the standing strips and the sea and patches baked, before and after conversion and
 beside the original; PG-9: the boards with 32 views made one), and leaves Pages ready for K's devices.
+The evening's PRs set the before, the after and the original side by side as well: PG-6c and PG-7c the sea, lakes,
+sand and patches, waves, dunes, puddles, pebbles and snow, and the grass and clouds' strips (no gaps, no repeated end
+shapes); PG-9b the supports, the tunnel mouths and the roadside buildings; PG-12 TURBO OUTRUN's trees, OUTRUN's rocks
+and people and SUPER HANG-ON's trees; and the racing lines' times a material changes, by vehicle.
 
 ## Stage RH — RACING HERO from the ROMs
 
@@ -960,8 +1011,9 @@ Left by Stages ER and MG to later stages (K, 2026-10-21):
   road, its crossings made again, and SUPER MONACO GP's hills.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
-- BRANCH removed from the engine; TSUKUBA made again; then the walls' feature removed, replaced by rows of boards
-  (K, 2026-10-22).
+
+Left to later stages (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA made again; then the walls' feature
+removed, replaced by rows of boards.
 
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
 
@@ -1032,6 +1084,15 @@ and switching is a cut.
   - The gap between plan and drive: on TSUKUBA the chosen `λ` plans lap 2 at 54.43 s (911 TURBO 3.3), 58.26 s (GOLF GTI
     16V) and 52.82 s (VFR750R), and the reference driver drives it in 54.45 s, 58.33 s and 53.10 s: within 0.03–0.28 s,
     the most on VFR750R.
+
+- Choices made in Stage OT and kept after OUTRUN TEST went (each recorded in its PR):
+  - Tests (OT-1, OT-2): the TSUKUBA scenarios' player is 911 TURBO 3.3 against GOLF GTI 16V rivals at pace 1; the
+    scenarios are split in two files, neither over about 30 s.
+  - `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and
+    susceptibility 0.7, to tune on real devices.
+  - Transitions (OT-5): a wipe lays both maps on the incoming map's scroll; a rise keeps each map's own scroll; a
+    wipe's direction comes from the road's turn over the 150 m ahead (threshold 0.05 rad); a transition takes 1 s, and
+    a new crossing during one starts from the map being brought in.
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format
@@ -1112,6 +1173,8 @@ Choices made where Stage FE left them open, each recorded in its PR:
   classes of one course share one compiled course; every class's run stays alive (about 6 MB of heap for the
   three TSUKUBA CLUBMAN classes together, 71 MB with the first alone). Stage LD replaced this: the demo holds only
   the shown and the next class's runs.
+- FE-10 (decided in Stage OT): a wallpaper change asked for while a black transition runs still finishes through black;
+  only a steady screen cuts.
 
 ### Selected circuits
 

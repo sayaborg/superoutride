@@ -254,9 +254,10 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
   ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
-- **Base point.** At the bottom or middle its anchor gives; a board extending sideways at its bottom. Across, an object anchored by an edge that has no body (its
-  routine never hits: the strips) stands by that edge (`standsByEdge`), and its base point is there; any other's is
-  at the middle of the sprite's hit extents, so a solid object's body stands there.
+- **Base point.** At the bottom or middle its anchor gives; a board extending sideways at its bottom. Across, an object
+  anchored by an edge that has no body (its routine never hits: the strips) stands by that edge (`standsByEdge`), and
+  its base point is there; any other's is at the middle of the sprite's hit extents, so a solid object's body stands
+  there.
 - **Shadow.** A shadowed board's shadow is the original's shadow by chosen lines at the board's scale (a figure's at
   3/8 of it) and at its anchor.
 
@@ -340,18 +341,18 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
 
 ### Baking
 
-What lies on the ground (the sea's and lakes' edges, the waves, the patches and puddles) is baked into the course's Strips by the road data
-tool's shared baking (`ground-baking.ts`), as the camera sees each piece pass beside the player: the camera
-definition's, 2 m high and 6 m behind (the original's eye, 1.965 m and 6.1 m, is not matched). A piece's picture is its
-nearest size, its board's as it would stand. Its columns keep their laterals (40 texels a metre); its row r m below the
-anchor lies 6r / (2 + r) m nearer than the piece (beyond it for negative r).
+What lies on the ground (the sea's and lakes' edges, the waves, the patches and puddles) is baked into the course's
+Strips by the road data tool's shared baking (`ground-baking.ts`), as the camera sees each piece pass beside the player:
+the camera definition's, 2 m high and 6 m behind (the original's eye, 1.965 m and 6.1 m, is not matched). A piece's
+picture is its nearest size, its board's as it would stand. Its columns keep their laterals (40 texels a metre); its row
+r m below the anchor lies 6r / (2 + r) m nearer than the piece (beyond it for negative r).
 
 - **Strips** (`bakeStrip`). A strip's consecutive pieces on one side (each within 16 m of the next) are painted far to
   near, the nearer, which the original draws later, on top, on samples 0.5 m apart along s and a texel across; beyond a
   piece's outermost column its color reaches on. Every texel is light or dark, split at the largest gap in the colors'
   luminances; the class the outermost columns mostly hold (the water) is the ground the others lie on, one Strip from
-  the pieces' edge outward. Each run of the other class (the sand and foam) at a sample is a band, the nearest first,
-  up to 3 (the farther ones joined to the last); a run narrower than 0.2 m, a fine pattern such as the foam's dots, takes
+  the pieces' edge outward. Each run of the other class (the sand and foam) at a sample is a band, the nearest first, up
+  to 3 (the farther ones joined to the last); a run narrower than 0.2 m, a fine pattern such as the foam's dots, takes
   its neighbours' class. Each band is one Strip between two Boundaries, a missing band closing at the end of the one
   before it. The colors are each class's mean in linear light, from the original's palettes. A strip's material
   (`WATER`) runs from the waterline, where the water first appears, out to the verge (`outer-left` or `outer-right`),
@@ -1408,10 +1409,10 @@ Section).
 - **Across.** A strip's edge nearest the road stands at its item's x × 16 units from road 0's centre (x < 0, drawn
   mirrored on the left) or road 1's, whatever the road's width or b7; at its y.
 - **The far strip** (routine 0x24, the fog 0x2603A) is OUTRUN's clouds' family: 9 sizes 248 wide and 1 to 31 rows, the
-  nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size
-  (1011 × 135) extending sideways. It approaches at half the rate, so it stands where it passes the car at that rate, its
-  edge 32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units
-  (10.2 m) above the road, its item's x unused.
+  nearest squashed down, so the nearest repeats outward, a pixel 4 road units: one board of its nearest size, 1011 ×
+  135 texels, extending sideways. It approaches at half the rate, so it stands where it passes the car at that rate, its edge
+  32 of its pixels (128 units) from P, reaching away from it, its base point (2 × 151 + 72) × 15/14 road units (10.2 m)
+  above the road, its item's x unused.
 - **Boards.** `toutrun-strip-<size list>` and `-mirrored`, by chosen lines as the other boards.
 
 ## ENDURO RACER
@@ -1789,8 +1790,8 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   micrometre) the lap does not quite close (the race's end lies (−2.088, +2.166) m from its start, the qualifying's
   (+1.487, −0.101) m). The last arc's length is solved so that the lap turns exactly once to the right, and two
   straights' lengths so that it closes: of the straights off the line's straight (a straight a Section's border cuts
-  counts as two), the two whose headings differ by at least 30° (|sin| ≥ 0.5) with the least of their larger change.
-  The race's are 7198–7393 (+2.11 m, to 74.710 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
+  counts as two), the two whose headings differ by at least 30° (|sin| ≥ 0.5) with the least of their larger change. The
+  race's are 7198–7393 (+2.11 m, to 74.710 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
   qualifying's 1788–2035 (−1.79 m, to 90.162 m) and 4541–4697 (−1.09 m, to 56.980 m), its last arc 5782–5903. These
   three lengths are written as solved; a changed element's steps spread evenly over its length.
 - **Plane and stations.** A step of the lap is the station across from P there on the plane, each element's steps
@@ -1820,8 +1821,8 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   qualifying's 288–4697 and 4697–288), halved where its boards (MG-5's objects but the surface boards and the kerbs)
   would pass a Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's
   `sector-1a`/`1b`, `2a`/`2b`, `3a`/`3b` split at 2224, 7393 and 12110 (1348/1348, 1408/1409, 1661/1664 boards), the
-  qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by lane a, the
-  last to the first.
+  qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by
+  lane a, the last to the first.
 - **Gates.** The grid's 24 slots, from the front, slot s at step 588 − 12s (lap step 300 − 12s), lane a for even s and
   b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as TSUKUBA's are, 12 steps further
   than the original's line moves them so that the rearmost leaves the camera's 6 m behind it (the format asks it).

@@ -440,23 +440,23 @@ identity within the pseudo projection and mechanics, and records deliberate depa
 
 ## 15. Rendering and authoring
 
-The view combines a tiled background, road and sprites with the player and HUD. Vehicle brake lamps
-select a saved palette. Every picture, a vehicle's, a cone's or a barricade's included, is a flat picture standing
-upright at its base point, the centre of what it shows; the camera keeps the player's picture at the same place and
-size. Every vehicle, and every cone or barricade, casts a shadow on the road directly below it, grounded or in the air,
-so the height and landing point of a jump read at a glance: a second picture paired with each picture, drawn at the
-same size with its base on the road beneath, turning with the vehicle and halving the road's brightness; it falls on
-the road alone, never on walls, vehicles or objects. Vehicle pictures and their shadows are generated, every size of
-each its own picture, from a solid built from four views of the vehicle (front, side, rear and top), by the
-[picture contract](image-assets.md#picture-contract). Tires throw puffs by the surface under them: smoke when sliding
-on dry asphalt (more the more they slide); spray on wet asphalt and through water; dust in the colour of the shoulder, dirt and sand when
-rolling or sliding there, and of grass and earth when sliding on grass. Every vehicle in view throws them. Puffs are
-opaque pictures like the rest, hidden by what stands before them: a front tire's puffs pass behind the player's body,
-a rear tire's are drawn over it ([Tire puffs](tire-puffs.md)). Courses and assets are saved files.
+The view combines a tiled background, road and sprites with the player and HUD. Vehicle brake lamps select a saved
+palette. Every picture, a vehicle's, a cone's or a barricade's included, is a flat picture standing upright at its base
+point, the centre of what it shows; the camera keeps the player's picture at the same place and size. Every vehicle, and
+every cone or barricade, casts a shadow on the road directly below it, grounded or in the air, so the height and landing
+point of a jump read at a glance: a second picture paired with each picture, drawn at the same size with its base on the
+road beneath, turning with the vehicle and halving the road's brightness; it falls on the road alone, never on walls,
+vehicles or objects. Vehicle pictures and their shadows are generated, every size of each its own picture, from a solid
+built from four views of the vehicle (front, side, rear and top), by the
+[picture contract](image-assets.md#picture-contract). Tires throw puffs by the surface under them: smoke when sliding on dry
+asphalt (more the more they slide); spray on wet asphalt and through water; dust in the colour of the shoulder, dirt and
+sand when rolling or sliding there, and of grass and earth when sliding on grass. Every vehicle in view throws them.
+Puffs are opaque pictures like the rest, hidden by what stands before them: a front tire's puffs pass behind the
+player's body, a rear tire's are drawn over it ([Tire puffs](tire-puffs.md)). Courses and assets are saved files.
 Courses, images and definitions are saved documents. One authoring core compiles them for the build, the CLI and the
-workbench. The workbench is a browser page served with each build: it edits documents, previews measured racing lines and
-reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one archive
-of documents. [Development](development.md) owns the commands.
+workbench. The workbench is a browser page served with each build: it edits documents, previews measured racing lines
+and reference times, authors sprites and palettes, and starts the game on its own build. Its changes leave as one
+archive of documents. [Development](development.md) owns the commands.
 
 The workbench's course editor shows how a course is written as well as how it looks: repeats and single elements,
 references and absolute values, authored points and derived lines are drawn apart. Edits keep that form; changing it
