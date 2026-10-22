@@ -823,7 +823,10 @@ The evening's PRs, in this order:
   and the tunnel mouths' rocks at the original's negative heights (76 on the race, 20 on the qualifying), the roadside
   buildings, stone walls and rock faces folded at the ground's row (127, 12), the far buildings on the ground (665,
   414).
-- PG-4b: `SNOW`, snow lying thin on the road, in the materials, surface sounds and tire puffs.
+- PG-4b added `SNOW`, snow lying thin on the road, to the material catalog (grip 0.25, rolling resistance 0.025), the
+  surface sounds and the tire puffs (a white powder); its values and their grounds are
+  [Calibration](calibration.md#surface-materials)'s. No course uses it yet (PG-7c gives it to PITTSBURGH's and DENVER's
+  snow); every course was measured again.
 - PG-6c: OUTRUN's lying things as boards with their materials, the extending boards trimmed and their ends stood once;
   the grass strip 894 m below ALPS's road (the original's height −32768) not placed.
 - PG-7c: TURBO OUTRUN's lying things likewise; the baking's color parts deleted.
@@ -1072,7 +1075,7 @@ outer-to-outer travel, response time, bike attitude, combined tire demand, yaw/s
 transitions. Review pre-lock query coverage and parent-specific exit visibility separately from transfer
 space. Record margins and remaster departures with the content.
 
-Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4, its values to tune on those courses). Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
+Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4) and snow lying thin on the road `SNOW` (PG-4b, RALLY STAGE's WINTER "snow"; packed snow stays a later material), their values to tune on those courses. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
 palettes (for example a night section), adding a lighting axis beside color in the set's palettes, each recoloring

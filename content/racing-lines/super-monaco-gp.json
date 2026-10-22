@@ -1,74 +1,74 @@
 {
   "format": "superoutride.racing-line",
   "version": 2,
-  "courseBuildSha256": "9b4b34ce074d0fc38aedeb82041da0f3500cd0bbbedea9602f4ec7aa45e192c0",
+  "courseBuildSha256": "d99ab8b384d5b423170a890dc9dab3824b2d1d0e24785bd7d395e9230f72da8c",
   "procedureSha256": "a02d84163d6c8544c90dd66d617de1a50d041b397856c697933f7124c64c2ef8",
   "spacing": 5,
   "lengthWeight": 0,
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "d7da56571b2187506722b79a6ccf5002e36e1db50160b77ad0aee9f754445473",
+      "vehicleSha256": "feb1c8e834943836d84e691ec8a86de71f1af2ec2be43a92d08dbf66ecb85bf7",
       "seconds": 100.517,
       "minimumCurvatureSeconds": 100.517
     },
     {
       "vehicleId": "911_TURBO_3_3",
-      "vehicleSha256": "52ac3d5008e482400ed53f4a17bd89141c474c64c012a41ba26d1a2691a3a7ad",
+      "vehicleSha256": "c6f2629947817a44b57a8c847bf089a3415f5b42a6b31b14803cc9b3b54ac382",
       "seconds": 103.293,
       "minimumCurvatureSeconds": 103.293
     },
     {
       "vehicleId": "CORVETTE_C4",
-      "vehicleSha256": "c043f65d01e1047fe1ef6cada0c9c924e6e073154f06b2f2788527ceed2c40c3",
+      "vehicleSha256": "6fac2eda83cdfc9d71fb5a9526e7c08d5f4e199e51552325a89ed8a90a031c53",
       "seconds": 106.86,
       "minimumCurvatureSeconds": 106.86
     },
     {
       "vehicleId": "GOLF_GTI_16V",
-      "vehicleSha256": "bd3f982148c0bfeb89cc7646d192929ae1f45601e3072ab33238f5f5fb8c6f72",
+      "vehicleSha256": "46f221a10fa92e820946e580c39537585556218b1bf5ad39e9d20cf1a1d7acec",
       "seconds": 113.003,
       "minimumCurvatureSeconds": 113.003
     },
     {
       "vehicleId": "DELTA_HF_INTEGRALE",
-      "vehicleSha256": "c720ff6bf4c0e4800ffd4f1b4cb10eb425fe1d43d90d03737be7b07ed1478e3b",
+      "vehicleSha256": "b505a08d1d6fa2085900a5bc509c937f296ba05eaf9edce7219cc84e3c2d580c",
       "seconds": 109.964,
       "minimumCurvatureSeconds": 109.964
     },
     {
       "vehicleId": "S13_DRIFT_TUNED",
-      "vehicleSha256": "8b3f4b16d0207be7b81089fb7885550ec0cade9f0a56ddbca1e349fcbcbf82f9",
+      "vehicleSha256": "d7b270c3db23adfb17661f2cac07d49a98ed738f713d1829a234ab9252001377",
       "seconds": 148.421,
       "minimumCurvatureSeconds": 148.421
     },
     {
       "vehicleId": "AE86_DRIFT_TUNED",
-      "vehicleSha256": "b1aa97c6ec16266b84a326a7fe82c4bf77dc9259a888888e7179d8a2e7e36f27",
+      "vehicleSha256": "3726287068bfb7f6d45a86c97897f38b6cea8633918a2eb40cdc00fc5108a713",
       "seconds": 158.869,
       "minimumCurvatureSeconds": 158.869
     },
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "002848f14d52bad298374cc56151db43abb7b508759aeb83cc777041b2c10027",
+      "vehicleSha256": "b2642499a7eab90476f109508a5aa472abdfe35e6c89293a307b1a8223a3ec3c",
       "seconds": 101.117,
       "minimumCurvatureSeconds": 101.117
     },
     {
       "vehicleId": "R80_GS_PARIS_DAKAR",
-      "vehicleSha256": "e067420fd2523e262f699d1f2b5d3b15bb92c3d3ac99c881d2f496be2513ead5",
+      "vehicleSha256": "a5b3bb827b3b93b068fbc2cea9612bdc798dca96f76980a280150105458eac31",
       "seconds": 129.31,
       "minimumCurvatureSeconds": 129.31
     },
     {
       "vehicleId": "FXRT_SPORT_GLIDE",
-      "vehicleSha256": "be3c02cbf877bdc521e5791f1e7049760f584d867855bbe5e271f5ff8a102268",
+      "vehicleSha256": "5b2b74bd587e5cd59febf5a06bbf5c78fcb1bde472ab605884ef32bfc2d87c9d",
       "seconds": 129.077,
       "minimumCurvatureSeconds": 129.077
     },
     {
       "vehicleId": "PX200E_ARCOBALENO",
-      "vehicleSha256": "ff1590f8d2a1adf7d0b99864392bbca2c995205ce571f1a2f815a1bf3d271483",
+      "vehicleSha256": "5e864a0bfa3ddd7f14484d202cf8fd132de9e61c86e08d73800fb9c61afa4c49",
       "seconds": 190.696,
       "minimumCurvatureSeconds": 190.696
     }

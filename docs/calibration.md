@@ -357,6 +357,7 @@ changes ([Browser](browser.md#sound-controls)). Friction roughness and susceptib
 | DIRT        | 1           | 0.55         | 0.8 m          | 0.8           | 0.75               | 0.12                    |
 | SAND        | 0.3         | 0.8          | 0.12 m         | 0.2           | 0.55               | 0.02                    |
 | WATER       | 0.9         | 0.72         | 0.3 m          | 0.12          | 0.5                | 0.6                     |
+| SNOW        | 0.9         | 0.09         | 0.3 m          | 0.12          | 0.5                | 0.25                    |
 
 WET*ASPHALT's surface sound is ASPHALT's with two physical changes: a water film adds spray and drainage noise above
 about 1 kHz, by several decibels on wet surfaces (Sandberg and Ejsmont, \_Tyre/Road Noise Reference Book*, 2002), taken
@@ -369,6 +370,10 @@ WATER's surface sound is WET_ASPHALT's derivation carried from a film to a layer
 drainage noise on the high band doubled again, 12 dB over ASPHALT's (0.18 × 4), and the friction susceptibility scaled
 by its grip factor, 0.6 ([Surface materials](#surface-materials)). The texture under the water is ASPHALT's. Both are
 starting points to set by ear with DEV's SURFACES panel.
+
+SNOW's surface sound is ASPHALT's under a thin layer of snow, which absorbs sound above about 1 kHz (fresh snow is
+porous): the high band halved, 6 dB under ASPHALT's (0.18 / 2), and the friction susceptibility scaled by its grip
+factor, 0.25, as WATER's is. The texture is the asphalt's under the snow. Both are starting points to set by ear.
 
 The only tire constants are structural: the random seeds (`UNIFIED_SYNTHESIS`), the rolling noise stream indices
 and the internal rolling control rate (`ROLLING_SYNTHESIS`), the noise band's numerical domain
@@ -401,12 +406,15 @@ Dust is fine and settles slowly. Per surface:
 | DIRT        | dust  | dirt    | 2               | 10000           |
 | SAND        | dust  | sand    | 2               | 10000           |
 | WATER       | spray | spray   | 1               | 10000           |
+| SNOW        | dust  | smoke   | 2               | 10000           |
 
 With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the peak lies at a
 lateral slip speed of 3 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of about 170 kW, about
 17 puffs a second, and a light slide at 5 m/s about 5 a second. Rolling at 30 m/s throws 10 a second per axle on a
 surface of 3 m per puff. WATER throws spray rolling every metre, three times as often as WET_ASPHALT: a tire rolling
-through standing water lifts it all the time, not only from a film.
+through standing water lifts it all the time, not only from a film. SNOW throws a white powder: of today's kinds and
+colors the nearest are dust (fine, settling slowly) in the smoke's white, every 2 m rolling as the loose dirt and sand
+throw theirs.
 
 ## Surface materials
 
@@ -422,6 +430,7 @@ law's friction) and rolling resistance coefficient.
 | DIRT        | 0.52        | 0.045              |
 | SAND        | 0.33        | 0.11               |
 | WATER       | 0.6         | 0.06               |
+| SNOW        | 0.25        | 0.025              |
 
 WET*ASPHALT is ASPHALT with a water film: its grip factor is the wet-road friction ratio, 0.7, from the typical peak
 adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, \_Theory of Ground Vehicles*, 4th ed., 2008, Table 1.1),
@@ -434,6 +443,12 @@ over dry asphalt's 0.85 (Wong, Table 1.1): 0.59–0.65, taken as 0.6. Its rollin
 pushing water aside, `½ρv²·C·A`: a 0.2 m wide tire in 2 cm of water (A = 0.004 m², C ≈ 1) at 10 m/s meets about 200 N,
 0.057 of a 3.5 kN wheel load, rounded to 0.06. A drag growing with speed is not modelled, so the coefficient is too
 little at speed and too much when slow. Both are document values with no DEV control.
+
+SNOW is snow lying thin on a road (a few centimetres, a RALLY STAGE winter's "snow"); packed snow is a later material.
+Its grip factor 0.25 is packed snow's peak adhesion, 0.2, over dry asphalt's 0.85 (Wong, Table 1.1), 0.24, taken a
+little higher, as the tire reaches the road through a thin layer. Its rolling resistance 0.025 is a passenger car tire's
+in 2 inches (5 cm) of snow (T. D. Gillespie, _Fundamentals of Vehicle Dynamics_, 1992, Table 4.1), the snow compacted
+under the tire. Both are document values with no DEV control.
 
 ## MIX settings
 
