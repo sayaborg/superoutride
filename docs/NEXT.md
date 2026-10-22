@@ -877,9 +877,10 @@ PRs, in the order RH-1, RH-2, RH-3a, RH-3, RH-5, RH-4:
   countries and their names, the type table and the types used with their parts and pictures, the sprite palettes in
   both sets, the background numbers, command lists and blocks, the tile palettes and their sets with their palette
   motion numbers, and the sky's colors. The program's values that are no tables are the tool's constants.
-- RH-3a: the crossings' rule for passes near a road's end in `road-profile` and in
-  [Profile](original-road-data.md#profile): a pass whose middle lies less than 100 m from the road's start or end makes
-  no bump and stays flat, the crossing's other passes taking all of the 6 m. Every other original's `--check` stays.
+- RH-3a made the crossings' rule for passages near a road's end, in `road-profile` and
+  [Profile](original-road-data.md#profile): a passage whose middle lies less than 100 m from the road's start or end
+  makes no bump and stays level, the crossing's other passages taking all of the 6 m. Every other original's `--check`
+  stayed unchanged. It came before RH-2, which waits on K's `rachero.zip`.
 - RH-3: the courses without objects (`racing-hero-course`, conversion version 1, with `--check`): plan, lanes,
   materials and limits, every Strip (the surface, the marks, the water and its shore), the transparent ground, the
   Sections split by the objects RH-4 will place, the crossings by RH-3a's rule, gates and grid, and skies named with a
