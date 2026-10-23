@@ -353,6 +353,32 @@ returned over the 96 positions to the next table, raises the top 38 rows above t
 The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
 passages are 57.3 m apart without a bump.
 
+## Raising the originals again
+
+Every original's courses can be raised again from K's ROM zips and this repository alone. The zips, MAME's parent sets
+(their ROMs and CRC-32s are each original's ROM set section's):
+
+| Original        | Zips                          | In                                     | ROM set                                                                            |
+| --------------- | ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
+| OUTRUN          | `outrun.zip`                  | `reference-media/outrun/rom/`          | [ROM set](outrun-road-data.md#rom-set)                                             |
+| SUPER HANG-ON   | `shangon.zip`                 | `reference-media/super-hang-on/rom/`   | [SUPER HANG-ON's ROM set](super-hang-on-road-data.md#super-hang-ons-rom-set)       |
+| TURBO OUTRUN    | `toutrun.zip`                 | `reference-media/turbo-outrun/rom/`    | [TURBO OUTRUN's ROM set](turbo-outrun-road-data.md#turbo-outruns-rom-set)          |
+| ENDURO RACER    | `enduror.zip`, `endurobl.zip` | `reference-media/enduro-racer/rom/`    | [ENDURO RACER's ROM set](enduro-racer-road-data.md#enduro-racers-rom-set)          |
+| SUPER MONACO GP | `smgp.zip`                    | `reference-media/super-monaco-gp/rom/` | [SUPER MONACO GP's ROM set](super-monaco-gp-road-data.md#super-monaco-gps-rom-set) |
+
+`npm run road-data -- originals` ([Development](development.md#road-data-commands)) runs, in this order,
+`outrun-boards`, `outrun-course`, `super-hang-on-course`, `turbo-outrun-course`, `enduro-racer-course` and
+`super-monaco-gp-course`, each finding its zips in its ROM directory: the courses, the boards and pictures their objects
+show and the skies, written to `content/`. With `--check` it writes nothing and every command compares what it raises
+with what is committed. Each command's result is one line of JSON; a command that fails (a zip missing, a set refused,
+a document differing) is reported on its line and the rest still run, and the command then ends with a failure. The
+last line names the courses whose documents changed, whose identities change with them: their measured products are
+made again with `npm run measure -- generate` ([Measured products](development.md#measured-products)).
+
+The local originals of the recordings are not raised by it: `outrun-sounds` writes them, with ffmpeg
+([Local originals](development.md#local-originals)). The dumps (`<original>-read`) are research's, not the courses'.
+Neither the research tools nor K's research kit (its harnesses and decrypting code) is needed to raise the courses.
+
 ## Raising an original from its ROMs
 
 The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
