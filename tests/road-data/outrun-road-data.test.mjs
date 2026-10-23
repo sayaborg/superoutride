@@ -3,6 +3,7 @@ import test from 'node:test';
 import { crc32, deflateRawSync } from 'node:zlib';
 import { readZip } from '../../tools/road-data/zip.ts';
 import { assemblePrograms } from '../../tools/road-data/outrun-rom.ts';
+import { RomSet } from '../../tools/road-data/rom-set.ts';
 import { interleave } from '../../tools/road-data/program-words.ts';
 import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun-road.ts';
 import { paletteRgb555, pathOffset, pathTurn, readHeightTable, roadWidths } from '../../tools/road-data/road-tables.ts';
@@ -86,7 +87,10 @@ test('a zip archive is read, stored and deflated, each file checked against its 
 test('a program interleaves its even and odd ROMs, and a ROM set of other CRCs is refused', () => {
   assert.deepEqual(interleave(new Uint8Array([1, 3]), new Uint8Array([2, 4])), new Uint8Array([1, 2, 3, 4]));
   const files = new Map([['epr-10380b.133', { name: 'epr-10380b.133', crc: 0, data: new Uint8Array(0x10000) }]]);
-  assert.throws(() => assemblePrograms(files), /epr-10380b\.133 is CRC 0x00000000/);
+  assert.throws(
+    () => assemblePrograms(new RomSet('outrun', [files])),
+    /The ROM set has no epr-10380b\.133 of MAME outrun \(CRC 1f6cadad, 65536 bytes\)/,
+  );
 });
 
 test('a palette word is RGB555: four bits a channel over its shared low bit', () => {

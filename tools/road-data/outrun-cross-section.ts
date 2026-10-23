@@ -5,7 +5,7 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
 import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
@@ -64,7 +64,6 @@ export function centreLaneAt(w: number): number {
 /** Road widths at which the lanes' rule changes. */
 export const LANE_RULE_WIDTHS: readonly number[] = [72, TOUCHING];
 
-const ROAD_ROM_SIZE = 0x8000;
 /** The nearest line of the road ROM, 1 pixel a unit, and the pixel its centre falls on. */
 const NEAREST = 255;
 const CENTRE_PIXEL = 252;
@@ -76,16 +75,10 @@ const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
  * high, the most significant bit of a byte the leftmost pixel) is what `paintAt` gives at its centre, but within a
  * pixel of a feature's edge (the ROM draws them on whole pixels) and on the centre line. Throws where they disagree.
  */
-export function checkRoadRom(files: ReadonlyMap<string, ZipFile>) {
-  const { name, crc } = OUTRUN_ROAD_ROM;
-  const file = files.get(name);
-  requireInput(file, `/rom/${name}`, `The ROM set has no ${name}`);
-  requireInput(
-    file.data.length === ROAD_ROM_SIZE && file.crc === crc,
-    `/rom/${name}`,
-    `${name} is not MAME outrun's road ROM of CRC ${crc.toString(16).padStart(8, '0')}`,
-  );
-  const bit = (plane: number, x: number) => (file.data[plane * 0x4000 + NEAREST * 64 + (x >> 3)]! >> (7 - (x & 7))) & 1;
+export function checkRoadRom(set: RomSet) {
+  const { name } = OUTRUN_ROAD_ROM;
+  const data = set.data(OUTRUN_ROAD_ROM);
+  const bit = (plane: number, x: number) => (data[plane * 0x4000 + NEAREST * 64 + (x >> 3)]! >> (7 - (x & 7))) & 1;
   for (let x = 0; x < 512; x++) {
     const d = x + 0.5 - CENTRE_PIXEL;
     if (Math.abs(d) < 4 || OUTRUN_ROAD.some((e) => Math.abs(Math.abs(d) - Math.abs(e.at)) < 1)) continue;

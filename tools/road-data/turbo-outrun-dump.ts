@@ -5,7 +5,7 @@
  * the tables it says are OUTRUN's against OUTRUN's ROM set.
  */
 import { requireInput } from '../course/authoring-io.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { assemblePrograms } from './outrun-rom.js';
 import { readHeightTable } from './road-tables.js';
 import { assembleTurboOutrunPrograms, turboOutrunRoms } from './turbo-outrun-rom.js';
@@ -81,14 +81,14 @@ function compareWithOutrun(
 }
 
 /**
- * Every table the course uses, from TURBO OUTRUN's ROM set's files, checked against the description, and the tables
- * described as OUTRUN's checked against OUTRUN's ROM set's files.
+ * Every table the course uses, from TURBO OUTRUN's ROM set, checked against the description, and the tables
+ * described as OUTRUN's checked against OUTRUN's ROM set.
  */
-export function turboOutrunDump(files: ReadonlyMap<string, ZipFile>, outrunFiles: ReadonlyMap<string, ZipFile>) {
-  const programs = assembleTurboOutrunPrograms(files);
+export function turboOutrunDump(set: RomSet, outrunSet: RomSet) {
+  const programs = assembleTurboOutrunPrograms(set);
   const { main, sub } = programs;
   const { legs, names, stages } = readTurboOutrunStages(programs);
-  const sameAsOutrun = compareWithOutrun(programs, assemblePrograms(outrunFiles));
+  const sameAsOutrun = compareWithOutrun(programs, assemblePrograms(outrunSet));
   for (const [table, differing] of Object.entries(sameAsOutrun))
     requireInput(differing === 0, `/rom/${table}`, `${differing} of TURBO OUTRUN's ${table} differ from OUTRUN's`);
 

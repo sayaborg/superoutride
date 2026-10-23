@@ -8,7 +8,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { paletteName } from './pixel-grid.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
@@ -140,12 +140,12 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
-/** The course's document and report, from the ROM sets' files by CRC-32. */
-export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
-  const programs = assembleEnduroRacerPrograms(files);
+/** The course's document and report, from the ROM set. */
+export function enduroRacerCourse(set: RomSet) {
+  const programs = assembleEnduroRacerPrograms(set);
   const { main, sub } = programs;
   const metres = POSITION_METRES;
-  const cross = roadCrossSection(enduroRacerRoadRom(files));
+  const cross = roadCrossSection(enduroRacerRoadRom(set));
   const unit = LANE / cross.surface;
   const plans = readRoadPaths(sub).map((path) => sectionPlan(path, metres));
   const scenery = readScenery(main);
@@ -171,7 +171,7 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
       ground: { left: ground.rgb555[3]!, right: ground.rgb555[1]! },
     };
   });
-  const words = assembleEnduroRacerSprites(files);
+  const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit);
   const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
@@ -198,7 +198,7 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
     colored: (image) => colored.get(image)!,
   });
   // Each stage's sky, baked from its background over its ground's color (stage 5's the sea).
-  const planes = assembleEnduroRacerTiles(files);
+  const planes = assembleEnduroRacerTiles(set);
   const skies = stages.map(({ ground }, s) => ({
     name: skyName(s),
     document: bakeSky(skyName(s), stageSky(main, planes, s, ground.left)),

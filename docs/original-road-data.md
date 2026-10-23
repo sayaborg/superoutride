@@ -34,6 +34,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
   data too (FD1089) is read from MAME's decrypted bootleg set. What a chapter says of an encrypted program's code was
   found by decrypting it for the description; the tool cannot check it and takes it as described.
+- **Reading a set.** Every ROM read is found in the set's zips by its CRC-32 and size, whatever a zip names it, each zip
+  entry checked against the CRC-32 its archive records; a set missing one is refused, naming the set and the ROM. No
+  key is read. A dump records the ROMs read by MAME's names and CRC-32s, from the set's table.
 - **Other projects' code.** No code of MAME or of other projects is copied or ported: the formats are read by this
   project's own code from this description and the ROMs themselves.
 - **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
@@ -75,8 +78,7 @@ and a ROM of its odd bytes, 64 KiB each:
 | sub  | 0x00000–0x1FFFF | `epr-10327a.76`  | `epr-10329a.58`  |
 | sub  | 0x20000–0x3FFFF | `epr-10328a.75`  | `epr-10330a.57`  |
 
-Each ROM is checked by its size and its CRC-32 (`OUTRUN_PROGRAM_ROMS`), and each zip entry against the CRC-32 its
-archive records; another ROM set is refused. K's set matches:
+Each ROM is found by the [rules of the originals](#rules-of-the-originals) (`OUTRUN_PROGRAM_ROMS`). K's set matches:
 
 | ROM              | CRC-32     | ROM             | CRC-32     |
 | ---------------- | ---------- | --------------- | ---------- |
@@ -88,16 +90,16 @@ archive records; another ROM set is refused. K's set matches:
 The sprites are eight 128 KiB ROMs in two sets of four, each ROM one byte of a 32-bit word, the least significant
 first (`.12` and `.16` give the most significant byte): `mpr-10371.9` `7cc86208`, `mpr-10373.10` `b0d26ac9`, `mpr-10375.11` `59b60bd7`, `mpr-10377.12` `17a1b04a`, then
 `mpr-10372.13` `b557078c`, `mpr-10374.14` `8051e517`, `mpr-10376.15` `f3b8f318`, `mpr-10378.16` `a1062984`
-(`OUTRUN_SPRITE_ROMS`), checked as the programs are.
+(`OUTRUN_SPRITE_ROMS`), found as the programs are.
 
 The tiles are six 32 KiB ROMs, three bit planes of two ROMs each ([Backgrounds](#backgrounds)): `opr-10268.99`
 `95344b04`, `opr-10232.102` `776ba1eb`, `opr-10267.100` `a85bb823`, `opr-10231.103` `8908bcbf`, `opr-10266.101`
-`9f6f1a74`, `opr-10230.104` `686f5e50` (`OUTRUN_TILE_ROMS`), checked as the programs are.
+`9f6f1a74`, `opr-10230.104` `686f5e50` (`OUTRUN_TILE_ROMS`), found as the programs are.
 
 The sound program is `epr-10187.88` `a10abaa9`, and the PCM samples six 32 KiB ROMs, banks 0–5
 ([Voices and effects](#voices-and-effects)): `opr-10193.66` `bcd10dde`, `opr-10192.67` `770f1270`, `opr-10191.68`
 `20a284ab`, `opr-10190.69` `7cab70e2`, `opr-10189.70` `01366b54`, `opr-10188.71` `bad30ad9` (`OUTRUN_SOUND_ROMS`),
-checked as the programs are.
+found as the programs are.
 
 ## Programs
 
@@ -729,12 +731,12 @@ program draws them:
 
 ### Cross-section
 
-One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`,
-CRC `22794426`, 256 lines of 512 pixels, two bit planes of 64 bytes a line; row 255 is 1 pixel a unit, its centre at
-pixel 252), which `road-data course` checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the
-outer lines 206 to 218 (1), the shoulder to 228 the surface (0), the edge band 228 to 250 (2). The centre line, 8 wide
-at 0, is the surface's color on all 15 stages and is not drawn. Lines and edge bands are drawn at their exact units
-(the original's 7/11 unit and pixel rounding are not).
+One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, CRC
+`22794426`, the same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
+64 bytes a line; row 255 is 1 pixel a unit, its centre at pixel 252), which `road-data course` checks (`checkRoadRom`):
+the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to 228 the surface (0), the
+edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages and is not drawn. Lines
+and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are not).
 
 Two roads drawn together (`composite`) show, at each point, the surface of either road (its shoulder included) over road
 0's (the left one's) lines and edges, over road 1's, over the ground: between two roads at road width w (centres ±w) the
@@ -1027,8 +1029,8 @@ OUTRUN's are:
 | sub  | 0x20000–0x3FFFF | `epr-10793.75`  | `epr-10791.57`  |
 
 The main CPU's 0x30000–0x3FFFF holds what its 0x10000–0x1FFFF holds; the tool checks that it does and reads the tables
-at the latter. Each ROM is checked by its size and its CRC-32 (`SUPER_HANG_ON_PROGRAM_ROMS`), and each zip entry
-against the CRC-32 its archive records; another ROM set is refused. K's set matches:
+at the latter. Each ROM is found by the [rules of the originals](#rules-of-the-originals)
+(`SUPER_HANG_ON_PROGRAM_ROMS`). K's set matches:
 
 | ROM             | CRC-32     | ROM            | CRC-32     |
 | --------------- | ---------- | -------------- | ---------- |
@@ -1043,7 +1045,7 @@ The sprites are eight 128 KiB ROMs in four pairs, each pair the high and the low
 `mpr-10801.10` `12781795` over `mpr-10797.2` `27f2870d`. The tiles are three 32 KiB ROMs, one bit plane each, the
 lowest first: `epr-10652.54` `260286f9`, `epr-10651.55` `c609ee7b`, `epr-10650.56` `b236a403`
 (`SUPER_HANG_ON_TILE_ROMS`). The road ROM is `epr-10642.47` `7836bcc3` (`SUPER_HANG_ON_ROAD_ROM`): 256 lines of 512
-pixels, two bit planes of 64 bytes a line one after the other. Each is checked as the programs are. The sound ROMs are
+pixels, two bit planes of 64 bytes a line one after the other. Each is found as the programs are. The sound ROMs are
 not read.
 
 ### SUPER HANG-ON's programs
@@ -1270,16 +1272,18 @@ OUTRUN's are; the main CPU has three parts:
 | sub  | 0x00000–0x1FFFF | `opr-12295.76`  | `opr-12294.58`  |
 | sub  | 0x20000–0x3FFFF | `opr-12297.75`  | `opr-12296.57`  |
 
-Every ROM the conversion reads is checked by its size and its CRC-32 (`turbo-outrun-rom.ts`), and each zip entry
-against the CRC-32 its archive records; another ROM set is refused. K's set matches: `epr-12513.133` `ae8835a5`,
-`epr-12512.118` `f90372ad`, `epr-12515.132` `1f047df4`, `epr-12514.117` `5539e9c3`, `epr-12293.131` `f4321eea`,
-`epr-12292.116` `51d98af0`, `opr-12295.76` `d43a3a84`, `opr-12294.58` `27cdcfd3`, `opr-12297.75` `1d9b5677`,
-`opr-12296.57` `0a513671`; the road ROM `epr-12298.11` and its copy `epr-12299.47`, both `fc9bc41b` (as OUTRUN's, 256
-lines of 512 pixels, the second bit plane at 0x4000); the tiles, one bit plane of 64 KiB each, the lowest first,
-`opr-12323.102` `4de43a6f`, `opr-12324.103` `24607a55`, `opr-12325.104` `1405137a`; the sprites, two sets of four, each
-ROM one byte of a 32-bit word, the least significant first, `mpr-12336.9` `dda465c7`, `mpr-12337.10` `828233d1`,
-`mpr-12338.11` `46b4b5f4`, `mpr-12339.12` `0d7e3bab`, then `mpr-12364.13` `a4b83e65`, `mpr-12365.14` `4a80b2a9`,
-`mpr-12366.15` `385cb3ab`, `mpr-12367.16` `4930254a`. The sound ROMs and the key (`317-0118.key`) are not read.
+Every ROM the conversion reads is found by the [rules of the originals](#rules-of-the-originals)
+(`turbo-outrun-rom.ts`). K's set matches: `epr-12513.133` `ae8835a5`, `epr-12512.118` `f90372ad`, `epr-12515.132`
+`1f047df4`, `epr-12514.117` `5539e9c3`, `epr-12293.131` `f4321eea`, `epr-12292.116` `51d98af0`, `opr-12295.76`
+`d43a3a84`, `opr-12294.58` `27cdcfd3`, `opr-12297.75` `1d9b5677`, `opr-12296.57` `0a513671`; the road ROM `epr-12298.11`
+and its copy `epr-12299.47`, both `fc9bc41b`, one file serving both (as OUTRUN's, 256 lines of 512 pixels, the second
+bit plane at 0x4000); the tiles, one bit plane of 64 KiB each, the lowest first, `opr-12323.102` `4de43a6f`,
+`opr-12324.103` `24607a55`, `opr-12325.104` `1405137a`; the sprites, two sets of four, each ROM one byte of a 32-bit
+word, the least significant first, `mpr-12336.9` `dda465c7`, `mpr-12337.10` `828233d1`, `mpr-12338.11` `46b4b5f4`,
+`mpr-12339.12` `0d7e3bab`, then `mpr-12364.13` `a4b83e65`, `mpr-12365.14` `4a80b2a9`, `mpr-12366.15` `385cb3ab`,
+`mpr-12367.16` `4930254a`. The sound ROMs and the key (`317-0118.key`) are not read. The read's OUTRUN zip
+(`--outrun-zip`) is a set of its own, OUTRUN's, found by OUTRUN's tables and never mixed with TURBO OUTRUN's ([TURBO
+OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 
 ### TURBO OUTRUN's programs
 
@@ -1560,10 +1564,9 @@ of 0x8000 32-bit words, each bank four ROMs, one byte of each word, the least si
 (`ENDURO_RACER_SPRITE_ROMS`): bank 0 `epr-7678.ic36`, `epr-7670.ic28`, `epr-7662.ic18`, `epr-7654.ic8`, and bank k
 the ROMs one lower in each column, to bank 7 `epr-7671.ic29`, `epr-7663.ic21`, `epr-7655.ic11`, `epr-7647.ic1`.
 
-The tool opens both zips (`enduror.zip` and `endurobl.zip` in `reference-media/enduro-racer/rom/`), checks every entry
-against the CRC-32 its archive records, and finds each ROM it reads by its CRC-32 and size, whatever the zip names it
-(K's names differ a little from MAME's); a set without one is refused. It reads no key (`317-0013a.key`), no Rev A
-main CPU ROM (encrypted) and no sound ROM, and never decrypts.
+The tool opens both zips (`enduror.zip` and `endurobl.zip` in `reference-media/enduro-racer/rom/`) as one set and finds
+each ROM it reads by the [rules of the originals](#rules-of-the-originals) (K's names differ a little from MAME's). It
+reads no key (`317-0013a.key`), no Rev A main CPU ROM (encrypted) and no sound ROM, and never decrypts.
 
 ### ENDURO RACER's programs
 
@@ -1797,8 +1800,8 @@ four, each ROM one byte of a 32-bit word, the least significant first; set g's w
 `epr-12610.97` `53b99417`, `epr-12611.101` `bd5c6ab0`, `epr-12612.105` `ac86e890` (6–7). There is no road ROM: the X
 board's road layer draws lines of colors from RAM.
 
-The tool finds each ROM by its CRC-32 and size, whatever the zip names it, and refuses a set without one. It reads no
-key (`317-0126a.key`) and no sound or link ROM, and never decrypts.
+The tool finds each ROM by the [rules of the originals](#rules-of-the-originals). It reads no key (`317-0126a.key`) and
+no sound or link ROM, and never decrypts.
 
 ### SUPER MONACO GP's courses' tables
 

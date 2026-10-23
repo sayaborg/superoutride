@@ -8,7 +8,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { profileOf, sectionProfile } from './road-profile.js';
 import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { sectionPlan } from './path-plan.js';
@@ -167,10 +167,10 @@ export function meanColor(colors: readonly number[]): number {
   return linearToRgb555(sum[0]! / colors.length, sum[1]! / colors.length, sum[2]! / colors.length);
 }
 
-/** Both circuits' documents and reports, their boards' images and their skies, from the ROM set's files by CRC-32. */
-export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
-  const programs = assembleSuperMonacoGpPrograms(files);
-  const words = assembleSuperMonacoGpSprites(files);
+/** Both circuits' documents and reports, their boards' images and their skies, from the ROM set. */
+export function superMonacoGpCourses(set: RomSet) {
+  const programs = assembleSuperMonacoGpPrograms(set);
+  const words = assembleSuperMonacoGpSprites(set);
   const { main } = programs;
   const roadLayer = readRoadLayerColors(main).rgb555;
   // A flat board's picture, and its pixels' colors in a palette where `keep` holds.
@@ -227,7 +227,7 @@ export function superMonacoGpCourses(files: ReadonlyMap<number, ZipFile>) {
   );
   // The skies: the fine set's background baked over its ramp, and the tunnel's dark.
   const skies = [
-    { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(files))) },
+    { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set))) },
     { name: SKIES.tunnel, document: bakeSky(SKIES.tunnel, uniformSkyBands(TUNNEL_DARK)) },
   ];
   return { courses, boards, skies };

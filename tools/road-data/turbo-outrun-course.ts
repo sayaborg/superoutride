@@ -38,7 +38,7 @@ import {
 } from './turbo-outrun-road.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
@@ -125,11 +125,11 @@ interface SkyChange {
   readonly arrival: 'cut' | 'rise';
 }
 
-/** TURBO OUTRUN's course from its ROM set's files: its document and what the conversion reports. */
-export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
-  checkTurboOutrunRoadRom(files);
-  const programs = assembleTurboOutrunPrograms(files);
-  const planes = assembleTurboOutrunTiles(files);
+/** TURBO OUTRUN's course from its ROM set: its document and what the conversion reports. */
+export function turboOutrunCourse(set: RomSet) {
+  checkTurboOutrunRoadRom(set);
+  const programs = assembleTurboOutrunPrograms(set);
+  const planes = assembleTurboOutrunTiles(set);
   const { stages } = readTurboOutrunStages(programs);
   const constants = readConstants(programs.main);
   const kmh = constants.topSpeed;
@@ -206,7 +206,7 @@ export function turboOutrunCourse(files: ReadonlyMap<string, ZipFile>) {
   );
   const boards = turboOutrunBoards(
     programs.main,
-    assembleTurboOutrunSprites(files),
+    assembleTurboOutrunSprites(set),
     placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 })),
   );
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));

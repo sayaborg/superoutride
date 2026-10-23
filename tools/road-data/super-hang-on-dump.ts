@@ -2,7 +2,7 @@
  * SUPER HANG-ON's road data dump ([Original road data](../../docs/original-road-data.md#super-hang-on)): every table its
  * courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the ROMs.
  */
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import {
   assembleSuperHangOnPrograms,
   assembleSuperHangOnSprites,
@@ -47,11 +47,11 @@ export function bannerPalettes(main: Uint8Array) {
   return { start: readGateParts(main)[5]!.palette, check: check!, goal: goal! };
 }
 
-/** Every table the courses use, from the ROM set's files. */
-export function superHangOnDump(files: ReadonlyMap<string, ZipFile>) {
-  const programs: SuperHangOnPrograms = assembleSuperHangOnPrograms(files);
+/** Every table the courses use, from the ROM set. */
+export function superHangOnDump(set: RomSet) {
+  const programs: SuperHangOnPrograms = assembleSuperHangOnPrograms(set);
   // The sprite ROMs are checked too: the dump names their CRCs.
-  assembleSuperHangOnSprites(files);
+  assembleSuperHangOnSprites(set);
   const { main, sub } = programs;
   const positions = sectionPositions(main);
   const courses = readCourses(main);

@@ -9,6 +9,7 @@ import { atomicWrite, reportError, requireInput } from '../course/authoring-io.j
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { readZip } from './zip.js';
+import { RomSet, romRecords } from './rom-set.js';
 import { boardShapes, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
 import { hillsAlong, tableRuns } from './hills.js';
@@ -27,7 +28,7 @@ import { readCourseDocument } from '../../src/course/course-document.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
 import { commandSample, OUTRUN_SOUNDS, PCM_OUTPUT_RATE, samplePcm } from './outrun-sounds.js';
-import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_PROGRAM_ROMS } from './outrun-rom.js';
+import { assemblePrograms, assembleSound, assembleSprites, assembleTiles, OUTRUN_DUMP_ROMS } from './outrun-rom.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
@@ -42,13 +43,11 @@ import { figureUse, goalFigurePlacements, goalFigures } from './outrun-goal-figu
 import { superHangOnDump } from './super-hang-on-dump.js';
 import { enduroRacerDump } from './enduro-racer-dump.js';
 import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
-import { superMonacoGpFiles } from './super-monaco-gp-rom.js';
 import {
   SUPER_MONACO_GP_CONVERSION_VERSION,
   STEP_METRES as SUPER_MONACO_GP_STEP,
   superMonacoGpCourses,
 } from './super-monaco-gp-course.js';
-import { filesByCrc } from './enduro-racer-rom.js';
 import {
   COURSE_ID as ENDURO_RACER_COURSE_ID,
   ENDURO_RACER_CONVERSION_VERSION,
@@ -107,7 +106,13 @@ async function readPrograms(zip: string | undefined) {
     requireInput(zips.length === 1, '/arguments/--zip', `--zip names the ROM zip, or ${ROM_DIRECTORY} holds one`);
     zip = path.join(ROM_DIRECTORY, zips[0]!);
   }
-  return { zip, programs: assemblePrograms(readZip(new Uint8Array(await readFile(zip)))) };
+  const set = await romSet('outrun', [zip]);
+  return { zip, set, programs: assemblePrograms(set) };
+}
+
+/** MAME's set `name` from its zips, each ROM found by its CRC-32 and size. */
+async function romSet(name: string, zips: readonly string[]) {
+  return new RomSet(name, await Promise.all(zips.map(async (zip) => readZip(new Uint8Array(await readFile(zip))))));
 }
 
 /** The zip `zip`, else the one zip in `directory`. */
@@ -118,11 +123,10 @@ async function oneZip(zip: string | undefined, directory: string, option: string
   return path.join(directory, zips[0]!);
 }
 
-/** ENDURO RACER's ROM files by CRC-32, from its two zips: `enduror` (`--zip`) and `endurobl` (`--bootleg-zip`). */
-async function enduroRacerFiles(options: ReadonlyMap<string, string>) {
+/** ENDURO RACER's ROM set, from its two zips as one: `enduror` (`--zip`) and `endurobl` (`--bootleg-zip`). */
+async function enduroRacerSet(options: ReadonlyMap<string, string>) {
   const zips = Object.entries(ENDURO_RACER_ZIPS).map(([option, zip]) => options.get(option) ?? zip);
-  const files = filesByCrc(await Promise.all(zips.map(async (zip) => readZip(new Uint8Array(await readFile(zip))))));
-  return { zips, files };
+  return { zips, set: await romSet('enduror and endurobl', zips) };
 }
 
 /**
@@ -162,7 +166,7 @@ try {
     case 'super-hang-on-read': {
       // SUPER HANG-ON's ROM zip checked and read; every table its courses use to the dump.
       const zip = await oneZip(options.get('--zip'), SUPER_HANG_ON_ROM_DIRECTORY, '--zip');
-      const dump = superHangOnDump(readZip(new Uint8Array(await readFile(zip))));
+      const dump = superHangOnDump(await romSet('shangon', [zip]));
       const out = options.get('--out') ?? SUPER_HANG_ON_DUMP_DIRECTORY;
       await atomicWrite(path.join(out, 'super-hang-on.json'), JSON.stringify(dump) + '\n');
       console.log(
@@ -183,7 +187,7 @@ try {
       // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
       const check = options.has('--check');
       const zip = await oneZip(options.get('--zip'), SUPER_HANG_ON_ROM_DIRECTORY, '--zip');
-      const built = superHangOnCourses(readZip(new Uint8Array(await readFile(zip))));
+      const built = superHangOnCourses(await romSet('shangon', [zip]));
       const courses = [];
       for (const { course, road, dropped, plans } of built.built) {
         const file = await saveCourse(courseId(course.name), road.document, check);
@@ -266,12 +270,7 @@ try {
       const dump = {
         ...DUMP_FORMAT,
         stageLength: length,
-        roms: Object.fromEntries(
-          Object.values(OUTRUN_PROGRAM_ROMS)
-            .flat()
-            .flatMap(({ even, odd }) => [even, odd])
-            .map(({ name, crc }) => [name, crc.toString(16).padStart(8, '0')]),
-        ),
+        roms: romRecords(OUTRUN_DUMP_ROMS),
         stages,
         fork,
         goals,
@@ -377,11 +376,10 @@ try {
       // OUTRUN's roads from the ROMs, and each stage's sky as published, written to content, or with `--check` compared
       // with the ones there.
       const check = options.has('--check');
-      const { zip, programs } = await readPrograms(options.get('--zip'));
-      const files = readZip(new Uint8Array(await readFile(zip)));
-      const tiles = assembleTiles(files);
+      const { zip, set, programs } = await readPrograms(options.get('--zip'));
+      const tiles = assembleTiles(set);
       // The roads' lines and edges as this conversion draws them are the road ROM's.
-      checkRoadRom(files);
+      checkRoadRom(set);
       const length = stageLength(programs.main);
       requireInput(length === 1948, '/main', `The stages are ${length} positions long, not 1948`);
       const stages = new Map(OUTRUN_STAGES.flat().map((number) => [number, readStage(programs, number)]));
@@ -406,7 +404,7 @@ try {
       // What lies on the ground, its materials beneath it, and the extending boards' edges.
       const { lying, edges, split } = boardShapes(
         programs.main,
-        assembleSprites(files),
+        assembleSprites(set),
         outrunSceneryUses(programs).uses,
       );
       const courses = [];
@@ -562,8 +560,8 @@ try {
     }
     case 'sounds': {
       // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.
-      const { zip } = await readPrograms(options.get('--zip'));
-      const { program, banks } = assembleSound(readZip(new Uint8Array(await readFile(zip))));
+      const { zip, set } = await readPrograms(options.get('--zip'));
+      const { program, banks } = assembleSound(set);
       const written: string[] = [];
       for (const [recording, command] of OUTRUN_SOUNDS) {
         const sample = commandSample(program, command);
@@ -591,9 +589,8 @@ try {
       // The boards of every sprite OUTRUN's stages, fork and goal stretches and start show, written to content,
       // or with `--check` compared with the ones there.
       const check = options.has('--check');
-      const { zip, programs } = await readPrograms(options.get('--zip'));
-      const files = readZip(new Uint8Array(await readFile(zip)));
-      const words = assembleSprites(files);
+      const { set, programs } = await readPrograms(options.get('--zip'));
+      const words = assembleSprites(set);
       const { uses, skipped } = outrunSceneryUses(programs);
       const boards = sceneryBoards(programs.main, words, uses);
       for (const board of boards) {
@@ -622,11 +619,11 @@ try {
       // tables described as OUTRUN's checked against OUTRUN's ROM zip.
       const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
       const outrunZip = await oneZip(options.get('--outrun-zip'), ROM_DIRECTORY, '--outrun-zip');
-      const files = readZip(new Uint8Array(await readFile(zip)));
-      const dump = turboOutrunDump(files, readZip(new Uint8Array(await readFile(outrunZip))));
+      const set = await romSet('toutrun', [zip]);
+      const dump = turboOutrunDump(set, await romSet('outrun', [outrunZip]));
       // Where the objects stand: at the top speed with the original's 108 objects, and as designed (one step a
       // position, below 216.3 km/h, with no object wanting).
-      const { main } = assembleTurboOutrunPrograms(files);
+      const { main } = assembleTurboOutrunPrograms(set);
       const model = (kmh: number, slots: number) => {
         const { objects, runs } = turboOutrunObjects(main, dump.stages, { kmh, slots });
         return { objects, runs };
@@ -697,7 +694,7 @@ try {
       // TURBO OUTRUN's course and skies from its ROM zip, written to content, or with `--check` compared.
       const check = options.has('--check');
       const zip = await oneZip(options.get('--zip'), TURBO_OUTRUN_ROM_DIRECTORY, '--zip');
-      const built = turboOutrunCourse(readZip(new Uint8Array(await readFile(zip))));
+      const built = turboOutrunCourse(await romSet('toutrun', [zip]));
       const file = await saveCourse(TURBO_OUTRUN_COURSE_ID, built.document, check);
       for (const { image } of built.pictures) {
         const picture = `content/${image.path}`;
@@ -773,8 +770,8 @@ try {
     }
     case 'enduro-racer-read': {
       // ENDURO RACER's two ROM zips read, never decrypted; every table its course uses to the dump.
-      const { zips, files } = await enduroRacerFiles(options);
-      const dump = enduroRacerDump(files);
+      const { zips, set } = await enduroRacerSet(options);
+      const dump = enduroRacerDump(set);
       const out = options.get('--out') ?? ENDURO_RACER_DUMP_DIRECTORY;
       await atomicWrite(path.join(out, 'enduro-racer.json'), JSON.stringify(dump) + '\n');
       const degrees = (radians: number) => round1((radians * 180) / Math.PI);
@@ -834,8 +831,8 @@ try {
     case 'enduro-racer-course': {
       // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
       const check = options.has('--check');
-      const { zips, files } = await enduroRacerFiles(options);
-      const built = enduroRacerCourse(files);
+      const { zips, set } = await enduroRacerSet(options);
+      const built = enduroRacerCourse(set);
       const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
       for (const { image } of built.pictures) {
         const picture = `content/${image.path}`;
@@ -921,7 +918,7 @@ try {
     case 'super-monaco-gp-read': {
       // SUPER MONACO GP's ROM zip read, never decrypted; every table its courses use to the dump.
       const zip = await oneZip(options.get('--zip'), SUPER_MONACO_GP_ROM_DIRECTORY, '--zip');
-      const dump = superMonacoGpDump(superMonacoGpFiles(readZip(new Uint8Array(await readFile(zip)))));
+      const dump = superMonacoGpDump(await romSet('smgp', [zip]));
       const out = options.get('--out') ?? SUPER_MONACO_GP_DUMP_DIRECTORY;
       await atomicWrite(path.join(out, 'super-monaco-gp.json'), JSON.stringify(dump) + '\n');
       const objects = Object.values(dump.groups).flat();
@@ -962,7 +959,7 @@ try {
       // SUPER MONACO GP's two circuits from its ROM zip, written to content, or with `--check` compared.
       const check = options.has('--check');
       const zip = await oneZip(options.get('--zip'), SUPER_MONACO_GP_ROM_DIRECTORY, '--zip');
-      const built = superMonacoGpCourses(superMonacoGpFiles(readZip(new Uint8Array(await readFile(zip)))));
+      const built = superMonacoGpCourses(await romSet('smgp', [zip]));
       const courses = [];
       for (const {
         course,

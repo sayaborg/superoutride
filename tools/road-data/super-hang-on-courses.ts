@@ -6,7 +6,7 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { instruction, long, word } from './program-words.js';
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import {
   assembleSuperHangOnPrograms,
   assembleSuperHangOnSprites,
@@ -100,16 +100,16 @@ export function positionMetres(main: Uint8Array): number {
 }
 
 /** The four courses' documents and reports, the pictures they show and their skies. */
-export function superHangOnCourses(files: ReadonlyMap<string, ZipFile>) {
-  const programs = assembleSuperHangOnPrograms(files);
-  const words = assembleSuperHangOnSprites(files);
-  const planes = assembleSuperHangOnTiles(files);
+export function superHangOnCourses(set: RomSet) {
+  const programs = assembleSuperHangOnPrograms(set);
+  const words = assembleSuperHangOnSprites(set);
+  const planes = assembleSuperHangOnTiles(set);
   const { main } = programs;
   const positions = sectionPositions(main);
   const metres = positionMetres(main);
   const rules = sceneryRules(main);
   const amounts = programAmounts(main);
-  const cross = roadCrossSection(superHangOnRoadRom(files));
+  const cross = roadCrossSection(superHangOnRoadRom(set));
   const unit = LANE / cross.linesIn;
   const goal = readGoal(programs);
   const gates = readGateParts(main);

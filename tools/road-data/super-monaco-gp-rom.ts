@@ -1,13 +1,11 @@
-import { requireInput } from '../course/authoring-io.js';
 import { interleave } from './program-words.js';
+import { romRecords, type Rom, type RomSet } from './rom-set.js';
 import { spriteWords } from './sprite-pixels.js';
-import type { ZipFile } from './zip.js';
 
-/** A ROM by its name in MAME's set and its CRC-32: the tool finds it by the latter. */
-export interface Rom {
-  readonly name: string;
-  readonly crc: number;
-}
+/** The X board's program, tile and sprite ROMs' sizes, bytes. */
+export const PROGRAM_ROM_SIZE = 0x20000;
+const TILE_ROM_SIZE = 0x10000;
+const SPRITE_ROM_SIZE = 0x20000;
 
 /**
  * SUPER MONACO GP's ROMs, MAME's `smgp` (Super Monaco GP, World, Rev B, FD1094 317-0126a)
@@ -16,14 +14,20 @@ export interface Rom {
  * alone: its tables are its ROMs' bytes as they are, and it is never decrypted. The sub CPU's holds the courses.
  */
 export const SUPER_MONACO_GP_PROGRAM_ROMS = Object.freeze({
-  main: { even: { name: 'epr-12563b.58', crc: 0xbaf1f333 }, odd: { name: 'epr-12564b.63', crc: 0xb5191af0 } },
-  sub: { even: { name: 'epr-12576a.20', crc: 0x2c9599c1 }, odd: { name: 'epr-12577a.29', crc: 0xabf9a50b } },
+  main: {
+    even: { name: 'epr-12563b.58', size: PROGRAM_ROM_SIZE, crc: 0xbaf1f333 },
+    odd: { name: 'epr-12564b.63', size: PROGRAM_ROM_SIZE, crc: 0xb5191af0 },
+  },
+  sub: {
+    even: { name: 'epr-12576a.20', size: PROGRAM_ROM_SIZE, crc: 0x2c9599c1 },
+    odd: { name: 'epr-12577a.29', size: PROGRAM_ROM_SIZE, crc: 0xabf9a50b },
+  },
 } as const);
 /** The tile ROMs: three bit planes, the lowest first, 8 bytes a tile. */
 export const SUPER_MONACO_GP_TILE_ROMS = Object.freeze([
-  { name: 'epr-12429.154', crc: 0x5851e614 },
-  { name: 'epr-12430.153', crc: 0x05e00134 },
-  { name: 'epr-12431.152', crc: 0x35572f4a },
+  { name: 'epr-12429.154', size: TILE_ROM_SIZE, crc: 0x5851e614 },
+  { name: 'epr-12430.153', size: TILE_ROM_SIZE, crc: 0x05e00134 },
+  { name: 'epr-12431.152', size: TILE_ROM_SIZE, crc: 0x35572f4a },
 ] as const);
 /**
  * The sprite ROMs: four sets of four, each ROM one byte of a 32-bit word, the least significant first; set g's words
@@ -31,51 +35,30 @@ export const SUPER_MONACO_GP_TILE_ROMS = Object.freeze([
  */
 export const SUPER_MONACO_GP_SPRITE_ROMS = Object.freeze([
   [
-    { name: 'mpr-12425.90', crc: 0x14bf2a15 },
-    { name: 'mpr-12426.94', crc: 0x28b60dc0 },
-    { name: 'mpr-12427.98', crc: 0x0a367928 },
-    { name: 'mpr-12428.102', crc: 0xefa80ad5 },
+    { name: 'mpr-12425.90', size: SPRITE_ROM_SIZE, crc: 0x14bf2a15 },
+    { name: 'mpr-12426.94', size: SPRITE_ROM_SIZE, crc: 0x28b60dc0 },
+    { name: 'mpr-12427.98', size: SPRITE_ROM_SIZE, crc: 0x0a367928 },
+    { name: 'mpr-12428.102', size: SPRITE_ROM_SIZE, crc: 0xefa80ad5 },
   ],
   [
-    { name: 'mpr-12421.91', crc: 0x25f46140 },
-    { name: 'mpr-12422.95', crc: 0xcb51c8f6 },
-    { name: 'mpr-12423.99', crc: 0x0be9818e },
-    { name: 'mpr-12424.103', crc: 0x0ce00dfc },
+    { name: 'mpr-12421.91', size: SPRITE_ROM_SIZE, crc: 0x25f46140 },
+    { name: 'mpr-12422.95', size: SPRITE_ROM_SIZE, crc: 0xcb51c8f6 },
+    { name: 'mpr-12423.99', size: SPRITE_ROM_SIZE, crc: 0x0be9818e },
+    { name: 'mpr-12424.103', size: SPRITE_ROM_SIZE, crc: 0x0ce00dfc },
   ],
   [
-    { name: 'mpr-12417.92', crc: 0xa806eabf },
-    { name: 'mpr-12418.96', crc: 0xed1a0f2b },
-    { name: 'mpr-12419.100', crc: 0xce4568cb },
-    { name: 'mpr-12420.104', crc: 0x679442eb },
+    { name: 'mpr-12417.92', size: SPRITE_ROM_SIZE, crc: 0xa806eabf },
+    { name: 'mpr-12418.96', size: SPRITE_ROM_SIZE, crc: 0xed1a0f2b },
+    { name: 'mpr-12419.100', size: SPRITE_ROM_SIZE, crc: 0xce4568cb },
+    { name: 'mpr-12420.104', size: SPRITE_ROM_SIZE, crc: 0x679442eb },
   ],
   [
-    { name: 'epr-12609.93', crc: 0xa867812f },
-    { name: 'epr-12610.97', crc: 0x53b99417 },
-    { name: 'epr-12611.101', crc: 0xbd5c6ab0 },
-    { name: 'epr-12612.105', crc: 0xac86e890 },
+    { name: 'epr-12609.93', size: SPRITE_ROM_SIZE, crc: 0xa867812f },
+    { name: 'epr-12610.97', size: SPRITE_ROM_SIZE, crc: 0x53b99417 },
+    { name: 'epr-12611.101', size: SPRITE_ROM_SIZE, crc: 0xbd5c6ab0 },
+    { name: 'epr-12612.105', size: SPRITE_ROM_SIZE, crc: 0xac86e890 },
   ],
 ] as const);
-
-/** The X board's program, tile and sprite ROMs' sizes, bytes. */
-export const PROGRAM_ROM_SIZE = 0x20000;
-const TILE_ROM_SIZE = 0x10000;
-const SPRITE_ROM_SIZE = 0x20000;
-
-const hex = (value: number) => value.toString(16).padStart(8, '0');
-
-/** A zip's files by CRC-32: the tool finds each ROM by its CRC, whatever the zip names it. */
-export function superMonacoGpFiles(zip: ReadonlyMap<string, ZipFile>): Map<number, ZipFile> {
-  return new Map([...zip.values()].map((file) => [file.crc, file]));
-}
-
-/** A ROM of MAME's set `set`: present by its CRC-32 and `size` bytes. */
-export function romData(files: ReadonlyMap<number, ZipFile>, rom: Rom, size: number, set: string): Uint8Array {
-  const file = files.get(rom.crc);
-  requireInput(file, `/rom/${rom.name}`, `The ROM set has no ${rom.name} (CRC ${hex(rom.crc)}): it is not MAME ${set}`);
-  requireInput(file.data.length === size, `/rom/${rom.name}`, `${rom.name} is ${file.data.length} bytes, not ${size}`);
-  return file.data;
-}
-const SET = 'smgp';
 
 /** The two CPUs' programs as each CPU addresses them. */
 export interface SuperMonacoGpPrograms {
@@ -87,48 +70,39 @@ export interface SuperMonacoGpPrograms {
  * The main and sub CPUs' programs, every ROM the conversion reads (programs, tiles, sprites) found by its CRC-32 and
  * size; the main CPU's program is not decrypted.
  */
-export function assembleSuperMonacoGpPrograms(files: ReadonlyMap<number, ZipFile>): SuperMonacoGpPrograms {
-  xBoardTiles(files, SUPER_MONACO_GP_TILE_ROMS, SET);
-  xBoardSpriteWords(files, SUPER_MONACO_GP_SPRITE_ROMS, SET);
+export function assembleSuperMonacoGpPrograms(set: RomSet): SuperMonacoGpPrograms {
+  xBoardTiles(set, SUPER_MONACO_GP_TILE_ROMS);
+  xBoardSpriteWords(set, SUPER_MONACO_GP_SPRITE_ROMS);
   const program = ({ even, odd }: { readonly even: Rom; readonly odd: Rom }) =>
-    interleave(romData(files, even, PROGRAM_ROM_SIZE, SET), romData(files, odd, PROGRAM_ROM_SIZE, SET));
+    interleave(set.data(even), set.data(odd));
   return { main: program(SUPER_MONACO_GP_PROGRAM_ROMS.main), sub: program(SUPER_MONACO_GP_PROGRAM_ROMS.sub) };
 }
 
-/** Every ROM the tool reads, by its name in MAME's set, with its CRC-32 as eight hex digits. */
+/** Every ROM the tool reads, the dump's record of them. */
 export const superMonacoGpRoms = (): Record<string, string> =>
-  Object.fromEntries(
-    [
-      ...[SUPER_MONACO_GP_PROGRAM_ROMS.main, SUPER_MONACO_GP_PROGRAM_ROMS.sub].flatMap(({ even, odd }) => [even, odd]),
-      ...SUPER_MONACO_GP_TILE_ROMS,
-      ...SUPER_MONACO_GP_SPRITE_ROMS.flat(),
-    ].map(({ name, crc }) => [name, hex(crc)]),
-  );
+  romRecords([
+    ...[SUPER_MONACO_GP_PROGRAM_ROMS.main, SUPER_MONACO_GP_PROGRAM_ROMS.sub].flatMap(({ even, odd }) => [even, odd]),
+    ...SUPER_MONACO_GP_TILE_ROMS,
+    ...SUPER_MONACO_GP_SPRITE_ROMS.flat(),
+  ]);
 
 /**
- * The X board's sprite ROMs' words (`spriteWords`) of MAME's set `set`, set of four after set of four: banks of 0x10000
+ * The X board's sprite ROMs' words (`spriteWords`), set of four after set of four: banks of 0x10000
  * words, OUTRUN's.
  */
-export function xBoardSpriteWords(
-  files: ReadonlyMap<number, ZipFile>,
-  sets: readonly (readonly Rom[])[],
-  set: string,
-): Uint32Array {
+export function xBoardSpriteWords(set: RomSet, sets: readonly (readonly Rom[])[]): Uint32Array {
   const words = new Uint32Array(sets.length * SPRITE_ROM_SIZE);
-  sets.forEach((roms, g) =>
-    words.set(spriteWords(roms.map((rom) => romData(files, rom, SPRITE_ROM_SIZE, set))), g * SPRITE_ROM_SIZE),
-  );
+  sets.forEach((roms, g) => words.set(spriteWords(roms.map((rom) => set.data(rom))), g * SPRITE_ROM_SIZE));
   return words;
 }
 
-/** The X board's tile ROMs' bit planes of MAME's set `set`, the lowest first, 8 bytes a tile. */
-export const xBoardTiles = (files: ReadonlyMap<number, ZipFile>, roms: readonly Rom[], set: string) =>
-  roms.map((rom) => romData(files, rom, TILE_ROM_SIZE, set));
+/** The X board's tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
+export const xBoardTiles = (set: RomSet, roms: readonly Rom[]) => roms.map((rom) => set.data(rom));
 
 /** The sprite ROMs' words (`spriteWords`), set after set: banks of 0x10000 words, OUTRUN's. */
-export const assembleSuperMonacoGpSprites = (files: ReadonlyMap<number, ZipFile>): Uint32Array =>
-  xBoardSpriteWords(files, SUPER_MONACO_GP_SPRITE_ROMS, SET);
+export const assembleSuperMonacoGpSprites = (set: RomSet): Uint32Array =>
+  xBoardSpriteWords(set, SUPER_MONACO_GP_SPRITE_ROMS);
 
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
-export const assembleSuperMonacoGpTiles = (files: ReadonlyMap<number, ZipFile>): readonly Uint8Array[] =>
-  xBoardTiles(files, SUPER_MONACO_GP_TILE_ROMS, SET);
+export const assembleSuperMonacoGpTiles = (set: RomSet): readonly Uint8Array[] =>
+  xBoardTiles(set, SUPER_MONACO_GP_TILE_ROMS);

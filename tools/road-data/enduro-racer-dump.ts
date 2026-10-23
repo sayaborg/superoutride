@@ -3,7 +3,7 @@
  * table its course uses, read from the ROM sets as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import { instruction } from './program-words.js';
 import {
   assembleEnduroRacerPrograms,
@@ -44,10 +44,10 @@ export function bikeAhead(programs: EnduroRacerPrograms) {
   return (high! * 0x10000 + low!) / 256;
 }
 
-/** Every table the course uses, from the ROM sets' files by CRC-32. */
-export function enduroRacerDump(files: ReadonlyMap<number, ZipFile>) {
-  const programs = assembleEnduroRacerPrograms(files);
-  const words = assembleEnduroRacerSprites(files);
+/** Every table the course uses, from the ROM set. */
+export function enduroRacerDump(set: RomSet) {
+  const programs = assembleEnduroRacerPrograms(set);
+  const words = assembleEnduroRacerSprites(set);
   const { main, sub } = programs;
   const stages = Array.from({ length: STAGES }, (_, s) => s);
   const scenery = readScenery(main);

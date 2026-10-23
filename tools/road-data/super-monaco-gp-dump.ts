@@ -3,7 +3,7 @@
  * table its courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */
-import type { ZipFile } from './zip.js';
+import type { RomSet } from './rom-set.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,
@@ -40,10 +40,10 @@ export const VIEWED = 0x0c;
 /** The rival cars' frame table on the main CPU. */
 const RIVAL_FRAMES = 0x10e0;
 
-/** Every table the courses use, from the ROM set's files by CRC-32. */
-export function superMonacoGpDump(files: ReadonlyMap<number, ZipFile>) {
-  const { main, sub } = assembleSuperMonacoGpPrograms(files);
-  const words = assembleSuperMonacoGpSprites(files);
+/** Every table the courses use, from the ROM set. */
+export function superMonacoGpDump(set: RomSet) {
+  const { main, sub } = assembleSuperMonacoGpPrograms(set);
+  const words = assembleSuperMonacoGpSprites(set);
   const courses = COURSES.map((form, c) => {
     const descriptor = readDescriptor(sub, c);
     const headings = readHeadings(sub, descriptor.headings);
