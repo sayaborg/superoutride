@@ -16,7 +16,7 @@ import {
 import { sectionBands } from './super-hang-on-backgrounds.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { readCourses, readGoal, readSceneryType, readSection, sectionPositions } from './super-hang-on-road.js';
-import { sectionPlan } from './path-plan.js';
+import { pathHeadings } from './heading-plan.js';
 import { courseScenery, sceneryRules } from './super-hang-on-scenery.js';
 import { hitWidth, readGateParts, spriteList } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
@@ -27,7 +27,7 @@ import { paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 4;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 5;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;
@@ -130,7 +130,14 @@ export function superHangOnCourses(set: RomSet) {
   };
   const built = readCourses(main).map((course, c) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
-    const plans = sections.map((s) => sectionPlan(s.path, metres));
+    // The heading table: the sections' road paths, then the goal's, straight ahead, made `GOAL_POSITIONS` long.
+    const goalPath = [...goal.path.x.keys()].map((i) => [goal.path.x[i]!, goal.path.y[i]!] as const);
+    while (goalPath.length < GOAL_POSITIONS) goalPath.push(goalPath.at(-1)!);
+    const headings = pathHeadings({
+      address: 0,
+      x: [...sections.flatMap((s) => s.path.x), ...goalPath.map(([x]) => x)],
+      y: [...sections.flatMap((s) => s.path.y), ...goalPath.map(([, y]) => y)],
+    });
     const { spots, dropped } = courseScenery(
       main,
       sections.map((s) => s.scenery),
@@ -142,12 +149,11 @@ export function superHangOnCourses(set: RomSet) {
       name: course.name,
       slug: courseSlug(course.name),
       sections,
-      plans: plans.map((p) => p.segments),
+      headings,
       metres,
       length: positions.length,
       middle: amounts.middle,
       transition: positions.transition,
-      goal: GOAL_POSITIONS,
       stripe: (amounts.phases * amounts.speedUnits * rules.advance) / 65536,
       steps: amounts.steps,
       step: amounts.stepTicks * tick,
@@ -172,7 +178,7 @@ export function superHangOnCourses(set: RomSet) {
       const name = skyName(course.name, order);
       return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555)) };
     });
-    return { course, plans, dropped, road, skies };
+    return { course, dropped, road, skies };
   });
   const pictures = superHangOnPictures(main, words, uses, unit);
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.

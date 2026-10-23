@@ -15,7 +15,8 @@ a program's words and the halves it is interleaved from (`program-words`), the r
 widths they give), the hills (`hills`), the profile, the crossings' bumps and a Section's profile knots
 (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
 laid off a road path with its corners rounded (`offset-plan`, with OUTRUN's road position and stripes' period), a road
-path as straights and arcs (`path-plan`: `sectionPlan`) and laid in the world (`course-path`: `CoursePath`), how
+path as straights and arcs (`path-plan`: `sectionPlan`), a heading table's plan (`heading-plan`: its runs and the turns
+between them) and a plan laid in the world (`course-path`: `CoursePath`), how
 Sections are written (`section-writing`: knots simplified, sprites repeated, pictures raised, the plan as written and
 the cuts of a Section's domain), two roads drawn together from one road's picture across (`two-roads`), the sprite
 hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, its pixels by
@@ -273,9 +274,34 @@ is turned by an arc either side, each turning half of it, no sharper than 120 m 
 would be straighter than 40 km is a straight, its turn carried on; one shorter than a millimetre (two breaks all but
 together) is carried on into the next, its length and its turn.
 
+## Plan from a heading table
+
+A heading table, a heading at each position, becomes straights and arcs over its positions (`headingPlan`,
+`heading-plan`) by one constant, the table's resolution (K, 2026-10-23):
+
+- **Runs.** In the table's order, a run takes the next heading while some line holds every heading of it within the
+  resolution, and ends at the first it cannot take. Its line is its minimax one, the line whose largest departure is
+  least: of its headings' hull's edges' slopes, the one at which their spread is least, through the spread's middle;
+  one line for three headings or more. A run of two has the line through both, a run of one (only a table's last can
+  be one) the level line through it. A line that holds a run holds each part of it, so the run taken a heading at a
+  time is the longest, and the runs are the fewest any such rule makes.
+- **Arcs.** A run is an arc over its positions at its line's rate, from its line's heading at its first position to
+  its line's at its last; a run of one heading has no length.
+- **Turns.** Two runs are joined by a turn over the position between them, from the first's line at its last position
+  to the next's at its first. Where the course format does not admit the coordinate domain about a turn (the plan's
+  elements that reach within the domain's reach of it either side, whole, checked as a Section's are: their local
+  metric and their passing over themselves), the turn takes one more position on each side from the runs beside it, a
+  round, every such turn at once, until it is admitted. A turn that takes a run's whole arc, or overlaps the next turn,
+  joins it, and turns between the runs beyond; a run whose own arc the domain cannot hold (its radius not over the
+  domain's reach) is taken into the turns either side of it, as one.
+- **Headings.** Each element turns from the heading the plan has reached to its end's on the lines: an arc's on its
+  run's line, a turn's on the next run's. One that would be straighter than the course format's longest radius
+  (42 km) is a straight, its turn left to the next; straights one after another are one.
+
 ## Plan from a path
 
-A road path becomes straights and arcs over its positions (`sectionPlan`, `path-plan`):
+A road path becomes straights and arcs over its positions (`sectionPlan`, `path-plan`), for the originals not yet
+raised by the [plan from a heading table](#plan-from-a-heading-table):
 
 - **Folds.** A position turning more than 1° off the median of the seven about it (fewer at the path's ends) is a fold:
   its excess is spread evenly over those seven, the sum kept. The headings are rebuilt, and their line laid, each

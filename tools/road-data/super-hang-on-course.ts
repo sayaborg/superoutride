@@ -1,7 +1,8 @@
 /**
  * A SUPER HANG-ON course as a course document ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
- * its sections' road path laid one after another from the entry and its goal after them, the road on it level but for
- * the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's figures.
+ * its road path P, its sections' and its goal's headings as one table, laid from the entry as the plan, the road on it
+ * level but for the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's
+ * figures.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
@@ -14,7 +15,7 @@ import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import type { PathSegment } from './path-plan.js';
+import { departure, headingPlan } from './heading-plan.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -25,8 +26,11 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/** The plane runs on lane a's centre, half a lane left of P. */
-const OFFSET = LANE / 2;
+/**
+ * The heading vectors' resolution, radians: a unit and a half of their 4096, where the runs stop growing fewer (from
+ * 1.5 units to 2, AFRICA's 142 runs become 141, from 1 to 1.5, 167 become 142).
+ */
+const RESOLUTION = 1.5 / 4096;
 /** SAND reaches this far beyond the asphalt, metres. */
 const SAND = 40;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
@@ -67,9 +71,12 @@ export interface SuperHangOnCourseInputs {
   /** The course's name and its Sections' and gates' ids' stem. */
   readonly name: string;
   readonly slug: string;
-  /** Its sections in the order it runs them, and each one's path as straights and arcs. */
+  /**
+   * Its sections in the order it runs them, and its heading table: their road paths' headings one after another, then
+   * the goal's (radians counterclockwise).
+   */
   readonly sections: readonly Section[];
-  readonly plans: readonly (readonly PathSegment[])[];
+  readonly headings: readonly number[];
   /**
    * A road position, metres; a section's positions; where a CHECK gate comes out inside a section; where the next
    * section's background and ground come in.
@@ -78,8 +85,6 @@ export interface SuperHangOnCourseInputs {
   readonly length: number;
   readonly middle: number;
   readonly transition: number;
-  /** The goal's positions. */
-  readonly goal: number;
   /** The stripes' period, positions; the ground's change, its steps and their positions. */
   readonly stripe: number;
   readonly steps: number;
@@ -149,16 +154,19 @@ interface Placed {
 }
 
 /**
- * The course: its path laid from the entry (a straight of `cameraDistance` before GO, then each section's straights and
- * arcs, then the goal's straight); its Sections, one a section and one the goal's, each cut where its coordinate domain
- * passes over itself; their objects, gates, skies, strips and level profile with the crossings' bumps.
+ * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
+ * Sections, one a section and one the goal's, each cut where its coordinate domain passes over itself; their objects,
+ * gates, skies, strips and level profile with the crossings' bumps.
  */
 export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { metres, length, sections } = inputs;
   const count = sections.length;
   const unit = LANE / inputs.cross.linesIn;
   const entry = inputs.cameraDistance;
-  // P: the entry, the sections and the goal, straights one after another one.
+  // The coordinate domain reaches SAND's edges and the vehicles' reach either side of P.
+  const reach = inputs.cross.edgesOut * unit + SAND + MAXIMUM_VEHICLE_REACH;
+  // P: the entry, then the plan, straights one after another one.
+  const plan = headingPlan(inputs.headings, RESOLUTION, metres, reach);
   const elements: PathElement[] = [];
   const push = (length: number, turn: number) => {
     const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
@@ -168,9 +176,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     else elements.push({ start, length, turn });
   };
   push(entry, 0);
-  inputs.plans.forEach((plan) => plan.forEach((e) => push((e.to - e.from) * metres, e.turn)));
-  push(inputs.goal * metres, 0);
-  const path = new CoursePath(elements, OFFSET);
+  for (const e of plan.elements) push((e.to - e.from) * metres, e.turn);
+  const path = new CoursePath(elements, 0);
   /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
   const along = (q: number) => entry + q * metres;
   const stationOf = (q: number) => path.station(along(q));
@@ -185,7 +192,6 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const gateMetres = [inputs.startGate, ...checks, finish].map(along);
 
   // The Sections: one a section and the goal's, each cut again where its domain passes over itself.
-  const reach = inputs.cross.edgesOut * unit + SAND + MAXIMUM_VEHICLE_REACH;
   const pieces: Piece[] = [];
   for (let order = 0; order <= count; order++) {
     const from = order === 0 ? 0 : along(length * order);
@@ -202,7 +208,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const ground = (k: number) => sections[k]!.colors.ground.rgb555;
   sections.forEach((section, k) => {
     const from = k === 0 ? 0 : stationOf(length * k);
-    const to = k === count - 1 ? path.planeLength : stationOf(length * (k + 1));
+    const to = k === count - 1 ? end : stationOf(length * (k + 1));
     if (k === count - 1) {
       stretches.push({ from, to, ground: ground(k), road: section.colors });
       return;
@@ -221,7 +227,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 
   // The objects: the scenery, the gates' parts, the goal's crowd and the ending's figures.
   const placed: Placed[] = [];
-  const across = (x: number) => OFFSET + x * unit;
+  const across = (x: number) => x * unit;
   for (const spot of inputs.scenery) {
     const { item } = spot;
     const picture = inputs.picture(inputs.spriteList(item.sprite), item.mirrored, item.palette, false);
@@ -268,7 +274,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       body: null,
     });
   requireInput(
-    placed.every((o) => o.s < path.planeLength),
+    placed.every((o) => o.s < end),
     `/${inputs.id}`,
     "An object stands past the course's end",
   );
@@ -284,7 +290,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     apart: PASSAGES_APART,
   }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
-  const separated = separatedCrossings([], crossings, path.planeLength);
+  const separated = separatedCrossings([], crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -330,6 +336,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       links,
     },
     path,
+    plan: { ...plan, departure: departure(inputs.headings, plan.elements, plan.start, metres) },
     pieces,
     profile,
     pairs,
@@ -378,12 +385,12 @@ function sectionDocument(
     return { joint, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
   };
 
-  // The lanes: a and b, a lane each either side of P; the centre lane a.
+  // The lanes: a and b, a lane each either side of P; the centre lane a, its centre half a lane left of P.
   const lanes = [
     { kind: 'lane', id: 'a', width: LANE },
     { kind: 'lane', id: 'b', width: LANE },
   ];
-  const lateral = (fromP: number) => round(OFFSET + fromP);
+  const lateral = (fromP: number) => round(fromP);
   const xs = inputs.cross;
   const asphalt = xs.edgesOut * unit;
 
@@ -522,7 +529,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: 0,
+    centerLateral: round(-LANE / 2),
     boundaries: [
       {
         id: 'outer-left',

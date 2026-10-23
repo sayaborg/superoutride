@@ -44,7 +44,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
     const zip = await oneZip(options.get('--zip'), romDirectory('super-hang-on'), '--zip');
     const built = superHangOnCourses(await romSet('shangon', [zip]));
     const courses = [];
-    for (const { course, road, dropped, plans } of built.built) {
+    for (const { course, road, dropped } of built.built) {
       const file = await saveCourse(courseId(course.name), road.document, check);
       courses.push({
         course: file,
@@ -52,7 +52,9 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         metres: round1(road.path.planeLength),
         objects: road.objects,
         notBroughtOut: dropped,
-        elements: plans.reduce((n, p) => n + p.segments.length, 0),
+        runs: road.plan.runs.length,
+        elements: road.plan.elements.length,
+        fromPath: Math.round(road.plan.departure * 100) / 100,
         crossings: road.crossings.map((c) => ({
           passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
           levels: c.levels,

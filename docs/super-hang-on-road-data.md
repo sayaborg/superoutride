@@ -149,16 +149,21 @@ that runs in more than one course and a sprite past the table.
 
 ## SUPER HANG-ON's plan
 
-The road is the road path P itself: one road, no width points. Each section's path becomes straights and arcs over its
-2049 positions (`sectionPlan`); its curves only check it, for they follow the path roughly (radii 0.79 to 1.56 times the
-path's, their joints up to 13 positions off):
+The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
+headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
+ahead, made 260 positions long: the original's 200, made longer so that every vehicle stops before its end (515.5 m
+past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table) at a
+resolution of 1.5 / 4096 radians (`RESOLUTION`), a unit and a half of the vectors' 4096, where the runs stop growing
+fewer (AFRICA's 167 runs at one unit become 142 at 1.5 and 141 at 2), its domain reaching SAND's edges and the vehicles'
+reach, 49.3 m. The curves only check it, for they follow the path roughly (radii 0.79 to 1.56 times the path's, their
+joints up to 13 positions off).
 
-The 24 sections become 1074 elements, 24 to 73 a section; the sharpest arc is 53.3 m (EUROPE's 0x0E, 1001 to 1008);
-160 folds are spread. Laid from its start, a section's plan lies at most 2.1 m from its path's line (median 0.6 m).
+AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 263, 284, 579 and 835 elements; the sharpest arc
+is 50.5 m, a turn in ASIA's first section. Laid from its start, a course's plan lies at most 0.17, 0.13, 0.67 and 1.09
+m from its table's line, each position a step along its ends' mean heading; most of that is where a sharp turn takes
+more positions to keep the domain.
 
-A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its sections' elements in running
-order, then the goal's straight of 260 positions: the original's 200, made longer so that every vehicle stops before its
-end (517.8 m past the finish).
+A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its table's plan.
 
 ## Placing SUPER HANG-ON's scenery
 
@@ -182,15 +187,15 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 4, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 5, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
-each course's Sections, length, objects and crossings:
+each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
+crossings:
 
-- **Plane and stations.** Lane a's centre runs 2.15 m (half a lane) left of P on the plane, again straights and arcs:
-  an arc turning left is shorter and one turning right longer by 2.15 m times its turn. A course position (section k's position p is
-  2049k + p, the goal's after the last section's) is the station across from P there on the plane, as on OUTRUN's
-  ([Plan](original-road-data.md#plan)). GO, the bike at the first section's position 0, is station 6.
-- **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a. The lane is K's: at 4.3 m the
+- **Stations.** A course position (section k's position p is 2049k + p, the goal's after the last section's) is its
+  station along P. GO, the bike at the first section's position 0, is station 6.
+- **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a, its centre half a lane left of P
+  (`centerLateral` −2.15). The lane is K's: at 4.3 m the
   original's upright rear frame of the bike stands about as tall as VFR750R's upright rear picture. It is the one
   measure of SUPER HANG-ON's sizes across and up. The camera stays the same for every vehicle (changing it per series
   would mean baking the vehicles' pictures again); the original's camera, higher and nearer, still shows the road and
@@ -204,7 +209,7 @@ each course's Sections, length, objects and crossings:
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
-  from GO along the plane. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
+  from GO along P. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
   at the top speed; from the last of them to the section's end the road shows the next section's colors.
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
   goal's, each cut again where its coordinate domain (to SAND's edges and the vehicles' reach) passes over itself, at
