@@ -143,12 +143,12 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-3a; TD-2 is not needed);
+Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-3b);
 then [Stage GR](#stage-gr--the-originals-courses-mended) and
 [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
 [Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
 [Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
-[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+[RD-6e](#courses-of-the-originals) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -916,7 +916,7 @@ output. Its PRs are numbered from TD-1.
 K's decisions (2026-10-22 and 2026-10-23):
 
 - **The Sega originals are five**: OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP. RACING HERO
-  is not made ([Stage RH](#stage-rh--racing-hero-from-the-roms)).
+  is not made ([Courses of the originals](#courses-of-the-originals)).
 - **What the repository may hold goes into it**: each original's research notes, the procedure that raises an original
   from its ROMs, and small research tools that decrypt nothing and hold no other project's code and no ROM data. What
   it may not hold stays on K's machine: the ROMs' zips and raw data, decrypting code and keys, decrypted programs, the
@@ -1153,9 +1153,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 | Series         | Starting points                                                                                                                                                                                                                                                                                                                                                                      |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [Stage SH](#stage-sh--super-hang-on-from-the-roms)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                  |
+| SUPER HANG-ON  | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](original-road-data.md#super-hang-on)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                |
 | OUTRUN         | COUNTACH candidate: 25th Anniversary, 1988–1989. TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                      |
-| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [Stage TO](#stage-to--turbo-outrun-from-the-roms)). F40 and 959 are period road specifications.   |
+| TURBO OUTRUN   | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](original-road-data.md#turbo-outrun)). F40 and 959 are period road specifications.  |
 | CHASE H.Q.     | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition.                                                                                                                                                                                                                                                                        |
 | CISCO HEAT     | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. |
 | OUTRUNNERS     | The reference has 30 stages and 10 goals over both courses; connections are to be confirmed. Candidates: 911 SPEEDSTER 1989, RX-7 (FC3S) 1989, COBRA 427 (year open), ELDORADO (Biarritz; generation open), MINI (1967 Cooper S 1275), QUATTRO (1989 20V).                                                                                                                           |
@@ -1167,13 +1167,35 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 ### Courses of the originals
 
-OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--outrun-from-the-originals-road-data).
-SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), TURBO
-OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms), ENDURO RACER's in
-[Stage ER](#stage-er--enduro-racer-from-the-roms) and SUPER MONACO GP's in
-[Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides in
-[Stage TA](#stage-ta--a-taito-original-from-the-roms).
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's courses are raised from their ROMs'
+road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How CHASE H.Q.'s are
+raised, K decides in [Stage TA](#stage-ta--a-taito-original-from-the-roms).
 Their time limits come from reference driving, as for every course.
+
+Left by the stages that raised them, beside what follows:
+
+- OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
+  are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
+- SUPER HANG-ON: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series itself
+  (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are
+  encrypted), the ending's motion (its last frame alone stands), and the product's pictures drawn again. When classes
+  return, each is the player alone on VFR750R from GO (slot 15), no traffic, margin 1.35.
+- TURBO OUTRUN: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and 959,
+  their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and traffic
+  tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
+  music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
+  made the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
+  then.
+- ENDURO RACER: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
+  colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
+  pictures drawn again.
+- SUPER MONACO GP: the hills (the original's dz) and grade separation, the SUPER MONACO GP series itself (cars, rivals,
+  laps, rank limits, time and the overcast set), sounds and music, the motion of what moves, the start's signal, the
+  mirror and the cockpit, and the product's pictures drawn again. A format holding pictures at the original's pixel size
+  would make its pictures smaller (most are the 16-unit class, each of the original's pixels about 4 × 4 texels), and
+  is not made now.
+- Stage PG: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next to each other in order
+  as neighbours; mended, it would need no way round such as PG-6b1's.
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
@@ -1239,6 +1261,10 @@ transitions. Review pre-lock query coverage and parent-specific exit visibility 
 space. Record margins and remaster departures with the content.
 
 Add surface materials to the one game-wide material catalog as product courses need them (courses reference material IDs; there are no per-course material documents), with physical and sound values tuned on those courses: kerbs (circuits), gravel traps, concrete (streets, run-offs, pits), packed snow and mud (off-road), and cobblestones; shallow water is `WATER` (Stage PG's PG-4) and snow lying thin on the road `SNOW` (PG-4b, RALLY STAGE's WINTER "snow"; packed snow stays a later material), their values to tune on those courses. Kerbs and cobblestones rely on sound for their vibration unless a material roughness is added later.
+
+Engine sound lagged and stayed late on some devices; on the owner's device it no longer does (2026-10-14), its cause
+not identified. Review it on the named devices with `dev=1`'s audio timing line, which measures the AudioContext's
+latency, clock and worklet overruns ([Browser](browser.md#performance-hud)).
 
 Section lighting for vehicles: lighting is an attribute of environment intervals, so Sections may switch vehicle
 palettes (for example a night section), adding a lighting axis beside color in the set's palettes, each recoloring
@@ -1310,6 +1336,7 @@ and switching is a cut.
 | Vehicle art      | Whether mirroring halves the direction pictures a set stores                                                                                                                                                                                                                                                                                                                             |
 | Vehicle art      | VFR750R's four colors on real devices: the real tricolour and three provisional fictional schemes                                                                                                                                                                                                                                                                                        |
 | Weather          | Falling rain over wet sections (WET_ASPHALT lies under an overcast sky without rain today)                                                                                                                                                                                                                                                                                               |
+| Tire puffs       | Whether a sliding tire throws its puffs by the friction work beyond the tire law's peak (the tire observation's `slidingPower`), K's reading of "work on the plateau" to confirm ([Tire puffs](tire-puffs.md))                                                                                                                                                                           |
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                                                                                                                                                                                            |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                                                                                                                                                                                                        |
 | Audio            | Whether levelling by measured loudness leaves the engines' clipped levels close enough: 1.5 dB apart unweighted after the soft clip (the owner's estimate was 0.7 dB)                                                                                                                                                                                                                    |

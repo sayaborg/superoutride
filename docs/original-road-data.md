@@ -1,19 +1,11 @@
 # Original road data
 
-OUTRUN's courses are raised from the road data in the original's program ROMs, and [Stage
-SH](NEXT.md#stage-sh--super-hang-on-from-the-roms), [Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms), [Stage
-ER](NEXT.md#stage-er--enduro-racer-from-the-roms) and [Stage MG](NEXT.md#stage-mg--super-monaco-gp-from-the-roms) raise
-SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's from their own the same way. This document owns
-how each original's ROMs are read: the ROM set, its programs, the tables' format and addresses, the dump the road data
-tool writes, and how the tables become course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on),
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's and SUPER MONACO GP's courses are raised from the road data
+in their program ROMs by the [rules of the originals](#rules-of-the-originals). This document owns how each original's
+ROMs are read: the ROM set, its programs, the tables' format and addresses, the dump the road data tool writes, and how
+the tables become course documents. OUTRUN's sections come first; [SUPER HANG-ON](#super-hang-on),
 [TURBO OUTRUN](#turbo-outrun), [ENDURO RACER](#enduro-racer) and [SUPER MONACO GP](#super-monaco-gp) have their own.
-What the conversion does not yet cover is NEXT's ([Stage RD](NEXT.md#stage-rd--outrun-from-the-originals-road-data),
-Stage SH, Stage TO, Stage ER, Stage MG).
-
-The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
-`reference-media/outrun/rom/`, `reference-media/super-hang-on/rom/`, `reference-media/turbo-outrun/rom/`,
-`reference-media/enduro-racer/rom/` and `reference-media/super-monaco-gp/rom/`, the tool's dumps beside them in
-`rom-data/`. The formats are read by this project's own code from this description and the ROMs themselves.
+What the conversion does not yet cover is NEXT's ([Courses of the originals](NEXT.md#courses-of-the-originals)).
 
 The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
@@ -25,6 +17,46 @@ roads drawn together from one road's picture across (`two-roads`), the sprite ha
 originals' pixels on this game's texel grid (`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), a
 background baked into one sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the
 tick's advance, an approach table's step and `startDepth`).
+
+## Rules of the originals
+
+Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-23):
+
+- **What stays out.** The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
+  `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `super-monaco-gp`), the
+  tool's dumps beside them in `rom-data/`.
+- **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
+  encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
+  data too (FD1089) is read from MAME's decrypted bootleg set. What a chapter says of an encrypted program's code was
+  found by decrypting it for the description; the tool cannot check it and takes it as described.
+- **Other projects' code.** No code of MAME or of other projects is copied or ported: the formats are read by this
+  project's own code from this description and the ROMs themselves.
+- **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
+  is deterministic: its command raises them from the ROMs locally, and with `--check` fails where one differs from the
+  committed. Each original's chapter records its ROMs' CRCs and its conversion's version; a PR changing a conversion
+  raises its version, and a PR changing a shared part says which course of which original changes, and by how much.
+  Before each PR every original's `--check` passes on the local ROMs.
+- **What is made.** Physics stays as it is: lengths along the road come from the original's displayed speed and its
+  clock. Everything that moves is placed standing still. Pictures are resampled at the best quality there is (the ROMs'
+  pictures by [chosen lines](#chosen-lines), backgrounds by area averages in linear light, baked into skies by
+  [Sky baking](#sky-baking)); the sprites' and backgrounds' pictures converted from the ROMs are committed and shown on
+  Pages provisionally, drawn again for the product. The vehicles are this game's, baked from 3D models, so the
+  originals' are not converted. Sounds are local originals alone ([Local originals](development.md#local-originals)).
+- **Pictures.** How a picture meets the ground in the drawing is
+  [Sprites and Painter](architecture.md#sprites-and-painter)'s. The conversions place them so:
+  - A background's picture is one board. An anchor is at the bottom edge and at height 0 by default; a picture at
+    height 0 anchored elsewhere folds there: above, it stands up from the ground; below, it lies on the nearer ground.
+  - A standing thing stands on its bottom edge, what floats at its height. A picture drawn with a shadow at its foot
+    stands at its foot, the shadow below it lying ([Foot shadows](#foot-shadows)). What lies on the ground (sea, waves,
+    drifts of sand, patches, puddles, pebbles) is a board of the original's picture at the original's anchor, with no
+    body ([Lying boards](#lying-boards)).
+  - A board whose foot is below the ground (a negative height) keeps it: the nearer drawn ground hides its part below
+    the ground and transparent ground shows it, as a cliff's drop is drawn.
+  - A strip the original draws on outward is a board extending sideways ([Extending boards](#extending-boards)); the
+    road's surface itself is Strips.
+  - Materials lie beneath as colorless Strips, water `WATER` and only inside the course limits.
+  - Only vehicles have pictures by angle. A report begins with one line saying where K can see the change, and names a
+    replacement that cannot be avoided on the next.
 
 ## ROM set
 
@@ -975,7 +1007,7 @@ and are not committed.
 
 SUPER HANG-ON's courses are raised from MAME's `shangon`, the export sitdown/upright set (unprotected): the cabinets'
 courses differ, and K chose this one. Its ROM set, programs and tables are described here as
-[Stage SH](NEXT.md#stage-sh--super-hang-on-from-the-roms) reads them.
+the road data tool reads them.
 
 ### SUPER HANG-ON's ROM set
 
@@ -1171,7 +1203,9 @@ each course's Sections, length, objects and crossings:
   ([Plan](#plan)). GO, the bike at the first section's position 0, is station 6.
 - **Lanes.** a and b, 4.3 m each (`LANE`), either side of P; the centre lane a. The lane is K's: at 4.3 m the
   original's upright rear frame of the bike stands about as tall as VFR750R's upright rear picture. It is the one
-  measure of SUPER HANG-ON's sizes across and up.
+  measure of SUPER HANG-ON's sizes across and up. The camera stays the same for every vehicle (changing it per series
+  would mean baking the vehicles' pictures again); the original's camera, higher and nearer, still shows the road and
+  objects at the bike 1/0.847 times as large as this game does.
 - **Cross-section.** The road ROM draws one road at a size proportional to its line, a feature's edge u units from the
   centre at u × line / 224 pixels (as an object's x, the `divs.w #$E0` at 0x7262): each edge's u is 224 times its
   pixels' slope against the line over lines 60 to 189, the left's and right's mean. The centre line is ±4.42 units, the
@@ -1215,7 +1249,7 @@ each course's Sections, length, objects and crossings:
 TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118); the other
 cabinets' sets are only compared. It runs on OUTRUN's board and its program is OUTRUN's remade: where its formats are
 OUTRUN's, OUTRUN's sections above describe them, and its own ROM set, programs and tables are described here as
-[Stage TO](NEXT.md#stage-to--turbo-outrun-from-the-roms) reads them. Its main CPU's program is encrypted for
+the road data tool reads them. Its main CPU's program is encrypted for
 instruction fetches alone: the tables are read as the ROMs' bytes, and the program is never decrypted.
 
 ### TURBO OUTRUN's ROM set
@@ -1493,7 +1527,7 @@ ENDURO RACER's course is raised from MAME's `enduror` (Enduro Racer, Rev A, YM21
 and sub CPU are read as they are. Its main CPU's program is encrypted for instructions and data alike, so its tables are
 read from the decrypted program of MAME's `endurobl` (bootleg set 1, the YM2203 set `enduror1` decrypted), whose tables
 are Rev A's; the program is never decrypted here. Its ROM set, programs and tables are described here as
-[Stage ER](NEXT.md#stage-er--enduro-racer-from-the-roms) reads them.
+the road data tool reads them.
 
 ### ENDURO RACER's ROM set
 
@@ -1734,7 +1768,7 @@ SUPER MONACO GP's two circuits, the race's and the qualifying's, are raised from
 Rev B, FD1094 317-0126a). Its main CPU's program is encrypted for instruction fetches alone: its tables are read as the
 ROMs' bytes, and the program is never decrypted. The courses' tables lie in the sub CPU's program, which is not
 encrypted. Its ROM set, programs and tables are described here as
-[Stage MG](NEXT.md#stage-mg--super-monaco-gp-from-the-roms) reads them.
+the road data tool reads them.
 
 ### SUPER MONACO GP's ROM set
 

@@ -442,8 +442,8 @@ It draws each board ([Image assets](image-assets.md#drawn-pictures)), writes it 
 
 The footage tool raises a course from videos of an original game ([Courses from footage](footage.md)). It runs as
 `npm run footage -- <command>` and needs ffmpeg and ffprobe on the path. It reads videos and writes frames, features,
-evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC stopped with these commands built
-([NEXT](NEXT.md#stage-vc--courses-from-footage)); each takes `--out`, a root in place of `reference-media/`:
+evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC stopped with these commands built; each
+takes `--out`, a root in place of `reference-media/`:
 
 | Command     | Purpose                                                                                                                                             |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
