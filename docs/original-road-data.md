@@ -277,7 +277,10 @@ together) is carried on into the next, its length and its turn.
 ## Plan from a heading table
 
 A heading table, a heading at each position, becomes straights and arcs over its positions (`headingPlan`,
-`heading-plan`) by one constant, the table's resolution (K, 2026-10-23):
+`heading-plan`) by one constant, the table's resolution (K, 2026-10-23). A table of heading vectors about 4096 long, as
+the originals' road paths are, has a resolution of 1.5 / 4096 radians (`VECTOR_RESOLUTION`), a unit and a half of the
+4096, where the runs stop growing fewer: SUPER HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and
+ENDURO RACER 148, 132 and 128.
 
 - **Runs.** In the table's order, a run takes the next heading while some line holds every heading of it within the
   resolution, and ends at the first it cannot take. Its line is its minimax one, the line whose largest departure is
@@ -467,8 +470,8 @@ The rules of the originals (what never enters the repository, decryption, other 
 
 ### 5. Plan, profile, cross-section
 
-- The plan becomes straights and arcs by the [plan from a path](#plan-from-a-path), or from the table's own arcs where
-  it holds them; each original's document records how far its plan lies off its path.
+- The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), or from the
+  table's own arcs where it holds them; each original's document records how far its plan lies off its path.
 - Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and SUPER
   MONACO GP lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.

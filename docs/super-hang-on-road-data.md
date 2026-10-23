@@ -152,11 +152,9 @@ that runs in more than one course and a sprite past the table.
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
 ahead, made 260 positions long: the original's 200, made longer so that every vehicle stops before its end (515.5 m
-past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table) at a
-resolution of 1.5 / 4096 radians (`RESOLUTION`), a unit and a half of the vectors' 4096, where the runs stop growing
-fewer (AFRICA's 167 runs at one unit become 142 at 1.5 and 141 at 2), its domain reaching SAND's edges and the vehicles'
-reach, 49.3 m. The curves only check it, for they follow the path roughly (radii 0.79 to 1.56 times the path's, their
-joints up to 13 positions off).
+past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its
+domain reaching SAND's edges and the vehicles' reach, 49.3 m. The curves only check it, for they follow the path roughly
+(radii 0.79 to 1.56 times the path's, their joints up to 13 positions off).
 
 AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 263, 284, 581 and 841 elements; the sharpest arc
 is 50.5 m, a turn in ASIA's first section. Laid from its start, a course's plan lies at most 0.28, 0.13, 0.88 and 0.50

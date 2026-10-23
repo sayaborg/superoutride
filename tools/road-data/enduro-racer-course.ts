@@ -15,9 +15,9 @@ import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-pr
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
-import { sectionPlan, type PathSegment } from './path-plan.js';
+import { departure, headingPlan, pathHeadings, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, domainOverlap, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -42,7 +42,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 6;
+export const ENDURO_RACER_CONVERSION_VERSION = 7;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -56,8 +56,6 @@ export const POSITION_METRES = 65536 / (256 * 3.6 * 60);
  * the bike as tall as VFR750R's upright rear picture) rounded. It is the one measure of ENDURO RACER's sizes across.
  */
 export const LANE = 3.5;
-/** The plane runs on lane a's centre, half a lane left of P. */
-const OFFSET = LANE / 2;
 /** The ground reaches this far beyond the edge bands, metres: past the farthest scenery's outer edge. */
 const GROUND = 18;
 /**
@@ -80,7 +78,7 @@ const CROSSING_MATERIAL = 'WATER';
  */
 const STRIPE = 2;
 const FIRST_BAND = 1;
-/** The straight past the goal, positions from the last stage's end: every vehicle stops before the course's end. */
+/** The straight past the goal, positions after the last stage's: every vehicle stops before the course's end. */
 const GOAL_POSITIONS = 450;
 /** Where the checkpoints and the finish stand: the CHECK banner's and the GOAL board's scenery types. */
 const CHECK_TYPE = 0x48;
@@ -148,7 +146,14 @@ export function enduroRacerCourse(set: RomSet) {
   const metres = POSITION_METRES;
   const cross = roadCrossSection(enduroRacerRoadRom(set));
   const unit = LANE / cross.surface;
-  const plans = readRoadPaths(sub).map((path) => sectionPlan(path, metres));
+  // The heading table: the stages' road paths in running order, then the goal's straight ahead, as every path ends.
+  const paths = readRoadPaths(sub);
+  const goal = Array.from({ length: GOAL_POSITIONS }, () => [paths.at(-1)!.x.at(-1)!, paths.at(-1)!.y.at(-1)!]);
+  const headings = pathHeadings({
+    address: 0,
+    x: [...paths.flatMap((p) => p.x), ...goal.map(([x]) => x!)],
+    y: [...paths.flatMap((p) => p.y), ...goal.map(([, y]) => y!)],
+  });
   const scenery = readScenery(main);
   const checks = scenery.filter((i) => i.type === CHECK_TYPE).map((i) => i.position);
   const [finish] = scenery.filter((i) => i.type === GOAL_TYPE).map((i) => i.position);
@@ -182,7 +187,7 @@ export function enduroRacerCourse(set: RomSet) {
     spot.height !== 0 && split.has(spot.image) ? { ...spot, image: `${spot.image}-raised` } : spot,
   );
   const built = layCourse({
-    plans: plans.map((p) => p.segments),
+    headings,
     metres,
     unit,
     cross,
@@ -206,7 +211,6 @@ export function enduroRacerCourse(set: RomSet) {
   }));
   return {
     ...built,
-    plans,
     cross,
     unit,
     metres,
@@ -221,8 +225,10 @@ export function enduroRacerCourse(set: RomSet) {
 
 /** What the course is laid from. */
 interface CourseInputs {
-  /** Each stage's road path as straights and arcs over its positions 0 to 2047. */
-  readonly plans: readonly (readonly PathSegment[])[];
+  /**
+   * The heading table: the stages' road paths' headings in running order, then the goal's (radians counterclockwise).
+   */
+  readonly headings: readonly number[];
   readonly metres: number;
   readonly unit: number;
   readonly cross: CrossSection;
@@ -257,59 +263,70 @@ interface Placed {
 }
 
 /**
- * The course: P laid from the entry (a straight to position 0, each stage's straights and arcs and a step straight on to
- * the next stage's start, then the straight past the goal); its Sections, one a stage and the goal's, each cut where its
- * coordinate domain passes over itself; their strips, skies, gates and level profile with the crossings' bumps.
+ * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
+ * stage and the goal's, each cut where its coordinate domain passes over itself; their strips, skies, gates and level
+ * profile with the crossings' bumps.
  */
 function layCourse(inputs: CourseInputs) {
   const { metres, unit, cross } = inputs;
-  const elements: PathElement[] = [];
-  const push = (length: number, turn: number) => {
-    const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
-    const last = elements.at(-1);
-    if (last && last.turn === 0 && turn === 0)
-      elements[elements.length - 1] = { ...last, length: last.length + length };
-    else elements.push({ start, length, turn });
-  };
-  push(inputs.entry, 0);
-  inputs.plans.forEach((plan) => {
-    plan.forEach((e) => push((e.to - e.from) * metres, e.turn));
-    // The table's 2048 vectors span 2047 steps: the step to the next stage's start runs on straight.
-    push(metres, 0);
-  });
-  push(GOAL_POSITIONS * metres, 0);
-  const path = new CoursePath(elements, OFFSET);
   /** P's metres at course position `q`: stage s's position p is 2048s + p. */
   const along = (q: number) => inputs.entry + q * metres;
-  const stationOf = (q: number) => path.station(along(q));
-  const end = path.length;
   const last = STAGES * STAGE_POSITIONS;
   const gateMetres = [START_GATE, ...inputs.checks, inputs.finish].map(along);
-
-  // The Sections: one a stage and the goal's, each cut again where its domain passes over itself.
+  // The coordinate domain reaches the ground's edges and the vehicles' reach either side of P.
   const edges = cross.edges * unit;
   const reach = edges + GROUND + MAXIMUM_VEHICLE_REACH;
-  const pieces: Piece[] = [];
-  for (let stage = 0; stage <= STAGES; stage++) {
-    const from = stage === 0 ? 0 : along(STAGE_POSITIONS * stage);
-    const to = stage === STAGES ? end : along(STAGE_POSITIONS * (stage + 1));
-    const stem = stage === STAGES ? 'goal' : `stage-${stage + 1}`;
-    const cuts = domainCuts(path, from, to, reach, gateMetres, true);
-    [from, ...cuts].forEach((a, i) =>
-      pieces.push({
-        id: i === 0 ? stem : `${stem}-${i + 1}`,
-        from: a,
-        to: cuts[i] ?? to,
-        stage: Math.min(stage, STAGES - 1),
-      }),
-    );
-  }
+
+  /**
+   * P laid from plan elements `planned` (a straight to position 0, then the plan, straights one after another one), and
+   * its Sections: one a stage and the goal's, each cut again where its domain passes over itself.
+   */
+  const lay = (planned: readonly PlanElement[]) => {
+    const elements: PathElement[] = [];
+    const push = (length: number, turn: number) => {
+      const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
+      const last = elements.at(-1);
+      if (last && last.turn === 0 && turn === 0)
+        elements[elements.length - 1] = { ...last, length: last.length + length };
+      else elements.push({ start, length, turn });
+    };
+    push(inputs.entry, 0);
+    for (const e of planned) push((e.to - e.from) * metres, e.turn);
+    const path = new CoursePath(elements, 0);
+    const pieces: Piece[] = [];
+    for (let stage = 0; stage <= STAGES; stage++) {
+      const from = stage === 0 ? 0 : along(STAGE_POSITIONS * stage);
+      const to = stage === STAGES ? path.length : along(STAGE_POSITIONS * (stage + 1));
+      const stem = stage === STAGES ? 'goal' : `stage-${stage + 1}`;
+      const cuts = domainCuts(path, from, to, reach, gateMetres, true);
+      [from, ...cuts].forEach((a, i) =>
+        pieces.push({
+          id: i === 0 ? stem : `${stem}-${i + 1}`,
+          from: a,
+          to: cuts[i] ?? to,
+          stage: Math.min(stage, STAGES - 1),
+        }),
+      );
+    }
+    return { path, pieces };
+  };
+  // The plan: its turns widened where a Section's domain, as written, passes over itself.
+  const plan = headingPlan(inputs.headings, VECTOR_RESOLUTION, metres, reach, (planned) => {
+    const { path, pieces } = lay(planned);
+    return pieces.flatMap((piece) => {
+      const overlap = domainOverlap(path, piece, reach);
+      return overlap ? [overlap.map((u) => (u - inputs.entry) / metres) as [number, number]] : [];
+    });
+  });
+  const { path, pieces } = lay(plan.elements);
+  const stationOf = (q: number) => path.station(along(q));
+  const end = path.length;
 
   // The colors along the road: each stage's from its start, the road's in the ground's colors over the water.
   const stretches: ColorStretch[] = [];
   inputs.stages.forEach(({ road, ground }, stage) => {
     const from = stage === 0 ? 0 : stationOf(STAGE_POSITIONS * stage);
-    const to = stage === STAGES - 1 ? path.planeLength : stationOf(STAGE_POSITIONS * (stage + 1));
+    const to = stage === STAGES - 1 ? end : stationOf(STAGE_POSITIONS * (stage + 1));
     const wet = inputs.water
       .map((w) => [stationOf(w.from), stationOf(w.to)] as const)
       .filter(([a, b]) => a < to && b > from);
@@ -345,7 +362,7 @@ function layCourse(inputs: CourseInputs) {
     if (spot.hit && spot.onRoad) passedThrough.push({ position: spot.position, x: spot.x, what: spot.what });
     placed.push({
       s: path.station(u),
-      lateral: OFFSET + fromP,
+      lateral: fromP,
       image: spot.image,
       palette: spot.palette,
       groundOffset: spot.height,
@@ -353,7 +370,7 @@ function layCourse(inputs: CourseInputs) {
     });
   }
   requireInput(
-    placed.every((o) => o.s < path.planeLength),
+    placed.every((o) => o.s < end),
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
@@ -368,7 +385,7 @@ function layCourse(inputs: CourseInputs) {
     apart: PASSAGES_APART,
   }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
-  const separated = separatedCrossings([], crossings, path.planeLength);
+  const separated = separatedCrossings([], crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -401,7 +418,7 @@ function layCourse(inputs: CourseInputs) {
     from: { section: pieces[i]!.id, lane: 'a' },
     to: piece.id,
   }));
-  requireInput(stationOf(last) < path.planeLength, `/${COURSE_ID}`, 'The goal lies past the course');
+  requireInput(stationOf(last) < end, `/${COURSE_ID}`, 'The goal lies past the course');
   return {
     document: {
       format: 'superoutride.course',
@@ -414,6 +431,7 @@ function layCourse(inputs: CourseInputs) {
       links,
     },
     path,
+    plan: { ...plan, departure: departure(inputs.headings, plan.elements, plan.start, metres) },
     pieces,
     profile,
     stationOf,
@@ -514,7 +532,7 @@ function sectionDocument(
     { kind: 'lane', id: 'a', width: LANE },
     { kind: 'lane', id: 'b', width: LANE },
   ];
-  const lateral = (fromP: number) => round(OFFSET + fromP);
+  const lateral = (fromP: number) => round(fromP);
   const [surface, inner, middle, edges] = [
     cross.surface * unit,
     cross.inner * unit,
@@ -549,8 +567,12 @@ function sectionDocument(
       strips.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
     }
   };
+  // The stretches within the Section, an end within `EPSILON` of one of the Section's ends taken as that end: the
+  // Section's start is the sum of its plan's lengths as written, which parts from the stations by micrometres.
+  const snap = (s: number) =>
+    Math.abs(s - origin) < EPSILON ? origin : Math.abs(s - origin - size) < EPSILON ? origin + size : s;
   const own = context.stretches
-    .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
+    .map((t) => ({ ...t, from: snap(Math.max(t.from, origin)), to: snap(Math.min(t.to, origin + size)) }))
     .filter((t) => t.to - t.from > EPSILON);
   // The ground: its right color everywhere and its left one left of P, its material out to the boundaries.
   for (const t of own) {
@@ -631,7 +653,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: 0,
+    centerLateral: round(-LANE / 2),
     boundaries: [
       {
         id: 'outer-left',

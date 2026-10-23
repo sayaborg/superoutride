@@ -134,10 +134,10 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 6, the pictures its objects show and its skies, or with `--check`
-fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
-and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
-crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
+`enduro-racer` (ENDURO RACER), conversion version 7, the pictures its objects show and its skies, or with `--check`
+fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
+distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
+the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
 - **Scale.** A position is 1.185185 m. A lane is K's 3.5 m (`LANE`): SUPER HANG-ON's rule (the original's upright rear
   frame of the bike, its rows 0–81, 82 × 128/125 × 15/14 units, as tall as VFR750R's upright rear picture, 1.65 m)
@@ -151,17 +151,19 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
   CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
   surface's half 190.27 units (a lane, 3.5 m, so a unit is 0.0183947 m), the edge bands to 234.81 units (4.319 m),
   their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
-- **Plan.** Each stage's path becomes straights and arcs by `sectionPlan` (`path-plan`) over its positions 0–2047; the
-  step from 2047 to the next stage's 0 is straight, as every path ends and begins at (0, 4096). P is a straight of 6 m
-  less the bike's 0.75 positions before position 0, then the five stages, then the goal's straight. 119 elements (17,
-  24, 25, 21 and 32 a stage), 11 folds spread, each stage at most 0.28 m off its path's line; the tightest arc is
-  43.5 m (stage 5).
-- **Plane and stations.** Lane a's centre runs 1.75 m (half a lane) left of P on the plane. Course position q (stage s's
-  position p is 2048s + p) is the station across from P there. GO, the bike at position 0.75, is station 6.
-- **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10690: past the finish (10254,
-  station 12158.0) 516.7 m remain, more than any vehicle's takeover needs to stop (the longest, S13 DRIFT TUNED's,
+- **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
+  2048s + p, then the goal's 450 positions straight ahead, at (0, 4096), with which every path ends and begins. It
+  becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its domain reaching
+  the ground's edges and the vehicles' reach (26.3 m): 132 runs and 249 elements; laid from its start, it lies at most
+  0.09 m from its table's line, each position a step along its ends' mean heading. The tightest arc is 27.3 m, a turn
+  in stage 1 (positions 1661–1662). P is a straight of 6 m less the bike's 0.75 positions before position 0, then the
+  plan.
+- **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
+- **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10689: past the finish (10254,
+  station 12158.0) 515.6 m remain, more than any vehicle's takeover needs to stop (the longest, S13 DRIFT TUNED's,
   436.7 m on this course) and past the last scenery (10342).
-- **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a.
+- **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a, its centre half a lane left of P
+  (`centerLateral` −1.75).
 - **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
   right), its surface to the edge bands' outer edges, and its edge bands' narrow and middle bands over it, each in band
   B and band A by turns every 2 positions: band B over positions [0, 2) + 4k and band A over [2, 4) + 4k, the borders

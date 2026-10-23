@@ -25,6 +25,13 @@ export interface PlanElement {
 
 const TURN = 2 * Math.PI;
 
+/**
+ * A heading vector table's resolution, radians, as the originals' road paths hold their vectors about 4096 long: a unit
+ * and a half of the 4096, where their runs stop growing fewer (SUPER HANG-ON's AFRICA has 167 runs at one unit, 142 at
+ * 1.5 and 141 at 2; ENDURO RACER 148, 132 and 128).
+ */
+export const VECTOR_RESOLUTION = 1.5 / 4096;
+
 /** A path's headings, radians counterclockwise in its (x, y), each its vector's, unwrapped. */
 export function pathHeadings(path: Path): number[] {
   const out: number[] = [];

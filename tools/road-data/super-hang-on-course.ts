@@ -15,7 +15,7 @@ import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import { departure, headingPlan, type PlanElement } from './heading-plan.js';
+import { departure, headingPlan, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -26,11 +26,6 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/**
- * The heading vectors' resolution, radians: a unit and a half of their 4096, where the runs stop growing fewer (from
- * 1.5 units to 2, AFRICA's 142 runs become 141, from 1 to 1.5, 167 become 142).
- */
-const RESOLUTION = 1.5 / 4096;
 /** SAND reaches this far beyond the asphalt, metres. */
 const SAND = 40;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
@@ -205,7 +200,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     return { path, pieces };
   };
   // The plan: its turns widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(inputs.headings, RESOLUTION, metres, reach, (planned) => {
+  const plan = headingPlan(inputs.headings, VECTOR_RESOLUTION, metres, reach, (planned) => {
     const { path, pieces } = lay(planned);
     return pieces.flatMap((piece) => {
       const overlap = domainOverlap(path, piece, reach);

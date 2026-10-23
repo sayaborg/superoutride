@@ -136,24 +136,21 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         metresAPosition: built.metres,
         metresAUnit: built.unit,
         crossSection: built.cross,
-        metres: round1(built.path.planeLength),
+        metres: round1(built.path.length),
         sections: built.pieces.map((p) => p.id),
-        stages: built.plans.map((plan) => ({
-          elements: plan.segments.length,
-          folds: plan.folds.length,
-          offLine: round3(Math.max(...plan.offLine)),
-          turn: degrees(plan.segments.reduce((sum, e) => sum + e.turn, 0)),
-        })),
+        runs: built.plan.runs.length,
         elements: built.path.elements.length,
+        fromPath: round3(built.plan.departure),
+        turn: degrees(built.plan.elements.reduce((sum, e) => sum + e.turn, 0)),
         tightest: { at: round1(built.path.station(tightest.start)), radius: round1(radius(tightest)) },
         checkpoints: built.checks.map((q) => round1(stationOf(q))),
         finish: round1(stationOf(built.finish)),
-        pastFinish: round1(built.path.planeLength - stationOf(built.finish)),
+        pastFinish: round1(built.path.length - stationOf(built.finish)),
         yawOrigin: round3(built.yawOrigin),
         // The profile's steepest grade, sampled every metre.
         steepest: round3(
           Math.max(
-            ...Array.from({ length: Math.floor(built.path.planeLength) }, (_, s) => Math.abs(built.profile.grade(s))),
+            ...Array.from({ length: Math.floor(built.path.length) }, (_, s) => Math.abs(built.profile.grade(s))),
           ),
         ),
         crossings: built.crossings.map((c) => ({
