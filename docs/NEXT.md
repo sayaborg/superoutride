@@ -167,8 +167,9 @@ PRs, in this order:
   them; a varying domain's stations checked in order, as a course writes them; and the knot of a Section's one bend
   between two Links where both tangents meet. SUPER HANG-ON's, ENDURO RACER's and TURBO OUTRUN's courses move by
   micrometres or less.
-- EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO; with it, whether OUTRUN's start records'
-  count is one short is checked, and mended in a PR of its own if it is.
+- EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO, where the span that begins the stage
+  begins, not from 1946; their paths turn back to GO's heading by 1946, so the courses do not change. OUTRUN's start
+  records' count, checked, is the one its program loops over.
 - EX-7: OUTRUN's courses raised on P.
 - EX-7b: SUPER MONACO GP's centre line taken from its edge columns, 119–128 instead of 120–129; the courses change.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
@@ -191,8 +192,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
 - SUPER MONACO GP's centre line is taken from columns 120–129, so its mean takes an asphalt pixel for an edge pixel:
   EX-7b.
-- OUTRUN's split last stages reckon their sky's yaw origin from position 1946 instead of GO: EX-6b.
-- OUTRUN's start records' count may be one short: checked in EX-6b, mended in a PR of its own if it is.
 - OUTRUN holds its stage length in three places: EX-21.
 - SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
   ROMs.

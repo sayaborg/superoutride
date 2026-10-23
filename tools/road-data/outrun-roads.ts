@@ -477,11 +477,10 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   // The Sections.
   const sections: unknown[] = [];
   const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
-  // Each stage's sky faces as at its start, its GO: its stage span's.
+  // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
   const stageStarts = new Map<Stage, number>();
   for (const l of laid)
-    if (l.road.span.stageEnd !== undefined || l.road.starts)
-      stageStarts.set(l.road.span.stages[0]!.stage, l.world.heading + l.plan.pose(0).heading);
+    if (l.road.starts) stageStarts.set(l.road.span.stages[0]!.stage, l.world.heading + l.plan.pose(0).heading);
   const checkpoints = objects.checkpoints.map((position) => {
     const { k, p } = spanAt(position);
     return { k, p };
