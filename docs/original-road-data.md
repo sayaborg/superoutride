@@ -31,6 +31,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 - **What stays out.** The ROMs and any raw data taken from them are not committed and appear in no PR: K's zips lie in
   `reference-media/<original>/rom/` (`outrun`, `super-hang-on`, `turbo-outrun`, `enduro-racer`, `super-monaco-gp`), the
   tool's dumps beside them in `rom-data/`.
+- **The sets.** Each original is raised from its MAME parent set, which its chapter names (K, 2026-10-23): `outrun`,
+  `shangon`, `toutrun`, `enduror` and `smgp`. Where the parent's program is encrypted for data too, its tables alone
+  are read from a decrypted bootleg (below).
 - **No decryption.** No decrypting code and no key enter the repository or are used. A set whose main CPU's program is
   encrypted for instruction fetches alone (FD1094) is read as the ROMs' bytes, its tables being plain; one encrypted for
   data too (FD1089) is read from MAME's decrypted bootleg set. What a chapter says of an encrypted program's code was

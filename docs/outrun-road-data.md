@@ -477,8 +477,8 @@ the committed document. CI holds no ROM, so the documents are committed; edit th
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
 The conversion, version 15 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
-spacing; every other amount is the ROMs', and the [profile](original-road-data.md#profile)'s `c_look` matches the
-original's hills as its program draws them:
+spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
+them:
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](original-road-data.md#hills)'s advance per
   tick). Position 0 is GO, the car's station (the original's road position is the car's); the road's entry is the
@@ -498,20 +498,21 @@ original's hills as its program draws them:
   roundings lie within it: one nearer its start than half its rounding is moved in to there, the line after it with
   it (at most 2 positions, 8 cm). The lanes' rule bends the centre lane where the width passes 72 and 212; those
   corners are rounded alike. The lanes and the plan both come from the rounded width.
-- **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1
-  (another pattern is refused; a centre line other than the surface is refused). The ground's two colors are the
-  stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of 32 × 303 / 3072 positions,
-  2048 / 324 = 6.320988 m (the road's fine position gains km/h / 64 three times a tick, 32 of it a period), counted
-  from GO along the plan's stations.
+- **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1;
+  the conversion takes the first two of each, checking neither the repeat nor that the centre line is the surface's.
+  The ground's two colors are the stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of
+  32 × 303 / 3072 positions, 2048 / 324 = 6.320988 m (the road's fine position gains km/h / 64 three times a tick, 32
+  of it a period), counted from GO along the plan's stations.
 
 ### Cross-section
 
 One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, CRC
 `22794426`, the same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
-64 bytes a line; row 255 is 1 pixel a unit, its centre at pixel 252), which `road-data outrun-course` checks (`checkRoadRom`):
-the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to 228 the surface (0), the
-edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages and is not drawn. Lines
-and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are not).
+64 bytes a line; row 255 is 1 pixel a unit, its centre between pixels 251 and 252), which `road-data outrun-course`
+checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to
+228 the surface (0), the edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages
+and is not drawn. Lines and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are
+not).
 
 The lanes driven (`drivenLanes`) are a, b, c | median | d, e, f; a and f are always one lane, 424/3 units (3.6 m). At
 w ≥ 212 every lane is one lane and the median 2(w − 212); for 72 < w < 212, c = d = 424/3 × (w − 72) / 140 and

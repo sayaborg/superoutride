@@ -46,7 +46,7 @@ Where the stage's description gives what the encrypted code does, the tool takes
   road width 280 (the word at 0x1DE04); scenery is brought out into the 108 objects from object 2 (the words at
   0x228D4).
 - **Legs.** The 16 stages run in four legs of four: each leg's first four bytes of its eight at 0x1E018 number its
-  stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 when played on (the words at
+  stages, 0 to 15 in turn. A stage begins at road width 450 from its leg's start, 220 after a continue (the words at
   0x1DE14 + 2n).
 - **Names.** The name records at 0x11578, {word screen address, word 0x000D, 14 characters}, spell the stages in turn,
   other records laying dots over them. The names are `TURBO_OUTRUN_NAMES`, WASHINGTON D.C. with the last dot the 14

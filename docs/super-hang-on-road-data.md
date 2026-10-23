@@ -42,7 +42,9 @@ not read.
 ## SUPER HANG-ON's programs
 
 Both CPUs are 68000s, as OUTRUN's are. Every amount below is read from its instruction after the instruction is
-checked.
+checked, but for three read where they lie (the road's advance, the long at 0x8848; the depth steps, the words at
+0xC5EA; the scenery counter's start, the byte at 0x6AB4 + 0x2E) and the divisors 224, 191 and 192, written into the
+tool.
 
 - **Time and distance.** A tick is 1/60 s: the clock counts 60 ticks a second (`moveq #$3C, d1` at 0x544E). The road
   position is the long at 0x260030, 16.16, the position its upper word; each tick it advances by the long at 0x8848
@@ -203,7 +205,7 @@ each course's Sections, length, objects and crossings:
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted
   from GO along the plane. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
-  at the top speed; the next section's road colors begin at its start.
+  at the top speed; from the last of them to the section's end the road shows the next section's colors.
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
   goal's, each cut again where its coordinate domain (to SAND's edges and the vehicles' reach) passes over itself, at
   the middle of the longest straight between the passages, 2 m clear of the gates. They join by lane a.

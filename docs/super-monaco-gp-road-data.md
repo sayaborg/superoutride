@@ -114,7 +114,8 @@ CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super
 QUALIFYING, the qualifying's), conversion version 6, their skies and their [objects](#super-monaco-gps-objects)'
 images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
 lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
-left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0.
+left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0. The two forms share most of
+the road, but each closes on its own path, so they are two circuits, not one BRANCH course (K, 2026-10-21).
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
@@ -147,17 +148,18 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   `ASPHALT` to 820 units (5.000 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
   (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge). The materials'
   outer edges are the course's limits. Between two bands the edges move linearly over the 4 steps about their border.
-  No walls are made, and no object has a body: the original's band table alone acts on its car.
+  No walls are made, and no object has a body: the original's band table alone acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
-  - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the race's tunnel's,
-    9032–10860, dark (0x0842).
+  - **Ground.** The road layer's ground, color 0x32 (RGB555 1144), out to the domain's edges; the horizon's ground
+    gradient is not made (K, 2026-10-21). The race's tunnel, 9032–10860, is made as this game makes tunnels (K,
+    2026-10-21), its ground dark (0x0842) and its sky below.
   - **Surface.** ±992 units, each surface board and each of the grid's boards across the road (0x0DA4 and 0x0DFE at x
     0; the grid's board is asphalt with the grid's lines, drawn only where the grid stands, below) coloring the road
     from the board before it in the linear-light mean of the surface board's colored pixels in its palette (the plain,
     the tunnel's and the bridge's); stretches of one color are one. The lap closes: from the last board to the line,
-    the first board's color. The conversion stops where the surface does not cover the lap. The other boards on the
-    road (0x0E1C, 0x0E3A, 0x1F92, the start's 0x1F4A) color nothing: the surface boards about them color the road
-    already.
+    the first board's color (the grid's boards' coloring and this closing K's, 2026-10-23). The conversion stops where
+    the surface does not cover the lap. The other boards on the road (0x0E1C, 0x0E3A, 0x1F92, the start's 0x1F4A) color
+    nothing: the surface boards about them color the road already.
   - **Side paving.** The surface boards beside the road (±1720) color 728–2712 units on their side alike, from the
     board before or, first of a run, 10 steps before.
   - **Centre line.** At each surface board, 2 steps long and 80 units wide, the mean of its top row's columns 120–129.
@@ -185,19 +187,23 @@ left out, and the images' count and master texels. Both have `maxLaps` 30 and `b
   back's 0.75f + 88 (where the road vanishes both layers show their pixel 354 at heading 0, the front's 0.75f + 88.5:
   0.5 back pixels, 0.12°); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
   each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
-  everywhere. The course starts with `smgp-sky` at each Section's start; in the race the tunnel's `smgp-tunnel-sky` as the camera reaches
-  step 9054, where the original's background is wholly dark, and `smgp-sky` again at 10750, the middle of its
-  brightening (10655–10847), each a `cut`. At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
+  everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
+  `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes as the camera reaches step 9054, where the
+  original's background is wholly dark, and `smgp-sky` again at 10750, a step before the middle of its brightening
+  (10655–10847), each a `cut` (K, 2026-10-21). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −
   (346.625 − 160) / 240 rad, within ±360° by the sky's period, 1504 / 240 rad.
-- **Profile.** Level: the courses do not cross themselves.
+- **Profile.** Level until their hills are made (K, 2026-10-21;
+  [Stage EX](NEXT.md#stage-ex--the-originals-courses-exact-their-constants-few) makes them from the path's rises); the
+  courses do not cross themselves.
 
 ## SUPER MONACO GP's objects
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
 strips) and the kerbs (curbs) is a board standing on its bottom edge: the race's 8838, the qualifying's 3751. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
-stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car.
+stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
+2026-10-21).
 
 - **Place.** List word k's objects stand at the station of lap step k's P (each element's steps spread evenly), their
   lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p` and three decimal
@@ -230,15 +236,15 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   40 texels/m, so a 2-unit pixel is 0.49 texel across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A
   board shows its picture mirrored as its flag bit 10 and the word's bit 15 together mirror it, and flipped by bit 11,
   the unturned picture's lines turned. An object turning through a view table (kind 0x0C: the barriers along and across
-  the road, the concrete walls, the advertising boards) shows its view 0's frame table, mirrored by its flag bit 10
-  alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across it, 0x0648
-  for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]` (hexadecimal), in
-  every palette it is shown in, the lowest its default: 137 images.
-- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are curbs: each run of kerbs at one lateral,
-  4 steps apart (up to 8) with their palettes alternating, one curb from 2 steps before the first to 2 after the last,
-  as wide as view 0's picture (144 pixels, 1.76 m) about each kerb's x, two stripes a kerb, in the first kerb's
-  palette's mean colors of pixels 1–6 and 7–12 (blue and white, the next kerb's palette swapping them): 139 curbs on
-  the race, 4 on the qualifying. An end within 1 mm of a whole stripe is drawn 1 mm short of it.
+  the road, the concrete walls, the advertising boards) shows its view 0's frame table (K, 2026-10-22), mirrored by its
+  flag bit 10 alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across
+  it, 0x0648 for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]`
+  (hexadecimal), in every palette it is shown in, the lowest its default: 137 images.
+- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are curbs (K, 2026-10-22): each run of kerbs
+  at one lateral, 4 steps apart (up to 8) with their palettes alternating, one curb from 2 steps before the first to 2
+  after the last, as wide as view 0's picture (144 pixels, 1.76 m) about each kerb's x, two stripes a kerb, in the first
+  kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and white, the next kerb's palette swapping them): 139 curbs
+  on the race, 4 on the qualifying. An end within 1 mm of a whole stripe is drawn 1 mm short of it.
 - **Curves' insides.** An object on an arc's inside farther from lane a's centre than the arc's radius less 2 m is
   left out (none is: the nearest, a far building at the race's and the qualifying's step 2166, stands 0.40 of its
   arc's radius inside lane a's centre).

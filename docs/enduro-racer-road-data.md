@@ -44,7 +44,8 @@ decrypts.
 
 Both CPUs are 68000s. The main CPU's shared RAM 0x124000–0x127FFF is the sub CPU's 0x07C000–0x07FFFF. Before it reads
 a table, the tool checks on the instructions' image the instructions that name it (`MAIN_INSTRUCTIONS`): the position's
-step, the bike's place, and the `lea` of each table below.
+step, the bike's place, and the `lea` of each main CPU table below but the start templates' (0xCA78) and stage 3's
+background's word (0xDEB8); the sub CPU's paths' list (0x592) and stripes (0xD4E) are read unchecked.
 
 - **Time and distance.** A tick is 1/60 s. The road position is the long at 0x126188, 16.16; each tick it gains the
   speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows
@@ -178,7 +179,7 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 - **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER`. The ground reaches 18 m
   beyond the edge bands (22.32 m from P), past the farthest scenery: `GRASS` on stage 1, `WATER` on stage 3 (its water)
   and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4 and right of P on stage 5 (its white
-  sand).
+  sand); the water's and the sand's materials are K's (2026-10-22).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
   and `goal` from 10240, each cut again where its coordinate domain (to the ground's edges and the vehicles' reach)
   passes over itself (`stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut
@@ -233,8 +234,8 @@ hit narrows and the objects left out:
   dead trees and jeeps: 199, 183 of them standing) are passed through here: with bodies, every vehicle's driver stopped
   behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 53, 0, 24 and 53 a stage).
 - **Other passages.** An object whose base point, or body, stands on another passage's road (within its edge bands'
-  outer edges, at least 200 m away along P) is left out: the original never shows the two together. 150 are, 17 of
-  them on their own road and 5 of them jumps.
+  outer edges, at least 200 m away along P) is left out (K, 2026-10-21): the original never shows the two together.
+  150 are, 17 of them on their own road and 5 of them jumps.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`) and the jumps' three: the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other
