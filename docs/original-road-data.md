@@ -288,12 +288,13 @@ A heading table, a heading at each position, becomes straights and arcs over its
 - **Arcs.** A run is an arc over its positions at its line's rate, from its line's heading at its first position to
   its line's at its last; a run of one heading has no length.
 - **Turns.** Two runs are joined by a turn over the position between them, from the first's line at its last position
-  to the next's at its first. Where the course format does not admit the coordinate domain about a turn (the plan's
-  elements that reach within the domain's reach of it either side, whole, checked as a Section's are: their local
-  metric and their passing over themselves), the turn takes one more position on each side from the runs beside it, a
-  round, every such turn at once, until it is admitted. A turn that takes a run's whole arc, or overlaps the next turn,
-  joins it, and turns between the runs beyond; a run whose own arc the domain cannot hold (its radius not over the
-  domain's reach) is taken into the turns either side of it, as one.
+  to the next's at its first. A turn takes one more position on each side from the runs beside it, a round, every such
+  turn at once, where its own domain would pass over itself (its radius not over the domain's reach) or where it lies
+  between two cells of a Section, as its course writes it, whose coordinate domain the course format does not admit:
+  cells less than 10 m apart along the road (`domainOverlap`), for farther ones are passages, which the Sections' cuts
+  part. A turn that takes a run's whole arc, or overlaps the next turn, joins it, and turns between the runs beyond; a
+  run whose own arc the domain cannot hold (its radius not over the domain's reach) is taken into the turns either
+  side of it, as one.
 - **Headings.** Each element turns from the heading the plan has reached to its end's on the lines: an arc's on its
   run's line, a turn's on the next run's. One that would be straighter than the course format's longest radius
   (42 km) is a straight, its turn left to the next; straights one after another are one.

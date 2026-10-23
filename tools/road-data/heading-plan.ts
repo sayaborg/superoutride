@@ -5,10 +5,6 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
-import { CourseInputError } from '../../src/course/course-diagnostics.js';
-import type { CompiledPlanLateralDomain } from '../../src/course/course-coordinate-domain.js';
-import { compilePlanPath, type PlanSegmentGeometry } from '../../src/course/geometry/plan-path.js';
-import { validatePlanDomainInjectivity } from '../../src/course/plan-domain-injectivity.js';
 import type { Path } from './road-tables.js';
 
 /** A run of a table: its headings `from` to `to` (positions) and its line, its minimax one, `start` at `from`. */
@@ -117,56 +113,27 @@ interface Join {
   readonly right: number;
 }
 
-/** A constant domain `reach` metres either side of a plan. */
-const constantDomain = (reach: number): CompiledPlanLateralDomain => ({
-  stations: [],
-  lateralAt: (_s, out) => Object.assign(out, { left: -reach, right: reach }),
-});
-
-/**
- * Whether the course format admits a coordinate domain `reach` metres either side of the elements of `elements` that
- * reach into positions `(from, to)`, whole, their positions `metres` apart: its local metric holds and it does not pass
- * over itself.
- */
-function admitted(elements: readonly PlanElement[], from: number, to: number, metres: number, reach: number) {
-  const geometry: PlanSegmentGeometry[] = [];
-  for (const e of elements) {
-    if (e.to <= from || e.from >= to) continue;
-    const length = (e.to - e.from) * metres;
-    if (Math.abs(e.turn) * reach >= length) return false;
-    // The format's arcs turn right positive.
-    geometry.push(
-      e.turn === 0 ? { kind: 'straight', length } : { kind: 'arc', radius: length / Math.abs(e.turn), turn: -e.turn },
-    );
-  }
-  try {
-    validatePlanDomainInjectivity(
-      '',
-      compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry).segments,
-      constantDomain(reach),
-      '',
-    );
-    return true;
-  } catch (error) {
-    if (error instanceof CourseInputError) return false;
-    throw error;
-  }
-}
-
 /**
  * A table's plan, its positions `metres` apart, whose coordinate domain reaches `reach` metres either side of it:
  * - each run an arc at its line's rate between the turns either side of it, but one whose arc would pass the domain
  *   over itself (its radius not over `reach`), which is taken into those turns, as one;
- * - two runs joined by a turn over the position between them, or, where the course format does not admit the domain
- *   about that turn (the plan within `reach` of it either side), over the fewest more, one more on each side a round,
- *   taken from the runs beside it; a turn that takes a run's whole arc, or overlaps the next turn, joins with it, the
- *   runs beyond it the ones it turns between;
+ * - two runs joined by a turn over the position between them, or over the fewest more, one more on each side a round,
+ *   taken from the runs beside it, where its own domain passes over itself (its radius not over `reach`) or it lies
+ *   between two cells of a Section whose domain the course format does not admit (`refused`: the stretches of
+ *   positions from the earlier such cell to the later, for the plan of the elements given); a turn that takes a run's
+ *   whole arc, or overlaps the next turn, joins with it, the runs beyond it the ones it turns between;
  * - each element turning from the heading the elements before it reach to its end's on the lines (an arc's end on its
  *   run's line, a turn's on the next run's), one that would be straighter than the course format's longest radius a
  *   straight, its turn left to the next; straights one after another one.
  * The runs, the plan, its start heading, and the heading its last element leaves unturned.
  */
-export function headingPlan(headings: readonly number[], resolution: number, metres: number, reach: number) {
+export function headingPlan(
+  headings: readonly number[],
+  resolution: number,
+  metres: number,
+  reach: number,
+  refused: (elements: readonly PlanElement[]) => readonly (readonly [number, number])[],
+) {
   const runs = headingRuns(headings, resolution);
   const line = (r: number, x: number) => runs[r]!.start + runs[r]!.rate * (x - runs[r]!.from);
   const last = headings.length - 1;
@@ -205,10 +172,17 @@ export function headingPlan(headings: readonly number[], resolution: number, met
     if (before && sharp(k - 1)) joins[joins.length - 1] = { ...before, b: runs[k]!.from, right: k };
     else joins.push({ a: runs[k - 1]!.to, b: runs[k]!.from, left: k - 1, right: k });
   }
-  const around = reach / metres;
+  const turnOf = (j: Join) => line(j.right, j.b) - line(j.left, j.a);
   for (;;) {
-    const { elements } = laid(joins);
-    const keeps = joins.map((j) => admitted(elements, j.a - around, j.b + around, metres, reach));
+    const stretches = refused(laid(joins).elements);
+    const keeps = joins.map(
+      (j) => Math.abs(turnOf(j)) * reach < (j.b - j.a) * metres && !stretches.some(([p, q]) => j.a < q && j.b > p),
+    );
+    requireInput(
+      stretches.every(([p, q]) => joins.some((j) => j.a < q && j.b > p)),
+      '/plan',
+      "No turn lies between the cells where a Section's domain passes over itself",
+    );
     if (keeps.every(Boolean)) break;
     const widened = joins.map((j, k) => (keeps[k] ? j : { ...j, a: j.a - 1, b: j.b + 1 }));
     requireInput(

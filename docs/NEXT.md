@@ -158,6 +158,8 @@ PRs, in this order:
 - EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral every Section declares, written
   as a width is but signed, and a Section's plan holds up to 1024 elements. Every course declares 0, so none changes.
 - EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.
+- EX-4b: a turn widened where a Section, as its course writes it, is refused, not where the whole elements about it are:
+  those include passages that the Sections' cuts part (ENDURO RACER's hairpins).
 - EX-5 and EX-6: ENDURO RACER's and TURBO OUTRUN's courses raised on P, a PR each.
 - EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO; with it, whether OUTRUN's start records'
   count is one short is checked, and mended in a PR of its own if it is.

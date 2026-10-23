@@ -8,14 +8,14 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, domainOverlap, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import { departure, headingPlan } from './heading-plan.js';
+import { departure, headingPlan, type PlanElement } from './heading-plan.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -165,23 +165,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const entry = inputs.cameraDistance;
   // The coordinate domain reaches SAND's edges and the vehicles' reach either side of P.
   const reach = inputs.cross.edgesOut * unit + SAND + MAXIMUM_VEHICLE_REACH;
-  // P: the entry, then the plan, straights one after another one.
-  const plan = headingPlan(inputs.headings, RESOLUTION, metres, reach);
-  const elements: PathElement[] = [];
-  const push = (length: number, turn: number) => {
-    const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
-    const last = elements.at(-1);
-    if (last && last.turn === 0 && turn === 0)
-      elements[elements.length - 1] = { ...last, length: last.length + length };
-    else elements.push({ start, length, turn });
-  };
-  push(entry, 0);
-  for (const e of plan.elements) push((e.to - e.from) * metres, e.turn);
-  const path = new CoursePath(elements, 0);
   /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
   const along = (q: number) => entry + q * metres;
-  const stationOf = (q: number) => path.station(along(q));
-  const end = path.length;
 
   // The gates and the finish, by course position, and their metres along P, which the Sections' cuts keep clear of.
   const checks = Array.from({ length: count }, (_, k) => [
@@ -191,17 +176,45 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const finish = length * count + inputs.gatePass;
   const gateMetres = [inputs.startGate, ...checks, finish].map(along);
 
-  // The Sections: one a section and the goal's, each cut again where its domain passes over itself.
-  const pieces: Piece[] = [];
-  for (let order = 0; order <= count; order++) {
-    const from = order === 0 ? 0 : along(length * order);
-    const to = order === count ? end : along(length * (order + 1));
-    const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
-    const cuts = domainCuts(path, from, to, reach, gateMetres);
-    [from, ...cuts].forEach((a, i) =>
-      pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
-    );
-  }
+  /**
+   * P laid from plan elements `planned` (the entry, then the plan, straights one after another one), and its Sections:
+   * one a section and the goal's, each cut again where its domain passes over itself.
+   */
+  const lay = (planned: readonly PlanElement[]) => {
+    const elements: PathElement[] = [];
+    const push = (length: number, turn: number) => {
+      const start = elements.length ? elements.at(-1)!.start + elements.at(-1)!.length : 0;
+      const last = elements.at(-1);
+      if (last && last.turn === 0 && turn === 0)
+        elements[elements.length - 1] = { ...last, length: last.length + length };
+      else elements.push({ start, length, turn });
+    };
+    push(entry, 0);
+    for (const e of planned) push((e.to - e.from) * metres, e.turn);
+    const path = new CoursePath(elements, 0);
+    const pieces: Piece[] = [];
+    for (let order = 0; order <= count; order++) {
+      const from = order === 0 ? 0 : along(length * order);
+      const to = order === count ? path.length : along(length * (order + 1));
+      const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
+      const cuts = domainCuts(path, from, to, reach, gateMetres);
+      [from, ...cuts].forEach((a, i) =>
+        pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
+      );
+    }
+    return { path, pieces };
+  };
+  // The plan: its turns widened where a Section's domain, as written, passes over itself.
+  const plan = headingPlan(inputs.headings, RESOLUTION, metres, reach, (planned) => {
+    const { path, pieces } = lay(planned);
+    return pieces.flatMap((piece) => {
+      const overlap = domainOverlap(path, piece, reach);
+      return overlap ? [overlap.map((u) => (u - entry) / metres) as [number, number]] : [];
+    });
+  });
+  const { path, pieces } = lay(plan.elements);
+  const stationOf = (q: number) => path.station(along(q));
+  const end = path.length;
 
   // The colors along the road: each section's until its ground changes, the ground's steps, then the next's.
   const stretches: ColorStretch[] = [];

@@ -4,6 +4,9 @@
  * coordinate domains would pass over themselves.
  */
 import { requireInput } from '../course/authoring-io.js';
+import { CourseInputError } from '../../src/course/course-diagnostics.js';
+import { compilePlanPath, type PlanSegmentGeometry } from '../../src/course/geometry/plan-path.js';
+import { validatePlanDomainInjectivity } from '../../src/course/plan-domain-injectivity.js';
 import type { CoursePath } from './course-path.js';
 import { overlappingCells } from './crossings.js';
 
@@ -153,4 +156,42 @@ export function writtenPlan(path: CoursePath, piece: { readonly from: number; re
     }
   }
   return elements;
+}
+
+/**
+ * Where the course format does not admit a piece's coordinate domain, `reach` metres either side of P: P's metres from
+ * the start of the earlier of two of its cells that overlap to the end of the later, or null. Two cells
+ * `DOMAIN_APART` or more apart are passages its cuts should have parted, and are refused.
+ */
+export function domainOverlap(
+  path: CoursePath,
+  piece: { readonly id: string; readonly from: number; readonly to: number },
+  reach: number,
+): [number, number] | null {
+  // The format's arcs turn right positive.
+  const geometry: PlanSegmentGeometry[] = writtenPlan(path, piece).map((e) =>
+    e.kind === 'straight'
+      ? { kind: 'straight', length: e.length }
+      : { kind: 'arc', radius: e.radius!, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius! },
+  );
+  try {
+    validatePlanDomainInjectivity(
+      piece.id,
+      compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry).segments,
+      { stations: [], lateralAt: (_s, out) => Object.assign(out, { left: -reach, right: reach }) },
+      '',
+    );
+    return null;
+  } catch (error) {
+    const overlap = error instanceof CourseInputError && 'overlap' in error.diagnostic && error.diagnostic.overlap;
+    if (!overlap) throw error;
+    const [a, b] = overlap.intervals;
+    const at = (s: number) => path.along(path.station(piece.from) + s);
+    requireInput(
+      b!.sStart - a!.sEnd < DOMAIN_APART,
+      `/plan/${piece.id}`,
+      `The passages at ${round(at(a!.sStart))} m and ${round(at(b!.sStart))} m overlap`,
+    );
+    return [at(a!.sStart), at(b!.sEnd)];
+  }
 }
