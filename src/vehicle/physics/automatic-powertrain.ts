@@ -11,7 +11,10 @@ export interface AutomaticPowertrainDefinition {
   /** Authored engine size and cycle; friction torque derives from them with game-wide pressures. */
   readonly displacementCc: number;
   readonly cycle: 2 | 4;
-  /** Geometric compression ratio; the engine sound's blowdown reads it ([Audio](audio.md)), physics does not. */
+  /**
+   * Geometric compression ratio; the engine sound's blowdown reads it ([Audio](../../../docs/audio.md)), physics
+   * does not.
+   */
   readonly compressionRatio: number;
   /** Engine speed held by idle-holding torque, and the torque-sampling floor. */
   readonly idleRpm: number;

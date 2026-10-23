@@ -228,7 +228,7 @@ Each edge is one Lateral or null, the same over the whole Strip. Null left/right
 Material-bearing Strips require two finite edges. Finite edges obey `left <= right`, `invalid_strip`
 otherwise. Ownership is `[left,right)` laterally and `[start,end)` longitudinally, including the
 Section terminal in the last slab. An edge whose width varies along the Strip refers to a
-[Boundary](#plan-profile-and-boundaries) that varies so.
+[Boundary](#lateral-positions) that varies so.
 
 Strip edges use the same interval resolver as Boundary knots: collect the referenced Boundary
 vertices, evaluate the edge expression at both ends, blend, then linearly interpolate.

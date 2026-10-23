@@ -81,7 +81,7 @@ export interface FootageCamera {
 export const PITCH_RULES = ['level', 'road'] as const;
 export type PitchRule = (typeof PITCH_RULES)[number];
 
-/** A background layer's rules ([Background rules](../../docs/footage.md#background-rules)). */
+/** A background layer's rules. */
 export const VERTICAL_BACKGROUND_RULES = ['pitch', 'fixed', 'road-horizon', 'free'] as const;
 export const HORIZONTAL_BACKGROUND_RULES = ['heading', 'curvature', 'free'] as const;
 
