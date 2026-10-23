@@ -143,10 +143,14 @@
   the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
   four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
 
-Next PR: Stage TD, the tidying of the road data tool and the documents after the five Sega originals,
-from K's instructions (no new original before it); [RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's
-recordings come; [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K
-decides; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-3a; TD-2 is not needed);
+then [Stage GR](#stage-gr--the-originals-courses-mended) and
+[Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
+[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
+[Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
+[RD-6e](#stage-rd--outrun-from-the-originals-road-data) once K's recordings come;
+[DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -886,6 +890,8 @@ sand and patches, waves, dunes, puddles, pebbles and snow, and the grass and clo
 shapes); PG-9b the supports, the tunnel mouths and the roadside buildings; PG-12 TURBO OUTRUN's trees, OUTRUN's rocks
 and people and SUPER HANG-ON's trees; and the racing lines' times a material changes, by vehicle.
 
+Stage PG is closed.
+
 ## Stage RH — RACING HERO from the ROMs
 
 K stopped Stage RH on 2026-10-22: RACING HERO is not made. RH-1 (this stage in NEXT), RH-2 (the ROMs read into a
@@ -898,6 +904,120 @@ research kit, outside the repository. Kept, as other originals use them: RH-3a's
 `meanColor`, `ramped` and its Sections' element bounds, ENDURO RACER's rule for objects on another passage's road with
 a half-width along the road, and `sky-baking`'s `pixelDifference`; so too RH-2's X board ROM reading and RH-5's 16B
 tiles' pixel, which SUPER MONACO GP reads through.
+
+## Stage TD — The road data tool and the documents tidied
+
+Stage TD gathers the tools and documents the Sega originals made into one shared form, for the work that follows them
+([Stage GR](#stage-gr--the-originals-courses-mended)) and for the next originals
+([Stage NM](#stage-nm--a-namco-original-from-the-roms), [Stage BR](#stage-br--big-run-from-the-roms),
+[Stage CS](#stage-cs--cisco-heat-from-the-roms), [Stage TA](#stage-ta--a-taito-original-from-the-roms)). It changes no
+output. Its PRs are numbered from TD-1.
+
+K's decisions (2026-10-22 and 2026-10-23):
+
+- **The Sega originals are five**: OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP. RACING HERO
+  is not made ([Stage RH](#stage-rh--racing-hero-from-the-roms)).
+- **What the repository may hold goes into it**: each original's research notes, the procedure that raises an original
+  from its ROMs, and small research tools that decrypt nothing and hold no other project's code and no ROM data. What
+  it may not hold stays on K's machine: the ROMs' zips and raw data, decrypting code and keys, decrypted programs, the
+  harnesses that run the originals, disassemblies, and comparison pictures made from the ROMs.
+- **The courses can be raised again from the ROMs' zips at any time**: one command raises every original, and a section
+  of the shared document says how; K's machine keeps only what the repository may not hold.
+- **NEXT is made ready for the next work**: the stages below, whose names K may change. Stage PG's decisions (the
+  picture rules, the water material, the view sets and OUTRUN TEST and TRIAL deleted) do not change, nor does the line
+  it left to later stages, which is named Stage RM.
+- **No output changes**: nothing under `content/` and `src/` changes, every original's dump and `--check` stay byte for
+  byte the same, and no racing line is measured again.
+- **SUPER MONACO GP's original eye** is about 0.52 m, not about 0.57 m as
+  [Stage MG](#stage-mg--super-monaco-gp-from-the-roms) says; its chapter already gives 0.52 m
+  ([SUPER MONACO GP's objects](original-road-data.md#super-monaco-gps-objects)).
+
+Rules of the stage:
+
+- One purpose a PR: what is added, what is moved or renamed, what is deleted and what changes in logic are separate PRs
+  ([AGENTS](../AGENTS.md#work-and-release)). A PR that moves lists at its start every change other than the move, and
+  only those this section names. A PR too large for one review is split and the split reported.
+- Open points are decided by their defaults and recorded in the PR: the names of modules and documents, what is shared
+  and what is an original's, the index's wording, which lines Current state keeps, where open points and links go. The
+  stage stops only where it cannot keep the output (a dump, a `--check`, `content/`, `src/`, a command's standard output
+  or the sound originals would change), where two documents disagree and their owner does not decide, or where a rule
+  of the rights below would break.
+- Rights, as before: the ROMs' zips and raw dumps enter no commit, PR body or PR picture; no decrypting code or key and
+  no research output (program images, disassemblies, string lists, dumps) enters the repository; no other project's
+  code is copied or ported, and new text names MAME alone, the rest as "other projects' code".
+- Every PR that touches code (TD-4, TD-5, TD-6, TD-9b) shows on K's local ROMs, before and after it: every original's
+  dump the same (their SHA-256 in the PR), every original's `--check` passing, no difference under `content/` and
+  `src/`, every command's standard output the same, and the sound originals' SHA-256 the same. The standing checks are
+  [AGENTS](../AGENTS.md#checks)'s and the road data commands [Development](development.md#road-data-commands)'s.
+- Each concept keeps one owning document ([index](README.md)). A move changes no text but its links, the sentences
+  saying where something is, and the one sentence that joins a rule written in several places, each such sentence shown
+  before and after in the PR. Where NEXT and the chapter owning a matter disagree, the chapter holds and NEXT's sentence
+  is not moved; the PR lists the disagreements found. Every document PR shows that every link and anchor resolves but
+  those broken on main before it.
+- **Beside the vehicles.** Vehicles are being added beside this stage (RV-1 to RV-4, the five road motorcycles). Their
+  documents ([Racing vehicle ledger](racing-vehicles.md), [Road motorcycle ledger](road-bikes.md) and the folders
+  below them), their pictures and checks in `tools/build/` and `tools/graphics/`, `tools/course/racing-vehicle-check.ts`
+  and their tests are not Stage TD's: they are neither moved nor reworded, and Current state's vehicle lines and the
+  index's rows for them stay. Where a PR of either rewrites the same file, it is built on whichever reached main first,
+  keeping the other's lines. Stage TD measures nothing again; when main's measured products are new, the checks pass on
+  them.
+
+PRs, in this order:
+
+- TD-1: this section, the later stages below, the driver's eye view in
+  [Pending product decisions](#pending-product-decisions), "Next PR", and Stage PG closed.
+- TD-2 is not needed: SUPER MONACO GP's chapter already gives its original eye as 0.52 m.
+- TD-3a: what still holds in the finished stages' sections moved to its owners: the rules all originals keep to a new
+  section of [Original road data](original-road-data.md), Rules of the originals; each original's decisions to its
+  chapter; product promises to [Product](product.md); the later work's promises and what was left, RD-6e among them, to
+  [Courses of the originals](#courses-of-the-originals); Current state's open points to their owners.
+- TD-3b: the finished stages' sections deleted (VC, RD, SH, TO, ER, MG, PG and RH).
+- TD-3c: Current state rewritten as a restart point, one line an area with its owner's link.
+- TD-4: the parts originals share moved to modules named after no original, OUTRUN's ROM tables to its ROM module, and
+  one `paletteName`.
+- TD-5: one way of finding the ROMs: a shared module finds each ROM of a set by its CRC-32 and size, refuses a set
+  missing one by the set's and the ROM's names, and writes the dump's ROM records.
+- TD-6: the road data tool's command line split into one command module an original; OUTRUN's commands take its name as
+  the others do.
+- TD-7: [Original road data](original-road-data.md) split into the shared document and one document an original.
+- TD-8: the research tools (`tools/research/`) and their subsection in [Development](development.md).
+- TD-9: the procedure that raises an original from its ROMs, a section of the shared document, and each original's
+  research notes (`docs/research/`).
+- TD-9b: one command raising every original from its zips, and its section in the shared document.
+- TD-10: this section deleted, and "Next PR" pointing to the later stages.
+
+Each PR updates its specifications with it (the index, Development, NEXT's progress).
+
+Not in this stage: any change of behavior or format; the courses, pictures, skies and racing lines; the hills, jumps,
+crossings and bodies (Stage GR); BRANCH, TSUKUBA and the walls (Stage RM); deleting other tools or documents, or mending
+the links broken today (the stage's last report lists the candidates for K); making the tool general for BIG RUN and
+CISCO HEAT (Stage BR); renaming course IDs, pictures or dump formats; testing the rule on imports between originals.
+
+## Stage GR — The originals' courses mended
+
+Stage GR mends the five originals' courses, decides how hills are made and makes them, and fixes defects, among them
+SUPER MONACO GP's QUALIFYING, which loads and never starts; what Stages ER and MG left in
+[Courses of the originals](#courses-of-the-originals) is its.
+
+## Stage RM — BRANCH, TSUKUBA and the walls
+
+Stage RM makes what Stage PG left to later stages in [Courses of the originals](#courses-of-the-originals).
+
+## Stage NM — A NAMCO original from the ROMs
+
+Stage NM raises a NAMCO original from its ROMs, one whose courses are simple first; K chooses which.
+
+## Stage BR — BIG RUN from the ROMs
+
+Stage BR raises JALECO's BIG RUN (1989) from its ROMs, after Stage NM.
+
+## Stage CS — CISCO HEAT from the ROMs
+
+Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs, after Stage BR.
+
+## Stage TA — A TAITO original from the ROMs
+
+Stage TA raises a TAITO original from its ROMs, CHASE H.Q. or another as K chooses, after Stage CS.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 
@@ -1051,18 +1171,19 @@ OUTRUN's courses are raised from its ROMs' road data in [Stage RD](#stage-rd--ou
 SUPER HANG-ON's are raised with the same tool in [Stage SH](#stage-sh--super-hang-on-from-the-roms), TURBO
 OUTRUN's in [Stage TO](#stage-to--turbo-outrun-from-the-roms), ENDURO RACER's in
 [Stage ER](#stage-er--enduro-racer-from-the-roms) and SUPER MONACO GP's in
-[Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides then.
+[Stage MG](#stage-mg--super-monaco-gp-from-the-roms). How CHASE H.Q.'s are raised, K decides in
+[Stage TA](#stage-ta--a-taito-original-from-the-roms).
 Their time limits come from reference driving, as for every course.
 
-Left by Stages ER and MG to later stages (K, 2026-10-21):
+Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
 - The hills and jumping: ENDURO RACER's grade tables, its jumps and the 5 jump mounds standing on another passage's
   road, its crossings made again, and SUPER MONACO GP's hills.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
 
-Left to later stages (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA made again; then the walls' feature
-removed, replaced by rows of boards.
+Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
+made again; then the walls' feature removed, replaced by rows of boards.
 
 OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
 
@@ -1181,6 +1302,7 @@ and switching is a cut.
 | Steering         | Whether the steering lever takes other lengths (such as the wheelbase, a rear-wheel reference) or is fixed at one design value                                                                                                                                                                                                                                                           |
 | Steering         | Future, not built now: if a DRIFT series is made, series-level rules for scoring, steering and camera open then, by which the series guarantees its experience; until then SETTINGS alone owns them. A drifting AI is designed with the series' scoring as one stage: a driver whose target sideslip angle and throttle follow from steady-drift equilibrium, steering by the FRONT rule |
 | Camera           | The horizon row (DEV 60–120 rows; 120 today)                                                                                                                                                                                                                                                                                                                                             |
+| Camera           | Whether SUPER MONACO GP gets a driver's eye view (its camera 1 m high, where its base point lies); if made, the player's car draws its shadow alone and the other vehicles their next smaller size's picture stretched twice                                                                                                                                                             |
 | Bank             | How the displayed vehicle bank follows lean (real-device evaluation)                                                                                                                                                                                                                                                                                                                     |
 | Art              | Production assets, new physical materials and tunnel/background content                                                                                                                                                                                                                                                                                                                  |
 | Vehicle art      | Whether cones and barricades are also generated from solids                                                                                                                                                                                                                                                                                                                              |
