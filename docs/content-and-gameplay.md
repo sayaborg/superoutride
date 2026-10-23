@@ -1197,8 +1197,8 @@ implementation for its own build only, and never saves the result.
 
 A course's racing lines are a lateral `l(s)` for each Section and, on a fork Section, one per exit, over the whole
 Section ([`racing-line.ts`](../tools/course/racing-line.ts)). Every vehicle drives the same lines. They depend on the
-course and on the vehicles that time them: every vehicle a class runs on the course, or the whole catalog on a course
-no class runs (`racingLineVehicles`).
+course and on the vehicles that time them, every vehicle a class runs on the course (`racingLineVehicles`). A course no
+class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-curvature lines, the only ones solved.
 
 - **Shape.** For a length weight `λ` they minimise `J_λ = Σ m κ² + λ Σ len`. The first sum is the squared path
   curvature, measured as the planned driver reads a smooth path's curvature ([Drivers](#drivers)): at each station the

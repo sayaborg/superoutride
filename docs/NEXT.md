@@ -133,6 +133,8 @@ PRs, in this order:
 - EX-2: K's decisions found only in Git history (nine of SUPER MONACO GP's, two of ENDURO RACER's) written into the
   chapters that own them, the parent sets named as such in the rules of the originals, and the statements the audit
   found untrue corrected.
+- EX-2b: a course no class runs timed by no vehicle (K, 2026-10-23): its racing lines the minimum-curvature lines, the
+  only ones solved, so that the courses Stage EX changes measure quickly.
 - EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral written as a width is but signed
   (0 by default), and a Section's plan holds up to 1024 elements. No course changes.
 - EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.

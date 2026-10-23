@@ -64,8 +64,8 @@ export function measuredCourses<Course extends { readonly id: string }>(
 }
 
 /**
- * The vehicles that time a course's racing lines: every vehicle a class runs there, or the whole catalog on a course no
- * class runs, in catalog order.
+ * The vehicles that time a course's racing lines: every vehicle a class runs there, in catalog order; none on a course
+ * no class runs.
  */
 export function racingLineVehicles(
   courseId: string,
@@ -75,12 +75,13 @@ export function racingLineVehicles(
   }[],
   catalog: readonly string[],
 ): readonly string[] {
-  return measuredCourses(classes, catalog).find(({ course }) => course.id === courseId)?.vehicles ?? catalog;
+  return measuredCourses(classes, catalog).find(({ course }) => course.id === courseId)?.vehicles ?? [];
 }
 
 /**
  * A course's racing lines solved and timed (`solveRacingLines`), as their saved document: each timing vehicle's time is
- * its reference driver's plan along the lines (`plannedLineSeconds`).
+ * its reference driver's plan along the lines (`plannedLineSeconds`). With no timing vehicle only the minimum-curvature
+ * lines are solved, the choice the procedure's tie would make.
  */
 export function measureRacingLines(
   course: CompiledCourse,
@@ -89,7 +90,8 @@ export function measureRacingLines(
   vehicles: readonly { readonly vehicleId: string; readonly vehicleSha256: string; readonly vehicle: RunVehicle }[],
   catalog: readonly CompiledVehicleDefinition[],
 ): RacingLineDocument {
-  const solution = solveRacingLines(course, procedure, (laterals) => {
+  const solved = vehicles.length ? procedure : { ...procedure, lengthWeights: [0] };
+  const solution = solveRacingLines(course, solved, (laterals) => {
     const lines = createRacingLines(course, laterals);
     return vehicles.map(({ vehicle }) =>
       plannedLineSeconds(course, lines, vehicle, catalog, procedure.driver.utilization),
