@@ -93,26 +93,46 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
 - **The plan is the road path.** A Section's lanes may lie off its plan, so the plan is each original's road path P
   itself, a station is a distance along P, and the widths are the ROMs' unrounded. Stripes, objects, gates and skies
   stand on one ruler, the ROMs' positions.
-- **A heading table is a chain of arcs by its own runs.** In the road's direction, each run is the longest stretch of
-  headings whose least-squares line holds every one within the tables' resolution, and is an arc at that line's rate;
-  two runs are joined by a turn over the position between them, or over the fewest more, as many on each side, that
-  keep the [coordinate domain](architecture.md#plan-authority). The tables' resolution is the one constant. A Section's
-  plan holds up to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
-- **SUPER MONACO GP's circuits** are raised the same way from their integer path's points, a run being the points one
-  arc holds within the path's resolution; the points close exactly, so no correction closes a lap.
+- **A heading table is a chain of arcs by its own runs** (K, 2026-10-23). In the road's direction, a run takes the
+  next heading while some line holds every heading of the run within the tables' resolution, and ends at the first it
+  cannot take; it is an arc at the slope of its minimax line, the line whose largest departure is least, one line for
+  three headings or more. A line holds any two, so every run but the table's last has two headings at least, and a run
+  of two is an arc at the slope between them; a last run of one heading has no length, and the turn before it ends the
+  plan at that heading. Because a line that holds a run holds each part of it, the run taken one heading at a time is
+  the longest, and the runs are the fewest any such rule makes. Two runs are joined by a turn over the position
+  between them, or over the fewest more, as many on each side, that keep the
+  [coordinate domain](architecture.md#plan-authority). The tables' resolution is the one constant. A Section's plan
+  holds up to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
+- **SUPER MONACO GP's circuits** are raised the same way from their integer path's points, a run taking the next point
+  while one arc holds every point of it within the path's resolution, EX-8 naming the one arc a run takes; the points
+  close exactly, so no correction closes a lap.
 - **The canon's grades.** SUPER MONACO GP's path is the original's 3D road, so its heights are its rises' sum at the
   plan's scale and its grades the original's. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
   projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m). Both rise tables
   are written as a heading table is, by their own runs. OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
   shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
 - **Crossings.** Where the heights leave two passages nearer than 6 m, one fixed rule parts them by the least change;
-  on a canon's heights it is part of the canon.
+  on a canon's heights it is part of the canon. The least change depends on what it measures, so before it is built
+  EX-11 writes in Original road data which heights may move (which passage, over what range), how a change is
+  measured, and what it keeps (K's grade limit of ±25 % and the vertical curves' form), and shows that one change is
+  least.
+- **Time made into position.** Each original's events in time are placed where they fall at its top speed: OUTRUN's
+  objects (293 km/h); SUPER HANG-ON's objects, its ground's 32 steps and the next section's road colours' switch
+  (0xF1); TURBO OUTRUN's objects (324 km/h), whose tables come one position a step with none missed at 216.3 km/h or
+  less, a placement by design. EX-14 first finds, for each original, whether a placement independent of speed exists:
+  where one does, the top speed leaves the rule; where none does, one shared rule chooses the speed, written once with
+  its reason. The road colours (Strips) are canon, so where they switch is written as the ROMs determine it.
+- **Sky changes.** SUPER MONACO GP cuts to the tunnel's sky at the step its background is black (9054), and out of it
+  at the step before the middle of its brightening (10750; the middle of 10655–10847 is 10751): two rules for one kind
+  of event. EX-14 makes where in an original's fade a sky cuts one rule, and writes every original's sky changes by it.
 - **Each constant once.** A value the ROMs hold is read from them, not written into the tool, unless only encrypted
   code holds it. Each arbitrary constant and each fixed rule (a shape the ROMs do not hold, such as OUTRUN's forks) is
   named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
   original's in its chapter and one module of its own. A solver's tolerance stays with its solver.
 - **Ownership.** The conversion owns a course's canon and people its drafts: `--check` compares the canon alone, and
-  raising a course again rewrites the canon and keeps the drafts as people left them.
+  raising a course again rewrites the canon and keeps the drafts as people left them. EX-13 says of each field it
+  writes whether it is canon or draft; EX-25 keeps a draft where it was through the ROMs' positions when the canon
+  changes, and stops where a draft cannot stay rather than move it unseen.
 - **No class.** The stage adds no class: SUPER HANG-ON's and SUPER MONACO GP's courses keep none with their hills made,
   until Stage GR decides the originals' classes.
 
@@ -135,10 +155,14 @@ PRs, in this order:
   found untrue corrected.
 - EX-2b: a course no class runs timed by no vehicle (K, 2026-10-23): its racing lines the minimum-curvature lines, the
   only ones solved, so that the courses Stage EX changes measure quickly.
-- EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral written as a width is but signed
-  (0 by default), and a Section's plan holds up to 1024 elements. No course changes.
+- EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral every Section declares, written
+  as a width is but signed, and a Section's plan holds up to 1024 elements. Every course declares 0, so none changes.
 - EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.
-- EX-5 to EX-7: ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised on P, a PR each.
+- EX-5 and EX-6: ENDURO RACER's and TURBO OUTRUN's courses raised on P, a PR each.
+- EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO; with it, whether OUTRUN's start records'
+  count is one short is checked, and mended in a PR of its own if it is.
+- EX-7: OUTRUN's courses raised on P.
+- EX-7b: SUPER MONACO GP's centre line taken from its edge columns, 119–128 instead of 120–129; the courses change.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,
   the plane, the widths' roundings and SUPER MONACO GP's closing.
@@ -152,6 +176,38 @@ PRs, in this order:
   module and in its chapter's table.
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
+
+### What the audit found, and its PRs
+
+EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
+
+- SUPER MONACO GP's centre line is taken from columns 120–129, so its mean takes an asphalt pixel for an edge pixel:
+  EX-7b.
+- OUTRUN's split last stages reckon their sky's yaw origin from position 1946 instead of GO: EX-6b.
+- OUTRUN's start records' count may be one short: checked in EX-6b, mended in a PR of its own if it is.
+- OUTRUN holds its stage length in three places: EX-21.
+- SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
+  ROMs.
+- TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
+- TURBO OUTRUN's objects are placed at its top speed, not at 216.3 km/h: EX-14, by the rule of time made into position
+  above.
+- The hills' kind 2 has no effect (its `holdLength` is 0), and `STEEPEST` is a literal: EX-14.
+- Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
+  and the goal positions, SAND's 40 m beside ENDURO RACER's 18 m ground, the sky's horizon, the rounding helper and its
+  epsilon in 6, the yaw formula and the grid builder): EX-13 and EX-14.
+- `turbo-outrun-layout.ts` keeps its own `domainCuts` (left by TD-4): EX-13.
+- Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
+  of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's
+  two PRs, EX-15 to EX-24.
+- Of SUPER MONACO GP's 29 amounts written into the tool, 11 lie in its encrypted main program and cannot be read, and 3
+  have no source written: EX-23 and EX-24, which name these with their reasons in the chapter's table.
+- The plan's tolerances and thresholds (about 25), and seven constants that OUTRUN's and TURBO OUTRUN's modules both
+  hold: EX-4 to EX-9.
+- The compile and load times of a plan of up to 1024 elements, where 512 was the most before: EX-6, which measures
+  DENVER's (about 720) in its PR, and K on devices.
+
+OUTRUN's colour refusals, which its chapter once stated, are not restored (K, 2026-10-23): a set is known by its CRC-32
+and size (TD-5), so its tables do not vary, and `--check` and the eye catch a misreading.
 
 ## Stage GR — The originals' courses mended
 
