@@ -2,8 +2,11 @@
 
 ## Current state
 
-- One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE, TIME ATTACK and
-  FREE PLAY runs. Without DEV, FREE PLAY offers TSUKUBA alone; the originals' courses, in no series, are DEV's.
+Each line is one area as it stands, with the document that owns it.
+
+- **Scene and runs.** One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE,
+  TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers TSUKUBA alone; the originals' courses, in no series, are
+  DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
   content and this contact response; any other physics addition needs prior confirmation.
@@ -11,139 +14,48 @@
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation.
-- No course uses these features any more (since PG-2b deleted OUTRUN TEST and OUTRUN TRIAL): BRANCH (forks, seam joins
-  and signs shown by a fork's choice), solid walls (TSUKUBA's walls are looks alone), open course limits, movable
-  objects (and their knocked pictures), and the `WET_ASPHALT` and `SHOULDER` materials. They stay in the engine; BRANCH
-  goes in a later stage ([Courses of the originals](#courses-of-the-originals)).
-- TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its PRODUCTION 750,
-  GTI CUP and 911 CUP classes ([Product courses](content-and-gameplay.md#product-courses)).
-- Course documents use plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips
-  and gates.
-  Circuits are closed cycles of two or more Sections.
-- One manifest verifies all delivered content, including vehicle and game-wide driving definitions and surface materials.
-  The content build compiles every delivered file from authored documents in one pass.
-- Surface color and material are authored with Strips, and ground and walls are drawn by LEVEL-POINT alone; sprites are indexed.
-  BG is one infinite tiled plane with a linear vertical row mapping.
-- The measurement tool (`npm run measure`) saves each course's racing lines and, for each course a class runs, its
-  vehicles' reference times and pace schedules under `content/`, with the vehicle, course and procedure identities they were
-  measured for; the build admits and delivers them and runs no driving, and a run applies its class's margin. Vehicle and course identities derive from delivered
-  document SHA-256, procedure identities from each procedure's record. Tire audio uses UNIFIED.
-- Engine sound load is the powertrain's effective opening.
-- Stage 10 is complete: the race owns competitor mechanics in fixed steps and publishes facts (time-ordered events,
-  Route with its fork choices, borrowed competitor observations); drivers intend lanes and target exits, rival exits
-  derive from the run's seed; loading coverage, recovery policy and reference identities each have one owner.
-- Stage 11 is complete: the audio scene and sound graph are separate from the browser; engine sounds, surface sounds
-  and the game-wide sound settings are content documents; every sound value is derived from physics or a DEV setting;
-  exhausts are collector graphs.
-- The [product specification](product.md) is the target for Stage 16. Series documents hold classes: each class is
-  one complete race definition (course, laps, vehicles, field, traffic, time margin and colors), and a course may be
-  run by several classes and series; measured products belong to course and vehicle, and a run applies its class's
-  margin; FREE PLAY rivals are drawn from vehicle pools.
-- Stage GS is complete: there is no MODE. TITLE's line is SERIES / FREE PLAY / SETTINGS; a series holds no rule values
-  (series document version 13), and SELECT SESSION drives a class as RACE (the former ARCADE run) or TIME ATTACK
-  (alone; on a circuit without a finish, ended by PAUSE's QUIT). Records are TIME ATTACK's alone, one table per class
-  (player record version 6). Reference runs are FREE PLAY runs alone. "Session" is only the product term RACE / TIME
-  ATTACK: one driven attempt is a run (`RunSetup`, `RunConfiguration`, `RunRulesRequest`, `RunVehicle`), whose rules
-  are RACE, TIME ATTACK or FREE PLAY. GS-3 was split into GS-3a (the TIME ATTACK run and the run without a finish) and
-  GS-3b (TIME ATTACK records).
-- Stage 12 is complete: the front end runs inside the frame from TITLE through RESULT, with SETTINGS and `dev=1`; the
-  product HUD is drawn with the text layer from race facts and the player's observation, and DEV measurements stay with
-  `dev=1`; the player record keeps settings and the TIME TRIAL and ARCADE records shown at READY, at TIME TRIAL
-  crossings and on RESULT; all UI is English.
-- Engine sound that lagged and stayed late on some devices no longer does on the owner's device (2026-10-14); its
-  cause was not identified. With `dev=1` the audio timing line still measures the AudioContext's latency, clock and
-  worklet overruns ([Browser](browser.md#performance-hud)).
-- Stage 13 is complete: vehicles have overall dimensions and road-aligned footprints that contact vehicles, walls,
-  course limits and roadside objects through one external force on the ordinary mechanics; Carriageways have lanes,
-  drivers follow lane centres, change lanes past slower vehicles or follow them and merge where their lane ends; traffic
-  appears at seeded Route positions from the series or FREE PLAY's TRAFFIC option.
-- Stage 14 is complete: the AudioContext runs while the page is visible and the vehicle sounds only while a run is
-  driven; recordings (AAC in MP4) and music documents are delivered and admitted; SELECT MUSIC chooses the run's track,
-  which starts at READY, loops, pauses with the run and fades under the GOAL or GAME OVER jingle; countdown, crossing,
-  extension and menu effects sound from race facts and menu commands; the player's impacts are recordings at a volume
-  from their work; the player record
-  owns the MASTER, MUSIC and EFFECTS volumes. Its recordings are placeholders until K's files replace them
-  ([placeholder recordings](#placeholder-recordings)).
-- Stage 15 is complete: one authoring core compiles the authored documents for the build, the CLI and the workbench,
-  reusing unchanged stages; measured products (racing lines, reference times and pace schedules) are generated
-  by `npm run measure` and saved under `content/`; the workbench (`workbench.html` at the site root) edits a build's
-  documents through the core in a worker, with its documents, changes, measure, run, music, sprite and course modules,
-  and its changes leave as one archive; the course editor shows a course's form in four views (plan, profile, cross
-  section, game frame) and edits it, changes its form, cleans it and lists its findings through core functions the
-  course command shares, with an underlay to trace from.
-- Course documents are written in their final Stage 15 form: a plan of straights and arcs by length from each Section's
-  origin, Positions measured from the nearest joint, lanes as widths left to right from a centre lane (roads, edges and
-  centres derived), and images named by file.
+- **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
+  PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
+  ([Product courses](content-and-gameplay.md#product-courses),
+  [Series documents](content-and-gameplay.md#series-documents)).
+- **Courses of the originals.** OUTRUN's seven roads, SUPER HANG-ON's four courses, TURBO OUTRUN's and ENDURO RACER's
+  courses and SUPER MONACO GP's two circuits are raised from the ROMs by the road data tool
+  ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)).
+- **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
+  walls are looks alone), open course limits, movable objects (and their knocked pictures), and the `WET_ASPHALT` and
+  `SHOULDER` materials stay in the engine ([Content and gameplay](content-and-gameplay.md),
+  [Stage RM](#stage-rm--branch-tsukuba-and-the-walls)).
+- **Course format.** Plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips, gates
+  and images named by file; circuits are closed cycles of two or more Sections
+  ([CourseDocument](content-and-gameplay.md#coursedocument)).
+- **Drawing.** Strips author surface color and material; ground and walls are drawn by LEVEL-POINT; sprites are indexed;
+  every picture folds at its anchor and casts its own shadow; BG is one infinite tiled plane; the camera stands 6 m
+  behind and 2 m above the player's base point ([Architecture](architecture.md#sprites-and-painter),
+  [Camera](architecture.md#camera-and-fixed-metric), [Image assets](image-assets.md)).
+- **Pictures.** TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D
+  prototype, the other vehicles' converted provisional pictures
+  ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)).
+- **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
+  admits the measured racing lines, reference times and pace schedules, which `npm run measure` saves under `content/`
+  ([Build outputs](development.md#build-outputs), [Measured products](development.md#measured-products)).
+- **Race, drivers and traffic.** The race owns competitor mechanics in fixed steps and publishes facts; one planned
+  driver drives rivals, traffic, reference runs, the attract demo and the takeover; footprints contact vehicles, walls,
+  limits and objects through one external force ([Drivers](content-and-gameplay.md#drivers),
+  [Traffic](content-and-gameplay.md#traffic), [Body contact](content-and-gameplay.md#body-contact)).
+- **Vehicle physics.** Five-point torque curves, fuel cut, the tire law, protection, steering and recovery
+  ([Vehicle physics](vehicle-physics.md)).
+- **Audio.** The audio scene and sound graph, engine sounds by exhaust graphs to a measured loudness, tire audio
+  (UNIFIED), recordings and music, effects and contact sound; the recordings are placeholders until K's files replace
+  them ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
+- **Tire puffs.** Smoke, spray and dust by the surface under each tire ([Tire puffs](tire-puffs.md)).
+- **Front end and HUD.** TITLE to RESULT inside the frame, carousels, SELECT VEHICLE's pages, the HUD's fonts, the
+  player record and `dev=1` ([Browser](browser.md), [HUD design sources](image-assets.md#hud-design-sources)).
+- **Authoring.** One authoring core serves the build, the CLI and the workbench with its course editor; loading compiles
+  in slices ([Workbench](development.md#workbench),
+  [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
+  [Course loading](architecture.md#course-loading)).
 
-- The camera and pictures follow K's CAM decisions: the camera stands 6 m behind and 2 m above the player's base point
-  and holds it on one row whatever the body's pitch, follows the player's FACING or MOVING setting and shows the road
-  arrow at its yaw limit; every picture stands at its base point and casts its own shadow picture; vehicle pictures are picture sets of
-  six sizes ([Picture contract](image-assets.md#picture-contract)). TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures and shadows are finished sets generated
-  from four views of the vehicle ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)), and VFR750R's
-  a prototype rendered from a 3D model with its rider and seven banks, five greys and three paint ramps; the other
-  vehicles keep their converted provisional pictures until their views are made.
-- Stage PT is complete: every torque curve has five points (idle, knee, maximum torque, maximum power, redline); fuel
-  cut enters at 105 % of redline and clears at 103 %, the curve continuing its D–E line above redline; the tachometer
-  reads to 110 % of redline; the ground continues behind a closed course limit; a locked engine's inertia joins the
-  wheel solve; SELECT VEHICLE is a catalog page per vehicle with its curves and physical values.
-- Stage FE is complete: one tile picture format
-  serves the sky, the series images and the title logo, which `npm run screen-pictures` draws from K's sources; TITLE
-  shows the logo, PRESS START and then the mode line; menus are carousels (SETTINGS, OPTIONS and LAPS lists) with Z/X,
-  DARK items that deny, and a black transition between screens; ARCADE's screens stand over the series image, SELECT
-  SERIES slides between them and the series' title track plays until READY; SELECT MUSIC offers a series' race tracks
-  and MUSIC OFF; the PRE-RACE card, with the course map north up by the course's bearing, is every run's loading
-  screen; 17 effects sound, `final-lap` and `new-record` among them. Behind TITLE the attract demo shows each
-  product ARCADE class's race from READY (K's decision replacing a fast-forward to mid-race, which cost tens of seconds
-  behind black). The screens smoke saves every screen to
-  `dist/screens/`. FE-1, FE-6, FE-8 and FE-9 were split (FE-1a rename / FE-1b format; FE-6a color names / FE-6b SELECT
-  SERIES / FE-6c CLASS, VEHICLE, MUSIC; FE-8a TITLE / FE-8b attract demo; FE-9a LOADING removed / FE-9b
-  specifications), and a defect FE-4 left (a transition asked for from black never finished) was fixed with a host
-  test. FE-10: inside an ARCADE series the series image stays on screen; only TITLE ↔ SELECT SERIES and the PRE-RACE
-  card → READY go through black.
-- Stage OT is complete. RIBBON is deleted. OUTRUN TEST, the generated BRANCH course it made, and the OUTRUN TRIAL
-  courses were deleted in Stage PG's PG-2b.
-- Stage LD is complete: a course compiles in work slices the browser runs 8 ms at a time, so loading never stops the
-  frame loop (the longest gap loading OUTRUN TEST fell from about 14 s to under 100 ms in headless Chromium); the
-  preblend averages finer cells and the color ground is packed, so OUTRUN TEST holds about 150 MB instead of 465 MB;
-  the attract demo holds only the shown and the next class's runs.
-- Stage HD is complete: the HUD tiles command writes every text-tile pattern from the HUD design sources and rules
-  ([Image assets](image-assets.md#hud-design-sources)): the normal font with ▲ ▼ ◀ ▶, the ornate small and large
-  fonts in six styles, italic segment digits, a 26-bar italic tachometer, the signal lamp and the triple-chevron road
-  arrow; the HUD and RESULT use the fonts by the mapping in [Browser](browser.md#hud).
-- Stage AI is complete: every course has measured racing lines; one planned driver, from each vehicle's limits model
-  at a utilization, drives rivals, traffic, reference runs, the attract demo and the takeover; rivals and the player's
-  run driver drive the racing line and pass, give room and yield by path offsets, traffic keeps its lanes;
-  envelopes are gone; SLOW DOWN warns the player from the same plan ([Drivers](content-and-gameplay.md#drivers),
-  [SLOW DOWN](browser.md#slow-down)).
-- Stage VS2 is complete: SELECT VEHICLE turns through ENGINE, DRIVETRAIN and CHASSIS, 6 s each; DRIVETRAIN draws
-  each gear's engine speed against road speed; ENGINE revs the shown vehicle's engine standing still through the held
-  update READY uses, marks its speed on the curves and sounds it with the player's engine voice, the live gate opening
-  while a vehicle is driven ([SELECT VEHICLE](browser.md#select-vehicle), [Audio](audio.md#mix-and-lifetime)).
-- Stage EX is complete: each engine sound writes its exhaust from the valves to the tailpipes, every tube by length and
-  diameter from references and estimates; pipes lose by their radius (√f), junctions scatter by cross-section and the
-  valve end reflects by the valve's open area; the output low-pass, DC removal and pulse decay follow from the vehicle
-  (`compressionRatio` joins the mechanics); overrun pops are gone; every engine enters its soft clip at MIX's
-  `engineDriveLufs` by a measured loudness, a measured product (EX-5 was split into EX-5a and EX-5b); ENGINE draws the
-  exhaust true to length and cross-section at one scale. ENGINE keeps seven DEV values.
-- Stage EX2 is complete: the wall loss follows Kirchhoff's `sqrt(f)` through four shelves in parallel form (the
-  engine loudness measured again); the exhaust kernel renders in blocks over flat arrays, its output unchanged; ENGINE
-  draws tubes in proportion to their diameter, each junction as one bar, shaded once as one shape. EX-10 made the
-  owner's DEV ENGINE values the defaults, with MIX's `engineDriveLufs` at −24 so that the engines seldom reach the soft
-  clip and `clipCeiling` at 1.
-- TN-1 is complete: sliding along a wall makes no sound, only the hit's recording sounds (the walls' sound records and
-  the solid wall's `sound` are gone, course version 52); the tire's friction sound Q follows a physical law: its feedback
-  depends on the slip speed and the surface alone, its forcing on the friction power per load, its pickup on the
-  load's square root, and the vibration's speed stops at the slip speed (audio document version 8).
-- Stage TP is complete: every vehicle in view throws tire puffs by the surface under it
-  ([Tire puffs](tire-puffs.md)): smoke when sliding on ASPHALT, spray on WET_ASPHALT, dust on SHOULDER, DIRT and SAND
-  when rolling and sliding and on GRASS when sliding. Rolling throws one per distance, sliding one per amount of friction
-  work beyond the tire law's peak (the tire observation's `slidingPower`, K to confirm this reading of
-  "work on the plateau"), so wheel-slip protection holding a tire there throws none. Puffs move by one law with values
-  the puff document holds and DEV's PUFFS group changes; they are opaque pictures without shadows, ordered by depth with
-  the player among the pictures, at most 256 alive. Vehicle mechanics publish front and rear tracks (CHASSIS shows a
-  four-wheeler's). TP-5 was split: TP-5a gave the sprite recipe named palettes, TP-5b drew the pictures.
-
-Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-3c);
+Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-4);
 then [Stage GR](#stage-gr--the-originals-courses-mended) and
 [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
 [Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
