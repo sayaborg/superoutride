@@ -20,6 +20,10 @@ import { openPlayerRecord } from '../../src/shell/player-record.js';
 import { SERIES_SLIDE_STEPS } from '../../src/shell/series-screen.js';
 import { VEHICLE_PAGE_STEPS } from '../../src/shell/vehicle-page.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
+import { CLASS_TITLE_CODE_UNITS } from '../../src/content/series-catalog.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
+import { SESSION_NAMES } from '../../src/shell/run-request.js';
+import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { createCourseMap } from '../../src/view/course-map.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
@@ -271,4 +275,45 @@ test('the front end screens render from the delivered content', async () => {
     send('RIGHT');
   }
   assert.equal(shown.size, vehicles.length, 'FREE PLAY did not offer every vehicle');
+});
+
+// The PRE-RACE card writes its lines from column 17: the longest names and facts the readers admit fit them, so a card
+// never throws while it draws. Nothing is saved.
+test('the PRE-RACE card holds the longest names and facts the readers admit', async () => {
+  const content = await readDeliveredContent();
+  const frame = createLogicalFrame();
+  const text = createTextLayer(await loadTextTiles(content));
+  // A map no course compiles to: only its length is written, the longest course's.
+  const map = Object.freeze({
+    centreline: [
+      { east: 0, north: 0 },
+      { east: 100, north: 0 },
+    ],
+    start: { point: { east: 0, north: 0 }, direction: { east: 1, north: 0 } },
+    checkpoints: [],
+    lengthMeters: COURSE_DOCUMENT_LIMITS.lengthMeters,
+  });
+  const facts = { map, field: RUN_RULE_LIMITS.competitors, bikes: true, slot: RUN_RULE_LIMITS.competitors };
+  const draw = (card) => {
+    const shown = createPreRaceScreen(
+      frame,
+      text,
+      () => {},
+      card,
+      () => {},
+    );
+    shown.facts({ ...facts, best: 99 * 60_000 + 59_999 });
+    shown.screen.render();
+  };
+  const session = Object.values(SESSION_NAMES).reduce((a, b) => (b.length > a.length ? b : a));
+  draw({
+    background: null,
+    title: 'W'.repeat(CLASS_TITLE_CODE_UNITS),
+    session,
+    courseName: 'W'.repeat(COURSE_DOCUMENT_LIMITS.nameCodeUnits),
+    laps: RUN_RULE_LIMITS.laps,
+  });
+  // Every delivered course's FREE PLAY card, from the course index alone.
+  for (const course of await loadCourseIndex(content))
+    draw({ background: null, title: 'FREE PLAY', session: null, courseName: course.name, laps: RUN_RULE_LIMITS.laps });
 });

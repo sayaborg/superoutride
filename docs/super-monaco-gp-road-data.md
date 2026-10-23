@@ -110,12 +110,13 @@ MG's description.
 ## SUPER MONACO GP's courses
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
-CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (SUPER MONACO GP
-QUALIFYING, the qualifying's), conversion version 7, their skies and their [objects](#super-monaco-gps-objects)'
-images, or with `--check` fails where one differs; it reports a step's metres and each course's elements, tightest arc,
-lap, the error closed and the three lengths that close it, its Sections with their boards, the boards placed and those
-left out, and the images' count and master texels. Both have `maxLaps` 30 and `bearing` 0. The two forms share most of
-the road, but each closes on its own path, so they are two circuits, not one BRANCH course (K, 2026-10-21).
+CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 8, their skies and their
+[objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
+each course's elements, tightest arc, lap, the error closed and the three lengths that close it, its Sections with their
+boards, the boards placed and those left out, and the images' count and master texels. Both have `maxLaps` 30 and
+`bearing` 0. The two forms share most of the road, but each closes on its own path, so they are two circuits, not one
+BRANCH course (K, 2026-10-21).
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the

@@ -37,7 +37,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 7;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 8;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -134,7 +134,7 @@ const EPSILON = 1e-5;
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
 const COURSES = Object.freeze([
   { course: 1, id: 'super-monaco-gp', name: 'SUPER MONACO GP', checkpoints: [4697, 9538] },
-  { course: 0, id: 'super-monaco-gp-qualifying', name: 'SUPER MONACO GP QUALIFYING', checkpoints: [4697] },
+  { course: 0, id: 'super-monaco-gp-qualifying', name: 'MONACO QUALIFYING', checkpoints: [4697] },
 ] as const);
 export type SuperMonacoGpCourse = (typeof COURSES)[number];
 

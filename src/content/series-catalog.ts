@@ -27,6 +27,10 @@ import type { TilePicture } from '../image/tile-picture.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { MusicCatalog } from './recording-catalog.js';
 import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
+import { TEXT_CHARACTERS } from '../image/text-tiles.js';
+
+/** A class title's length at most: the PRE-RACE card writes it from column 17 of the text grid's 40. */
+export const CLASS_TITLE_CODE_UNITS = 23;
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
 export const SERIES_DOCUMENT_VERSION = 13;
@@ -220,7 +224,11 @@ function readSeries(
       return Object.freeze({
         series: series as CompiledSeries,
         id: readString(entry.id, `${at}/id`),
-        title: readString(entry.title, `${at}/title`),
+        title: readString(entry.title, `${at}/title`, {
+          maxLength: CLASS_TITLE_CODE_UNITS,
+          pattern: TEXT_CHARACTERS,
+          patternMessage: 'Expected printable ASCII text',
+        }),
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: RUN_RULE_LIMITS.laps, integer: true }),
         vehicles,

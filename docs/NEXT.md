@@ -156,8 +156,8 @@ PRs, in this order:
 ## Stage GR — The originals' courses mended
 
 Stage GR mends the five originals' courses, decides how OUTRUN's, TURBO OUTRUN's and ENDURO RACER's hills are made and
-makes them, decides the originals' classes, and fixes defects, among them SUPER MONACO GP's QUALIFYING, which loads and
-never starts; what Stages ER and MG left in [Courses of the originals](#courses-of-the-originals) is its.
+makes them, decides the originals' classes, and fixes defects; what Stages ER and MG left in
+[Courses of the originals](#courses-of-the-originals) is its.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 

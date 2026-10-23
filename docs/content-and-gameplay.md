@@ -61,7 +61,7 @@ solid sprite's image size its roadside object, so course identity includes them 
 
 `name` is the course's display name: nonblank text in the
 [text tiles'](image-assets.md#text-tiles) characters without surrounding whitespace, at most `nameCodeUnits`
-long, so it fits one line of the frame's text grid. It is shown, never used as an identity.
+long, so it fits the screen lines that show it. It is shown, never used as an identity.
 
 IDs are opaque nonblank strings without surrounding whitespace and compare exactly. A course's only
 identifier is its file name without `.course.json`, which is also its manifest ID; the document carries
@@ -407,7 +407,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | ----------------------------------------------------------------------- | -----------------: | ----------------------------------------------------------------------------------------------------------------------- |
 | Document `jsonBytes`                                                    |       64 MiB UTF-8 | 50 stages × 2 km/stage × 1000 records/km × 256 encoded bytes/record × 2, rounded up                                     |
 | `idCodeUnits`                                                           |                128 | 64-character stable paths/names × 2                                                                                     |
-| `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                     |
+| `nameCodeUnits`                                                         |                 21 | SELECT CLASS's narrowest line, `<name>  99 LAPS  16 BIKES`: 40 columns less 19                                          |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
 | Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
 | Section `plan` elements                                                 |               1024 | (21 × 20 + 2) × 2, rounded up: height nodes' density, for plans that turn a road table's steps                          |
@@ -993,30 +993,28 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 plays on its screens, and its `race` tracks, zero or more and unique, which SELECT MUSIC offers
 ([Browser](browser.md#screens)). `dev: true` marks a development series: front ends show it only with DEV; it is
 visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
-unique within the series, its display name `title`, a delivered `course`, its `laps` (1 through 99), its RACE vehicle
-candidates `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`,
-`rankLimits`, `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)),
-`timeMargin`, the clock's margin (positive, finite and at most 10), and `fixedColors`, whether the player drives in
-its entry's color rather than its own chosen color. `entries` lists the
-whole field, 1 through 16 entries, each a catalog vehicle, a color its sprite set declares, a positive pace ratio `pace`, `stages` (null for the
-whole run, or `{first, last}` with `last` at least `first` and no later than the stage count of every run of the
-course: its race gates per route, times the laps on a circuit) and one appearance. An entry taking part from STAGE
-1 has a grid `slot` index (0 through 15) and `ahead: null`; grid entries are in grid order with strictly increasing
-slots. An entry whose first stage is later has `slot: null` and `ahead: {distance, lane}`: a positive distance
-in metres ahead of the player and its lane number, which every Section of the course has, so it is a lane on
-every route. On every route the distance
-falls short of the next race gate and the next fork lock after the gate opening that stage. Every candidate vehicle
-of the class has at least one grid entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits`
-maps a race gate ID to its rank limit N. Admission checks each document once, from the build's files or the delivery
-manifest alike, against the delivered course IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of
-one or several series. A class is admitted against its compiled
-course: `laps` within `maxLaps`, every entry's slot within the slots its field uses of the grid it starts from (the
-bike grid when every entry is a bike and the course has one), no bike among the candidate vehicles of a field that is
-not all bikes on a course with a bike grid (below, [Measured products](#measured-products)), every ahead lane below the
-fewest lanes of the
-course's Sections, and rank limits naming checkpoint or FINISH gates of that course
-with N an integer from 1 to below the field size (the number of entries). The build admits every class; a
-Run admits the class it drives.
+unique within the series, its display name `title` (at most 23 of the text tiles' characters: the PRE-RACE card
+writes it from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
+`vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `rankLimits`,
+`traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
+clock's margin (positive, finite and at most 10), and `fixedColors`, whether the player drives in its entry's color
+rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a catalog vehicle, a color
+its sprite set declares, a positive pace ratio `pace`, `stages` (null for the whole run, or `{first, last}` with `last`
+at least `first` and no later than the stage count of every run of the course: its race gates per route, times the laps
+on a circuit) and one appearance. An entry taking part from STAGE 1 has a grid `slot` index (0 through 15) and `ahead:
+null`; grid entries are in grid order with strictly increasing slots. An entry whose first stage is later has `slot:
+null` and `ahead: {distance, lane}`: a positive distance in metres ahead of the player and its lane number, which every
+Section of the course has, so it is a lane on every route. On every route the distance falls short of the next race gate
+and the next fork lock after the gate opening that stage. Every candidate vehicle of the class has at least one grid
+entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank limit N.
+Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
+IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several
+series. A class is admitted against its compiled course: `laps` within `maxLaps`, every entry's slot within the slots
+its field uses of the grid it starts from (the bike grid when every entry is a bike and the course has one), no bike
+among the candidate vehicles of a field that is not all bikes on a course with a bike grid (below, [Measured
+products](#measured-products)), every ahead lane below the fewest lanes of the course's Sections, and rank limits naming
+checkpoint or FINISH gates of that course with N an integer from 1 to below the field size (the number of entries). The
+build admits every class; a Run admits the class it drives.
 
 The delivered series is TSUKUBA CLUBMAN, the first product series; its
 document holds its classes, with their fields. It has no race tracks and the title track
@@ -1763,8 +1761,8 @@ where its CHECK banner stands, and the finish is at the GOAL board. Its scenery 
 provisionally, and its jumps stand as boards passed through until the hills make them. Until its hills are made again it
 has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
-SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` SUPER
-MONACO GP QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
+SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` MONACO
+QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
 data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials
 and limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board
 without a body; run the conversion rather than editing the documents. The race has its checkpoints where the original's

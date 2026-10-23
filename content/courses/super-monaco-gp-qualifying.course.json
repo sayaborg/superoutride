@@ -1,7 +1,7 @@
 {
   "format": "superoutride.course",
   "version": 53,
-  "name": "SUPER MONACO GP QUALIFYING",
+  "name": "MONACO QUALIFYING",
   "entry": "sector-1a",
   "maxLaps": 30,
   "bearing": 0,
@@ -15897,7 +15897,7 @@
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "name": "SUPER MONACO GP QUALIFYING",
+          "name": "MONACO QUALIFYING",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -44.553437 },
           "arrival": "cut"
         }
@@ -31982,7 +31982,7 @@
       "environments": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "name": "SUPER MONACO GP QUALIFYING",
+          "name": "MONACO QUALIFYING",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -148.053437 },
           "arrival": "cut"
         }
@@ -44333,7 +44333,7 @@
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "name": "SUPER MONACO GP QUALIFYING",
+          "name": "MONACO QUALIFYING",
           "background": { "image": "smgp-sky", "horizonY": 320, "yawOrigin": -224.553437 },
           "arrival": "cut"
         }
