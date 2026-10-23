@@ -1,6 +1,6 @@
 /**
  * Where TURBO OUTRUN's objects stand on its course and what they show
- * ([Original road data](../../docs/original-road-data.md#turbo-outruns-objects)): each object the scenery model stands
+ * ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-objects)): each object the scenery model stands
  * (`turboOutrunObjects`), the start objects where they look as large as the original draws them, the start figures, and
  * the girls who hold up STAGE UP! and GOAL!, each across from P by the rule its routine follows, with its picture, its
  * height and, where the original tests a hit and it stands on the ground, a body.
@@ -16,7 +16,7 @@ import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-s
 import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
- * The strips, by routine, as OUTRUN's families ([Strips and patches](../../docs/original-road-data.md#strips-and-patches)):
+ * The strips, by routine, as OUTRUN's families ([Strips and patches](../../docs/outrun-road-data.md#strips-and-patches)):
  * strip A (0x0C to 0x14, the grass bank) VINEYARD's trees' family, its 9 sizes, the nearest last; strip B (0x18 to
  * 0x20: waves, dunes, flower beds) OUTRUN's strips', its 16 sizes, the nearest last; the far strip (0x24, fog) the
  * clouds', its 9 sizes, the nearest last. Each shows its nearest size by its edge nearest the road.

@@ -1,5 +1,5 @@
 /**
- * OUTRUN's road across ([Original road data](../../docs/original-road-data.md#cross-section)): one road's lines and
+ * OUTRUN's road across ([OUTRUN road data](../../docs/outrun-road-data.md#cross-section)): one road's lines and
  * edges as the road ROM draws them (`two-roads` draws two together), and the lanes driven over two of them. Every amount
  * is in road units, across from the roads' middle, positive right.
  */

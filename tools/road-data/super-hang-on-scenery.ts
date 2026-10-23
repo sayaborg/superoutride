@@ -1,5 +1,5 @@
 /**
- * Where SUPER HANG-ON's scenery stands along a course ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * Where SUPER HANG-ON's scenery stands along a course ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
  * the main CPU's program run tick by tick at the top speed, bringing objects out by its scenery points and patterns
  * (object 11) into its eight scenery objects (objects 12 to 19), each standing where it passes the bike.
  */

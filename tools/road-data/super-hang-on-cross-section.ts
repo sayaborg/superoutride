@@ -1,5 +1,5 @@
 /**
- * SUPER HANG-ON's road across ([Original road data](../../docs/original-road-data.md#super-hang-on)): the edges of its
+ * SUPER HANG-ON's road across ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): the edges of its
  * centre line, lines and edge bands in road units, as the road ROM draws them. The ROM's lines draw one road at a size
  * proportional to the line: a feature's edge on line r lies at u × r / 224 pixels from the road's centre, u its units
  * (an object's x is drawn at x × r / 224 pixels, the `divs.w #$E0` at 0x7262), so u is 224 times the slope of the

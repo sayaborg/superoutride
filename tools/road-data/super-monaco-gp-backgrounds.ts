@@ -1,6 +1,6 @@
 /**
  * SUPER MONACO GP's background as its main program builds it
- * ([Original road data](../../docs/original-road-data.md#super-monaco-gps-background)): the tile pages drawn from their
+ * ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-background)): the tile pages drawn from their
  * run-length records, the tiles' palettes and the road layer's sky and ground colors, of the fine set, and the sky they
  * make.
  */

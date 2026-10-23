@@ -1,6 +1,6 @@
 /**
  * OUTRUN's PCM voices and effects as its sound program plays them
- * ([Original road data](../../docs/original-road-data.md#voices-and-effects)): the sample a sound command plays, read
+ * ([OUTRUN road data](../../docs/outrun-road-data.md#voices-and-effects)): the sample a sound command plays, read
  * from the sound program's tables, and its PCM, for [local originals](../../docs/development.md#local-originals) of this
  * game's recordings.
  */

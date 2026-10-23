@@ -1,5 +1,5 @@
 /**
- * OUTRUN's sprites as its programs and sprite ROMs hold them ([Original road data](../../docs/original-road-data.md#sprites)):
+ * OUTRUN's sprites as its programs and sprite ROMs hold them ([OUTRUN road data](../../docs/outrun-road-data.md#sprites)):
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */

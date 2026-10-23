@@ -1,5 +1,5 @@
 /**
- * OUTRUN's backgrounds as its program places them ([Original road data](../../docs/original-road-data.md#backgrounds)):
+ * OUTRUN's backgrounds as its program places them ([OUTRUN road data](../../docs/outrun-road-data.md#backgrounds)):
  * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
  * sky.
  */

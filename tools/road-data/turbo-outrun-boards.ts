@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's objects as boards ([Original road data](../../docs/original-road-data.md#turbo-outruns-objects)): each
+ * TURBO OUTRUN's objects as boards ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-objects)): each
  * picture an object shows, mirrored as shown, becomes a course image of its largest size's pixels in every palette it
  * is shown in, on the texel grid of its pixels at the road's scale, its base point the object's, its shadow the
  * original's. The pictures are the ROMs', provisional: the product draws its own.

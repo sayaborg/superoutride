@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's backgrounds as its main CPU's tables hold them ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
+ * TURBO OUTRUN's backgrounds as its main CPU's tables hold them ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)):
  * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
  * its two layers and sky ramp as a sky bakes them.
  */

@@ -1,6 +1,6 @@
 /**
  * SUPER MONACO GP's courses as its programs hold them
- * ([Original road data](../../docs/original-road-data.md#super-monaco-gps-courses-tables)): each course's descriptor,
+ * ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses-tables)): each course's descriptor,
  * heading table, road path and scenery list with its groups, and the barriers' band tables.
  */
 import { long, s8, sword, u8, word } from './program-words.js';

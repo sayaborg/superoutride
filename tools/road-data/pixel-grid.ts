@@ -1,5 +1,5 @@
 /**
- * The originals' pixels on this game's texel grid ([Original road data](../../docs/original-road-data.md#boards)):
+ * The originals' pixels on this game's texel grid ([OUTRUN road data](../../docs/outrun-road-data.md#boards)):
  * a road unit's metres, the pixels' aspect, a board's grid, chosen lines, mirroring and a palette's name.
  */
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';

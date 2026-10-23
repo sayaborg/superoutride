@@ -10,7 +10,7 @@ const SPRITE_ROM_SIZE = 0x20000;
 
 /**
  * The program ROMs of MAME's `toutrun` (Turbo Out Run, the Out Run upgrade, FD1094 317-0118)
- * ([Original road data](../../docs/original-road-data.md#turbo-outrun)): for each CPU, pairs of 64 KiB ROMs, one holding
+ * ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)): for each CPU, pairs of 64 KiB ROMs, one holding
  * the even bytes and one the odd bytes of a 128 KiB part of its program. The main CPU's program is encrypted for
  * instruction fetches alone: its tables are its ROMs' bytes as they are, and it is never decrypted.
  */

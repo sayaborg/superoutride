@@ -1,5 +1,5 @@
 /**
- * OUTRUN's scenery as boards ([Original road data](../../docs/original-road-data.md#boards)): each sprite an object
+ * OUTRUN's scenery as boards ([OUTRUN road data](../../docs/outrun-road-data.md#boards)): each sprite an object
  * shows, mirrored as it is shown, becomes a course image of its largest size's pixels in each palette it is shown in, on
  * the texel grid of the original's pixels at the road's scale, its base point the object's anchor, and its shadow the
  * original's. The pictures are the ROMs', provisional: the product draws its own.

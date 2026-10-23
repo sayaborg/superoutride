@@ -2,7 +2,7 @@ import { fillPolygon, fillRect, mirrored, type Raster } from './raster.js';
 import { canvas, ink, m } from './kit.js';
 
 /**
- * The guidance's pictures where OUTRUN's roads part (original to this game; [Original road data](../../../docs/original-road-data.md#outruns-roads)):
+ * The guidance's pictures where OUTRUN's roads part (original to this game; [OUTRUN road data](../../../docs/outrun-road-data.md#outruns-roads)):
  * yellow boards edged in black with black chevrons pointing to the road taken, on grey posts, each standing on the middle of its
  * bottom row, `-left` pointing left and `-right` its mirror.
  */

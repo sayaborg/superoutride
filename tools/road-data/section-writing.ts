@@ -1,5 +1,5 @@
 /**
- * How the originals' Sections are written ([Original road data](../../docs/original-road-data.md#course-documents)):
+ * How the originals' Sections are written ([OUTRUN road data](../../docs/outrun-road-data.md#course-documents)):
  * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
  * coordinate domains would pass over themselves.
  */

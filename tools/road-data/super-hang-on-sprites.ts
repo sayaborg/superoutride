@@ -1,6 +1,6 @@
 /**
  * SUPER HANG-ON's sprites as its main program and sprite ROMs hold them
- * ([Original road data](../../docs/original-road-data.md#super-hang-on)): each sprite's sizes, pixels and palettes, the
+ * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each sprite's sizes, pixels and palettes, the
  * hit widths of the scenery, the gates' parts and the rivals' grid at the start.
  */
 import { paletteRgb555 } from './road-tables.js';

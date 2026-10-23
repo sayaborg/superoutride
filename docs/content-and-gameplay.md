@@ -1727,25 +1727,27 @@ the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 OUTRUN's roads (`outrun-a` CB▲GAT▲DES▲WIL▲VIN, `outrun-b` CB▲GAT▼ALP▲OC▲DV, `outrun-c-left` CB▲GAT▲DES▼OC▼DH,
 `outrun-c-right` CB▼DC▼CM▲WF▲DH, `outrun-d` CB▼DC▲ALP▼WF▼AUT, `outrun-e` CB▼DC▼CM▼ST▼LAK, each one of the original's
 routes to a goal, and `outrun-all` ALL 15 STAGES through all 15 stages, named by their stages' short names and forks
-([Original road data](original-road-data.md#outruns-roads))) are LINEAR courses written by the road data tool from the original's
-road data ([Original road data](original-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills,
-scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a fork
-has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
-checkpoint, and the finish is at the last stage's end. Their scenery is the ROMs' sprites, provisionally; where a road is chosen, boards, chevrons and
-road arrows show which road to take. Until their hills are made again they have no class ([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and
-their measured products are their racing lines alone.
+([OUTRUN road data](outrun-road-data.md#outruns-roads))) are LINEAR courses written by the road data tool from the
+original's road data ([OUTRUN road data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips,
+hills, scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a
+fork has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
+checkpoint, and the finish is at the last stage's end. Their scenery is the ROMs' sprites, provisionally; where a road
+is chosen, boards, chevrons and road arrows show which road to take. Until their hills are made again they have no class
+([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and their measured products are their racing
+lines alone.
 
 SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,
 `super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written
-by the road data tool from the original's ROMs ([Original road data](original-road-data.md#super-hang-ons-courses)),
-which owns their plan, lanes, strips, profile, scenery, gates and skies; run the conversion rather than editing the
-documents. Each stage has its checkpoint where its CHECK gate passes the bike, and the finish is at the GOAL gate. Their
-scenery shows the original's sprites, provisionally. Until their hills are made again they have no class: they are
-driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
+by the road data tool from the original's ROMs ([SUPER HANG-ON road
+data](super-hang-on-road-data.md#super-hang-ons-courses)), which owns their plan, lanes, strips, profile, scenery, gates
+and skies; run the conversion rather than editing the documents. Each stage has its checkpoint where its CHECK gate
+passes the bike, and the finish is at the GOAL gate. Their scenery shows the original's sprites, provisionally. Until
+their hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's
+last slot at GO.
 
 TURBO OUTRUN's course (`turbo-outrun` TURBO OUTRUN) is a LINEAR course of the original's 16 stages in running order,
 each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs ([Original road
-data](original-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates and
+data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates and
 skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its CHECK
 POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites, provisionally.
 Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's
@@ -1753,7 +1755,7 @@ last slot at GO.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
 written by the road data tool from the original's ROMs ([Original road
-data](original-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
+data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
 gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
 provisionally, and its jumps stand as boards passed through until the hills make them. Until its hills are made again it
@@ -1761,12 +1763,11 @@ has no class: it is driven in FREE PLAY alone, untimed, the player from the grid
 
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` SUPER
 MONACO GP QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
-data](original-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials and
-limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board without
-a body; run the conversion rather than editing the documents. The race has its
-checkpoints where the original's CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their
-hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last
-slot.
+data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials
+and limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board
+without a body; run the conversion rather than editing the documents. The race has its checkpoints where the original's
+CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their hills are made again they have
+no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last slot.
 
 ## Observation formats
 

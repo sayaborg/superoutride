@@ -1,6 +1,6 @@
 /**
  * ENDURO RACER's scenery as its main program holds it
- * ([Original road data](../../docs/original-road-data.md#enduro-racers-scenery)): the scenery table and its types, the
+ * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-scenery)): the scenery table and its types, the
  * scaled items' x, the jumps and their kinds, and the start's templates.
  */
 import { long, s8, sword, u8, word } from './program-words.js';

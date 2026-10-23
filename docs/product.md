@@ -174,14 +174,14 @@ its course. Each class also has its time margin and whether it fixes colors.
   lines; colors are not fixed.
 - **SUPER HANG-ON** drives period road superbikes, not Grand Prix racers. The field mixes the three
   vehicles in several colors. Its four courses are the original's, raised from the ROMs of its export sitdown/upright
-  cabinet (MAME's `shangon`; [Original road data](original-road-data.md#super-hang-on)).
+  cabinet (MAME's `shangon`; [SUPER HANG-ON road data](super-hang-on-road-data.md)).
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic and aims for a goal within time. Each
   of six classes drives one of the original's routes to its goal, taking each fork's side its route names; the seventh
   drives all 15 stages in the map's order, row by row from the left, its forks alternately left and right and each
   goal but the last joining the next stage.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
   vehicle: the silver 959 starts left, the red F40 right. Its course is the original's 16 stages as one LINEAR course,
-  raised from the ROMs of MAME's `toutrun` ([Original road data](original-road-data.md#turbo-outrun)); where the
+  raised from the ROMs of MAME's `toutrun` ([TURBO OUTRUN road data](turbo-outrun-road-data.md)); where the
   original stops at a leg's end and starts the next leg afresh, a join the original does not have carries the road on.
 - **CHASE H.Q.** chases one rival per stage, each ahead of the player at the stage start: white Esprit
   Turbo, yellow Countach, silver 911 Turbo, blue 288 GTO, red 928. The player must pass each stage end
@@ -198,11 +198,11 @@ its course. Each class also has its time margin and whether it fixes colors.
   There are no tire changes or service parks.
 - **ENDURO RACER** is a series of a later stage; its bikes, rivals, colors and pace are decided then. Until then its
   reference course, the original's five stages as one LINEAR course of 12.14 km raised from the ROMs of MAME's
-  `enduror` and `endurobl` ([Original road data](original-road-data.md#enduro-racer)), is a FREE PLAY course in no
+  `enduror` and `endurobl` ([ENDURO RACER road data](enduro-racer-road-data.md)), is a FREE PLAY course in no
   series.
 - **SUPER MONACO GP** is a series of a later stage; its cars, rivals, laps, rank limits and time are decided then. Until
   then its reference courses, the original's race and qualifying courses as CIRCUIT courses of 5.27 km and 2.28 km
-  raised from the ROMs of MAME's `smgp` ([Original road data](original-road-data.md#super-monaco-gp)), are FREE PLAY
+  raised from the ROMs of MAME's `smgp` ([SUPER MONACO GP road data](super-monaco-gp-road-data.md)), are FREE PLAY
   courses in no series.
 
 ## 6. Flow and screens

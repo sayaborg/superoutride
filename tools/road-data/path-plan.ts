@@ -1,5 +1,5 @@
 /**
- * An original's road path P as straights and arcs ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * An original's road path P as straights and arcs ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
  * each section's path, its folds spread, laid off as the longest elements that stay near the line its headings build,
  * the section's ends straight at the heading every section starts and ends with.
  */

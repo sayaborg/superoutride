@@ -1,5 +1,5 @@
 /**
- * Where TURBO OUTRUN's objects stand along its legs ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
+ * Where TURBO OUTRUN's objects stand along its legs ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)):
  * each leg run tick by tick from GO at one speed as its main CPU runs it, with the approach the originals share
  * (`object-approach`): the start objects, the scenery its points bring out into the 108 objects, each standing at the
  * road position of the tick its depth first reaches the car's line, and the gates that end the stages.

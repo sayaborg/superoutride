@@ -1,5 +1,5 @@
 /**
- * A SUPER HANG-ON course as a course document ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * A SUPER HANG-ON course as a course document ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
  * its sections' road path laid one after another from the entry and its goal after them, the road on it level but for
  * the crossings' bumps, its colors and stripes, its scenery, gates, the goal's crowd and the ending's figures.
  */

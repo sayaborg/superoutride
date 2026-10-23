@@ -9,7 +9,7 @@ const SPRITE_ROM_SIZE = 0x20000;
 
 /**
  * SUPER MONACO GP's ROMs, MAME's `smgp` (Super Monaco GP, World, Rev B, FD1094 317-0126a)
- * ([Original road data](../../docs/original-road-data.md#super-monaco-gps-rom-set)): each CPU's program from a ROM of
+ * ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-rom-set)): each CPU's program from a ROM of
  * its even bytes and a ROM of its odd bytes, 128 KiB each. The main CPU's program is encrypted for instruction fetches
  * alone: its tables are its ROMs' bytes as they are, and it is never decrypted. The sub CPU's holds the courses.
  */

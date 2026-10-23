@@ -1,5 +1,5 @@
 /**
- * ENDURO RACER's objects as boards ([Original road data](../../docs/original-road-data.md#enduro-racers-objects)): each
+ * ENDURO RACER's objects as boards ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-objects)): each
  * picture an object shows, mirrored as shown, becomes a course image of its unscaled size's drawn rows in every palette
  * it is shown in, on the texel grid by chosen lines, its base point the middle of its bottom, its pixel 10 its shadow;
  * each jump's two halves are one board. The pictures are the ROMs', provisional: the product draws its own.

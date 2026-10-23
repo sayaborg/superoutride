@@ -1,7 +1,7 @@
 /**
- * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([Original road data](../../docs/original-road-data.md#sprites)),
+ * The sprite hardware OUTRUN's board draws, shared by the originals that run on it ([OUTRUN road data](../../docs/outrun-road-data.md#sprites)),
  * and Space Harrier's, which ENDURO RACER's board draws
- * ([ENDURO RACER's sprites](../../docs/original-road-data.md#enduro-racers-sprites)): the sprite ROMs' 32-bit words, a
+ * ([ENDURO RACER's sprites](../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): the sprite ROMs' 32-bit words, a
  * size's pixels and outline, and its base point by its anchor.
  */
 

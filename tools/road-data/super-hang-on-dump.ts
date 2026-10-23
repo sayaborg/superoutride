@@ -1,5 +1,5 @@
 /**
- * SUPER HANG-ON's road data dump ([Original road data](../../docs/original-road-data.md#super-hang-on)): every table its
+ * SUPER HANG-ON's road data dump ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): every table its
  * courses use, read from the ROM set as the programs hold them, raw. It stays on the machine that read the ROMs.
  */
 import type { RomSet } from './rom-set.js';

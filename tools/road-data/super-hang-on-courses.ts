@@ -1,5 +1,5 @@
 /**
- * SUPER HANG-ON's four courses from its ROMs ([Original road data](../../docs/original-road-data.md#super-hang-on)): what
+ * SUPER HANG-ON's four courses from its ROMs ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): what
  * the road data tool's commands write, the course documents, the pictures their objects show and their skies.
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';

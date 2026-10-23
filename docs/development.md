@@ -492,7 +492,7 @@ recordings. They are for K's own runs only: they never reach Git, a PR or Pages.
 - **Identity.** An original keeps the published file's name; only its sound differs, so nothing the course identity
   reads changes and the measured products saved for the published content stay valid.
 - **Conversion.** The conversion is deterministic: `npm run road-data -- outrun-sounds` writes the originals of the recordings
-  the original plays from its PCM ROMs, with ffmpeg ([Voices and effects](original-road-data.md#voices-and-effects)).
+  the original plays from its PCM ROMs, with ffmpeg ([Voices and effects](outrun-road-data.md#voices-and-effects)).
 - **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
   paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
   authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.

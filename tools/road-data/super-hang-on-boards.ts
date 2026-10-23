@@ -1,5 +1,5 @@
 /**
- * SUPER HANG-ON's pictures as course images ([Original road data](../../docs/original-road-data.md#super-hang-on)): each
+ * SUPER HANG-ON's pictures as course images ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each
  * sprite or frame an object shows, mirrored as shown, from its largest size's pixels by chosen lines onto its texel grid at
  * the scale the original draws it where it passes the bike, in every palette it is shown in, its base point the middle
  * of its bottom. They are the original's pictures, provisional: the product's are drawn again.

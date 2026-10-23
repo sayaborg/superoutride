@@ -1,5 +1,5 @@
 /**
- * SUPER MONACO GP's circuits from its ROMs ([Original road data](../../docs/original-road-data.md#super-monaco-gps-courses)):
+ * SUPER MONACO GP's circuits from its ROMs ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-courses)):
  * each course's heading table laid as straights and arcs from the race's line, closed exactly on the written plane, the
  * road level, its lanes, its materials and limits from the barriers' band tables, the road's surface and its marks as
  * strips, every other object a board, its Sections, sky, checkpoints, finish and grid.

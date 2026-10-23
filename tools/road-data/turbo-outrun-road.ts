@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's road data as its programs hold it ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
+ * TURBO OUTRUN's road data as its programs hold it ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)):
  * the legs' order, each stage's block (colors, ground, sky ramp, curves, widths and heights, scenery) and road path, the
  * scenery types, the kinds' records and their size lists, the sprite palettes, the strips' size tables, the routines'
  * table and the program's constants the conversion uses. Where a format is OUTRUN's, OUTRUN's reader reads it. Every

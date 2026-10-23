@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's course from its ROMs ([Original road data](../../docs/original-road-data.md#turbo-outruns-course)): its
+ * TURBO OUTRUN's course from its ROMs ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-course)): its
  * 16 stages laid out as one LINEAR course (`turbo-outrun-layout`), each Section written with its lanes, verges, strips
  * (two roads as the road ROM draws them, in each stage's colors), gates and skies.
  */

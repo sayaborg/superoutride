@@ -1,5 +1,5 @@
 /**
- * Two roads drawn together ([Original road data](../../docs/original-road-data.md#cross-section)): one road's picture
+ * Two roads drawn together ([OUTRUN road data](../../docs/outrun-road-data.md#cross-section)): one road's picture
  * across, its lines and edge bands as its road ROM draws them, and the picture of two or more such roads where they meet.
  * Every amount is in road units, positive right.
  */

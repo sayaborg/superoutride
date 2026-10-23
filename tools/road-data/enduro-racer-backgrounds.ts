@@ -1,6 +1,6 @@
 /**
  * ENDURO RACER's backgrounds as its main program draws them
- * ([Original road data](../../docs/original-road-data.md#enduro-racers-backgrounds)): each stage's two layers of tile
+ * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-backgrounds)): each stage's two layers of tile
  * columns, their vertical offsets, the tiles' palettes, and the sky's ramp and top color.
  */
 import { long, sword, u8, word } from './program-words.js';

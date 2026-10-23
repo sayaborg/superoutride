@@ -1,5 +1,5 @@
 /**
- * What stands at each leg's start in TURBO OUTRUN ([Original road data](../../docs/original-road-data.md#turbo-outrun)):
+ * What stands at each leg's start in TURBO OUTRUN ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)):
  * the start objects the main CPU's start table lists, and the start figures its encrypted code moves, as the stage's
  * description gives them.
  */

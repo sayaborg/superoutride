@@ -1,5 +1,5 @@
 /**
- * OUTRUN's pieces ([Original road data](../../docs/original-road-data.md#pieces)): each stage, the fork's two sides and
+ * OUTRUN's pieces ([OUTRUN road data](../../docs/outrun-road-data.md#pieces)): each stage, the fork's two sides and
  * the five goals, each one shape whatever comes before or after it. A span is the stretch of pieces one lane naming
  * holds, from a Link (or the road's start) to the next: a stage to its fork stretch's six lanes, a fork side, or a last
  * stage with its goal. Positions are the span's own, from 0.

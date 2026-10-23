@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's course laid out ([Original road data](../../docs/original-road-data.md#turbo-outruns-course)): its 16
+ * TURBO OUTRUN's course laid out ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-course)): its 16
  * stages one after another from the entry, each to where the original ends it, a leg's last joined to the next leg's
  * start; P from the stages' road paths; the road width from their width points; the plane, lane b's centre, laid off P;
  * the Sections, cut where their coordinate domains would pass over themselves; the profile with the crossings' bumps.

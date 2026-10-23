@@ -1,6 +1,6 @@
 /**
  * SUPER HANG-ON's backgrounds as its main program draws them
- * ([Original road data](../../docs/original-road-data.md#super-hang-on)): each section's tile map, drawn in eight steps
+ * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each section's tile map, drawn in eight steps
  * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
 import { long, u8, word } from './program-words.js';

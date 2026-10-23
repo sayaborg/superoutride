@@ -10,7 +10,7 @@ const ROAD_ROM_SIZE = 0x8000;
 
 /**
  * The program ROMs of MAME's `shangon` (Super Hang-On, sitdown/upright, unprotected) that hold the road data
- * ([Original road data](../../docs/original-road-data.md#super-hang-on)): for each CPU, pairs of 64 KiB ROMs, one
+ * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): for each CPU, pairs of 64 KiB ROMs, one
  * holding the even bytes and one the odd bytes of a 128 KiB half of its program.
  */
 export const SUPER_HANG_ON_PROGRAM_ROMS = Object.freeze({

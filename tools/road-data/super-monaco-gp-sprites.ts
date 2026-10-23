@@ -1,6 +1,6 @@
 /**
  * SUPER MONACO GP's sprites as its programs and sprite ROMs hold them
- * ([Original road data](../../docs/original-road-data.md#super-monaco-gps-sprites)): the X board's frame tables and
+ * ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-sprites)): the X board's frame tables and
  * size records, the view tables of the objects that change with the angle, and the sprites' palettes. The pixels are
  * OUTRUN's.
  */

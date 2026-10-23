@@ -1,5 +1,5 @@
 /**
- * ENDURO RACER's road data dump ([Original road data](../../docs/original-road-data.md#enduro-racers-dump)): every
+ * ENDURO RACER's road data dump ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-dump)): every
  * table its course uses, read from the ROM sets as the programs hold them, raw. It stays on the machine that read the
  * ROMs.
  */

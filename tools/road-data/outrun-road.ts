@@ -1,5 +1,5 @@
 /**
- * OUTRUN's road data as its programs hold it ([Original road data](../../docs/original-road-data.md)): each stage's
+ * OUTRUN's road data as its programs hold it ([OUTRUN road data](../../docs/outrun-road-data.md)): each stage's
  * colors, curves, widths and heights, and scenery on the main CPU, its road path and the height tables on the sub CPU.
  * Every reader takes a program as the 68000 addresses it (big-endian words and longs) and returns the table's entries
  * as numbers, without interpreting them further.

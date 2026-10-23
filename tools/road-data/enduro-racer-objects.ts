@@ -1,5 +1,5 @@
 /**
- * Where ENDURO RACER's objects stand ([Original road data](../../docs/original-road-data.md#enduro-racers-objects)): the
+ * Where ENDURO RACER's objects stand ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-objects)): the
  * scenery table's items, the start's templates and the jumps, each at its road position, its lateral from P, its
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */

@@ -1,5 +1,5 @@
 /**
- * ENDURO RACER's road as its programs hold it ([Original road data](../../docs/original-road-data.md#enduro-racers-road)):
+ * ENDURO RACER's road as its programs hold it ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-programs)):
  * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern and the
  * position where stage 3's background comes in.
  */

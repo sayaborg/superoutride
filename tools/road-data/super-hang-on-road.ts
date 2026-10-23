@@ -1,5 +1,5 @@
 /**
- * SUPER HANG-ON's road data as its programs hold it ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * SUPER HANG-ON's road data as its programs hold it ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
  * the courses and their sections, each section's colors, curves, heights and scenery, and the goal on the main CPU; the
  * road paths and height tables on the sub CPU. Every reader takes a program as the 68000 addresses it and returns the
  * table's entries as numbers, without interpreting them further.

@@ -1,5 +1,5 @@
 /**
- * An original's road path P laid in the world ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * An original's road path P laid in the world ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
  * its straights and arcs one after another from the course's entry, the plane the centre lane runs on (P laid off a
  * fixed distance to its left, so again straights and arcs), and each road position's station on the plane.
  */

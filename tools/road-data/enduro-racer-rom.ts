@@ -7,7 +7,7 @@ const FIRST_MAIN_ROM_SIZE = 0x10000;
 const ROM_SIZE = 0x8000;
 
 /**
- * ENDURO RACER's ROMs ([Original road data](../../docs/original-road-data.md#enduro-racers-rom-set)). The main CPU's
+ * ENDURO RACER's ROMs ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-rom-set)). The main CPU's
  * program is MAME's `endurobl` (bootleg set 1), whose ROMs hold the YM2203 set's program decrypted: 0x00000–0x0FFFF
  * from two 64 KiB ROMs whose first halves hold the instructions and second halves the data, 0x10000–0x2FFFF from
  * pairs of 32 KiB ROMs that hold both. The sub CPU's program and the graphics are MAME's `enduror` (Rev A), which are

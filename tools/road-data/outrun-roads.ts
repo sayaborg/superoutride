@@ -1,5 +1,5 @@
 /**
- * OUTRUN's roads ([Original road data](../../docs/original-road-data.md#outruns-roads)): pieces laid one after another
+ * OUTRUN's roads ([OUTRUN road data](../../docs/outrun-road-data.md#outruns-roads)): pieces laid one after another
  * as one LINEAR course each. Each span is laid on its plan (`OffsetPlan`) and in the world after the one before; the
  * road's crossings are kept apart and its passages over itself parted into Sections; its objects stand along the whole
  * road; each Section is written with its lanes, verges, strips (the roads' surfaces, lines and edges as the original

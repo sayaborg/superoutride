@@ -1,6 +1,6 @@
 /**
  * ENDURO RACER's sprites as its main program and sprite ROMs hold them
- * ([Original road data](../../docs/original-road-data.md#enduro-racers-sprites)): Space Harrier's sprite hardware, each
+ * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-sprites)): Space Harrier's sprite hardware, each
  * size set's sizes and the rows its largest size draws, and the sprites' palettes.
  */
 import { word } from './program-words.js';

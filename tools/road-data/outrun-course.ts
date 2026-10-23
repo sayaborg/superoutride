@@ -1,5 +1,5 @@
 /**
- * What OUTRUN's roads are made from beside their pieces ([Original road data](../../docs/original-road-data.md)): a
+ * What OUTRUN's roads are made from beside their pieces ([OUTRUN road data](../../docs/outrun-road-data.md)): a
  * stage's path P as straights and arcs.
  */
 import { requireInput } from '../course/authoring-io.js';

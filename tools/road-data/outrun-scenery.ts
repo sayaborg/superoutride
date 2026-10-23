@@ -1,5 +1,5 @@
 /**
- * Where OUTRUN's scenery stands along a road ([Original road data](../../docs/original-road-data.md#placing-scenery)):
+ * Where OUTRUN's scenery stands along a road ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)):
  * the objects its scenery points bring out and the objects at the game's start, each where the car passes it at the top
  * speed, beside its road, as the main CPU runs them tick by tick.
  */

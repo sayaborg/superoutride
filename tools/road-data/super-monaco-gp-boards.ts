@@ -1,5 +1,5 @@
 /**
- * SUPER MONACO GP's objects as boards ([Original road data](../../docs/original-road-data.md#super-monaco-gps-objects)):
+ * SUPER MONACO GP's objects as boards ([SUPER MONACO GP road data](../../docs/super-monaco-gp-road-data.md#super-monaco-gps-objects)):
  * each picture an object shows, as it shows it (mirrored, flipped), becomes a course image of its frame table's largest
  * size in every palette it is shown in, on the texel grid by chosen lines. The pictures are the ROMs', provisional: the
  * product draws its own.

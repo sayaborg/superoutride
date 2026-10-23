@@ -1,6 +1,6 @@
 /**
  * How the objects of the originals on OUTRUN's board approach the car tick by tick
- * ([Original road data](../../docs/original-road-data.md#placing-scenery)): the tick's advance from the phase word, an
+ * ([OUTRUN road data](../../docs/outrun-road-data.md#placing-scenery)): the tick's advance from the phase word, an
  * object's depth after a tick by its program's approach table, and where an object standing at the start looks as
  * large as the original draws it.
  */

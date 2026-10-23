@@ -1,5 +1,5 @@
 /**
- * ENDURO RACER's road across ([Original road data](../../docs/original-road-data.md#enduro-racers-course)): the edges of
+ * ENDURO RACER's road across ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-course)): the edges of
  * its surface and edge bands in lateral units, as the road ROM draws them. Line L of the ROM is the road's left half,
  * its last column the road's centre; the sub CPU draws depth number d3 with line L = 0.991 (d3 + 3) − 3, on which an
  * object's unit is (d3 + 3) / 128 pixels, so an edge's units are 0.991 × 128 times the slope of its pixels against the

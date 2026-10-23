@@ -1,5 +1,5 @@
 /**
- * ENDURO RACER's course from its ROMs ([Original road data](../../docs/original-road-data.md#enduro-racers-course)):
+ * ENDURO RACER's course from its ROMs ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-course)):
  * the five stages' road paths laid one after another from the entry and a straight past the goal, the road on them level
  * but for the crossings' bumps, its colors, stripes and materials, its Sections, skies, checkpoints, finish and grid.
  */

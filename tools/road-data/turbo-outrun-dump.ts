@@ -1,5 +1,5 @@
 /**
- * TURBO OUTRUN's road data dump ([Original road data](../../docs/original-road-data.md#turbo-outrun)): every table its
+ * TURBO OUTRUN's road data dump ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md)): every table its
  * course uses, read from the ROM set as the programs hold them, raw, with the stage's described tables beside them. It
  * stays on the machine that read the ROMs. Reading it checks the tables against what the description says of them, and
  * the tables it says are OUTRUN's against OUTRUN's ROM set.

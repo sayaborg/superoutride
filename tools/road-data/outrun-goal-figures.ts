@@ -1,5 +1,5 @@
 /**
- * The figures after OUTRUN's goals ([Original road data](../../docs/original-road-data.md#the-figures-after-the-goals)):
+ * The figures after OUTRUN's goals ([OUTRUN road data](../../docs/outrun-road-data.md#the-figures-after-the-goals)):
  * who stands before the stopped camera at the last tick of each goal's scene, as the program at 0x5B42 runs them, and
  * where they stand on a road.
  */

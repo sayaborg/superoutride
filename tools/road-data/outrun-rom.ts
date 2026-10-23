@@ -10,7 +10,7 @@ const ROAD_ROM_SIZE = 0x8000;
 export const SOUND_ROM_SIZE = 0x8000;
 
 /**
- * The program ROMs of MAME's `outrun` (Rev. B) that hold the road data ([Original road data](../../docs/original-road-data.md)):
+ * The program ROMs of MAME's `outrun` (Rev. B) that hold the road data ([OUTRUN road data](../../docs/outrun-road-data.md)):
  * for each CPU, pairs of 64 KiB ROMs, one holding the even bytes and one the odd bytes of a 128 KiB half of its program.
  */
 export const OUTRUN_PROGRAM_ROMS = Object.freeze({
