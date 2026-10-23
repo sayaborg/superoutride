@@ -276,8 +276,10 @@ together) is carried on into the next, its length and its turn.
 
 ## Plan from a heading table
 
-A heading table, a heading at each position, becomes straights and arcs over its positions (`headingPlan`,
-`heading-plan`) by one constant, the table's resolution (K, 2026-10-23). A table of heading vectors about 4096 long, as
+A heading table, headings each at its position (a table's positions one apart, or as a course places them),
+becomes straights and arcs over its positions (`headingPlan`, `heading-plan`) by one constant, the table's resolution
+(K, 2026-10-23); its elements turn at radii over the least its coordinate domain admits, a domain of one reach either
+side its reach. A table of heading vectors about 4096 long, as
 the originals' road paths are, has a resolution of 1.5 / 4096 radians (`VECTOR_RESOLUTION`), a unit and a half of the
 4096, where the runs stop growing fewer: SUPER HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and
 ENDURO RACER 148, 132 and 128.
@@ -290,14 +292,13 @@ ENDURO RACER 148, 132 and 128.
   time is the longest, and the runs are the fewest any such rule makes.
 - **Arcs.** A run is an arc over its positions at its line's rate, from its line's heading at its first position to
   its line's at its last; a run of one heading has no length.
-- **Turns.** Two runs are joined by a turn over the position between them, from the first's line at its last position
-  to the next's at its first. A turn takes one more position on each side from the runs beside it, a round, every such
-  turn at once, where its own domain would pass over itself (its radius not over the domain's reach) or where it lies
-  between two cells of a Section, as its course writes it, whose coordinate domain the course format does not admit:
-  cells less than 10 m apart along the road (`domainOverlap`), for farther ones are passages, which the Sections' cuts
-  part. A turn that takes a run's whole arc, or overlaps the next turn, joins it, and turns between the runs beyond; a
-  run whose own arc the domain cannot hold (its radius not over the domain's reach) is taken into the turns either
-  side of it, as one.
+- **Turns.** Two runs are joined by a turn over the step between them, from the first's line at its last position to the
+  next's at its first. A turn takes one more step on each side from the runs beside it, a round, every such turn at
+  once, where its radius would not be over the least or where it lies between two cells of a Section, as its course
+  writes it, whose coordinate domain the course format does not admit: cells less than 10 m apart along the road
+  (`domainOverlap`), for farther ones are passages, which the Sections' cuts part. A turn that takes a run's whole arc,
+  or overlaps the next turn, joins it, and turns between the runs beyond; a run whose own radius would not be over the
+  least is taken into the turns either side of it, as one.
 - **Headings.** Each element turns from the heading the plan has reached to its end's on the lines: an arc's on its
   run's line, a turn's on the next run's. One that would be straighter than the course format's longest radius
   (42 km) is a straight, its turn left to the next; straights one after another are one.

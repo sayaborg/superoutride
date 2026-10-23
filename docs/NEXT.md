@@ -160,7 +160,9 @@ PRs, in this order:
 - EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.
 - EX-4b: a turn widened where a Section, as its course writes it, is refused, not where the whole elements about it are:
   those include passages that the Sections' cuts part (ENDURO RACER's hairpins).
-- EX-5 and EX-6: ENDURO RACER's and TURBO OUTRUN's courses raised on P, a PR each.
+- EX-5 and EX-6: ENDURO RACER's and TURBO OUTRUN's courses raised on P, a PR each; before EX-6, EX-6a: the plan
+  from a heading table at a course's positions and with the least radius its domain admits, and a Section's domain
+  checked where it varies along the road, for TURBO OUTRUN's stages and its sand narrowed on a curve's inside.
 - EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO; with it, whether OUTRUN's start records'
   count is one short is checked, and mended in a PR of its own if it is.
 - EX-7: OUTRUN's courses raised on P.

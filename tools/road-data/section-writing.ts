@@ -159,15 +159,28 @@ export function writtenPlan(path: CoursePath, piece: { readonly from: number; re
 }
 
 /**
- * Where the course format does not admit a piece's coordinate domain, `reach` metres either side of P: P's metres from
- * the start of the earlier of two of its cells that overlap to the end of the later, or null. Two cells
+ * A coordinate domain about P: how far it reaches left and right of P at `u` metres along P, straight between the
+ * metres along P its edges change at, `stations`.
+ */
+export interface PathDomain {
+  readonly stations: readonly number[];
+  readonly sides: (u: number) => readonly [number, number];
+}
+
+/**
+ * Where the course format does not admit a piece's coordinate domain, `reach` metres either side of P or `domain`: P's
+ * metres from the start of the earlier of two of its cells that overlap to the end of the later, or null. Two cells
  * `DOMAIN_APART` or more apart are passages its cuts should have parted, and are refused.
  */
 export function domainOverlap(
   path: CoursePath,
   piece: { readonly id: string; readonly from: number; readonly to: number },
-  reach: number,
+  domain: number | PathDomain,
 ): [number, number] | null {
+  const origin = path.station(piece.from);
+  const at = (s: number) => path.along(origin + s);
+  const { stations, sides }: PathDomain =
+    typeof domain === 'number' ? { stations: [], sides: () => [domain, domain] } : domain;
   // The format's arcs turn right positive.
   const geometry: PlanSegmentGeometry[] = writtenPlan(path, piece).map((e) =>
     e.kind === 'straight'
@@ -178,7 +191,13 @@ export function domainOverlap(
     validatePlanDomainInjectivity(
       piece.id,
       compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry).segments,
-      { stations: [], lateralAt: (_s, out) => Object.assign(out, { left: -reach, right: reach }) },
+      {
+        stations: stations.filter((u) => u > piece.from && u < piece.to).map((u) => path.station(u) - origin),
+        lateralAt: (s, out) => {
+          const [left, right] = sides(at(s));
+          return Object.assign(out, { left: -left, right });
+        },
+      },
       '',
     );
     return null;
@@ -186,7 +205,6 @@ export function domainOverlap(
     const overlap = error instanceof CourseInputError && 'overlap' in error.diagnostic && error.diagnostic.overlap;
     if (!overlap) throw error;
     const [a, b] = overlap.intervals;
-    const at = (s: number) => path.along(path.station(piece.from) + s);
     requireInput(
       b!.sStart - a!.sEnd < DOMAIN_APART,
       `/plan/${piece.id}`,

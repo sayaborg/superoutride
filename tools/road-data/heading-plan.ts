@@ -7,7 +7,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
 import type { Path } from './road-tables.js';
 
-/** A run of a table: its headings `from` to `to` (positions) and its line, its minimax one, `start` at `from`. */
+/** A run of a table: its entries `from` to `to` and its line, its minimax one, `start` at `from`'s position. */
 export interface HeadingRun {
   readonly from: number;
   readonly to: number;
@@ -90,17 +90,29 @@ class Hull {
   }
 }
 
+/** A heading table: its headings (radians), each at its position, the positions increasing. */
+export interface HeadingTable {
+  readonly positions: readonly number[];
+  readonly headings: readonly number[];
+}
+
+/** Headings one a position from position 0. */
+export const evenly = (headings: readonly number[]): HeadingTable => ({
+  positions: headings.map((_, i) => i),
+  headings,
+});
+
 /**
  * A table's runs in its order: a run takes the next heading while some line holds every heading of it within
  * `resolution` (radians), and ends at the first it cannot take; its line is its minimax one.
  */
-export function headingRuns(headings: readonly number[], resolution: number): HeadingRun[] {
+export function headingRuns({ positions, headings }: HeadingTable, resolution: number): HeadingRun[] {
   const runs: HeadingRun[] = [];
   for (let from = 0; from < headings.length;) {
     let hull = Hull.of([0, headings[from]!]);
     let to = from;
     while (to + 1 < headings.length) {
-      const next = hull.with([to + 1 - from, headings[to + 1]!]);
+      const next = hull.with([positions[to + 1]! - positions[from]!, headings[to + 1]!]);
       if (next.line().width > 2 * resolution) break;
       hull = next;
       to++;
@@ -112,7 +124,7 @@ export function headingRuns(headings: readonly number[], resolution: number): He
   return runs;
 }
 
-/** A turn between runs: over positions `[a, b]`, from run `left`'s line at `a` to run `right`'s at `b`. */
+/** A turn between runs: over the table's entries `[a, b]`, from run `left`'s line at `a` to run `right`'s at `b`. */
 interface Join {
   readonly a: number;
   readonly b: number;
@@ -121,30 +133,33 @@ interface Join {
 }
 
 /**
- * A table's plan, its positions `metres` apart, whose coordinate domain reaches `reach` metres either side of it:
- * - each run an arc at its line's rate between the turns either side of it, but one whose arc would pass the domain
- *   over itself (its radius not over `reach`), which is taken into those turns, as one;
- * - two runs joined by a turn over the position between them, or over the fewest more, one more on each side a round,
- *   taken from the runs beside it, where its own domain passes over itself (its radius not over `reach`) or it lies
- *   between two cells of a Section whose domain the course format does not admit (`refused`: the stretches of
- *   positions from the earlier such cell to the later, for the plan of the elements given); a turn that takes a run's
- *   whole arc, or overlaps the next turn, joins with it, the runs beyond it the ones it turns between;
+ * A table's plan, its positions `metres` apart, whose elements turn at radii over `radius(from, to)`, the least its
+ * coordinate domain admits over positions `[from, to]`:
+ * - each run an arc at its line's rate between the turns either side of it, but one whose radius would not be over
+ *   `radius`, which is taken into those turns, as one;
+ * - two runs joined by a turn over the step between them, or over the fewest more, one more on each side a round,
+ *   taken from the runs beside it, where its radius would not be over `radius` or it lies between two cells of a
+ *   Section whose domain the course format does not admit (`refused`: the stretches of positions from the earlier such
+ *   cell to the later, for the plan of the elements given); a turn that takes a run's whole arc, or overlaps the next
+ *   turn, joins with it, the runs beyond it the ones it turns between;
  * - each element turning from the heading the elements before it reach to its end's on the lines (an arc's end on its
  *   run's line, a turn's on the next run's), one that would be straighter than the course format's longest radius a
  *   straight, its turn left to the next; straights one after another one.
  * The runs, the plan, its start heading, and the heading its last element leaves unturned.
  */
 export function headingPlan(
-  headings: readonly number[],
+  table: HeadingTable,
   resolution: number,
   metres: number,
-  reach: number,
+  radius: (from: number, to: number) => number,
   refused: (elements: readonly PlanElement[]) => readonly (readonly [number, number])[],
 ) {
-  const runs = headingRuns(headings, resolution);
-  const line = (r: number, x: number) => runs[r]!.start + runs[r]!.rate * (x - runs[r]!.from);
-  const last = headings.length - 1;
-  const sharp = (r: number) => Math.abs(runs[r]!.rate) * reach >= metres;
+  const { positions } = table;
+  const runs = headingRuns(table, resolution);
+  const line = (r: number, x: number) => runs[r]!.start + runs[r]!.rate * (x - positions[runs[r]!.from]!);
+  const last = positions.length - 1;
+  const sharp = (r: number) =>
+    Math.abs(runs[r]!.rate) * radius(positions[runs[r]!.from]!, positions[runs[r]!.to]!) >= metres;
   requireInput(
     !sharp(0) && !sharp(runs.length - 1),
     '/plan',
@@ -153,14 +168,15 @@ export function headingPlan(
   /** The plan the turns `joins` make, and the heading its last element leaves unturned. */
   const laid = (joins: readonly Join[]) => {
     const ends: { from: number; to: number; heading: number }[] = [];
-    let [at, run] = [0, 0];
+    let [at, run] = [positions[0]!, 0];
     for (const j of joins) {
-      if (j.a > at) ends.push({ from: at, to: j.a, heading: line(run, j.a) });
-      ends.push({ from: j.a, to: j.b, heading: line(j.right, j.b) });
-      [at, run] = [j.b, j.right];
+      const [a, b] = [positions[j.a]!, positions[j.b]!];
+      if (a > at) ends.push({ from: at, to: a, heading: line(run, a) });
+      ends.push({ from: a, to: b, heading: line(j.right, b) });
+      [at, run] = [b, j.right];
     }
-    if (last > at) ends.push({ from: at, to: last, heading: line(run, last) });
-    let heading = line(0, 0);
+    if (positions[last]! > at) ends.push({ from: at, to: positions[last]!, heading: line(run, positions[last]!) });
+    let heading = line(0, positions[0]!);
     const elements: PlanElement[] = [];
     for (const e of ends) {
       const turn = e.heading - heading;
@@ -170,7 +186,7 @@ export function headingPlan(
       if (straight && before?.turn === 0) elements[elements.length - 1] = { ...before, to: e.to };
       else elements.push({ from: e.from, to: e.to, turn: straight ? 0 : turn });
     }
-    return { elements, unturned: line(run, last) - heading };
+    return { elements, unturned: line(run, positions[last]!) - heading };
   };
   // The turns between runs, a sharp run's taken into those either side of it.
   let joins: Join[] = [];
@@ -179,14 +195,18 @@ export function headingPlan(
     if (before && sharp(k - 1)) joins[joins.length - 1] = { ...before, b: runs[k]!.from, right: k };
     else joins.push({ a: runs[k - 1]!.to, b: runs[k]!.from, left: k - 1, right: k });
   }
-  const turnOf = (j: Join) => line(j.right, j.b) - line(j.left, j.a);
+  const span = (j: Join) => [positions[j.a]!, positions[j.b]!] as const;
+  const turnOf = (j: Join) => line(j.right, positions[j.b]!) - line(j.left, positions[j.a]!);
+  const within = (j: Join, [p, q]: readonly [number, number]) => span(j)[0] < q && span(j)[1] > p;
   for (;;) {
     const stretches = refused(laid(joins).elements);
     const keeps = joins.map(
-      (j) => Math.abs(turnOf(j)) * reach < (j.b - j.a) * metres && !stretches.some(([p, q]) => j.a < q && j.b > p),
+      (j) =>
+        Math.abs(turnOf(j)) * radius(...span(j)) < (span(j)[1] - span(j)[0]) * metres &&
+        !stretches.some((t) => within(j, t)),
     );
     requireInput(
-      stretches.every(([p, q]) => joins.some((j) => j.a < q && j.b > p)),
+      stretches.every((t) => joins.some((j) => within(j, t))),
       '/plan',
       "No turn lies between the cells where a Section's domain passes over itself",
     );
@@ -204,15 +224,15 @@ export function headingPlan(
       else joins.push(j);
     }
   }
-  return { runs, ...laid(joins), start: line(0, 0) };
+  return { runs, ...laid(joins), start: line(0, positions[0]!) };
 }
 
 /**
- * How far the plan of `elements`, laid from heading `start`, lies from the line the headings build (each position a
- * step along its ends' mean heading) at the positions, at most, metres.
+ * How far the plan of `elements`, laid from heading `start`, lies from the line the table's headings build (each step
+ * along its ends' mean heading) at the table's positions, at most, metres.
  */
 export function departure(
-  headings: readonly number[],
+  { positions, headings }: HeadingTable,
   elements: readonly PlanElement[],
   start: number,
   metres: number,
@@ -223,13 +243,14 @@ export function departure(
   let i = 0;
   for (const e of elements) {
     const k = e.turn / ((e.to - e.from) * metres);
-    for (; i < e.to; i++) {
+    for (; positions[i]! < e.to; i++) {
+      const d = (positions[i + 1]! - positions[i]!) * metres;
       const mean = (headings[i]! + headings[i + 1]!) / 2;
-      [px, py] = [px + metres * Math.cos(mean), py + metres * Math.sin(mean)];
-      if (k === 0) [x, y] = [x + metres * Math.cos(h), y + metres * Math.sin(h)];
+      [px, py] = [px + d * Math.cos(mean), py + d * Math.sin(mean)];
+      if (k === 0) [x, y] = [x + d * Math.cos(h), y + d * Math.sin(h)];
       else {
-        [x, y] = [x + (Math.sin(h + k * metres) - Math.sin(h)) / k, y + (Math.cos(h) - Math.cos(h + k * metres)) / k];
-        h += k * metres;
+        [x, y] = [x + (Math.sin(h + k * d) - Math.sin(h)) / k, y + (Math.cos(h) - Math.cos(h + k * d)) / k];
+        h += k * d;
       }
       most = Math.max(most, Math.hypot(x - px, y - py));
     }

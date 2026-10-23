@@ -15,7 +15,7 @@ import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import { departure, headingPlan, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { departure, evenly, headingPlan, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -200,13 +200,19 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     return { path, pieces };
   };
   // The plan: its turns widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(inputs.headings, VECTOR_RESOLUTION, metres, reach, (planned) => {
-    const { path, pieces } = lay(planned);
-    return pieces.flatMap((piece) => {
-      const overlap = domainOverlap(path, piece, reach);
-      return overlap ? [overlap.map((u) => (u - entry) / metres) as [number, number]] : [];
-    });
-  });
+  const plan = headingPlan(
+    evenly(inputs.headings),
+    VECTOR_RESOLUTION,
+    metres,
+    () => reach,
+    (planned) => {
+      const { path, pieces } = lay(planned);
+      return pieces.flatMap((piece) => {
+        const overlap = domainOverlap(path, piece, reach);
+        return overlap ? [overlap.map((u) => (u - entry) / metres) as [number, number]] : [];
+      });
+    },
+  );
   const { path, pieces } = lay(plan.elements);
   const stationOf = (q: number) => path.station(along(q));
   const end = path.length;
@@ -344,7 +350,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       links,
     },
     path,
-    plan: { ...plan, departure: departure(inputs.headings, plan.elements, plan.start, metres) },
+    plan: { ...plan, departure: departure(evenly(inputs.headings), plan.elements, plan.start, metres) },
     pieces,
     profile,
     pairs,

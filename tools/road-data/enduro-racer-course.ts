@@ -15,7 +15,7 @@ import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-pr
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
-import { departure, headingPlan, pathHeadings, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { departure, evenly, headingPlan, pathHeadings, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { domainCuts, domainOverlap, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
@@ -311,13 +311,19 @@ function layCourse(inputs: CourseInputs) {
     return { path, pieces };
   };
   // The plan: its turns widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(inputs.headings, VECTOR_RESOLUTION, metres, reach, (planned) => {
-    const { path, pieces } = lay(planned);
-    return pieces.flatMap((piece) => {
-      const overlap = domainOverlap(path, piece, reach);
-      return overlap ? [overlap.map((u) => (u - inputs.entry) / metres) as [number, number]] : [];
-    });
-  });
+  const plan = headingPlan(
+    evenly(inputs.headings),
+    VECTOR_RESOLUTION,
+    metres,
+    () => reach,
+    (planned) => {
+      const { path, pieces } = lay(planned);
+      return pieces.flatMap((piece) => {
+        const overlap = domainOverlap(path, piece, reach);
+        return overlap ? [overlap.map((u) => (u - inputs.entry) / metres) as [number, number]] : [];
+      });
+    },
+  );
   const { path, pieces } = lay(plan.elements);
   const stationOf = (q: number) => path.station(along(q));
   const end = path.length;
@@ -431,7 +437,7 @@ function layCourse(inputs: CourseInputs) {
       links,
     },
     path,
-    plan: { ...plan, departure: departure(inputs.headings, plan.elements, plan.start, metres) },
+    plan: { ...plan, departure: departure(evenly(inputs.headings), plan.elements, plan.start, metres) },
     pieces,
     profile,
     stationOf,
