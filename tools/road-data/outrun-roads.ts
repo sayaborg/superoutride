@@ -8,6 +8,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
+import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import { OffsetPlan, POSITION_METRES, STRIPE_PERIOD, type Pose } from './offset-plan.js';
@@ -524,7 +525,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   });
   const document = {
     format: 'superoutride.course',
-    version: 52,
+    version: COURSE_DOCUMENT_VERSION,
     name: options.name,
     entry: laid[0]!.road.id,
     maxLaps: 1,
@@ -1013,6 +1014,7 @@ function sectionDocument(
     ).map(({ s, y, curveLength }) => ({ at: { joint: first, offset: computedValue(s - roadOrigin) }, y, curveLength })),
     lanes,
     centerLane: span.centreLane,
+    centerLateral: 0,
     boundaries: [
       { id: 'outer-left', knots: verge(span.verges.left) },
       { id: 'outer-right', knots: verge(span.verges.right) },

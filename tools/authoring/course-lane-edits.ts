@@ -117,24 +117,33 @@ export function moveCourseLane(document: Json, pointer: string, step: -1 | 1): C
 }
 
 /**
- * What choosing lane `id` as the centre lane moves: every absolute lateral keeps its number, so the lanes move across
- * the centreline by the new centre lane's centre, read now, at the Section's start and end, with the count of absolute
- * laterals that thereby change meaning relative to the lanes. Null when the lanes do not resolve.
+ * What choosing lane `id` as the centre lane moves: every absolute lateral keeps its number, and the new centre lane's
+ * centre comes to the Section's `centerLateral`, so the lanes move across the centreline by that lateral less the new
+ * centre lane's centre, read now, at the Section's start and end, with the count of absolute laterals that thereby
+ * change meaning relative to the lanes. Null when the lanes do not resolve.
  */
 export function centerLaneShift(document: Json, section: string, id: string) {
   const index = Number(/\/sections\/(\d+)$/.exec(section)?.[1]);
   const read = readCourseSection(document, index);
   const lane = read.structure.elements.find((e) => e.kind === 'lane' && e.values.id === id);
   const centre = lane?.lines.lane;
-  if (!centre?.length) return null;
+  const lateral = valueAt(document, `${section}/centerLateral`);
+  const at = (end: boolean) => {
+    if (typeof lateral === 'number') return lateral;
+    const knot = Array.isArray(lateral) ? (end ? lateral.at(-1) : lateral[0]) : undefined;
+    return isRecord(knot) && typeof knot.lateral === 'number' ? knot.lateral : null;
+  };
+  const start = at(false),
+    end = at(true);
+  if (!centre?.length || start === null || end === null) return null;
   const absolutes = read.structure.elements.reduce(
     (n, e) => n + Object.values(e.laterals).filter((l) => l.form === 'absolute').length,
     0,
   );
-  return { start: -centre[0]!.l, end: -centre.at(-1)!.l, absolutes };
+  return { start: start - centre[0]!.l, end: end - centre.at(-1)!.l, absolutes };
 }
 
-/** Lane `id` the centre lane of its Section: its centre becomes the centreline (see `centerLaneShift`). */
+/** Lane `id` the centre lane of its Section: its centre comes to `centerLateral` (see `centerLaneShift`). */
 export function setCourseCenterLane(document: Json, section: string, id: string): CourseEditResult {
   const before = valueAt(document, `${section}/centerLane`);
   const list = valueAt(document, `${section}/lanes`);

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "TSUKUBA",
   "entry": "sector-1",
   "maxLaps": 30,
@@ -409,6 +409,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "verge-left",
@@ -3094,6 +3095,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "verge-left",
@@ -5257,6 +5259,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "verge-left",

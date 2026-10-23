@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "TURBO OUTRUN",
   "entry": "new-york",
   "maxLaps": 1,
@@ -429,6 +429,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -26165,6 +26166,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -41721,6 +41723,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -57153,6 +57156,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -61454,6 +61458,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -79272,6 +79277,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -91817,6 +91823,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -93777,6 +93784,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -96350,6 +96358,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -102188,6 +102197,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -131204,6 +131214,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -146301,6 +146312,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -176147,6 +176159,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -198953,6 +198966,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -213545,6 +213559,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -237017,6 +237032,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -267007,6 +267023,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -271478,6 +271495,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -284655,6 +284673,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -292996,6 +293015,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -301286,6 +301306,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -307969,6 +307990,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -314146,6 +314168,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -343712,6 +343735,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -344789,6 +344813,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -345453,6 +345478,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -349550,6 +349576,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -362959,6 +362986,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -372082,6 +372110,7 @@
         { "kind": "lane", "id": "f", "width": 3.604245 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",

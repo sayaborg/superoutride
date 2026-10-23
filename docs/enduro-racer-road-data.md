@@ -134,7 +134,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 5, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 6, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, each stage's elements, folds
 and turn, the tightest arc, the checkpoints, the finish, the road past it, the yaw origin, the steepest grade, the
 crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):

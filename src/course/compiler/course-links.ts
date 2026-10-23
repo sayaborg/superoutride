@@ -63,7 +63,8 @@ export function entryCut(section: CompiledSection, destination: boolean, path: s
 /**
  * The Link from `from` to `to`. The named lane continues as the next Section's centre lane, and the lanes either side
  * of it, in order, as the lanes either side of that: the two roads have as many lanes, of the same widths. The
- * transform lays the named lane's centre on the next Section's centreline; height and grade agree at the seam.
+ * transform lays the named lane's centre on the next Section's centre lane's centre; height and grade agree at the
+ * seam.
  */
 export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut, path: string): CompiledLink {
   requireCourse(from.section !== to.section, path, `Link ${id} cannot return to its own Section`, 'invalid_topology');

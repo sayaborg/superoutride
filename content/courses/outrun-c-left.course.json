@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "CB▲GAT▲DES▼OC▼DH",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -708,6 +708,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -20792,6 +20793,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -25287,6 +25289,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -28046,6 +28049,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -49534,6 +49538,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -53274,6 +53279,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -55920,6 +55926,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -72548,6 +72555,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -75765,6 +75773,7 @@
         }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -77758,6 +77767,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -96059,6 +96069,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -101160,6 +101171,7 @@
         }
       ],
       "centerLane": "e",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -103911,6 +103923,7 @@
         { "kind": "lane", "id": "f", "width": 3.6 }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -117817,6 +117830,7 @@
         }
       ],
       "centerLane": "b",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",

@@ -6,6 +6,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { raisedSplit, repeated, simplified } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
@@ -42,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 5;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 6;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -237,7 +238,7 @@ export function turboOutrunCourse(set: RomSet) {
   return {
     document: {
       format: 'superoutride.course',
-      version: 52,
+      version: COURSE_DOCUMENT_VERSION,
       name: COURSE_NAME,
       entry: pieces[0]!.id,
       maxLaps: 1,
@@ -611,6 +612,7 @@ function sectionDocument(
     ),
     lanes: laneDocuments,
     centerLane: CENTRE_LANE,
+    centerLateral: 0,
     boundaries: [
       { id: 'outer-left', knots: verge(0) },
       { id: 'outer-right', knots: verge(1) },

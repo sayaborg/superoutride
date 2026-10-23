@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-const COURSE_DOCUMENT_VERSION = 52;
+export const COURSE_DOCUMENT_VERSION = 53;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -52,6 +52,9 @@ export type Lateral =
 
 /** A width in metres: one number, or values at Positions from the Section's start to its end, straight between. */
 export type CourseWidth = number | readonly { readonly at: CoursePosition; readonly width: number }[];
+
+/** A lateral in metres (positive right), along a Section as a width is: one number, or values at Positions. */
+export type CourseLateralLine = number | readonly { readonly at: CoursePosition; readonly lateral: number }[];
 
 /** One element of a Section's cross-section, left to right: a lane, or a median between two lanes. */
 export type LaneDocument =
@@ -197,9 +200,11 @@ export interface SectionDocument {
   /** The centreline from the Section's origin, facing +Z. */
   readonly plan: readonly PlanElement[];
   readonly profile: readonly { readonly at: CoursePosition; readonly y: number; readonly curveLength: number }[];
-  /** The cross-section's lanes and medians, left to right; the centre of lane `centerLane` is the centreline. */
+  /** The cross-section's lanes and medians, left to right; lane `centerLane`'s centre lies `centerLateral` right of
+   * the centreline. */
   readonly lanes: readonly LaneDocument[];
   readonly centerLane: string;
+  readonly centerLateral: CourseLateralLine;
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
   readonly walls: readonly WallDocument[];
@@ -352,6 +357,27 @@ function width(value: unknown, path: string): CourseWidth {
   );
   if (knots.every((knot) => knot.width === knots[0]!.width))
     throw new AdmissionError('invalid_value', path, 'A width with one value throughout is written as that number');
+  return knots;
+}
+
+/** A lateral along a Section: a list of values that are all the same is one number. */
+function lateralLine(value: unknown, path: string): CourseLateralLine {
+  const range = { min: -COURSE_DOCUMENT_LIMITS.lateralMeters, max: COURSE_DOCUMENT_LIMITS.lateralMeters };
+  if (typeof value === 'number') return readNumber(value, path, range);
+  const knots = readArray(
+    value,
+    path,
+    (item, at) => {
+      const knot = readRecord(item, at, ['at', 'lateral']);
+      return Object.freeze({
+        at: position(knot.at, `${at}/at`),
+        lateral: readNumber(knot.lateral, `${at}/lateral`, range),
+      });
+    },
+    { min: 2, max: COURSE_DOCUMENT_LIMITS.knots },
+  );
+  if (knots.every((knot) => knot.lateral === knots[0]!.lateral))
+    throw new AdmissionError('invalid_value', path, 'A lateral with one value throughout is written as that number');
   return knots;
 }
 
@@ -641,6 +667,7 @@ function section(value: unknown, path: string): SectionDocument {
     'profile',
     'lanes',
     'centerLane',
+    'centerLateral',
     'boundaries',
     'strips',
     'walls',
@@ -673,6 +700,7 @@ function section(value: unknown, path: string): SectionDocument {
     ),
     lanes: lanes(v.lanes, `${path}/lanes`),
     centerLane: readString(v.centerLane, `${path}/centerLane`, ID),
+    centerLateral: lateralLine(v.centerLateral, `${path}/centerLateral`),
     boundaries: readIdentified(v.boundaries, `${path}/boundaries`, boundary, {
       max: COURSE_DOCUMENT_LIMITS.boundaries,
     }),

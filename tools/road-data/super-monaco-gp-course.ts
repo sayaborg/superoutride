@@ -7,6 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import type { RomSet } from './rom-set.js';
 import { profileOf, sectionProfile } from './road-profile.js';
@@ -36,7 +37,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 6;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 7;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -572,7 +573,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     course,
     document: {
       format: 'superoutride.course',
-      version: 52,
+      version: COURSE_DOCUMENT_VERSION,
       name: course.name,
       entry: sections[0]!.id,
       maxLaps: 30,
@@ -947,6 +948,7 @@ function sectionDocument(input: {
       { kind: 'lane', id: 'b', width: round(LANE) },
     ],
     centerLane: 'a',
+    centerLateral: 0,
     boundaries,
     strips,
     walls: [],

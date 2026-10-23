@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "AFRICA",
   "entry": "africa-1",
   "maxLaps": 1,
@@ -64,6 +64,7 @@
         { "kind": "lane", "id": "b", "width": 4.3 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -8446,6 +8447,7 @@
         { "kind": "lane", "id": "b", "width": 4.3 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -11087,6 +11089,7 @@
         { "kind": "lane", "id": "b", "width": 4.3 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -16921,6 +16924,7 @@
         { "kind": "lane", "id": "b", "width": 4.3 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -20661,6 +20665,7 @@
         { "kind": "lane", "id": "b", "width": 4.3 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",

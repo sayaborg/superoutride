@@ -6,6 +6,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
+import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
@@ -320,7 +321,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   return {
     document: {
       format: 'superoutride.course',
-      version: 52,
+      version: COURSE_DOCUMENT_VERSION,
       name: inputs.name,
       entry: pieces[0]!.id,
       maxLaps: 1,
@@ -521,6 +522,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
+    centerLateral: 0,
     boundaries: [
       {
         id: 'outer-left',

@@ -27,28 +27,29 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 52,
+  format: "superoutride.course", version: 53,
   name, entry, maxLaps, bearing,
   sections, links
 }
 Section {
-  id, plan, profile: [{at, y, curveLength}], lanes, centerLane,
+  id, plan, profile: [{at, y, curveLength}], lanes, centerLane, centerLateral,
   boundaries, strips, walls, openLimits, sprites, environments, gates
 }
 ```
 
 ### Geometry and reference records
 
-| Record   | Fields                                                                             |
-| -------- | ---------------------------------------------------------------------------------- |
-| Straight | `kind: "straight"`, `id`, positive `length`                                        |
-| Arc      | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
-| Position | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
-| Lane     | `kind: "lane"`, `id`, `width`                                                      |
-| Median   | `kind: "median"`, `width`                                                          |
-| Width    | a number, or `[{at, width}]`                                                       |
-| Boundary | `id`, `knots: [{at,lateral}]`                                                      |
-| Link     | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
+| Record       | Fields                                                                             |
+| ------------ | ---------------------------------------------------------------------------------- |
+| Straight     | `kind: "straight"`, `id`, positive `length`                                        |
+| Arc          | `kind: "arc"`, `id`, positive `length` and `radius`, `turn: "left" \| "right"`     |
+| Position     | `at: {joint, offset}`; interval `start`/`end` use the same `{joint, offset}` value |
+| Lane         | `kind: "lane"`, `id`, `width`                                                      |
+| Median       | `kind: "median"`, `width`                                                          |
+| Width        | a number, or `[{at, width}]`                                                       |
+| Lateral line | a number, or `[{at, lateral}]`                                                     |
+| Boundary     | `id`, `knots: [{at,lateral}]`                                                      |
+| Link         | `id`, `from: {section, lane}`, `to` (a Section id)                                 |
 
 A course names its images: each name is the file `content/images/<name>.json` (the image's file name without
 `.json`). The build works out each image's identity from its bytes; the delivery manifest's `image` entry of that
@@ -75,20 +76,21 @@ Branching Sections still require lock and closure gates.
 
 ### Lanes
 
-`lanes` writes the Section's cross-section left to right as widths: lanes and the medians between them. No centre or
-edge is written. The centre of lane `centerLane` is the centreline (lateral 0); the other lanes and medians lie
-outward from it, each edge the sum of the widths between. A Width is one number, or values at Positions (two or more,
-the first at the Section's start and the last at its end, stations strictly increasing, straight between). A list
-whose values are all the same, which means that number, is not written. Widths are 0 or more. A lane is positive
-somewhere, and where its width is 0 it is absent: lanes appear and end by widening from 0 or narrowing to 0. The
-centre lane is wider than 0 along the whole Section. A median lies between two lanes (not at either end, never two in
-a row) and is positive somewhere. Lane IDs are unique in the Section.
+`lanes` writes the Section's cross-section left to right as widths: lanes and the medians between them. No edge is
+written. The centre of lane `centerLane` lies `centerLateral` right of the centreline (lateral 0); the other lanes and
+medians lie outward from it, each edge the sum of the widths between. A Width is one number, or values at Positions
+(two or more, the first at the Section's start and the last at its end, stations strictly increasing, straight
+between). A list whose values are all the same, which means that number, is not written. Widths are 0 or more.
+`centerLateral` is a lateral line, written as a Width is, its values in `[-1000,1000]`. A lane is positive somewhere,
+and where its width is 0 it is absent: lanes appear and end by widening from 0 or narrowing to 0. The centre lane is
+wider than 0 along the whole Section. A median lies between two lanes (not at either end, never two in a row) and is
+positive somewhere. Lane IDs are unique in the Section.
 
 Compilation lays each lane's left edge, centre and right edge, and each median's width, as lines with a vertex
-wherever any width changes slope. A road at a station is the lanes wider than 0 there that touch, with no median
-wider than 0 between them; its edges are its outer lanes' edges. Every lane wider than 0 lies on supported material,
-one continuous supported span covering it through each cell where every edge is affine (`invalid_lane`). An unknown
-`centerLane` is `unresolved_reference`; other lane violations are `invalid_lane`.
+wherever any width or `centerLateral` changes slope. A road at a station is the lanes wider than 0 there that touch,
+with no median wider than 0 between them; its edges are its outer lanes' edges. Every lane wider than 0 lies on
+supported material, one continuous supported span covering it through each cell where every edge is affine
+(`invalid_lane`). An unknown `centerLane` is `unresolved_reference`; other lane violations are `invalid_lane`.
 
 ### Lateral positions
 
@@ -408,7 +410,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `nameCodeUnits`                                                         |                 40 | One line of the 40-column text grid                                                                                     |
 | Graph `sections` / `links`                                              |          128 / 384 | 50 positions × 2, rounded up; three outgoing choices per Section                                                        |
 | Images a course names (`images`)                                        |               2048 | (50 × 16 local image types + 128 shared types) × 2, rounded up                                                          |
-| Section `plan` elements                                                 |                512 | (21 × 10 + 2 endpoints) × 2, rounded up                                                                                 |
+| Section `plan` elements                                                 |               1024 | (21 × 20 + 2) × 2, rounded up: height nodes' density, for plans that turn a road table's steps                          |
 | Section `heightNodes`                                                   |               1024 | (21 × 20 + 2) × 2, rounded up                                                                                           |
 | Each Boundary/wall Strip `knots`                                        |               1024 | Same 20/km knot density and margin                                                                                      |
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
@@ -1221,10 +1223,10 @@ class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-cur
   one's right edge, within the supported interval around its road. A road narrower than twice the margin bounds the line
   to its middle.
 - **Continuity.** Every seam has one lateral that the lines ending there and the lines beginning there share, in each
-  Link's frame (its cut lane's centre on the next Section's centreline): at a merge all predecessors share the
+  Link's frame (its cut lane's centre on the next Section's centre lane's centre): at a merge all predecessors share the
   successor's start, at a fork every exit's line starts from its predecessor's end, and a CIRCUIT closes on itself.
-  Curvature terms span each seam, so the slope carries across it; each Section's plan coordinates are its own frame,
-  so a seam's term reads the next Section's points through the Link's rigid motion.
+  Curvature terms span each seam, so the slope carries across it; each Section's plan coordinates are its own frame, so
+  a seam's term reads the next Section's points through the Link's rigid motion.
 - **Solve.** The lines of the whole course graph are one sparse problem over the laterals at the schedule stations.
   Each pass linearises every term's residual `√m κ` at the current laterals (a point moves along its plan normal as its
   lateral changes) and solves the resulting box-constrained quadratic by a primal–dual interior-point method; each

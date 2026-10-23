@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "ENDURO RACER",
   "entry": "stage-1",
   "maxLaps": 1,
@@ -113,6 +113,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -5337,6 +5338,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -8779,6 +8781,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -10691,6 +10694,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -15845,6 +15849,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -19555,6 +19560,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -20427,6 +20433,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -24222,6 +24229,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -29506,6 +29514,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -30896,6 +30905,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -34115,6 +34125,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -37077,6 +37088,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -39486,6 +39498,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -41338,6 +41351,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -42627,6 +42641,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -47101,6 +47116,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",
@@ -53132,6 +53148,7 @@
         { "kind": "lane", "id": "b", "width": 3.5 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "outer-left",

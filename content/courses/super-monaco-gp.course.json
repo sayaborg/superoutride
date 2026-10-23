@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 52,
+  "version": 53,
   "name": "SUPER MONACO GP",
   "entry": "sector-1a",
   "maxLaps": 30,
@@ -31,6 +31,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
@@ -16036,6 +16037,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
@@ -32028,6 +32030,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
@@ -49764,6 +49767,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
@@ -65478,6 +65482,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
@@ -84231,6 +84236,7 @@
         { "kind": "lane", "id": "b", "width": 3.121951 }
       ],
       "centerLane": "a",
+      "centerLateral": 0,
       "boundaries": [
         {
           "id": "paving-left",
