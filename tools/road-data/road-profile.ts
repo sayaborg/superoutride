@@ -154,7 +154,7 @@ export const originalLook = (row: number) => (ORIGINAL_LEVEL_TOP - row) / ORIGIN
 export const gameLook = (row: number) => (LEVEL_TOP - row) / ROWS;
 
 /**
- * `c_look` by table kind, fitted on COCONUT BEACH (`npm run road-data -- look`): kind 0's entries and kind 3's slid in
+ * `c_look` by table kind, fitted on COCONUT BEACH (`npm run road-data -- outrun-look`): kind 0's entries and kind 3's slid in
  * by the least squares match of the road's top over its kind 0 tables, kinds 1 and 2 and kind 3's hold over its kind
  * 1 table, the other fixed.
  */

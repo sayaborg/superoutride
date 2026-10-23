@@ -458,7 +458,8 @@ takes `--out`, a root in place of `reference-media/`:
 ### Road data commands
 
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
-runs as `npm run road-data -- <command>`; it reads K's ROM zip in `reference-media/outrun/rom/` (TURBO OUTRUN's in
+runs as `npm run road-data -- <command>` (each original's commands are its `<original>-commands` module's, what they
+share `road-data-commands`'); it reads K's ROM zip in `reference-media/outrun/rom/` (TURBO OUTRUN's in
 `reference-media/turbo-outrun/rom/`, SUPER HANG-ON's in `reference-media/super-hang-on/rom/`, ENDURO RACER's two in
 `reference-media/enduro-racer/rom/`, SUPER MONACO GP's in `reference-media/super-monaco-gp/rom/`) and writes dumps under `rom-data/` beside it, which Git ignores, and what it raises
 from the ROMs under `content/`. Every command finds each ROM of a set by its CRC-32 and size, whatever the zip names it,
@@ -466,12 +467,12 @@ and refuses a set missing one ([Rules of the originals](original-road-data.md#ru
 
 | Command                  | Purpose                                                                                                                                                                                                          |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read`                   | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                                               |
-| `hills`                  | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
-| `course`                 | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies to `content/images/`, or with `--check` fail where one differs                                               |
-| `look`                   | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
-| `boards`                 | Write the boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), in the ROMs' pixels, or with `--check` fail where a board differs                                                     |
-| `sounds`                 | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
+| `outrun-read`            | Check the ROM zip (`--zip`, else the one zip in the ROM directory) and write every stage's, the fork's and the goals' tables to the dump (`--out`)                                                               |
+| `outrun-hills`           | Write each stage's (or `--stage`'s) road top by the original's hills from the dump, the holds counted at `--kmh`                                                                                                 |
+| `outrun-course`          | Write OUTRUN's roads, raised from the ROM zip (`--zip`), to `content/courses/`, and its stage skies to `content/images/`, or with `--check` fail where one differs                                               |
+| `outrun-look`            | For every stage, from the ROM zip (`--zip`): refit `c_look`, report its profile's heights, steepest grade and crossings, and each height table's road top on both screens and least load                         |
+| `outrun-boards`          | Write the boards of the sprites OUTRUN's stages and start show from the ROM zip (`--zip`), in the ROMs' pixels, or with `--check` fail where a board differs                                                     |
+| `outrun-sounds`          | Write the local originals of the recordings the original plays from its PCM ROMs, from the ROM zip (`--zip`), with ffmpeg                                                                                        |
 | `turbo-outrun-read`      | Check TURBO OUTRUN's ROM zip (`--zip`) and write every table its course uses to the dump (`--out`), the tables described as OUTRUN's checked against OUTRUN's zip (`--outrun-zip`)                               |
 | `turbo-outrun-course`    | Write TURBO OUTRUN's course, raised from its ROM zip (`--zip`), to `content/courses/`, and the pictures its objects show and its skies to `content/images/`, or with `--check` fail where one differs            |
 | `super-hang-on-read`     | Check SUPER HANG-ON's ROM zip (`--zip`, else the one zip in its ROM directory) and write its courses' tables to its dump                                                                                         |
@@ -490,13 +491,13 @@ recordings. They are for K's own runs only: they never reach Git, a PR or Pages.
   `content/`, of the published file it replaces. A file with no published counterpart is left out.
 - **Identity.** An original keeps the published file's name; only its sound differs, so nothing the course identity
   reads changes and the measured products saved for the published content stay valid.
-- **Conversion.** The conversion is deterministic: `npm run road-data -- sounds` writes the originals of the recordings
+- **Conversion.** The conversion is deterministic: `npm run road-data -- outrun-sounds` writes the originals of the recordings
   the original plays from its PCM ROMs, with ffmpeg ([Voices and effects](original-road-data.md#voices-and-effects)).
 - **Build.** `npm run build:originals` runs `npm run build` with the originals in place of the published files of their
   paths. It writes `dist/originals.json` listing them, and DEV's toggle reads `LOCAL ORIGINALS`. The workbench's
   authored files carry the originals too. A build with `CI` set refuses it, so CI and Pages never use them.
 
-To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- sounds`, then
+To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road-data -- outrun-sounds`, then
 `npm run build:originals`, serve the repository root (`python3 -m http.server 8000`)
 and open the game with `dev=1`.
 `npm run build` returns to the published files.
@@ -566,7 +567,7 @@ format/version. The delivery layout (`layoutDelivery` in
 
 | Kind              | ID                                                                                                      | Path                                      | Content                                                                                                                         |
 | ----------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `course`          | Course file name stem (the course selection key)                                                        | `courses/<id>.course.json`                | Course document                                                                                                                 |
+| `outrun-course`   | Course file name stem (the course selection key)                                                        | `courses/<id>.course.json`                | Course document                                                                                                                 |
 | `course-index`    | `courses`                                                                                               | `course-index.json`                       | Course index ([Content and gameplay](content-and-gameplay.md#course-index))                                                     |
 | `series`          | Series file name stem                                                                                   | `series/<id>.series.json`                 | Series document ([Content and gameplay](content-and-gameplay.md#series-documents))                                              |
 | `screen-picture`  | Screen picture name                                                                                     | `screen-pictures/<id>.json`               | Screen picture, a tile picture ([Image assets](image-assets.md#screen-pictures))                                                |

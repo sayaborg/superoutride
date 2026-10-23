@@ -315,7 +315,7 @@ front's columns removed.
 
 ## Boards
 
-`npm run road-data -- boards` writes a board for each sprite OUTRUN's stages
+`npm run road-data -- outrun-boards` writes a board for each sprite OUTRUN's stages
 (to their length), the fork and goal stretches and the objects standing at the start (of the first stage) show,
 mirrored and shadowed as shown, and the figures after each goal: the course image
 `outrun-<sprite>[-mirrored][-shadowed]` (a strip's `outrun-strip-<family>` and its edge's `outrun-strip-<family>-edge`,
@@ -620,7 +620,7 @@ stage 0x3B's tables put the road's top at or above the screen's top.
 
 ## Backgrounds
 
-`npm run road-data -- course` also writes each stage's sky, `outrun-<stage>-sky`, baked from its background
+`npm run road-data -- outrun-course` also writes each stage's sky, `outrun-<stage>-sky`, baked from its background
 ([sky baking](#sky-baking)) out of the tile ROMs as its program places it (`stageSky`), committed and shown on Pages
 provisionally:
 
@@ -649,7 +649,7 @@ Each course's backgrounds keep their image, horizon row (320, the sky picture's)
 
 ## Voices and effects
 
-`npm run road-data -- sounds` writes the original's PCM voices and effects as the
+`npm run road-data -- outrun-sounds` writes the original's PCM voices and effects as the
 [local originals](development.md#local-originals) of this game's recordings (AAC-LC, 44.1 kHz, mono, by ffmpeg,
 bit-exact):
 
@@ -684,22 +684,22 @@ game's.
 
 ## Dump
 
-`npm run road-data -- read` ([Development](development.md#road-data-commands)) checks and reads the ROM zip and writes
+`npm run road-data -- outrun-read` ([Development](development.md#road-data-commands)) checks and reads the ROM zip and writes
 `superoutride.outrun-road-data` version 1, `outrun.json` in the dump directory: the ROMs' names and CRCs; every stage
 (number, block, colors as words and RGB555, curves, widths and heights, scenery, road path); the fork stretch and the
 goal stretches with their paths; the height tables and scenery types their points name. It refuses a stage whose path
 does not turn 0° or ±360° over its length, and prints each stage's counts, points past its end, its path's offset
 against its curves, and each curve's radius against the one its aligned path measures, positions over its heading
-change two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- hills`
+change two positions in from either end (a join spreads its turn over a position or two). `npm run road-data -- outrun-hills`
 writes each stage's road top by the [hills](#hills) at every quarter position, `hills-<stage>.json` beside the dump,
 the holds counted at `--kmh` (293 unless told), and prints each height point's highest and lowest top.
 
 ## Course documents
 
-`npm run road-data -- course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes
+`npm run road-data -- outrun-course` ([Development](development.md#road-data-commands)) reads the ROM set above and writes
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
-`npm run road-data -- look` takes each stage piece alone.
+`npm run road-data -- outrun-look` takes each stage piece alone.
 
 The conversion, version 15 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing; every other amount is the ROMs', and the [profile](#profile)'s `c_look` matches the original's hills as its
@@ -733,7 +733,7 @@ program draws them:
 
 One road's lines and edges, units from its centre, each side alike, are the road ROM's nearest line (`opr-10185.11`, CRC
 `22794426`, the same bytes as its copy `opr-10186.47`, so either file serves; 256 lines of 512 pixels, two bit planes of
-64 bytes a line; row 255 is 1 pixel a unit, its centre at pixel 252), which `road-data course` checks (`checkRoadRom`):
+64 bytes a line; row 255 is 1 pixel a unit, its centre at pixel 252), which `road-data outrun-course` checks (`checkRoadRom`):
 the inner lines 66.67 to 74.67 (pixel value 1), the outer lines 206 to 218 (1), the shoulder to 228 the surface (0), the
 edge band 228 to 250 (2). The centre line, 8 wide at 0, is the surface's color on all 15 stages and is not drawn. Lines
 and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are not).
@@ -887,7 +887,7 @@ types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413
 ## Profile
 
 A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
-(`npm run road-data -- look` reports it for every stage):
+(`npm run road-data -- outrun-look` reports it for every stage):
 
 - **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the top
   speed, 293 km/h, at the same road positions as before RD-10e: `c_look` was fitted with the camera at the road

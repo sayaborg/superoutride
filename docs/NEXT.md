@@ -55,7 +55,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-6);
+Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-7);
 then [Stage GR](#stage-gr--the-originals-courses-mended) and
 [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
 [Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
