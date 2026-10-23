@@ -8,9 +8,9 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { JOINT_SNAP, raisedSplit, repeated, simplified } from './section-writing.js';
+import { JOINT_SNAP, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
-import { STRIPE_PERIOD } from './offset-plan.js';
+import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
@@ -43,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 7;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 8;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -63,14 +63,6 @@ const BACK_MIDDLE = 1376;
 /** The lanes and the median between the roads, left to right. */
 const ORDER = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
 const CENTRE_LANE = 'b';
-/** A plan element is a straight where its radius would exceed this, metres: its turn carried on to the next arc. */
-const STRAIGHTEST = 40000;
-/** A plan element shorter than this, metres, is carried on into the next: its length and its turn. */
-const SHORTEST = 1e-3;
-/** A lane's width as written lies within this of its rule, metres. */
-const WIDTH_TOLERANCE = 0.01;
-/** Knots are added halfway no closer than this, positions. */
-const SHORTEST_KNOTS = 1 / 64;
 /** A width is there where it is wider than this, units. */
 const THERE = 1e-9;
 /** Where the roads' picture is sampled for changes, positions. */
@@ -281,43 +273,14 @@ function sectionDocument(
     readonly camera: number;
   },
 ) {
-  const { width, offset, laneBreaks, sand } = context.layout;
-  const { from, to, plan, origin } = piece;
-  const size = round(plan.station(to));
+  const { width, offset, laneBreaks, sand, line } = context.layout;
+  const { from, to, origin } = piece;
+  /** The station of course position `g` from the Section's start. */
+  const local = (g: number) => (g - from) * POSITION_METRES;
 
-  // The plan: its elements over [from, to], straights where an arc would be straighter than STRAIGHTEST, one shorter
-  // than SHORTEST carried on into the next.
-  const own = plan.elements.filter((e) => e.from >= from - 1e-9 && e.to <= to + 1e-9);
-  requireInput(
-    Math.abs(own[0]!.from - from) < 1e-9 && Math.abs(own.at(-1)!.to - to) < 1e-9,
-    `/sections/${piece.id}`,
-    `Section ${piece.id} is not cut at joints`,
-  );
-  const elements: { kind: string; id: string; length: number; radius?: number; turn?: string }[] = [];
-  let carried = 0,
-    carriedLength = 0;
-  for (const [i, e] of own.entries()) {
-    const length = round(plan.station(e.to) - plan.station(e.from) + carriedLength);
-    const turn = e.turn + carried;
-    const before = elements.at(-1);
-    if (length === 0 || (length < SHORTEST && i < own.length - 1)) {
-      [carried, carriedLength] = [turn, length];
-      continue;
-    }
-    carriedLength = 0;
-    if (Math.abs(turn) * STRAIGHTEST < length) {
-      carried = turn;
-      if (before?.kind === 'straight') before.length = round(before.length + length);
-      else elements.push({ kind: 'straight', id: `s${elements.length}`, length });
-      continue;
-    }
-    carried = 0;
-    const radius = round(length / Math.abs(turn));
-    const side = turn > 0 ? 'left' : 'right';
-    if (before?.kind === 'arc' && before.turn === side && before.radius === radius)
-      before.length = round(before.length + length);
-    else elements.push({ kind: 'arc', id: `c${elements.length}`, length, radius, turn: side });
-  }
+  // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
+  const elements = writtenPlan(line, { from: from * POSITION_METRES, to: to * POSITION_METRES });
+  const size = round(elements.reduce((sum, e) => sum + e.length, 0));
   const joint = elements[0]!.id;
   const joints = elements.map((_, i) => round(elements.slice(0, i).reduce((sum, e) => sum + e.length, 0)));
   const onJoint = (s: number) => joints.find((j) => Math.abs(j - s) <= JOINT_SNAP) ?? s;
@@ -325,78 +288,46 @@ function sectionDocument(
     const offset = onJoint(round(s));
     return { joint, offset: offset > size - 1e-5 ? size : Math.max(0, offset) };
   };
-  const at = (g: number) => atStation(plan.station(g));
-  const stationOf = (g: number) => round(plan.station(g));
+  const at = (g: number) => atStation(local(g));
+  const stationOf = (g: number) => round(local(g));
 
-  // The lanes: their widths at each knot, a lane or the median 0 throughout left out. Each width is written straight by
-  // station between knots, a knot added halfway until every width lies within WIDTH_TOLERANCE of its rule there.
+  // The lanes and lane b's centre at each knot, where a width, lane b's centre or a lane changes slope, straight
+  // between; a lane or the median 0 throughout left out.
   const lanes = (g: number) => lanesAt(width.at(g));
-  const breaks = [...new Set([from, to, ...width.breaks, ...offset.breaks, ...laneBreaks])]
+  const knots = [...new Set([from, to, ...width.breaks, ...offset.breaks, ...laneBreaks])]
     .filter((g) => g >= from && g <= to)
     .sort((a, b) => a - b);
-  const straight = (a: number, b: number) => {
-    const m = (a + b) / 2;
-    const [wa, wb, wm] = [lanes(a), lanes(b), lanes(m)];
-    const t = (plan.station(m) - plan.station(a)) / (plan.station(b) - plan.station(a));
-    return ORDER.every(
-      (n) => Math.abs(wa.get(n)! + (wb.get(n)! - wa.get(n)!) * t - wm.get(n)!) * UNIT_METRES <= WIDTH_TOLERANCE,
-    );
-  };
-  // A knot added between two lies on the plan's joint nearest halfway, if one lies between them.
-  const planJoints = [...new Set(plan.elements.flatMap((e) => [e.from, e.to]))];
-  const knots: number[] = [];
-  const halve = (a: number, b: number) => {
-    if (b - a <= SHORTEST_KNOTS || straight(a, b)) return;
-    const half = (a + b) / 2;
-    const m =
-      planJoints
-        .filter((j) => j > a + SHORTEST_KNOTS / 2 && j < b - SHORTEST_KNOTS / 2)
-        .sort((x, y) => Math.abs(x - half) - Math.abs(y - half))[0] ?? half;
-    halve(a, m);
-    knots.push(m);
-    halve(m, b);
-  };
-  breaks.forEach((g, i) => {
-    if (i > 0) halve(breaks[i - 1]!, g);
-    knots.push(g);
-  });
   const widths = knots.map(lanes);
   const present = ORDER.filter((name) => widths.some((w) => w.get(name)! > THERE));
+  const lineOf = (values: [number, number][], name: 'width' | 'lateral') => {
+    const simple = simplified(values);
+    return simple.every(([, v]) => v === simple[0]![1])
+      ? simple[0]![1]
+      : simple.map(([s, v]) => ({ at: atStation(s), [name]: v }));
+  };
   const laneDocuments = present.map((name) => {
-    const values = simplified(
-      knots.map((g, i) => [stationOf(g), round(widths[i]!.get(name)! * UNIT_METRES)] as [number, number]),
+    const lane = lineOf(
+      knots.map((g, i) => [stationOf(g), round(widths[i]!.get(name)! * UNIT_METRES)]),
+      'width',
     );
-    const lane = values.every(([, v]) => v === values[0]![1])
-      ? values[0]![1]
-      : values.map(([s, v]) => ({ at: atStation(s), width: v }));
     return name === 'm' ? { kind: 'median', width: lane } : { kind: 'lane', id: name, width: lane };
   });
-  // The lanes' lines as written: each width straight between its knots by station.
-  const knotStations = knots.map((g) => plan.station(g));
-  const written = (g: number) => {
-    const s = plan.station(g);
-    const i = Math.min(
-      Math.max(
-        1,
-        knotStations.findIndex((k) => k >= s),
-      ),
-      knots.length - 1,
-    );
-    const t = (s - knotStations[i - 1]!) / (knotStations[i]! - knotStations[i - 1]! || 1);
-    return laneLines(
-      new Map(ORDER.map((n) => [n, widths[i - 1]!.get(n)! + (widths[i]!.get(n)! - widths[i - 1]!.get(n)!) * t])),
-    );
-  };
+  const centerLateral = lineOf(
+    knots.map((g) => [stationOf(g), round(offset.at(g))]),
+    'lateral',
+  );
+  /** The lanes' and the median's lines at `g`, units right of lane b's centre. */
+  const written = (g: number) => laneLines(lanes(g));
   const ref = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
 
   // The verges: the sand beyond each outer lane's asphalt, narrowed where the layout narrows it.
   const asphaltBeyond = (ROAD_HALF - CENTRE_INSIDE) * UNIT_METRES;
-  // A verge's lateral at position `g`, metres right of lane b's centre, as its knots write it.
+  // A verge's lateral at position `g`, metres right of P.
   const vergeAt = (side: 0 | 1, g: number) => {
     const lines = written(g);
     return side === 0
-      ? lines.get('a')!.left * UNIT_METRES - asphaltBeyond - sand.at(g, 0)
-      : lines.get('f')!.right * UNIT_METRES + asphaltBeyond + sand.at(g, 1);
+      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - asphaltBeyond - sand.at(g, 0)
+      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + asphaltBeyond + sand.at(g, 1);
   };
   const verge = (side: 0 | 1) => {
     const inside = sand.knots[side].map(([g]) => g).filter((g) => g > from && g < to);
@@ -532,21 +463,12 @@ function sectionDocument(
 
   // What lies on the ground's materials, colorless beneath its boards: the waves' `WATER` from the waterline out to the
   // verges, the puddles' `WATER` and the patches' by what they show.
-  const positionAt = (s: number) => {
-    let [lo, hi] = [from, to];
-    for (let i = 0; i < 60; i++) {
-      const mid = (lo + hi) / 2;
-      if (plan.station(mid) < s) lo = mid;
-      else hi = mid;
-    }
-    return (lo + hi) / 2;
-  };
   const lyingPieces: LyingPiece[] = context.objects.flatMap((o) =>
     o.lies
       ? [
           {
-            s: plan.station(o.g),
-            l: o.x - offset.at(o.g),
+            s: local(o.g),
+            l: o.x,
             picture: context.wholes.get(pictureName(o.use))!,
             strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
             material: o.lies.material,
@@ -557,8 +479,8 @@ function sectionDocument(
   const materials = lyingMaterials(lyingPieces, {
     length: size,
     outer: {
-      left: { id: 'outer-left', at: (s) => vergeAt(0, positionAt(s)) },
-      right: { id: 'outer-right', at: (s) => vergeAt(1, positionAt(s)) },
+      left: { id: 'outer-left', at: (s) => vergeAt(0, from + s / POSITION_METRES) },
+      right: { id: 'outer-right', at: (s) => vergeAt(1, from + s / POSITION_METRES) },
     },
   });
   const edgeOf = (edge: string | number) => (typeof edge === 'string' ? boundary(edge) : round(edge));
@@ -586,7 +508,7 @@ function sectionDocument(
 
   // The skies: the one shown at the Section's start, and each that comes in within it, facing as the original's
   // heading 0 does in the Section's frame.
-  const turned = ((plan.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
+  const turned = ((context.layout.pose(from).heading - context.layout.pose(0).heading) * 180) / Math.PI;
   const yawOrigin = round(wrapDegrees(context.yawBase + turned));
   const environment = (change: SkyChange, s: number, arrival: string) => ({
     at: atStation(s),
@@ -610,7 +532,7 @@ function sectionDocument(
     ),
     lanes: laneDocuments,
     centerLane: CENTRE_LANE,
-    centerLateral: 0,
+    centerLateral,
     boundaries: [
       { id: 'outer-left', knots: verge(0) },
       { id: 'outer-right', knots: verge(1) },
@@ -632,7 +554,7 @@ function sectionDocument(
               image: pictureName(o.use),
               palette: paletteName(o.use.palette),
               at: at(o.g),
-              lateral: round(o.x - offset.at(o.g)),
+              lateral: round(o.x),
               groundOffset: round(o.height),
               unselectedLink: null,
               // As wide as its hit extents, at most its picture.

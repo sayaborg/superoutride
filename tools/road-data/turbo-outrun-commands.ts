@@ -154,15 +154,17 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           end: round3(run.end),
           joined,
           endWidth: round1(width.at(start + run.end)),
-          elements: layout.plans[n]!.segments.length,
-          folds: layout.plans[n]!.folds.length,
-          offLine: round3(Math.max(...layout.plans[n]!.offLine)),
-          turn: degrees(layout.plans[n]!.segments.reduce((sum, s) => sum + s.turn, 0)),
+          turn: degrees(
+            layout.plan.elements
+              .filter((e) => e.from >= start - 1e-9 && e.to <= start + length + 1e-9)
+              .reduce((sum, e) => sum + e.turn, 0),
+          ),
         })),
+        runs: layout.plan.runs.length,
         elements: layout.path.length,
+        fromPath: round3(layout.plan.departure),
         planElements: built.document.sections.reduce((n, s) => n + s.plan.length, 0),
         tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
-        drift: Math.max(...layout.pieces.map((p) => p.plan.drift)),
         narrowedSand: layout.sand.narrowed.map((n) => ({
           at: round1(n.from),
           side: n.side ? 'right' : 'left',
