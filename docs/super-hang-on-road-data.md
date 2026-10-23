@@ -156,8 +156,8 @@ past the finish). It becomes P by the [plan from a heading table](original-road-
 domain reaching SAND's edges and the vehicles' reach, 49.3 m. The curves only check it, for they follow the path roughly
 (radii 0.79 to 1.56 times the path's, their joints up to 13 positions off).
 
-AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 263, 284, 581 and 841 elements; the sharpest arc
-is 50.5 m, a turn in ASIA's first section. Laid from its start, a course's plan lies at most 0.28, 0.13, 0.88 and 0.50
+AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 263, 284, 581 and 842 elements; the sharpest arc
+is 50.5 m, a turn in ASIA's first section. Laid from its start, a course's plan lies at most 0.28, 0.13, 0.88 and 0.69
 m from its table's line, each position a step along its ends' mean heading; most of that is where a sharp turn takes
 more positions to keep the domain.
 
@@ -185,7 +185,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 6, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 7, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:

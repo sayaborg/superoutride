@@ -8,7 +8,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { raisedSplit, repeated, simplified } from './section-writing.js';
+import { JOINT_SNAP, raisedSplit, repeated, simplified } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
 import { STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
@@ -43,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 6;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 7;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -71,8 +71,6 @@ const SHORTEST = 1e-3;
 const WIDTH_TOLERANCE = 0.01;
 /** Knots are added halfway no closer than this, positions. */
 const SHORTEST_KNOTS = 1 / 64;
-/** A station this near a joint of its Section's plan, metres, is written at the joint. */
-const JOINT_SNAP = 2e-6;
 /** A width is there where it is wider than this, units. */
 const THERE = 1e-9;
 /** Where the roads' picture is sampled for changes, positions. */

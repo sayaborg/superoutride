@@ -27,7 +27,7 @@ import { paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 6;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 7;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;

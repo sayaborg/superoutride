@@ -525,6 +525,13 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
   }
   knots.push({ s: to, y: profile.height(to), curveLength: 0 });
   const n = knots.length;
+  if (n === 3 && joinsBefore && joinsAfter) {
+    // One bend over the whole Section: its knot where the tangents at both its ends meet, so both grades hold.
+    const [g0, g2] = [profile.grade(from), profile.grade(to)];
+    const s = (knots[2]!.y - knots[0]!.y + g0 * from - g2 * to) / (g0 - g2);
+    knots[1] = { ...knots[1]!, s, y: knots[0]!.y + g0 * (s - from) };
+    return knots;
+  }
   if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * (knots[1]!.s - from);
   if (n > 2 && joinsAfter) knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (to - knots[n - 2]!.s);
   return knots;

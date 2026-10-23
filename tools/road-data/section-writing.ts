@@ -15,6 +15,8 @@ const DOMAIN_APART = 10;
 const DOMAIN_MARGIN = 0.5;
 /** A cut keeps this far from a gate, metres. */
 const GATE_ROOM = 2;
+/** A station this near a joint of its Section's plan, metres, is written at the joint. */
+export const JOINT_SNAP = 2e-6;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 
@@ -135,13 +137,15 @@ export interface WrittenElement {
   readonly turn?: string;
 }
 
-/** A piece's plan: P's elements over it, on the plane, to the micrometre. */
+/** A piece's plan: P's elements over it, on the plane, its joints at their stations to the micrometre. */
 export function writtenPlan(path: CoursePath, piece: { readonly from: number; readonly to: number }): WrittenElement[] {
   const elements: WrittenElement[] = [];
+  // Each joint at its station from the piece's start to the micrometre, so the lengths add to the stations.
+  const station = (u: number) => round(path.station(u) - path.station(piece.from));
   for (const e of path.elements) {
     const [a, b] = [Math.max(e.start, piece.from), Math.min(e.start + e.length, piece.to)];
     if (b - a <= 1e-9) continue;
-    const length = round(path.planeScale(e) * (b - a));
+    const length = round(station(b) - station(a));
     const id = `${e.turn === 0 ? 's' : 'c'}${elements.length}`;
     if (e.turn === 0) elements.push({ kind: 'straight', id, length });
     else {
@@ -181,8 +185,12 @@ export function domainOverlap(
   const at = (s: number) => path.along(origin + s);
   const { stations, sides }: PathDomain =
     typeof domain === 'number' ? { stations: [], sides: () => [domain, domain] } : domain;
+  const written = writtenPlan(path, piece);
+  // A station as near a joint as a course writes at the joint is the joint's.
+  const joints = written.map((_, i) => written.slice(0, i).reduce((sum, e) => sum + e.length, 0));
+  joints.push(joints.at(-1)! + written.at(-1)!.length);
   // The format's arcs turn right positive.
-  const geometry: PlanSegmentGeometry[] = writtenPlan(path, piece).map((e) =>
+  const geometry: PlanSegmentGeometry[] = written.map((e) =>
     e.kind === 'straight'
       ? { kind: 'straight', length: e.length }
       : { kind: 'arc', radius: e.radius!, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius! },
@@ -192,7 +200,9 @@ export function domainOverlap(
       piece.id,
       compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry).segments,
       {
-        stations: stations.filter((u) => u > piece.from && u < piece.to).map((u) => path.station(u) - origin),
+        stations: [...new Set(stations.map((u) => path.station(u) - origin))]
+          .filter((s) => joints.every((j) => Math.abs(s - j) > JOINT_SNAP))
+          .sort((x, y) => x - y),
         lateralAt: (s, out) => {
           const [left, right] = sides(at(s));
           return Object.assign(out, { left: -left, right });

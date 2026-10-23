@@ -16,14 +16,15 @@ widths they give), the hills (`hills`), the profile, the crossings' bumps and a 
 (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
 laid off a road path with its corners rounded (`offset-plan`, with OUTRUN's road position and stripes' period), a road
 path as straights and arcs (`path-plan`: `sectionPlan`), a heading table's plan (`heading-plan`: its runs and the turns
-between them) and a plan laid in the world (`course-path`: `CoursePath`), how
-Sections are written (`section-writing`: knots simplified, sprites repeated, pictures raised, the plan as written and
-the cuts of a Section's domain), two roads drawn together from one road's picture across (`two-roads`), the sprite
-hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, its pixels by
-[chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a background baked into one sky
-([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
-table's step and `startDepth`). Each original's ROM set and how its programs and pictures are assembled from it are its
-`<original>-rom` module's.
+between them) and a plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`:
+knots simplified, sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre,
+so that a station written at a joint is the joint's, and a Section's domain, its cuts and whether the course format
+admits it as written, a station within 2 µm of a joint the joint's), two roads drawn together from one road's picture
+across (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
+(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a
+background baked into one sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the
+tick's advance, an approach table's step and `startDepth`). Each original's ROM set and how its programs and pictures
+are assembled from it are its `<original>-rom` module's.
 
 ## Rules of the originals
 
@@ -366,8 +367,9 @@ A stage's profile turns its height tables' look on the original's screen into gr
   OUTRUN's crossings are of two passages, and SUPER HANG-ON's passages that overlaps join make one crossing.
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
-  that meet stay apart; stretches break at the Sections' cuts, and a knot next to a
-  cut lies on the cut's tangent, so joined Sections' heights and grades agree.
+  that meet stay apart; stretches break at the Sections' cuts, and a knot next to a cut lies on the cut's tangent, so
+  joined Sections' heights and grades agree; a Section joined at both ends whose one stretch spans it has its knot where
+  the tangents at its two cuts meet, so both grades hold.
 
 On COCONUT BEACH the road's top is 12 rows from the original's on average (in the original's rows). The tables'
 highest and lowest tops, and the least load at 293 km/h over each table (below 0 the car leaves the road):
