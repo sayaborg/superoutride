@@ -170,7 +170,8 @@ PRs, in this order:
 - EX-6b: OUTRUN's split last stages reckon their sky's yaw origin from GO, where the span that begins the stage
   begins, not from 1946; their paths turn back to GO's heading by 1946, so the courses do not change. OUTRUN's start
   records' count, checked, is the one its program loops over.
-- EX-7: OUTRUN's courses raised on P.
+- EX-7: OUTRUN's courses raised on P, each span's road path a heading table and its widths unrounded, a fork piece
+  from where its roads part to where they have closed; each Section's start at the lengths written before it.
 - EX-7b: SUPER MONACO GP's centre line taken from its edge columns, 119–128 instead of 120–129; the courses change.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,

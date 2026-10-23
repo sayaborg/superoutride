@@ -15,7 +15,15 @@ import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } fr
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, skyName, slug } from './outrun-names.js';
-import { layRoad, OUTRUN_ROUTES, outrunRoad, roadProfile, routeName, routeSpans } from './outrun-roads.js';
+import {
+  layRoad,
+  OUTRUN_ROUTES,
+  outrunRoad,
+  roadProfile,
+  routeName,
+  routeSpans,
+  stationOf as roadStation,
+} from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom } from './outrun-cross-section.js';
 import { POSITION_METRES } from './offset-plan.js';
@@ -268,7 +276,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         metres: round1(road.end),
         objects: road.objects,
         placing: road.placing,
-        planDrift: Math.round(road.drift * 1e4) / 1e4,
+        departure: Math.round(road.departure * 100) / 100,
         heights: [
           round1(Math.min(...stations.map(road.profile.height))),
           round1(Math.max(...stations.map(road.profile.height))),
@@ -330,7 +338,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         });
         const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
         const { end, profile, crossings } = roadProfile(laid, { tables, kmh: TOP_KMH });
-        const stationOf = (p: number) => laid[0]!.plan.station(p);
+        const stationOf = (p: number) => roadStation(laid[0]!, p);
         const course = { stage: number };
         const positions = Array.from({ length }, (_, p) => p);
         const points = stage.widthsHeights.filter((p) => p.position < length);

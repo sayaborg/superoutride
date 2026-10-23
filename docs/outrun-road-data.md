@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 16 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 17 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -487,22 +487,20 @@ them:
   The original's pixels are 14 wide to 15 tall (320 × 224 shown at 4:3), so an amount the ROMs give down (a sprite's
   height, an object's height y) is 15/14 of its units across.
 - **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from its
-  position by |speed| × 16 / 303 units a position until it is reached or the next point begins.
-- **Corners.** Where the road width's slope changes, it is rounded by a parabola over 4 positions centred on the corner
-  (it misses the corner by half the change of slope times a position: 0.10 m at a fork's 8 units a position); corners
-  nearer than 4 positions are rounded as one about where their outer lines meet. Where the format's coordinate domain
-  (the sand to 40 m beyond the asphalt and 4 m more) needs a wider radius, a corner is rounded over more (K's choice,
-  2026-10-20): 8 positions where the roads part (a fork's 63, a goal's 182, P's curve beginning there too; 0.20 m),
-  8 where a fork's roads begin to close (362, the road coming in on the inside), 12 where a goal's roads stop parting
-  and close (15.6°, the road not taken still beside; 0.82 m), 6 where a goal's road taken is back on P. Each piece's
-  roundings lie within it: one nearer its start than half its rounding is moved in to there, the line after it with
-  it (at most 2 positions, 8 cm). The lanes' rule bends the centre lane where the width passes 72 and 212; those
-  corners are rounded alike. The lanes and the plan both come from the rounded width.
+  position by |speed| × 16 / 303 units a position until it is reached or the next point begins, straight between
+  its corners.
+- **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
+  after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a join
+  straight; a fractional end at the last position's heading), raised by the
+  [plan from a heading table](original-road-data.md#plan-from-a-heading-table). Its least radius over an element is
+  the widest its coordinate domain (the verges, the SAND's outer edges, and the vehicles' 4 m beyond) reaches either
+  side of P there. A position is 2.0027 m along P, so a Section's stations are along P, and its `centerLateral` is its
+  centre lane's centre from P.
 - **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1;
   the conversion takes the first two of each, checking neither the repeat nor that the centre line is the surface's.
   The ground's two colors are the stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of
   32 × 303 / 3072 positions, 2048 / 324 = 6.320988 m (the road's fine position gains km/h / 64 three times a tick, 32
-  of it a period), counted from GO along the plan's stations.
+  of it a period), counted from GO along P.
 
 ### Cross-section
 
@@ -520,35 +518,34 @@ b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w =
 (SEASIDE TOWN, OLD CAPITAL, WHEAT FIELD, LAKESIDE), they are a, b, e and f (laid over the two roads, c and d would be
 3.4 cm wide there, between the middle line's sides), and at 212 they are the two roads' own. The visible lines come
 from the two roads' picture, not the lanes. A lane or median 0 throughout a Section is
-left out. Each width is written straight by station between knots: where the width, the offset or the lanes' rule
-changes slope, and halfway between until it lies within 1 cm of its rule (where the offset changes on a curve, the
-station does not run evenly with the position).
+left out. Each width, and the centre lane's centre, is written straight between knots where the width, the centre
+lane's centre or a lane changes slope, as its rule gives it.
 
 ### Pieces
 
 The roads are made of pieces, each one shape whatever comes before or after it (`outrun-pieces.ts`):
 
-- **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 59: its widths, then from the width it
-  ends at to 212 at 8 units a position, the corner's vertex at the stretch's 57, so that it ends in six clean lanes,
+- **Stage pieces.** A stage of rows 1 to 4 runs from GO to its fork stretch's 63, where the roads part: its widths,
+  then from the width it ends at to 212 at 8 units a position, reaching it there, so that it ends in six clean lanes,
   level (K's design: the original parts its roads from 63 at the width it ends at). A stage of row 5 runs to 1948 and
   its goal piece follows in the same span. COCONUT BEACH starts at 450 with its grid and start objects, after the road's entry: 6 m of straight before
   GO at its start's width, lanes and colors, level.
-- **Fork pieces** (`forkSpan`), the fork stretch's 59 to 433.5, L (left taken) and R its mirror. As the main CPU's
-  program runs the stretch (0x8780 to 0x89B6): from 63 the roads part by 8 a position; past 0x168 (360) the route is
-  chosen and the next stage's background comes in; past 0x300 (768) the road not taken is no longer drawn and the width
-  holds; from 362, the second curve's end, the car is carried 2w across and the roads close by 8 a position to 212,
-  the next stage beginning at about 432. Here the width parts from 212 to 768 (63 to 132.5), holds, and closes from
-  362 to 212 at 431.5. L's lanes are g, h, i (the road coming in) | m0 | a, b, c (taken, centre lane b) | m1 | d, e, f
-  (not taken). Before 362 the road taken is w left of P; from 362 it keeps P's heading and moves 768 − w toward the
-  road coming in, which appears 2w beyond it, growing over a position: a straight, even V about P's 1536 left, meeting
-  in six lanes at 431.5. The road not taken lies 2w right of the road taken (its own curvature, the original's mirror,
-  has no place in one Section's plan) and ends at 132.5, its lanes narrowing to nothing over its last two positions;
-  sand beyond. The verge (the sand's outer edge) comes back from it after it ends, and goes out to the road coming in
-  before it comes, one metre across for 6 along. R mirrors all: a, b, c (not taken) | m0 | d, e, f (taken, centre lane
-  e) | m1 | j, k, l (coming in). The fork piece's road and ground are the stage before's; its sky changes to the next
-  stage's by `wipe` where the width passes 360 (81.5). Entering a fork piece L leaves the stage by lane b, R by e;
-  leaving, L by b and R by e, the road taken's middle lane, so the side taken enters the next stage's d, e, f (L),
-  its centre lane e, or a, b, c (R), its centre lane b.
+- **Fork pieces** (`forkSpan`), the fork stretch's 63 to 431.5, where its roads have closed, L (left taken) and R its
+  mirror. As the main CPU's program runs the stretch (0x8780 to 0x89B6): from 63 the roads part by 8 a position; past
+  0x168 (360) the route is chosen and the next stage's background comes in; past 0x300 (768) the road not taken is no
+  longer drawn and the width holds; from 362, the second curve's end, the car is carried 2w across and the roads close
+  by 8 a position to 212, the next stage beginning at about 432. Here the width parts from 212 to 768 (63 to 132.5),
+  holds, and closes from 362 to 212 at 431.5. L's lanes are g, h, i (the road coming in) | m0 | a, b, c (taken, centre
+  lane b) | m1 | d, e, f (not taken). Before 362 the road taken is w left of P; from 362 it keeps P's heading and moves
+  768 − w toward the road coming in, which appears 2w beyond it, growing over a position: a straight, even V about P's
+  1536 left, meeting in six lanes at 431.5. The road not taken lies 2w right of the road taken (its own curvature, the
+  original's mirror, has no place in one Section's plan) and ends at 132.5, its lanes narrowing to nothing over its last
+  two positions; sand beyond. The verge (the sand's outer edge) comes back from it after it ends, and goes out to the
+  road coming in before it comes, one metre across for 6 along. R mirrors all: a, b, c (not taken) | m0 | d, e, f
+  (taken, centre lane e) | m1 | j, k, l (coming in). The fork piece's road and ground are the stage before's; its sky
+  changes to the next stage's by `wipe` where the width passes 360 (81.5). Entering a fork piece L leaves the stage by
+  lane b, R by e; leaving, L by b and R by e, the road taken's middle lane, so the side taken enters the next stage's d,
+  e, f (L), its centre lane e, or a, b, c (R), its centre lane b.
 - **Goal pieces** (`stageSpan` with a goal), the goal stretch (S's path at 0x3ACA0) from 0 to 600, after its stage in
   one span. Each stage of row 5 ends in the goal its place in the stage table numbers (the byte at 0xE4EC + its place,
   0x8A04's `move.b (a0, d0.w)`): VINEYARD A (4), DEATH VALLEY B (3), DESOLATION HILL C (2), AUTOBAHN D (1), LAKESIDE E
@@ -571,7 +568,8 @@ Each road (`outrunRoad`) is a LINEAR course of pieces: the first row's stage, ea
 row's stage at the same place counted from the left, right to the one after it), and the last stage with its goal;
 or, ALL 15 STAGES, all 15 stages in the map's order, row by row and within a row from the left, each of rows 1 to 4 left by
 its fork and each of row 5 but the last by its goal and a join, the forks' and then the joins' sides alternating from
-L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, the next's centreline on the Link's lane's centre:
+L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, the next's centre lane's centre on the
+Link's lane's centre:
 
 - **Sections.** A fork piece is one Section (the centre lane changes at its ends). A last stage entered from the left
   is two, cut at its `GOAL_CENTRE` (1946), its centre lane e before and b after, since the goal's road taken is the
@@ -628,12 +626,14 @@ letters and L and R are not written; the courses' ids stay.
 | `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
 | `outrun-all`     | ALL 15 STAGES      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
 
-The six roads are 24.1 to 24.2 km, 13 to 15 Sections and 9,198 to 11,782 objects each; ALL 15 STAGES is 73.6 km, 48
-Sections and 31,940 objects. Their heights reach −185 m and 268 m (the hills' rule, unchanged); 5 to 11 crossings each
-are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner
-134 and 135) stands at about 321 to 327, before where the original's car stops (401) and drives under it; the stands
-(types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate
-types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
+The six roads are each 24.17 km along P (each runs as many positions), with 13 to 15 Sections and 9,477 to 11,781
+objects; ALL 15 STAGES is 73.45 km, 48 Sections and 33,627 objects. Their plans are 258 to 292 elements, ALL 15 STAGES'
+820, at most 64 in a Section (DESERT's), and lie within 0.72 m of the line their paths build (DESERT's, from its GO).
+Their heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11 crossings each are kept 6 m apart, ALL 15
+STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about
+321 to 327, before where the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and
+DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold
+(the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
 
 ## OUTRUN's stages
 

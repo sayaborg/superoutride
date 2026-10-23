@@ -261,19 +261,19 @@ outermost asphalt; the ground's color is everywhere, its half 0 over its halves.
 
 ## Plan
 
-The plan is where the original draws the centre lane: its road path P laid off sideways by the centre lane's centre.
-P turns as S's path table does, at one rate between breaks: the stretch's ends, and two positions either side of each
-join of its curves (moved back by `pathOffset`), so that a join's own turn stays at the join; a straight holds the
-middle of the path's headings inside it. Over any 50 m, fitted, P lies within 0.26 m of the path the table draws. The
-centre lane is at a stage b's (−(w + 70.67 + c) / 2 from the roads' middle, −w at w ≥ 212), or e's (its mirror) where
-the stage is entered from a fork's left side. A position's station is the arc length along the plan to the point
-across from P there (`OffsetPlan`); everything placed by position (widths, objects, gates, height tables, sky changes)
-takes it. As straights and arcs: a straight where P is straight and the offset changes evenly, an arc where P is an
-arc and the offset holds, else arcs of at most 2 positions (4 on a straight) turning as the curve does, each joint
-within 1 cm of the curve (the largest of the roads 4.5 mm). A corner of the curve (P's curvature changing while the offset changes)
-is turned by an arc either side, each turning half of it, no sharper than 120 m and within 3 mm of it. An arc that
-would be straighter than 40 km is a straight, its turn carried on; one shorter than a millimetre (two breaks all but
-together) is carried on into the next, its length and its turn.
+The offset plan (`OffsetPlan`), on which no original's course is now laid, is where the original draws the centre lane:
+its road path P laid off sideways by the centre lane's centre. P turns as S's path table does, at one rate between
+breaks: the stretch's ends, and two positions either side of each join of its curves (moved back by `pathOffset`), so
+that a join's own turn stays at the join; a straight holds the middle of the path's headings inside it. Over any 50 m,
+fitted, P lies within 0.26 m of the path the table draws. The centre lane is at a stage b's (−(w + 70.67 + c) / 2 from
+the roads' middle, −w at w ≥ 212), or e's (its mirror) where the stage is entered from a fork's left side. A position's
+station is the arc length along the plan to the point across from P there (`OffsetPlan`); everything placed by position
+(widths, objects, gates, height tables, sky changes) takes it. As straights and arcs: a straight where P is straight and
+the offset changes evenly, an arc where P is an arc and the offset holds, else arcs of at most 2 positions (4 on a
+straight) turning as the curve does, each joint within 1 cm of the curve (the largest of the roads 4.5 mm). A corner of
+the curve (P's curvature changing while the offset changes) is turned by an arc either side, each turning half of it, no
+sharper than 120 m and within 3 mm of it. An arc that would be straighter than 40 km is a straight, its turn carried on;
+one shorter than a millimetre (two breaks all but together) is carried on into the next, its length and its turn.
 
 ## Plan from a heading table
 

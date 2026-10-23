@@ -22,9 +22,10 @@ import { stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
-import { outrunRoad } from '../../tools/road-data/outrun-roads.ts';
+import { outrunRoad, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
 import { POSITION_METRES } from '../../tools/road-data/offset-plan.ts';
+import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
 
@@ -373,7 +374,7 @@ test("two roads' picture: surfaces over lines, the left road's lines over the ri
   assert.ok(Math.abs(centreLaneAt(72) + (72 + lane / 2) / 2) < 1e-12);
 });
 
-test('a last stage and its goal become a course: lanes, plan within a centimetre, finish and profile', () => {
+test('a last stage and its goal become a course: lanes, plan as its path, finish and profile', () => {
   // A stage straight but for a left arc, and a goal stretch as the original's: straight to 182, left R80 to 312.
   const stagePath = pathOf(2308, (p) => (p >= 400 && p < 500 ? 1 / 60 : 0));
   const goalPath = pathOf(624, (p) => (p >= 182 && p < 312 ? 1 / 80 : 0));
@@ -421,7 +422,15 @@ test('a last stage and its goal become a course: lanes, plan within a centimetre
     sky: () => ({ image: 'coast-sky', horizonY: 320 }),
     stageName: () => 'TEST',
   });
-  assert.ok(road.drift <= 0.01);
+  // P turns as the path does: its arcs at the stage's 60 and the goal's 80 positions' radius, the plan within the
+  // table's resolution held over the road.
+  const radii = road.document.sections.flatMap((s) => s.plan.filter((e) => e.kind === 'arc').map((e) => e.radius));
+  for (const positions of [60, 80])
+    assert.ok(
+      radii.some((r) => Math.abs(r / (positions * POSITION_METRES) - 1) < 0.005),
+      `${positions}: ${radii}`,
+    );
+  assert.ok(road.departure <= VECTOR_RESOLUTION * road.end, `${road.departure}`);
   const read = readCourseDocument(normalizeCoursePositions(road.document).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
   const [section] = road.document.sections;
@@ -430,12 +439,12 @@ test('a last stage and its goal become a course: lanes, plan within a centimetre
     section.lanes.slice(0, 3).map((l) => (typeof l.width === 'number' ? l.width : l.width[0].width)),
     [3.6, 3.6, 3.6],
   );
-  // The finish at the stage's end, by the plan's station there past the road's 6 m entry; the road closed level at 0.
+  // The finish at the stage's end, by its station along P past the road's 6 m entry; the road closed level at 0.
   const finish = section.gates.find((g) => g.kind === 'finish');
   assert.equal(finish.id, 'TEST-GOAL');
   const go = 6 / POSITION_METRES;
-  assert.ok(Math.abs(road.laid[0].plan.station(go) - 6) < 1e-9);
-  assert.equal(finish.at.offset, road.laid[0].plan.station(1948 + go));
+  assert.ok(Math.abs(stationOf(road.laid[0], go) - 6) < 1e-9);
+  assert.ok(Math.abs(finish.at.offset - stationOf(road.laid[0], 1948 + go)) < 1e-6);
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
 });
 
