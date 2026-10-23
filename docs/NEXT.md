@@ -55,7 +55,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-9);
+Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-9b);
 then [Stage GR](#stage-gr--the-originals-courses-mended) and
 [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
 [Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
@@ -168,19 +168,23 @@ Stage RM makes what Stage PG left to later stages in [Courses of the originals](
 
 ## Stage NM — A NAMCO original from the ROMs
 
-Stage NM raises a NAMCO original from its ROMs, one whose courses are simple first; K chooses which.
+Stage NM raises a NAMCO original from its ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), one whose courses are simple first; K chooses which.
 
 ## Stage BR — BIG RUN from the ROMs
 
-Stage BR raises JALECO's BIG RUN (1989) from its ROMs, after Stage NM.
+Stage BR raises JALECO's BIG RUN (1989) from its ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage NM.
 
 ## Stage CS — CISCO HEAT from the ROMs
 
-Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs, after Stage BR.
+Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR.
 
 ## Stage TA — A TAITO original from the ROMs
 
-Stage TA raises a TAITO original from its ROMs, CHASE H.Q. or another as K chooses, after Stage CS.
+Stage TA raises a TAITO original from its ROMs ([Raising an original from its
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), CHASE H.Q. or another as K chooses, after Stage CS.
 
 ## Stage DT — DRIFT TUNED trial vehicles
 

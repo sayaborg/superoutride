@@ -512,7 +512,8 @@ so that they import nothing from the current directory or a zip's folder. Each p
 it with a message or a Python traceback, outside the command-line tools' JSON diagnostics. What they print or write
 (program images, listings, string lists) is research output under the [rules of the
 originals](original-road-data.md#rules-of-the-originals): it never enters Git, a PR body or a PR image. None of them
-decrypts a program, and a MAME driver source is read for its ROM lists and set names alone.
+decrypts a program, and a MAME driver source is read for its ROM lists and set names alone. The procedure they serve is
+[Raising an original from its ROMs](original-road-data.md#raising-an-original-from-its-roms).
 
 | Script             | Use                                                                                                                  |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------- |

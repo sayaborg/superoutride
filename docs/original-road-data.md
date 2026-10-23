@@ -38,6 +38,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
 - **Reading a set.** Every ROM read is found in the set's zips by its CRC-32 and size, whatever a zip names it, each zip
   entry checked against the CRC-32 its archive records; a set missing one is refused, naming the set and the ROM. No
   key is read. A dump records the ROMs read by MAME's names and CRC-32s, from the set's table.
+- **What is not linked or shown.** No link to a public place to download ROMs is written in the repository or a PR,
+  and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
+  be given one privately).
 - **Other projects' code.** No code of MAME or of other projects is copied or ported: the formats are read by this
   project's own code from this description and the ROMs themselves.
 - **Conversions.** CI has no ROM, so a conversion's results are committed as course documents and images. A conversion
@@ -349,3 +352,110 @@ is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.26
 returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
 The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
 passages are 57.3 m apart without a bump.
+
+## Raising an original from its ROMs
+
+The way OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP were raised, as steps and checks for
+the next original. Each original's tables and rules are in its own road data document; this is the procedure
+they share. Research (reading the program, emulating it, deciding) is done on K's machine with the research tools
+(`tools/research/`) and K's local research kit; the road data tool reads only the ROMs' tables and writes the courses.
+
+### 0. Rules
+
+The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
+[Rules of the originals](#rules-of-the-originals); every step below keeps them.
+
+### 1. The ROM set
+
+- Take MAME's parent set of the original, the version K names. Check every ROM in the zip against MAME's current list
+  for that set (`ROM_START` in its driver): name and CRC-32 (`rom_set_check.py`), and size (`zip_list.py`). Record the
+  set, its MAME description and any ROM whose name or content differs (an older MAME's zip may name ROMs differently; a
+  key file may differ).
+- Note the clones: regions, revisions, cabinets, bootlegs. Some hold other content (another course order, other
+  courses); some are decrypted bootlegs a tool may read.
+- Find the encryption: none; FD1094 (instruction fetches only, so every table is plain in the ROM's bytes); FD1089
+  (instructions and data: read the tables from a decrypted bootleg set, else they cannot be read by the tool).
+- The road data tool reads the set by the ROM rule of the [rules of the originals](#rules-of-the-originals); record any
+  ROM whose name differs from MAME's current list.
+
+### 2. The board and the programs
+
+- Identify the board (Hang-On / Space Harrier, OutRun, X board, Y board, …), its CPUs, which CPU holds which tables, and
+  how the shared RAM maps between them.
+- Assemble each CPU's program from its ROMs (even and odd bytes interleaved); note mirrors.
+
+### 3. Finding the tables
+
+- Start from what the program shows: strings (stage names, debug labels), the stage setup routine, the per-tick road
+  advance, the routines that read a pointer and step through records.
+- For each table record its address, entry format, terminator and who reads it (routine and RAM variable). Expect: stage
+  or section descriptors; the plan (curves with radii, or heading tables, or path vectors); widths; heights or slopes;
+  scenery points and object types; colors (road, ground, sky ramp); background layers and palettes; start, checkpoint
+  and goal objects; the time and extension tables.
+- Confirm by running the program (research emulation, on K's machine): dump RAM and compose frames from the tilemaps,
+  sprites and road layer; check that a table's entries appear where the reading says, at the frames and positions
+  recorded as evidence.
+
+### 4. Length and time
+
+- Find the tick (often two frames, from the main loop's wait on the frame interrupt) and the road position (usually a
+  16.16 long).
+- Along the road the scale follows the [rules of the originals](#rules-of-the-originals): find the program's amounts
+  that give it (the advance per tick against the displayed speed, or the clock against the camera's units a tick) and
+  check them where possible (K's video, the clock against frames).
+- Across and up, the original's world often keeps no one scale. K's rules decide it: a lane from the rider's or car's
+  picture against a real vehicle's (SUPER HANG-ON, ENDURO RACER), or the road's width from its pictures (SUPER MONACO
+  GP's street, where the player's vehicle is an overlay drawn smaller than the world). Up is 15/14
+  of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). Report the alternatives with
+  their costs (texel bounds, grid lengths, closure, how objects and the eye compare) for K to choose.
+
+### 5. Plan, profile, cross-section
+
+- The plan becomes straights and arcs by the [plan from a path](#plan-from-a-path), or from the table's own arcs where
+  it holds them; each original's document records how far its plan lies off its path.
+- Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and SUPER
+  MONACO GP lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
+  Strips over them.
+- Heights: level until the hills stage, but for the crossings' bumps ([Profile](#profile)); record the original's height
+  or slope format.
+- Cross-section: lanes, lines, edge bands from the road ROM's nearest line or the surface sprites; colors and the
+  stripes' period and phase (check the phase in the original, the bike or car held still while the position is set).
+- Materials and limits from the original's band or zone tables where it has them; where a car cannot go, the course
+  limit alone decides, and water takes its material only inside it ([rules of the originals](#rules-of-the-originals)).
+
+### 6. Objects
+
+- Pictures follow the picture rule of the [rules of the originals](#rules-of-the-originals) and the [picture
+  contract](image-assets.md#picture-contract). Walls (`walls`) are not used.
+- Place each object at its station and lateral as the original's routine places it, with its picture's bottom edge at
+  the height the original draws it, its mirroring and palette; spawn and approach rules decide where it stands (simulate
+  them tick by tick at the speed the original's layout assumes).
+- Bodies follow the original's hit routines: an object it tests gets a body as wide as its extents; the rest pass
+  through.
+- Pictures by chosen lines at their size class; check the course's texel and image bounds.
+
+### 7. Skies
+
+- Bake the background into one sky by [Sky baking](#sky-baking);
+  background changes (stages, tunnels, weather) become sky changes where the original's camera reaches them.
+
+### 8. The original's camera
+
+- Measure the eye on a level road: the horizon row y_h and the road's lateral scale s (pixels a unit) at a row y give
+  the eye H = (y − y_h) / s in lateral units, the same at every row for a pinhole projection. Report it raw and with
+  rows 15/14 of a column, in metres at the adopted scale, against the player's vehicle, and the camera's distance and
+  field of view where the original's depth allows (its along-road depth is often not a perspective). Each research
+  note's Camera (eye height) section keeps its original's figures.
+
+### 9. Sections, gates, limits of admission
+
+- Cut Sections where the original changes stage or sector, and again where a Section's domain passes over itself or its
+  boards pass the format's sprite element bound; check every bound in [Numeric and resource
+  domains](content-and-gameplay.md#numeric-and-resource-domains).
+- Gates: the grid or start, checkpoints, the finish or goal, as the original places them.
+
+### 10. Identity and checks
+
+- A course's identity is [Content and gameplay](content-and-gameplay.md#compiled-identity-and-project-publication)'s;
+  the checks before handing over are [AGENTS](../AGENTS.md)'s and the [rules of the originals](#rules-of-the-originals)'
+  (every original's `--check`).
