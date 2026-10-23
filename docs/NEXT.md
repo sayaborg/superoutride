@@ -82,22 +82,24 @@ K's decisions (2026-10-23):
   constants, and so are its grades wherever a method determines them uniquely from the ROMs. The canon is not adjusted
   afterwards. The other grades are computed as a first draft; they, the placements and the pictures are drafts, which
   people may adjust or draw again by eye.
-- **The design is mathematically beautiful and concise.** Every course needs some arbitrary constants. They are kept
-  apart from what the ROMs give, and the fewer they are, the more beautiful the design. The stage tidies the road data
-  tool and the documents to that end.
+- **A course follows from its parent set and its constants.** Each original is raised from its MAME parent set.
+  Every course needs some arbitrary constants, kept apart from what the ROMs give; ideally the same constants determine
+  the same course uniquely, and the fewer they are, the more beautiful the design.
+- **Beauty, concision and no ad hoc rule come first.** The stage tidies the road data tool and the documents to that
+  end.
 
-The stage's defaults, each chosen for the fewest constants (K may change any in its PR):
+The stage's defaults, each chosen for the fewest constants and no rule made for one case (K may change any in its PR):
 
 - **The plan is the road path.** A Section's lanes may lie off its plan, so the plan is each original's road path P
   itself, a station is a distance along P, and the widths are the ROMs' unrounded. Stripes, objects, gates and skies
   stand on one ruler, the ROMs' positions.
-- **A heading table is a chain of arcs by its own runs.** Each run of evenly turning headings, to the tables'
-  resolution, is an arc at its own rate; the turn left where two runs meet is made over the positions where they meet,
-  or over the fewest more that keep the [coordinate domain](architecture.md#plan-authority); a step outside every run
-  (TURBO OUTRUN's spirals) is an arc of its own. Its one constant is the tables' resolution. A Section's plan holds up
-  to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs 825).
-- **SUPER MONACO GP's circuits** take their runs' arcs from their integer path's points, which close exactly, so that
-  no correction closes a lap.
+- **A heading table is a chain of arcs by its own runs.** In the road's direction, each run is the longest stretch of
+  headings whose least-squares line holds every one within the tables' resolution, and is an arc at that line's rate;
+  two runs are joined by a turn over the position between them, or over the fewest more, as many on each side, that
+  keep the [coordinate domain](architecture.md#plan-authority). The tables' resolution is the one constant. A Section's
+  plan holds up to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
+- **SUPER MONACO GP's circuits** are raised the same way from their integer path's points, a run being the points one
+  arc holds within the path's resolution; the points close exactly, so no correction closes a lap.
 - **The canon's grades.** SUPER MONACO GP's path is the original's 3D road, so its heights are its rises' sum at the
   plan's scale and its grades the original's. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
   projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m). Both rise tables
@@ -119,6 +121,8 @@ Rules of the stage:
 - One purpose a PR ([AGENTS](../AGENTS.md#work-and-release)), under the
   [rules of the originals](original-road-data.md#rules-of-the-originals). Each PR names the constants, fixed rules and
   special cases it removes and adds, and writes what it makes of this section into the documents that own it.
+- A rule covers every case of its kind: no PR adds one made for a stage, a course, a crossing or a picture, and one the
+  audit found made so is made general or removed by the PR that touches it.
 - EX-1's PR records the audit the stage starts from: each original's constants, rules and special cases counted, where
   the documents and the code disagree, and K's decisions found only in Git history. A defect it found is mended in the
   PR that touches its code, or in one of its own.
@@ -127,7 +131,8 @@ PRs, in this order:
 
 - EX-1: this section, with SUPER HANG-ON's and SUPER MONACO GP's hills moved into it from Stage GR.
 - EX-2: K's decisions found only in Git history (nine of SUPER MONACO GP's, two of ENDURO RACER's) written into the
-  chapters that own them, and the statements the audit found untrue corrected.
+  chapters that own them, the parent sets named as such in the rules of the originals, and the statements the audit
+  found untrue corrected.
 - EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral written as a width is but signed
   (0 by default), and a Section's plan holds up to 1024 elements. No course changes.
 - EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.
