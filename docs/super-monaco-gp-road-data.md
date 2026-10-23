@@ -111,7 +111,7 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 8, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 9, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's elements, tightest arc, lap, the error closed and the three lengths that close it, its Sections with their
 boards, the boards placed and those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -163,7 +163,8 @@ BRANCH course (K, 2026-10-21).
     nothing: the surface boards about them color the road already.
   - **Side paving.** The surface boards beside the road (±1720) color 728–2712 units on their side alike, from the
     board before or, first of a run, 10 steps before.
-  - **Centre line.** At each surface board, 2 steps long and 80 units wide, the mean of its top row's columns 120–129.
+  - **Centre line.** At each surface board, 2 steps long and 80 units wide, the mean of its top row's columns 119–128,
+    the line's ten pixels about the board's middle.
   - **Grid marks.** At each grid slot, on its side, the grid board's row 2 (80–896 units out) 0.5 steps long from the
     slot and its row 22 (64–808) 4 steps before it, each the mean of its line's pixels.
   - **Start line.** At steps 290, 300 and 310, 2 steps long before each, the start board's row 6 across the road as

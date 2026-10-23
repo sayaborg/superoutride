@@ -37,7 +37,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 8;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 9;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -74,8 +74,11 @@ export const SURFACE_FRAMES = Object.freeze(new Set([SURFACE_BOARD, GRID_BOARD, 
 const FLAT_PIXEL = 8;
 /** The side paving: the surface board beside the road, 728–2712 units out. */
 const SIDE_PAVING = { from: 1720 - 992, to: 1720 + 992 } as const;
-/** The centre line: a board's top row's columns 120–129, drawn here 80 units wide and 2 steps long at its band's far end. */
-const CENTRE_LINE = { row: 0, from: 120, to: 129, half: 40, steps: 2 } as const;
+/**
+ * The centre line: a board's top row's columns 119–128, the line's ten pixels about the board's middle, drawn here 80
+ * units wide and 2 steps long at its band's far end.
+ */
+const CENTRE_LINE = { row: 0, from: 119, to: 128, half: 40, steps: 2 } as const;
 /**
  * The grid: the original's 24 slots 12 steps apart past the line, lane a for even slots and b for odd, slot s at
  * 588 − 12s: the original's 12(23 − s) moved on 312 steps, so that the rearmost leaves the camera's distance behind it

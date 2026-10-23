@@ -172,7 +172,8 @@ PRs, in this order:
   records' count, checked, is the one its program loops over.
 - EX-7: OUTRUN's courses raised on P, each span's road path a heading table and its widths unrounded, a fork piece
   from where its roads part to where they have closed; each Section's start at the lengths written before it.
-- EX-7b: SUPER MONACO GP's centre line taken from its edge columns, 119–128 instead of 120–129; the courses change.
+- EX-7b: SUPER MONACO GP's centre line taken from its own columns, 119–128, the line's ten pixels about the surface
+  board's middle, instead of 120–129, which took an asphalt pixel for one of them; its colour is a step lighter.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,
   the plane, the widths' roundings and SUPER MONACO GP's closing.
@@ -191,8 +192,6 @@ PRs, in this order:
 
 EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 
-- SUPER MONACO GP's centre line is taken from columns 120–129, so its mean takes an asphalt pixel for an edge pixel:
-  EX-7b.
 - OUTRUN holds its stage length in three places: EX-21.
 - SUPER HANG-ON's START gate assumes that the depth step is half the speed: EX-15, which checks it and reads it from the
   ROMs.
