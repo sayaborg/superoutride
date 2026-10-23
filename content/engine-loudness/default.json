@@ -129,6 +129,90 @@
       "vehicleSha256": "0afd8204b56099765f52c1fb4f38423edea0efabecf3ad34108bd2ef66ea5d2d",
       "soundSha256": "f27ea17a39e6ee0ac774edf81583ed2cda4c1db82a6fdcc470e3bdeba1864aeb",
       "lufs": -13.596061247126073
+    },
+    {
+      "vehicleId": "PORSCHE_928_S4_1987",
+      "vehicleSha256": "84f6b1df5163a042254b917d8575db25cf504f12e8359ec5c0abe816afc19b49",
+      "soundSha256": "c32c604a65d014dca6ba053c8eaa74a973ca25fcaab21e84a737046930a9ddb5",
+      "lufs": -20.75559563769208
+    },
+    {
+      "vehicleId": "TURBO_ESPRIT_1984",
+      "vehicleSha256": "ec950dac60d24017fed681d6f9ba5950909a8f2e5ea73e1fcc73905ed0d37075",
+      "soundSha256": "caad9e86aede846b85b7919e1f8610ae3e30349e68e0fbc3b6c616de7b50ba28",
+      "lufs": -16.751735747565778
+    },
+    {
+      "vehicleId": "COUNTACH_5000_QV_1988",
+      "vehicleSha256": "0edb0e7d986146dbcf470c8fefab3e8d5dee8f84050e8f78b82fcd64cd2b0d0c",
+      "soundSha256": "31a24523129e5bb8e3393f432c69df81b72ab4c14468ba545784503bdc4c0531",
+      "lufs": -21.785283831145282
+    },
+    {
+      "vehicleId": "911_TURBO_3_3_1986",
+      "vehicleSha256": "587beac1b5b50fdcbeb2e9fcbf85a85a2b2fffe4269b8641097bed3a0003247c",
+      "soundSha256": "97fbfe71ceb7e9427e2ba5c95294ca764d88c22283329c5596643fe415681918",
+      "lufs": -18.386463348040056
+    },
+    {
+      "vehicleId": "FERRARI_GTO_1985",
+      "vehicleSha256": "743452bc68bef4b56e508fb7b9e61456d63cdf0348ec594dd4b00191e8e43c1f",
+      "soundSha256": "80e326c8b96b844e95f7e485de93a50590770780fd820a2ea04364f6599e59a2",
+      "lufs": -20.362701859651327
+    },
+    {
+      "vehicleId": "PORSCHE_928_S_1984",
+      "vehicleSha256": "6eea70442c4b63c2a6f14e5abd2d188fbf7bd5f9d1e03b5ae30fcd094f8912fb",
+      "soundSha256": "ae979a5dd2e48908fbd7eff831005fc8b06ad8ed86e264b0d03a69f805b96b4c",
+      "lufs": -19.6355240355539
+    },
+    {
+      "vehicleId": "TOYOTA_PICKUP_1980",
+      "vehicleSha256": "b357f721ca28f8ffb00c5a732725748a0e1498075836b2dce8e63b74523cc8da",
+      "soundSha256": "0cf8ecebf7bba06934acd43a3ab3d8cffbc40a1578da4d1e0dde1d9ebdff2b0f",
+      "lufs": -16.161991456719342
+    },
+    {
+      "vehicleId": "FERRARI_F40_1990",
+      "vehicleSha256": "1c23a510d9b264796d58709d891181af56dd2661ce97f56f2dc2d95d8a4b7d80",
+      "soundSha256": "5891800ad1df1bb6bd110f82d47a250ea778b4b85c053c3d3b818399a35a5881",
+      "lufs": -20.400775970681753
+    },
+    {
+      "vehicleId": "PORSCHE_959_1988",
+      "vehicleSha256": "cd32372cda697ec68aa03dfe74d20dbaa7deb45a6895289c3199ead153c6477e",
+      "soundSha256": "a612cd557856870e1879e00f12656cdfa0934f446eeb3c55ca816e7f227c615c",
+      "lufs": -18.601271698329796
+    },
+    {
+      "vehicleId": "CORVETTE_C4_1984",
+      "vehicleSha256": "eba4e4e4436ec1a16e582a89df981938cb8ba82a4ba10293661222895bb67cd5",
+      "soundSha256": "f7ba785572b87a31dd35ac5253dec771a529dd71bd7325c48497864108a670e6",
+      "lufs": -20.826912565880395
+    },
+    {
+      "vehicleId": "AUSTIN_MINI_850_1964",
+      "vehicleSha256": "d0693d63189dbe9d53cbbf6a2119b72c5a3c62cc0cde9b232535098fd9c67921",
+      "soundSha256": "6f934f9d1325514c92eff73fac3e66eb7278267945e62eb1ef93daabea310797",
+      "lufs": -16.659521377638082
+    },
+    {
+      "vehicleId": "WRANGLER_YJ_1995",
+      "vehicleSha256": "127e32531e7b69e7578f6e3c0672d994e99ac817f476ef6fb45e56e9b7dd5398",
+      "soundSha256": "e9172ba06a4f33fe40b0e5c43e155975d2e2a805a64d5f0de27e2447f79577c0",
+      "lufs": -16.649477352536245
+    },
+    {
+      "vehicleId": "NOVA_250_1977",
+      "vehicleSha256": "421088a8a248a5cbc6e6a0dda989e74ef15baa4a16cc1403384159e9cdc91018",
+      "soundSha256": "adf53d07e2e918a844a522f88a46666c05a0f0c96bf1c21d5e1f50065f7d1540",
+      "lufs": -19.163092468028243
+    },
+    {
+      "vehicleId": "NOVA_9C1_1977",
+      "vehicleSha256": "3b32771d1c1573a3823b0423ac327b12da860b458106c80f5f925fcb85e0a61a",
+      "soundSha256": "eca5fba0f624c06cde6dc5ed97085a49a6ffdc8b4215bea8d1194fc9ed46237c",
+      "lufs": -20.74280799674502
     }
   ]
 }

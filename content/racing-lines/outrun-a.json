@@ -131,6 +131,90 @@
       "vehicleSha256": "7e228b5e897d12546e0936b24aead7357379325231a0494401cb80699e7a401b",
       "seconds": 459.093,
       "minimumCurvatureSeconds": 459.466
+    },
+    {
+      "vehicleId": "PORSCHE_928_S4_1987",
+      "vehicleSha256": "81a2bf3df5e8dbeced1d1af64a6582e543c8ec3303d362c3e0955a3466aa3a83",
+      "seconds": 451.89,
+      "minimumCurvatureSeconds": 451.131
+    },
+    {
+      "vehicleId": "TURBO_ESPRIT_1984",
+      "vehicleSha256": "5cc70db6fa2fb18b66f6cf176f6a853e1dd412ac44d8264716da3bd56bfda629",
+      "seconds": 463.85,
+      "minimumCurvatureSeconds": 465.622
+    },
+    {
+      "vehicleId": "COUNTACH_5000_QV_1988",
+      "vehicleSha256": "db1cd84da65c9a9a5af351f37c2221f7198f72d2acbc895e9379c4a250cb5467",
+      "seconds": 433.915,
+      "minimumCurvatureSeconds": 433.823
+    },
+    {
+      "vehicleId": "911_TURBO_3_3_1986",
+      "vehicleSha256": "e04a67932745fdcbc379cac0e17a2f4ee96a54305426575232f1c612a2b04ffe",
+      "seconds": 456.413,
+      "minimumCurvatureSeconds": 456.557
+    },
+    {
+      "vehicleId": "FERRARI_GTO_1985",
+      "vehicleSha256": "0a74aa3317bc4369fae44780dd3ad08e22d1cbc6b3f7a9548021b6b4656952b8",
+      "seconds": 427.36,
+      "minimumCurvatureSeconds": 427.295
+    },
+    {
+      "vehicleId": "PORSCHE_928_S_1984",
+      "vehicleSha256": "7dfd0842a909f15fd9f5bf0f0c8a3ad1d62de0817062c79f8336cf06d7e739f7",
+      "seconds": 473.698,
+      "minimumCurvatureSeconds": 473.42
+    },
+    {
+      "vehicleId": "TOYOTA_PICKUP_1980",
+      "vehicleSha256": "7f7ee558390c5c5aa94d2a7ea5bc0df3ac9ad3974b78d73b4e1c5d0539631c02",
+      "seconds": 590.787,
+      "minimumCurvatureSeconds": 591.944
+    },
+    {
+      "vehicleId": "FERRARI_F40_1990",
+      "vehicleSha256": "6d39355010b9a879ebeed7dbe0d735f82f43e5f14180ab03079b3a05ee0efd8c",
+      "seconds": 417.374,
+      "minimumCurvatureSeconds": 417.298
+    },
+    {
+      "vehicleId": "PORSCHE_959_1988",
+      "vehicleSha256": "381cc541009f52bbcfdfb57b275332b562d829206e6d40efcf059008af1ffcb7",
+      "seconds": 430.57,
+      "minimumCurvatureSeconds": 430.528
+    },
+    {
+      "vehicleId": "CORVETTE_C4_1984",
+      "vehicleSha256": "2f231b950e0a92e8124b980f01f854f26ee1953f4565a8271cc1bb8c2124b28c",
+      "seconds": 474.249,
+      "minimumCurvatureSeconds": 474.324
+    },
+    {
+      "vehicleId": "AUSTIN_MINI_850_1964",
+      "vehicleSha256": "23be4671cbfd66a4b8f28986d324957a4ea2308d6d229e75bf230aac647f9690",
+      "seconds": 787.193,
+      "minimumCurvatureSeconds": 789.097
+    },
+    {
+      "vehicleId": "WRANGLER_YJ_1995",
+      "vehicleSha256": "19abd958c4576cd7a9871ec5cc3dea91d3e182e3b62e8b461bacb11fcdb29071",
+      "seconds": 581.646,
+      "minimumCurvatureSeconds": 582.738
+    },
+    {
+      "vehicleId": "NOVA_250_1977",
+      "vehicleSha256": "e389187a16963c357f783338a1de31e27e0064cb952655e799f9a880e2775d08",
+      "seconds": 576.161,
+      "minimumCurvatureSeconds": 577.402
+    },
+    {
+      "vehicleId": "NOVA_9C1_1977",
+      "vehicleSha256": "9e0981f1e9e9ef4442612337bd2e2f871966246db197c7bc731702e88a637147",
+      "seconds": 533.994,
+      "minimumCurvatureSeconds": 534.848
     }
   ],
   "lines": [

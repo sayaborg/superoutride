@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 38,
+  "visuals": {
+    "spriteSet": "porsche-959-1988",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "PORSCHE_959_1988",
+  "metadata": {
+    "manufacturer": "Porsche",
+    "model": "959 Komfort",
+    "period": "1988",
+    "mobileLabel": "959",
+    "engine": "F6",
+    "identifier": { "officialLabel": "959", "shortLabel": "959" },
+    "selectedSpecification": ["Komfort", "G+5 mapped to 1-6", "fixed AWD split"],
+    "physicsAnchor": { "modelYear": "1988", "market": "Europe" }
+  }
+}

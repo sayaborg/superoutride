@@ -701,3 +701,15 @@ whether it has settled, actual upshifts and downshifts, braking, an eight-second
 transients and a separate braking run starting at exactly 100 km/h. The report states the surface, inputs,
 initial conditions and stop criteria. The delivered-catalog tests save actual game frames to the same directory.
 The racing validation command keeps its original targets. Neither measurement command edits vehicle data.
+
+## CHASE H.Q. and Turbo OutRun vehicle authoring
+
+`npm run chase-turbo-pictures -- <vehicle ID|all|review> [replace]` uses the fourteen selections in the
+[arcade car ledger](chase-turbo-vehicles.md). Its original provisional geometry goes through the existing common
+picture baker. `review` reads the saved sets and exports labelled PNGs without rebaking; `replace` permits an
+explicit overwrite. Outputs, including all directions, six LODs, palette/brake sheets and per-game overviews,
+are written to `dist/chase-turbo-pictures/`.
+
+`npm run chase-turbo-validation` observes those fourteen admitted vehicles through the existing acceleration,
+braking, restart and cornering observer. It writes conditions and traces to
+`dist/chase-turbo-validation/measurements.json`. It does not edit vehicle data or create series reference times.

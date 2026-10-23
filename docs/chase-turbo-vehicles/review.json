@@ -1,0 +1,548 @@
+[
+  {
+    "id": "PORSCHE_928_S4_1987",
+    "sprite": "porsche-928-s4-1987",
+    "sha256": "65b167739ccdf114d68d0cf3f5307cce458834c5e22d1c978020df7c5ae3a979",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 59
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 56
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 53
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 45
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "TURBO_ESPRIT_1984",
+    "sprite": "turbo-esprit-1984",
+    "sha256": "70f052d96ca109a6c1bd5ae32dec5353b9161e5ada1de70f8360ce4b911d84f7",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 37
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 49
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 47
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "COUNTACH_5000_QV_1988",
+    "sprite": "countach-5000-qv-1988",
+    "sha256": "3f0d68e313ab867bf722eba7c56ca486e0a7e14248cc29ad6922c34f062238fd",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 38
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 48
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 46
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "911_TURBO_3_3_1986",
+    "sprite": "911-turbo-3-3-1986",
+    "sha256": "343ece36d335335adaee6bcd23793fe1a5ae5bd95325cfb0da94782f2b6308a7",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 61
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 59
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 59
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 49
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 41
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "FERRARI_GTO_1985",
+    "sprite": "ferrari-gto-1985",
+    "sha256": "59dc8f9d5888bd6c22f2fa90e6dc4e8f988d3c1836470b14233c638ce6d7e3e5",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 32
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 28
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "PORSCHE_928_S_1984",
+    "sprite": "porsche-928-s-1984",
+    "sha256": "d1d958f12f1d0658618a5f17da174f096004817da62d8a2bf848ad01c99162fe",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 59
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 48
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "TOYOTA_PICKUP_1980",
+    "sprite": "toyota-pickup-1980",
+    "sha256": "e50d877353c62f7b15a18409a492269651656b153ec51be05f205b32aafb990a",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 38
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 47
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 31
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "FERRARI_F40_1990",
+    "sprite": "ferrari-f40-1990",
+    "sha256": "8300f955c10ac29e037bb84ca8aa54a73f3cdd71bec3a5ec02da49aae92565f9",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 30
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 31
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 30
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "PORSCHE_959_1988",
+    "sprite": "porsche-959-1988",
+    "sha256": "e2bb9a46bbb115bdb3015d2b963dc48e283054a04f8092992665615fb7f25cca",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 61
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 59
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 57
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 35
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "CORVETTE_C4_1984",
+    "sprite": "corvette-c4-1984",
+    "sha256": "282f4664ce0a1634aa2b466033ed1a73f018df9cd497cde07908deace3ae08dc",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 47
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 45
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 41
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 36
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 27
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "AUSTIN_MINI_850_1964",
+    "sprite": "austin-mini-850-1964",
+    "sha256": "4739a98395702da89bedf7ddb517ed3c3cb16ea45c207c1698951ac9d5c9a6f4",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 31
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "WRANGLER_YJ_1995",
+    "sprite": "wrangler-yj-1995",
+    "sha256": "2c765f8210e023236d26196858eb1b2f766b7bd6f1f7c10f5e7bc4fd726dce2d",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 35
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 33
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "NOVA_250_1977",
+    "sprite": "nova-250-1977",
+    "sha256": "248bbd6c53089c768d01aadc4c051e67728fee00bf2c090d420b53520ce4694e",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 31
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 40
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 35
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  },
+  {
+    "id": "NOVA_9C1_1977",
+    "sprite": "nova-9c1-1977",
+    "sha256": "da74a414dc11de4c5e9e4ae826b406544a2286482d9854fe05be7cdcebe8817f",
+    "yawVariants": 64,
+    "bankVariants": 1,
+    "lods": [
+      {
+        "lod": 0,
+        "transparent": 0,
+        "lampPictures": 31
+      },
+      {
+        "lod": 1,
+        "transparent": 0,
+        "lampPictures": 39
+      },
+      {
+        "lod": 2,
+        "transparent": 0,
+        "lampPictures": 40
+      },
+      {
+        "lod": 3,
+        "transparent": 0,
+        "lampPictures": 35
+      },
+      {
+        "lod": 4,
+        "transparent": 0,
+        "lampPictures": 29
+      },
+      {
+        "lod": 5,
+        "transparent": 0,
+        "lampPictures": 0
+      }
+    ]
+  }
+]

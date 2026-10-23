@@ -1,0 +1,26 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.032, "open": 0.4 },
+    "primaries": [
+      { "length": 0.4, "diameter": 0.04, "to": 0 },
+      { "length": 0.4, "diameter": 0.04, "to": 1 },
+      { "length": 0.4, "diameter": 0.04, "to": 0 },
+      { "length": 0.4, "diameter": 0.04, "to": 1 },
+      { "length": 0.4, "diameter": 0.04, "to": 0 },
+      { "length": 0.4, "diameter": 0.04, "to": 1 }
+    ],
+    "pipes": [
+      { "length": 1.201, "diameter": 0.05, "from": 0, "to": 2 },
+      { "length": 0.65, "diameter": 0.05, "from": 2, "to": null },
+      { "length": 1.201, "diameter": 0.05, "from": 1, "to": 3 },
+      { "length": 0.65, "diameter": 0.05, "from": 3, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; alternating banks; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 35,
+  "visuals": {
+    "spriteSet": "porsche-928-s-1984",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "PORSCHE_928_S_1984",
+  "metadata": {
+    "manufacturer": "Porsche",
+    "model": "928 S",
+    "period": "1984",
+    "mobileLabel": "928 S",
+    "engine": "V8",
+    "identifier": { "officialLabel": "928 S", "shortLabel": "928 S" },
+    "selectedSpecification": ["5MT"],
+    "physicsAnchor": { "modelYear": "1984", "market": "US" }
+  }
+}

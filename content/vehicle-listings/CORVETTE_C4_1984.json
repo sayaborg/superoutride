@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 39,
+  "visuals": {
+    "spriteSet": "corvette-c4-1984",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "CORVETTE_C4_1984",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Corvette",
+    "period": "1984",
+    "mobileLabel": "C4",
+    "engine": "V8",
+    "identifier": { "officialLabel": "C4 / 1YY07", "shortLabel": "C4" },
+    "selectedSpecification": ["L83", "4+3: base 4 gears", "OD not simulated"],
+    "physicsAnchor": { "modelYear": "1984", "market": "US" }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 42,
+  "visuals": {
+    "spriteSet": "nova-250-1977",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "NOVA_250_1977",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Nova 250 Sedan",
+    "period": "1977",
+    "mobileLabel": "Nova",
+    "engine": "I6",
+    "identifier": { "officialLabel": "Nova", "shortLabel": "Nova" },
+    "selectedSpecification": ["3MT"],
+    "physicsAnchor": { "modelYear": "1977", "market": "US" }
+  }
+}

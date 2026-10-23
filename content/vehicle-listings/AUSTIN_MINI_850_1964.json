@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 40,
+  "visuals": {
+    "spriteSet": "austin-mini-850-1964",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "AUSTIN_MINI_850_1964",
+  "metadata": {
+    "manufacturer": "Austin",
+    "model": "Mini 850",
+    "period": "1964 early",
+    "mobileLabel": "MINI 850",
+    "engine": "I4",
+    "identifier": { "officialLabel": "A-A2S7", "shortLabel": "A-A2S7" },
+    "selectedSpecification": ["4MT"],
+    "physicsAnchor": { "modelYear": "1964 early", "market": "UK" }
+  }
+}

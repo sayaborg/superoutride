@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 34,
+  "visuals": {
+    "spriteSet": "ferrari-gto-1985",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "FERRARI_GTO_1985",
+  "metadata": {
+    "manufacturer": "Ferrari",
+    "model": "GTO",
+    "period": "1985",
+    "mobileLabel": "Tipo F114",
+    "engine": "V8",
+    "identifier": { "officialLabel": "Tipo F114", "shortLabel": "Tipo F114" },
+    "selectedSpecification": ["5MT"],
+    "physicsAnchor": { "modelYear": "1985", "market": "Europe" }
+  }
+}

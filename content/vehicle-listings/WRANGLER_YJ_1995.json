@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 41,
+  "visuals": {
+    "spriteSet": "wrangler-yj-1995",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "WRANGLER_YJ_1995",
+  "metadata": {
+    "manufacturer": "Jeep",
+    "model": "Wrangler S",
+    "period": "1995",
+    "mobileLabel": "YJ",
+    "engine": "I4",
+    "identifier": { "officialLabel": "YJ", "shortLabel": "YJ" },
+    "selectedSpecification": ["2.5L", "AX-5 5MT", "2H / soft top"],
+    "physicsAnchor": { "modelYear": "1995", "market": "US" }
+  }
+}

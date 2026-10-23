@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 32,
+  "visuals": {
+    "spriteSet": "countach-5000-qv-1988",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "COUNTACH_5000_QV_1988",
+  "metadata": {
+    "manufacturer": "Lamborghini",
+    "model": "Countach 5000 QV",
+    "period": "1988",
+    "mobileLabel": "5000 QV",
+    "engine": "V12",
+    "identifier": { "officialLabel": "5000 QV", "shortLabel": "5000 QV" },
+    "selectedSpecification": ["Europe carburettors", "rear wing", "5MT"],
+    "physicsAnchor": { "modelYear": "1988", "market": "Europe" }
+  }
+}

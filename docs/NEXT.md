@@ -14,6 +14,9 @@ Each line is one area as it stands, with the document that owns it.
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation.
+- The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
+  catalog to 35 vehicles. The 1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions;
+  the unidentified box truck remains deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),

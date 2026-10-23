@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 30,
+  "visuals": {
+    "spriteSet": "porsche-928-s4-1987",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "PORSCHE_928_S4_1987",
+  "metadata": {
+    "manufacturer": "Porsche",
+    "model": "928 S4",
+    "period": "1987",
+    "mobileLabel": "928 S4",
+    "engine": "V8",
+    "identifier": { "officialLabel": "928 S4", "shortLabel": "928 S4" },
+    "selectedSpecification": ["5MT"],
+    "physicsAnchor": { "modelYear": "1987", "market": "US" }
+  }
+}

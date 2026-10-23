@@ -32,7 +32,9 @@
     "racing-pictures": "node --import tsx tools/build/racing-pictures.ts",
     "racing-validation": "node --import tsx tools/build/racing-validation.ts",
     "road-bike-pictures": "node --import tsx tools/build/road-bike-pictures.ts",
-    "road-bike-validation": "node --import tsx tools/build/road-bike-validation.ts"
+    "road-bike-validation": "node --import tsx tools/build/road-bike-validation.ts",
+    "chase-turbo-pictures": "node --import tsx tools/build/chase-turbo-pictures.ts",
+    "chase-turbo-validation": "node --import tsx tools/build/chase-turbo-validation.ts"
   },
   "devDependencies": {
     "@types/node": "24.13.6",

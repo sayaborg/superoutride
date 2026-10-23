@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 43,
+  "visuals": {
+    "spriteSet": "nova-9c1-1977",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "NOVA_9C1_1977",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Nova 9C1",
+    "period": "1977",
+    "mobileLabel": "NOVA 9C1",
+    "engine": "V8",
+    "identifier": { "officialLabel": "COPO 9C1", "shortLabel": "COPO 9C1" },
+    "selectedSpecification": ["LG3", "game 3MT conversion", "factory 9C1 used AT"],
+    "physicsAnchor": { "modelYear": "1977", "market": "US" }
+  }
+}

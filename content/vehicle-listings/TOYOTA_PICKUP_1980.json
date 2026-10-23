@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 36,
+  "visuals": {
+    "spriteSet": "toyota-pickup-1980",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "TOYOTA_PICKUP_1980",
+  "metadata": {
+    "manufacturer": "Toyota",
+    "model": "Pickup Long Bed",
+    "period": "1980",
+    "mobileLabel": "RN42",
+    "engine": "I4",
+    "identifier": { "officialLabel": "RN42", "shortLabel": "RN42" },
+    "selectedSpecification": ["20R", "2WD regular cab", "long bed / 4MT"],
+    "physicsAnchor": { "modelYear": "1980", "market": "US 49-state" }
+  }
+}

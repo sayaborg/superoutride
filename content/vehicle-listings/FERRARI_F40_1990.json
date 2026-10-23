@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 37,
+  "visuals": {
+    "spriteSet": "ferrari-f40-1990",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "FERRARI_F40_1990",
+  "metadata": {
+    "manufacturer": "Ferrari",
+    "model": "F40",
+    "period": "1990",
+    "mobileLabel": "Tipo F120",
+    "engine": "V8",
+    "identifier": { "officialLabel": "Tipo F120", "shortLabel": "Tipo F120" },
+    "selectedSpecification": ["Europe non-cat", "fixed ride height", "5MT"],
+    "physicsAnchor": { "modelYear": "1990", "market": "Europe" }
+  }
+}

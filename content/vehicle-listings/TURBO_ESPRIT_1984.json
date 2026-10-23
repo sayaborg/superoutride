@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 31,
+  "visuals": {
+    "spriteSet": "turbo-esprit-1984",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "TURBO_ESPRIT_1984",
+  "metadata": {
+    "manufacturer": "Lotus",
+    "model": "Turbo Esprit",
+    "period": "1984",
+    "mobileLabel": "Type 82",
+    "engine": "I4",
+    "identifier": { "officialLabel": "Type 82", "shortLabel": "Type 82" },
+    "selectedSpecification": ["5MT"],
+    "physicsAnchor": { "modelYear": "1984", "market": "UK" }
+  }
+}

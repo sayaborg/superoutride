@@ -46,7 +46,7 @@ const puffDocument = await loadPuffs(
 );
 
 const idle = { steering: 0, throttle: false, brake: false };
-// The player's vehicle: a RACE class's first vehicle, TESTAROSSA otherwise.
+// The player's vehicle: a RACE class's first vehicle, or the FREE PLAY scenario's selection.
 const playerVehicle = (id) => ({ entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id) });
 // Runs are prepared from the delivered catalogs as in the browser.
 const freePlay = await loadFreePlayRules(content);
@@ -215,7 +215,8 @@ function pavementBounds(scene, vehicle) {
 export async function runScenario({ course }, scenario) {
   // RACE and TIME ATTACK take their class of the test series.
   const runClass = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
-  const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : 'TESTAROSSA');
+  const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : (scenario.vehicleId ?? 'TESTAROSSA'));
+  assert.ok(entry, `${scenario.name}: missing selected vehicle`);
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   // RACE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
   const mode = scenario.mode ?? 'FREE_PLAY';

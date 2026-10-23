@@ -1,0 +1,28 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "valve": { "diameter": 0.038, "open": 0.4 },
+    "primaries": [
+      { "length": 0.12, "diameter": 0.04, "to": 0 },
+      { "length": 0.12, "diameter": 0.04, "to": 1 },
+      { "length": 0.12, "diameter": 0.04, "to": 1 },
+      { "length": 0.12, "diameter": 0.04, "to": 0 },
+      { "length": 0.12, "diameter": 0.04, "to": 1 },
+      { "length": 0.12, "diameter": 0.04, "to": 0 },
+      { "length": 0.12, "diameter": 0.04, "to": 0 },
+      { "length": 0.12, "diameter": 0.04, "to": 1 }
+    ],
+    "pipes": [
+      { "length": 1.255, "diameter": 0.055, "from": 0, "to": 2 },
+      { "length": 0.65, "diameter": 0.055, "from": 2, "to": null },
+      { "length": 1.255, "diameter": 0.055, "from": 1, "to": 3 },
+      { "length": 0.65, "diameter": 0.055, "from": 3, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; cross-plane V8 bank routing from 1-8-4-3-6-5-7-2; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+  }
+}
