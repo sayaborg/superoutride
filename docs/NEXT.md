@@ -58,8 +58,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls),
-and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
+Next PR: [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), then
+[Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
+them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
 [Stage TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
@@ -69,11 +70,87 @@ Implement the stages in order. Each PR's restart instructions supply its detaile
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
 
+## Stage EX — The originals' courses exact, their constants few
+
+Stage EX raises the five originals' courses from what their ROMs determine and a short list of arbitrary constants, by
+one mathematics they share, before [Stage GR](#stage-gr--the-originals-courses-mended) and the next originals. Its PRs
+are numbered from EX-1.
+
+K's decisions (2026-10-23):
+
+- **What the ROMs determine is a course's canon.** Its plan, widths and Strips are raised from the ROMs exactly, by
+  constants, and so are its grades wherever a method determines them uniquely from the ROMs. The canon is not adjusted
+  afterwards. The other grades are computed as a first draft; they, the placements and the pictures are drafts, which
+  people may adjust or draw again by eye.
+- **The design is mathematically beautiful and concise.** Every course needs some arbitrary constants. They are kept
+  apart from what the ROMs give, and the fewer they are, the more beautiful the design. The stage tidies the road data
+  tool and the documents to that end.
+
+The stage's defaults, each chosen for the fewest constants (K may change any in its PR):
+
+- **The plan is the road path.** A Section's lanes may lie off its plan, so the plan is each original's road path P
+  itself, a station is a distance along P, and the widths are the ROMs' unrounded. Stripes, objects, gates and skies
+  stand on one ruler, the ROMs' positions.
+- **A heading table is a chain of arcs by its own runs.** Each run of evenly turning headings, to the tables'
+  resolution, is an arc at its own rate; the turn left where two runs meet is made over the positions where they meet,
+  or over the fewest more that keep the [coordinate domain](architecture.md#plan-authority); a step outside every run
+  (TURBO OUTRUN's spirals) is an arc of its own. Its one constant is the tables' resolution. A Section's plan holds up
+  to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs 825).
+- **SUPER MONACO GP's circuits** take their runs' arcs from their integer path's points, which close exactly, so that
+  no correction closes a lap.
+- **The canon's grades.** SUPER MONACO GP's path is the original's 3D road, so its heights are its rises' sum at the
+  plan's scale and its grades the original's. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
+  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m). Both rise tables
+  are written as a heading table is, by their own runs. OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
+  shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
+- **Crossings.** Where the heights leave two passages nearer than 6 m, one fixed rule parts them by the least change;
+  on a canon's heights it is part of the canon.
+- **Each constant once.** A value the ROMs hold is read from them, not written into the tool, unless only encrypted
+  code holds it. Each arbitrary constant and each fixed rule (a shape the ROMs do not hold, such as OUTRUN's forks) is
+  named once with its reason: the shared ones in [Original road data](original-road-data.md) and one module, each
+  original's in its chapter and one module of its own. A solver's tolerance stays with its solver.
+- **Ownership.** The conversion owns a course's canon and people its drafts: `--check` compares the canon alone, and
+  raising a course again rewrites the canon and keeps the drafts as people left them.
+- **No class.** The stage adds no class: SUPER HANG-ON's and SUPER MONACO GP's courses keep none with their hills made,
+  until Stage GR decides the originals' classes.
+
+Rules of the stage:
+
+- One purpose a PR ([AGENTS](../AGENTS.md#work-and-release)), under the
+  [rules of the originals](original-road-data.md#rules-of-the-originals). Each PR names the constants, fixed rules and
+  special cases it removes and adds, and writes what it makes of this section into the documents that own it.
+- EX-1's PR records the audit the stage starts from: each original's constants, rules and special cases counted, where
+  the documents and the code disagree, and K's decisions found only in Git history. A defect it found is mended in the
+  PR that touches its code, or in one of its own.
+
+PRs, in this order:
+
+- EX-1: this section, with SUPER HANG-ON's and SUPER MONACO GP's hills moved into it from Stage GR.
+- EX-2: K's decisions found only in Git history (nine of SUPER MONACO GP's, two of ENDURO RACER's) written into the
+  chapters that own them, and the statements the audit found untrue corrected.
+- EX-3: the course format: a Section's centre lane may lie off its plan, at a lateral written as a width is but signed
+  (0 by default), and a Section's plan holds up to 1024 elements. No course changes.
+- EX-4: the plan from a heading table, shared, and SUPER HANG-ON's courses raised on P by it.
+- EX-5 to EX-7: ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised on P, a PR each.
+- EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
+- EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,
+  the plane, the widths' roundings and SUPER MONACO GP's closing.
+- EX-10: the profile from a rise table, shared, and SUPER MONACO GP's hills by it.
+- EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m.
+- EX-12: SUPER HANG-ON's hills by the profile from a rise table.
+- EX-13: one way of writing Sections for every original: their cuts, stripes and documents.
+- EX-14: the shared constants and fixed rules in one module and in Original road data's table.
+- EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
+  each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
+  module and in its chapter's table.
+- EX-25: the canon's ownership.
+- EX-26: this section deleted, and "Next PR" pointing to Stage GR.
+
 ## Stage GR — The originals' courses mended
 
-Stage GR mends the five originals' courses, decides how hills are made and makes them, and fixes defects, among them
-SUPER MONACO GP's QUALIFYING, which loads and never starts; what Stages ER and MG left in
-[Courses of the originals](#courses-of-the-originals) is its.
+Stage GR mends the five originals' courses, decides how OUTRUN's, TURBO OUTRUN's and ENDURO RACER's hills are made and
+makes them, decides the originals' classes, and fixes defects, among them SUPER MONACO GP's QUALIFYING, which loads and
+never starts; what Stages ER and MG left in [Courses of the originals](#courses-of-the-originals) is its.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -256,10 +333,10 @@ Left by the stages that raised them, beside what follows:
 
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
   are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
-- SUPER HANG-ON: the hills (how the original's vertical heading tables become grades), the SUPER HANG-ON series itself
-  (sixteen bikes, their colors and pace), sounds and music, the mini ride-on cabinets' courses (their programs are
-  encrypted), the ending's motion (its last frame alone stands), and the product's pictures drawn again. When classes
-  return, each is the player alone on VFR750R from GO (slot 15), no traffic, margin 1.35.
+- SUPER HANG-ON: the SUPER HANG-ON series itself (sixteen bikes, their colors and pace), sounds and music, the mini
+  ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands), and the
+  product's pictures drawn again. When classes return, each is the player alone on VFR750R from GO (slot 15), no
+  traffic, margin 1.35.
 - TURBO OUTRUN: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and 959,
   their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and traffic
   tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
@@ -269,18 +346,17 @@ Left by the stages that raised them, beside what follows:
 - ENDURO RACER: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.
-- SUPER MONACO GP: the hills (the original's dz) and grade separation, the SUPER MONACO GP series itself (cars, rivals,
-  laps, rank limits, time and the overcast set), sounds and music, the motion of what moves, the start's signal, the
-  mirror and the cockpit, and the product's pictures drawn again. A format holding pictures at the original's pixel size
-  would make its pictures smaller (most are the 16-unit class, each of the original's pixels about 4 × 4 texels), and
-  is not made now.
+- SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits, time and the overcast set),
+  sounds and music, the motion of what moves, the start's signal, the mirror and the cockpit, and the product's
+  pictures drawn again. A format holding pictures at the original's pixel size would make its pictures smaller (most
+  are the 16-unit class, each of the original's pixels about 4 × 4 texels), and is not made now.
 - Stage PG: the plan's injectivity check (`plan-domain-injectivity.ts`) takes only the cells next to each other in order
   as neighbours; mended, it would need no way round such as PG-6b1's.
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
 - The hills and jumping: ENDURO RACER's grade tables, its jumps and the 5 jump mounds standing on another passage's
-  road, its crossings made again, and SUPER MONACO GP's hills.
+  road, and its crossings made again.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
 
