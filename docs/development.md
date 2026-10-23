@@ -502,6 +502,28 @@ To run them: put K's ROM zip in `reference-media/outrun/rom/`, run `npm run road
 and open the game with `dev=1`.
 `npm run build` returns to the published files.
 
+### Research tools
+
+`tools/research/` holds small Python scripts for researching an original's ROMs before the road data tool reads its
+tables. They are research aids, not authoring implementations: they write no content, and the build, the lint, the tests
+and CI never run them. They need Python 3.11 or later, and `dis68.py` needs capstone 5 (`python3 -m pip install -r
+tools/research/requirements.txt`; it needs capstone even for `-h`). They run as `python3 -I tools/research/<script> …`,
+so that they import nothing from the current directory or a zip's folder. Each prints its usage with `-h`; an error ends
+it with a message or a Python traceback, outside the command-line tools' JSON diagnostics. What they print or write
+(program images, listings, string lists) is research output under the [rules of the
+originals](original-road-data.md#rules-of-the-originals): it never enters Git, a PR body or a PR image. None of them
+decrypts a program, and a MAME driver source is read for its ROM lists and set names alone.
+
+| Script             | Use                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `zip_list.py`      | Each entry of a zip: name, size and CRC-32, checked against its data; the zip's SHA-256                              |
+| `rom_set_check.py` | A zip against a set's ROM list in a MAME driver source: missing, extra, renamed and bad ROMs                         |
+| `interleave.py`    | A 68000 program image from its even-byte and odd-byte ROMs, written outside the checkout or under `reference-media/` |
+| `dis68.py`         | A 68000 listing of an image's address range                                                                          |
+| `listing_range.py` | The lines of a listing in an address range                                                                           |
+| `callers.py`       | The routine holding an address and its direct callers                                                                |
+| `rom_strings.py`   | Printable text in an image, with addresses                                                                           |
+
 ### Skies command
 
 The skies command draws every course sky that has a source, `content/sky-sources/<name>.png` with its entry in that
