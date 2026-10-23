@@ -58,106 +58,16 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage TD](#stage-td--the-road-data-tool-and-the-documents-tidied)'s next PR (TD-10);
-then [Stage GR](#stage-gr--the-originals-courses-mended) and
-[Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside them
-[Stage NM](#stage-nm--a-namco-original-from-the-roms), later [Stage BR](#stage-br--big-run-from-the-roms),
-[Stage CS](#stage-cs--cisco-heat-from-the-roms) and [Stage TA](#stage-ta--a-taito-original-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come;
+Next PR: [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls),
+and beside them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
+[Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
+[Stage TA](#stage-ta--a-taito-original-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come;
 [DT-7](#stage-dt--drift-tuned-trial-vehicles), and [DT-3](#stage-dt--drift-tuned-trial-vehicles) once K decides; then
 [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
-
-## Stage TD — The road data tool and the documents tidied
-
-Stage TD gathers the tools and documents the Sega originals made into one shared form, for the work that follows them
-([Stage GR](#stage-gr--the-originals-courses-mended)) and for the next originals
-([Stage NM](#stage-nm--a-namco-original-from-the-roms), [Stage BR](#stage-br--big-run-from-the-roms),
-[Stage CS](#stage-cs--cisco-heat-from-the-roms), [Stage TA](#stage-ta--a-taito-original-from-the-roms)). It changes no
-output. Its PRs are numbered from TD-1.
-
-K's decisions (2026-10-22 and 2026-10-23):
-
-- **The Sega originals are five**: OUTRUN, SUPER HANG-ON, TURBO OUTRUN, ENDURO RACER and SUPER MONACO GP. RACING HERO
-  is not made ([Courses of the originals](#courses-of-the-originals)).
-- **What the repository may hold goes into it**: each original's research notes, the procedure that raises an original
-  from its ROMs, and small research tools that decrypt nothing and hold no other project's code and no ROM data. What
-  it may not hold stays on K's machine: the ROMs' zips and raw data, decrypting code and keys, decrypted programs, the
-  harnesses that run the originals, disassemblies, and comparison pictures made from the ROMs.
-- **The courses can be raised again from the ROMs' zips at any time**: one command raises every original, and a section
-  of the shared document says how; K's machine keeps only what the repository may not hold.
-- **NEXT is made ready for the next work**: the stages below, whose names K may change. Stage PG's decisions (the
-  picture rules, the water material, the view sets and OUTRUN TEST and TRIAL deleted) do not change, nor does the line
-  it left to later stages, which is named Stage RM.
-- **No output changes**: nothing under `content/` and `src/` changes, every original's dump and `--check` stay byte for
-  byte the same, and no racing line is measured again.
-- **SUPER MONACO GP's original eye** is about 0.52 m, not about 0.57 m as
-  Stage MG said; its chapter already gives 0.52 m
-  ([SUPER MONACO GP's objects](super-monaco-gp-road-data.md#super-monaco-gps-objects)).
-
-Rules of the stage:
-
-- One purpose a PR: what is added, what is moved or renamed, what is deleted and what changes in logic are separate PRs
-  ([AGENTS](../AGENTS.md#work-and-release)). A PR that moves lists at its start every change other than the move, and
-  only those this section names. A PR too large for one review is split and the split reported.
-- Open points are decided by their defaults and recorded in the PR: the names of modules and documents, what is shared
-  and what is an original's, the index's wording, which lines Current state keeps, where open points and links go. The
-  stage stops only where it cannot keep the output (a dump, a `--check`, `content/`, `src/`, a command's standard output
-  or the sound originals would change), where two documents disagree and their owner does not decide, or where a rule
-  of the rights below would break.
-- Rights, as before: the ROMs' zips and raw dumps enter no commit, PR body or PR picture; no decrypting code or key and
-  no research output (program images, disassemblies, string lists, dumps) enters the repository; no other project's
-  code is copied or ported, and new text names MAME alone, the rest as "other projects' code".
-- Every PR that touches code (TD-4, TD-5, TD-6, TD-9b) shows on K's local ROMs, before and after it: every original's
-  dump the same (their SHA-256 in the PR), every original's `--check` passing, no difference under `content/` and
-  `src/`, every command's standard output the same, and the sound originals' SHA-256 the same. The standing checks are
-  [AGENTS](../AGENTS.md#checks)'s and the road data commands [Development](development.md#road-data-commands)'s.
-- Each concept keeps one owning document ([index](README.md)). A move changes no text but its links, the sentences
-  saying where something is, and the one sentence that joins a rule written in several places, each such sentence shown
-  before and after in the PR. Where NEXT and the chapter owning a matter disagree, the chapter holds and NEXT's sentence
-  is not moved; the PR lists the disagreements found. Every document PR shows that every link and anchor resolves but
-  those broken on main before it.
-- **Beside the vehicles.** Vehicles are being added beside this stage (RV-1 to RV-4, the five road motorcycles). Their
-  documents ([Racing vehicle ledger](racing-vehicles.md), [Road motorcycle ledger](road-bikes.md) and the folders
-  below them), their pictures and checks in `tools/build/` and `tools/graphics/`, `tools/course/racing-vehicle-check.ts`
-  and their tests are not Stage TD's: they are neither moved nor reworded, and Current state's vehicle lines and the
-  index's rows for them stay. Where a PR of either rewrites the same file, it is built on whichever reached main first,
-  keeping the other's lines. Stage TD measures nothing again; when main's measured products are new, the checks pass on
-  them.
-
-PRs, in this order:
-
-- TD-1: this section, the later stages below, the driver's eye view in
-  [Pending product decisions](#pending-product-decisions), "Next PR", and Stage PG closed.
-- TD-2 is not needed: SUPER MONACO GP's chapter already gives its original eye as 0.52 m.
-- TD-3a: what still holds in the finished stages' sections moved to its owners: the rules all originals keep to a new
-  section of [Original road data](original-road-data.md), Rules of the originals; each original's decisions to its
-  chapter; product promises to [Product](product.md); the later work's promises and what was left, RD-6e among them, to
-  [Courses of the originals](#courses-of-the-originals); Current state's open points to their owners.
-- TD-3b: the finished stages' sections deleted (VC, RD, SH, TO, ER, MG, PG and RH).
-- TD-3c: Current state rewritten as a restart point, one line an area with its owner's link.
-- TD-4: the parts originals share moved to modules named after no original, OUTRUN's ROM tables to its ROM module, and
-  one `paletteName`.
-- TD-5: one way of finding the ROMs: a shared module finds each ROM of a set by its CRC-32 and size, refuses a set
-  missing one by the set's and the ROM's names, and writes the dump's ROM records.
-- TD-6: the road data tool's command line split into one command module an original; OUTRUN's commands take its name as
-  the others do.
-- TD-7: [Original road data](original-road-data.md) split into the shared document and one document an original.
-- TD-8: the research tools (`tools/research/`) and their subsection in [Development](development.md).
-- TD-9: the procedure that raises an original from its ROMs, a section of the shared document, and each original's
-  research notes (`docs/research/`).
-- TD-9b: one command raising every original from its zips, and its section in the shared document.
-- TD-10: this section deleted, and "Next PR" pointing to the later stages.
-
-Each PR updates its specifications with it (the index, Development, NEXT's progress).
-
-Not in this stage: any change of behavior or format; the courses, pictures, skies and racing lines; the hills, jumps,
-crossings and bodies (Stage GR); BRANCH, TSUKUBA and the walls (Stage RM); deleting other tools or documents, or mending
-the links broken today (the stage's last report lists the candidates for K); making the tool general for BIG RUN and
-CISCO HEAT (Stage BR); renaming course IDs, pictures or dump formats; testing the rule on imports between originals.
 
 ## Stage GR — The originals' courses mended
 
