@@ -5,6 +5,7 @@
  */
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS } from '../../src/view/camera.js';
+import { computedValue } from '../authoring/course-joints.js';
 import { ENTRY, entrySpans, type TableRun } from './hills.js';
 
 /** An entry's value that changes the grade by `c_look`. */
@@ -501,4 +502,30 @@ export function leastLoad(profile: Profile, from: number, to: number, kmh: numbe
   for (const b of profile.bends)
     if (b.to > from && b.from < to) least = Math.min(least, 1 + (v * v * b.curvature) / 9.80665);
   return least;
+}
+
+const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
+
+/** A curve is written this much shorter at each end, so curves that meet stay apart through rounding, metres. */
+const CURVE_GAP = 2e-6;
+
+/**
+ * A Section's profile knots, stations `[from, to]`: its ends, and a PVI for each of the profile's bends within, at the
+ * intersection of the tangents at the bend's ends. A knot next to an end that joins another Section lies on that end's
+ * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`).
+ */
+export function sectionProfile(profile: Profile, from: number, to: number, joinsBefore: boolean, joinsAfter: boolean) {
+  const knots = [{ s: from, y: profile.height(from), curveLength: 0 }];
+  for (const { from: a, to: b } of profile.bends) {
+    // A bend broken at a cut ends where the Section does, but for its station's rounding.
+    if (a < from - 1e-6 || b > to + 1e-6) continue;
+    // To the step of computed values, finer than a station's, so that its tangents' grades hold at both its ends.
+    const s = computedValue((a + b) / 2);
+    knots.push({ s, y: profile.height(a) + profile.grade(a) * (s - a), curveLength: round(b - a - 2 * CURVE_GAP) });
+  }
+  knots.push({ s: to, y: profile.height(to), curveLength: 0 });
+  const n = knots.length;
+  if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * (knots[1]!.s - from);
+  if (n > 2 && joinsAfter) knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (to - knots[n - 2]!.s);
+  return knots;
 }

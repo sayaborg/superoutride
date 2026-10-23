@@ -9,10 +9,9 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import type { ZipFile } from './zip.js';
-import { sectionProfile } from './outrun-course.js';
-import { profileOf } from './road-profile.js';
+import { profileOf, sectionProfile } from './road-profile.js';
 import { bakeSky, SKY_WIDTH } from './sky-baking.js';
-import { sectionPlan } from './super-hang-on-plan.js';
+import { sectionPlan } from './path-plan.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,

@@ -10,7 +10,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
 import { composite, type FeatureEdge } from './two-roads.js';
-import { OffsetPlan, POSITION_METRES, type Pose } from './offset-plan.js';
+import { OffsetPlan, POSITION_METRES, STRIPE_PERIOD, type Pose } from './offset-plan.js';
 import {
   forkSpan,
   joinSpan,
@@ -32,6 +32,7 @@ import {
   crossingOf,
   LOOK,
   profileOf,
+  sectionProfile,
   separatedCrossings,
   stageGrades,
   type Change,
@@ -40,7 +41,7 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import { raisedSplit, repeated, sectionProfile, simplified } from './outrun-course.js';
+import { raisedSplit, repeated, simplified } from './section-writing.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -48,8 +49,6 @@ import type { LyingBoard } from './outrun-boards.js';
 import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
-/** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
-export const STRIPE_PERIOD = ((32 * 303) / 3072) * POSITION_METRES;
 /** The start grid: as many slots as a run's competitors, this far apart. */
 const GRID_SLOTS = 16;
 const GRID_SPACING = 12;

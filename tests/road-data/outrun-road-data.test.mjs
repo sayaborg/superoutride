@@ -5,7 +5,7 @@ import { readZip } from '../../tools/road-data/zip.ts';
 import { assemblePrograms } from '../../tools/road-data/outrun-rom.ts';
 import { interleave } from '../../tools/road-data/program-words.ts';
 import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun-road.ts';
-import { paletteRgb555, pathOffset, pathTurn, readHeightTable } from '../../tools/road-data/road-tables.ts';
+import { paletteRgb555, pathOffset, pathTurn, readHeightTable, roadWidths } from '../../tools/road-data/road-tables.ts';
 import {
   bendOf,
   closedGrades,
@@ -17,7 +17,7 @@ import {
   STEEPEST,
 } from '../../tools/road-data/road-profile.ts';
 import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
-import { roadWidths, stagePlan } from '../../tools/road-data/outrun-course.ts';
+import { stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
@@ -322,7 +322,7 @@ test('a stage becomes a road: its path turns between breaks at its joins, its wi
 
   // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50.
   const width = [{ position: 50, kind: 1, value: 300, speed: 30 }];
-  assert.deepEqual(roadWidths(width, 300), [
+  assert.deepEqual(roadWidths(width, 300, 450), [
     [0, 450],
     [50, 450],
     [144.6875, 300],

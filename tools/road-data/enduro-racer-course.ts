@@ -9,15 +9,14 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import type { ZipFile } from './zip.js';
-import { repeated, sectionProfile } from './outrun-course.js';
 import { paletteName } from './pixel-grid.js';
-import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
+import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
-import { sectionPlan, type PlanSegment } from './super-hang-on-plan.js';
-import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
-import { domainCuts, writtenPlan, type WrittenElement } from './super-hang-on-course.js';
+import { sectionPlan, type PathSegment } from './path-plan.js';
+import { CoursePath, type PathElement } from './course-path.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -222,7 +221,7 @@ export function enduroRacerCourse(files: ReadonlyMap<number, ZipFile>) {
 /** What the course is laid from. */
 interface CourseInputs {
   /** Each stage's road path as straights and arcs over its positions 0 to 2047. */
-  readonly plans: readonly (readonly PlanSegment[])[];
+  readonly plans: readonly (readonly PathSegment[])[];
   readonly metres: number;
   readonly unit: number;
   readonly cross: CrossSection;

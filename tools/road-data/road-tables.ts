@@ -3,7 +3,9 @@
  * palette words, curves, widths and heights, scenery points, road paths and height tables. Every reader takes a program
  * as the 68000 addresses it and returns the table's entries as numbers, without interpreting them further.
  */
+import { requireInput } from '../course/authoring-io.js';
 import { entries, long, sword, u8, word } from './program-words.js';
+import { simplified } from './section-writing.js';
 
 /** OUTRUN's height tables on the sub CPU: the default table of `readHeightTable`. */
 const HEIGHT_TABLES = 0x220a;
@@ -171,4 +173,34 @@ export function readHeightTable(
     default:
       throw new RangeError(`Height table ${number} at 0x${address.toString(16)} is of unknown kind ${kind}`);
   }
+}
+
+/** The road width approaches a width point's target by its speed × 16 / 303 units a position. */
+export const WIDTH_RATE = 16 / 303;
+
+/**
+ * The road width along a stage, units, as knots `[position, width]` to `end`: from `start` at 0 (450 at the game's start),
+ * each width point approaches its target from its position at its rate until it is reached or the next point begins.
+ */
+export function roadWidths(points: readonly WidthHeightPoint[], end: number, start: number): [number, number][] {
+  const targets = points.filter((p) => p.kind !== 0 && p.position < end);
+  const knots: [number, number][] = [[0, start]];
+  let width = start;
+  targets.forEach((p, i) => {
+    const next = targets[i + 1]?.position ?? end;
+    knots.push([p.position, width]);
+    const rate = Math.abs(p.speed) * WIDTH_RATE;
+    if (p.value === width) return;
+    requireInput(rate > 0, `/widthsHeights/${p.position}`, `The width point at ${p.position} has no speed`);
+    const reach = p.position + Math.abs(p.value - width) / rate;
+    if (reach < next) {
+      width = p.value;
+      knots.push([reach, width]);
+    } else {
+      width += Math.sign(p.value - width) * rate * (next - p.position);
+      knots.push([next, width]);
+    }
+  });
+  knots.push([end, width]);
+  return simplified(knots);
 }

@@ -8,9 +8,15 @@ import { POSITION_PER_KMH, TICKS } from './hills.js';
 
 /** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
 export const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
+/** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
+export const STRIPE_PERIOD = ((32 * 303) / 3072) * POSITION_METRES;
 
-export type { PlanSegment } from './outrun-course.js';
-import type { PlanSegment } from './outrun-course.js';
+/** A plan element over road positions `[from, to)`: a straight, or an arc turning left (+) or right (−). */
+export interface TurnSegment {
+  readonly from: number;
+  readonly to: number;
+  readonly turn: number;
+}
 
 /** A piece of a function of the road position, `a + b t + c t²` with `t = p − from`, over `[from, to]`. */
 export interface QuadraticPiece {
@@ -252,7 +258,7 @@ export class OffsetPlan {
   readonly elements: readonly PlanElement[];
   private readonly table: Float64Array;
   constructor(
-    readonly path: readonly PlanSegment[],
+    readonly path: readonly TurnSegment[],
     readonly offset: Quadratic,
     readonly from: number,
     readonly to: number,

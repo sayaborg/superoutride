@@ -8,8 +8,7 @@ import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
-import { shadowFrame } from './outrun-boards.js';
-import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, texelsAPixel } from './pixel-grid.js';
+import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 

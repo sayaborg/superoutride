@@ -7,6 +7,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import type { ZipFile } from './zip.js';
 import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
+import { OUTRUN_ROAD_ROM } from './outrun-rom.js';
 
 /** A lane: the original's lane spacing, the road ROM's lines' (`opr-10185`), 3.6 m. */
 export const LANE = 424 / 3;
@@ -63,8 +64,6 @@ export function centreLaneAt(w: number): number {
 /** Road widths at which the lanes' rule changes. */
 export const LANE_RULE_WIDTHS: readonly number[] = [72, TOUCHING];
 
-/** The road ROM: 256 lines of 512 pixels, two bit planes of 64 bytes a line one after the other, 32 KiB. */
-export const OUTRUN_ROAD_ROM = Object.freeze({ name: 'opr-10185.11', crc: 0x22794426 });
 const ROAD_ROM_SIZE = 0x8000;
 /** The nearest line of the road ROM, 1 pixel a unit, and the pixel its centre falls on. */
 const NEAREST = 255;

@@ -11,7 +11,7 @@ import type { LyingPicture } from './ground-materials.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, texelsAPixel } from './pixel-grid.js';
+import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -195,26 +195,4 @@ interface Board {
   readonly edge?: { readonly name: string; readonly cut: StripCut };
   /** Whether it stands at its foot and is shown raised too, by its `-raised` image. */
   readonly split?: boolean;
-}
-
-/**
- * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
- * base point `aside` source pixels across from there (the frame then stands that far the other way).
- */
-export function shadowFrame(
-  pixels: Uint8Array,
-  width: number,
-  scale: { readonly x: number; readonly y: number },
-  anchor: number,
-  aside: number,
-) {
-  const grid = chosenLines(pixels, width, scale.x, scale.y);
-  const point = anchorPoint(anchor, grid.width, grid.height);
-  return {
-    width: grid.width,
-    height: grid.height,
-    anchorX: point.x - aside * scale.x,
-    anchorY: point.y,
-    levels: [{ indices: grid.indices }],
-  };
 }

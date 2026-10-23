@@ -1,9 +1,8 @@
 /**
- * SUPER HANG-ON's road path P as straights and arcs ([Original road data](../../docs/original-road-data.md#super-hang-on)):
+ * An original's road path P as straights and arcs ([Original road data](../../docs/original-road-data.md#super-hang-on)):
  * each section's path, its folds spread, laid off as the longest elements that stay near the line its headings build,
  * the section's ends straight at the heading every section starts and ends with.
  */
-import { instruction, long } from './program-words.js';
 import type { Path } from './road-tables.js';
 
 /** A fold is a position turning more than this off its seven positions' median, degrees. */
@@ -22,23 +21,8 @@ const MISSES = 8;
  */
 const STRAIGHTEST = 40000;
 
-/**
- * One road position in metres, from the main CPU's program: at speed v the display shows v × 0x117 / 0xF0 km/h (the
- * `mulu.w #$117` and `divu.w #$F0` at 0x15DA), each tick advances the road 0x97 × v / 65536 positions (the long at
- * 0x8848), and the clock counts 60 ticks a second (the `moveq #$3C, d1` at 0x544E).
- */
-export function positionMetres(main: Uint8Array): number {
-  const [multiplier] = instruction(main, 0x15da, [0xc0fc, null], "the speed display's factor");
-  const [divisor] = instruction(main, 0x15de, [0x80fc, null], "the speed display's divisor");
-  const [moveq] = instruction(main, 0x544e, [null], "the clock's ticks a second");
-  if (moveq! >> 8 !== 0x72) throw new RangeError("The program at 0x544E does not set the clock's ticks a second");
-  const ticks = moveq! & 0xff;
-  const advance = long(main, 0x8848);
-  return ((multiplier! / divisor!) * 65536) / (3.6 * ticks * advance);
-}
-
 /** A plan element over positions `[from, to]`: a straight, or an arc turning `turn` radians (left positive). */
-export interface PlanSegment {
+export interface PathSegment {
   readonly from: number;
   readonly to: number;
   readonly turn: number;
@@ -147,11 +131,11 @@ export function sectionPlan(path: Path, metres: number) {
         (k) => k === 0 || k === spans.length - 1 || Math.abs(h[spans[k]![1]]! - h[spans[k]![0]]!) < STRAIGHT_DEGREES,
       ),
   );
-  let laid: PlanSegment[] | null = null;
+  let laid: PathSegment[] | null = null;
   while (!laid) {
     const lastArc = Math.max(-1, ...spans.map((_, k) => k).filter((k) => !straights.has(k)));
     let heading = h[0]!;
-    const out: PlanSegment[] = [];
+    const out: PathSegment[] = [];
     for (const [k, [from, to]] of spans.entries()) {
       if (straights.has(k)) {
         out.push({ from, to, turn: 0 });
@@ -169,7 +153,7 @@ export function sectionPlan(path: Path, metres: number) {
     else straights.add(lastArc);
   }
   // Straights one after another are one.
-  const segments: PlanSegment[] = [];
+  const segments: PathSegment[] = [];
   for (const e of laid) {
     const last = segments.at(-1);
     if (last && last.turn === 0 && e.turn === 0) segments[segments.length - 1] = { ...last, to: e.to };

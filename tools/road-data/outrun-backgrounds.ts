@@ -6,24 +6,6 @@
 import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
-import type { ZipFile } from './zip.js';
-
-/** The tile ROMs: three bit planes, each two 32 KiB ROMs (tiles 0–4095, then 4096–8191), the lowest bit first. */
-export const OUTRUN_TILE_ROMS = Object.freeze([
-  [
-    { name: 'opr-10268.99', crc: 0x95344b04 },
-    { name: 'opr-10232.102', crc: 0x776ba1eb },
-  ],
-  [
-    { name: 'opr-10267.100', crc: 0xa85bb823 },
-    { name: 'opr-10231.103', crc: 0x8908bcbf },
-  ],
-  [
-    { name: 'opr-10266.101', crc: 0x9f6f1a74 },
-    { name: 'opr-10230.104', crc: 0x686f5e50 },
-  ],
-] as const);
-const TILE_ROM_SIZE = 0x8000;
 
 /** The main CPU's tables: the stage table, the tile palettes and their stage patches, the layers, the skies. */
 const STAGE_TABLE = 0xe49c;
@@ -54,24 +36,6 @@ const RAMP = 64;
 
 const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
 const long = (p: Uint8Array, a: number) => ((word(p, a) << 16) | word(p, a + 2)) >>> 0;
-
-/** The tile ROMs' three bit planes, each 8 bytes a tile (a byte a row, its bit 7 the leftmost pixel). */
-export function assembleTiles(files: ReadonlyMap<string, ZipFile>): readonly Uint8Array[] {
-  return OUTRUN_TILE_ROMS.map((halves) => {
-    const plane = new Uint8Array(halves.length * TILE_ROM_SIZE);
-    halves.forEach(({ name, crc }, h) => {
-      const file = files.get(name);
-      requireInput(file, `/rom/${name}`, `The ROM set has no ${name}`);
-      requireInput(
-        file.data.length === TILE_ROM_SIZE && file.crc === crc,
-        `/rom/${name}`,
-        `${name} is not MAME outrun's tile ROM of CRC ${crc.toString(16).padStart(8, '0')}`,
-      );
-      plane.set(file.data, h * TILE_ROM_SIZE);
-    });
-    return plane;
-  });
-}
 
 /** A tile's pixel, 0 transparent: its planes' bits at (x, y), plane k bit k. */
 const tilePixel = (planes: readonly Uint8Array[], tile: number, x: number, y: number) =>

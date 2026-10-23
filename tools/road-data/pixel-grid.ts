@@ -3,6 +3,7 @@
  * a road unit's metres, the pixels' aspect, a board's grid, chosen lines, mirroring and a palette's name.
  */
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
+import { anchorPoint } from './sprite-pixels.js';
 
 /** `pixels`, `width` wide, mirrored left to right. */
 export const mirror = <T>(pixels: readonly T[], width: number) =>
@@ -127,5 +128,27 @@ export function chosenLines(pixels: Uint8Array, width: number, across: number, d
     width: columns.length,
     height: rows.length,
     indices: rows.flatMap((y) => columns.map((x) => at(x, y))),
+  };
+}
+
+/**
+ * The shadow's binary frame (`width` pixels wide) on the texel grid of `scale` texels a pixel, anchored as `anchor`, its
+ * base point `aside` source pixels across from there (the frame then stands that far the other way).
+ */
+export function shadowFrame(
+  pixels: Uint8Array,
+  width: number,
+  scale: { readonly x: number; readonly y: number },
+  anchor: number,
+  aside: number,
+) {
+  const grid = chosenLines(pixels, width, scale.x, scale.y);
+  const point = anchorPoint(anchor, grid.width, grid.height);
+  return {
+    width: grid.width,
+    height: grid.height,
+    anchorX: point.x - aside * scale.x,
+    anchorY: point.y,
+    levels: [{ indices: grid.indices }],
   };
 }

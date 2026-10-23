@@ -6,17 +6,16 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
-import { roadWidths, WIDTH_RATE, type PlanSegment } from './outrun-course.js';
-import { OffsetPlan, POSITION_METRES, ROUNDING, rounded, type Quadratic } from './offset-plan.js';
-import { sectionPlan } from './super-hang-on-plan.js';
-import { CoursePath } from './super-hang-on-geometry.js';
+import { OffsetPlan, POSITION_METRES, ROUNDING, rounded, type Quadratic, type TurnSegment } from './offset-plan.js';
+import { sectionPlan } from './path-plan.js';
+import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
 import { bendOf, closedGrades, LOOK, profileOf, separatedCrossings, stageGrades, type Change } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
 import { STAGE_COUNT, type TurboOutrunStage } from './turbo-outrun-road.js';
-import type { HeightTable, WidthHeightPoint } from './road-tables.js';
+import { roadWidths, WIDTH_RATE, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 
 /**
@@ -121,7 +120,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
 
   // P: the entry, then each stage's plan to its length.
   const plans = stages.map((stage) => sectionPlan(stage.path, POSITION_METRES));
-  const path: PlanSegment[] = [];
+  const path: TurnSegment[] = [];
   const push = (from: number, to: number, turn: number) => {
     const before = path.at(-1);
     if (before && before.turn === 0 && turn === 0) path[path.length - 1] = { ...before, to };
@@ -288,7 +287,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
  * narrowed one after another, or whose ramps would meet, as one stretch at the least of theirs, returning to `SAND` at
  * `SAND_RAMP` beyond it. Its knots, by side; between two knots it is straight.
  */
-function narrowedSand(path: readonly PlanSegment[], width: Quadratic) {
+function narrowedSand(path: readonly TurnSegment[], width: Quadratic) {
   const knots: [[number, number][], [number, number][]] = [[], []];
   const narrowed: { from: number; to: number; side: 0 | 1; sand: number }[] = [];
   for (const s of path) {

@@ -5,21 +5,7 @@
  * game's recordings.
  */
 import { requireInput } from '../course/authoring-io.js';
-import type { ZipFile } from './zip.js';
-
-/** The sound program, and the PCM ROMs by bank: each 32 KiB, a bank's 64 KiB holding it twice. */
-export const OUTRUN_SOUND_ROMS = Object.freeze({
-  program: { name: 'epr-10187.88', crc: 0xa10abaa9 },
-  pcm: [
-    { name: 'opr-10193.66', crc: 0xbcd10dde },
-    { name: 'opr-10192.67', crc: 0x770f1270 },
-    { name: 'opr-10191.68', crc: 0x20a284ab },
-    { name: 'opr-10190.69', crc: 0x7cab70e2 },
-    { name: 'opr-10189.70', crc: 0x01366b54 },
-    { name: 'opr-10188.71', crc: 0xbad30ad9 },
-  ],
-} as const);
-const ROM_SIZE = 0x8000;
+import { SOUND_ROM_SIZE } from './outrun-rom.js';
 
 /** The sound program's tables: the commands' handlers from 0x81, and the PCM samples' from note 0xD0. */
 const COMMANDS = 0xbc7;
@@ -44,21 +30,6 @@ export const OUTRUN_SOUNDS: ReadonlyMap<string, number> = new Map([
   ['impacts/object', 0x8f],
   ['impacts/wall', 0x90],
 ]);
-
-/** The sound program and the PCM banks from a ROM set's files, each ROM checked by size and CRC-32. */
-export function assembleSound(files: ReadonlyMap<string, ZipFile>) {
-  const rom = ({ name, crc }: { readonly name: string; readonly crc: number }) => {
-    const file = files.get(name);
-    requireInput(file, `/rom/${name}`, `The ROM set has no ${name}`);
-    requireInput(
-      file.data.length === ROM_SIZE && file.crc === crc,
-      `/rom/${name}`,
-      `${name} is not MAME outrun's sound ROM of CRC ${crc.toString(16).padStart(8, '0')}`,
-    );
-    return file.data;
-  };
-  return { program: rom(OUTRUN_SOUND_ROMS.program), banks: OUTRUN_SOUND_ROMS.pcm.map(rom) };
-}
 
 /** A PCM sample: its bank, its first address and its last page (its end's high byte), and the step it plays at. */
 export interface PcmSample {
@@ -115,6 +86,6 @@ export function samplePcm(banks: readonly Uint8Array[], sample: PcmSample): Int1
   requireInput(length > 0 && sample.step > 0, '/rom', 'A PCM sample ends before it starts, or has no step');
   return Int16Array.from(
     { length: Math.ceil((length * 256) / sample.step) },
-    (_, i) => (rom[(sample.start + Math.floor((i * sample.step) / 256)) & (ROM_SIZE - 1)]! - 0x80) << 8,
+    (_, i) => (rom[(sample.start + Math.floor((i * sample.step) / 256)) & (SOUND_ROM_SIZE - 1)]! - 0x80) << 8,
   );
 }

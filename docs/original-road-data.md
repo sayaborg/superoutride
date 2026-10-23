@@ -10,13 +10,18 @@ What the conversion does not yet cover is NEXT's ([Courses of the originals](NEX
 The road data tool keeps each original's ROM set, addresses and formats in its own modules (`outrun-*`,
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
 a program's words and the halves it is interleaved from (`program-words`), the road tables in OUTRUN's format
-(`road-tables`: palette words, curves, widths and heights, scenery points, road paths and height tables), the hills
-(`hills`), the profile and the crossings' bumps (`road-profile`), where a road passes over itself (`crossings`: its
-overlapping cells and their crossings), the plan laid off a road path with its corners rounded (`offset-plan`), two
-roads drawn together from one road's picture across (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the
-originals' pixels on this game's texel grid (`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`), a
-background baked into one sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the
-tick's advance, an approach table's step and `startDepth`).
+(`road-tables`: palette words, curves, widths and heights, scenery points, road paths and height tables, and the road
+widths they give), the hills (`hills`), the profile, the crossings' bumps and a Section's profile knots
+(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
+laid off a road path with its corners rounded (`offset-plan`, with OUTRUN's road position and stripes' period), a road
+path as straights and arcs (`path-plan`: `sectionPlan`) and laid in the world (`course-path`: `CoursePath`), how
+Sections are written (`section-writing`: knots simplified, sprites repeated, pictures raised, the plan as written and
+the cuts of a Section's domain), two roads drawn together from one road's picture across (`two-roads`), the sprite
+hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, its pixels by
+[chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a background baked into one sky
+([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
+table's step and `startDepth`). Each original's ROM set and how its programs and pictures are assembled from it are its
+`<original>-rom` module's.
 
 ## Rules of the originals
 
@@ -1670,7 +1675,7 @@ crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
   CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
   surface's half 190.27 units (a lane, 3.5 m, so a unit is 0.0183947 m), the edge bands to 234.81 units (4.319 m),
   their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
-- **Plan.** Each stage's path becomes straights and arcs by SUPER HANG-ON's `sectionPlan` over its positions 0–2047; the
+- **Plan.** Each stage's path becomes straights and arcs by `sectionPlan` (`path-plan`) over its positions 0–2047; the
   step from 2047 to the next stage's 0 is straight, as every path ends and begins at (0, 4096). P is a straight of 6 m
   less the bike's 0.75 positions before position 0, then the five stages, then the goal's straight. 119 elements (17,
   24, 25, 21 and 32 a stage), 11 folds spread, each stage at most 0.28 m off its path's line; the tightest arc is

@@ -5,7 +5,7 @@
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { instruction, word } from './program-words.js';
+import { instruction, long, word } from './program-words.js';
 import type { ZipFile } from './zip.js';
 import {
   assembleSuperHangOnPrograms,
@@ -16,20 +16,15 @@ import {
 import { sectionBands } from './super-hang-on-backgrounds.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { readCourses, readGoal, readSceneryType, readSection, sectionPositions } from './super-hang-on-road.js';
-import { positionMetres, sectionPlan } from './super-hang-on-plan.js';
+import { sectionPlan } from './path-plan.js';
 import { courseScenery, sceneryRules } from './super-hang-on-scenery.js';
 import { hitWidth, readGateParts, spriteList } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import {
-  paletteName,
-  pictureName,
-  chosenPicture,
-  superHangOnPictures,
-  type PictureUse,
-} from './super-hang-on-boards.js';
+import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
-import { raisedSplit } from './outrun-course.js';
+import { paletteName } from './pixel-grid.js';
+import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 3;
@@ -87,6 +82,21 @@ function programAmounts(main: Uint8Array) {
     steps: last! + 1,
     middle: middle!,
   };
+}
+
+/**
+ * One road position in metres, from the main CPU's program: at speed v the display shows v × 0x117 / 0xF0 km/h (the
+ * `mulu.w #$117` and `divu.w #$F0` at 0x15DA), each tick advances the road 0x97 × v / 65536 positions (the long at
+ * 0x8848), and the clock counts 60 ticks a second (the `moveq #$3C, d1` at 0x544E).
+ */
+export function positionMetres(main: Uint8Array): number {
+  const [multiplier] = instruction(main, 0x15da, [0xc0fc, null], "the speed display's factor");
+  const [divisor] = instruction(main, 0x15de, [0x80fc, null], "the speed display's divisor");
+  const [moveq] = instruction(main, 0x544e, [null], "the clock's ticks a second");
+  if (moveq! >> 8 !== 0x72) throw new RangeError("The program at 0x544E does not set the clock's ticks a second");
+  const ticks = moveq! & 0xff;
+  const advance = long(main, 0x8848);
+  return ((multiplier! / divisor!) * 65536) / (3.6 * ticks * advance);
 }
 
 /** The four courses' documents and reports, the pictures they show and their skies. */

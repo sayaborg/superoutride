@@ -5,7 +5,7 @@
  * stage with its goal. Positions are the span's own, from 0.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { roadWidths, stagePlan } from './outrun-course.js';
+import { stagePlan } from './outrun-course.js';
 import {
   centreLaneAt,
   drivenLanes,
@@ -16,9 +16,9 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { POSITION_METRES, Quadratic, rounded, type PlanSegment, type QuadraticPiece } from './offset-plan.js';
+import { POSITION_METRES, Quadratic, rounded, type TurnSegment, type QuadraticPiece } from './offset-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';
-import { pathOffset, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
+import { pathOffset, roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
 
 /** Every stage's length, positions: a constant of the main CPU's program. */
 const STAGE_LENGTH = 1948;
@@ -82,7 +82,7 @@ export interface SpanStage {
 export interface Span {
   readonly length: number;
   /** The original's road path P over the span, its segments by position. */
-  readonly path: readonly PlanSegment[];
+  readonly path: readonly TurnSegment[];
   /** The road width, units. */
   readonly width: Quadratic;
   /** The centre lane's centre, metres right of P. */

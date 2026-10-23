@@ -6,14 +6,14 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
-import { repeated, sectionProfile } from './outrun-course.js';
-import { bendOf, profileOf, separatedCrossings } from './road-profile.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { CoursePath, type PathElement } from './super-hang-on-geometry.js';
+import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import type { PlanSegment } from './super-hang-on-plan.js';
+import type { PathSegment } from './path-plan.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -31,11 +31,6 @@ const SAND = 40;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
 const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
-/** Within a Section, its coordinate domain is checked at least this far apart along the road and this close, metres. */
-const DOMAIN_APART = 10;
-const DOMAIN_MARGIN = 0.5;
-/** A cut keeps this far from a gate, metres. */
-const GATE_ROOM = 2;
 /** The grids: their slots, the last at GO in lane a, cars this far apart, bikes this. */
 const GRID_SLOTS = 16;
 const CAR_SPACING = 12;
@@ -73,7 +68,7 @@ export interface SuperHangOnCourseInputs {
   readonly slug: string;
   /** Its sections in the order it runs them, and each one's path as straights and arcs. */
   readonly sections: readonly Section[];
-  readonly plans: readonly (readonly PlanSegment[])[];
+  readonly plans: readonly (readonly PathSegment[])[];
   /**
    * A road position, metres; a section's positions; where a CHECK gate comes out inside a section; where the next
    * section's background and ground come in.
@@ -350,80 +345,6 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     }),
     objects: placed.length,
   };
-}
-
-/**
- * Cuts of P's `[from, to]` (metres) so that no Section's coordinate domain, `reach` metres either side of P, passes over
- * itself: while two of its cells at least `DOMAIN_APART` apart overlap, the earliest later one with the latest earlier
- * one (with `once`, every pair whose earlier one lies before that later one, where one cut parts them all), it is cut
- * between them, at the middle of the longest straight there, else halfway, keeping clear of the gates (metres along
- * P).
- */
-export function domainCuts(
-  path: CoursePath,
-  from: number,
-  to: number,
-  reach: number,
-  gates: readonly number[],
-  once = false,
-): number[] {
-  const step = 2.5;
-  const pairs = overlappingCells(path, {
-    from,
-    to,
-    step,
-    sides: () => [reach, reach],
-    apart: DOMAIN_APART,
-    margin: DOMAIN_MARGIN,
-  });
-  if (!pairs.length) return [];
-  const later = Math.min(...pairs.map(([, b]) => b));
-  // With `once`, one cut parts every pair whose earlier cell lies before the earliest later cell, where one can; else
-  // the earliest later cell's pairs are parted first.
-  const latest = Math.max(...pairs.filter(([a]) => a < later).map(([a]) => a)) + step;
-  const earlier =
-    once && latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
-  const clear = (u: number) => gates.every((g) => Math.abs(g - u) > GATE_ROOM);
-  const straights = path.elements
-    .map((e) => ({ a: Math.max(e.start, earlier), b: Math.min(e.start + e.length, later), turn: e.turn }))
-    .filter((e) => e.turn === 0 && e.b - e.a > 2 * GATE_ROOM && clear((e.a + e.b) / 2))
-    .sort((x, y) => y.b - y.a - (x.b - x.a));
-  let cut = straights.length ? (straights[0]!.a + straights[0]!.b) / 2 : (earlier + later) / 2;
-  for (let d = 0; !clear(cut) && d < later - earlier; d += 0.5) cut = (earlier + later) / 2 + d;
-  requireInput(cut > earlier && cut < later && clear(cut), '/plan', `No cut parts the road's passages at ${earlier} m`);
-  return [...domainCuts(path, from, cut, reach, gates, once), cut, ...domainCuts(path, cut, to, reach, gates, once)];
-}
-
-/** A plan element as written. */
-export interface WrittenElement {
-  readonly kind: string;
-  readonly id: string;
-  readonly length: number;
-  readonly radius?: number;
-  readonly turn?: string;
-}
-
-/** A piece's plan: P's elements over it, on the plane, to the micrometre. */
-export function writtenPlan(path: CoursePath, piece: { readonly from: number; readonly to: number }): WrittenElement[] {
-  const elements: WrittenElement[] = [];
-  for (const e of path.elements) {
-    const [a, b] = [Math.max(e.start, piece.from), Math.min(e.start + e.length, piece.to)];
-    if (b - a <= 1e-9) continue;
-    const length = round(path.planeScale(e) * (b - a));
-    const id = `${e.turn === 0 ? 's' : 'c'}${elements.length}`;
-    if (e.turn === 0) elements.push({ kind: 'straight', id, length });
-    else {
-      const turn = (e.turn * (b - a)) / e.length;
-      elements.push({
-        kind: 'arc',
-        id,
-        length,
-        radius: round(length / Math.abs(turn)),
-        turn: turn > 0 ? 'left' : 'right',
-      });
-    }
-  }
-  return elements;
 }
 
 /** One Section's document. */

@@ -3,27 +3,8 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
-import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
-import { spriteWords, type SpriteSize } from './sprite-pixels.js';
-import type { ZipFile } from './zip.js';
-
-/** The sprite ROMs: two sets of four, each ROM one byte of a 32-bit word, the least significant first. */
-export const OUTRUN_SPRITE_ROMS = Object.freeze([
-  [
-    { name: 'mpr-10371.9', crc: 0x7cc86208 },
-    { name: 'mpr-10373.10', crc: 0xb0d26ac9 },
-    { name: 'mpr-10375.11', crc: 0x59b60bd7 },
-    { name: 'mpr-10377.12', crc: 0x17a1b04a },
-  ],
-  [
-    { name: 'mpr-10372.13', crc: 0xb557078c },
-    { name: 'mpr-10374.14', crc: 0x8051e517 },
-    { name: 'mpr-10376.15', crc: 0xf3b8f318 },
-    { name: 'mpr-10378.16', crc: 0xa1062984 },
-  ],
-] as const);
-const SPRITE_ROM_SIZE = 0x20000;
+import type { SpriteSize } from './sprite-pixels.js';
 
 /** The main CPU's tables: sprites' size lists, palettes, hit extents, the shadow and the start's objects. */
 const SPRITES = 0x11ed2;
@@ -33,25 +14,6 @@ const SHADOW = 0xff56;
 const START_OBJECTS = 0x2b6e;
 /** A sprite lists five sizes, the largest first. */
 const SIZES = 5;
-
-/** The sprite ROMs' words (`spriteWords`: .9 and .13 the lowest bytes, .12 and .16 the highest), set 1's after set 0's. */
-export function assembleSprites(files: ReadonlyMap<string, ZipFile>): Uint32Array {
-  const words = new Uint32Array(OUTRUN_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
-  OUTRUN_SPRITE_ROMS.forEach((set, s) => {
-    const data = set.map(({ name, crc }) => {
-      const file = files.get(name);
-      requireInput(file, `/rom/${name}`, `The ROM set has no ${name}`);
-      requireInput(
-        file.data.length === SPRITE_ROM_SIZE && file.crc === crc,
-        `/rom/${name}`,
-        `${name} is not MAME outrun's sprite ROM of CRC ${crc.toString(16).padStart(8, '0')}`,
-      );
-      return file.data;
-    });
-    words.set(spriteWords(data), s * SPRITE_ROM_SIZE);
-  });
-  return words;
-}
 
 const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
 const sword = (p: Uint8Array, a: number) => (word(p, a) << 16) >> 16;

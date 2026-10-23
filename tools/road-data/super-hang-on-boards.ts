@@ -7,7 +7,7 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { chosenLines, footAnchorY, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
+import { chosenLines, footAnchorY, paletteName, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
@@ -34,8 +34,6 @@ export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mi
   const shown = sprite >= 0 ? String(sprite).padStart(3, '0') : `frame-${use.list.toString(16)}`;
   return `shangon-${shown}${use.mirrored ? '-mirrored' : ''}`;
 }
-/** A palette's name in a picture. */
-export const paletteName = (palette: number) => `p${String(palette).padStart(3, '0')}`;
 
 /** Size list `list`'s largest size by chosen lines at `metres` a road unit, 40 texels a metre. */
 export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, metres: number) {
