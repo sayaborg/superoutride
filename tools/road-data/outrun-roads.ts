@@ -55,8 +55,6 @@ import {
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
-import type { LyingBoard } from './outrun-boards.js';
-import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 
 /**
  * The start grid: as many slots as a run's competitors, this far apart, the last (the player's) at GO in lane b, where
@@ -296,8 +294,6 @@ function roadCrossings(
 /** What a road's course takes beside its spans. */
 export interface RoadOptions {
   readonly id: string;
-  /** The pictures of what lies on the ground, by image name: their materials lie beneath the objects showing them. */
-  readonly lying: ReadonlyMap<string, LyingBoard>;
   /** Each extending board's edge, by its image name: standing once where the board does. */
   readonly edges: ReadonlyMap<string, string>;
   /** Each picture's width, metres, by image name. */
@@ -1019,33 +1015,6 @@ function sectionDocument(
     }
   }
 
-  // What lies on the ground's materials, colorless beneath its boards: the sea's and lakes' `WATER` from the waterline
-  // out to the verges; the sand drifts and the patches of sand on the road none.
-  const lyingPieces: LyingPiece[] = [];
-  for (const placed of section.objects) {
-    const lying = section.options.lying.get(placed.object.image);
-    if (!lying) continue;
-    const { master } = lying;
-    // A strip's pieces stand by their edge, a patch by its middle.
-    const strip = master.extend !== undefined;
-    lyingPieces.push({
-      s: local(placed.p),
-      l: placed.lateral,
-      picture: lying,
-      strip: strip ? { key: placed.object.image, outward: master.extend === 'right' ? 1 : -1 } : null,
-      material: lying.material,
-    });
-  }
-  const materials = lyingMaterials(lyingPieces, {
-    length: size,
-    outer: { left: { id: 'outer-left', at: vergeAt('left') }, right: { id: 'outer-right', at: vergeAt('right') } },
-  });
-  const edgeOf = (edge: string | number) => (typeof edge === 'string' ? boundary(edge) : round(edge));
-  for (const g of materials.strips) {
-    const [a, b] = [round(g.start), round(g.end)];
-    if (b > a) strips.push(strip(a, b, edgeOf(g.left), edgeOf(g.right), null, g.material));
-  }
-
   // The gates.
   const gates: unknown[] = [];
   // The grid on the centre lane and the one right of it, as on COCONUT BEACH's left road (b and c), whichever road.
@@ -1106,10 +1075,6 @@ function sectionDocument(
       { id: 'outer-right', knots: verge('right') },
       ...leavingBoundaries,
       ...clipped,
-      ...materials.boundaries.map(({ id, knots }) => ({
-        id,
-        knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
-      })),
     ],
     strips,
     walls: [],

@@ -138,7 +138,7 @@ stage's description.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 12, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 13, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -227,10 +227,7 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 - **Lying on the ground.** What routine 0x08 and the puddles of 0x4C and 0x50 draw on the road lies on it, but the grass
   and stones 0x27570, which rise from it: the puddles (0x274DA, 892), the patches (0x27872, 1,133) and the pebbles
   (0x27840, 474) are boards on their middle as OUTRUN's patches are, at height 0, with no body ([Lying
-  boards](original-road-data.md#lying-boards)). Beneath a puddle lies `WATER`; beneath a patch what it shows, by its
-  kind (K, 2026-10-22): gravel `DIRT` (kind 104, palette 217: SAN ANTONIO, DALLAS; 117), sand `SAND` (kind 134, palette
-  240: ATLANTA, MIAMI; 587) and snow `SNOW` (kind 108, palette 219: PITTSBURGH, DENVER; 429); beneath the pebbles
-  nothing.
+  boards](original-road-data.md#lying-boards)), with no material: under them is the road's `ASPHALT` (K, 2026-10-25).
 - **Body.** Where its kind's collision class is 0 to 3 (the original stops or spins the car) and it stands on the
   ground (y 0), but for what lies and the half-scale objects on the road: as wide as its hit extents (2 road units a pixel, half
   scale 1), at most its board's width. Classes 11 to 17, thrown or broken when hit (fences, snow, stones, shrubs,
@@ -260,9 +257,8 @@ Since Stage PG each strip's board is its nearest size by its edge nearest the ro
 road (`extend`: right, or left mirrored) where the original shrinks its far sizes outward, cut as [Extending
 boards](original-road-data.md#extending-boards) says. The grass bank, the flower beds and the far strip stand on their
 bottom edge; the waves (735 pieces) and the dunes (1,924) lie on the ground ([Lying
-boards](original-road-data.md#lying-boards)) by their middle: `WATER` beneath the waves from the waterline out to the
-verges, on MIAMI and its second Section and DALLAS's third (a Boundary a side, at most 282 knots), nothing beneath the
-dunes (on PITTSBURGH and DENVER snow-colored: K, 2026-10-22).
+boards](original-road-data.md#lying-boards)) by their middle, with no material: under them is the ground's `SAND` (K,
+2026-10-25; the dunes on PITTSBURGH and DENVER snow-colored).
 
 TURBO OUTRUN's cuts, in texel columns of the nearest size:
 

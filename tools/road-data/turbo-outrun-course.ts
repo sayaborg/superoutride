@@ -40,10 +40,9 @@ import {
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
-import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 12;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 13;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -224,7 +223,6 @@ export function turboOutrunCourse(set: RomSet) {
     sectionDocument(piece, {
       layout,
       widths,
-      wholes: new Map(boards.map((b) => [b.name, b.whole])),
       edges,
       beyond,
       split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
@@ -277,8 +275,6 @@ function sectionDocument(
     readonly objects: readonly PlacedObject[];
     /** Each picture's width, metres, by name. */
     readonly widths: ReadonlyMap<string, number>;
-    /** Each picture's whole, by name: what lies on the ground keeps its footprint. */
-    readonly wholes: ReadonlyMap<string, LyingPicture>;
     /** Each extending board's edge, by its name: standing once where the board does. */
     readonly edges: ReadonlyMap<string, string>;
     /** How far SAND reaches beyond the outermost lanes, metres. */
@@ -344,13 +340,6 @@ function sectionDocument(
 
   // The verges: the sand to its width beyond each outer lane.
   const { beyond } = context;
-  // A verge's lateral at position `g`, metres right of P.
-  const vergeAt = (side: 0 | 1, g: number) => {
-    const lines = written(g);
-    return side === 0
-      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - beyond
-      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + beyond;
-  };
   const verge = (side: 0 | 1) =>
     [from, to].map((g) => ({
       at: at(g),
@@ -478,34 +467,6 @@ function sectionDocument(
     }
   }
 
-  // What lies on the ground's materials, colorless beneath its boards: the waves' `WATER` from the waterline out to the
-  // verges, the puddles' `WATER` and the patches' by what they show.
-  const lyingPieces: LyingPiece[] = context.objects.flatMap((o) =>
-    o.lies
-      ? [
-          {
-            s: local(o.g),
-            l: o.x,
-            picture: context.wholes.get(pictureName(o.use))!,
-            strip: o.use.strip ? { key: pictureName(o.use), outward: o.use.mirrored ? -1 : 1 } : null,
-            material: o.lies.material,
-          },
-        ]
-      : [],
-  );
-  const materials = lyingMaterials(lyingPieces, {
-    length: size,
-    outer: {
-      left: { id: 'outer-left', at: (s) => vergeAt(0, from + s / POSITION_METRES) },
-      right: { id: 'outer-right', at: (s) => vergeAt(1, from + s / POSITION_METRES) },
-    },
-  });
-  const edgeOf = (edge: string | number) => (typeof edge === 'string' ? boundary(edge) : round(edge));
-  for (const b of materials.strips) {
-    const [sa, sb] = [round(b.start), round(b.end)];
-    if (sb > sa) strips.push(strip(sa, sb, edgeOf(b.left), edgeOf(b.right), null, b.material));
-  }
-
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: unknown[] = [];
   if (context.first)
@@ -553,10 +514,6 @@ function sectionDocument(
     boundaries: [
       { id: 'outer-left', knots: verge(0) },
       { id: 'outer-right', knots: verge(1) },
-      ...materials.boundaries.map(({ id, knots }) => ({
-        id,
-        knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
-      })),
     ],
     strips,
     walls: [],

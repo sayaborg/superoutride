@@ -25,8 +25,8 @@ Each line is one area as it stands, with the document that owns it.
   courses and SUPER MONACO GP's two circuits are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)).
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
-  walls are looks alone), open course limits, movable objects (and their knocked pictures), and the `WET_ASPHALT` and
-  `SHOULDER` materials stay in the engine ([Content and gameplay](content-and-gameplay.md),
+  walls are looks alone), open course limits, movable objects (and their knocked pictures), and the `WET_ASPHALT`,
+  `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay in the engine ([Content and gameplay](content-and-gameplay.md),
   [Stage RM](#stage-rm--branch-tsukuba-and-the-walls)).
 - **Course format.** Plans of straights and arcs, positions measured from joints, lanes, Lateral values, Strips, gates
   and images named by file; circuits are closed cycles of two or more Sections
@@ -290,9 +290,8 @@ PR of its own, and EX-25 comes first if people begin correcting pictures or plac
   its foot (`footAnchorY`), so it is drawn lower than the original by the shadow's rows; a `-raised` second picture
   (`raisedSplit`) when it is also shown lifted; `groundOffset` from the original's y, and SUPER MONACO GP's negative
   heights.
-- The boards lying on the ground: their anchor at the picture's middle (OUTRUN and TURBO OUTRUN alone), and the
-  material under them placed as this game's camera (2 m high, 6 m behind) sees it, so that a course document depends
-  on the view; their constants 1 m, 16 m, 0.25 m and 1024 knots. A way independent of the camera is proposed.
+- The boards lying on the ground: their anchor at the picture's middle (OUTRUN and TURBO OUTRUN alone). They have no
+  material (K, 2026-10-25, SP-3).
 - The extending boards: a repeat of a quarter of the opaque width or more, the seam's 8 columns either side compared by
   outline, texel, length and nearness to the road, the outer end's shape unused, the road's end a separate `-edge`
   board.
@@ -309,13 +308,17 @@ The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 - Standing height: the shadow rows at a picture's foot become its shadow frame, cast on the road, so the picture stands
   on its lowest row not shadow without being drawn lower, and no `-raised` copy is needed (a raised use casts none);
   or `footAnchorY` kept as K's decision of 2026-10-22.
-- Lying boards: the material under a board placed by the original's own projection (its horizon row and eye, which the
-  ROMs hold), not this game's camera, so a course does not change with the camera; TURBO OUTRUN's anchors read from its
-  ROM rather than set by OUTRUN's analogy.
+- Lying boards: TURBO OUTRUN's anchors read from its ROM rather than set by OUTRUN's analogy.
 - Extending boards: the rule kept as this game's (one for every original), with the outer end shown once as a board of
   its own rather than left out.
 - Shadows: fixed objects cast the shadow their original draws (an engine change in a PR of its own), or the shadows
   drawn into the pictures as they are.
+
+Not decided (K, 2026-10-25): what happens as a vehicle passes over a lying picture, a show of the same kind as a
+movable object's knocked picture and never a material, may come later. OUTRUN's drawings 1 (grass), 3 (sea and lakes)
+and 13 (patches) set the road's surface effect for 12 frames while the car is on them, which draws a spray at the car
+and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
+made.
 
 ### The constants' table (EX-7d)
 

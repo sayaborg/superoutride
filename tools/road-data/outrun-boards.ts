@@ -7,7 +7,6 @@
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import type { LyingPicture } from './ground-materials.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
@@ -65,14 +64,12 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
 }
 
 /**
- * What the courses need of the boards `uses` show: the pictures of what lies on the ground, by image name, whose
- * materials lie beneath them; each extending board's edge, which stands once where it does; and the pictures standing
- * at their foot that are shown raised too, by their `-raised` image; and each board's width in metres.
+ * What the courses need of the boards `uses` show: each extending board's edge, which stands once where it does; the
+ * pictures standing at their foot that are shown raised too, by their `-raised` image; and each board's width in metres.
  */
 export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]) {
   const boards = boardMasters(main, words, uses);
   return {
-    lying: new Map(boards.flatMap((b) => (b.lying ? [[b.name, b.lying] as const] : []))),
     edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge.name] as const] : []))),
     split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
     widths: new Map(boards.map((b) => [b.name, b.master.width / SPRITE_SOURCE_TEXELS_PER_METER])),
@@ -165,34 +162,26 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
           }
         : {}),
     };
-    // What lies keeps its whole picture, its material's footprint.
-    const lying = routine.lies ? { lying: { master: whole, anchorY: point.y, material: routine.lies.material } } : {};
     const split = foot !== undefined && group.some((u) => u.raised);
     if (split && extending) throw new RangeError(`Strip ${name} stands at its foot and raised`);
     if (!extending) {
       const { anchorY: _, ...bottom } = whole;
       boards.push(
-        { name, master: whole, ...lying, split },
+        { name, master: whole, split },
         ...(split ? [{ name: `${name}-raised`, master: { ...bottom, name: `${name}-raised` } }] : []),
       );
       continue;
     }
     const { cut, edge, repeat } = cutBoard(whole, edgeName(name));
-    boards.push({ name: edge.name, master: edge }, { name, master: repeat, ...lying, edge: { name: edge.name, cut } });
+    boards.push({ name: edge.name, master: edge }, { name, master: repeat, edge: { name: edge.name, cut } });
   }
   return boards;
 }
 
-/** What lies on the ground: its whole picture and the material beneath it, or null for none. */
-export interface LyingBoard extends LyingPicture {
-  readonly material: string | null;
-}
-
-/** A board: its master; for what lies, its whole picture; for an extending one's repeating part, its edge's cut. */
+/** A board: its master; for an extending one's repeating part, its edge's cut. */
 interface Board {
   readonly name: string;
   readonly master: SpriteLodDocument;
-  readonly lying?: LyingBoard;
   readonly edge?: { readonly name: string; readonly cut: StripCut };
   /** Whether it stands at its foot and is shown raised too, by its `-raised` image. */
   readonly split?: boolean;

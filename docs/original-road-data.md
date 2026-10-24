@@ -72,7 +72,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
     the ground and transparent ground shows it, as a cliff's drop is drawn.
   - A strip the original draws on outward is a board extending sideways ([Extending boards](#extending-boards)); the
     road's surface itself is Strips.
-  - Materials lie beneath as colorless Strips, water `WATER` and only inside the course limits.
+  - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).
   - Only vehicles have pictures by angle. A report begins with one line saying where K can see the change, and names a
     replacement that cannot be avoided on the next.
 
@@ -199,20 +199,8 @@ original brings out its pieces at a steady rate.
 
 What lies on the ground is a board, its nearest size at the original's anchor (the middle of its picture, H/2 − 0.5,
 for OUTRUN's and TURBO OUTRUN's), at height 0, with no body: its rows below the anchor lie on the nearer ground as
-every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). Its material lies beneath it as a
-colorless Strip (`lyingMaterials`, `ground-materials.ts`), as the camera sees the piece pass beside the player: the
-camera definition's, 2 m high and 6 m behind. A row r m below the anchor lies 6r / (2 + r) m nearer than the piece
-(beyond it for negative r).
-
-- **Strips.** A strip's material runs from its waterline, a Boundary `water-<side>` through each piece's road-side
-  edge at its foot (where its bottom opaque row meets the ground), out to the outer Boundary of its side
-  (`outer-left` or `outer-right`), along from the first piece's foot to the last's of each run (pieces within 16 m of
-  the next), over each stretch where the waterline lies 1 m inside the outer Boundary: none beyond the course limits,
-  which do not move. A side's runs share its Boundary while they follow one another, a knot at each piece and at each
-  run's ends; past 1024 knots they are thinned to within 0.25 m, each run's ends kept (the conversion stops beyond
-  that).
-- **Patches.** A patch's material is the rectangle of its foot: across its picture's opaque columns, along from where
-  its bottom to where its top opaque row meets the ground.
+every picture's do ([Sprites and Painter](architecture.md#sprites-and-painter)). It has no material: what lies under
+it is the material around it, the road's Strips alone deciding it (K, 2026-10-25).
 
 ## Hills
 

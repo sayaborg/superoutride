@@ -437,14 +437,15 @@ adhesion of asphalt dry (0.8–0.9) and wet (0.5–0.7) (J. Y. Wong, \_Theory of
 the ratio of the ranges' midpoints (0.6 / 0.85 ≈ 0.71) rounded. Its rolling resistance is ASPHALT's: the film's extra
 resistance at speed is not modelled.
 
-WATER is shallow standing water (a puddle, a ford, the sea's edge) over an unknown bed; no deep water exists, and only
-course limits stop a vehicle. Its grip factor 0.6 lies between wet asphalt's low end (0.5) and a wet earth road (0.55)
+WATER is shallow standing water (ENDURO RACER's fords and its sea's edge) over an unknown bed; no deep water exists,
+and only course limits stop a vehicle. Its grip factor 0.6 lies between wet asphalt's low end (0.5) and a wet earth road (0.55)
 over dry asphalt's 0.85 (Wong, Table 1.1): 0.59–0.65, taken as 0.6. Its rolling resistance 0.06 stands for the drag of
 pushing water aside, `½ρv²·C·A`: a 0.2 m wide tire in 2 cm of water (A = 0.004 m², C ≈ 1) at 10 m/s meets about 200 N,
 0.057 of a 3.5 kN wheel load, rounded to 0.06. A drag growing with speed is not modelled, so the coefficient is too
 little at speed and too much when slow. Both are document values with no DEV control.
 
 SNOW is snow lying thin on a road (a few centimetres, a RALLY STAGE winter's "snow"); packed snow is a later material.
+No course uses it now (K, 2026-10-25).
 Its grip factor 0.25 is packed snow's peak adhesion, 0.2, over dry asphalt's 0.85 (Wong, Table 1.1), 0.24, taken a
 little higher, as the tire reaches the road through a thin layer. Its rolling resistance 0.025 is a passenger car tire's
 in 2 inches (5 cm) of snow (T. D. Gillespie, _Fundamentals of Vehicle Dynamics_, 1992, Table 4.1), the snow compacted

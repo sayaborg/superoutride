@@ -63,7 +63,7 @@ function picturePixels(main: Uint8Array, words: Uint32Array, use: Pick<PictureUs
  * The boards `uses` need: one a name, carrying every palette it is shown in (the lowest its default), its largest
  * size's pixels (a strip's nearest) by chosen lines (`chosenLines`, a mirrored picture the unmirrored one's mirrored)
  * onto the texel grid of its pixels at 40 texels/m, in the palettes' own colors (pixel 10 of a shading kind kept as its
- * palette's color), with its width in metres and its whole picture (`lying`: what lies keeps its footprint). Its base
+ * palette's color), with its width in metres. Its base
  * point is its anchor's, `aside` across; a shadowed board carries the shadow picture (the size list at 0x2667A) at its
  * scale and base point. A strip extends sideways, cut (`cutBoard`) into its edge, a board of its own (`edge`), and the
  * part that repeats.
@@ -122,11 +122,9 @@ export function turboOutrunBoards(
           : {}),
         ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
       };
-      const whole = { master: board, anchorY };
       const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        whole,
         image: courseImageFile(master),
         split,
         ...(edge ? { edge } : {}),

@@ -161,9 +161,9 @@ export interface ObjectRoutine {
   readonly family?: Family;
   /**
    * Whether what it draws lies on the ground (the sea's and lakes' edge, the sand drifts, the patches of sand on the
-   * road): a board at the original's anchor, its material (`WATER` the sea's and lakes', none the sand's) beneath it.
+   * road): a board at the original's anchor, with no material (K, 2026-10-25).
    */
-  readonly lies?: { readonly material: string | null };
+  readonly lies?: true;
   /** Whether, passing the car, it grants the checkpoint's time (0x4812 sets the word at 0x60B62). */
   readonly grantsTime?: boolean;
   /**
@@ -199,7 +199,7 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   [0x492a, { pixelUnits: 2, hits: true, keepsLeftWhenApart: true, shadows: true }],
   [0x3fe2, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadows: true }],
   // Drawing 13: a patch lying on the road.
-  [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, lies: { material: null } }],
+  [0x3fe8, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, lies: true }],
   // The checkpoint banner's halves, raised: the right (drawing 5) and the left (6), which grants the time.
   [0x46d6, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, shadows: true }],
   [0x4774, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, grantsTime: true, shadows: true }],
@@ -209,14 +209,11 @@ export const OBJECT_ROUTINES: ReadonlyMap<number, ObjectRoutine> = new Map<numbe
   // (its line / 8 less a quarter of that, against its own line / 4).
   [0x5b42, { pixelUnits: 1, hits: false, keepsLeftWhenApart: true, shadow: { sizes: 0x103b6, scale: 3 / 8 } }],
   [0x4416, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4548), shadows: true }],
-  [
-    0x4408,
-    { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: { material: 'WATER' } },
-  ],
-  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588), lies: { material: null } }],
+  [0x4408, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4608), lies: true }],
+  [0x443c, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x4588), lies: true }],
   [0x4432, { pixelUnits: 2, hits: false, keepsLeftWhenApart: false, family: strip(0x45c8), shadows: true }],
   // Drawing 14: the sand strip's, but kept by the left road where the roads were apart, and setting no effect.
-  [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588), lies: { material: null } }],
+  [0x4380, { pixelUnits: 2, hits: false, keepsLeftWhenApart: true, family: strip(0x4588), lies: true }],
   // VINEYARD's trees: 9 sizes, the nearest first.
   [
     0x428a,

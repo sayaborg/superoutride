@@ -249,7 +249,7 @@ A strip or patch is brought out, approaches and stands as an object does (`roadO
   grass's far sizes are not shrunk across, so its nearest size repeats outward. No board is restored from them.
 - **Patches.** Drawing 13 draws its entry's sprite on the road, its middle at x, a pixel 1 road unit: DESERT's and
   DESOLATION HILL's drifts of sand, 248 by 31 px. Each lies on the road ([Lying
-  boards](original-road-data.md#lying-boards)), with no material beneath, as in the original.
+  boards](original-road-data.md#lying-boards)), with no material (K, 2026-10-25).
 - **Effect.** Drawings 1, 3 and 13 set the road's surface effect (the words at 0x60C20 and 0x60C22) where the car is
   on them, near the camera: for 12 frames a spray from the table at 0xAD06 is drawn at the car, by the effect's kind
   (sea 0, grass 4 or 8, sand 12). Nothing else reads it: they change no driving. Drawings 10 and 11 set nothing. The
@@ -270,10 +270,9 @@ OUTRUN's cuts, in texel columns of the nearest size:
 
 ### OUTRUN's lying boards
 
-On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE)
-have `WATER` beneath them; the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing
-13, `outrun-001`) none (K, 2026-10-22): the original's sand changes no driving, and `SAND` would stop the planned
-driver on DESOLATION HILL, whose patches lie on grades of up to 40 %. ALPS's grass strip at the original's lowest
+On OUTRUN's roads the sea and lakes (drawing 3, `outrun-strip-4608`, on COCONUT BEACH, ALPS, SEASIDE TOWN and LAKESIDE),
+the sand strips (drawings 10 and 14, `outrun-strip-4588`) and the patches of sand (drawing 13, `outrun-001`) lie with no
+material: under them is the road's `ASPHALT` or the ground's `SAND` (K, 2026-10-25). ALPS's grass strip at the original's lowest
 height (−32768, 894 m below the road), never seen, is not placed.
 
 ### Clouds
@@ -476,7 +475,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 29 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 30 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
