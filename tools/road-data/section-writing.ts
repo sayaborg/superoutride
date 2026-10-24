@@ -202,15 +202,23 @@ export interface WrittenElement {
   readonly turn?: string;
 }
 
-/** A piece's plan: P's elements over it, on the plane, its joints at their stations to the micrometre. */
-export function writtenPlan(path: CoursePath, piece: { readonly from: number; readonly to: number }): WrittenElement[] {
+/**
+ * A piece's plan: P's elements over it, on the plane, its joints at their stations to the micrometre; or, `exact`, as
+ * they are, so that a lap closes as P does.
+ */
+export function writtenPlan(
+  path: CoursePath,
+  piece: { readonly from: number; readonly to: number },
+  exact = false,
+): WrittenElement[] {
   const elements: WrittenElement[] = [];
+  const fixed = exact ? (value: number) => value : round;
   // Each joint at its station from the piece's start to the micrometre, so the lengths add to the stations.
-  const station = (u: number) => round(path.station(u) - path.station(piece.from));
+  const station = (u: number) => fixed(path.station(u) - path.station(piece.from));
   for (const e of path.elements) {
     const [a, b] = [Math.max(e.start, piece.from), Math.min(e.start + e.length, piece.to)];
     if (b - a <= 1e-9) continue;
-    const length = round(station(b) - station(a));
+    const length = fixed(station(b) - station(a));
     const id = `${e.turn === 0 ? 's' : 'c'}${elements.length}`;
     if (e.turn === 0) elements.push({ kind: 'straight', id, length });
     else {
@@ -219,7 +227,7 @@ export function writtenPlan(path: CoursePath, piece: { readonly from: number; re
         kind: 'arc',
         id,
         length,
-        radius: round(length / Math.abs(turn)),
+        radius: fixed(length / Math.abs(turn)),
         turn: turn > 0 ? 'left' : 'right',
       });
     }

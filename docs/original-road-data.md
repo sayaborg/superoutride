@@ -16,15 +16,16 @@ widths they give), the hills (`hills`), the profile, the crossings' bumps and a 
 (`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
 laid off a road path with its corners rounded (`offset-plan`, with OUTRUN's road position and stripes' period), a road
 path as straights and arcs (`path-plan`: `sectionPlan`), a heading table's plan (`heading-plan`: its runs and the turns
-between them) and a plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`:
-knots simplified, sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre,
-so that a station written at a joint is the joint's, and a Section's domain, its cuts and whether the course format
-admits it as written, a station within 2 µm of a joint the joint's), two roads drawn together from one road's picture
-across (`two-roads`), the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid
-(`pixel-grid`, its pixels by [chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a
-background baked into one sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the
-tick's advance, an approach table's step and `startDepth`). Each original's ROM set and how its programs and pictures
-are assembled from it are its `<original>-rom` module's.
+between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them) and a
+plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
+sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
+written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
+a station within 2 µm of a joint the joint's), two roads drawn together from one road's picture across (`two-roads`),
+the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, its
+pixels by [chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a background baked into one
+sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
+table's step and `startDepth`). Each original's ROM set and how its programs and pictures are assembled from it are its
+`<original>-rom` module's.
 
 ## Rules of the originals
 
@@ -321,10 +322,32 @@ plan may drift from the line the table builds by up to the resolution times the 
 0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
 position, and each widened turn's most; the road data commands report them.
 
+## Plan from a point path
+
+A closed path of points, a lap's (SUPER MONACO GP's road path, its steps summed), becomes straights and arcs round it
+(`pointPlan`, `point-plan`) by one constant, the path's resolution; every element lies where its points do, so the plan
+closes as the path does and lies within the resolution of every point.
+
+- **Runs.** From the first point, a run takes the next point while its minimax circle, the circle whose largest
+  distance from its points is least, holds every point of it within the resolution (two points' is the line through
+  them). The fit is the Chebyshev one of the circle's implicit form, y + c + n·x + k(x² + y²)/2, by single exchange on a
+  frame at the run's middle.
+- **Arcs.** A run is an arc of its circle, however little it turns (a straight where its circle is a line), between the
+  turns either side of it; a run whose arc would turn tighter than its lanes keep ([plan from a heading
+  table](#plan-from-a-heading-table), `leastLaneRadius`) is taken into those turns, as one.
+- **Turns.** Two runs are joined by a turn from the first's circle at the foot of a point to the next's at the foot of
+  another, the biarc there whose two tangents are as long: two arcs, tangent where they meet. It is over the step
+  between the runs, and takes one more step on each side while it still holds every point it spans within the
+  resolution, taking at most half of either run; then one more on each side a round, every such turn at once, where
+  an arc of it would turn tighter than its lanes keep. A turn that overlaps the next joins it.
+- **Lap.** The plan runs from the foot of the first point round to it again, and each point's station is its foot's.
+  A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
+  closes to under a micrometre).
+
 ## Plan from a path
 
-A road path becomes straights and arcs over its positions (`sectionPlan`, `path-plan`), for the originals not yet
-raised by the [plan from a heading table](#plan-from-a-heading-table):
+A road path becomes straights and arcs over its positions (`sectionPlan`, `path-plan`), on which no original's course
+is now laid:
 
 - **Folds.** A position turning more than 1° off the median of the seven about it (fewer at the path's ends) is a fold:
   its excess is spread evenly over those seven, the sum kept. The headings are rebuilt, and their line laid, each

@@ -8,6 +8,7 @@ import { atomicWrite, requireInput } from '../course/authoring-io.js';
 import { superMonacoGpDump, VIEWED } from './super-monaco-gp-dump.js';
 import {
   SUPER_MONACO_GP_CONVERSION_VERSION,
+  PATH_UNIT as SUPER_MONACO_GP_PATH_UNIT,
   STEP_METRES as SUPER_MONACO_GP_STEP,
   superMonacoGpCourses,
 } from './super-monaco-gp-course.js';
@@ -69,35 +70,19 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
     const zip = await oneZip(options.get('--zip'), romDirectory('super-monaco-gp'), '--zip');
     const built = superMonacoGpCourses(await romSet('smgp', [zip]));
     const courses = [];
-    for (const {
-      course,
-      document,
-      plan,
-      elements,
-      closed,
-      sections,
-      stepOf,
-      objects,
-      kerbs,
-      inside,
-    } of built.courses) {
+    for (const { course, document, plan, written, sections, objects, kerbs, inside } of built.courses) {
       const file = await saveCourse(course.id, document, check);
-      const arcs = elements.filter((e) => e.turn !== 0);
-      const radius = (e: (typeof arcs)[number]) => ((e.to - e.from) * SUPER_MONACO_GP_STEP) / Math.abs(e.turn);
+      const elements = written.flat();
+      const arcs = elements.filter((e) => e.kind === 'arc');
       courses.push({
         course: file,
-        elements: plan.segments.length,
-        arcs: plan.segments.filter((e) => e.turn !== 0).length,
-        written: elements.length,
-        tightest: round1(Math.min(...arcs.map(radius))),
-        offLine: round3(Math.max(...plan.offLine)),
-        lapMetres: round3(closed.written.reduce((sum, w) => sum + w.length, 0)),
-        // The lap's error before closing, and the three lengths that close it: the last arc and two straights.
-        error: [round3(closed.error.x), round3(closed.error.y)],
-        closing: closed.changed.map((i) => ({
-          steps: [elements[i]!.from, elements[i]!.to].map(stepOf),
-          length: closed.written[i]!.length,
-        })),
+        // P's runs and its elements as written, the tightest arc, and how far a point of the path lies from P.
+        runs: plan.runs.length,
+        elements: elements.length,
+        arcs: arcs.length,
+        tightest: round1(Math.min(...arcs.map((e) => e.radius!))),
+        departure: round3(plan.departure * SUPER_MONACO_GP_PATH_UNIT),
+        lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
         sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
         // The boards placed, the kerbs drawn as curbs, and the boards left out on a curve's inside.
         boards: objects.length,

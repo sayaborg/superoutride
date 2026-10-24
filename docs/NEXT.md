@@ -204,8 +204,10 @@ PRs, in this order:
 - EX-7c3: one ground width rule for every original, to the outer edge of the farthest standing scenery beyond the
   outermost lane's edge; `SAND` (SUPER HANG-ON's, TURBO OUTRUN's), `GROUND` (ENDURO RACER's) and `VERGE` (OUTRUN's)
   deleted, OUTRUN's verges held at lane edges.
-- EX-8: SUPER MONACO GP's circuits raised on P from their integer path, the lap closed in position and heading by a
-  rule alone, its hairpins left to the format.
+- EX-8: SUPER MONACO GP's circuits raised on P from their integer path, by the plan from a point path: a run's arc its
+  minimax circle within one unit, two runs joined by a biarc (K, 2026-10-24), so the laps close as their points do;
+  no turn tighter than its lanes keep, its hairpins left to the format. Its ground stays the band tables' limits
+  until K decides between them and the ground width rule.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
   on play, with a proposal (read from the ROMs, derived from one shared rule, or kept as K's decision); documents
   only, K decides by the table, and EX-14 and EX-15 to EX-24 put the values in. Alongside EX-7c and EX-8.

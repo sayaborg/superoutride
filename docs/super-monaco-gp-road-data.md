@@ -111,10 +111,10 @@ MG's description.
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 9, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 10, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
-each course's elements, tightest arc, lap, the error closed and the three lengths that close it, its Sections with their
-boards, the boards placed and those left out, and the images' count and master texels. Both have `maxLaps` 30 and
+each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
+those left out, and the images' count and master texels. Both have `maxLaps` 30 and
 `bearing` 0. The two forms share most of the road, but each closes on its own path, so they are two circuits, not one
 BRANCH course (K, 2026-10-21).
 
@@ -129,22 +129,18 @@ BRANCH course (K, 2026-10-21).
   with their levels, and 0x0D86's 1.42 M one image's); and (A) both, one scale (a step 0.903314 m).
 - **Lap.** A lap runs from the race's line, step 288, round to it again; the qualifying's own line, step 276, is 12
   steps (4.5 m) behind it.
-- **Plan.** The headings from step 288 round to it again, N + 1 of them as SUPER HANG-ON's road path vectors (4096 sin
-  θ, 4096 cos θ), become straights and arcs by `sectionPlan` once a lap: the race's 50 elements (38 arcs), the
-  tightest arc 49.7 m; the qualifying's 17 (13), 53.4 m; each at most 0.25 m off its line. The elements are cut at the
-  Sections' borders (2224, 4697, 7393, 9538 and 12110 are inside elements).
-- **Closing.** On the plane as written (lane a's centre, 256 units, 1.561 m, left of P; arcs' lengths and radii to the
-  micrometre) the lap does not quite close (the race's end lies (−2.088, +2.166) m from its start, the qualifying's
-  (+1.487, −0.101) m). The last arc's length is solved so that the lap turns exactly once to the right, and two
-  straights' lengths so that it closes: of the straights off the line's straight (a straight a Section's border cuts
-  counts as two), the two whose headings differ by at least 30° (|sin| ≥ 0.5) with the least of their larger change. The
-  race's are 7198–7393 (+2.11 m, to 74.710 m) and 11896–12110 (−1.75 m, to 77.912 m), its last arc 14155–218; the
-  qualifying's 1788–2035 (−1.79 m, to 90.162 m) and 4541–4697 (−1.09 m, to 56.980 m), its last arc 5782–5903. These
-  three lengths are written as solved; a changed element's steps spread evenly over its length.
-- **Plane and stations.** A step of the lap is the station across from P there on the plane, each element's steps
-  spread evenly over its written length.
-- **Lanes.** a and b, 512 units (3.122 m) each, either side of P; their centres at ±256 units, the grid's. The road
-  out to the barriers is one surface: the original has no lane lines.
+- **Plan.** P is the road path's points from step 288 round to it again (x right and y ahead, the steps' dx and dy
+  summed, a unit 3.878 mm), by the [plan from a point path](original-road-data.md#plan-from-a-point-path) at the
+  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.13 m; none is): the race's 49
+  runs and 153 elements, every one an arc, its tightest 40.4 m; the qualifying's 17 and 54, 53.2 m. Every point lies
+  within a unit (3.9 mm) of P, and the lap closes as the points do, by the rule alone: laid from the line, P comes back
+  to it within 5 × 10⁻¹⁰ m and 7 × 10⁻¹³ rad. The elements are written as P has them, unrounded, and cut at the
+  Sections' borders.
+- **Stations.** A step's station is where its point stands across from P, the stations between steps straight between
+  them. A Section's start is the lengths of the Sections before it.
+- **Lanes.** a and b, 512 units (3.122 m) each, either side of P; their centres at ±256 units, the grid's, lane a's
+  centre (the centre lane's) each Section's `centerLateral`. The road out to the barriers is one surface: the original
+  has no lane lines. Every lateral, the materials', the marks' and the objects', is measured from P.
 - **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
   `ASPHALT` to 820 units (5.000 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
   (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge). The materials'
@@ -247,9 +243,8 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   after the last, as wide as view 0's picture (144 pixels, 1.76 m) about each kerb's x, two stripes a kerb, in the first
   kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and white, the next kerb's palette swapping them): 139 curbs
   on the race, 4 on the qualifying. An end within 1 mm of a whole stripe is drawn 1 mm short of it.
-- **Curves' insides.** An object on an arc's inside farther from lane a's centre than the arc's radius less 2 m is
-  left out (none is: the nearest, a far building at the race's and the qualifying's step 2166, stands 0.40 of its
-  arc's radius inside lane a's centre).
+- **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
+  is).
 - **Images.** 14.33 M master texels, 71.4 MB of saved JSON (about 4.4 MB compressed, in Git and as Pages serves it);
   the 16-unit class, the far buildings and cliffs, holds 45.3 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.
