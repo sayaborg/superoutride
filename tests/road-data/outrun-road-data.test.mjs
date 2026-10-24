@@ -22,7 +22,7 @@ import { stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
-import { outrunRoad, stationOf } from '../../tools/road-data/outrun-roads.ts';
+import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
 import { POSITION_METRES } from '../../tools/road-data/offset-plan.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
@@ -617,6 +617,7 @@ test('objects approach three phase steps a tick and pass the car 34 ticks after 
       kmh: 293,
       width: () => 212,
       originalWidth: () => 212,
+      startRoad: -450,
       startDepth: () => Infinity,
       starts: [],
     });
@@ -640,6 +641,7 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
       kmh: 293,
       width: () => 212,
       originalWidth: () => 212,
+      startRoad: -450,
       startDepth: () => Infinity,
       starts: [],
     });
@@ -651,4 +653,24 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
   const crowded = run([{ position: 0, count: 200, type: 5 }], []);
   assert.equal(crowded.placements.length + crowded.dropped, 200);
   assert.ok(crowded.dropped > 0);
+});
+
+test("OUTRUN's roads are named by their goal, C's two of each length by the side they begin by", () => {
+  assert.deepEqual(
+    OUTRUN_ROUTES.map((route) => [route.id, routeName(route, OUTRUN_ROUTES)]),
+    [
+      ['outrun-a', 'OUTRUN A'],
+      ['outrun-b', 'OUTRUN B'],
+      ['outrun-c-left', 'OUTRUN C LEFT'],
+      ['outrun-c-right', 'OUTRUN C RIGHT'],
+      ['outrun-d', 'OUTRUN D'],
+      ['outrun-e', 'OUTRUN E'],
+      ['outrun-short-a', 'OUTRUN SHORT A'],
+      ['outrun-short-b', 'OUTRUN SHORT B'],
+      ['outrun-short-c-left', 'OUTRUN SHORT C LEFT'],
+      ['outrun-short-c-right', 'OUTRUN SHORT C RIGHT'],
+      ['outrun-short-d', 'OUTRUN SHORT D'],
+      ['outrun-short-e', 'OUTRUN SHORT E'],
+    ],
+  );
 });

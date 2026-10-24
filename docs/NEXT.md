@@ -21,7 +21,7 @@ Each line is one area as it stands, with the document that owns it.
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
-- **Courses of the originals.** OUTRUN's seven roads, SUPER HANG-ON's four courses, TURBO OUTRUN's and ENDURO RACER's
+- **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's and ENDURO RACER's
   courses and SUPER MONACO GP's two circuits are raised from the ROMs by the road data tool
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)).
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
@@ -602,7 +602,7 @@ Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) 
 Left to [Stage RM](#stage-rm--branch-tsukuba-and-the-walls) (K, 2026-10-22): BRANCH removed from the engine; TSUKUBA
 made again; then the walls' feature removed, replaced by rows of boards.
 
-OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
+OUTRUN's twelve roads (K, 2026-10-19 to 24):
 
 - **No class until the hills.** The three originals' hills are reviewed and made again in a later stage, with proper
   grade separation; until then they keep today's rule, crossings keep the 6 m rule, and OUTRUN's roads have no class,

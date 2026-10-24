@@ -1739,9 +1739,10 @@ from their frames (sources and recipes under `content/sprite-sources/`), the sky
 recording's frames, lamp posts and masts are drawn for the course, and barriers, fences and signboard walls are walls for looks. No barrier is solid yet: the course limits at
 the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
-OUTRUN's roads (`outrun-a` OUTRUN A, `outrun-b` OUTRUN B, `outrun-c-left` OUTRUN C LEFT, `outrun-c-right` OUTRUN C
-RIGHT, `outrun-d` OUTRUN D, `outrun-e` OUTRUN E, each one of the original's routes to a goal, named by its goal and,
-for C's two, the side it begins by ([OUTRUN road data](outrun-road-data.md#outruns-roads)))
+OUTRUN's roads (six LONG, `outrun-a` OUTRUN A to `outrun-e` OUTRUN E, from COCONUT BEACH, and six SHORT,
+`outrun-short-a` OUTRUN SHORT A to `outrun-short-e` OUTRUN SHORT E, from the road into DESERT or CLOUDY MOUNTAIN, each
+one of the original's routes to a goal, named by its goal and, for C's two of each, the side it begins by, LEFT or
+RIGHT ([OUTRUN road data](outrun-road-data.md#outruns-roads)))
 are LINEAR courses written by the road data tool from the original's road data ([OUTRUN road
 data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals;
 run the conversion rather than editing the documents. Each stage after a fork has its checkpoint where the original's

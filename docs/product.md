@@ -177,7 +177,8 @@ its course. Each class also has its time margin and whether it fixes colors.
   cabinet (MAME's `shangon`; [SUPER HANG-ON road data](super-hang-on-road-data.md)).
 - **OUTRUN** adds the Countach as a second choice. The player avoids traffic and aims for a goal within time. Each
   of six classes drives one of the original's routes to its goal, taking each fork's side its route names; C's two
-  are LRRL and RLLR (K, 2026-10-24).
+  are LRRL and RLLR (K, 2026-10-24). Six SHORT roads start in the third row; K decides their classes when OUTRUN's
+  classes are made.
 - **TURBO OUTRUN** races the vehicle the player did not choose. Colors and grid sides are fixed by
   vehicle: the silver 959 starts left, the red F40 right. Its course is the original's 16 stages as one LINEAR course,
   raised from the ROMs of MAME's `toutrun` ([TURBO OUTRUN road data](turbo-outrun-road-data.md)); where the

@@ -16,6 +16,7 @@ import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import {
+  FORK,
   forkSpan,
   stageSpan,
   type LaneRef,
@@ -60,7 +61,7 @@ import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 /**
  * The start grid: as many slots as a run's competitors, this far apart, the last (the player's) at GO in lane b, where
  * the original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), the
- * others alternating c and b back from it.
+ * others alternating c and b back from it; a SHORT road's the same on its road's lanes.
  */
 const GRID_SLOTS = 16;
 const GRID_SPACING = 12;
@@ -88,6 +89,8 @@ export interface RoadSpan {
   readonly leaves: string;
   /** Whether it begins its stage (at GO), not a fork's. */
   readonly starts: boolean;
+  /** Where the road's GO is in it, if it is a SHORT road's start, whose road reaches back to the road's entry. */
+  readonly go?: number;
 }
 
 /** A span laid: P, its plan, its pose in the world, its Sections' cuts and their road stations. */
@@ -324,6 +327,8 @@ export interface RoadOptions {
       readonly go: number;
       readonly width: (position: number) => number;
       readonly originalWidth: (position: number) => number;
+      /** The centre of the road the grid stands on at GO, units from the middle. */
+      readonly startRoad: number;
       readonly resets: readonly number[];
       readonly end: number;
       /** Where each goal stretch begins, and its goal's number. */
@@ -553,9 +558,13 @@ export function roadProfile(
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
-  // The road's entry: the camera's distance before GO, where the camera stands.
+  // The road's entry: the camera's distance before GO, where the camera stands; a SHORT road's its start's own road, a
+  // LONG road's straight at its start's width.
   const go = options.cameraDistance / POSITION_METRES;
-  const laid = layRoad([{ ...spans[0]!, span: withEntry(spans[0]!.span, go) }, ...spans.slice(1)]);
+  const [first] = spans;
+  const entered =
+    first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
+  const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
   const { end, profile, crossings } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
@@ -577,6 +586,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
         const { k, p } = spanAt(position);
         return laid[k]!.road.span.original.at(p);
       },
+      // The centre lane is the grid's road's middle lane.
+      startRoad: entered.offset.at(go) / UNIT_METRES - entered.middle(go),
       resets: laid.flatMap((l, k) => l.road.span.resets.map((r) => positions[k]! + r)),
       end: roadEnd,
       goals: laid.flatMap((l, k) => {
@@ -890,12 +901,15 @@ function sectionDocument(
     const pieces: unknown[] = [];
     if (first - STRIPE_PERIOD + half > a + 1e-6)
       pieces.push(strip(a, Math.min(b, first - STRIPE_PERIOD + half), left, right, color, null));
-    const count = first + half <= b + 1e-9 ? Math.floor((b - first - half) / STRIPE_PERIOD + 1e-9) + 1 : 0;
-    if (count > 0) {
+    // The whole halves whose last, repeated at the period as written, ends within `b`.
+    const every = round(STRIPE_PERIOD);
+    const count = first + half <= b + 1e-9 ? Math.max(0, Math.floor((b - first - half + 1e-9) / every) + 1) : 0;
+    const within = count > 0 && first + half + (count - 1) * every > b ? count - 1 : count;
+    if (within > 0) {
       const element = strip(first, first + half, left, right, color, null);
-      pieces.push(count === 1 ? element : { kind: 'repeat', every: round(STRIPE_PERIOD), count, elements: [element] });
+      pieces.push(within === 1 ? element : { kind: 'repeat', every, count: within, elements: [element] });
     }
-    const last = first + count * STRIPE_PERIOD;
+    const last = first + within * STRIPE_PERIOD;
     if (last < b - 1e-6) pieces.push(strip(last, b, left, right, color, null));
     return pieces;
   };
@@ -1034,13 +1048,15 @@ function sectionDocument(
 
   // The gates.
   const gates: unknown[] = [];
+  // The grid on the centre lane and the one right of it, as on COCONUT BEACH's left road (b and c), whichever road.
+  const gridLanes = [span.centreLane, span.order[span.order.indexOf(span.centreLane) + 1]!];
   if (section.first)
     gates.push({
       kind: 'start',
       grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
         // The last slot at GO, the camera's distance on from the road's entry.
         at: atStation(round(section.options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING)),
-        lane: (GRID_SLOTS - 1 - i) % 2 ? 'c' : 'b',
+        lane: gridLanes[(GRID_SLOTS - 1 - i) % 2]!,
       })),
       bikeGrid: null,
     });
@@ -1180,13 +1196,18 @@ function regimes(
   return out;
 }
 
-/** One of OUTRUN's roads: its course id and the side each fork takes. */
+/** One of OUTRUN's roads: its course id, where it starts and the side each fork takes. */
 export interface OutrunRoute {
   readonly id: string;
+  /**
+   * A SHORT road's start (K, 2026-10-24): on the road from beyond the map into the third row's top stage, DESERT (L), or
+   * its bottom one, CLOUDY MOUNTAIN (R); none, COCONUT BEACH's GO.
+   */
+  readonly start?: 'L' | 'R';
   /** Each fork's side, left (L) or right (R), in order. */
   readonly forks: string;
 }
-/** The six roads to the goals, each by its forks' sides. */
+/** The six LONG roads and six SHORT ones to the goals, each by its start and its forks' sides (K, 2026-10-24). */
 export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
   { id: 'outrun-a', forks: 'LLLL' },
   { id: 'outrun-b', forks: 'LRLL' },
@@ -1194,17 +1215,36 @@ export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
   { id: 'outrun-c-right', forks: 'RLLR' },
   { id: 'outrun-d', forks: 'RLRR' },
   { id: 'outrun-e', forks: 'RRRR' },
+  { id: 'outrun-short-a', start: 'L', forks: 'LL' },
+  { id: 'outrun-short-b', start: 'L', forks: 'LR' },
+  { id: 'outrun-short-c-left', start: 'L', forks: 'RR' },
+  { id: 'outrun-short-c-right', start: 'R', forks: 'LL' },
+  { id: 'outrun-short-d', start: 'R', forks: 'RL' },
+  { id: 'outrun-short-e', start: 'R', forks: 'RR' },
 ]);
+/** The map's row a SHORT road starts in, the third: its top stage is column 0, its bottom one column 2. */
+const SHORT_ROW = 2;
+/** A road's first row and column on the map, counted from the left fork's side. */
+const startOf = (route: OutrunRoute) =>
+  route.start ? { row: SHORT_ROW, column: route.start === 'L' ? 0 : SHORT_ROW } : { row: 0, column: 0 };
 /** The goal a road reaches, A to E down the map from the left fork's side: each right fork one further down. */
-const goalOf = (route: OutrunRoute) => String.fromCharCode(0x41 + [...route.forks].filter((f) => f === 'R').length);
+const goalLetter = (route: OutrunRoute) =>
+  String.fromCharCode(0x41 + startOf(route).column + [...route.forks].filter((f) => f === 'R').length);
 
 /**
- * A road's name among `routes` (K, 2026-10-24): OUTRUN and its goal's letter; where another road of `routes` reaches
- * the same goal, the side it begins by, LEFT or RIGHT, its first fork's.
+ * A road's name among `routes` (K, 2026-10-24): OUTRUN, SHORT if it is, and its goal's letter; where another road of
+ * `routes` as long reaches the same goal, the side it begins by, LEFT or RIGHT: a SHORT road's start's, a LONG one's
+ * first fork's.
  */
 export function routeName(route: OutrunRoute, routes: readonly OutrunRoute[]): string {
-  const twin = routes.some((r) => r !== route && goalOf(r) === goalOf(route));
-  return ['OUTRUN', goalOf(route), ...(twin ? [route.forks[0] === 'L' ? 'LEFT' : 'RIGHT'] : [])].join(' ');
+  const twin = routes.some((r) => r !== route && !r.start === !route.start && goalLetter(r) === goalLetter(route));
+  const side = route.start ?? route.forks[0];
+  return [
+    'OUTRUN',
+    ...(route.start ? ['SHORT'] : []),
+    goalLetter(route),
+    ...(twin ? [side === 'L' ? 'LEFT' : 'RIGHT'] : []),
+  ].join(' ');
 }
 
 /** What a route's spans are made from. */
@@ -1231,8 +1271,8 @@ interface Step {
 }
 
 /**
- * A route's stages: from the first row's, each fork's side taken (left to the next row's stage at the same place counted
- * from the left, right to the one after it) to a last stage and its goal.
+ * A route's stages: from its start's (`startOf`), each fork's side taken (left to the next row's stage at the same
+ * place counted from the left, right to the one after it) to a last stage and its goal.
  */
 function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
   const fromLeft = inputs.rows.map((row) => [...row].reverse());
@@ -1243,10 +1283,11 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
     const number = inputs.goalOf(r, fromLeft[r]!.length - 1 - c);
     return { stretch: inputs.goals.stretches[number]!, number };
   };
-  const side = (k: number) => (route.forks[k] === 'L' ? -1 : 1);
+  const start = startOf(route);
+  const side = (r: number) => (route.forks[r - start.row] === 'L' ? -1 : 1);
   const steps: Step[] = [];
-  let column = 0;
-  for (let r = 0; r <= last; r++) {
+  let column = start.column;
+  for (let r = start.row; r <= last; r++) {
     const next = r < last ? column + (side(r) < 0 ? 0 : 1) : null;
     steps.push({
       stage: at(r, column),
@@ -1259,20 +1300,39 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
 }
 
 /**
- * A route's spans: each stage of rows 1 to 4 and its fork piece's side taken, and the last stage with its goal, their
- * road width joined over the whole road (`joinedWidth`). A stage entered by a left side (L) has the road taken as its
- * right half (its centre lane e); by a right side (R), its left (b).
+ * A route's spans: a SHORT road's start, each stage of rows 1 to 4 and its fork piece's side taken, and the last stage
+ * with its goal, their road width joined over the whole road (`joinedWidth`). A stage entered by a left side (L) has the
+ * road taken as its right half (its centre lane e); by a right side (R), its left (b). A SHORT road starts on the road
+ * into its first stage from beyond the map (K, 2026-10-24): a fork piece from w₀ = 0 as the other side takes it (L,
+ * into DESERT at the map's top, as R's), in its first stage's colors and sky, its GO where the fork stretch's first
+ * curve ends.
  */
 export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] {
+  const steps = routeSteps(route, inputs);
   // Each piece's own width first, the original's straight between its points; then the pieces again on the join.
   const pieces = (widths?: readonly Quadratic[]) => {
     const spans: RoadSpan[] = [];
     const built: Quadratic[] = [];
     const width = () => widths?.[built.length];
     let centreLane: 'b' | 'e' = 'b';
-    routeSteps(route, inputs).forEach(({ stage, goal, next }, k) => {
+    if (route.start) {
+      const { stage } = steps[0]!;
+      const side = route.start === 'L' ? 1 : -1;
+      const piece = forkSpan(inputs.fork, side, stage, stage, 0, width());
+      built.push(piece.width);
+      const go = inputs.fork.curves.find((c) => c.position > FORK.parts && c.radius === 0)!.position - FORK.parts;
+      spans.push({
+        span: { ...piece, stages: [{ from: 0, stage, arrival: 'cut' }] },
+        id: `${inputs.idOf(stage)}-start`,
+        leaves: piece.centreLane,
+        starts: false,
+        go,
+      });
+      centreLane = side < 0 ? 'e' : 'b';
+    }
+    steps.forEach(({ stage, goal, next }, k) => {
       const id = inputs.idOf(stage);
-      const first = k === 0;
+      const first = k === 0 && !route.start;
       // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
       if (goal) {
         const options = { ...goal, path: inputs.goals.path };

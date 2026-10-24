@@ -5,6 +5,7 @@
  */
 import { boardName, standsByEdge, type SpriteUse } from './outrun-boards.js';
 import { paletteName } from './pixel-grid.js';
+import { START_WIDTH } from './outrun-cross-section.js';
 import { readSceneryType } from './outrun-road.js';
 import { type SceneryPoint } from './road-tables.js';
 import { approached, STEP_PER_KMH, tickAdvance } from './object-approach.js';
@@ -64,7 +65,8 @@ export interface ObjectPlacement {
  *    reaches line 512 it passes the car, and stands at that tick's road position.
  *
  * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
- * they look as large as the original draws them at their line (`startDepth`, a road position). A point is taken by
+ * they look as large as the original draws them at their line (`startDepth`, a road position), across from the grid's
+ * road (`startRoad`) as from COCONUT BEACH's left road at the game's start's width (450). A point is taken by
  * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
  * road position p, which an object's lateral follows; `originalWidth(p)` the original's, straight between its points,
  * by which the roads are apart for an object, where it was wider than 280 as it appeared.
@@ -79,6 +81,8 @@ export function roadObjects(
     readonly kmh: number;
     readonly width: (p: number) => number;
     readonly originalWidth: (p: number) => number;
+    /** The centre of the road the grid stands on at GO, units from the middle (COCONUT BEACH's left road, −450). */
+    readonly startRoad: number;
     readonly startDepth: (line: number) => number;
     readonly starts: readonly StartObject[];
   },
@@ -100,7 +104,9 @@ export function roadObjects(
   const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
   const unconverted: { drawing: number; position: number }[] = [];
-  const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean) => {
+  // The start's objects stand by the grid's road as COCONUT BEACH's by its left road, at the game's start's width.
+  const startShift = options.startRoad + START_WIDTH;
+  const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean, start = false) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
     // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
@@ -113,12 +119,16 @@ export function roadObjects(
     // one anchored by its left edge (1) stands half its width right, by its right (2) left, and one hit off its middle
     // that far.
     const across = use.anchor & 3;
-    const road = options.width(position);
+    const road = start ? START_WIDTH : options.width(position);
     const { fromMiddle } = routine;
-    const lateral = fromMiddle
-      ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
-      : (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
-        (standsByEdge(use) ? 0 : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use));
+    const lateral =
+      (start ? startShift : 0) +
+      (fromMiddle
+        ? (across === 1 ? -1 : 1) * fromMiddle.edge * routine.pixelUnits
+        : (x >= 0 && !(apart && routine.keepsLeftWhenApart) ? road + x : x - road) +
+          (standsByEdge(use)
+            ? 0
+            : (across === 1 ? width / 2 : across === 2 ? -width / 2 : 0) + objectAside(main, use)));
     const [left, right] = hitExtents(main, use.sprite);
     placements.push({
       position,
@@ -152,7 +162,7 @@ export function roadObjects(
       half: false,
       stands: (position) => {
         start[position <= sized ? 'passing' : 'sized']++;
-        place(use, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0);
+        place(use, Math.min(position, sized), o.x, o.y, (o.flags & 4) !== 0, true);
       },
     });
   }
