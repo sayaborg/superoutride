@@ -10,19 +10,16 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
-import { composite, type FeatureEdge } from './two-roads.js';
+import { compositeOf, type FeatureEdge } from './two-roads.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import {
   forkSpan,
-  rampLength,
   stageSpan,
-  type DrawnRoad,
   type LaneRef,
   type Span,
-  type VergeKnot,
   type GoalOptions,
   sliceSpan,
   GOAL_CENTRE,
@@ -109,7 +106,27 @@ export interface Laid {
   readonly cuts: readonly number[];
   /** Each Section's start's road station: the lengths of the Sections before it as written. */
   readonly origins: readonly number[];
+  /** The road not taken laid on the road taken's cross-section, if the span has one (`leavingRoad`). */
+  readonly leaving: LaidLeaving | null;
 }
+
+/**
+ * The road not taken as the road taken's cross-section holds it: from whole position `from` to `to`, on side `side`, each of its
+ * picture's edges (`OUTRUN_ROAD`) at each whole position between, units right of P, straight between them.
+ */
+interface LaidLeaving {
+  readonly from: number;
+  readonly to: number;
+  /** The side it lies on, −1 left. */
+  readonly side: -1 | 1;
+  readonly edges: readonly (readonly number[])[];
+}
+/** Each edge of the road not taken at `p` within it, units right of P. */
+const leavingAt = (leaving: LaidLeaving, p: number) => {
+  const k = Math.min(Math.floor(p - leaving.from), leaving.edges.length - 2);
+  const t = p - leaving.from - k;
+  return leaving.edges[k]!.map((x, i) => x + (leaving.edges[k + 1]![i]! - x) * t);
+};
 
 /** The road station of position `p` of span `l`: its Section's start's, and the metres along P from there. */
 export function stationOf(l: Pick<Laid, 'cuts' | 'origins'>, p: number) {
@@ -145,58 +162,36 @@ function laneLinesOf(span: Span, widths: ReadonlyMap<string, number>) {
 /** Where `ref` lies at `p`, units right of the centreline. */
 const lineOf = (span: Span, ref: LaneRef, p: number) => laneLines(span, p).get(ref.lane)![ref.side] + ref.units;
 
-/** The roads drawn at `p`, left to right. */
-const drawnAt = (span: Span, p: number) =>
-  span.roads
-    .map((road, index) => ({ road, index }))
-    .filter(({ road }) => p >= road.from && p < road.to)
-    .sort((a, b) => lineOf(span, a.road.centre, p) - lineOf(span, b.road.centre, p));
-
-/** A verge knot's lateral at `p`, metres right of the centreline: the ground's width `beyond` its lane edge. */
-const vergeLateral = (span: Span, k: VergeKnot, p: number, beyond: number) =>
-  lineOf(span, k.ref, p) * UNIT_METRES + k.outward * beyond;
-
 /**
- * The verge's knots with their ramps placed, the ground `beyond` the lanes: each NaN knot a ramp's length from the knot
- * whose road it ramps to.
+ * The roads drawn at `p`, left to right: each one's index (a span's roads in order, the road not taken after them) and
+ * where its picture's edges lie, units right of the centreline.
  */
-function placedVerges(span: Span, knots: readonly VergeKnot[], beyond: number): VergeKnot[] {
-  const lateral = (k: VergeKnot, p: number) => vergeLateral(span, k, p, beyond);
-  return knots.map((k, i) => {
-    if (!Number.isNaN(k.at)) return k;
-    const [before, after] = [knots[i - 1]!, knots[i + 1]!];
-    if (JSON.stringify(before.ref) !== JSON.stringify(k.ref))
-      return { ...k, at: before.at + rampLength(lateral(k, before.at) - lateral(before, before.at)) / POSITION_METRES };
-    return { ...k, at: after.at - rampLength(lateral(after, after.at) - lateral(k, after.at)) / POSITION_METRES };
+function drawnAt(
+  l: Pick<Laid, 'road' | 'leaving'>,
+  p: number,
+  lines: (p: number) => ReadonlyMap<string, { readonly left: number; readonly right: number }> = (q) =>
+    laneLines(l.road.span, q),
+) {
+  const { span } = l.road;
+  const drawn = span.roads.flatMap((road, index) => {
+    if (p < road.from || p >= road.to) return [];
+    const centre = lines(p).get(road.centre.lane)![road.centre.side] + road.centre.units;
+    return [{ index, edges: OUTRUN_ROAD.map((e) => centre + e.at) }];
   });
-}
-
-/** A verge's lateral at position `p`, metres right of P: its knots' lines straight between them. */
-function vergeLine(span: Span, knots: readonly VergeKnot[], beyond: number) {
-  const placed = placedVerges(span, knots, beyond);
-  const lateral = (k: VergeKnot, p: number) => vergeLateral(span, k, p, beyond);
-  return (p: number) => {
-    const i = Math.max(
-      1,
-      Math.min(
-        placed.length - 1,
-        placed.findIndex((k) => k.at >= p),
-      ),
-    );
-    const [a, b] = [placed[i - 1]!, placed[i]!];
-    const t = Math.max(0, Math.min(1, (p - a.at) / (b.at - a.at || 1)));
-    return span.offset.at(p) + lateral(a, p) + (lateral(b, p) - lateral(a, p)) * t;
-  };
+  const { leaving } = l;
+  if (leaving && p >= leaving.from && p < leaving.to) {
+    const off = span.offset.at(p) / UNIT_METRES;
+    drawn.push({ index: span.roads.length, edges: leavingAt(leaving, p).map((x) => x - off) });
+  }
+  const middle = (edges: readonly number[]) => (edges[0]! + edges.at(-1)!) / 2;
+  return drawn.sort((a, b) => middle(a.edges) - middle(b.edges));
 }
 
 /** A span's asphalt across, metres left and right of P: its drawn roads' outermost surfaces. */
-function asphaltAt(span: Span, p: number): [number, number] {
-  const centres = drawnAt(span, Math.min(p, span.length - 1e-9)).map(({ road }) => lineOf(span, road.centre, p));
-  const offset = span.offset.at(p);
-  return [
-    (-Math.min(...centres) + ROAD_HALF) * UNIT_METRES - offset,
-    (Math.max(...centres) + ROAD_HALF) * UNIT_METRES + offset,
-  ];
+function asphaltAt(l: Pick<Laid, 'road' | 'leaving'>, p: number): [number, number] {
+  const edges = drawnAt(l, Math.min(p, l.road.span.length - 1e-9)).flatMap((d) => [d.edges[0]!, d.edges.at(-1)!]);
+  const offset = l.road.span.offset.at(p);
+  return [-Math.min(...edges) * UNIT_METRES - offset, Math.max(...edges) * UNIT_METRES + offset];
 }
 
 /** A point `pose` frame `world` puts in the world. */
@@ -235,15 +230,15 @@ function overlap(a: readonly (readonly [number, number])[], b: readonly (readonl
  * where their earlier stations run on.
  */
 function roadCrossings(
-  laid: readonly Pick<Laid, 'road' | 'line' | 'world' | 'cuts' | 'origins'>[],
-  sides: (span: Span, p: number) => [number, number],
+  laid: readonly Pick<Laid, 'road' | 'line' | 'world' | 'cuts' | 'origins' | 'leaving'>[],
+  sides: (l: Pick<Laid, 'road' | 'leaving'>, p: number) => [number, number],
 ) {
   const cells: { points: [number, number][]; at: number }[] = [];
   laid.forEach((l) => {
     const corners = Array.from({ length: Math.floor(l.road.span.length) + 1 }, (_, i) => {
       const p = Math.min(i, l.road.span.length);
       const pose = toWorld(l.world, l.line.pose(along(p)));
-      const [left, right] = sides(l.road.span, p);
+      const [left, right] = sides(l, p);
       const [a, b] = [aside(pose, -left), aside(pose, right)];
       return {
         at: stationOf(l, p),
@@ -386,8 +381,74 @@ function laySpan(road: RoadSpan) {
         plan.widened,
       ),
     },
-    cuts: spanCuts(road, line, need),
+    // Its road's passages parted, and the piece's own cuts (a fork's 362).
+    cuts: [...new Set([...spanCuts(road, line, need), ...(span.sections ?? [])])].sort((a, b) => a - b),
+    leaving: leavingRoad(span, line),
   };
+}
+
+/**
+ * The road not taken where it leaves on its own curvature (K, 2026-10-24): each edge of its picture where it passes in
+ * the world, its centre the road width w out from the mirror of P across P's tangent where the roads part, taken on
+ * the road taken's cross-section (P's normal) at each whole position from there; drawn to where the original stops
+ * (768), or to the last position where every edge still passes once across, the edge's foot along P still moving on.
+ */
+function leavingRoad(span: Span, line: CoursePath): LaidLeaving | null {
+  const { leaving } = span;
+  if (!leaving) return null;
+  const origin = line.pose(along(leaving.from));
+  const [dx, dy] = [Math.cos(origin.heading), Math.sin(origin.heading)];
+  // A point mirrored across P's tangent at the parting.
+  const mirrored = (q: Pose) => {
+    const [rx, ry] = [q.x - origin.x, q.y - origin.y];
+    const along = rx * dx + ry * dy;
+    return { x: origin.x + 2 * along * dx - rx, y: origin.y + 2 * along * dy - ry };
+  };
+  // Edge `k` at position `q`: the mirror of the point that far on the other side of P, its own right outward.
+  const edgeAt = (q: number, k: number) =>
+    mirrored(aside(line.pose(along(q)), -(leaving.side * span.width.at(q) + OUTRUN_ROAD[k]!.at) * UNIT_METRES));
+  // The foot along P of a point, from `u` on, and its lateral there.
+  const foot = (point: { x: number; y: number }, u: number) => {
+    for (let i = 0; i < 40; i++) {
+      const pose = line.pose(Math.min(Math.max(u, 0), line.length));
+      const step = (point.x - pose.x) * Math.cos(pose.heading) + (point.y - pose.y) * Math.sin(pose.heading);
+      u += step;
+      if (Math.abs(step) < 1e-10) break;
+    }
+    const pose = line.pose(Math.min(Math.max(u, 0), line.length));
+    return { u, l: (point.x - pose.x) * Math.sin(pose.heading) - (point.y - pose.y) * Math.cos(pose.heading) };
+  };
+  // Each edge's feet at quarter positions while they move on along P.
+  const STEP = 1 / 4;
+  const traces = OUTRUN_ROAD.map((_, k) => {
+    const trace: { u: number; l: number }[] = [];
+    let u = along(leaving.from);
+    for (let q = leaving.from; q <= leaving.to + 1e-9; q += STEP) {
+      const f = foot(edgeAt(Math.min(q, leaving.to), k), u);
+      if (trace.length && f.u <= trace.at(-1)!.u) break;
+      trace.push(f);
+      u = f.u;
+    }
+    return trace;
+  });
+  const last = Math.min(...traces.map((trace) => trace.at(-1)!.u)) / POSITION_METRES;
+  const to = last >= leaving.to - 1e-9 ? leaving.to : leaving.from + Math.floor(last - leaving.from);
+  const positions = [...Array.from({ length: Math.ceil(to - leaving.from) }, (_, i) => leaving.from + i), to].filter(
+    (p, i, all) => i === 0 || p > all[i - 1]!,
+  );
+  if (positions.length < 2) return null;
+  const edges = positions.map((p) =>
+    traces.map((trace) => {
+      const u = along(p);
+      const i = Math.max(
+        1,
+        trace.findIndex((f) => f.u >= u),
+      );
+      const [a, b] = [trace[i - 1]!, trace[i]!];
+      return (a.l + ((b.l - a.l) * (u - a.u)) / (b.u - a.u || 1)) / UNIT_METRES;
+    }),
+  );
+  return { from: leaving.from, to, side: leaving.side, edges };
 }
 
 /**
@@ -417,7 +478,7 @@ export function layRoad(spans: readonly RoadSpan[]): Laid[] {
   const laid: Laid[] = [];
   let station = 0;
   for (const road of spans) {
-    const { line, plan, cuts } = laySpan(road);
+    const { line, plan, cuts, leaving } = laySpan(road);
     const before = laid.at(-1);
     let world = { x: 0, y: 0, heading: 0 };
     if (before) {
@@ -440,7 +501,7 @@ export function layRoad(spans: readonly RoadSpan[]): Laid[] {
       station += writtenLength(line, i ? ends[i - 1]! : 0, to);
       return origin;
     });
-    laid.push({ road, line, plan, world, cuts, origins });
+    laid.push({ road, line, plan, world, cuts, origins, leaving });
   }
   return laid;
 }
@@ -473,7 +534,7 @@ export function roadProfile(
       return own.map((c) => ({ ...c, from: c.from + origin, to: c.to + origin }));
     }),
   );
-  const crossings = roadCrossings(laid, (span, p) => asphaltAt(span, p));
+  const crossings = roadCrossings(laid, asphaltAt);
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
   const profile = profileOf(
     separatedCrossings(changes, crossings.map(crossingOf), end)
@@ -676,6 +737,8 @@ function sectionDocument(
   const { span } = l.road;
   const { line } = l;
   const { from, to } = section;
+  // Its lanes as the Section has them: where a cut parts two lane arrangements (a fork's 362), each Section its own.
+  const own: Span = { ...span, lanes: (p) => span.lanes(Math.min(Math.max(p, from + 1e-9), to - 1e-9)) };
   const origin = along(from);
   const { roadOrigin } = section;
   /** The station of position `p` from the Section's start. */
@@ -709,7 +772,7 @@ function sectionDocument(
   ]
     .filter((p) => p >= from && p <= to)
     .sort((a, b) => a - b);
-  const widths = knots.map((p) => span.lanes(p));
+  const widths = knots.map((p) => own.lanes(p));
   const present = span.order.filter((name) => widths.some((w) => w.get(name)! > THERE));
   const lineOfValues = (values: [number, number][], name: 'width' | 'lateral') => {
     const simple = simplified(values);
@@ -728,38 +791,70 @@ function sectionDocument(
     knots.map((p) => [round(local(p)), round(span.offset.at(p))]),
     'lateral',
   );
-  // The lanes' lines as written: each width straight between its knots, as it is.
-  const written = (p: number) => laneLines(span, p);
+  // The lanes' lines as written: each straight between the Section's knots, as the format lays them.
+  const knotLines = widths.map((w) => laneLinesOf(span, w));
+  const written = (p: number) => {
+    const i = Math.max(0, Math.min(knots.length - 2, knots.findIndex((k) => k > p) - 1));
+    const [a, b] = [knotLines[i]!, knotLines[i + 1] ?? knotLines[i]!];
+    const t = knots[i + 1] === undefined ? 0 : (p - knots[i]!) / (knots[i + 1]! - knots[i]!);
+    const lines = new Map<string, { left: number; right: number }>();
+    for (const [lane, l] of a) {
+      const m = b.get(lane)!;
+      lines.set(lane, { left: l.left + (m.left - l.left) * t, right: l.right + (m.right - l.right) * t });
+    }
+    return lines;
+  };
   const ref = (r: LaneRef, more = 0) => {
     requireInput(present.includes(r.lane), `/sections/${section.id}`, `Section ${section.id} has no lane ${r.lane}`);
     return laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
   };
 
-  // The verges: knots within the Section, and its ends where a stretch of one reference holds.
-  const verge = (knots: readonly VergeKnot[]) => {
-    const placed = placedVerges(span, knots, section.ground);
-    const inside = placed.filter((k) => k.at > from && k.at < to);
-    const around = (p: number) => {
-      const i = placed.findIndex((k) => k.at >= p);
-      const [a, b] = [placed[Math.max(0, i - 1)]!, placed[Math.max(0, i)]!];
-      const k = Math.abs(b.at - p) < 1e-9 ? b : Math.abs(a.at - p) < 1e-9 ? a : null;
-      if (k) return k;
-      requireInput(
-        JSON.stringify(a.ref) === JSON.stringify(b.ref) && a.outward === b.outward,
-        `/sections/${section.id}`,
-        `Section ${section.id} is cut in a verge's ramp`,
-      );
-      return { ...a, at: p };
-    };
-    return [around(from), ...inside, around(to)].map((k) => ({
-      at: at(k.at),
-      lateral: ref(k.ref, k.outward * section.ground),
-    }));
+  // The verges: the ground from the Section's outermost lanes, zero wide ones counted, its width beyond them.
+  const outermost = present.filter((name) => !name.startsWith('m'));
+  const verges = {
+    left: { lane: outermost[0]!, side: 'left' as const, units: 0 },
+    right: { lane: outermost.at(-1)!, side: 'right' as const, units: 0 },
   };
+  const verge = (side: 'left' | 'right') =>
+    [from, to].map((p) => ({ at: at(p), lateral: ref(verges[side], (side === 'left' ? -1 : 1) * section.ground) }));
   // A verge's lateral at a Section station, metres right of P.
-  const vergeAt = (side: 'left' | 'right') => {
-    const lateral = vergeLine(span, span.verges[side], section.ground);
-    return (s: number) => lateral((s + origin) / POSITION_METRES);
+  const vergeAt = (side: 'left' | 'right') => (s: number) => {
+    const p = (s + origin) / POSITION_METRES;
+    const edge = written(p).get(verges[side].lane)![verges[side].side];
+    return span.offset.at(p) + edge * UNIT_METRES + (side === 'left' ? -1 : 1) * section.ground;
+  };
+
+  // The road not taken within the Section: each edge of its picture a Boundary at each whole position.
+  const leaving = l.leaving && l.leaving.from < to && l.leaving.to > from ? l.leaving : null;
+  const leavingFrom = leaving ? Math.max(leaving.from, from) : 0;
+  const leavingTo = leaving ? Math.min(leaving.to, to) : 0;
+  const leavingAtSection = leaving
+    ? [
+        leavingFrom,
+        ...Array.from({ length: Math.ceil(leavingTo - leaving.from) }, (_, i) => leaving.from + i).filter(
+          (p) => p > leavingFrom && p < leavingTo,
+        ),
+        leavingTo,
+      ]
+    : [];
+  const leavingBoundaries = leaving
+    ? OUTRUN_ROAD.map((_, k) => ({
+        id: `leaving-${k}`,
+        knots: leavingAtSection.map((p) => ({ at: at(p), lateral: round(leavingAt(leaving, p)[k]! * UNIT_METRES) })),
+      }))
+    : [];
+  /** A road's edge as written: a lane's line, or the road not taken's Boundary. */
+  const edgeRef = (edge: FeatureEdge): Lateral => {
+    if (edge.road === span.roads.length) return boundary(`leaving-${OUTRUN_ROAD.findIndex((e) => e.at === edge.at)}`);
+    const road = span.roads[edge.road]!;
+    return ref({ lane: road.centre.lane, side: road.centre.side, units: road.centre.units + edge.at });
+  };
+  /** Where a road's edge lies at `p`, units right of the centreline, as written. */
+  const edgeAt = (edge: FeatureEdge, p: number) => {
+    if (edge.road === span.roads.length)
+      return leavingAt(leaving!, p)[OUTRUN_ROAD.findIndex((e) => e.at === edge.at)]! - span.offset.at(p) / UNIT_METRES;
+    const road = span.roads[edge.road]!;
+    return written(p).get(road.centre.lane)![road.centre.side] + road.centre.units + edge.at;
   };
 
   // The strips.
@@ -821,20 +916,72 @@ function sectionDocument(
     strips.push(strip(stations(a), stations(b), left, right, surface[1]!, 'ASPHALT'));
     if (surface[0] !== surface[1]) strips.push(...halves(0, stations(a), stations(b), left, right, surface[0]!));
   }
+  // The road not taken: its surface's color across it, its ASPHALT only within the ground, cut where its edges cross the
+  // ground's edge (a Strip cannot erase material).
+  const clipped: { id: string; knots: { at: unknown; lateral: Lateral }[] }[] = [];
+  if (leaving && leavingTo > leavingFrom) {
+    const [left, right] = [boundary('leaving-0'), boundary(`leaving-${OUTRUN_ROAD.length - 1}`)];
+    const [a, b] = [stations(leavingFrom), stations(leavingTo)];
+    strips.push(strip(a, b, left, right, surface[1]!, null));
+    if (surface[0] !== surface[1]) strips.push(...halves(0, a, b, left, right, surface[0]!));
+    const side = leaving.side > 0 ? 'right' : 'left';
+    const sign = leaving.side;
+    const ground = vergeAt(side);
+    const metresAt = (p: number, k: number) => leavingAt(leaving, p)[k]! * UNIT_METRES;
+    // Beyond the ground (toward the road not taken's side): how far the road's inner and outer edges reach past it.
+    const [inner, outer] = sign > 0 ? [0, OUTRUN_ROAD.length - 1] : [OUTRUN_ROAD.length - 1, 0];
+    const past = (p: number, k: number) => sign * (metresAt(p, k) - ground(local(p)));
+    // Where an edge comes `by` metres short of the ground's edge, between two positions either side of it.
+    const crossing = (lo: number, hi: number, k: number, by = 0) => {
+      for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        if (past(mid, k) + by > 0 === past(lo, k) + by > 0) lo = mid;
+        else hi = mid;
+      }
+      return lo;
+    };
+    // Where the road is within the ground at all: until its inner edge comes within `THIN` of the ground's edge.
+    const samples = [
+      ...new Set([...leavingAtSection, ...span.laneBreaks.filter((p) => p > leavingFrom && p < leavingTo)]),
+    ].sort((x, y) => x - y);
+    let end = leavingTo;
+    for (let i = 0; i + 1 < samples.length; i++)
+      if (past(samples[i + 1]!, inner) + THIN >= 0) {
+        end = past(samples[i]!, inner) + THIN >= 0 ? samples[i]! : crossing(samples[i]!, samples[i + 1]!, inner, THIN);
+        break;
+      }
+    if (end > leavingFrom) {
+      // Its outer edge held at the ground's edge where it reaches past it.
+      const knots: { at: unknown; lateral: Lateral }[] = [];
+      const kept = samples.filter((p) => p < end);
+      [...kept, end].forEach((p, i, all) => {
+        if (i > 0 && past(all[i - 1]!, outer) > 0 !== past(p, outer) > 0)
+          knots.push({ at: at(crossing(all[i - 1]!, p, outer)), lateral: boundary(`outer-${side}`) });
+        knots.push({
+          at: at(p),
+          lateral: past(p, outer) >= 0 || p === end ? boundary(`outer-${side}`) : round(metresAt(p, outer)),
+        });
+      });
+      clipped.push({ id: 'leaving-ground', knots });
+      const edge = boundary(`leaving-${inner}`);
+      strips.push(
+        strip(
+          a,
+          stations(end),
+          sign > 0 ? edge : boundary('leaving-ground'),
+          sign > 0 ? boundary('leaving-ground') : edge,
+          null,
+          'ASPHALT',
+        ),
+      );
+    }
+  }
   // The lines and edge bands the roads' picture shows, a stretch of one arrangement at a time.
-  for (const regime of regimes(span, from, to)) {
+  for (const regime of regimes(l, from, to, written)) {
     for (const interval of regime.intervals) {
-      const sideRef = (edge: FeatureEdge) => {
-        const road = span.roads[edge.road]!;
-        return { lane: road.centre.lane, side: road.centre.side, units: road.centre.units + edge.at };
-      };
-      const [lr, rr] = [sideRef(interval.left), sideRef(interval.right)];
       // Its width as the Section's lanes give it, straight between their knots; an end where it narrows to nothing
       // drawn in to where it is `THIN` wide.
-      const width = (p: number) => {
-        const lines = written(p);
-        return (lines.get(rr.lane)![rr.side] + rr.units - lines.get(lr.lane)![lr.side] - lr.units) * UNIT_METRES;
-      };
+      const width = (p: number) => (edgeAt(interval.right, p) - edgeAt(interval.left, p)) * UNIT_METRES;
       const inward = (from: number, toward: number) => {
         if (width(from) >= THIN) return from;
         let [lo, hi] = [from, toward];
@@ -850,7 +997,7 @@ function sectionDocument(
       const [a, b] = [inward(regime.from, mid), inward(regime.to, mid)];
       if (a === null || b === null || b - a < 1e-3) continue;
       const two = interval.paint === 'line' ? colors.laneLines.rgb555 : colors.edges.rgb555;
-      strips.push(...colored(stations(a), stations(b), ref(lr), ref(rr), two, surface));
+      strips.push(...colored(stations(a), stations(b), edgeRef(interval.left), edgeRef(interval.right), two, surface));
     }
   }
 
@@ -935,8 +1082,10 @@ function sectionDocument(
     centerLane: span.centreLane,
     centerLateral,
     boundaries: [
-      { id: 'outer-left', knots: verge(span.verges.left) },
-      { id: 'outer-right', knots: verge(span.verges.right) },
+      { id: 'outer-left', knots: verge('left') },
+      { id: 'outer-right', knots: verge('right') },
+      ...leavingBoundaries,
+      ...clipped,
       ...materials.boundaries.map(({ id, knots }) => ({
         id,
         knots: knots.map((k) => ({ at: atStation(k.s), lateral: round(k.l) })),
@@ -982,11 +1131,17 @@ function sectionDocument(
  * same lines and edge bands, each between the same features. Found on a grid of `SAMPLE` positions, each change then
  * narrowed down by halving.
  */
-function regimes(span: Span, from: number, to: number) {
+function regimes(
+  l: Pick<Laid, 'road' | 'leaving'>,
+  from: number,
+  to: number,
+  lines: (p: number) => ReadonlyMap<string, { readonly left: number; readonly right: number }>,
+) {
+  const { span } = l.road;
   const pictureAt = (p: number) => {
-    const drawn = drawnAt(span, p);
-    const intervals = composite(
-      drawn.map(({ road }) => lineOf(span, road.centre, p)),
+    const drawn = drawnAt(l, p, lines);
+    const intervals = compositeOf(
+      drawn.map((d) => d.edges),
       OUTRUN_ROAD,
     ).map((i) => ({
       paint: i.paint,
@@ -995,9 +1150,8 @@ function regimes(span: Span, from: number, to: number) {
     }));
     return { key: JSON.stringify(intervals), intervals };
   };
-  const bounds = [
-    ...new Set([from, to, ...span.roads.flatMap((r: DrawnRoad) => [r.from, r.to]).filter((p) => p > from && p < to)]),
-  ].sort((a, b) => a - b);
+  const ends = [...span.roads.flatMap((r) => [r.from, r.to]), ...(l.leaving ? [l.leaving.from, l.leaving.to] : [])];
+  const bounds = [...new Set([from, to, ...ends.filter((p) => p > from && p < to)])].sort((a, b) => a - b);
   const out: { from: number; to: number; intervals: ReturnType<typeof pictureAt>['intervals'] }[] = [];
   for (let i = 0; i + 1 < bounds.length; i++) {
     const [a, b] = [bounds[i]!, bounds[i + 1]!];
@@ -1128,7 +1282,7 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
         const span = stageSpan(stage, { first, fork: inputs.fork, centreLane, width: width() });
         built.push(span.width);
         spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
-        const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage, width());
+        const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage, span.width.at(span.length), width());
         built.push(fork.width);
         spans.push({
           span: fork,

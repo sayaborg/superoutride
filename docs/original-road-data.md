@@ -256,8 +256,9 @@ Two roads drawn together (`composite`) show, at each point, the surface of eithe
 middle is at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 7.33), at 162 five (an edge band 0.67
 wide of road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band
 2(w − 228) wide, beyond 250 the ground 2(w − 250) wide. Each line and band shown is a Strip between two features' edges
-held to lanes (a road's centre lies 212 units inside its outer lane's outer edge, or its inner lane's inner edge), cut
-where the arrangement changes. ASPHALT lies under each road from its centre ∓ 250, SAND beneath all to the
+held to lanes (a road's centre lies 212 units inside its outer lane's outer edge, or its inner lane's inner edge), or
+to a road laid where it passes, each of its edges a Boundary (`compositeOf`, OUTRUN's road not taken), cut where the
+arrangement changes. ASPHALT lies under each road from its centre ∓ 250 within the ground, SAND beneath all to the
 [ground's width](#the-ground-beside-the-road); the ground's color is everywhere, its half 0 over its halves.
 
 ## A lateral changed straight between points
@@ -278,9 +279,10 @@ listed in NEXT, each joined so by its original's PR.
 An original's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
 farthest of its objects shown on the ground (at height 0) reaches on any of its courses, to its picture's outer edge,
 its base point and half its width (`groundWidth`); an extending board counts by its one repeat and its edge, not as far
-as it repeats. One width an original, the most over its courses. A road that comes in or goes out (OUTRUN's forks) holds
-its verge at its outer lane's edge as its lanes are wide. The course format ends the ground where the plan stops being
-one-to-one ([Architecture](architecture.md#plan-authority)).
+as it repeats. One width an original, the most over its courses. The ground reaches from a Section's outermost lanes,
+zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
+road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
+being one-to-one ([Architecture](architecture.md#plan-authority)).
 
 ## Plan
 

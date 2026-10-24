@@ -1,7 +1,7 @@
 /**
  * OUTRUN's pieces ([OUTRUN road data](../../docs/outrun-road-data.md#pieces)): each stage, the fork's two sides and
  * the five goals, each one shape whatever comes before or after it. A span is the stretch of pieces one lane naming
- * holds, from a Link (or the road's start) to the next: a stage to its fork stretch's six lanes, a fork side, or a last
+ * holds, from a Link (or the road's start) to the next: a stage to where its roads part, a fork side, or a last
  * stage with its goal. Positions are the span's own, from 0.
  */
 import { requireInput } from '../course/authoring-io.js';
@@ -24,31 +24,30 @@ import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from 
 const STAGE_LENGTH = 1948;
 /** The fork stretch, as the main CPU runs it (0x8780 to 0x89B6). */
 export const FORK = Object.freeze({
-  /** The roads part by 8 units a position from 63, where a stage piece ends and the fork piece begins. */
+  /**
+   * The roads part by 8 units a position from 63, where a stage piece ends and the fork piece begins, from the width the
+   * stage ends at; a lane widens and narrows at the same rate.
+   */
   parts: 63,
   spread: 8,
   /** The route is chosen, and the next stage's sky wipes in, where the road width passes 0x168 (360). */
   chosen: 0x168,
-  /** The road not taken ends where the width passes 0x300 (768), which it then holds. */
+  /** The road not taken is no longer drawn where the width passes 0x300 (768), which it then holds. */
   apart: 0x300,
   /**
-   * The second curve ends at 362: the roads close from there by 8 a position, as a V, to the next stage's 212, where
-   * the next stage begins (431.5).
+   * The second curve ends at 362: there the original carries the car 2w across, the road coming in appears 2w beyond
+   * the road taken, and the two close from there by 8 a position, as a V, to the next stage's 212 (431.5).
    */
   closes: 362,
 });
 /** Where a fork piece ends, the fork stretch's: where its roads have closed. */
 const FORK_END = FORK.closes + (FORK.apart - TOUCHING) / FORK.spread;
+/** The middle of the V the road coming in closes, units from P on the side taken: twice the roads' 768 apart. */
+const V_MIDDLE = 2 * FORK.apart;
 /** The goal stretch: its road to 600; the roads part from 182 by 8 a position to 768. */
 const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300, end: 600 });
-/** A dead end's lanes narrow to nothing over its last positions. */
-const DEAD_END = 2;
-/** A road that comes in grows to its lanes over one position. */
-const GROWS = 1;
-/** A verge's outer edge moves no faster than one metre across for this many along. */
-const VERGE_RAMP = 6;
 
-/** A line `units` right of lane `lane`'s `side`: where a road's centre, or a verge, is held. */
+/** A line `units` right of lane `lane`'s `side`: where a road's centre is held. */
 export interface LaneRef {
   readonly lane: string;
   readonly side: 'left' | 'right';
@@ -60,11 +59,16 @@ export interface DrawnRoad {
   readonly to: number;
   readonly centre: LaneRef;
 }
-/** A knot of a verge's outer edge: the ground's width beyond `ref`, an outermost lane's edge, `outward` (−1 left). */
-export interface VergeKnot {
-  readonly at: number;
-  readonly ref: LaneRef;
-  readonly outward: -1 | 1;
+/**
+ * The road not taken where the roads part, on its own curvature, the original's (K, 2026-10-24): from `from` to `to`,
+ * where the original stops drawing it (768), its centre `w` (the road width) out on side `side` (−1 left) from the
+ * mirror of P across P's tangent at `from`. It is laid where it passes in the world, on the road taken's cross-section
+ * (`outrun-roads.ts`).
+ */
+export interface LeavingRoad {
+  readonly from: number;
+  readonly to: number;
+  readonly side: -1 | 1;
 }
 /** A stretch of a span shown in one stage's colors and sky. */
 export interface SpanStage {
@@ -74,7 +78,7 @@ export interface SpanStage {
   readonly arrival: 'cut' | 'wipe' | 'rise';
 }
 
-/** A span: its plan's path and offsets, its lanes and drawn roads, verges, heights and scenery. */
+/** A span: its plan's path and offsets, its lanes and drawn roads, heights and scenery. */
 export interface Span {
   readonly length: number;
   /** The original's road path P over the span: its headings at the span's positions. */
@@ -85,7 +89,10 @@ export interface Span {
   readonly offset: Quadratic;
   /** The original's middle, units right of P. */
   middle(position: number): number;
-  /** Lanes and medians (`m…`), left to right, and the centre lane. */
+  /**
+   * Lanes and medians (`m…`), left to right, and the centre lane. A Section's ground reaches from its outermost lanes,
+   * zero wide ones counted.
+   */
   readonly order: readonly string[];
   readonly centreLane: string;
   /** Each lane's and median's width at a position, units. */
@@ -93,7 +100,9 @@ export interface Span {
   /** Where a width changes slope, besides the road width's own breaks. */
   readonly laneBreaks: readonly number[];
   readonly roads: readonly DrawnRoad[];
-  readonly verges: { readonly left: readonly VergeKnot[]; readonly right: readonly VergeKnot[] };
+  readonly leaving?: LeavingRoad;
+  /** Where the piece is cut into Sections whatever its road's passages (a fork's 362). */
+  readonly sections?: readonly number[];
   /** Each piece's height points, from its start, which its profile runs and closes over `[from, to]`. */
   readonly heights: readonly {
     readonly from: number;
@@ -122,8 +131,6 @@ export interface Choice {
   readonly side: -1 | 1;
 }
 
-const ramp = (p: number, from: number, to: number, a: number, b: number) =>
-  p <= from ? a : p >= to ? b : a + ((b - a) * (p - from)) / (to - from);
 const shifted = <T extends { readonly position: number }>(points: readonly T[], by: number, from = -Infinity) =>
   points.filter((p) => p.position >= from).map((p) => ({ ...p, position: p.position + by }));
 
@@ -241,22 +248,92 @@ const drivenAt = (w: number) => {
   const { a, b, c, m, d, e, f } = drivenLanes(w);
   return new Map(Object.entries({ a, b, c, m0: m, d, e, f }));
 };
-/** Where a verge is held: lane `lane`'s outer edge `side`. */
-const verge = (lane: string, side: 'left' | 'right'): LaneRef => ({ lane, side, units: 0 });
 /**
- * Where the verge of a road coming in or going out is held: its outer lane's edge as its lanes are wide, `sign` (−1 left)
- * beyond lane `lane`'s `side`, its centre `TOUCHING` from that side and its outer edge `TOUCHING` from its centre.
+ * Lanes `[lane, start, end]` changing one after another from `from`, each by the fork's spread a position, joined as a
+ * width the original changes is (`monotoneCubic`), each beginning where the one before it ends.
  */
-const farVerge = (lane: string, side: 'left' | 'right', sign: -1 | 1): LaneRef => ({
-  lane,
-  side,
-  units: sign * 2 * TOUCHING,
-});
+function inTurn(lanes: readonly (readonly [string, number, number])[], from: number) {
+  let at = from;
+  const timed = lanes.map(([lane, start, end]) => {
+    const to = at + Math.abs(end - start) / FORK.spread;
+    const timing = {
+      lane,
+      from: at,
+      to,
+      width:
+        to > at
+          ? monotoneCubic([
+              [at, start],
+              [to, end],
+            ])
+          : () => end,
+    };
+    at = to;
+    return timing;
+  });
+  return {
+    widths: (p: number) => timed.map((l) => [l.lane, l.width(p)] as const),
+    breaks: timed.flatMap((l) => [l.from, l.to]),
+  };
+}
 
 /**
- * A stage piece, GO (0) to its end: a stage of rows 1 to 4 on into its fork stretch to 63, where the roads part, its
- * roads widened by 8 a position (the fork's spread) to six clean lanes there; a stage of row 5 to 1948, its goal
- * following (`goalSpan`). `first` is the game's first stage, which starts at road width 450 and its grid.
+ * The lanes where the roads part at `parts`, the stage's at its last road width `w0` (`drivenLanes`) there: the road
+ * taken's three on side `side` (−1 left, a, b, c; 1 right, d, e, f) widening to one lane each, the other three beside
+ * them narrowing to nothing one after another from the outside (K, 2026-10-24).
+ */
+function partedLanes(w0: number, side: -1 | 1, parts: number) {
+  const start = drivenAt(w0);
+  const [taken, other] =
+    side < 0
+      ? [
+          ['a', 'b', 'c'],
+          ['f', 'e', 'd'],
+        ]
+      : [
+          ['d', 'e', 'f'],
+          ['a', 'b', 'c'],
+        ];
+  const widening = taken.map((l) => inTurn([[l, start.get(l)!, LANE]], parts));
+  const narrowing = inTurn(
+    other.map((l) => [l, start.get(l)!, 0] as const),
+    parts,
+  );
+  return {
+    widths: (p: number) => new Map([...widening.flatMap((l) => l.widths(p)), ...narrowing.widths(p)]),
+    breaks: [...widening.flatMap((l) => l.breaks), ...narrowing.breaks],
+  };
+}
+
+/**
+ * The centre lane's centre, metres right of P, of a road taken on side `side` (−1 left) whose centre is `taken(p)`
+ * units from P: its outer edge 212 beyond, its lanes laid in from it; written at the span's every position and the
+ * lanes' breaks over `[from, to]`.
+ */
+function takenOffset(
+  span: { readonly width: Quadratic; lanes(p: number): ReadonlyMap<string, number> },
+  centre: string,
+  side: -1 | 1,
+  taken: (p: number) => number,
+  [from, to]: readonly [number, number],
+  breaks: readonly number[],
+) {
+  const outer = side < 0 ? 'a' : 'f';
+  const at = [...new Set([from, to, ...span.width.breaks, ...breaks])]
+    .filter((p) => p >= from && p <= to)
+    .sort((x, y) => x - y);
+  return through(
+    at.map((p) => {
+      const widths = span.lanes(p);
+      return [p, (taken(p) + side * (TOUCHING - widths.get(outer)! - widths.get(centre)! / 2)) * UNIT_METRES] as const;
+    }),
+  );
+}
+
+/**
+ * A stage piece, GO (0) to its end: a stage of rows 1 to 4 on into its fork stretch to 63, where the roads part, at the
+ * width it ends at; a stage of row 5 to 1948, its goal following (`goalSpan`). `first` is the game's first stage, which
+ * starts at road width 450 and its grid.
  */
 export function stageSpan(
   stage: Stage,
@@ -276,11 +353,11 @@ export function stageSpan(
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = STAGE_LENGTH + FORK.parts;
   const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, options.first ? START_WIDTH : TOUCHING);
-  const end = knots.at(-1)![1];
-  requireInput(end <= TOUCHING, `/stages/${stage.number}`, `Stage ${stage.number} ends wider than six lanes`);
-  // Widened from the stage's last width to 212 at the fork's spread, reaching it at the end.
-  if (end < TOUCHING) knots.push([length - (TOUCHING - end) / FORK.spread, end]);
-  knots.push([length, TOUCHING]);
+  requireInput(
+    knots.at(-1)![1] <= TOUCHING,
+    `/stages/${stage.number}`,
+    `Stage ${stage.number} ends wider than six lanes`,
+  );
   const width = options.width ?? straight(knots, length);
   return {
     length,
@@ -296,10 +373,6 @@ export function stageSpan(
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
       { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
     ],
-    verges: {
-      left: [0, length].map((at) => ({ at, ref: verge('a', 'left'), outward: -1 as const })),
-      right: [0, length].map((at) => ({ at, ref: verge('f', 'right'), outward: 1 as const })),
-    },
     heights: [
       {
         from: 0,
@@ -316,56 +389,94 @@ export function stageSpan(
 
 /**
  * A fork piece, the fork stretch from 63 to 431.5 as the side taken sees it, `side` −1 left (L) or 1 right (R, L's
- * mirror). L's lanes are g, h, i | m0 | a, b, c | m1 | d, e, f: the road taken a, b, c (centre lane b); the road not
- * taken d, e, f, its centre 2w right of the taken one's, ending where the width reaches 768 (132.5), its lanes narrowing
- * to nothing over its last two positions; the road coming in g, h, i, from 362 2w left of it, growing over a position.
- * The width parts from 212 by 8 a position from 63 to 768, holds, and from 362 closes by 8 to 212 at 431.5. Before 362
- * the road taken is w left of P; from 362 it runs on P's heading and moves 768 − w toward the road coming in, the two
- * meeting as a straight, even V about P's 1536 left. R's are the mirror: a, b, c (not taken) | m0 | d, e, f (taken,
- * centre lane e) | m1 | j, k, l (coming in).
+ * mirror), as the original's (K, 2026-10-24). The width parts from the stage's last, w₀, by 8 a position from 63 to 768,
+ * holds, and from 362 closes by 8 to 212 at 431.5. The roads are w either side of P to 362, and w either side of the V's
+ * middle, 1536 on the side taken, from there, where the road coming in appears 2w beyond the road taken; the road not
+ * taken leaves on its own curvature (`leaving`) until the original stops drawing it (768). The piece is two Sections, cut
+ * at 362. L's lanes to 362 are a, b, c (taken, centre lane b) | d, e, f: at 63 the stage's, a, b, c widening to one
+ * lane each and d, e, f narrowing to nothing one after another from the outside; from 362 g, h, i (coming in) | m0 |
+ * a, b, c, g, h, i widening one after another from the inside beyond the median 2(w − 212), six lanes with a, b, c at
+ * 431.5; each lane by 8 a position. R's are the mirror: a, b, c | d, e, f (taken, centre lane e), and from 362 d, e, f |
+ * m0 | j, k, l (coming in).
  */
 export function forkSpan(
   fork: Stretch & { readonly path: Path },
   side: -1 | 1,
   from: Stage,
   to: Stage,
+  w0: number,
   given?: Quadratic,
 ): Span {
   const start = FORK.parts;
   const at = (p: number) => p - start;
   const length = FORK_END - start;
-  const apartAt = FORK.parts + (FORK.apart - TOUCHING) / FORK.spread;
+  const comesIn = at(FORK.closes);
+  const apart = at(start + (FORK.apart - w0) / FORK.spread);
   const width =
     given ??
     straight(
       [
-        [0, TOUCHING],
-        [at(apartAt), FORK.apart],
-        [at(FORK.closes), FORK.apart],
+        [0, w0],
+        [apart, FORK.apart],
+        [comesIn, FORK.apart],
         [length, TOUCHING],
       ],
       length,
     );
-  // The road taken's centre from P: w toward its side before the V, 1536 − w after; the original's middle, P or the V's.
-  const held = at((apartAt + FORK.closes) / 2);
-  const offset = offsetOf(width, [
-    { to: held, f: (w) => side * w, breaks: [] },
-    { to: length, f: (w) => side * (2 * FORK.apart - w), breaks: [] },
-  ]);
-  const middle = (p: number) => (p >= at(FORK.closes) ? side * 2 * FORK.apart : 0);
-  const median = (p: number) => 2 * (width.at(p) - TOUCHING);
-  const dead = (p: number) => ramp(p, at(apartAt) - DEAD_END, at(apartAt), LANE, 0);
-  const coming = (p: number) => ramp(p, at(FORK.closes), at(FORK.closes) + GROWS, 0, LANE);
-  const wipe = at(FORK.parts + (FORK.chosen - TOUCHING) / FORK.spread);
-  const breaks = [at(apartAt) - DEAD_END, at(apartAt), at(FORK.closes), at(FORK.closes) + GROWS];
-  const common = {
+  const left = side < 0;
+  const parted = partedLanes(w0, side, 0);
+  const coming = inTurn(
+    (left ? ['i', 'h', 'g'] : ['j', 'k', 'l']).map((l) => [l, 0, LANE] as const),
+    comesIn,
+  );
+  const lanes = (p: number) =>
+    new Map([
+      ...parted.widths(p),
+      ...coming.widths(p),
+      ['m0', p < comesIn ? 0 : 2 * Math.max(0, width.at(p) - TOUCHING)] as const,
+    ]);
+  // The road taken's centre from P: w on its side to 362, then w back from the V's middle.
+  const taken = (p: number) => side * (p < comesIn ? width.at(p) : V_MIDDLE - width.at(p));
+  const centreLane = left ? 'b' : 'e';
+  const breaks = [...parted.breaks, ...coming.breaks];
+  const span = { width, lanes };
+  // The route is chosen, and the sky wipes in, where the width passes 360.
+  let [lo, hi] = [0, apart];
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (width.at(mid) < FORK.chosen) lo = mid;
+    else hi = mid;
+  }
+  return {
     length,
-    choice: { parts: at(FORK.parts), side },
+    choice: { parts: 0, side },
     headings: mirrored(headingsOver(fork.path, start, FORK_END), side),
     width,
-    offset,
-    middle,
+    offset: new Quadratic([
+      ...takenOffset(span, centreLane, side, taken, [0, comesIn], breaks).pieces,
+      ...takenOffset(span, centreLane, side, taken, [comesIn, length], breaks).pieces,
+    ]),
+    middle: (p) => (p < comesIn ? 0 : side * V_MIDDLE),
+    order: left
+      ? ['g', 'h', 'i', 'm0', 'a', 'b', 'c', 'd', 'e', 'f']
+      : ['a', 'b', 'c', 'd', 'e', 'f', 'm0', 'j', 'k', 'l'],
+    centreLane,
+    lanes,
     laneBreaks: breaks,
+    roads: [
+      {
+        from: 0,
+        to: length,
+        centre: left ? { lane: 'a', side: 'left', units: TOUCHING } : { lane: 'f', side: 'right', units: -TOUCHING },
+      },
+      {
+        from: comesIn,
+        to: length,
+        centre: left ? { lane: 'i', side: 'right', units: -TOUCHING } : { lane: 'j', side: 'left', units: TOUCHING },
+      },
+    ],
+    leaving: { from: 0, to: apart, side: left ? 1 : -1 },
+    sections: [comesIn],
     heights: [
       {
         from: 0,
@@ -378,92 +489,12 @@ export function forkSpan(
     ],
     scenery: shifted(fork.scenery, -start, start),
     stages: [
-      { from: 0, stage: from, arrival: 'cut' as const },
-      { from: wipe, stage: to, arrival: 'wipe' as const },
+      { from: 0, stage: from, arrival: 'cut' },
+      { from: hi, stage: to, arrival: 'wipe' },
     ],
     resets: [length],
   };
-  // Each verge ramps out to the road coming in before it comes, and back from the road ending after it ends.
-  const comesIn = at(FORK.closes);
-  const ends = at(apartAt);
-  if (side < 0)
-    return {
-      ...common,
-      order: ['g', 'h', 'i', 'm0', 'a', 'b', 'c', 'm1', 'd', 'e', 'f'],
-      centreLane: 'b',
-      lanes: (p) =>
-        new Map([
-          ...(['g', 'h', 'i'] as const).map((l) => [l, coming(p)] as const),
-          ['m0', median(p)],
-          ...(['a', 'b', 'c'] as const).map((l) => [l, LANE] as const),
-          ['m1', median(p)],
-          ...(['d', 'e', 'f'] as const).map((l) => [l, dead(p)] as const),
-        ]),
-      roads: [
-        { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
-        { from: 0, to: ends, centre: { lane: 'd', side: 'left', units: TOUCHING } },
-        { from: comesIn, to: length, centre: { lane: 'i', side: 'right', units: -TOUCHING } },
-      ],
-      verges: {
-        left: vergeRamps(verge('a', 'left'), farVerge('i', 'right', -1), -1, comesIn, length, 'in'),
-        right: vergeRamps(verge('c', 'right'), farVerge('d', 'left', 1), 1, ends, length, 'out'),
-      },
-    };
-  return {
-    ...common,
-    order: ['a', 'b', 'c', 'm0', 'd', 'e', 'f', 'm1', 'j', 'k', 'l'],
-    centreLane: 'e',
-    lanes: (p) =>
-      new Map([
-        ...(['a', 'b', 'c'] as const).map((l) => [l, dead(p)] as const),
-        ['m0', median(p)],
-        ...(['d', 'e', 'f'] as const).map((l) => [l, LANE] as const),
-        ['m1', median(p)],
-        ...(['j', 'k', 'l'] as const).map((l) => [l, coming(p)] as const),
-      ]),
-    roads: [
-      { from: 0, to: ends, centre: { lane: 'c', side: 'right', units: -TOUCHING } },
-      { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
-      { from: comesIn, to: length, centre: { lane: 'j', side: 'left', units: TOUCHING } },
-    ],
-    verges: {
-      left: vergeRamps(verge('d', 'left'), farVerge('c', 'right', -1), -1, ends, length, 'out'),
-      right: vergeRamps(verge('f', 'right'), farVerge('j', 'left', 1), 1, comesIn, length, 'in'),
-    },
-  };
 }
-
-/**
- * A verge's knots on side `sign` (−1 left): beyond the road kept (`kept`) throughout, and beyond another road (`other`)
- * where it is there: one coming `in` at `at` to the span's end, the verge ramping out to it before; one going `out` at
- * `at`, there from the start, the verge ramping back after. The ramps' lengths are found when the span is laid
- * (`rampLength`), marked here by NaN.
- */
-function vergeRamps(
-  kept: LaneRef,
-  other: LaneRef,
-  sign: -1 | 1,
-  at: number,
-  length: number,
-  way: 'in' | 'out',
-): VergeKnot[] {
-  const outward = sign;
-  return way === 'in'
-    ? [
-        { at: 0, ref: kept, outward },
-        { at: Number.NaN, ref: kept, outward },
-        { at, ref: other, outward },
-        { at: length, ref: other, outward },
-      ]
-    : [
-        { at: 0, ref: other, outward },
-        { at, ref: other, outward },
-        { at: Number.NaN, ref: kept, outward },
-        { at: length, ref: kept, outward },
-      ];
-}
-/** A verge ramp's length along, metres, for a move of `across` metres. */
-export const rampLength = (across: number) => VERGE_RAMP * Math.abs(across);
 
 /** What a goal span needs beside its stage: its goal stretch and the goals' path. */
 export interface GoalOptions {
@@ -475,11 +506,12 @@ export interface GoalOptions {
 
 /**
  * A last stage with its goal piece, GO to the goal stretch's 600 (from 1948): lanes a, b, c | m0 | d, e, f. Over the
- * stage, and the goal stretch to 182, the stage's last width; from 182 the roads part by 8 a position to 768, where
- * the road not taken, the right (d, e, f), ends, its lanes narrowing to nothing over its last two positions. Where the
- * goal's width point takes (the next tick after its second height point: from 182 on but at goal 2, whose point at 162
- * comes while the width is still the stage's), the width then closes at 256 × 16/303 units a position to 0, the road
- * taken coming back to P.
+ * stage, and the goal stretch to 182, the stage's last width w₀; from 182 the roads part by 8 a position to 768, the
+ * left road taken, w left of P, as at a fork's L: its lanes a, b, c widening to one lane each, d, e, f narrowing to
+ * nothing one after another from the outside, and the right road, not taken, leaving on its own curvature (`leaving`,
+ * to 768). Where the goal's width point takes (the next tick after its second height point: from 182 on but at goal 2,
+ * whose point at 162 comes while the width is still the stage's), the width then closes at 256 × 16/303 units a
+ * position to 0, the road taken coming back to P.
  */
 function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' | 'e', given?: Quadratic): Span {
   const offsetAt = STAGE_LENGTH;
@@ -487,54 +519,38 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const length = at(GOAL.end);
   const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, first ? START_WIDTH : TOUCHING);
   const w0 = knots.at(-1)![1];
+  const parts = at(GOAL.parts);
   const apart = at(GOAL.parts + (GOAL.apart - w0) / GOAL.spread);
   const heights = goal.stretch.widthsHeights.filter((p) => p.kind === 0);
   const point = goal.stretch.widthsHeights.find((p) => p.kind !== 0)!;
   // The width point is read the tick after the second height point; it acts where the width differs from its target.
   const closes = (heights[1]?.position ?? 0) >= GOAL.parts;
   const rate = (Math.abs(point.speed) * 16) / 303;
-  knots.push([at(GOAL.parts), w0], [apart, GOAL.apart]);
+  knots.push([parts, w0], [apart, GOAL.apart]);
   const returned = apart + (GOAL.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
   knots.push([length, knots.at(-1)![1]]);
   const width = given ?? straight(knots, length);
-  const dead = (p: number) => ramp(p, apart - DEAD_END, apart, LANE, 0);
-  const lanes = (p: number) => {
-    if (p < apart - DEAD_END) return drivenAt(width.at(p));
-    const right = dead(p);
-    const m0 =
-      p < apart ? 2 * (width.at(p) - TOUCHING) : ramp(p, apart, apart + DEAD_END, 2 * (width.at(apart) - TOUCHING), 0);
-    return new Map(Object.entries({ a: LANE, b: LANE, c: LANE, m0, d: right, e: right, f: right }));
-  };
-  requireInput(width.at(apart - DEAD_END) >= TOUCHING, '/goal', 'The road not taken ends before the roads are apart');
+  const parted = partedLanes(w0, -1, parts);
+  const lanes = (p: number) => (p < parts ? drivenAt(width.at(p)) : new Map([...parted.widths(p), ['m0', 0]]));
   return {
     length,
     headings: joined(headingsOver(stage.path, 0, STAGE_LENGTH), headingsOver(goal.path, 0, GOAL.end)),
     width,
-    offset: offsetOf(width, [
-      { to: apart, f: (w) => sideOf(centre) * centreLaneAt(w), breaks: LANE_RULE_WIDTHS },
-      { to: length, f: (w) => -sideOf(centre) * w, breaks: [] },
+    offset: new Quadratic([
+      ...offsetOf(width, [{ to: parts, f: (w) => sideOf(centre) * centreLaneAt(w), breaks: LANE_RULE_WIDTHS }]).pieces,
+      ...takenOffset({ width, lanes }, centre, -1, (p) => -width.at(p), [parts, length], parted.breaks).pieces,
     ]),
     middle: () => 0,
     order: STAGE_ORDER,
     centreLane: centre,
     lanes,
-    laneBreaks: [apart - DEAD_END, apart, apart + DEAD_END],
+    laneBreaks: parted.breaks,
     roads: [
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
-      { from: 0, to: apart - DEAD_END, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
-      { from: apart - DEAD_END, to: apart, centre: { lane: 'd', side: 'left', units: TOUCHING } },
+      { from: 0, to: parts, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
     ],
-    verges: {
-      left: [0, length].map((p) => ({ at: p, ref: verge('a', 'left'), outward: -1 as const })),
-      right: [
-        { at: 0, ref: verge('f', 'right'), outward: 1 as const },
-        { at: apart - DEAD_END, ref: verge('f', 'right'), outward: 1 as const },
-        { at: apart, ref: farVerge('d', 'left', 1), outward: 1 as const },
-        { at: Number.NaN, ref: verge('c', 'right'), outward: 1 as const },
-        { at: length, ref: verge('c', 'right'), outward: 1 as const },
-      ],
-    },
+    leaving: { from: parts, to: apart, side: 1 },
     heights: [
       {
         from: 0,
@@ -583,25 +599,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
         }),
     );
   const inside = (p: number) => p >= from && p <= to;
-  const verge = (knots: readonly VergeKnot[]) => {
-    // A ramp's knot, placed when the span is laid, between the knots either side of it.
-    const kept = knots.filter((k, i) => {
-      if (!Number.isNaN(k.at)) return inside(k.at);
-      const before = knots
-        .slice(0, i)
-        .filter((j) => !Number.isNaN(j.at))
-        .at(-1)!;
-      const after = knots.slice(i + 1).find((j) => !Number.isNaN(j.at))!;
-      return before.at >= from && after.at <= to;
-    });
-    const first = knots.filter((k) => !Number.isNaN(k.at) && k.at <= from).at(-1) ?? knots[0]!;
-    const last = knots.find((k) => !Number.isNaN(k.at) && k.at >= to) ?? knots.at(-1)!;
-    return [
-      ...(kept[0]?.at === from ? [] : [{ ...first, at: from }]),
-      ...kept,
-      ...(kept.at(-1)?.at === to ? [] : [{ ...last, at: to }]),
-    ].map((k) => ({ ...k, at: k.at - from }));
-  };
+  const { leaving } = span;
   return {
     ...span,
     length: to - from,
@@ -614,7 +612,12 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     roads: span.roads
       .filter((r) => r.to > from && r.from < to)
       .map((r) => ({ ...r, from: Math.max(r.from, from) - from, to: Math.min(r.to, to) - from })),
-    verges: { left: verge(span.verges.left), right: verge(span.verges.right) },
+    // The road not taken where it parts within the slice: its curvature is reckoned from there.
+    leaving:
+      leaving && leaving.from >= from && leaving.from < to
+        ? { ...leaving, from: leaving.from - from, to: Math.min(leaving.to, to) - from }
+        : undefined,
+    sections: span.sections?.filter((p) => p > from && p < to).map((p) => p - from),
     heights: span.heights
       .filter((h) => h.from >= from && h.from < to)
       .map((h) => ({ ...h, from: h.from - from, to: h.to - from, cut: h.cut - from })),
@@ -637,7 +640,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
 
 /**
  * `span` with the road's entry before it: `entry` positions of straight at its start's width, lanes and offset, level
- * and in its colors, everything else moved on by `entry` (the road's ends and ramps at 0 reaching back to the entry).
+ * and in its colors, everything else moved on by `entry` (the road's ends at 0 reaching back to the entry).
  */
 export function withEntry(span: Span, entry: number): Span {
   const on = (p: number) => (p === 0 ? 0 : p + entry);
@@ -660,10 +663,10 @@ export function withEntry(span: Span, entry: number): Span {
     lanes: (p) => span.lanes(back(p)),
     laneBreaks: span.laneBreaks.map((p) => p + entry),
     roads: span.roads.map((r) => ({ ...r, from: on(r.from), to: r.to + entry })),
-    verges: {
-      left: span.verges.left.map((k) => ({ ...k, at: on(k.at) })),
-      right: span.verges.right.map((k) => ({ ...k, at: on(k.at) })),
-    },
+    ...(span.leaving
+      ? { leaving: { ...span.leaving, from: span.leaving.from + entry, to: span.leaving.to + entry } }
+      : {}),
+    ...(span.sections ? { sections: span.sections.map((p) => p + entry) } : {}),
     heights: span.heights.map((h) => ({ ...h, from: h.from + entry, to: h.to + entry, cut: h.cut + entry })),
     scenery: span.scenery.map((p) => ({ ...p, position: p.position + entry })),
     stages: span.stages.map((st) => ({ ...st, from: on(st.from) })),

@@ -37,15 +37,31 @@ export interface PaintedInterval {
  * alike.
  */
 export function composite(centres: readonly number[], picture: RoadPicture): PaintedInterval[] {
-  const edges = centres
-    .flatMap((c, road) => picture.map((e) => ({ road, at: e.at, x: c + e.at })))
+  return compositeOf(
+    centres.map((c) => picture.map((e) => c + e.at)),
+    picture,
+  );
+}
+
+/**
+ * `composite` of roads each given by where its picture's edges lie (`edges[road][k]` the lateral of `picture[k]`, in
+ * order): a road laid where it passes, its edges not at fixed distances from its centre.
+ */
+export function compositeOf(edges: readonly (readonly number[])[], picture: RoadPicture): PaintedInterval[] {
+  const paintOf = (road: readonly number[], x: number): Paint => {
+    let k = road.length - 1;
+    while (k >= 0 && x < road[k]!) k--;
+    return k < 0 ? 'outside' : picture[k]!.right;
+  };
+  const all = edges
+    .flatMap((road, r) => road.map((x, k) => ({ road: r, at: picture[k]!.at, x })))
     .sort((a, b) => a.x - b.x || a.road - b.road);
   const out: (PaintedInterval & { x: number })[] = [];
-  for (let i = 0; i + 1 < edges.length; i++) {
-    const [a, b] = [edges[i]!, edges[i + 1]!];
+  for (let i = 0; i + 1 < all.length; i++) {
+    const [a, b] = [all[i]!, all[i + 1]!];
     if (b.x <= a.x) continue;
     const mid = (a.x + b.x) / 2;
-    const paints = centres.map((c) => paintAt(picture, mid - c));
+    const paints = edges.map((road) => paintOf(road, mid));
     if (paints.includes('surface')) continue;
     const shown = paints.find((p) => p !== 'outside');
     if (shown === undefined || shown === 'surface') continue;
