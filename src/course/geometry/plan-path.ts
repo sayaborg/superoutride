@@ -14,8 +14,8 @@ const TAU = Math.PI * 2;
 // Metres: plan evaluation/endpoint arithmetic budget, about 1,370 ulps at a Section's 43,000 m native extent.
 // Shared with conservative plan-domain separation; does not widen point ownership.
 export const PLAN_POSITION_TOLERANCE_METERS = 1e-8;
-// Metres: 1 nm radial ambiguity budget (about 137 ulps at 43,000 m); subtracting the
-// arc center loses direction here, so projection chooses the interval midpoint.
+// Metres: 1 nm radial ambiguity budget (about 137 ulps at 43,000 m); at the arc's centre a point has no
+// direction, so projection chooses the interval midpoint.
 const ARC_CENTER_TOLERANCE_METERS = 1e-9;
 
 export interface CompiledPlanSegment {
@@ -25,7 +25,6 @@ export interface CompiledPlanSegment {
   readonly sEnd: number;
   readonly start: Readonly<{ x: number; z: number; heading: number }>;
   readonly curvature: number;
-  readonly center: Readonly<Vec2> | null;
 }
 
 export interface PlanPath {
@@ -67,25 +66,17 @@ export function compilePlanPath(
     const segmentStart = Object.freeze({ x, z, heading });
     let length: number;
     let curvature = 0;
-    let center: Readonly<Vec2> | null = null;
     if (shape.kind === 'straight') {
       length = shape.length;
       const tangent = tangentFromHeading(heading);
       x += tangent.x * length;
       z += tangent.z * length;
     } else {
-      const turn = shape.turn;
-      const sign = Math.sign(turn);
-      length = shape.radius * Math.abs(turn);
-      curvature = sign / shape.radius;
-      const normal = normalFromHeading(heading);
-      center = Object.freeze({
-        x: x + sign * shape.radius * normal.x,
-        z: z + sign * shape.radius * normal.z,
-      });
-      heading = wrapAngle(heading + turn);
-      x = center.x - sign * shape.radius * Math.cos(heading);
-      z = center.z + sign * shape.radius * Math.sin(heading);
+      length = shape.radius * Math.abs(shape.turn);
+      curvature = Math.sign(shape.turn) / shape.radius;
+      const end = arcPoint(segmentStart, shape.radius, shape.turn, 1);
+      [x, z] = [end.x, end.z];
+      heading = wrapAngle(heading + shape.turn);
     }
     const sStart = s;
     s += length;
@@ -96,10 +87,23 @@ export function compilePlanPath(
       sEnd: s,
       start: segmentStart,
       curvature,
-      center,
     });
   });
   return Object.freeze({ segments: Object.freeze(segments), length: s });
+}
+
+/**
+ * The point a fraction `q` along an arc of `radius` turning `turn` from pose `start`, from the start alone: `R sin φ`
+ * along the start's tangent and `2R sin²(φ/2)` toward its centre for the swept `φ`. No term subtracts the centre, so a
+ * radius of any finite size keeps its points to the start's own precision.
+ */
+function arcPoint(start: Readonly<{ x: number; z: number; heading: number }>, radius: number, turn: number, q: number) {
+  const tangent = tangentFromHeading(start.heading);
+  const normal = normalFromHeading(start.heading);
+  const swept = Math.abs(turn) * q;
+  const along = radius * Math.sin(swept);
+  const inward = Math.sign(turn) * 2 * radius * Math.sin(swept / 2) ** 2;
+  return { x: start.x + tangent.x * along + normal.x * inward, z: start.z + tangent.z * along + normal.z * inward };
 }
 
 function normalizePlanChainage(path: PlanPath, s: number): number {
@@ -134,10 +138,9 @@ function samplePlanSegment(segment: CompiledPlanSegment, s: number, out: Writabl
     const turn = segment.geometry.turn;
     const q = ds / (segment.sEnd - segment.sStart);
     heading = wrapAngle(heading + turn * q);
-    const sign = Math.sign(turn);
-    const center = segment.center!;
-    out.x = center.x - sign * segment.geometry.radius * Math.cos(heading);
-    out.z = center.z + sign * segment.geometry.radius * Math.sin(heading);
+    const point = arcPoint(segment.start, segment.geometry.radius, turn, q);
+    out.x = point.x;
+    out.z = point.z;
   }
   out.s = clamped;
   out.heading = heading;
@@ -150,17 +153,13 @@ export function samplePlanPath(path: PlanPath, s: number, out: Writable<PlanPath
   return samplePlanSegment(path.segments[planSegmentIndexAt(path, checked)]!, checked, out);
 }
 
-function nearestArcDelta(rawHeading: number, startHeading: number, turn: number): number {
-  const sign = Math.sign(turn);
-  const extent = Math.abs(turn);
-  const wrapped = wrapAngle(sign * (rawHeading - startHeading));
-  const primary = wrapped < 0 ? wrapped + TAU : wrapped;
+/** Of the swept angles `φ` and `φ − 2π` (φ in [0, 2π)), the one nearer the arc's sweep `[0, extent]`. */
+function nearestSweep(swept: number, extent: number): number {
+  const primary = swept < 0 ? swept + TAU : swept;
   const alternate = primary - TAU;
-  const clippedPrimary = clamp(primary, 0, extent);
-  const clippedAlternate = clamp(alternate, 0, extent);
-  const primaryError = Math.abs(primary - clippedPrimary);
-  const alternateError = Math.abs(alternate - clippedAlternate);
-  return sign * (alternateError < primaryError ? alternate : primary);
+  const primaryError = Math.abs(primary - clamp(primary, 0, extent));
+  const alternateError = Math.abs(alternate - clamp(alternate, 0, extent));
+  return alternateError < primaryError ? alternate : primary;
 }
 
 export function projectPlanSegmentInterval(
@@ -177,19 +176,20 @@ export function projectPlanSegmentInterval(
     const along = (world.x - segment.start.x) * tangent.x + (world.z - segment.start.z) * tangent.z;
     rawS = segment.sStart + along;
   } else {
-    const center = segment.center!;
-    const radialX = world.x - center.x;
-    const radialZ = world.z - center.z;
-    const radialLength = Math.hypot(radialX, radialZ);
+    // The point in the start's frame, `along` its tangent and `inward` toward the centre, scaled by the curvature: its
+    // sweep about the centre is atan2(k·along, 1 − k·inward), and its distance from the centre R·hypot of the two.
+    const tangent = tangentFromHeading(segment.start.heading);
+    const normal = normalFromHeading(segment.start.heading);
+    const [dx, dz] = [world.x - segment.start.x, world.z - segment.start.z];
+    const k = 1 / segment.geometry.radius;
+    const along = k * (dx * tangent.x + dz * tangent.z);
+    const inward = 1 - k * Math.sign(segment.geometry.turn) * (dx * normal.x + dz * normal.z);
     let q: number;
-    if (radialLength < ARC_CENTER_TOLERANCE_METERS) {
+    if (Math.hypot(along, inward) * segment.geometry.radius < ARC_CENTER_TOLERANCE_METERS) {
       q = ((start + end) * 0.5 - segment.sStart) / (segment.sEnd - segment.sStart);
     } else {
-      const sign = Math.sign(segment.geometry.turn);
-      const rawHeading = Math.atan2(sign * radialZ, -sign * radialX);
-      const turn = segment.geometry.turn;
-      const delta = nearestArcDelta(rawHeading, segment.start.heading, turn);
-      q = delta / turn;
+      const extent = Math.abs(segment.geometry.turn);
+      q = nearestSweep(Math.atan2(along, inward), extent) / extent;
     }
     rawS = segment.sStart + q * (segment.sEnd - segment.sStart);
   }

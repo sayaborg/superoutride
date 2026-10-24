@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 54,
+  format: "superoutride.course", version: 55,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -381,9 +381,11 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 
 ### Numeric and resource domains
 
-All numbers are finite. `COURSE_DOCUMENT_LIMITS` in `src/course/course-limits.ts` is the single
-admission table for saved documents, course compilation and supplied course images. These ceilings
-protect compiler resources; they are not rendering, resident-memory or device-performance budgets.
+All numbers are finite. `COURSE_DOCUMENT_LIMITS` in `src/course/course-limits.ts` is the single admission table for
+saved documents, course compilation and supplied course images. An arc's radius has no ceiling but being finite: the
+plan lays an arc and reads a point on it from the arc's start pose, never by subtracting its centre
+([Architecture](architecture.md#plan-authority)), so a radius of any size keeps its points to the start's own precision.
+These ceilings protect compiler resources; they are not rendering, resident-memory or device-performance budgets.
 `jsonBytes` measures a saved course document's raw bytes before UTF-8 decoding and JSON parsing
 (`readCourseDocumentBytes`, used by delivery, the build and authoring tools); an in-memory value given to
 `readCourseDocument`, such as a live editor draft, has no byte ceiling.
@@ -433,7 +435,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section resolved `boundaryVertices`                                     |              65536 | 32 Boundaries × 1024 knots × 2 for inherited vertices                                                                   |
 | Course `gates` (also bounds each Section array)                         |               2048 | 50 stage positions × (8 checkpoints + 2 branch controls + 1 finish) × 2, plus one start, rounded up                     |
 | Start gate `startGridSlots` (each grid)                                 |                 32 | `RUN_RULE_LIMITS.competitors` × 2: a real circuit's grid may hold more slots than the sixteen a run uses                |
-| `lengthMeters` (chainage, signed offsets, radii and lengths)            |            42000 m | 21 km × 2                                                                                                               |
+| `lengthMeters` (chainage, signed offsets and lengths)                   |            42000 m | 21 km × 2                                                                                                               |
 | `lateralMeters` / `heightMeters`                                        |   ±1000 / ±10000 m | 100 m lateral span / 1000 m elevation envelope, each × 10                                                               |
 | Movable object `objectMassKilograms`                                    |           10000 kg | A 5 t concrete barrier × 2                                                                                              |
 | `imageEncodedBytes` / `imageMasterTexels` per image                     |    8 MiB / 1048576 | Retained 1024² master allowance; up to 8 encoded bytes/master texel                                                     |
@@ -711,7 +713,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 50, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 51, incorporating Link recipe v4, physical
 recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 

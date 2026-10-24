@@ -263,14 +263,15 @@ The ordered plan elements are the segments, laid in order from the origin facing
 starting pose and signed curvature. A straight has `kappa=0`. An arc has `kappa=sign(delta)/R`.
 The temporary joint station table (each element's start, and `"end"`) resolves positions, including run
 landmarks, and is discarded before publication.
-Section projection onto a straight or circular arc uses closed-form geometry.
-The projection window `W = 50 m` is measured in chainage in both native and mapped Readers.
-At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres even at
-the provisional vehicles' highest speeds. Fifty metres also covers front/rear contact offsets
-and amplified chainage motion near a small positive `J`; grade-separated passages must be
-authored more than 50 m apart on the route ruler so their other passage stays outside the window.
-The projection result's `inDomain` reports geometric membership; physics and recovery consume it
-as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
+Section projection onto a straight or circular arc uses closed-form geometry. An arc's points, and a point's sweep and
+distance about it, are found in its start pose's frame (`R sin φ` along the tangent, `2R sin²(φ/2)` toward the centre;
+the sweep `atan2(kΔu, 1 − kΔv)`), never by subtracting its centre, so an arc of any finite radius keeps the start's
+precision and a near-straight run is an arc, not a straight. The projection window `W = 50 m` is measured in chainage in
+both native and mapped Readers. At the fixed frame step and twelve vehicle substeps, longitudinal travel is a few metres
+even at the provisional vehicles' highest speeds. Fifty metres also covers front/rear contact offsets and amplified
+chainage motion near a small positive `J`; grade-separated passages must be authored more than 50 m apart on the route
+ruler so their other passage stays outside the window. The projection result's `inDomain` reports geometric membership;
+physics and recovery consume it as specified in [Vehicle physics](vehicle-physics.md#surface-and-contact).
 
 At each s, the Section lateral domain runs from the material table's leftmost finite covered edge minus
 `MAXIMUM_VEHICLE_REACH` to its rightmost finite covered edge plus that bound. `MAXIMUM_VEHICLE_REACH` is the

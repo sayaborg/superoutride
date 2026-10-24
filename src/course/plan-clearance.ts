@@ -1,4 +1,4 @@
-import { normalFromHeading, tangentFromHeading, wrapAngle } from '../core/math.js';
+import { normalFromHeading, tangentFromHeading } from '../core/math.js';
 import { samplePlanPath, type CompiledPlanSegment, type PlanPath, type PlanPathSample } from './geometry/plan-path.js';
 import { MAXIMUM_VEHICLE_REACH } from './course-coordinate-domain.js';
 import { stripEdgeAt, stripSlabAt, type StripPiece } from './strip-slabs.js';
@@ -103,22 +103,26 @@ function touching(segment: CompiledPlanSegment, px: number, pz: number, nx: numb
     return along >= 0 && along <= segment.sEnd - segment.sStart ? r : Infinity;
   }
   const { radius, turn } = segment.geometry;
-  const centre = segment.center!;
-  const [dx, dz] = [px - centre.x, pz - centre.z];
-  const squared = dx * dx + dz * dz;
-  const along = dx * nx + dz * nz;
-  // From outside, the circles touch it from without (if they reach it at all); from inside, from within.
-  const r =
-    squared > radius * radius
-      ? along < radius
-        ? (squared - radius * radius) / (2 * (radius - along))
-        : Infinity
-      : (radius * radius - squared) / (2 * (along + radius));
-  if (!(r < Infinity)) return Infinity;
+  // In the start's frame: `u` along its tangent, `v` toward the centre, (0, radius); the circle's normal likewise.
   const sign = Math.sign(turn);
-  const [ox, oz] = [dx + r * nx, dz + r * nz];
-  const heading = Math.atan2(sign * oz, -sign * ox);
-  const swept = wrapAngle(sign * (heading - start.heading));
+  const tangent = tangentFromHeading(start.heading);
+  const normal = normalFromHeading(start.heading);
+  const [ax, az] = [px - start.x, pz - start.z];
+  const [u, v] = [ax * tangent.x + az * tangent.z, sign * (ax * normal.x + az * normal.z)];
+  const [nu, nv] = [nx * tangent.x + nz * tangent.z, sign * (nx * normal.x + nz * normal.z)];
+  // p's squared distance from the centre less the radius squared, and its offset from the centre along n.
+  const excess = u * u + v * v - 2 * radius * v;
+  // From outside, the circles touch it from without (if they reach it at all); from inside, from within.
+  const toward = radius * (1 + nv) - u * nu - v * nv;
+  const r =
+    excess > 0
+      ? toward > 0
+        ? excess / (2 * toward)
+        : Infinity
+      : -excess / (2 * (u * nu + v * nv + radius * (1 - nv)));
+  if (!(r < Infinity)) return Infinity;
+  const [uo, vo] = [u + r * nu, v + r * nv];
+  const swept = Math.atan2(uo / radius, 1 - vo / radius);
   return (swept < 0 ? swept + 2 * Math.PI : swept) <= Math.abs(turn) ? r : Infinity;
 }
 

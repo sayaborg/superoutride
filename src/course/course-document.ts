@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 54;
+export const COURSE_DOCUMENT_VERSION = 55;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -292,11 +292,8 @@ function planElement(value: unknown, path: string): PlanElement {
     kind,
     id,
     length,
-    radius: readNumber(v.radius, `${path}/radius`, {
-      min: 0,
-      max: COURSE_DOCUMENT_LIMITS.lengthMeters,
-      exclusiveMin: true,
-    }),
+    // Any finite radius: an arc is laid from its start pose, never from its centre (`compilePlanPath`).
+    radius: readNumber(v.radius, `${path}/radius`, { min: 0, exclusiveMin: true }),
     turn: readEnum(v.turn, ['left', 'right'], `${path}/turn`),
   });
 }
