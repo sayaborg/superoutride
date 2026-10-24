@@ -23,7 +23,6 @@ import {
 } from '../course-document.js';
 import { compileCourseGeometry, resolveCoursePosition } from '../course-geometry.js';
 import { compileMaterialCoordinateDomain } from '../course-coordinate-domain.js';
-import { validateMaterialContinuity } from '../strip-material.js';
 import type { CompiledSection, CompiledLink } from './course-graph.js';
 import { COURSE_PHYSICAL_RECIPE, compileCoursePhysicalContent } from './course-physical-content.js';
 import {
@@ -160,7 +159,6 @@ async function compileSection(
     stripBudget,
     slices,
   );
-  validateMaterialContinuity(strips.material, `${path}/strips`);
   validateCourseLanes(lanes, strips.material, length, `${path}/lanes`);
   const walls = await compileCourseWalls(
     section.walls,

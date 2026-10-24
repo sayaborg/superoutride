@@ -295,10 +295,11 @@ declaring no material beyond after the Section's own Strips; the domain and the 
 edges as above, so the domain is one-to-one by construction. The clip line is a polyline through the clearance less the
 reach and `CLEARANCE_TOLERANCE_METERS` (1 cm), sampled at the plan's and the slabs' ends, at cells no longer than the
 extent asked for and turning at most five degrees, and halved wherever the clearance lies more than that tolerance below
-its chord. Colour is not clipped, so the picture does not change. Lanes are not clipped: a lane the clip would leave
-without material is `invalid_lane`, as any uncovered lane, so a curve the road itself cannot take and a road that comes
-near itself within one Section remain errors, kept apart by Section cuts and crossing heights. An overpass uses separate
-Sections for its two passages.
+its chord. The material's continuity is the document's, checked on its table before the clips: where the clip line
+crosses another edge, the two meet only to rounding. Colour is not clipped, so the picture does not change. Lanes are
+not clipped: a lane the clip would leave without material is `invalid_lane`, as any uncovered lane, so a curve the road
+itself cannot take and a road that comes near itself within one Section remain errors, kept apart by Section cuts and
+crossing heights. An overpass uses separate Sections for its two passages.
 
 Rendering reads the authoritative plan directly. Each ground row maps `l=-1` and `l=+1` through
 its coordinate Reader; these two points define the affine lateral mapping for the entire row.

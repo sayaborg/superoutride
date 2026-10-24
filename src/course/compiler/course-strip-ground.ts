@@ -1,7 +1,7 @@
 import { createStripBudget, type StripBudget } from '../strip-budget.js';
 import { courseElementLeaves, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
-import { compileStripMaterial } from '../strip-material.js';
+import { compileStripMaterial, validateMaterialContinuity } from '../strip-material.js';
 import { clearanceClips } from '../plan-clearance.js';
 import type { PlanPath } from '../geometry/plan-path.js';
 import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-material.js';
@@ -341,8 +341,8 @@ export async function compileCourseStripColor(
 }
 
 /**
- * A Section's Strips: their color, and their material clipped where the plan's chart would stop being one-to-one
- * (`clearanceClips`).
+ * A Section's Strips: their color, and their material, its continuity checked as the document writes it, clipped where
+ * the plan's chart would stop being one-to-one (`clearanceClips`).
  */
 export async function compileCourseStrips(
   elements: CompiledStripElements,
@@ -366,8 +366,9 @@ export async function compileCourseStrips(
     slices,
   );
   const color = await compileStripGround(length, pieces, path, budget, slices);
-  // The table as written is only read for its clips: the Section spends on the table it keeps.
+  // The table as written is checked and read for its clips: the Section spends on the table it keeps.
   const written = await compileStripMaterial(length, materialPieces, path, createStripBudget(), slices);
+  validateMaterialContinuity(written, path);
   const clips = clearanceClips(plan, written);
   if (!clips.length) budget.spend('stripSlabs', written.slabs.length, path, "The Section's resolved Strip slabs");
   return Object.freeze({

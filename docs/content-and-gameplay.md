@@ -490,11 +490,11 @@ is specified in [Architecture](architecture.md#plan-authority).
 
 Boundary knots strictly increase. Their resolved vertices define affine edges; width and center are derived.
 
-Every open Section cell must have finite material coverage. At every longitudinal transition, both
-the material-bearing cell union must have equal side limits. No-material space outside that union is not an authored
-material. Discontinuities report `material_transition_discontinuity`;
-empty material coverage reports `material_coverage_gap`.
-[Architecture](architecture.md#boundary-geometry-and-point-ownership) owns mapped geometry and point ownership.
+Every open Section cell must have finite material coverage. At every longitudinal transition of the material the
+document writes (before the compiler's clips), the material-bearing cell union must have equal side limits. No-material
+space outside that union is not an authored material. Discontinuities report `material_transition_discontinuity`; empty
+material coverage reports `material_coverage_gap`. [Architecture](architecture.md#boundary-geometry-and-point-ownership)
+owns mapped geometry and point ownership.
 
 `courseBoundaryAt` samples the canonical edge. The compiled material table owns point reads,
 with lateral `[left,right)` and longitudinal `[start,end)` membership; the Section terminal is
