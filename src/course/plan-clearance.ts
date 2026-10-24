@@ -26,9 +26,11 @@ const MAXIMUM_HALVINGS = 24;
 /**
  * The plan's clearance ([Architecture](../../docs/architecture.md#plan-authority)): at station `s` on side `side` (1
  * right, −1 left), up to `bound`, the radius of the largest circle tangent to the plan there on that side whose inside
- * holds no point of the Section's plan, its distance to the plan's medial axis there. The segment through `s` limits it
- * to its own radius on a curve's inside. Every other segment limits it exactly: the circles grow nested from the
- * tangent point, so one first meets a segment at an end or where it touches the segment's line or circle.
+ * holds no point of the Section's plan, its distance to the plan's medial axis there. The segment through `s`, and one
+ * ending within `CLEARANCE_TOLERANCE_METERS` of it, limits it to its own radius on a curve's inside: as `s` nears a
+ * joint, the neighbour's limit nears its radius, and its end and touch would divide vanishing lengths. Every other
+ * segment limits it exactly: the circles grow nested from the tangent point, so one first meets a segment at an end or
+ * where it touches the segment's line or circle.
  */
 export function createPlanClearance(path: PlanPath): (s: number, side: 1 | -1, bound: number) => number {
   const scratch: PlanPathSample = { x: 0, z: 0, s: 0, heading: 0, segmentIndex: 0 };
@@ -72,7 +74,9 @@ export function createPlanClearance(path: PlanPath): (s: number, side: 1 | -1, b
           if (seen[index] === query) continue;
           seen[index] = query;
           const { segment, end, middle, half } = features[index]!;
-          if (segment.sStart <= s && s <= segment.sEnd) {
+          // A segment through s, or ending within the tolerance of it: its own curve, on its inside, is as far as its
+          // radius. Beside a joint a neighbour's end and touch would divide vanishing lengths.
+          if (segment.sStart - CLEARANCE_TOLERANCE_METERS <= s && s <= segment.sEnd + CLEARANCE_TOLERANCE_METERS) {
             if (segment.curvature !== 0 && Math.sign(segment.curvature) === side)
               limit = Math.min(limit, 1 / Math.abs(segment.curvature));
             continue;
