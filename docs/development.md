@@ -438,23 +438,6 @@ npm run guidance-pictures
 It draws each board ([Image assets](image-assets.md#drawn-pictures)), writes it with its recipe to
 `content/sprite-sources/`, and makes its course image as `npm run sprite -- import <name>` does.
 
-### Footage commands
-
-The footage tool raises a course from videos of an original game ([Courses from footage](footage.md)). It runs as
-`npm run footage -- <command>` and needs ffmpeg and ffprobe on the path. It reads videos and writes frames, features,
-evidence and side-by-sides under `reference-media/`, which Git ignores. Stage VC stopped with these commands built; each
-takes `--out`, a root in place of `reference-media/`:
-
-| Command     | Purpose                                                                                                                                             |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ingest`    | Cut a video into game-pixel PNG frames and work out its capture values                                                                              |
-| `drive`     | Mark the stretch where the player drives (`--from`, `--to`) and the timing events the HUD does not read (`--go`, `--checkpoint`, `--goal`), seconds |
-| `colors`    | List the colors a video's frames are drawn in, for a person to give the ground's their roles                                                        |
-| `features`  | Measure each frame's features (on as many worker threads as cores)                                                                                  |
-| `noise`     | Each feature's capture noise: the video's frames against its exact frames (`exact/`)                                                                |
-| `calibrate` | Measure the original's camera from its first course's videos (`--video` names every one) into its footage model                                     |
-| `solve`     | Each video's plan and profile under the footage model's pitch rule, and the rows' check of that rule                                                |
-
 ### Road data commands
 
 The road data tool reads an original's road data from its program ROMs ([Original road data](original-road-data.md)). It
@@ -564,10 +547,6 @@ Only numeric observations, scalar calibration and source/edition descriptions ar
 reference evidence. Product-renderer previews and reports are generated outputs.
 An underlay image traced in the course module is such a source: it is opened in the browser and never stored, and only
 its alignment numbers are committed, under `content/course-underlays/`.
-The one exception is an outline board ([Courses from footage](footage.md#outline-boards)): the outline of a sprite fixed
-on an original's course, filled with one color, is committed as a sprite source and course image. Nothing inside the
-outline (colors, patterns, lettering) is. An outline's evidence, the original-resolution texel shapes and each frame's
-masks, stays in `reference-media/`, as do HUD templates and background mosaics.
 
 ## Build outputs
 

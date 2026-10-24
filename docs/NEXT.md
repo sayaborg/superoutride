@@ -225,13 +225,12 @@ PRs, in this order:
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
 
-Alongside the stage, outside its numbering: the footage tool deleted (K, 2026-10-24), and the sprites' extraction and
-its rules. A rule either makes the extract, taking what the ROMs hold and the original draws as it is, or is this
-game's way of showing every picture alike (standing, folding, drawing order, shadows), owned by
-[Architecture](architecture.md); a rule that changes a picture for one original is made one of these or kept as K's
-decision with its reason. First a table of each original's rules and constants (documents only), then pictures where a
-proposal changes the look, then K decides; an engine change goes in a PR of its own, and EX-25 comes first if people
-begin correcting pictures or placements. The four K named:
+Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
+taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
+(standing, folding, drawing order, shadows), owned by [Architecture](architecture.md); a rule that changes a picture for
+one original is made one of these or kept as K's decision with its reason. First a table of each original's rules and
+constants (documents only), then pictures where a proposal changes the look, then K decides; an engine change goes in a
+PR of its own, and EX-25 comes first if people begin correcting pictures or placements. The four K named:
 
 - The standing height: a picture stands on its bottom row, or on its lowest row not shadow where a shadow is drawn at
   its foot (`footAnchorY`), so it is drawn lower than the original by the shadow's rows; a `-raised` second picture

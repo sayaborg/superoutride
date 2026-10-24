@@ -1711,6 +1711,11 @@ camera before rendering. Unrelated internal faults propagate.
 
 ## Product courses
 
+A product course is made in one of two ways (K, 2026-10-24). An original's course is raised from its ROMs by the road
+data tool ([Original road data](original-road-data.md)). A real circuit is made from its reference material, its maps
+and dimensions laid under the course editor, with the course editor and the course command. K's videos check how a
+course looks; no course's curves are taken from video.
+
 `tsukuba` (TSUKUBA) is the first product course: Tsukuba Circuit's four-wheel course, without the motorcycle chicane.
 Its plan follows the centreline of the circuit's own survey drawing, as straights and arcs of whole-metre radii within
 1.6 m of the drawn line, closed by solving the last arc and the two straights around the control line; the lap is

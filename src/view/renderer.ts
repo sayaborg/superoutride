@@ -76,7 +76,7 @@ interface RenderScene {
   readonly camera: PseudoCamera;
   /**
    * The player, drawn after the ground and walls and among the pictures by its base point's depth, before the nearer
-   * ones; null draws none (the footage tool's replay).
+   * ones; null draws none.
    */
   readonly player: RenderPlayer | null;
   readonly terrainParameters: TerrainRenderParameters;

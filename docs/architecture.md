@@ -578,8 +578,8 @@ are ordered by their base points' depth and the player is one of them, at `D_cam
 before it, and a nearer one after it, whole, over the player and over every ground row and wall. Ground and walls never
 cover the player; a vehicle or object between the camera and the player is drawn over the player, and a ground row
 nearer than the player (a crest between them) does not cover a nearer picture. A frame may be drawn without a player,
-its picture and its shadow: the footage tool's replay draws the course alone ([Courses from
-footage](footage.md#replay-comparison)); its measurements then hold NaN for the player's point and -1 for its variants.
+its picture and its shadow, as a run draws it while the player's contact response has stopped it; its measurements then
+hold NaN for the player's point and -1 for its variants.
 
 ### Shadows
 
