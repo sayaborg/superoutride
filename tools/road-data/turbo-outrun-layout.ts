@@ -77,6 +77,15 @@ export interface LayoutInputs {
   readonly slug: (stage: number) => string;
 }
 
+/** The function straight between `points` `[position, value]`, from the first's position to the last's. */
+const through = (points: readonly (readonly [number, number])[]) =>
+  new Quadratic(
+    points.slice(1).map(([p, v], i) => {
+      const [p0, v0] = points[i]!;
+      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
+    }),
+  );
+
 /** The piecewise linear function through `knots` at `p`. */
 function linearAt(knots: readonly (readonly [number, number])[], p: number) {
   const i = knots.findIndex(([q]) => q >= p);
@@ -124,8 +133,15 @@ export function layTurboOutrun(inputs: LayoutInputs) {
         `/stages/${stage.number}`,
         `Stage ${stage.number}'s road is not one of three lanes at ${JOIN.from}`,
       );
-  // The width as its points give it, joined as one monotone cubic over the course (`monotoneCubic`, Original road
-  // data), written at each stage's every position, straight between them.
+  // The width as its points give it, straight between its knots, level beyond them: what the original's program
+  // decides by the width is decided by it (whether the roads are apart as an object comes out).
+  const original = through(
+    [[0, knots[0]![1]] as const, ...knots, [total, knots.at(-1)![1]] as const].filter(
+      ([p], i, all) => i === 0 || p > all[i - 1]![0],
+    ),
+  );
+  // The width drawn: joined as one monotone cubic over the course (`monotoneCubic`, Original road data), written at
+  // each stage's every position, straight between them.
   const joined = monotoneCubic(knots);
   const at = [
     ...new Set([
@@ -134,13 +150,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       total,
     ]),
   ].sort((x, y) => x - y);
-  const width = new Quadratic(
-    at.slice(1).map((p, i) => {
-      const p0 = at[i]!;
-      const [v0, v] = [joined(p0), joined(p)];
-      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
-    }),
-  );
+  const width = through(at.map((p) => [p, joined(p)] as const));
   // Lane b's centre, metres right of P.
   const offset = width.map((w) => centreLaneAt(w) * UNIT_METRES, [LANE_RULE_WIDTHS[0]!]);
   // Where a lane's width changes slope: where the road width passes a width at which the lanes' rule changes.
@@ -263,6 +273,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       fidelity: planFidelity(table, plan.elements, plan.start, POSITION_METRES, VECTOR_RESOLUTION, plan.widened),
     },
     width,
+    original,
     offset,
     laneReach,
     laneBreaks,

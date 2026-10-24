@@ -43,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 11;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 12;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -187,6 +187,7 @@ export function turboOutrunCourse(set: RomSet) {
     runs,
     start: (stage) => course[stage]!.start,
     width: layout.width,
+    originalWidth: layout.original,
     go: layout.go,
     kmh,
   });

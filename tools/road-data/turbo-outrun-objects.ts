@@ -123,7 +123,9 @@ export interface PlacingReport {
 
 /**
  * The objects on the course: `objects` from the scenery model, each stage's from its course position `start(stage)`,
- * by the road width `width` (units, by course position), with the start figures of each leg and the runs' stops.
+ * by the road width `width` (units, by course position), which their laterals follow, and the original's
+ * (`originalWidth`, straight between its points), by which the roads are apart for one as it comes out; with the start
+ * figures of each leg and the runs' stops.
  */
 export function turboOutrunPlacements(
   main: Uint8Array,
@@ -132,6 +134,7 @@ export function turboOutrunPlacements(
     readonly runs: readonly StageRun[];
     readonly start: (stage: number) => number;
     readonly width: Quadratic;
+    readonly originalWidth: Quadratic;
     /** GO's distance from the camera, positions. */
     readonly go: number;
     readonly kmh: number;
@@ -196,7 +199,7 @@ export function turboOutrunPlacements(
     // Across, units from P: a girl's and her sign's x × 32; an item marked by b7 from P; else left from road 0's centre,
     // right from road 1's, but from road 0's where the roads were wider apart than 280 as it came out.
     const w = width.at(g);
-    const apart = width.at(inputs.start(o.from.stage) + o.from.position) > rightFromLeftWidth;
+    const apart = inputs.originalWidth.at(inputs.start(o.from.stage) + o.from.position) > rightFromLeftWidth;
     const fromP = !(o.item.flags & 2) && o.item.b7 !== 0;
     const x = holding ? 32 * o.item.x : 16 * o.item.x + (fromP ? 0 : o.item.x < 0 || apart ? -w : w);
     const material = lyingMaterial(sizes, o.item.kind);

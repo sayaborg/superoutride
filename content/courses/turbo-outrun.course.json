@@ -89286,7 +89286,7 @@
           "image": "toutrun-26eae-mirrored",
           "palette": "p257",
           "at": { "joint": "c1", "offset": -0.322699 },
-          "lateral": 29.903774,
+          "lateral": 18.798113,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 6.113208, "movable": null }
@@ -89296,7 +89296,7 @@
           "image": "toutrun-26c56",
           "palette": "p258",
           "at": { "joint": "c1", "offset": -0.322699 },
-          "lateral": 33.266038,
+          "lateral": 22.160377,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.625, "movable": null }
@@ -89377,7 +89377,7 @@
           "image": "toutrun-264a4",
           "palette": "p372",
           "at": { "joint": "c2", "offset": 3.674612 },
-          "lateral": 30.00566,
+          "lateral": 18.9,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 3.260377, "movable": null }
@@ -193697,8 +193697,8 @@
           "kind": "strip",
           "start": { "joint": "c3", "offset": -75.877118 },
           "end": { "joint": "c3", "offset": -73.206524 },
-          "left": 6.543681,
-          "right": 12.718681,
+          "left": -4.567738,
+          "right": 1.607262,
           "color": null,
           "material": "SAND"
         },
@@ -193706,8 +193706,8 @@
           "kind": "strip",
           "start": { "joint": "c3", "offset": -72.877118 },
           "end": { "joint": "c3", "offset": -70.206524 },
-          "left": 7.356041,
-          "right": 13.531041,
+          "left": -3.749909,
+          "right": 2.425091,
           "color": null,
           "material": "SAND"
         },
@@ -193715,8 +193715,8 @@
           "kind": "strip",
           "start": { "joint": "c3", "offset": -66.877118 },
           "end": { "joint": "c3", "offset": -64.206524 },
-          "left": 4.503066,
-          "right": 10.678066,
+          "left": -6.602594,
+          "right": -0.427594,
           "color": null,
           "material": "SAND"
         },
@@ -193724,8 +193724,8 @@
           "kind": "strip",
           "start": { "joint": "c3", "offset": -63.877118 },
           "end": { "joint": "c3", "offset": -61.206524 },
-          "left": 7.355896,
-          "right": 13.530896,
+          "left": -3.749764,
+          "right": 2.425236,
           "color": null,
           "material": "SAND"
         },
@@ -197070,7 +197070,7 @@
           "image": "toutrun-27872-u1000-mirrored",
           "palette": "p240",
           "at": { "joint": "c3", "offset": -74.825571 },
-          "lateral": 9.631181,
+          "lateral": -1.480238,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -197080,7 +197080,7 @@
           "image": "toutrun-27872-u1000-mirrored",
           "palette": "p240",
           "at": { "joint": "c3", "offset": -71.825571 },
-          "lateral": 10.443541,
+          "lateral": -0.662409,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -197127,7 +197127,7 @@
           "image": "toutrun-27872-u1000-mirrored",
           "palette": "p240",
           "at": { "joint": "c3", "offset": -65.825571 },
-          "lateral": 7.590566,
+          "lateral": -3.515094,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -197137,7 +197137,7 @@
           "image": "toutrun-27872-u1000-mirrored",
           "palette": "p240",
           "at": { "joint": "c3", "offset": -62.825571 },
-          "lateral": 10.443396,
+          "lateral": -0.662264,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": null
@@ -318230,7 +318230,7 @@
         {
           "kind": "repeat",
           "every": 12,
-          "count": 3,
+          "count": 4,
           "elements": [
             {
               "kind": "sprite",
@@ -318362,13 +318362,13 @@
         {
           "kind": "repeat",
           "every": 12,
-          "count": 11,
+          "count": 10,
           "elements": [
             {
               "kind": "sprite",
               "image": "toutrun-26a62-raised",
               "palette": "p296",
-              "at": { "joint": "c3", "offset": -15.443711 },
+              "at": { "joint": "c3", "offset": -3.443711 },
               "lateral": 21.854717,
               "groundOffset": 0.818733,
               "unselectedLink": null,

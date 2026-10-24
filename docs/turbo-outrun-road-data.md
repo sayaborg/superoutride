@@ -138,7 +138,7 @@ stage's description.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 11, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 12, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -216,7 +216,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
 
 - **Across**, road units from P at the road width w where it stands: an item marked by b7 (its flags' bit 1 clear),
   the gates' parts among them, its x × 16; any other x × 16 from road 0's centre (−w) where x < 0, from road 1's (+w)
-  where x ≥ 0, but from road 0's where the road was wider than 280 (the word at 0x1DE04) as it came out.
+  where x ≥ 0, but from road 0's where the original's road width (straight between its points) was wider than 280
+  (the word at 0x1DE04) as it came out.
 - **Height.** Its y road units, half of them for a half-scale kind (its flags' bit 0), 15/14 of them up.
 - **Picture.** Its kind's size list, but the walkers' (routines 0x34, 0x38) and routine 0x60's the first of their frame
   lists (0x8A0E, 0x92E4); a pixel of its largest size 2 road units, a half-scale kind's 1; mirrored by its flags' bit 0;
