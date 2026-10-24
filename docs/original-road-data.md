@@ -266,10 +266,16 @@ lists the other originals' laterals, each joined so by its original's PR.
 
 ## The ground beside the road
 
-An original's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
-farthest of its objects shown on the ground (at height 0) reaches on any of its courses, to its picture's outer edge,
-its base point and half its width (`groundWidth`); an extending board counts by its one repeat and its edge, not as far
-as it repeats. One width an original, the most over its courses. The ground reaches from a Section's outermost lanes,
+An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
+player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
+units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
+HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P; SUPER MONACO GP's its
+band tables' limits. TURBO OUTRUN's program is encrypted: its limit is to be read from the program decrypted locally
+(K, 2026-10-20), and until then its ground reaches as far beyond the outermost lane's edge as the farthest of its
+objects shown on the ground does (`groundWidth`: its picture's outer edge, its base point and half its width). The
+course limits lie on the ground's edge, and a vehicle's body meets them, so its centre stops half its width inside the
+original's limit. While its roads part (0x260310 = 4, from where the width passes 255 to where it passes 768), OUTRUN's
+program holds the car within 320 of its road's centre; the ground keeps 500 there until K decides. The ground reaches from a Section's outermost lanes,
 zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
 road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
 being one-to-one ([Architecture](architecture.md#plan-authority)).

@@ -475,7 +475,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 30 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 31 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -635,8 +635,9 @@ its name in lower case, joined by hyphens.
 The LONG roads are each 24.17 km along P (each runs as many positions), with 17 to 19 Sections and 9,477 to 12,188
 objects; the SHORT ones 15.18 km, with 11 to 13 Sections and 5,894 to 7,190 objects. Their plans are 158 to 313
 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
-resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the [ground's
-width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes, 47.59 m on every road. Their
+resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the car's [lateral
+limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 288 units (7.336 m) beyond
+the outermost lanes on every road. Their
 heights reach −185 m and 266 m (the hills' rule, unchanged); 3 to 11 crossings each are kept 6 m apart. In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending

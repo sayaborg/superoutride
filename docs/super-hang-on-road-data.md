@@ -185,7 +185,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 10, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 11, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -203,8 +203,8 @@ crossings:
   pixels' slope against the line over lines 60 to 189, the left's and right's mean. The centre line is ±4.42 units, the
   lines 238.14 to 249.79, the shoulder the surface's, the edge bands 259.21 to 293.80. A lane is the road's half to its
   lines' inner edges, 238.14 units, 4.3 m, so a unit is 0.0180566 m: the road, objects' x, pictures, bodies, gates, the
-  crowd and the figures, and the grids' spacing across are all in it. SAND reaches the [ground's
-  width](original-road-data.md#the-ground-beside-the-road) beyond the lanes, 14.53 m (EUROPE's farthest).
+  crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
+  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.028 m) from P, 4.728 m beyond the lanes.
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted

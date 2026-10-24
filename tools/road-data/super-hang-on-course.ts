@@ -7,7 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, groundWidth, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
@@ -277,12 +277,6 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     `/${inputs.id}`,
     "An object stands past the course's end",
   );
-  // How far the pictures standing on the ground reach beyond the lanes, a lane either side of P.
-  const beyond = groundWidth(
-    placed
-      .filter((o) => o.groundOffset === 0)
-      .map((o) => ({ lateral: o.lateral, width: o.picture.width, edges: [LANE, LANE] as const })),
-  );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
@@ -339,7 +333,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     })),
   });
   return {
-    /** The course's document, SAND reaching `ground` beyond the lanes (the original's; `beyond`, this course's most). */
+    /** The course's document, SAND reaching `ground` beyond the lanes, to the bike's lateral limit. */
     write,
     path,
     plan: {
@@ -368,7 +362,6 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       };
     }),
     objects: placed.length,
-    beyond,
   };
 }
 

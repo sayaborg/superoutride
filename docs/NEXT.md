@@ -256,7 +256,9 @@ PRs, in this order:
   2026-10-24).
 - The format's `arrow`, which no course uses since OUTRUN's guidance went (EX-7h1), deleted: a deletion, so its own PR.
 - The ground's width: each original's own limit of its vehicle beside the road, read from its ROM (SUPER MONACO GP's
-  the band tables'), measured from where the ROM measures it (K, 2026-10-24); K drives it after.
+  the band tables'), measured from where the ROM measures it (K, 2026-10-24); K drives it after. First OUTRUN, SUPER
+  HANG-ON and ENDURO RACER; TURBO OUTRUN's, with its car's x at GO (the auditor's part 4, §2.2), once K's locally
+  decrypted program is at hand.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
   on play, with a proposal (read from the ROMs, derived from one shared rule, or kept as K's decision); documents
   only, K decides by the table, and EX-14 and EX-15 to EX-24 put the values in. Alongside EX-7c and EX-8.
@@ -334,9 +336,9 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 - **The ground's width**, one rule for every original: first (EX-7c3) to the outer edge of the farthest scenery
   standing beyond the outermost lane's edge, its base point and half its width, over all an original's courses
   (SUPER HANG-ON's 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m); then (K, 2026-10-24) each
-  original's own limit of its vehicle beside the road, as its ROM holds it (OUTRUN's 500 units beyond the road's
-  width, SUPER HANG-ON's 500 and ENDURO RACER's 512 from the centre, SUPER MONACO GP's band tables; TURBO OUTRUN's
-  confirmed from its program decrypted locally).
+  original's own limit of its vehicle beside the road, as its ROM holds it (OUTRUN's 500 units from the car's road's
+  centre, SUPER HANG-ON's 500 and ENDURO RACER's 512 from P, SUPER MONACO GP's band tables; TURBO OUTRUN's confirmed
+  from its program decrypted locally).
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars). First a PR of the run's setup, which no longer refuses

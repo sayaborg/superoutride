@@ -25,7 +25,8 @@ import {
   stationOf as roadStation,
 } from './outrun-roads.js';
 import { stageSpan } from './outrun-pieces.js';
-import { checkRoadRom } from './outrun-cross-section.js';
+import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
+import { instruction, word } from './program-words.js';
 import { POSITION_METRES } from './offset-plan.js';
 import { roadObjects } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
@@ -268,8 +269,10 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         },
       }),
     );
-    // SAND reaches the original's ground: the farthest any road's objects shown on the ground reach.
-    const ground = Math.max(...roads.map((road) => road.beyond));
+    // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
+    // of its road's centre, that far beyond the road's three lanes about it.
+    const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
+    const ground = Math.round((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES * 1e6) / 1e6;
     const courses = [];
     for (const [k, route] of OUTRUN_ROUTES.entries()) {
       const road = roads[k]!;

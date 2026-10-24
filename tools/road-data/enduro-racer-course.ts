@@ -24,7 +24,7 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, groundWidth, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -43,13 +43,13 @@ import {
   type WaterCrossing,
 } from './enduro-racer-road.js';
 import { readScenery } from './enduro-racer-scenery.js';
-import { bikeAhead } from './enduro-racer-dump.js';
+import { bikeAhead, lateralLimit } from './enduro-racer-dump.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 10;
+export const ENDURO_RACER_CONVERSION_VERSION = 11;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -200,6 +200,7 @@ export function enduroRacerCourse(set: RomSet) {
     entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
+    limit: lateralLimit(programs) * unit,
     checks,
     finish,
     water,
@@ -243,6 +244,8 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
+  /** The bike's lateral limit, metres either side of P: the ground and the course limits reach it. */
+  readonly limit: number;
   /** The checkpoints' and the finish's positions, the water crossings and where the skies change. */
   readonly checks: readonly number[];
   readonly finish: number;
@@ -375,12 +378,6 @@ function layCourse(inputs: CourseInputs) {
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
-  // The ground reaches to the farthest picture standing on it beyond the lanes, a lane either side of P.
-  const beyond = groundWidth(
-    placed
-      .filter((o) => o.groundOffset === 0)
-      .map((o) => ({ lateral: o.lateral, width: inputs.width(o.image), edges: [LANE, LANE] as const })),
-  );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
@@ -411,7 +408,7 @@ function layCourse(inputs: CourseInputs) {
       first: i === 0,
       last: i === pieces.length - 1,
       stretches,
-      beyond,
+      limit: inputs.limit,
       objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
       checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: stationOf(q) })),
       finish: { id: `${COURSE_ID}-GOAL`, s: stationOf(inputs.finish) },
@@ -454,7 +451,7 @@ function layCourse(inputs: CourseInputs) {
     profile,
     stationOf,
     placed,
-    beyond,
+    ground: inputs.limit - LANE,
     dropped,
     passedThrough,
     crossings: crossings.map((crossing, k) => {
@@ -527,7 +524,8 @@ function sectionDocument(
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
-    readonly beyond: number;
+    /** The bike's lateral limit, metres either side of P. */
+    readonly limit: number;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
@@ -677,11 +675,11 @@ function sectionDocument(
     boundaries: [
       {
         id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.beyond) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-context.limit) })),
       },
       {
         id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.beyond) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(context.limit) })),
       },
     ],
     strips,

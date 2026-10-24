@@ -27,7 +27,7 @@ import { paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 10;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 11;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;
@@ -183,8 +183,10 @@ export function superHangOnCourses(set: RomSet) {
   const pictures = superHangOnPictures(main, words, uses, unit);
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
   const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
-  // SAND reaches the original's ground: the farthest any course's pictures standing on the ground reach.
-  const ground = Math.max(...built.map((b) => b.road.beyond));
+  // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
+  // the word it reads at 0x8850 either side.
+  const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
+  const ground = Math.round((word(main, high! * 0x10000 + low!) * unit - LANE) * 1e6) / 1e6;
   const raised = built.map((b) => {
     const document = b.road.write(ground);
     return {

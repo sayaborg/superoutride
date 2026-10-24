@@ -44,6 +44,16 @@ export function bikeAhead(programs: EnduroRacerPrograms) {
   return (high! * 0x10000 + low!) / 256;
 }
 
+/**
+ * The bike's lateral limit, road units either side of P: 0x65FE holds its x (the 16.16 long at $32(a5)) within ±0x200,
+ * `cmpi.l #$2000000` and, at 0x6612, its negative.
+ */
+export function lateralLimit(programs: EnduroRacerPrograms) {
+  const [high] = instruction(programs.mainInstructions, 0x65fe, [0x0c80, null, 0], "the bike's lateral limit");
+  instruction(programs.mainInstructions, 0x6612, [0x0c80, 0x10000 - high!, 0], "the bike's lateral limit");
+  return high!;
+}
+
 /** Every table the course uses, from the ROM set. */
 export function enduroRacerDump(set: RomSet) {
   const programs = assembleEnduroRacerPrograms(set);
