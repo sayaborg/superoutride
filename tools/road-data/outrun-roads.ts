@@ -60,7 +60,11 @@ import type { LyingBoard } from './outrun-boards.js';
 import { lyingMaterials, type LyingPiece } from './ground-materials.js';
 import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
-/** The start grid: as many slots as a run's competitors, this far apart. */
+/**
+ * The start grid: as many slots as a run's competitors, this far apart, the last (the player's) at GO in lane b, where
+ * the original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), the
+ * others alternating c and b back from it.
+ */
 const GRID_SLOTS = 16;
 const GRID_SPACING = 12;
 /** Two passages of a road at least this far apart along it may cross. */
@@ -1015,7 +1019,7 @@ function sectionDocument(
       grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
         // The last slot at GO, the camera's distance on from the road's entry.
         at: atStation(round(section.options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING)),
-        lane: i % 2 ? 'c' : 'b',
+        lane: (GRID_SLOTS - 1 - i) % 2 ? 'c' : 'b',
       })),
       bikeGrid: null,
     });

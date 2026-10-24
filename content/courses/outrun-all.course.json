@@ -19055,67 +19055,67 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": -140.430265 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "c1", "offset": -152.430265 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 162 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 150 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 138 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 126 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 114 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 102 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 90 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 78 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 66 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 54 },
-              "lane": "c"
+              "lane": "b"
             },
             {
               "at": { "joint": "s0", "offset": 42 },
-              "lane": "b"
+              "lane": "c"
             },
             {
               "at": { "joint": "s0", "offset": 30 },
-              "lane": "c"
-            },
-            {
-              "at": { "joint": "s0", "offset": 18 },
               "lane": "b"
             },
             {
-              "at": { "joint": "s0", "offset": 6 },
+              "at": { "joint": "s0", "offset": 18 },
               "lane": "c"
+            },
+            {
+              "at": { "joint": "s0", "offset": 6 },
+              "lane": "b"
             }
           ],
           "bikeGrid": null

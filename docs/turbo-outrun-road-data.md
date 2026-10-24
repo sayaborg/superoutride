@@ -192,9 +192,10 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
   where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of the longest
   such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 24 Sections.
-- **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating; each stage's
-  checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish
-  `los-angeles-GOAL` where the GOAL gate's does (1403.613).
+- **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating (lane b the left
+  road's centre, where OUTRUN's car stands at GO; TURBO OUTRUN's own program is encrypted, so its car's x there is not
+  read); each stage's checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car
+  (1408.107), and the finish `los-angeles-GOAL` where the GOAL gate's does (1403.613).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
   programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from 6 m before the car
   reaches where its background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the

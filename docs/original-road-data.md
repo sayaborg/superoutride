@@ -554,7 +554,9 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Cut Sections where the original changes stage or sector, and again where a Section's domain passes over itself or its
   boards pass the format's sprite element bound; check every bound in [Numeric and resource
   domains](content-and-gameplay.md#numeric-and-resource-domains).
-- Gates: the grid or start, checkpoints, the finish or goal, as the original places them.
+- Gates: the grid or start, checkpoints, the finish or goal, as the original places them. The grid's last slot, the
+  player's, at GO in the lane where the original's own vehicle stands at GO (its x as its program sets it there), the
+  others alternating that lane and the next back from it.
 
 ### 10. Identity and checks
 
