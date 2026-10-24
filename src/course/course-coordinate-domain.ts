@@ -1,9 +1,7 @@
 import { stripEdgeAt, stripSlabAt, type StripEdgeLine } from './strip-slabs.js';
 import type { StripMaterial } from './strip-material.js';
 import type { Writable } from '../core/writable.js';
-import { CourseInputError, requireCourse } from './course-diagnostics.js';
-import { validatePlanDomainInjectivity } from './plan-domain-injectivity.js';
-import type { CompiledPlanSegment } from './geometry/plan-path.js';
+import { CourseInputError } from './course-diagnostics.js';
 
 /**
  * The product's bound on vehicle reach in metres (the footprint's half diagonal). Vehicle admission rejects a vehicle
@@ -64,12 +62,16 @@ const sameLine = (a: StripEdgeLine | null, b: StripEdgeLine | null) =>
     a.offset === b.offset);
 
 /**
- * The domain's lateral extent: the material's outer edges widened by `MAXIMUM_VEHICLE_REACH`. Its stations are where
- * those edges change (the Section's ends, and each slab end where an outer edge's line differs), so a material that
- * splits the table without moving an outer edge (a patch on the road, water out to the edge) adds none.
+ * A Section's lateral domain: its material's outer edges widened by `MAXIMUM_VEHICLE_REACH`, one-to-one because the
+ * material ends within the plan's clearance less that reach (`clearanceClips`). Its stations are where those edges
+ * change (the Section's ends, and each slab end where an outer edge's line differs), so a material that splits the
+ * table without moving an outer edge (a patch on the road, water out to the edge) adds none.
  */
-function lateralDomain(material: StripMaterial, path: string): CompiledPlanLateralDomain {
-  const edges = materialOuterEdges(material, path);
+export function compileMaterialCoordinateDomain(
+  material: StripMaterial,
+  sectionPath: string,
+): CompiledPlanLateralDomain {
+  const edges = materialOuterEdges(material, `${sectionPath}/strips`);
   const outer = material.slabs.map((slab) => {
     const spans = slab.spans.filter((span) => span.value !== null);
     return { left: spans[0]!, right: spans.at(-1)! };
@@ -88,44 +90,4 @@ function lateralDomain(material: StripMaterial, path: string): CompiledPlanLater
       return out;
     },
   });
-}
-
-export function compileMaterialCoordinateDomain(
-  sectionId: string,
-  segments: readonly CompiledPlanSegment[],
-  material: StripMaterial,
-  sectionPath: string,
-): CompiledPlanLateralDomain {
-  const domain = lateralDomain(material, `${sectionPath}/strips`);
-  validatePlanMetric(sectionId, segments, domain, sectionPath);
-  validatePlanDomainInjectivity(sectionId, segments, domain, sectionPath);
-  return domain;
-}
-
-function validatePlanMetric(
-  sectionId: string,
-  segments: readonly CompiledPlanSegment[],
-  domain: CompiledPlanLateralDomain,
-  sectionPath: string,
-): void {
-  const bounds = { left: 0, right: 0 };
-  for (const segment of segments) {
-    if (segment.curvature === 0) continue;
-    const stations = [
-      segment.sStart,
-      ...domain.stations.filter((s) => s > segment.sStart && s < segment.sEnd),
-      segment.sEnd,
-    ];
-    for (const s of stations) {
-      domain.lateralAt(s, bounds);
-      const l = segment.curvature > 0 ? bounds.right : bounds.left;
-      const metric = 1 - segment.curvature * l;
-      requireCourse(
-        metric > 0,
-        `${sectionPath}/plan`,
-        `Section ${JSON.stringify(sectionId)} has 1 - kappa*l <= 0 at s=${s}`,
-        'plan_coordinate_inversion',
-      );
-    }
-  }
 }

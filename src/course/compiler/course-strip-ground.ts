@@ -1,7 +1,9 @@
-import type { StripBudget } from '../strip-budget.js';
+import { createStripBudget, type StripBudget } from '../strip-budget.js';
 import { courseElementLeaves, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial } from '../strip-material.js';
+import { clearanceClips } from '../plan-clearance.js';
+import type { PlanPath } from '../geometry/plan-path.js';
 import type { SurfaceMaterial, SurfaceMaterialCatalog } from '../surface-material.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { courseLineLookup, resolveLateralInterval, resolveCourseLateral } from './course-lateral.js';
@@ -323,7 +325,8 @@ async function expandCourseStrips(
   return { pieces, materials: materialPieces };
 }
 
-export async function compileCourseStrips(
+/** A wall's Strips: their color alone. */
+export async function compileCourseStripColor(
   elements: CompiledStripElements,
   length: number,
   path: string,
@@ -333,6 +336,25 @@ export async function compileCourseStrips(
   budget: StripBudget,
   slices: WorkSlices,
 ) {
+  const { pieces } = await expandCourseStrips(elements, length, path, resolve, lines, materials, budget, slices);
+  return compileStripGround(length, pieces, path, budget, slices);
+}
+
+/**
+ * A Section's Strips: their color, and their material clipped where the plan's chart would stop being one-to-one
+ * (`clearanceClips`).
+ */
+export async function compileCourseStrips(
+  elements: CompiledStripElements,
+  plan: PlanPath,
+  path: string,
+  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
+  lines: CourseLines,
+  materials: SurfaceMaterialCatalog,
+  budget: StripBudget,
+  slices: WorkSlices,
+) {
+  const { length } = plan;
   const { pieces, materials: materialPieces } = await expandCourseStrips(
     elements,
     length,
@@ -344,5 +366,14 @@ export async function compileCourseStrips(
     slices,
   );
   const color = await compileStripGround(length, pieces, path, budget, slices);
-  return Object.freeze({ color, material: await compileStripMaterial(length, materialPieces, path, budget, slices) });
+  // The table as written is only read for its clips: the Section spends on the table it keeps.
+  const written = await compileStripMaterial(length, materialPieces, path, createStripBudget(), slices);
+  const clips = clearanceClips(plan, written);
+  if (!clips.length) budget.spend('stripSlabs', written.slabs.length, path, "The Section's resolved Strip slabs");
+  return Object.freeze({
+    color,
+    material: clips.length
+      ? await compileStripMaterial(length, [...materialPieces, ...clips], path, budget, slices)
+      : written,
+  });
 }

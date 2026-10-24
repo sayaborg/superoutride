@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 53;
+export const COURSE_DOCUMENT_VERSION = 54;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */

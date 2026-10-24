@@ -280,15 +280,25 @@ The uncovered exterior does not contribute. The same outer covered edges, before
 that keep vehicles on the course ([Content and gameplay](content-and-gameplay.md#walls)).
 The domain uses the material slab's half-open station ownership, including the Section terminal.
 It retains the outer span references and reads them by binary slab lookup, without scanning authored Strips.
-The map from `(s,l)` in the entire closed Section coordinate domain to world XZ is injective:
-different coordinate pairs occupy different points. The local part of this condition is
-`J = 1-kappa*l > 0` throughout the domain. The domain's stations are the Section's
-ends and each material slab end where an outer covered edge's line changes: a material that splits the slab table
-without moving an outer edge (a patch on the road, a material reaching out to the edge) adds none. Compilation checks
-every circular segment at incident domain stations and checks separated longitudinal cells against one another using
-conservative plan envelopes. `plan_coordinate_inversion` reports a local metric failure;
-`plan_coordinate_overlap` reports the Section and two overlapping s intervals. An overpass
-uses separate Sections for its two passages.
+The domain's stations are the Section's ends and each material slab end where an outer covered edge's line changes: a
+material that splits the slab table without moving an outer edge (a patch on the road, a material reaching out to the
+edge) adds none.
+
+The material ends where the Section's plan stops being one-to-one, and the compiler, not the document, decides where. At
+each station and on each side, the plan's clearance is the radius of the largest circle tangent to the plan there, on
+that side, whose inside holds no point of the Section's plan: the distance to the plan's medial axis. On a curve's inside
+it is at most the arc's radius; where another part of the same Section comes near (a hairpin's other leg, a loop) it
+reaches halfway. Within the clearance each point is nearest to one point of the plan, so the map from `(s,l)` to world
+XZ is injective there and `J = 1-kappa*l > 0`; of the many one-to-one domains (widening one side narrows the other) this
+rule picks one. The compiler clips the material's outer covered edge at the clearance less `MAXIMUM_VEHICLE_REACH`,
+declaring no material beyond after the Section's own Strips; the domain and the course limits follow from the clipped
+edges as above, so the domain is one-to-one by construction. The clip line is a polyline through the clearance less the
+reach and `CLEARANCE_TOLERANCE_METERS` (1 cm), sampled at the plan's and the slabs' ends, at cells no longer than the
+extent asked for and turning at most five degrees, and halved wherever the clearance lies more than that tolerance below
+its chord. Colour is not clipped, so the picture does not change. Lanes are not clipped: a lane the clip would leave
+without material is `invalid_lane`, as any uncovered lane, so a curve the road itself cannot take and a road that comes
+near itself within one Section remain errors, kept apart by Section cuts and crossing heights. An overpass uses separate
+Sections for its two passages.
 
 Rendering reads the authoritative plan directly. Each ground row maps `l=-1` and `l=+1` through
 its coordinate Reader; these two points define the affine lateral mapping for the entire row.

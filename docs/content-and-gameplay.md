@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 53,
+  format: "superoutride.course", version: 54,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -283,14 +283,14 @@ table over the wall's own interval (station `s - start`) and keeps the height ra
 [Architecture](architecture.md#walls) owns how it is drawn.
 
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
-run along the left and right outer edges of the covered material — the material table's outermost finite covered
-edges, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them. Section `openLimits`
-declares where a course limit does not run: an array (empty when the Section has none) of `{side, start, end}`, side
-`"left"` or `"right"` from Position `start` to Position `end` (`start < end`, `invalid_value` otherwise). That side has no
-course limit over the declared interval; a wall for looks only beside it does not open it. A course limit pushes and
-the ground supports: behind a closed limit the ground continues ([Architecture](architecture.md#material-cross-sections)),
-while a vehicle leaving through an open limit has no support beyond the material and falls; ordinary recovery returns
-it.
+run along the left and right outer edges of the covered material — the material table's outermost finite covered edges
+as the compiler clips them, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them.
+Section `openLimits` declares where a course limit does not run: an array (empty when the Section has none) of `{side,
+start, end}`, side `"left"` or `"right"` from Position `start` to Position `end` (`start < end`, `invalid_value`
+otherwise). That side has no course limit over the declared interval; a wall for looks only beside it does not open it.
+A course limit pushes and the ground supports: behind a closed limit the ground continues
+([Architecture](architecture.md#material-cross-sections)), while a vehicle leaving through an open limit has no support
+beyond the material and falls; ordinary recovery returns it.
 
 ### Roadside objects
 
@@ -510,9 +510,13 @@ Strips reference surface materials by ID. [Vehicle physics](vehicle-physics.md#m
 owns the Surface Material format and the material catalog, the only set of material IDs.
 An authored Strip material resolves its ID against the admitted
 catalog; an unknown ID reports `unresolved_reference` at that Strip's `/material` path.
-Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. The
-coordinate domain follows the material table's outer finite covered edges plus the vehicle reach bound. Color remains
-independent of physical support. Outside material-bearing coverage, point reads return no material.
+Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. A document writes the
+material it intends, its ground at the width it chooses, and need not narrow it nor widen its plan's turns to fit: the
+material ends where the Section's plan stops being one-to-one, at the plan's clearance less the vehicle reach, and the
+compiler decides where ([Architecture](architecture.md#plan-authority)). The coordinate domain follows the clipped
+material table's outer finite covered edges plus the vehicle reach bound. Color is not clipped and remains independent
+of physical support; lanes are not clipped, and a lane left without material is `invalid_lane`. Outside material-bearing
+coverage, point reads return no material.
 
 ## Cut lines, Links and topology
 
@@ -707,7 +711,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 49, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 50, incorporating Link recipe v4, physical
 recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 
@@ -722,8 +726,7 @@ movable body's knocked image) as saved, with every level of its LOD, and each ba
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 The `plan_coordinate_overlap` variant additionally requires
 `overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
-`plan_coordinate_inversion` identifies the Section's plan and the affected station in metres, never
-an internal segment number. `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
+`invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
 counts, ordering, lane support, grid, lock/closure and circuit finish conditions.
 Shared shape, numeric, reference and position rules keep their own codes (for example
 `invalid_shape`, `unresolved_reference` and `invalid_position`), with a path into the affected gate.

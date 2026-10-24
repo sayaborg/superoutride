@@ -81,7 +81,7 @@ export interface CompiledCourse {
 
 const COURSE_COMPILER = Object.freeze({
   id: 'superoutride.course-compiler',
-  version: 49,
+  version: 50,
   links: COURSE_LINK_RECIPE,
   physical: COURSE_PHYSICAL_RECIPE,
   images: COURSE_IMAGE_SOURCE_RECIPE,
@@ -152,7 +152,7 @@ async function compileSection(
   const stripBudget = createStripBudget();
   const strips = await compileCourseStrips(
     section.strips,
-    length,
+    { segments, length },
     `${path}/strips`,
     resolve,
     lines,
@@ -181,7 +181,7 @@ async function compileSection(
       ...compileWallEnds(walls, barriers, `${path}/walls`),
     ].sort((a, b) => a.s - b.s),
   );
-  const lateralDomain = compileMaterialCoordinateDomain(section.id, segments, strips.material, path);
+  const lateralDomain = compileMaterialCoordinateDomain(strips.material, path);
   const result: SectionDraft = {
     id: section.id,
     segments,

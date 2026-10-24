@@ -11,7 +11,6 @@ type CourseDiagnosticCode =
   | 'invalid_boundary'
   | 'material_coverage_gap'
   | 'material_transition_discontinuity'
-  | 'plan_coordinate_inversion'
   | 'invalid_lane'
   | 'invalid_height'
   | 'invalid_wall'

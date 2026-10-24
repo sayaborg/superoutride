@@ -80,13 +80,27 @@ K's decisions (2026-10-23):
 
 - **What the ROMs determine is a course's canon.** Its plan, widths and Strips are raised from the ROMs exactly, by
   constants, and so are its grades wherever a method determines them uniquely from the ROMs. The canon is not adjusted
-  afterwards. The other grades are computed as a first draft; they, the placements and the pictures are drafts, which
-  people may adjust or draw again by eye.
+  afterwards. The other grades are computed as a first draft, which people may adjust by eye; the pictures and the
+  placements are the extract (K, 2026-10-24, below).
 - **A course follows from its parent set and its constants.** Each original is raised from its MAME parent set.
   Every course needs some arbitrary constants, kept apart from what the ROMs give; ideally the same constants determine
   the same course uniquely, and the fewer they are, the more beautiful the design.
 - **Beauty, concision and no ad hoc rule come first.** The stage tidies the road data tool and the documents to that
   end.
+
+K's decisions (2026-10-24):
+
+- **The design's beauty and concision come first**, and the course format may change to that end.
+- **A course is made in one of two ways**: raised from an original's ROMs by the road data tool, or a real circuit made
+  from its reference material (maps and dimensions under the course editor). K's videos check how a course looks; no
+  course's curves are taken from video alone, and the footage tool is deleted.
+- **The scale bears on play**, so K decides it after driving the candidates on devices; until then each original keeps
+  its scale.
+- **The pictures and placements extracted faithfully from the ROMs are the extract.** The extract is not the canon:
+  the product corrects or draws them again, in the people's layer, never in the extract itself. It is what a correction
+  starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`). It replaces EX-1's
+  drafts for the pictures and placements; the grades the ROMs do not determine stay drafts.
+- **The sprites' extraction and its rules are worked out alongside the stage** (below).
 
 The stage's defaults, each chosen for the fewest constants and no rule made for one case (K may change any in its PR):
 
@@ -100,9 +114,13 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   of two is an arc at the slope between them; a last run of one heading has no length, and the turn before it ends the
   plan at that heading. Because a line that holds a run holds each part of it, the run taken one heading at a time is
   the longest, and the runs are the fewest any such rule makes. Two runs are joined by a turn over the position
-  between them, or over the fewest more, as many on each side, that keep the
-  [coordinate domain](architecture.md#plan-authority). The tables' resolution is the one constant. A Section's plan
-  holds up to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
+  between them. The tables' resolution is the one constant. It promises the heading at every position within the
+  resolution, not the position, which may drift by the resolution times the distance. A Section's plan holds up to
+  1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
+- **The format owns where a plan stops being one-to-one** (EX-7c). The compiler ends the material at the plan's
+  clearance less the vehicles' reach ([Architecture](architecture.md#plan-authority)), so a document writes only what
+  it intends: its ground at one width, no turn widened and no ground narrowed to fit, a Section cut only where the road
+  itself comes near itself or crosses.
 - **SUPER MONACO GP's circuits** are raised the same way from their integer path's points, a run taking the next point
   while one arc holds every point of it within the path's resolution, EX-8 naming the one arc a run takes; the points
   close exactly, so no correction closes a lap.
@@ -174,9 +192,28 @@ PRs, in this order:
   from where its roads part to where they have closed; each Section's start at the lengths written before it.
 - EX-7b: SUPER MONACO GP's centre line taken from its own columns, 119–128, the line's ten pixels about the surface
   board's middle, instead of 120–129, which took an asphalt pixel for one of them; its colour is a step lighter.
-- EX-8: SUPER MONACO GP's circuits raised on P from their integer path.
+- EX-7c1: the course format ends a Section's material where its plan stops being one-to-one, at the plan's
+  clearance less the vehicles' reach, as the compiler finds it; the domain's own checks go. The courses that their
+  tools fitted keep their form but where a material reached past the clearance.
+- EX-7c2 and on: the road data tool writes only what it intends, its constants as they are: no turn widened for the
+  domain, no ground narrowed (TURBO OUTRUN's), Sections cut only where the road comes near itself or crosses, one
+  ground width rule for every original, and a measure of the plan's heading against its table, which every plan PR
+  after reports. SUPER HANG-ON's, ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised again; shared and
+  per-original parts in PRs of their own if large.
+- EX-8: SUPER MONACO GP's circuits raised on P from their integer path, the lap closed in position and heading by a
+  rule alone, its hairpins left to the format.
+- EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
+  on play, with a proposal (read from the ROMs, derived from one shared rule, or kept as K's decision); documents
+  only, K decides by the table, and EX-14 and EX-15 to EX-24 put the values in. Alongside EX-7c and EX-8.
+- The scale: a table of each original's candidates (the current values, the original's own vehicle drawn at its real
+  size, one lane width for all; SUPER MONACO GP's one scale both ways), pictures of the same places, and one temporary
+  DEV course an original at each candidate, made by one temporary road data argument; K drives them on devices and
+  decides. The temporary courses and the argument are deleted when K has decided. Alongside the stage; if undecided
+  when the stage closes, it moves to Stage GR.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,
-  the plane, the widths' roundings and SUPER MONACO GP's closing.
+  the plane, the widths' roundings, SUPER MONACO GP's closing, and the plan's injectivity check
+  (`plan-domain-injectivity.ts`) with its `plan_coordinate_overlap` diagnostic, which only the tool's Section cuts use
+  after EX-7c1.
 - EX-10: the profile from a rise table, shared, and SUPER MONACO GP's hills by it.
 - EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m.
 - EX-12: SUPER HANG-ON's hills by the profile from a rise table.
@@ -187,6 +224,30 @@ PRs, in this order:
   module and in its chapter's table.
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
+
+Alongside the stage, outside its numbering: the footage tool deleted (K, 2026-10-24), and the sprites' extraction and
+its rules. A rule either makes the extract, taking what the ROMs hold and the original draws as it is, or is this
+game's way of showing every picture alike (standing, folding, drawing order, shadows), owned by
+[Architecture](architecture.md); a rule that changes a picture for one original is made one of these or kept as K's
+decision with its reason. First a table of each original's rules and constants (documents only), then pictures where a
+proposal changes the look, then K decides; an engine change goes in a PR of its own, and EX-25 comes first if people
+begin correcting pictures or placements. The four K named:
+
+- The standing height: a picture stands on its bottom row, or on its lowest row not shadow where a shadow is drawn at
+  its foot (`footAnchorY`), so it is drawn lower than the original by the shadow's rows; a `-raised` second picture
+  (`raisedSplit`) when it is also shown lifted; `groundOffset` from the original's y, and SUPER MONACO GP's negative
+  heights.
+- The boards lying on the ground: their anchor at the picture's middle (OUTRUN and TURBO OUTRUN alone), and the
+  material under them placed as this game's camera (2 m high, 6 m behind) sees it, so that a course document depends
+  on the view; their constants 1 m, 16 m, 0.25 m and 1024 knots. A way independent of the camera is proposed.
+- The extending boards: a repeat of a quarter of the opaque width or more, the seam's 8 columns either side compared by
+  outline, texel, length and nearness to the road, the outer end's shape unused, the road's end a separate `-edge`
+  board.
+- The shadows, each original's own and apart from this game's (which draws a shadow's own picture, darkening only the
+  road, cast by vehicles and moving objects alone): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow
+  sprite baked into a `-shadowed` picture, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel 10 by its kind's bit 2
+  and its shadow picture by bit 1, ENDURO RACER's pixel 10 split into the board's shadow picture. One proposal brings
+  them to this game's shadows, another bakes them into the pictures.
 
 ### What the audit found, and its PRs
 
@@ -210,8 +271,15 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   have no source written: EX-23 and EX-24, which name these with their reasons in the chapter's table.
 - The plan's tolerances and thresholds (about 25), and seven constants that OUTRUN's and TURBO OUTRUN's modules both
   hold: EX-4 to EX-9.
-- The compile and load times of a plan of up to 1024 elements, where 512 was the most before: EX-6, which measures
-  DENVER's (about 720) in its PR, and K on devices.
+- The roundings' epsilons (`EPSILON`, 1e-5, in SUPER HANG-ON's, ENDURO RACER's and SUPER MONACO GP's writers, and
+  `JOINT_SNAP`, 2e-6): EX-13 and EX-14. Since EX-5b and EX-7 put a Section's stations on one ruler, those no longer
+  needed are deleted rather than made one.
+- One kind of case had two rules: where an original's sharp curve or nearing road meets the ground this game lays
+  beside it, OUTRUN, SUPER HANG-ON and ENDURO RACER widened the canon's turns, TURBO OUTRUN narrowed its sand, and
+  Sections were cut for the ground: EX-7c.
+- The plans' fidelity was reported as position drift from the start, not as the canon's promise, the heading: EX-7c2.
+- SUPER MONACO GP's lap closed by correcting elements: EX-8.
+- No PR reviewed the constants' values, only their names (EX-1 counted 119 chosen): EX-7d and the scale.
 
 OUTRUN's colour refusals, which its chapter once stated, are not restored (K, 2026-10-23): a set is known by its CRC-32
 and size (TD-5), so its tables do not vary, and `--check` and the eye catch a misreading.
@@ -402,7 +470,10 @@ Their time limits come from reference driving, as for every course.
 Left by the stages that raised them, beside what follows:
 
 - OUTRUN: K's video taking the left road every time is not awaited; when it comes, kinds 3 and 4 and the forks' sides
-  are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come.
+  are checked again. RD-6e: music, local originals of the tracks from K's four MAME recordings once they come. The
+  planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
+  recovers; EX-7's one-off drive found it, and it predates Stage EX. FREE PLAY's rivals on OUTRUN's courses drive with
+  the same driver.
 - SUPER HANG-ON: the SUPER HANG-ON series itself (sixteen bikes, their colors and pace), sounds and music, the mini
   ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands), and the
   product's pictures drawn again. When classes return, each is the player alone on VFR750R from GO (slot 15), no
@@ -451,8 +522,9 @@ steps and joining tolerances of its cleaning operations while producing the firs
 become build rules once those defaults hold. The findings are worked out after every change, so their time is the
 author's wait (one worker, the default amounts): TSUKUBA 39 s (digits 0.2 s, unneeded knots 13 s, near and referable
 27 s, merge kinds 0.3 s). Show anchor displacement after geometry changes if producing courses
-needs it. Before master-course production, document/compiler versions can advance without migration readers; replace
-development inputs with the corresponding version.
+needs it. It shows both a Section's edges as its document writes them and as the format clips them (the course limits).
+Before master-course production, document/compiler versions can advance without migration readers; replace development
+inputs with the corresponding version.
 
 Develop production sprites, BG and tunnel artwork. Inspect distant sprites, source-camera/variant
 sampling, palettes and braking lamps on real devices. Preserve the authoring goals of dimensioned
@@ -477,7 +549,7 @@ Use continuous tool reference runs that complete reproducibly and use different 
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
 TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete 32-vehicle
 scene (sixteen competitors and sixteen traffic vehicles) with graphics and audio on named devices. Establish device capacity/performance budgets from the whole
-application. Measure color-table preblend memory per km on the product courses (a two-lane road was about 0.3 MB per km;
+application, including loading the longest Section (TURBO OUTRUN's DENVER, 687 plan elements). Measure color-table preblend memory per km on the product courses (a two-lane road was about 0.3 MB per km;
 a dense 21 km probe used about 121 MiB). If it exceeds the device budget, build preblend levels only
 for the route window instead of the whole Section.
 

@@ -10,7 +10,7 @@ import { materialOuterEdges } from '../course-coordinate-domain.js';
 import type { StripMaterial } from '../strip-material.js';
 import type { StripGround } from '../strip-ground.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
-import { compileCourseStrips } from './course-strip-ground.js';
+import { compileCourseStripColor } from './course-strip-ground.js';
 import type { WorkSlices } from '../../core/work-slices.js';
 
 /**
@@ -67,27 +67,25 @@ export async function compileCourseWalls(
     const color =
       source.strips.length === 0
         ? null
-        : (
-            await compileCourseStrips(
-              source.strips,
-              end - start,
-              `${at}/strips`,
-              (position, positionPath) => {
-                const s = resolve(position, positionPath).s;
-                requireCourse(
-                  s >= start && s <= end,
-                  positionPath,
-                  'A wall Strip must lie within the wall',
-                  'invalid_wall',
-                );
-                return { s: s - start };
-              },
-              lines,
-              materials,
-              budget,
-              slices,
-            )
-          ).color;
+        : await compileCourseStripColor(
+            source.strips,
+            end - start,
+            `${at}/strips`,
+            (position, positionPath) => {
+              const s = resolve(position, positionPath).s;
+              requireCourse(
+                s >= start && s <= end,
+                positionPath,
+                'A wall Strip must lie within the wall',
+                'invalid_wall',
+              );
+              return { s: s - start };
+            },
+            lines,
+            materials,
+            budget,
+            slices,
+          );
     compiled.push(Object.freeze({ source, boundary, start, end, color }));
   }
   return Object.freeze(compiled);
