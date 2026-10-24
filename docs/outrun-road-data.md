@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 24 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 25 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -488,7 +488,9 @@ them:
   height, an object's height y) is 15/14 of its units across.
 - **Road width.** From 0x1C2 (450) at the game's GO, else 0xD4 (212), each width point approaches its target from its
   position by |speed| × 16 / 303 units a position until it is reached or the next point begins, straight between
-  its corners.
+  its corners; the road joins those corners over the whole road as one monotone cubic
+  ([Original road data](original-road-data.md#a-lateral-changed-straight-between-points)), written at every position of
+  each piece, and the lanes and the roads' centres are taken from it.
 - **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
   after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a join
   straight; a fractional end at the last position's heading), raised by the
@@ -603,7 +605,7 @@ letters and L and R are not written; the courses' ids stay.
 | `outrun-d`       | CB▼DC▲ALP▼WF▼AUT   | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                   |
 | `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)       |
 
-The six roads are each 24.17 km along P (each runs as many positions), with 13 to 16 Sections and 9,477 to 11,781
+The six roads are each 24.17 km along P (each runs as many positions), with 13 to 15 Sections and 9,477 to 11,781
 objects. Their plans are 269 to 313 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
 resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the [ground's
 width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes, 47.59 m on every road. Their

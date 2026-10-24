@@ -15,6 +15,7 @@ import {
   UNIT_METRES,
 } from './outrun-cross-section.js';
 import { Quadratic, type QuadraticPiece } from './offset-plan.js';
+import { monotoneCubic } from './monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
@@ -147,16 +148,55 @@ function offsetOf(
   return new Quadratic(pieces);
 }
 
-/** The width through knots `[position, value]` over `[0, end]`: straight between them, level beyond them. */
-function straight(knots: readonly (readonly [number, number])[], end: number): Quadratic {
-  const points = [[0, knots[0]![1]] as const, ...knots, [end, knots.at(-1)![1]] as const].filter(
-    ([p], i, all) => p >= 0 && p <= end && (i === 0 || p > all[i - 1]![0]),
-  );
-  return new Quadratic(
-    points.slice(1).map(([p, v], i) => {
-      const [p0, v0] = points[i]!;
+/**
+ * The road width of spans laid one after another, the original's straight between its points, joined as one monotone
+ * cubic through them over the whole road (`monotoneCubic`), written at each span's every position: each span's, from
+ * the joined width at its positions, straight between them.
+ */
+export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
+  const knots: [number, number][] = [];
+  let start = 0;
+  for (const width of widths) {
+    for (const q of width.pieces)
+      for (const [p, v] of [
+        [q.from, q.a],
+        [q.to, q.a + q.b * (q.to - q.from) + q.c * (q.to - q.from) ** 2],
+      ] as const) {
+        const last = knots.at(-1);
+        if (last && Math.abs(start + p - last[0]) < 1e-9) {
+          requireInput(Math.abs(v - last[1]) < 1e-6, '/widths', `The road width jumps at ${start + p}`);
+          continue;
+        }
+        knots.push([start + p, v]);
+      }
+    start += width.pieces.at(-1)!.to;
+  }
+  const curve = monotoneCubic(knots);
+  start = 0;
+  return widths.map((width) => {
+    const end = width.pieces.at(-1)!.to;
+    const at = [...Array.from({ length: Math.ceil(end) }, (_, p) => p), end];
+    const own = start;
+    start += end;
+    return through(at.filter((p, i) => i === 0 || p > at[i - 1]!).map((p) => [p, curve(own + p)] as const));
+  });
+}
+
+/** A function straight between knots `[position, value]`, from the first's position to the last's. */
+const through = (knots: readonly (readonly [number, number])[]) =>
+  new Quadratic(
+    knots.slice(1).map(([p, v], i) => {
+      const [p0, v0] = knots[i]!;
       return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
     }),
+  );
+
+/** The width through knots `[position, value]` over `[0, end]`: straight between them, level beyond them. */
+function straight(knots: readonly (readonly [number, number])[], end: number): Quadratic {
+  return through(
+    [[0, knots[0]![1]] as const, ...knots, [end, knots.at(-1)![1]] as const].filter(
+      ([p], i, all) => p >= 0 && p <= end && (i === 0 || p > all[i - 1]![0]),
+    ),
   );
 }
 
@@ -226,11 +266,13 @@ export function stageSpan(
     readonly goal?: GoalOptions;
     /** Its centre lane: b, or e where it is entered from a fork's left side (the road taken is its right half). */
     readonly centreLane?: 'b' | 'e';
+    /** Its road width, the road's joined width (`joinedWidth`); the original's, straight between its points, if none. */
+    readonly width?: Quadratic;
   },
 ): Span {
   const { fork } = options;
   const centre = options.centreLane ?? 'b';
-  if (options.goal) return goalSpan(stage, options.goal, options.first, centre);
+  if (options.goal) return goalSpan(stage, options.goal, options.first, centre, options.width);
   requireInput(fork !== null, '/fork', 'A stage of rows 1 to 4 ends in its fork stretch');
   const length = STAGE_LENGTH + FORK.parts;
   const knots = roadWidths(stage.widthsHeights, STAGE_LENGTH, options.first ? START_WIDTH : TOUCHING);
@@ -239,7 +281,7 @@ export function stageSpan(
   // Widened from the stage's last width to 212 at the fork's spread, reaching it at the end.
   if (end < TOUCHING) knots.push([length - (TOUCHING - end) / FORK.spread, end]);
   knots.push([length, TOUCHING]);
-  const width = straight(knots, length);
+  const width = options.width ?? straight(knots, length);
   return {
     length,
     headings: headingsOver(stage.path, 0, length),
@@ -282,20 +324,28 @@ export function stageSpan(
  * meeting as a straight, even V about P's 1536 left. R's are the mirror: a, b, c (not taken) | m0 | d, e, f (taken,
  * centre lane e) | m1 | j, k, l (coming in).
  */
-export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, from: Stage, to: Stage): Span {
+export function forkSpan(
+  fork: Stretch & { readonly path: Path },
+  side: -1 | 1,
+  from: Stage,
+  to: Stage,
+  given?: Quadratic,
+): Span {
   const start = FORK.parts;
   const at = (p: number) => p - start;
   const length = FORK_END - start;
   const apartAt = FORK.parts + (FORK.apart - TOUCHING) / FORK.spread;
-  const width = straight(
-    [
-      [0, TOUCHING],
-      [at(apartAt), FORK.apart],
-      [at(FORK.closes), FORK.apart],
-      [length, TOUCHING],
-    ],
-    length,
-  );
+  const width =
+    given ??
+    straight(
+      [
+        [0, TOUCHING],
+        [at(apartAt), FORK.apart],
+        [at(FORK.closes), FORK.apart],
+        [length, TOUCHING],
+      ],
+      length,
+    );
   // The road taken's centre from P: w toward its side before the V, 1536 − w after; the original's middle, P or the V's.
   const held = at((apartAt + FORK.closes) / 2);
   const offset = offsetOf(width, [
@@ -431,7 +481,7 @@ export interface GoalOptions {
  * comes while the width is still the stage's), the width then closes at 256 × 16/303 units a position to 0, the road
  * taken coming back to P.
  */
-function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' | 'e'): Span {
+function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' | 'e', given?: Quadratic): Span {
   const offsetAt = STAGE_LENGTH;
   const at = (p: number) => p + offsetAt;
   const length = at(GOAL.end);
@@ -447,7 +497,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const returned = apart + (GOAL.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
   knots.push([length, knots.at(-1)![1]]);
-  const width = straight(knots, length);
+  const width = given ?? straight(knots, length);
   const dead = (p: number) => ramp(p, apart - DEAD_END, apart, LANE, 0);
   const lanes = (p: number) => {
     if (p < apart - DEAD_END) return drivenAt(width.at(p));

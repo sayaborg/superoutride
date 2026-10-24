@@ -26,8 +26,10 @@ import {
   type GoalOptions,
   sliceSpan,
   GOAL_CENTRE,
+  joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
+import type { Quadratic } from './offset-plan.js';
 import {
   bendOf,
   closedGrades,
@@ -1102,37 +1104,49 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
 }
 
 /**
- * A route's spans: each stage of rows 1 to 4 and its fork piece's side taken, and the last stage with its goal. A stage
- * entered by a left side (L) has the road taken as its right half (its centre lane e); by a right side (R), its left
- * (b).
+ * A route's spans: each stage of rows 1 to 4 and its fork piece's side taken, and the last stage with its goal, their
+ * road width joined over the whole road (`joinedWidth`). A stage entered by a left side (L) has the road taken as its
+ * right half (its centre lane e); by a right side (R), its left (b).
  */
 export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] {
-  const spans: RoadSpan[] = [];
-  let centreLane: 'b' | 'e' = 'b';
-  routeSteps(route, inputs).forEach(({ stage, goal, next }, k) => {
-    const id = inputs.idOf(stage);
-    const first = k === 0;
-    // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
-    if (goal) spans.push(...lastStageSpans(stage, { ...goal, path: inputs.goals.path }, first, centreLane, id));
-    else {
-      const span = stageSpan(stage, { first, fork: inputs.fork, centreLane });
-      spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
-      const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage);
-      spans.push({
-        span: fork,
-        id: `${id}-${next!.side < 0 ? 'left' : 'right'}`,
-        leaves: fork.centreLane,
-        starts: false,
-      });
-    }
-    if (next) centreLane = next.side < 0 ? 'e' : 'b';
-  });
-  return spans;
+  // Each piece's own width first, the original's straight between its points; then the pieces again on the join.
+  const pieces = (widths?: readonly Quadratic[]) => {
+    const spans: RoadSpan[] = [];
+    const built: Quadratic[] = [];
+    const width = () => widths?.[built.length];
+    let centreLane: 'b' | 'e' = 'b';
+    routeSteps(route, inputs).forEach(({ stage, goal, next }, k) => {
+      const id = inputs.idOf(stage);
+      const first = k === 0;
+      // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
+      if (goal) {
+        const options = { ...goal, path: inputs.goals.path };
+        const last = lastStageSpans(stage, options, first, centreLane, id, width());
+        built.push(last.width);
+        spans.push(...last.spans);
+      } else {
+        const span = stageSpan(stage, { first, fork: inputs.fork, centreLane, width: width() });
+        built.push(span.width);
+        spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
+        const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage, width());
+        built.push(fork.width);
+        spans.push({
+          span: fork,
+          id: `${id}-${next!.side < 0 ? 'left' : 'right'}`,
+          leaves: fork.centreLane,
+          starts: false,
+        });
+      }
+      if (next) centreLane = next.side < 0 ? 'e' : 'b';
+    });
+    return { spans, built };
+  };
+  return pieces(joinedWidth(pieces().built)).spans;
 }
 
 /**
  * A last stage and its goal: one span on lane b, or, entered from a fork's left side, the stage on lane e to
- * `GOAL_CENTRE` and the rest with its goal on lane b (the goal's lane e ends), joined by lane b.
+ * `GOAL_CENTRE` and the rest with its goal on lane b (the goal's lane e ends), joined by lane b; with its road width.
  */
 function lastStageSpans(
   stage: Stage,
@@ -1140,12 +1154,16 @@ function lastStageSpans(
   first: boolean,
   centreLane: 'b' | 'e',
   id: string,
-): RoadSpan[] {
-  const own = stageSpan(stage, { first, fork: null, goal, centreLane: 'b' });
-  if (centreLane === 'b') return [{ span: own, id, leaves: 'b', starts: true }];
-  const entered = stageSpan(stage, { first, fork: null, goal, centreLane: 'e' });
-  return [
-    { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b', starts: true },
-    { span: sliceSpan(own, GOAL_CENTRE, own.length), id: `${id}-goal`, leaves: 'b', starts: false },
-  ];
+  width: Quadratic | undefined,
+): { readonly spans: RoadSpan[]; readonly width: Quadratic } {
+  const own = stageSpan(stage, { first, fork: null, goal, centreLane: 'b', width });
+  if (centreLane === 'b') return { spans: [{ span: own, id, leaves: 'b', starts: true }], width: own.width };
+  const entered = stageSpan(stage, { first, fork: null, goal, centreLane: 'e', width });
+  return {
+    spans: [
+      { span: sliceSpan(entered, 0, GOAL_CENTRE), id, leaves: 'b', starts: true },
+      { span: sliceSpan(own, GOAL_CENTRE, own.length), id: `${id}-goal`, leaves: 'b', starts: false },
+    ],
+    width: own.width,
+  };
 }
