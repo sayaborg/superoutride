@@ -518,11 +518,8 @@ An authored Strip material resolves its ID against the admitted
 catalog; an unknown ID reports `unresolved_reference` at that Strip's `/material` path.
 Material-bearing Strips compile to finite affine pieces through the same slab resolver as color. A document writes the
 material it intends, its ground at the width it chooses, and need not narrow it nor widen its plan's turns to fit: the
-material ends where the Section's plan stops being one-to-one, at the plan's clearance less the vehicle reach, and the
-compiler decides where ([Architecture](architecture.md#plan-authority)). The coordinate domain follows the clipped
-material table's outer finite covered edges plus the vehicle reach bound. Color is not clipped and remains independent
-of physical support; lanes are not clipped, and a lane left without material is `invalid_lane`. Outside material-bearing
-coverage, point reads return no material.
+compiler ends the material where the Section's plan stops being one-to-one, and the coordinate domain follows from it
+([Architecture](architecture.md#plan-authority)). Outside material-bearing coverage, point reads return no material.
 
 ## Cut lines, Links and topology
 
@@ -1741,42 +1738,39 @@ are LINEAR courses written by the road data tool from the original's road data (
 data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals;
 run the conversion rather than editing the documents. Each stage after a fork has its checkpoint where the original's
 checkpoint banner passes the car, and the finish is at the last stage's end. Their scenery is the ROMs' sprites,
-provisionally; where a road is chosen, its `parting` gate tells the HUD the side taken. Until their hills are
-made again they have no class ([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and their
-measured products are their racing lines alone.
+provisionally; where a road is chosen, its `parting` gate tells the HUD the side taken.
 
 SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,
 `super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written
 by the road data tool from the original's ROMs ([SUPER HANG-ON road
 data](super-hang-on-road-data.md#super-hang-ons-courses)), which owns their plan, lanes, strips, profile, scenery, gates
 and skies; run the conversion rather than editing the documents. Each stage has its checkpoint where its CHECK gate
-passes the bike, and the finish is at the GOAL gate. Their scenery shows the original's sprites, provisionally. Until
-their hills are made again they have no class: they are driven in FREE PLAY alone, untimed, the player from the grid's
-last slot at GO.
+passes the bike, and the finish is at the GOAL gate. Their scenery shows the original's sprites, provisionally.
 
 TURBO OUTRUN's course (`turbo-outrun` TURBO OUTRUN) is a LINEAR course of the original's 16 stages in running order,
 each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs ([TURBO OUTRUN
 road data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates
 and skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its
 CHECK POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites,
-provisionally. Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from
-the grid's last slot at GO.
+provisionally.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
 written by the road data tool from the original's ROMs ([ENDURO RACER road
 data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
 gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
-provisionally, and its jumps stand as boards passed through until the hills make them. Until its hills are made again it
-has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
+provisionally, and its jumps stand as boards passed through until the hills make them.
 
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` MONACO
 QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([SUPER MONACO GP
 road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan, lanes, materials
 and limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board
 without a body; run the conversion rather than editing the documents. The race has its checkpoints where the original's
-CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their hills are made again they have
-no class: they are driven in FREE PLAY alone, untimed, the player from the grid's last slot.
+CHECKPOINTs are, the qualifying one, and each its finish at the lap's line.
+
+The originals' courses have no class until their hills are made again and Stage GR decides their classes (K,
+2026-10-22; [NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, the player from the grid's last
+slot at GO, and their measured products are their racing lines alone.
 
 ## Observation formats
 

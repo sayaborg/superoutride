@@ -518,8 +518,8 @@ b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w =
 (SEASIDE TOWN, OLD CAPITAL, WHEAT FIELD, LAKESIDE), they are a, b, e and f (laid over the two roads, c and d would be
 3.4 cm wide there, between the middle line's sides), and at 212 they are the two roads' own. The visible lines come
 from the two roads' picture, not the lanes. A lane or median 0 throughout a Section is
-left out. Each width, and the centre lane's centre, is written straight between knots where the width, the centre
-lane's centre or a lane changes slope, as its rule gives it.
+left out. Each width, and the centre lane's centre, is written at every position the joined width is, as its rule
+gives it, knots in line dropped.
 
 ### Pieces
 

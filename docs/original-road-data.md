@@ -261,8 +261,9 @@ of the original's positions. The road passes the original's points; between them
 curve is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where
 OUTRUN's roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects'
 laterals. What the original's program decides by the lateral's value (whether the roads are apart as an object appears)
-is decided by the original's, straight between its points. OUTRUN's road widths are joined so (`joinedWidth`); EX-7i
-lists the other originals' laterals, each joined so by its original's PR.
+is decided by the original's, straight between its points. OUTRUN's and TURBO OUTRUN's road widths are joined so;
+[NEXT](NEXT.md#stage-ex--the-originals-courses-exact-their-constants-few) lists the other originals' laterals, each
+joined so by its original's PR.
 
 ## The ground beside the road
 
@@ -303,7 +304,10 @@ A heading table, headings each at its position (a table's positions one apart, o
 becomes straights and arcs over its positions (`headingPlan`, `heading-plan`) by one constant, the table's resolution
 (K, 2026-10-23). A table of heading vectors about 4096 long, as the originals' road paths are, has a resolution of
 1.5 / 4096 radians (`VECTOR_RESOLUTION`), a unit and a half of the 4096, where the runs stop growing fewer: SUPER
-HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and ENDURO RACER 148, 132 and 128.
+HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and ENDURO RACER 148, 132 and 128. The resolution
+the components' rounding alone gives (half a unit either way of each, √2/2 of a unit at 4096) more than doubles every
+original's runs (AFRICA 142 to 359, ENDURO RACER 132 to 554, TURBO OUTRUN 781 to 1470), for the tables vary beyond
+their components' rounding (K, 2026-10-24).
 
 - **Runs.** In the table's order, a run takes the next heading while some line holds every heading of it within the
   resolution, and ends at the first it cannot take. Its line is its minimax one, the line whose largest departure is
@@ -378,10 +382,10 @@ is now laid:
 A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
 (`npm run road-data -- outrun-look` reports it for every stage):
 
-- **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the top
-  speed, 293 km/h, at the same road positions as before RD-10e: `c_look` was fitted with the camera at the road
-  position, and is kept until the hills are made again. A table still running at the stage's end ends there, and
-  the road beyond the stage is level but for the grades returned: in the original it runs on into the fork, where on
+- **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the
+  original's top speed, its chapter's, at the same road positions as before RD-10e: `c_look` was fitted with the camera
+  at the road position, and is kept until the hills are made again. A table still running at the stage's end ends there,
+  and the road beyond the stage is level but for the grades returned: in the original it runs on into the fork, where on
   COCONUT BEACH its crest throws the car into the air at 200 km/h just before the fork's curve.
 - **Grades.** Each entry slid past the camera changes the grade by `c_look` × entry / 576 over its span, ending where
   the camera passes it: kind 0's entries, and kind 3's while they slide in. A shape held on the nearest segment changes
@@ -416,7 +420,8 @@ A stage's profile turns its height tables' look on the original's screen into gr
   stays level, and the crossing's other passages move by their levels less its level, so they take all of the 6 m; their
   half is found as above, not cut by the held passage's distance to the road's end. Where the bumps grown by 40 m cannot
   keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by no more than a micrometre are apart.
-  OUTRUN's crossings are of two passages, and SUPER HANG-ON's passages that overlaps join make one crossing.
+  OUTRUN's crossings (its own, `roadCrossings`) are of two passages; SUPER HANG-ON's, ENDURO RACER's and TURBO
+  OUTRUN's (`crossingsOf`) join passages linked by overlaps into one crossing.
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
   that meet stay apart; stretches break at the Sections' cuts, and a knot next to a cut lies on the cut's tangent, so
@@ -563,12 +568,13 @@ The rules of the originals (what never enters the repository, decryption, other 
 
 ### 9. Sections, gates, limits of admission
 
-- Cut Sections where the original changes stage or sector, and again where a Section's domain passes over itself or its
-  boards pass the format's sprite element bound; check every bound in [Numeric and resource
+- Cut Sections where the original changes stage or sector, and again where its road comes near itself (within its lanes'
+  least radius) or its boards pass the format's sprite element bound; check every bound in [Numeric and resource
   domains](content-and-gameplay.md#numeric-and-resource-domains).
 - Gates: the grid or start, checkpoints, the finish or goal, as the original places them. The grid's last slot, the
   player's, at GO in the lane where the original's own vehicle stands at GO (its x as its program sets it there), the
-  others alternating that lane and the next back from it. Where the original's vehicle stands between two lanes, K
+  others alternating that lane and a lane beside it on the same road, which each chapter names (OUTRUN's c, right of
+  b; TURBO OUTRUN's a, left of b). Where the original's vehicle stands between two lanes, K
   decides the lane (SUPER HANG-ON's and ENDURO RACER's: a, K, 2026-10-24).
 
 ### 10. Identity and checks
