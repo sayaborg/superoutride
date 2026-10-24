@@ -127,11 +127,11 @@ off the ground (a nonzero `groundOffset`), stands on its bottom edge. A picture 
 shown so by its `-raised` image on its bottom edge (`raisedSplit`).
 
 - **OUTRUN.** The sprite list's builder (0x94EC) puts its object's byte 7 in its entry's shadow bit (`or.b d1, $6(a6)`
-  at 0x9676). The scenery's spawn (0x3DA2) sets it to 7, shadows allowed, for drawings 0, 1, 4 to 9, 11 and 12 (the
-  trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the banners) and to 3 for drawings 2, 3, 10,
-  13 and 14 (the clouds, the sea, the sand, the patches); a start object's comes from its record's third byte (0x3B7C)
-  and the flag waver's from its template (0x582E). The goal's scene sets no figure's (0x58B4 to 0x5B3A): the figures
-  stand on their bottom edge.
+  at 0x9676). The scenery's spawn, by its drawing's entry in the jump table at 0x3DA2, sets it to 7, shadows allowed,
+  for drawings 0, 1, 4 to 9, 11 and 12 (the trees, rocks, signs and people, the grass, the stones, VINEYARD's trees, the
+  banners) and to 3 for drawings 2, 3, 10, 13 and 14 (the clouds, the sea, the sand, the patches); a start object's
+  comes from its record's third byte (0x3B7C) and the flag waver's from its template (0x582E). The goal's scene sets no
+  figure's (0x58B4 to 0x5B3A): the figures stand on their bottom edge.
 - **SUPER HANG-ON.** Its sprite entries (built at 0x2A80 to 0x2C4E) have no shadow bit, and pixel 10 is black in most
   of its sprites' palettes: every sprite's pixel 10 is the hardware's shadow.
 - **TURBO OUTRUN.** A kind's flags' bit 2 marks its pixel 10 as shading. A picture stands at its foot where a kind
@@ -278,7 +278,8 @@ original's limit. While its roads part (0x260310 = 4, from where the width passe
 program holds the car within 320 of its road's centre; the ground keeps 500 there until K decides. The ground reaches from a Section's outermost lanes,
 zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
 road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
-being one-to-one ([Architecture](architecture.md#plan-authority)).
+being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
+and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter.
 
 ## Plan
 

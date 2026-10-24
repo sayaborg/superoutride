@@ -29,7 +29,10 @@ import { raisedSplit } from './section-writing.js';
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 11;
 
-/** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
+/**
+ * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
+ * course's end, which the run no longer requires.
+ */
 const GOAL_POSITIONS = 260;
 /**
  * Where the goal's crowd and the ending's figures stand, goal positions: the original's last frame of its ending, where

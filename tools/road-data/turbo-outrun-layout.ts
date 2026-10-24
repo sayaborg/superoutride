@@ -27,7 +27,10 @@ import type { StageRun } from './turbo-outrun-scenery.js';
  * Section ends at 1458, where that corner's rounding begins.
  */
 export const JOIN = Object.freeze({ from: 1460, speed: 80, seam: 1458 });
-/** The course ends 260 positions past the finish, a straight on from LOS ANGELES's road. */
+/**
+ * The course ends 260 positions past the finish, a straight on from LOS ANGELES's road: chosen when every vehicle had
+ * to stop before the course's end, which the run no longer requires.
+ */
 const GOAL_POSITIONS = 260;
 /**
  * The ground between the roads is SAND where it is wider than this, metres; narrower, as it opens, the asphalt's, so the

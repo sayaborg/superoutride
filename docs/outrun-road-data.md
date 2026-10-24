@@ -84,15 +84,15 @@ fork leads to the next row's stage at the same place and the right road to the o
 - **Road paths.** The long at 0x1224 + number × 4 is a stage's path: 0x904 positions of {signed word x, signed word y},
   a heading vector of length 4096 at each position, the stage's 1948 and 360 looking ahead into the fork. Vectors at
   segment joins differ in length, so only their directions are used. The fork stretch's path is at 0x3A33E, 600
-  positions (its 384 and its look-ahead); the goal stretches' at 0x3ACA0, 624 positions shared by all five; past them
-  the vectors are no longer 4096 long.
+  positions, of which a fork piece uses 63 to 431.5; the goal stretches' at 0x3ACA0, 624 positions shared by all five;
+  past them the vectors are no longer 4096 long.
 - **Paths against curves.** Over each curve the path turns by 1/R a position, left where kind 3 says, right where 2
   says (the measured radius within 2.3 % of R in every stage). Every stage's path turns 0° or ±360° over its 1948
   positions and lines up with its curves (`pathOffset`), but for stage 0x38's, which runs 48 positions ahead of them
   (0x2A's by 1). At a join the path turns over a position or two by more than its curves' rates (up to 5° on 0x2A,
-  most of whose join vectors also differ in length), a turn the original draws. The plan follows the path, the road
-  the original draws; the curves, moved back by the path's offset, give where it may change its rate and check its
-  headings and radii. Widths, heights and scenery keep their positions: the original draws them at the
+  most of whose join vectors also differ in length), a turn the original draws. The plan follows the path alone, the
+  road the original draws; the read (`outrun-read`) prints the path's offset against the curves and their radii, and
+  nothing else uses the curves. Widths, heights and scenery keep their positions: the original draws them at the
   same road positions as the path. The original's curves push the car outward, so on stage 0x38 the curves the player
   sees and the curves that push the car lie 48 positions apart.
 - **Height tables.** The long at 0x220A + number × 4 is a height table: {u8 kind, u8 step}, then by kind:
@@ -145,8 +145,8 @@ sprite's left edge (1), right edge (2) or middle (0, 3) at the object, bits 2–
 | 14      | 0x4380                | middle left (right) | 2     | never                         | yes                  |
 | 5, 6    | 0x46D6, 0x4774        | bottom middle       | 2     | never                         | no                   |
 
-A hit sets the crash (the word at 0x60C24). The drawings are dispatched by the jump table at 0x3DA2. Drawings 1, 3, 10
-and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
+A hit sets the crash (the word at 0x60C24). The spawn dispatches the drawings by its jump table at 0x3DA2 (at 0x3D98).
+Drawings 1, 3, 10 and 11 draw a strip beside the road, its edge nearest the road at x, and drawing 13 a patch on it
 ([Strips and patches](#strips-and-patches)), drawing 14 DESOLATION HILL's sand again. Drawing 2 draws a cloud
 ([Clouds](#clouds)) and drawing 12 VINEYARD's trees ([VINEYARD's trees](#vineyards-trees)); drawings 5 and 6 are the
 checkpoint banner's halves ([Banners and the flag waver](#banners-and-the-flag-waver)).
@@ -170,7 +170,7 @@ size's pixels on its texel grid at 40 texels/m (`sceneryBoards`):
 - **Picture.** The board's indices are the largest size's own pixels (a strip's, cloud's or trees' its nearest size's,
   [Strips and patches](#strips-and-patches)), and each palette the sprite is shown in is a
   palette of the board (`p<palette>`, the lowest its default) in that palette's own colors. The pictures are the
-  ROMs', committed and shown on Pages provisionally: the product draws its own (Stage RD2).
+  ROMs', committed and shown on Pages provisionally: the product draws its own.
 - **Base point.** On its bottom edge, but what lies on the ground ([Lying boards](original-road-data.md#lying-boards))
   at the bottom or middle its anchor gives, and a picture with a shadow at its foot at its foot ([Foot
   shadows](original-road-data.md#foot-shadows)). Across, an object anchored by an edge that has no body (its routine
@@ -386,7 +386,7 @@ up by its y × 15/14, a pixel 1 road unit, on its bottom middle, with no body. I
 palette, `outrun-frame-<address>`, shadowed by the original's shadow at its anchor.
 
 This game's driver after GOAL stops the car at the finish plus its runout (`speedCap² / (2a)`: TESTAROSSA's 321.5 m,
-the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on the six roads, so the car
+the longest S13 DRIFT TUNED's 438.6 m); the figures stand 785 to 790 m beyond the finish on every road, so the car
 stops 465 m short of them (S13's 350 m).
 
 On COCONUT BEACH 1487 objects stand, 1086 of them solid, 289 of the rest the sea's edge. A beach hut before the finish has hit extents ending 0.6 m
@@ -491,11 +491,11 @@ them:
   ([Original road data](original-road-data.md#a-lateral-changed-straight-between-points)), written at every position of
   each piece, and the lanes and the roads' centres are taken from it.
 - **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
-  after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a join
-  straight; a fractional end at the last position's heading), raised by the
-  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
-  (from P to its outermost lane's edge on the curve's inside, `leastLaneRadius`); none is. A position is 2.0027 m along
-  P, so a Section's stations are along P, and its `centerLateral` is its centre lane's centre from P.
+  after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a fractional end
+  at the last position's heading), raised by the [plan from a heading
+  table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (from P to its outermost
+  lane's edge on the curve's inside, `leastLaneRadius`); none is. A position is 2.0027 m along P, so a Section's
+  stations are along P, and its `centerLateral` is its centre lane's centre from P.
 - **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1;
   the conversion takes the first two of each, checking neither the repeat nor that the centre line is the surface's.
   The ground's two colors are the stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of
@@ -637,7 +637,8 @@ objects; the SHORT ones 15.18 km, with 11 to 13 Sections and 5,894 to 7,190 obje
 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
 resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the car's [lateral
 limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 288 units (7.336 m) beyond
-the outermost lanes on every road. Their
+the outermost lanes on every road. The road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for
+the ROMs hold no material. Their
 heights reach −185 m and 266 m (the hills' rule, unchanged); 3 to 11 crossings each are kept 6 m apart. In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending

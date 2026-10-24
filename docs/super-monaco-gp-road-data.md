@@ -104,8 +104,8 @@ words, 0 and 15 transparent, a row ended by the word whose bits 4–7 are 15 (`s
 scenery list and band tables; the groups the lists name; the view tables; the frame tables the objects and views name
 (and the rivals' cars'), each with its colored pixels past its rows' end marks; the sprites' palettes; and the
 background's records, tile pages, tile palettes and road layer's colors. The amounts in the program's code (the grid's
-rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from Stage
-MG's description.
+rule, the clock, the hits' lines, the ground's height) are not tables: the courses take them as constants from the
+[research notes](research/super-monaco-gp.md).
 
 ## SUPER MONACO GP's courses
 
@@ -143,7 +143,8 @@ BRANCH course (K, 2026-10-21).
   has no lane lines. Every lateral, the materials', the marks' and the objects', is measured from P.
 - **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
   `ASPHALT` to 820 units (5.000 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
-  (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge). The materials'
+  (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge); the bands' places
+  are the ROMs', their materials K's decision (2026-10-25), for the ROMs hold no material. The materials'
   outer edges are the course's limits. Between two bands the edges move linearly over the 4 steps about their border.
   No walls are made, and no object has a body: the original's band table alone acts on its car (K, 2026-10-21).
 - **Colors** (strips of color alone):
@@ -167,7 +168,7 @@ BRANCH course (K, 2026-10-21).
     its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
   - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
 - **Sections.** One a sector between the original's CHECKPOINTs (the race's 288–4697, 4697–9538 and 9538–288; the
-  qualifying's 288–4697 and 4697–288), halved where its boards (MG-5's objects but the surface boards and the kerbs)
+  qualifying's 288–4697 and 4697–288), halved where its boards (the objects but the surface boards and the kerbs)
   would pass a Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's
   `sector-1a`/`1b`, `2a`/`2b`, `3a`/`3b` split at 2224, 7393 and 12110 (1348/1348, 1408/1409, 1661/1664 boards), the
   qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by
@@ -203,9 +204,9 @@ its kind (0x04, the original's flat board, among them: its buildings, trees, gat
 stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
 2026-10-21).
 
-- **Place.** List word k's objects stand at the station of lap step k's P (each element's steps spread evenly), their
-  lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p` and three decimal
-  digits).
+- **Place.** List word k's objects stand at the station of lap step k's P (its point's foot on P, the plan from its
+  point path), their lateral x / 4 units from P to the right (the word's bit 15 mirrors it), each its own palette (`p`
+  and three decimal digits).
 - **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
   height for an object with flag bit 13; it stands by the middle of its bottom edge, `groundOffset` (foot − (−50))
   × 6.5331 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,

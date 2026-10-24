@@ -22,11 +22,11 @@ tables); the rest from pairs of 32 KiB ROMs that hold both. The tool assembles a
 | main | 0x20000–0x2FFFF | `9.15j` `db3bff1c`                       | `6.15h` `54b1885a`                       |
 | sub  | 0x00000–0x0FFFF | `epr-7634a.ic54` `aec83731`              | `epr-7635a.ic67` `b2fce96f`              |
 
-The sub CPU's program is Rev A's, from `enduror`. As Stage ER's description says (the sets were decrypted to find it;
-the tool cannot check it): `endurobl`'s data are `enduror1`'s but for the bootleg's credit, the ROM test and the check
-words; 0x10000–0x2FFFF is the same in every set; Rev A's 0x00000–0x0FFFF holds the same tables 0x1A bytes lower, so
-the course is Rev A's. The YM2203 set's sub CPU program (`epr-7634.ic54`, `epr-7635.ic67`) differs from Rev A's only at
-0x0073–0x110B.
+The sub CPU's program is Rev A's, from `enduror`. As the [research notes](research/enduro-racer.md) say (the sets were
+decrypted to find it; the tool cannot check it): `endurobl`'s data are `enduror1`'s but for the bootleg's credit, the
+ROM test and the check words; 0x10000–0x2FFFF is the same in every set; Rev A's 0x00000–0x0FFFF holds the same tables
+0x1A bytes lower, so the course is Rev A's. The YM2203 set's sub CPU program (`epr-7634.ic54`, `epr-7635.ic67`) differs
+from Rev A's only at 0x0073–0x110B.
 
 The graphics are `enduror`'s: the road ROM `epr-7633.ic1` `6f146210` (256 lines of 512 pixels, two bit planes of 64
 bytes a line, the second 0x4000 after the first), the tiles `epr-7644.ic31` `e7a4ff90`, `epr-7645.ic46` `4caa0095`
@@ -52,8 +52,8 @@ background's word (0xDEB8); the sub CPU's paths' list (0x592) and stripes (0xD4E
   the speed as it is in km/h, so a position is 65536 / (256 × 3.6 × 60) = 1.185185 m. The bike stands 0.75 positions
   ahead of the road position (`move.l #$C0, d5` at 0x60EE on the 24.8 position).
 - **Stages.** Five stages of 2048 positions run on without a stop: the road position runs from 0 to 10239. Stage s
-  ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the tool checks
-  each.
+  ends when the bike passes the word at 0x53AC + 2s × 256 (8, 0x10, 0x18, 0x20, 0x28: 2048(s + 1)); the read
+  (`enduro-racer-read`) checks each, and the course's conversion takes the stages as 2048 positions each.
 - **Road paths.** Stage s (0 from) runs the sub CPU's path that the long s of the eight at 0x592 names: 0x9800, 0x1800,
   0x3800, 0x5800, 0x7800. A path is 2048 heading vectors {signed word x, signed word y}, x right and y ahead, each
   about 4096 long; every path begins and ends with (0, 4096), and the five turn 0°, 360° left, 360° right, 360° left
@@ -147,7 +147,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   the 3.5 m lane (2026-10-21).
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
   2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
-  line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as Stage ER's description reads the sub
+  line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as the research notes read the sub
   CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
   surface's half 190.27 units (a lane, 3.5 m, so a unit is 0.0183947 m), the edge bands to 234.81 units (4.319 m),
   their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
@@ -160,8 +160,8 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   positions before position 0, then the plan.
 - **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
 - **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10689: past the finish (10254,
-  station 12158.0) 515.6 m remain, more than any vehicle's takeover needs to stop (the longest, S13 DRIFT TUNED's,
-  436.7 m on this course) and past the last scenery (10342).
+  station 12158.0) 515.6 m remain, past the last scenery (10342), a length chosen when every vehicle had to stop before
+  the course's end, which the run no longer requires (EX-17 reads the original's).
 - **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a, its centre half a lane left of P
   (`centerLateral` −1.75).
 - **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
@@ -182,7 +182,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (9.418 m) from P, 5.918 m beyond
   the lanes: `GRASS`
   on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
-  and right of P on stage 5 (its white sand); the water's and the sand's materials are K's (2026-10-22).
+  and right of P on stage 5 (its white sand). Every one is K's decision, for the ROMs hold no material: the water's and
+  the sand's (2026-10-22), and the road's `DIRT` and stage 1's `GRASS`, which ER-3 chose with no record of who decided
+  (2026-10-25).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
   and `goal` from 10240, each cut again where its road comes near itself (`passagePairs`: within its lanes' least
   radius; `stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut parts every

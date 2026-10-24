@@ -83,7 +83,10 @@ const CROSSING_MATERIAL = 'WATER';
  */
 const STRIPE = 2;
 const FIRST_BAND = 1;
-/** The straight past the goal, positions after the last stage's: every vehicle stops before the course's end. */
+/**
+ * The straight past the goal, positions after the last stage's: chosen when every vehicle had to stop before the
+ * course's end, which the run no longer requires.
+ */
 const GOAL_POSITIONS = 450;
 /** Where the checkpoints and the finish stand: the CHECK banner's and the GOAL board's scenery types. */
 const CHECK_TYPE = 0x48;

@@ -38,8 +38,8 @@ OUTRUN's sub CPU](#turbo-outruns-sub-cpu)).
 ## TURBO OUTRUN's programs
 
 The main CPU's program is encrypted (FD1094) for instruction fetches alone, so its tables read as its ROMs' bytes.
-Where the stage's description gives what the encrypted code does, the tool takes it as given and says so. Both CPUs are
-68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's board.
+Where the [research notes](research/turbo-outrun.md) give what the encrypted code does, the tool takes it as given and
+says so. Both CPUs are 68000s; the main CPU's 0x26xxxx is the sub CPU's 0x06xxxx, as on OUTRUN's board.
 
 - **Constants.** The road advances `speed × 0x12F / 65536` positions a tick (the long at 0x1DDEA), as OUTRUN's; the top
   speed without turbo or tune-up is 324 km/h (the word at 0x1DDE2); a right-side object stands by the left road past
@@ -70,12 +70,12 @@ Where the stage's description gives what the encrypted code does, the tool takes
 - **Palettes.** Sprite palette p is the 14 palette words at 0x2470 + 28p, pixels 1 to 14.
 - **The start.** Leg l's start objects: the long and word at 0x7B46 + 8l, items 0 to c of the list it names, each
   setting its depth; item c / 2 − 1 is written over and never shown. The start figures (the code at 0x5446) are the
-  stage's description's values, as each stands in the countdown's last tick and the signal at GO (`START_FIGURES`).
+  research notes' values, as each stands in the countdown's last tick and the signal at GO (`START_FIGURES`).
 - **Backgrounds.** Stage n's background number is the byte at 0x2ABF8 + 8 × its leg + its place in the leg (the same at
   0x1DA52). Its entry at 0x2AC18 + 12 × number is {u8 front rows, u8 back rows, long front data, long back data, word
   offset}, its layers in OUTRUN's format ([Backgrounds](outrun-road-data.md#backgrounds)) but for rows not written,
   which hold tile word 0x0020. A leg's start loads tile palettes 8 to 127, each the 8 words at 0x22A56 + 16 × its byte
-  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, from the stage's description), so a stage shows its
+  at 0x229DE; each stage then applies its patch (`PALETTE_PATCHES`, from the research notes), so a stage shows its
   leg's patches to it.
 - **Skies.** A stage's sky is baked ([Sky baking](original-road-data.md#sky-baking), `stageBands`) from its background's
   two layers, page by page with the last page leftmost: the front its four pages (2048 pixels), the back its three
@@ -94,7 +94,7 @@ Where the stage's description gives what the encrypted code does, the tool takes
 - **Height tables** are the longs at 0x2156 + 4 × number, OUTRUN's 225 tables at addresses 0xB4 earlier.
 - **Stripes** are the 32 phases of 512 words at 0x109EE, as OUTRUN's.
 
-Where the stage's description says a table is OUTRUN's, the read checks it against OUTRUN's ROM set: the 225 height
+Where the research notes say a table is OUTRUN's, the read checks it against OUTRUN's ROM set: the 225 height
 tables, the stripes, the approach table (the main CPU's 0x48010, OUTRUN's 0x28000) and the sub CPU's road drawing
 (0x1280–0x2155, OUTRUN's from 0x1334), which differs only where it addresses the height tables.
 
@@ -133,7 +133,7 @@ and heights, scenery, road path); the height tables its points name; the stripes
 items and the start objects name, the routines, the size lists and the strips' size tables, the shadow and the
 palettes; the start objects and figures; each background's layers and each stage's tile palettes with the patches; and
 the comparison with OUTRUN's tables. It refuses a ROM set, order, name, path, gate or table that differs from the
-stage's description.
+values the tool holds.
 
 ## TURBO OUTRUN's course
 
@@ -146,7 +146,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
 - **Stages.** A 6 m straight, the camera's distance, before GO (NEW YORK's position 0), then the stages in running
   order, each from its position 0: a stage within a leg to its end (T + 12, 1426.083), where the next begins; a leg's
   last (INDIANAPOLIS, ATLANTA, DALLAS) past where its car stops (T + 2, 1411.103) to the end of its join below; LOS
-  ANGELES to 260 positions past its finish (1403.613), so that every vehicle stops before the course's end. 23,476.2
+  ANGELES to 260 positions past its finish (1403.613), chosen when every vehicle had to stop before the course's end,
+  which the run no longer requires (EX-19 reads the original's). 23,476.2
   positions in all, 47.02 km along P.
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
@@ -178,8 +179,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   meeting at P; from 250, where the ground shows between the roads, to 286, c = d = 427.5 − w and the median
   4(w − 250); beyond, c = d = 141.5 and the median 2(w − 214). So w = 218 has no median: the original's six lanes
   there are one road (a median would shut a racing line in either road). The centre lane b's centre is road 0's
-  (−w) where both its lines show (w ≥ 72.5), else −(w + 72.5) / 2: the Section's `centerLateral`, straight between its
-  widths' corners and where the lanes' rule changes, as the lanes' widths are.
+  (−w) where both its lines show (w ≥ 72.5), else −(w + 72.5) / 2: the Section's `centerLateral`, taken from the joined
+  width at every position the lanes' widths are written at.
 - **Stations.** A course position, a stage's start plus its position, is its station along P. GO is station 6.
 - **Colors and stripes.** Over each stage's stretch its ground's 15th and 16th words, then its surface over the
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
@@ -189,7 +190,7 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   than 0.5 m; SAND beyond the outermost lanes as far as the farthest object standing on the ground reaches, 49.57 m,
   until the car's [lateral limit](original-road-data.md#the-ground-beside-the-road) is read from its program decrypted
   locally, which the course format ends where the plan stops being one-to-one
-  ([Architecture](architecture.md#plan-authority)).
+  ([Architecture](architecture.md#plan-authority)). Both are K's decision (2026-10-25), for the ROMs hold no material.
 - **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
   from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY
   hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
@@ -241,8 +242,10 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   stand where an object drawn 1:1 stands as the leg's car stops: from line 254 to the car's line, 2.996 positions past
   the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
   x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
-- **Shadows.** A kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A) on the road, drawn
-  at its scale and base point (`-shadowed`); a kind's pixel 10 that shades (bit 2) keeps its palette's color.
+- **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
+  on the road, at its scale and base point; the board keeps it as its shadow frame (`-shadowed`), which a fixed object
+  does not draw ([Sprites and painter](architecture.md#sprites-and-painter)); a kind's pixel 10 that shades (bit 2)
+  keeps its palette's color.
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
   2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by [chosen
   lines](original-road-data.md#chosen-lines), in every palette it is shown in (`p<palette>`, the lowest its default); a

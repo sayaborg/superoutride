@@ -23,11 +23,13 @@ Source identity, traversal identity and race credit are distinct.
 The saved format is compact UTF-8 JSON. All declared fields are required; explicit null represents
 absent optional content. Unknown fields fail. Arrays preserve saved order; object-property order and
 whitespace do not affect identity. Normalized records use schema field order and convert negative zero to zero; the
-authoring core and its tools save a course document that admits in that order.
+authoring core and its tools save a course document that admits in that order. The format's `version` is written once,
+as `COURSE_DOCUMENT_VERSION` ([course-document.ts](../src/course/course-document.ts)); a reader admits that version
+alone.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 56,
+  format: "superoutride.course", version,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -98,9 +100,9 @@ supported material, one continuous supported span covering it through each cell 
 Section-local Boundary ID and a signed metre offset (positive right), or `{lane, side, offset}`: lane `lane`'s
 `left` edge, `center` or `right` edge plus a signed offset. A reference to a lane where its width is 0 reads the line
 where its neighbours touch. The field is named
-`lateral` on Boundary knots, sprites and grid slots; grid references
-use the entry Section. Numeric values and offsets lie in `[-1000,1000]`, and every resolved
-l must also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
+`lateral` on Boundary knots and sprites; a grid slot names a lane instead ([Section
+gates](#section-gates-and-run-settings)). Numeric values and offsets lie in `[-1000,1000]`, and every resolved l must
+also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
 plus offset, or the referenced lane line. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
@@ -226,18 +228,18 @@ A Strip covers `[start,end]`, whose resolved stations strictly increase inside `
 Each edge is one Lateral or null, the same over the whole Strip. Null left/right opens that side to infinity.
 Material-bearing Strips require two finite edges. Finite edges obey `left <= right`, `invalid_strip`
 otherwise. Ownership is `[left,right)` laterally and `[start,end)` longitudinally, including the
-Section terminal in the last slab. An edge whose width varies along the Strip refers to a
-[Boundary](#lateral-positions) that varies so.
+Section terminal in the last slab. An edge whose width varies along the Strip refers to a line that varies so, a
+[Boundary or a lane's line](#lateral-positions).
 
-Strip edges use the same interval resolver as Boundary knots: collect the referenced Boundary
-vertices, evaluate the edge expression at both ends, blend, then linearly interpolate.
+Strip edges use the same interval resolver as Boundary knots: collect the referenced lines'
+vertices (a Boundary's or a lane's), evaluate the edge expression at both ends, blend, then linearly interpolate.
 When an edge references a Boundary, it retains that Boundary's
 original line and adds the offset after evaluating it. With zero offset, every edge read equals
 `courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
 
 Decorative constructs carry color only. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
-A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Polygon edges and glyph row runs expand
+A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Glyph row runs expand
 to affine pieces. A curb repeats its colors in list order from start, one color per stripe, clips the
 last stripe to end, and resolves its Lateral edges over each stripe interval. The list holds at least
 two colors; its ceiling is listed below. Across the full road width, a curb paints striped or
@@ -1753,15 +1755,15 @@ their hills are made again they have no class: they are driven in FREE PLAY alon
 last slot at GO.
 
 TURBO OUTRUN's course (`turbo-outrun` TURBO OUTRUN) is a LINEAR course of the original's 16 stages in running order,
-each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs ([Original road
-data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates and
-skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its CHECK
-POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites, provisionally.
-Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's
-last slot at GO.
+each leg's end joined to the next leg's start, written by the road data tool from the original's ROMs ([TURBO OUTRUN
+road data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates
+and skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its
+CHECK POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites,
+provisionally. Until its hills are made again it has no class: it is driven in FREE PLAY alone, untimed, the player from
+the grid's last slot at GO.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
-written by the road data tool from the original's ROMs ([Original road
+written by the road data tool from the original's ROMs ([ENDURO RACER road
 data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
 gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
@@ -1769,8 +1771,8 @@ provisionally, and its jumps stand as boards passed through until the hills make
 has no class: it is driven in FREE PLAY alone, untimed, the player from the grid's last slot at GO.
 
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` MONACO
-QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([Original road
-data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan and its closing, lanes, materials
+QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([SUPER MONACO GP
+road data](super-monaco-gp-road-data.md#super-monaco-gps-courses)), which owns their plan, lanes, materials
 and limits, strips, Sections, gates, skies and objects, every object but the road's surface and its kerbs a board
 without a body; run the conversion rather than editing the documents. The race has its checkpoints where the original's
 CHECKPOINTs are, the qualifying one, and each its finish at the lap's line. Until their hills are made again they have

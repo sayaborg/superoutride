@@ -151,10 +151,11 @@ that runs in more than one course and a sprite past the table.
 
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
-ahead, made 260 positions long: the original's 200, made longer so that every vehicle stops before its end (515.5 m
-past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no
-turn tighter than its lanes keep (a lane either side, 8.31 m); none is. The curves only check it, for they follow the
-path roughly (radii 0.79 to 1.56 times the path's, their joints up to 13 positions off).
+ahead, made 260 positions long (515.5 m past the finish): the original's 200 and 60 more, chosen when every vehicle had
+to stop before the course's end, which the run no longer requires; EX-15 reads the original's. It becomes P by the
+[plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep (a
+lane either side, 8.31 m); none is. The curves are only recorded in the dump: they follow the path roughly (radii 0.79
+to 1.56 times the path's, their joints up to 13 positions off), so nothing is checked against them.
 
 AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 273, 292, 614 and 904 elements; the sharpest arc
 is 23.8 m, a turn in AMERICA's seventh section. Every course's plan holds its table's headings within the resolution at
@@ -204,7 +205,8 @@ crossings:
   lines 238.14 to 249.79, the shoulder the surface's, the edge bands 259.21 to 293.80. A lane is the road's half to its
   lines' inner edges, 238.14 units, 4.3 m, so a unit is 0.0180566 m: the road, objects' x, pictures, bodies, gates, the
   crowd and the figures, and the grids' spacing across are all in it. SAND reaches the bike's [lateral
-  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.028 m) from P, 4.728 m beyond the lanes.
+  limit](original-road-data.md#the-ground-beside-the-road), 500 units (9.028 m) from P, 4.728 m beyond the lanes. The
+  road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for the ROMs hold no material.
 - **Colors and stripes.** Over each section's stretch its ground, then its surface over the asphalt (to the edge bands'
   outer edges), then its lines, edge bands and centre line over that, each pair's half 0 over the first half of each
   period and half 1 over the second: 32 × 34 × 0x97 / 65536 positions (5.8556 m), the edge bands' half of it, counted

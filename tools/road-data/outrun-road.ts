@@ -40,7 +40,7 @@ const FORK_PATH = 0x3a33e;
 const GOAL_PATH = 0x3aca0;
 /** A stage's road path covers this many positions: the stage's 1948 and 360 looking ahead into the fork. */
 const STAGE_PATH_POSITIONS = 0x904;
-/** The fork stretch's path: its 384 positions and its look-ahead. Each goal stretch's path, shared by the five. */
+/** The fork stretch's path, of which a fork piece uses 63 to 431.5. Each goal stretch's path, shared by the five. */
 const FORK_PATH_POSITIONS = 600;
 const GOAL_PATH_POSITIONS = 624;
 /**

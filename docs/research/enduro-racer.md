@@ -50,7 +50,8 @@ decryption, not in the repository.
 
 ## Objects
 
-- Collision only for objects with flag 0x08 spawned on the road (|x| ≤ 30); the rider is clamped to |x8| < 0x8C. Anchor
+- Collision only for objects with flag 0x08 spawned on the road (|x| ≤ 30); the rider's x (the upper word of the long at
+  $32(a5)) is clamped to ±0x200 (M 0x65FE and 0x6612), the limit the ground's width reads. Anchor
   bit 4 is the bottom. Pen 10 is the shadow. Later sprites draw over earlier (shadows are listed before bikes).
 - The START posts (templates 0xCA78 / 0xCA9E) carry flag 0x88 (the hit mark). CHECK banners stand at P 2048k + 4; the
   goal gate at P 10254.

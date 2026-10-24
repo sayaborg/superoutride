@@ -136,7 +136,7 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   the longest, and the runs are the fewest any such rule makes. Two runs are joined by a turn over the position
   between them. The tables' resolution is the one constant. It promises the heading at every position within the
   resolution, but over a turn widened for its lanes, not the position, which may drift by the resolution times the
-  distance. A Section's plan holds up to 1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER has 687).
+  distance. A Section's plan holds up to 1024 elements, as its profile does (TURBO OUTRUN's DENVER has 687).
 - **The format owns where a plan stops being one-to-one.** The compiler ends the material at the plan's clearance less
   the vehicles' reach ([Architecture](architecture.md#plan-authority)), so a document writes only what it intends: its
   ground by one rule, no ground narrowed to fit, a Section cut only where the road itself comes near itself or crosses,
@@ -211,7 +211,8 @@ PRs, in this order:
   the real position if the check had moved it. A linear course's road from the camera's distance before GO stays,
   written once in [Content and gameplay](content-and-gameplay.md).
 - FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
-  documents), stripes written by a Strip's `repeat` (K, 2026-10-25). TSUKUBA's and SUPER MONACO GP's kerbs are written
+  documents), stripes written by a Strip's `repeat` (K, 2026-10-25), and the limits' `heightNodes` named after the
+  field it bounds, `profile`. TSUKUBA's and SUPER MONACO GP's kerbs are written
   again, the drawing unchanged in pictures of the same places before and after, with SUPER MONACO GP's kerbs' fixes:
   `STRIPE_HAIR`, which shortens every kerb by 1 mm, and `KERB_GAP` 8 against the ends' `KERB_STEPS / 2`, which make
   sector-2a's three kerbs' stripes 0.91–1.02 m rather than 0.74 m.

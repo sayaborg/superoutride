@@ -262,14 +262,14 @@ export const objectAside = (
     : 0;
 
 /**
- * A scenery entry's routine and anchor by its drawing (flags bits 4–7, dispatched at 0x3D98), mirrored by flags bit 0:
- * kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A hit sets the
- * crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432), its edge nearest
- * the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its middle at x. They
- * test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn at the car. Kind 2
- * (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever its entry's; kind 12
- * (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again; kinds 5 and 6 (0x46D6, 0x4774) the
- * checkpoint banner's halves, raised on their bottom middle. Any other kind is no object (null).
+ * A scenery entry's routine and anchor by its drawing (flags bits 4–7, the spawn's jump table at 0x3DA2), mirrored by
+ * flags bit 0: kind 0 stands on its foot, hit when on the ground (y 0); kinds 4, 7, 9 and 8 have one routine each. A
+ * hit sets the crash (0x60C24). Kinds 1, 3, 10 and 11 draw a strip beside the road (0x4416, 0x4408, 0x443C, 0x4432),
+ * its edge nearest the road at x: its left edge, or its right drawn mirrored; kind 13 (0x3FE8) a patch on the road, its
+ * middle at x. They test no hit for the crash: kinds 1, 3 and 13 set the road's surface effect (0x60C20), a spray drawn
+ * at the car. Kind 2 (0x4144) is a cloud on its bottom edge, left or mirrored right, in the clouds' palette whatever
+ * its entry's; kind 12 (0x428A) VINEYARD's trees on theirs; kind 14 (0x4380) the sand strip again; kinds 5 and 6
+ * (0x46D6, 0x4774) the checkpoint banner's halves, raised on their bottom middle. Any other kind is no object (null).
  */
 export function sceneryRoutine(
   main: Uint8Array,

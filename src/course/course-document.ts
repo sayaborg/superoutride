@@ -76,7 +76,7 @@ interface LinkDocument {
 
 /**
  * A road Strip from `start` to `end` between its `left` and `right` edges (null: open to that side's infinity). Only
- * Boundaries carry lateral shape: an edge that varies refers to one.
+ * Boundaries and lanes carry lateral shape: an edge that varies refers to one's line.
  */
 interface StripDocument {
   readonly kind: 'strip';
