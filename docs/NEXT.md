@@ -236,8 +236,15 @@ PRs, in this order:
     lanes to its dead end, the road coming in grown over a position, `GROWS`, `DEAD_END` and `VERGE_RAMP` deleted.
     Pictures now and new: the parting, where the road not taken goes from sight, the closing, C's goal and a width
     change in a stage.
-- EX-7i: TURBO OUTRUN's road widths by the same monotone cubic, with pictures now and new; a table of the other
-  originals' laterals changed straight between points, each joined so by its original's PR (EX-15 to EX-24).
+- EX-7i: TURBO OUTRUN's road widths by the same monotone cubic, with pictures now and new. The other originals'
+  laterals changed straight between points, each joined so by its original's PR (EX-15 to EX-24):
+
+  | Original        | Lateral changed straight between points                                                   |
+  | --------------- | ----------------------------------------------------------------------------------------- |
+  | SUPER HANG-ON   | None: one road of two fixed lanes, no width points                                        |
+  | ENDURO RACER    | None: one road of two fixed lanes                                                         |
+  | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
+
 - EX-7j: OUTRUN's courses six LONG (C's two now LRRL and RLLR) and six SHORT, each SHORT from a start on the straight
   between the two corners of a road into DESERT (L) or CLOUDY MOUNTAIN (R) from beyond the map; named OUTRUN A to E and
   OUTRUN SHORT A to E, C's two by LEFT or RIGHT (K, 2026-10-24).

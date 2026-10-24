@@ -138,7 +138,7 @@ stage's description.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 10, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 11, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -164,7 +164,9 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   left, still approaching that stage's target. A leg's last stage is joined to the next leg's start, which the original
   reaches through another screen: from 1460, where its road is one of three lanes (width 0), the width widens to 450 at
   the width points' fastest rate (speed 80, 4.2244 units a position), reaching it at 1566.523, the next leg's GO.
-  The width is the points' own, straight between its corners.
+  The width passes the points' corners, joined between them as one monotone cubic over the course ([Original road
+  data](original-road-data.md#a-lateral-changed-straight-between-points)), written at each stage's every position; the
+  lanes and the roads' centres are taken from it.
 - **Cross-section.** The road ROM's nearest line (row 255, its centre between pixels 251 and 252), checked
   (`checkTurboOutrunRoadRom`), draws each road: the lane lines from 66 to 79 units (value 1); the edge band from 214 to
   250 in three parts, 214 to 223 (2), to 246 in the lines' color (1) and to 250 (2); neither a centre line nor outer

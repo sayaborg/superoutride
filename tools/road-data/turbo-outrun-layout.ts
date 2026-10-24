@@ -18,6 +18,7 @@ import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
 import { STAGE_COUNT, type TurboOutrunStage } from './turbo-outrun-road.js';
 import { roadWidths, WIDTH_RATE, type HeightTable, type WidthHeightPoint } from './road-tables.js';
+import { monotoneCubic } from './monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 
 /**
@@ -123,15 +124,22 @@ export function layTurboOutrun(inputs: LayoutInputs) {
         `/stages/${stage.number}`,
         `Stage ${stage.number}'s road is not one of three lanes at ${JOIN.from}`,
       );
-  // The width as its points give it, straight between its knots, level beyond them.
+  // The width as its points give it, joined as one monotone cubic over the course (`monotoneCubic`, Original road
+  // data), written at each stage's every position, straight between them.
+  const joined = monotoneCubic(knots);
+  const at = [
+    ...new Set([
+      0,
+      ...course.flatMap(({ start, length }) => Array.from({ length: Math.ceil(length) }, (_, k) => start + k)),
+      total,
+    ]),
+  ].sort((x, y) => x - y);
   const width = new Quadratic(
-    [[0, knots[0]![1]] as const, ...knots, [total, knots.at(-1)![1]] as const]
-      .filter(([p], i, all) => i === 0 || p > all[i - 1]![0])
-      .slice(1)
-      .map(([p, v], i, all) => {
-        const [p0, v0] = i === 0 ? [0, knots[0]![1]] : all[i - 1]!;
-        return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
-      }),
+    at.slice(1).map((p, i) => {
+      const p0 = at[i]!;
+      const [v0, v] = [joined(p0), joined(p)];
+      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
+    }),
   );
   // Lane b's centre, metres right of P.
   const offset = width.map((w) => centreLaneAt(w) * UNIT_METRES, [LANE_RULE_WIDTHS[0]!]);
@@ -302,7 +310,14 @@ function domainCuts(
   const one = width
     .map((w) => w, [ROAD_HALF])
     .pieces.filter((q) => q.to > earlier && q.from < later && width.at((q.from + q.to) / 2) <= ROAD_HALF)
-    .map((q) => ({ a: Math.max(q.from, earlier), b: Math.min(q.to, later) }));
+    .map((q) => ({ a: Math.max(q.from, earlier), b: Math.min(q.to, later) }))
+    // Pieces that touch, one stretch.
+    .reduce<{ a: number; b: number }[]>((all, s) => {
+      const last = all.at(-1);
+      if (last && last.b === s.a) last.b = s.b;
+      else all.push({ ...s });
+      return all;
+    }, []);
   const straights = line.elements
     .filter((e) => e.turn === 0)
     .flatMap((e) =>
