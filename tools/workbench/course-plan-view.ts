@@ -18,7 +18,6 @@ export type PlanLayer = (typeof PLAN_LAYERS)[number];
 
 const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   strip: 'strips',
-  arrow: 'strips',
   text: 'strips',
   curb: 'strips',
   boundary: 'boundaries',

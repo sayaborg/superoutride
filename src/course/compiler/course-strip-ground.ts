@@ -257,49 +257,6 @@ async function expandCourseStrips(
         }
         break;
       }
-      case 'arrow': {
-        const station = position(element.at, `${at}/at`).s;
-        const lateral = resolveCourseLateral(element.lateral, station, lines, `${at}/lateral`);
-        const vertices = [
-          [-0.18, 0],
-          [0.18, 0],
-          [0.18, 0.55],
-          [0.5, 0.55],
-          [0, 1],
-          [-0.5, 0.55],
-          [-0.18, 0.55],
-        ].map(([x, y]) => {
-          const l = element.direction === 'forward' ? x! : element.direction === 'right' ? y! - 0.5 : 0.5 - y!;
-          const s = element.direction === 'forward' ? y! : 0.5 + x!;
-          return { l: lateral + l * element.width, s: station + s * element.length };
-        });
-        const stations = [...new Set(vertices.map((p) => p.s))].sort((a, b) => a - b);
-        for (let i = 0; i + 1 < stations.length; i++) {
-          const start = stations[i]!,
-            end = stations[i + 1]!,
-            middle = start + (end - start) / 2;
-          const edges = vertices
-            .map((a, j) => ({ a, b: vertices[(j + 1) % vertices.length]! }))
-            .filter(({ a, b }) => middle > Math.min(a.s, b.s) && middle < Math.max(a.s, b.s));
-          // Exact at a vertex, so two edges meeting there read the same lateral.
-          const atS = (edge: (typeof edges)[number], s: number) =>
-            s === edge.a.s
-              ? edge.a.l
-              : s === edge.b.s
-                ? edge.b.l
-                : edge.a.l + ((edge.b.l - edge.a.l) * (s - edge.a.s)) / (edge.b.s - edge.a.s);
-          edges.sort((a, b) => atS(a, middle) - atS(b, middle));
-          for (let j = 0; j + 1 < edges.length; j += 2)
-            add({
-              start,
-              end,
-              left: line(start, end, atS(edges[j]!, start), atS(edges[j]!, end)),
-              right: line(start, end, atS(edges[j + 1]!, start), atS(edges[j + 1]!, end)),
-              value: element.color,
-            });
-        }
-        break;
-      }
     }
   };
   for (const leaf of courseElementLeaves<Parameters<typeof expand>[0]>(elements, path, budget.work)) {

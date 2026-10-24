@@ -60,7 +60,6 @@ export type CourseElementKind =
   | 'boundary-vertex'
   | 'repeat'
   | 'strip'
-  | 'arrow'
   | 'text'
   | 'curb'
   | 'wall'
@@ -606,16 +605,13 @@ function readSection(
         laterals: ['left', 'right'],
         values: { stripe: source.stripe, colors: source.colors },
       });
-    } else if (kind === 'arrow' || kind === 'text')
+    } else if (kind === 'text')
       add(kind, path, source, {
         offset,
         copies,
         positions: ['at'],
         laterals: ['lateral'],
-        values:
-          kind === 'arrow'
-            ? { direction: source.direction, color: source.color }
-            : { text: source.text, color: source.color },
+        values: { text: source.text, color: source.color },
       });
   });
   // Walls: the Boundary line they follow and their color Strips.

@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 56;
+export const COURSE_DOCUMENT_VERSION = 57;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -89,15 +89,6 @@ interface StripDocument {
 }
 export type StripElementDocument = RepeatElement<
   | StripDocument
-  | {
-      readonly kind: 'arrow';
-      readonly at: CoursePosition;
-      readonly lateral: Lateral;
-      readonly width: number;
-      readonly length: number;
-      readonly direction: 'forward' | 'left' | 'right';
-      readonly color: number;
-    }
   | {
       readonly kind: 'text';
       readonly at: CoursePosition;
@@ -461,18 +452,6 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
       right: v.right === null ? null : lateral(v.right, `${path}/right`),
       color: v.color === null || v.color === 'transparent' ? v.color : readRgb555(v.color, `${path}/color`),
       material: v.material === null ? null : readString(v.material, `${path}/material`, ID),
-    });
-  }
-  if (kind === 'arrow') {
-    const v = readRecord(value, path, ['kind', 'at', 'lateral', 'width', 'length', 'direction', 'color']);
-    return Object.freeze({
-      kind,
-      at: position(v.at, `${path}/at`),
-      lateral: lateral(v.lateral, `${path}/lateral`),
-      width: metre(v.width, `${path}/width`, true),
-      length: metre(v.length, `${path}/length`, true),
-      direction: readEnum(v.direction, ['forward', 'left', 'right'] as const, `${path}/direction`),
-      color: readRgb555(v.color, `${path}/color`),
     });
   }
   if (kind === 'text') {

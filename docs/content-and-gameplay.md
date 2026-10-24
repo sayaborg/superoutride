@@ -212,7 +212,6 @@ Section `strips` is an ordered array of these constructs. Each record includes `
 | -------- | ----------------------------------------------------------------------------------------- |
 | `strip`  | Position `start`, `end`, Lateral or null `left`, `right`, `color`, `material`             |
 | `repeat` | positive `every`, integer `count`, `elements`                                             |
-| `arrow`  | `at`, `lateral`, positive `width`, `length`, `direction`, RGB555 `color`                  |
 | `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                                |
 | `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, RGB555 `colors` list |
 
@@ -236,9 +235,7 @@ When an edge references a Boundary, it retains that Boundary's
 original line and adds the offset after evaluating it. With zero offset, every edge read equals
 `courseBoundaryAt` without a rounding gap, even after unrelated slab splits.
 
-Decorative constructs carry color only. An arrow's at is its near
-bounding edge and lateral its center; width and length are its final bounding dimensions.
-Direction is `forward`, `left` or `right`. Text at/lateral specifies the near/left edge of its cells;
+Decorative constructs carry color only. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
 A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Polygon edges and glyph row runs expand
 to affine pieces. A curb repeats its colors in list order from start, one color per stripe, clips the
@@ -400,7 +397,7 @@ for longitudinal detail and length. One Section can therefore hold nearly the wh
 planned circuit representation uses at least two Sections and does not divide the long Section's budget.
 Assume 10 corners, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
 The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other sprites.
-Every corner can receive two curbs, an arrow and lettering: curbs can cover both sides of the entire
+Every corner can receive two curbs and lettering: curbs can cover both sides of the entire
 21 km at 1 m stripes, with 100 lane dashes/km and up to 10 two-character markings/km. This is
 conservatively 3000 expanded pieces/km; detailed glyphs and inherited edge points consume that budget.
 Counts are rounded upward to powers of two after the stated margin, except the metre ceiling.
@@ -572,7 +569,7 @@ and every result resolves through the course compiler's functions.
 **Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: plan elements at
 their joints and the Section's end, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
 vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
-arrows, texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
+texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
 environments, gates, grid slots and lanes (each lane's centre line), and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
 as written (`joint`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
