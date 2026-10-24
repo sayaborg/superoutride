@@ -73,8 +73,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   - A strip the original draws on outward is a board extending sideways ([Extending boards](#extending-boards)); the
     road's surface itself is Strips.
   - A lying picture has no material: the road's Strips alone decide the material (K, 2026-10-25).
-  - Only vehicles have pictures by angle. A report begins with one line saying where K can see the change, and names a
-    replacement that cannot be avoided on the next.
+  - Only vehicles have pictures by angle.
 
 ## Palette words
 
@@ -224,30 +223,18 @@ along a stage (`hillsAlong`) follows from its height points and tables alone; no
   and 2 hold, and returns it at a falling share over 2.125 × step.
 - **Kind 4** moves the horizon's base to its word over 2.125 × step positions, and it stays.
 
-Kinds 0 and 1 are checked on `k1` (COCONUT BEACH, no fit; `k1`'s position is the displayed speed's integral, which lags
-the original's later in the stage):
-
-| Table (kind) | Rule's road top      | `k1`'s     |
-| ------------ | -------------------- | ---------- |
-| 211 (0)      | row 112.5 at 40.5    | 107 to 113 |
-| 134 (0)      | row 122.2 at 462     | 121        |
-| 213 (0)      | rows 101.4 and 109.4 | 100, 107   |
-| 32 (1)       | hold at row 169.1    | 166 to 173 |
-
-Kinds 3 and 4 follow the same idea and are not yet checked against footage; under kind 4's raised base some of
-stage 0x3B's tables put the road's top at or above the screen's top.
+Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). Kinds 3 and 4
+follow the same idea and are not yet checked against footage; under kind 4's raised base some of stage 0x3B's tables
+put the road's top at or above the screen's top.
 
 ## Two roads
 
-Two roads drawn together (`composite`) show, at each point, the surface of either road (its shoulder included) over road
-0's (the left one's) lines and edges, over road 1's, over the ground: between two roads at road width w (centres ±w) the
-middle is at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 7.33), at 162 five (an edge band 0.67
-wide of road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band
-2(w − 228) wide, beyond 250 the ground 2(w − 250) wide. Each line and band shown is a Strip between two features' edges
-held to lanes (a road's centre lies 212 units inside its outer lane's outer edge, or its inner lane's inner edge), or
-to a road laid where it passes, each of its edges a Boundary (`compositeOf`, OUTRUN's road not taken), cut where the
-arrangement changes. ASPHALT lies under each road from its centre ∓ 250 within the ground, SAND beneath all to the
-[ground's width](#the-ground-beside-the-road); the ground's color is everywhere, its half 0 over its halves.
+Two roads drawn together (`composite`, `two-roads`) show, at each point, the surface of either road (its shoulder
+included) over road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a
+Strip between two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary
+(`compositeOf`, OUTRUN's road not taken), cut where the arrangement changes; the ground's color is everywhere, its half
+0 over its halves. Each original's chapter gives the arrangement at each road width and the material under the roads
+([OUTRUN's](outrun-road-data.md#cross-section), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-course)).
 
 ## A lateral changed straight between points
 
@@ -428,23 +415,8 @@ A stage's profile turns its height tables' look on the original's screen into gr
   joined Sections' heights and grades agree; a Section joined at both ends whose one stretch spans it has its knot where
   the tangents at its two cuts meet, so both grades hold.
 
-On COCONUT BEACH the road's top is 12 rows from the original's on average (in the original's rows). The tables'
-highest and lowest tops, and the least load at 293 km/h over each table (below 0 the car leaves the road):
-
-| Table at | Kind | Original's tops | This game's tops | Least load |
-| -------- | ---- | --------------- | ---------------- | ---------- |
-| 1        | 0    | 112.5 to 191.6  | 120.5 to 170.8   | −1.3 g     |
-| 360      | 0    | 116.9 to 179.9  | 121.8 to 165.1   | −0.2 g     |
-| 1044     | 0    | 101.4 to 187.1  | 111.6 to 170.2   | −1.3 g     |
-| 1600     | 1    | 151 to 169.1    | 112.9 to 166.8   | −0.5 g     |
-| 1824     | 0    | 110.2 to 191.4  | 112.9 to 170.7   | −1.3 g     |
-
-Kind 0's crests ahead fall 15 to 21 rows short of the original's and their rises 5 to 12; no rule of one value per
-kind brings them within 3 rows, so they are built by the least squares match (K's decision); the kind 1 table's look
-is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131; the kind 1 table's,
-returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
-The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
-passages are 57.3 m apart without a bump.
+COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
+profile](outrun-road-data.md#coconut-beachs-profile)).
 
 ## Raising the originals again
 
@@ -540,7 +512,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Cross-section: lanes, lines, edge bands from the road ROM's nearest line or the surface sprites; colors and the
   stripes' period and phase (check the phase in the original, the bike or car held still while the position is set).
 - Materials and limits from the original's band or zone tables where it has them; where a car cannot go, the course
-  limit alone decides, and water takes its material only inside it ([rules of the originals](#rules-of-the-originals)).
+  limit alone decides.
 
 ### 6. Objects
 

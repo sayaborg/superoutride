@@ -182,9 +182,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (9.418 m) from P, 5.918 m beyond
   the lanes: `GRASS`
   on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
-  and right of P on stage 5 (its white sand). Every one is K's decision, for the ROMs hold no material: the water's and
-  the sand's (2026-10-22), and the road's `DIRT` and stage 1's `GRASS`, which ER-3 chose with no record of who decided
-  (2026-10-25).
+  and right of P on stage 5 (its white sand); the water's material lies only within the course limit. Every one is K's
+  decision, for the ROMs hold no material: the water's and the sand's (2026-10-22), and the road's `DIRT` and stage 1's
+  `GRASS`, which ER-3 chose with no record of who decided (2026-10-25).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
   and `goal` from 10240, each cut again where its road comes near itself (`passagePairs`: within its lanes' least
   radius; `stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut parts every

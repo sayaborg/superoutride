@@ -512,6 +512,13 @@ checks (`checkRoadRom`): the inner lines 66.67 to 74.67 (pixel value 1), the out
 and is not drawn. Lines and edge bands are drawn at their exact units (the original's 7/11 unit and pixel rounding are
 not).
 
+Two roads drawn together ([Two roads](original-road-data.md#two-roads)) show between them, at road width w (centres
+±w), at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 7.33), at 162 five (an edge band 0.67 wide of
+road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band 2(w − 228)
+wide, beyond 250 the ground 2(w − 250) wide. A road's centre lies 212 units inside its outer lane's outer edge, or its
+inner lane's inner edge. ASPHALT lies under each road from its centre ∓ 250 within the ground, SAND beneath all to the
+[ground's width](original-road-data.md#the-ground-beside-the-road).
+
 The lanes driven (`drivenLanes`) are a, b, c | median | d, e, f; a and f are always one lane, 424/3 units (3.6 m). At
 w ≥ 212 every lane is one lane and the median 2(w − 212); for 72 < w < 212, c = d = 424/3 × (w − 72) / 140 and
 b = e = w + 70.67 − c; at w ≤ 72, c = d = 0 and b = e = w + 70.67. So at w = 72, where four lanes show for kilometres
@@ -657,6 +664,27 @@ CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD (A), DEATH VALLEY (B), DESOLATION H
 Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320, baked from its background
 ([Backgrounds](#backgrounds)).
 
+## COCONUT BEACH's profile
+
+By the [profile](original-road-data.md#profile), on COCONUT BEACH the road's top is 12 rows from the original's on
+average (in the original's rows). The tables' highest and lowest tops, and the least load at 293 km/h over each table
+(below 0 the car leaves the road):
+
+| Table at | Kind | Original's tops | This game's tops | Least load |
+| -------- | ---- | --------------- | ---------------- | ---------- |
+| 1        | 0    | 112.5 to 191.6  | 120.5 to 170.8   | −1.3 g     |
+| 360      | 0    | 116.9 to 179.9  | 121.8 to 165.1   | −0.2 g     |
+| 1044     | 0    | 101.4 to 187.1  | 111.6 to 170.2   | −1.3 g     |
+| 1600     | 1    | 151 to 169.1    | 112.9 to 166.8   | −0.5 g     |
+| 1824     | 0    | 110.2 to 191.4  | 112.9 to 170.7   | −1.3 g     |
+
+Kind 0's crests ahead fall 15 to 21 rows short of the original's and their rises 5 to 12; no rule of one value per
+kind brings them within 3 rows, so they are built by the least squares match (K's decision); the kind 1 table's look
+is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131; the kind 1 table's,
+returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
+The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
+passages are 57.3 m apart without a bump.
+
 ## Checks on `k1`
 
 `k1` checks COCONUT BEACH against the ROM's events, using only time × the displayed speed and ratios within a row. Its
@@ -678,6 +706,16 @@ and are not committed.
   | 1600     | 1    | 169.1        | 163      |
 
   Four of the seven extremes are within 3 rows. `k1` ends before table 1824.
+
+  The rule's crests against `k1`'s, kinds 0 and 1 (no fit; `k1`'s position is the displayed speed's integral, which
+  lags the original's later in the stage):
+
+  | Table (kind) | Rule's road top      | `k1`'s     |
+  | ------------ | -------------------- | ---------- |
+  | 211 (0)      | row 112.5 at 40.5    | 107 to 113 |
+  | 134 (0)      | row 122.2 at 462     | 121        |
+  | 213 (0)      | rows 101.4 and 109.4 | 100, 107   |
+  | 32 (1)       | hold at row 169.1    | 166 to 173 |
 
 - **Width.** The road's edges lie off the screen on the car's row: the road there is 10.3 m, about 410 px. The lane
   lines either side of the car stand `k1`'s median 136.0 px apart there, this game's lane 137.6 px at its 40 px/m.

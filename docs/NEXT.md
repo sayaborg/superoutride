@@ -67,8 +67,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), DOC-1d, the scale's DEV
-courses, CAM-1, CAM-2, FMT-1 and EX-9 onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), the scale's DEV courses, CAM-1,
+CAM-2, FMT-1 and EX-9 onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -181,8 +181,6 @@ Rules of the stage:
 
 PRs, in this order:
 
-- DOC-1d, documents only, a move (the auditor's third round, part 9, appendix A3): Original road data holding only the
-  shared rules, each original's facts moved to its chapter.
 - The scale's DEV courses (the constants' table below); if undecided when the stage closes, the scale moves to Stage GR.
 - CAM-1: a course document writes a sky change at the original's position, and the renderer changes the sky when the
   point the camera follows (the player's base point; a still picture's and the workbench's too) reaches it; the rule

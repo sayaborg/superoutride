@@ -48,6 +48,8 @@ AI reference driving generates game time limits, not test timing baselines.
 - Give each PR one purpose. Keep moves/renames, deletions and logic changes in separate PRs.
 - Keep logic changes small enough to read in one review. If they would exceed that scope, split the work
   and report the split instead of broadening the PR.
+- A report to K begins with one line saying where K can see the change, and names a replacement that cannot be
+  avoided on the next.
 - Keep the game playable after every PR. If old and new implementations temporarily coexist, remove
   the old implementation in the final PR of the same stage and name that cleanup in NEXT.
 
