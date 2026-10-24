@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 55,
+  "version": 56,
   "name": "CB▼DC▼CM▼ST▼LAK",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -25896,7 +25896,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "right"
+        }
+      ]
     },
     {
       "id": "devils-canyon",
@@ -49744,7 +49750,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "right"
+        }
+      ]
     },
     {
       "id": "cloudy-mountain",
@@ -73037,7 +73049,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "right"
+        }
+      ]
     },
     {
       "id": "seaside-town",
@@ -100087,7 +100105,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "right"
+        }
+      ]
     },
     {
       "id": "lakeside",

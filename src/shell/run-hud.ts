@@ -94,6 +94,7 @@ export const HUD_LAYOUT = Object.freeze({
   lapTime: [10, 4],
   bestLabel: [1, 5],
   bestTime: [10, 5],
+  parting: [18, 3],
   pass: [27, 4],
   target: [24, 5],
   extend: ['center', 7],
@@ -333,6 +334,11 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     // Until the run ends: an ended run has no next gate to pass.
     when: ({ race }) => !ended(race) && race.nextRankLimit !== null,
     write: ({ race }, text) => write(text, 'pass', `PASS ${race.nextRankLimit}`, small('WHITE')),
+  },
+  {
+    // The side of the next parting, from the gate before it to where the roads part: the road arrow at the top.
+    when: ({ race }) => race.nextParting !== null,
+    write: ({ race }, text) => writeArrow(text, 'parting', race.nextParting === 'left' ? 'LEFT' : 'RIGHT'),
   },
   {
     when: ({ race }) => (race.stageRivalGap ?? 0) > 0,

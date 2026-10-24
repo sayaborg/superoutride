@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 55,
+  "version": 56,
   "name": "CB▲GAT▲DES▲WIL▲VIN",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -25896,7 +25896,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "gateway",
@@ -50310,7 +50316,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "desert",
@@ -67790,7 +67802,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "wilderness",
@@ -85701,7 +85719,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "vineyard",

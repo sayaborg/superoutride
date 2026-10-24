@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 55,
+  "version": 56,
   "name": "CB▲GAT▼ALP▲OC▲DV",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -25896,7 +25896,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "gateway",
@@ -50310,7 +50316,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "right"
+        }
+      ]
     },
     {
       "id": "alps",
@@ -62296,7 +62308,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "old-capital",
@@ -87187,7 +87205,13 @@
           "arrival": "wipe"
         }
       ],
-      "gates": []
+      "gates": [
+        {
+          "kind": "parting",
+          "at": { "joint": "c0", "offset": 0 },
+          "side": "left"
+        }
+      ]
     },
     {
       "id": "death-valley",

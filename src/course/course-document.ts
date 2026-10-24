@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 55;
+export const COURSE_DOCUMENT_VERSION = 56;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -236,7 +236,9 @@ export type CourseGateDocument =
       readonly grid: readonly CourseGridSlotDocument[];
       readonly bikeGrid: readonly CourseGridSlotDocument[] | null;
     }
-  | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition };
+  | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition }
+  /** Where the roads part, and the side this course's road takes there: route information, neither shape nor picture. */
+  | { readonly kind: 'parting'; readonly at: CoursePosition; readonly side: 'left' | 'right' };
 
 /** Position-free course rules; series own RACE settings. */
 export interface CourseRules {
@@ -748,6 +750,14 @@ function gate(value: unknown, path: string): CourseGateDocument {
   if (kind === 'lock' || kind === 'closure') {
     const v = readRecord(value, path, ['kind', 'at']);
     return Object.freeze({ kind, at: position(v.at, `${path}/at`) });
+  }
+  if (kind === 'parting') {
+    const v = readRecord(value, path, ['kind', 'at', 'side']);
+    return Object.freeze({
+      kind,
+      at: position(v.at, `${path}/at`),
+      side: readEnum(v.side, ['left', 'right'], `${path}/side`),
+    });
   }
   throw new CourseInputError('invalid_gate', `${path}/kind`, 'Unknown gate kind');
 }

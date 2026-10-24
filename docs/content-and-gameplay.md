@@ -27,7 +27,7 @@ authoring core and its tools save a course document that admits in that order.
 
 ```text
 CourseDocument {
-  format: "superoutride.course", version: 55,
+  format: "superoutride.course", version: 56,
   name, entry, maxLaps, bearing,
   sections, links
 }
@@ -334,6 +334,7 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `finish`     | `id`, `at`          | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
 | `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 | `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
+| `parting`    | `at`, `side`        | Increasing Section positions from zero through its end                                                            |
 
 A start gate has two grids, each a list of slots `{at, lane}`: `grid` serves every run, and `bikeGrid`, when it
 is not null, serves a run whose competitors all ride bikes, in place of `grid`; a run with a car starts from
@@ -348,7 +349,11 @@ At a checkpoint or finish there is a road, and every lane wider than zero there 
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
 A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
 closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
-lock or closure gates.
+lock or closure gates. A `parting` gate is route information, neither shape nor picture: where the roads part and the
+side, `left` or `right`, this course's road takes there. Compiled `gates` keep each Section's partings in order; a run
+reads the side of the next parting along the course when no checkpoint or finish comes before it (`nextParting`,
+following each Section's one outgoing Link; a branch or the road's end stops it), and the HUD shows it
+([Product](product.md#9-hud)).
 
 `entry` names the Section a run enters. `maxLaps` is a position-free setting: an integer from 1 through 99;
 non-circuits use 1. [Series](#series-documents) own RACE settings. `bearing` is the compass direction of the road at
@@ -713,7 +718,7 @@ surface-material document, the [document identity](#reference-times-and-clock) t
 `solidImages` holds the master `{width, height}`, in texels, of each solid sprite's image by name, the image
 dimensions its roadside objects take their shape from ([Roadside objects](#roadside-objects)).
 `buildSha256` hashes `{sourceSha256,materialsSha256,solidImages,compiler}`.
-The compiler is `superoutride.course-compiler` version 51, incorporating Link recipe v4, physical
+The compiler is `superoutride.course-compiler` version 52, incorporating Link recipe v4, physical
 recipe v9, image-source recipe v3 and appearance recipe v15. Source, material, solid image dimension or
 compiler/recipe changes invalidate dependent products.
 

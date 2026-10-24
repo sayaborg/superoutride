@@ -41,7 +41,8 @@ import { SIM_DT } from './fixed-step.js';
 import { createBarrierContacts } from './barrier-contacts.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
-import type { RouteOccurrence } from '../course/course-route.js';
+import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import { nextParting } from './next-parting.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
 
@@ -705,6 +706,17 @@ export function createCourseRace(options: {
     get slowDown() {
       return slowDown.stage;
     },
+    /**
+     * The side of the next parting ahead of the player before any checkpoint or finish (`nextParting`), until the run
+     * ends; null otherwise.
+     */
+    get nextParting(): 'left' | 'right' | null {
+      if (outcome.status === 'GOAL' || outcome.status === 'GAME_OVER') return null;
+      const occurrence = runtime.route.at(player.progress.s);
+      return occurrence
+        ? nextParting(course.gates, occurrence.section, routeSectionS(occurrence, player.progress.s))
+        : null;
+    },
     /** The player's STAGE: one more than the race gates the player has crossed since GO, across laps. */
     get stage() {
       return playerGates + 1;
@@ -873,6 +885,7 @@ export type RaceFacts = Pick<
   | 'simulationSeconds'
   | 'slowDown'
   | 'stage'
+  | 'nextParting'
   | 'lap'
   | 'lapCount'
   | 'courseType'

@@ -290,6 +290,7 @@ elements, each reading one observation; the active run rules determine which app
 | One rival per stage            | TARGET distance while that rival is ahead                                   |
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT                   |
 | Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes                |
+| A parting ahead, no gate first | The road arrow at the top centre, pointing the side the course takes there  |
 | TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                        |
 | Slowing needed (SETTINGS)      | SLOW DOWN                                                                   |
 
@@ -322,8 +323,10 @@ The lower row, from the left:
 
 There are no labels and no shift light. Text and HUD parts use one original font of 8×8 tiles (uppercase and lowercase
 letters, digits and symbols) in the same indexed format as sprites and backgrounds: 15 colors and transparency per
-palette, one palette per tile. Fork guidance is course appearance (signs), not HUD. DEV UI stays separate from the
-HUD.
+palette, one palette per tile. Where a course's roads part, its `parting` gate says which side its road takes
+([Section gates](content-and-gameplay.md#section-gates-and-run-settings)), and the HUD shows it from the gate before
+(the start, before the first) to where the roads part (a proposal K decides on Pages); a course with none shows none.
+DEV UI stays separate from the HUD.
 
 ## 10. Records and settings
 

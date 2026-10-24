@@ -1012,6 +1012,10 @@ function sectionDocument(
     });
   for (const c of section.checkpoints) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.p) });
   if (section.finish) gates.push({ kind: 'finish', id: section.finish.id, at: at(section.finish.p) });
+  // Where the roads part, the side the road takes: route information the HUD shows.
+  const { choice } = span;
+  if (choice && choice.parts >= from && choice.parts < to)
+    gates.push({ kind: 'parting', at: at(choice.parts), side: choice.side < 0 ? 'left' : 'right' });
 
   // The skies: each stage's from where its stretch begins, facing as at its start.
   const heading = l.world.heading + line.pose(origin).heading;

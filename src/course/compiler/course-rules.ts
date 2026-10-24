@@ -20,6 +20,12 @@ export interface CompiledCourseLandmark {
   readonly at: CompiledCoursePosition;
 }
 
+/** Where the roads part in a Section, and the side the course's road takes there. */
+export interface CompiledParting {
+  readonly at: CompiledCoursePosition;
+  readonly side: 'left' | 'right';
+}
+
 /** Canonical references and ordinary geometry; no live race, driver or vehicle catalog dependency. */
 export function compileCourseGates(
   document: CourseDocument,
@@ -110,7 +116,20 @@ export function compileCourseGates(
       );
       previous = gate.at.s;
     }
-    return Object.freeze({ section, checkpoints: Object.freeze(gates), finish });
+    // The partings, in order along the Section.
+    let last = -Infinity;
+    const partings = authored.flatMap(({ gate, section: owner, path: at }) => {
+      if (gate.kind !== 'parting' || owner !== section) return [];
+      const position = resolve(section, gate.at, `${at}/at`);
+      check(
+        position.s >= 0 && position.s <= endS(section) && position.s > last,
+        at,
+        'Partings lie in their Section in order',
+      );
+      last = position.s;
+      return [Object.freeze({ at: position, side: gate.side })];
+    });
+    return Object.freeze({ section, checkpoints: Object.freeze(gates), finish, partings: Object.freeze(partings) });
   });
   const surface = entry.material;
   const first = intervals.find((i) => i.section === entry)!;
