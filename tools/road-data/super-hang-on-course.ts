@@ -277,12 +277,11 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     `/${inputs.id}`,
     "An object stands past the course's end",
   );
-  // SAND reaches to the farthest picture standing on the ground beyond the lanes, a lane either side of P; a picture's
-  // base point is its middle.
+  // How far the pictures standing on the ground reach beyond the lanes, a lane either side of P.
   const beyond = groundWidth(
     placed
       .filter((o) => o.groundOffset === 0)
-      .map((o) => ({ lateral: o.lateral, reach: [o.picture.width / 2, o.picture.width / 2], edges: [LANE, LANE] })),
+      .map((o) => ({ lateral: o.lateral, width: o.picture.width, edges: [LANE, LANE] as const })),
   );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
@@ -302,46 +301,46 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
   const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1));
 
-  // The Sections.
+  // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
-  const documents = pieces.map((piece, i) =>
-    sectionDocument(piece, {
-      inputs,
-      path,
-      unit,
-      elements: plans[i]!,
-      origin: origins[i]!,
-      first: i === 0,
-      last: i === pieces.length - 1,
-      stretches,
-      beyond,
-      objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
-      checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
-      finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
-      grid: stationOf(0),
-      profile,
-      skyChanges: sections
-        .slice(0, -1)
-        .map((_, k) => stationOf(length * k + inputs.transition) - inputs.cameraDistance),
-      startHeading,
-    }),
-  );
-  const links = pieces.slice(1).map((piece, i) => ({
-    id: `${pieces[i]!.id}-${piece.id}`,
-    from: { section: pieces[i]!.id, lane: 'a' },
-    to: piece.id,
-  }));
+  const write = (ground: number) => ({
+    format: 'superoutride.course',
+    version: COURSE_DOCUMENT_VERSION,
+    name: inputs.name,
+    entry: pieces[0]!.id,
+    maxLaps: 1,
+    bearing: 0,
+    sections: pieces.map((piece, i) =>
+      sectionDocument(piece, {
+        inputs,
+        path,
+        unit,
+        elements: plans[i]!,
+        origin: origins[i]!,
+        first: i === 0,
+        last: i === pieces.length - 1,
+        stretches,
+        ground,
+        objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
+        checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
+        finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
+        grid: stationOf(0),
+        profile,
+        skyChanges: sections
+          .slice(0, -1)
+          .map((_, k) => stationOf(length * k + inputs.transition) - inputs.cameraDistance),
+        startHeading,
+      }),
+    ),
+    links: pieces.slice(1).map((piece, i) => ({
+      id: `${pieces[i]!.id}-${piece.id}`,
+      from: { section: pieces[i]!.id, lane: 'a' },
+      to: piece.id,
+    })),
+  });
   return {
-    document: {
-      format: 'superoutride.course',
-      version: COURSE_DOCUMENT_VERSION,
-      name: inputs.name,
-      entry: pieces[0]!.id,
-      maxLaps: 1,
-      bearing: 0,
-      sections: documents,
-      links,
-    },
+    /** The course's document, SAND reaching `ground` beyond the lanes (the original's; `beyond`, this course's most). */
+    write,
     path,
     plan: {
       ...plan,
@@ -385,7 +384,7 @@ function sectionDocument(
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
-    readonly beyond: number;
+    readonly ground: number;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
@@ -552,11 +551,11 @@ function sectionDocument(
     boundaries: [
       {
         id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.beyond) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.ground) })),
       },
       {
         id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.beyond) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.ground) })),
       },
     ],
     strips,

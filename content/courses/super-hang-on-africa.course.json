@@ -105,11 +105,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             }
           ]
         },
@@ -118,11 +118,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             }
           ]
         }
@@ -8427,11 +8427,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             }
           ]
         },
@@ -8440,11 +8440,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             }
           ]
         }
@@ -11094,11 +11094,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             }
           ]
         },
@@ -11107,11 +11107,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             }
           ]
         }
@@ -16986,11 +16986,11 @@
           "knots": [
             {
               "at": { "joint": "c0", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             }
           ]
         },
@@ -16999,11 +16999,11 @@
           "knots": [
             {
               "at": { "joint": "c0", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             }
           ]
         }
@@ -20709,11 +20709,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": -18.541315
+              "lateral": -18.833014
             }
           ]
         },
@@ -20722,11 +20722,11 @@
           "knots": [
             {
               "at": { "joint": "s0", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             },
             {
               "at": { "joint": "end", "offset": 0 },
-              "lateral": 18.541315
+              "lateral": 18.833014
             }
           ]
         }

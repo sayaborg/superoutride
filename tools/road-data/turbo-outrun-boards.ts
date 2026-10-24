@@ -11,7 +11,6 @@ import { cutBoard } from './extending-boards.js';
 import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
-import { pictureReach } from './section-writing.js';
 
 /** A strip's family: how many sizes its list holds and the nearest's place. */
 export interface StripFamily {
@@ -127,7 +126,6 @@ export function turboOutrunBoards(
       const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
-        reach: pictureReach(master),
         whole,
         image: courseImageFile(master),
         split,

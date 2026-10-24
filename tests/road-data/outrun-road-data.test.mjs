@@ -424,7 +424,8 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   });
   // P turns as the path does: its arcs at the stage's 60 and the goal's 80 positions' radius, the plan within the
   // table's resolution held over the road.
-  const radii = road.document.sections.flatMap((s) => s.plan.filter((e) => e.kind === 'arc').map((e) => e.radius));
+  const document = road.write(road.beyond);
+  const radii = document.sections.flatMap((s) => s.plan.filter((e) => e.kind === 'arc').map((e) => e.radius));
   for (const positions of [60, 80])
     assert.ok(
       radii.some((r) => Math.abs(r / (positions * POSITION_METRES) - 1) < 0.005),
@@ -432,9 +433,9 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
     );
   for (const { heading, beyond } of road.fidelity)
     assert.ok(!beyond.length && heading <= VECTOR_RESOLUTION * (1 + 1e-9), `${heading}`);
-  const read = readCourseDocument(normalizeCoursePositions(road.document).document);
+  const read = readCourseDocument(normalizeCoursePositions(document).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
-  const [section] = road.document.sections;
+  const [section] = document.sections;
   // Three lanes of 3.6 m each side at the start (road width 212, the median 0 and left out).
   assert.deepEqual(
     section.lanes.slice(0, 3).map((l) => (typeof l.width === 'number' ? l.width : l.width[0].width)),

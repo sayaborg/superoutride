@@ -278,9 +278,8 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 - **An arc's radius** is bounded only by the arc computation's precision, not by the ruler's length (EX-7c2a); a run is
   straight only where its slope is 0.
 - **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beyond the
-  outermost lane's edge (EX-7c3, a course's own objects, each picture's reach from its base point: SUPER HANG-ON's 14.0
-  to 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 53.2 m, where EX-7d's table took half a picture's
-  width about its base point, 47.6 m; SUPER MONACO GP's by EX-8).
+  outermost lane's edge, its base point and half its width, over all an original's courses (EX-7c3: SUPER HANG-ON's 14.5
+  m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m; SUPER MONACO GP's by EX-8).
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars). First a PR of the run's setup, which no longer refuses

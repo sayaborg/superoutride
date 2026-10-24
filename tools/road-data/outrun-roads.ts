@@ -315,8 +315,8 @@ export interface RoadOptions {
   readonly lying: ReadonlyMap<string, LyingBoard>;
   /** Each extending board's edge, by its image name: standing once where the board does. */
   readonly edges: ReadonlyMap<string, string>;
-  /** Each picture's reach left and right of its base point, metres, by image name (`pictureReach`). */
-  readonly reach: ReadonlyMap<string, readonly [number, number]>;
+  /** Each picture's width, metres, by image name. */
+  readonly widths: ReadonlyMap<string, number>;
   /** The pictures standing at their foot shown raised too, by their `-raised` image. */
   readonly split: ReadonlySet<string>;
   readonly name: string;
@@ -551,8 +551,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const found = project(laid, k, point, p);
     return found ? [{ ...found, object: o }] : [];
   });
-  // SAND reaches to the farthest object shown on the ground beyond the outermost lanes, an extending board's edge with
-  // it.
+  // How far the objects shown on the ground reach beyond the outermost lanes, an extending board's edge with it.
   const beyond = groundWidth(
     placed
       .filter(({ object: o }) => o.y === 0)
@@ -563,7 +562,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
         const edge = options.edges.get(o.image);
         return [o.image, ...(edge ? [edge] : [])].map((image) => ({
           lateral,
-          reach: options.reach.get(image)!,
+          width: options.widths.get(image)!,
           edges,
         }));
       }),
@@ -571,9 +570,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
 
   const guidance = roadGuidance(laid);
 
-  // The Sections.
-  const sections: unknown[] = [];
-  const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
+  // The Sections, SAND reaching `ground` beyond the outermost lanes.
   // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
   const stageStarts = new Map<Stage, number>();
   for (const l of laid)
@@ -582,57 +579,65 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const { k, p } = spanAt(position);
     return { k, p };
   });
-  laid.forEach((l, k) => {
-    const starts = [0, ...l.cuts];
-    const ids = starts.map((_, i) => (i === 0 ? l.road.id : `${l.road.id}-${i + 1}`));
-    starts.forEach((from, i) => {
-      const to = starts[i + 1] ?? l.road.span.length;
-      const last = k === laid.length - 1 && i === starts.length - 1;
-      const name = options.stageName(l.road.span.stages[0]!.stage).toUpperCase();
-      const cp = checkpoints.find((c) => c.k === k && c.p > from && c.p <= to);
-      // A stage's end is the road's finish on its last span, else a checkpoint: a goal the road runs on from.
-      const end = l.road.span.stageEnd;
-      const goal = end !== undefined && end > from && end <= to ? { id: `${name}-GOAL`, p: end } : null;
-      sections.push(
-        sectionDocument(l, {
-          id: ids[i]!,
-          from,
-          to,
-          roadOrigin: l.origins[i]!,
-          first: k === 0 && i === 0,
-          joinsBefore: k > 0 || i > 0,
-          joinsAfter: !last,
-          checkpoints: [...(cp ? [{ id: `${name}-CP`, p: cp.p }] : []), ...(goal && k < laid.length - 1 ? [goal] : [])],
-          finish: k === laid.length - 1 ? goal : null,
-          objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
-          guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
-          profile,
-          stageStarts,
-          beyond,
-          options,
-        }),
-      );
-      const next = starts[i + 1] !== undefined ? ids[i + 1] : laid[k + 1]?.road.id;
-      if (next)
-        links.push({
-          id: `${ids[i]}-${next}`,
-          from: { section: ids[i]!, lane: starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves },
-          to: next,
-        });
+  const write = (ground: number) => {
+    const sections: unknown[] = [];
+    const links: { id: string; from: { section: string; lane: string }; to: string }[] = [];
+    laid.forEach((l, k) => {
+      const starts = [0, ...l.cuts];
+      const ids = starts.map((_, i) => (i === 0 ? l.road.id : `${l.road.id}-${i + 1}`));
+      starts.forEach((from, i) => {
+        const to = starts[i + 1] ?? l.road.span.length;
+        const last = k === laid.length - 1 && i === starts.length - 1;
+        const name = options.stageName(l.road.span.stages[0]!.stage).toUpperCase();
+        const cp = checkpoints.find((c) => c.k === k && c.p > from && c.p <= to);
+        // A stage's end is the road's finish on its last span, else a checkpoint: a goal the road runs on from.
+        const end = l.road.span.stageEnd;
+        const goal = end !== undefined && end > from && end <= to ? { id: `${name}-GOAL`, p: end } : null;
+        sections.push(
+          sectionDocument(l, {
+            id: ids[i]!,
+            from,
+            to,
+            roadOrigin: l.origins[i]!,
+            first: k === 0 && i === 0,
+            joinsBefore: k > 0 || i > 0,
+            joinsAfter: !last,
+            checkpoints: [
+              ...(cp ? [{ id: `${name}-CP`, p: cp.p }] : []),
+              ...(goal && k < laid.length - 1 ? [goal] : []),
+            ],
+            finish: k === laid.length - 1 ? goal : null,
+            objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
+            guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
+            profile,
+            stageStarts,
+            ground,
+            options,
+          }),
+        );
+        const next = starts[i + 1] !== undefined ? ids[i + 1] : laid[k + 1]?.road.id;
+        if (next)
+          links.push({
+            id: `${ids[i]}-${next}`,
+            from: { section: ids[i]!, lane: starts[i + 1] !== undefined ? l.road.span.centreLane : l.road.leaves },
+            to: next,
+          });
+      });
     });
-  });
-  const document = {
-    format: 'superoutride.course',
-    version: COURSE_DOCUMENT_VERSION,
-    name: options.name,
-    entry: laid[0]!.road.id,
-    maxLaps: 1,
-    bearing: 0,
-    sections,
-    links,
+    return {
+      format: 'superoutride.course',
+      version: COURSE_DOCUMENT_VERSION,
+      name: options.name,
+      entry: laid[0]!.road.id,
+      maxLaps: 1,
+      bearing: 0,
+      sections,
+      links,
+    };
   };
   return {
-    document,
+    /** The road's document, SAND reaching `ground` beyond the lanes (the original's; `beyond`, this road's most). */
+    write,
     laid,
     end,
     profile,
@@ -776,7 +781,7 @@ function sectionDocument(
     readonly profile: Profile;
     readonly stageStarts: ReadonlyMap<Stage, number>;
     /** How far SAND reaches beyond the outermost lanes, metres. */
-    readonly beyond: number;
+    readonly ground: number;
     readonly options: RoadOptions;
   },
 ) {
@@ -844,7 +849,7 @@ function sectionDocument(
 
   // The verges: knots within the Section, and its ends where a stretch of one reference holds.
   const verge = (knots: readonly VergeKnot[]) => {
-    const placed = placedVerges(span, knots, section.beyond);
+    const placed = placedVerges(span, knots, section.ground);
     const inside = placed.filter((k) => k.at > from && k.at < to);
     const around = (p: number) => {
       const i = placed.findIndex((k) => k.at >= p);
@@ -860,12 +865,12 @@ function sectionDocument(
     };
     return [around(from), ...inside, around(to)].map((k) => ({
       at: at(k.at),
-      lateral: ref(k.ref, k.outward * section.beyond),
+      lateral: ref(k.ref, k.outward * section.ground),
     }));
   };
   // A verge's lateral at a Section station, metres right of P.
   const vergeAt = (side: 'left' | 'right') => {
-    const lateral = vergeLine(span, span.verges[side], section.beyond);
+    const lateral = vergeLine(span, span.verges[side], section.ground);
     return (s: number) => lateral((s + origin) / POSITION_METRES);
   };
 

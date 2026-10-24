@@ -204,7 +204,7 @@ export function turboOutrunCourse(set: RomSet) {
   const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
   // SAND reaches to the farthest picture shown on the ground beyond the outermost lanes, an extending board's edge with
   // it.
-  const reaches = new Map(boards.map((b) => [b.name, b.reach]));
+  const widths = new Map(boards.map((b) => [b.name, b.width]));
   const beyond = groundWidth(
     placing.placed
       .filter((o) => o.height === 0)
@@ -213,7 +213,7 @@ export function turboOutrunCourse(set: RomSet) {
         const lanes = [layout.laneReach(o.g, 'left'), layout.laneReach(o.g, 'right')] as const;
         return [name, ...(edges.has(name) ? [edges.get(name)!] : [])].map((n) => ({
           lateral: o.x,
-          reach: reaches.get(n)!,
+          width: widths.get(n)!,
           edges: lanes,
         }));
       }),
@@ -222,7 +222,7 @@ export function turboOutrunCourse(set: RomSet) {
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout,
-      widths: new Map(boards.map((b) => [b.name, b.width])),
+      widths,
       wholes: new Map(boards.map((b) => [b.name, b.whole])),
       edges,
       beyond,

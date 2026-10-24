@@ -27,7 +27,7 @@ import { paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 9;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 10;
 
 /** The goal's straight in positions: the original's 200, made longer so every vehicle stops before its end. */
 const GOAL_POSITIONS = 260;
@@ -183,15 +183,20 @@ export function superHangOnCourses(set: RomSet) {
   const pictures = superHangOnPictures(main, words, uses, unit);
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
   const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
-  const raised = built.map((b) => ({
-    ...b,
-    road: {
-      ...b.road,
-      document: {
-        ...b.road.document,
-        sections: b.road.document.sections.map((s) => ({ ...s, sprites: raisedSplit(s.sprites, split) })),
+  // SAND reaches the original's ground: the farthest any course's pictures standing on the ground reach.
+  const ground = Math.max(...built.map((b) => b.road.beyond));
+  const raised = built.map((b) => {
+    const document = b.road.write(ground);
+    return {
+      ...b,
+      road: {
+        ...b.road,
+        document: {
+          ...document,
+          sections: document.sections.map((s) => ({ ...s, sprites: raisedSplit(s.sprites, split) })),
+        },
       },
-    },
-  }));
-  return { built: raised, pictures, metres, cross, unit, rules, amounts };
+    };
+  });
+  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground };
 }

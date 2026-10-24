@@ -186,7 +186,7 @@ export function enduroRacerCourse(set: RomSet) {
   const objects = enduroRacerObjects(main, unit);
   const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
-  const reach = new Map(pictures.map((p) => [p.name, p.reach]));
+  const width = new Map(pictures.map((p) => [p.name, p.width]));
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
   const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
   const spots = objects.spots.map((spot) =>
@@ -208,7 +208,7 @@ export function enduroRacerCourse(set: RomSet) {
     yawOrigin,
     spots,
     colored: (image) => colored.get(image)!,
-    reach: (image) => reach.get(image)!,
+    width: (image) => width.get(image)!,
   });
   // Each stage's sky, baked from its background over its ground's color (stage 5's the sea).
   const planes = assembleEnduroRacerTiles(set);
@@ -254,10 +254,10 @@ interface CourseInputs {
   }[];
   /** The yaw origin of a Section whose start faces the course's start, degrees. */
   readonly yawOrigin: number;
-  /** The objects, and each picture's colored width and reach either side of its base point, metres. */
+  /** The objects, and each picture's colored width and width, metres. */
   readonly spots: readonly ObjectSpot[];
   readonly colored: (image: string) => number;
-  readonly reach: (image: string) => readonly [number, number];
+  readonly width: (image: string) => number;
 }
 
 /** An object placed: its station, lateral, picture, height and body. */
@@ -379,7 +379,7 @@ function layCourse(inputs: CourseInputs) {
   const beyond = groundWidth(
     placed
       .filter((o) => o.groundOffset === 0)
-      .map((o) => ({ lateral: o.lateral, reach: inputs.reach(o.image), edges: [LANE, LANE] as const })),
+      .map((o) => ({ lateral: o.lateral, width: inputs.width(o.image), edges: [LANE, LANE] as const })),
   );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the

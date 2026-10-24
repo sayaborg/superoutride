@@ -236,16 +236,15 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       idOf: (stage: Stage) => slug(nameOf(stage)),
       shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
     };
-    // What lies on the ground, its materials beneath it, the extending boards' edges and each board's reach.
-    const { lying, edges, split, reach } = boardShapes(
+    // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
+    const { lying, edges, split, widths } = boardShapes(
       programs.main,
       assembleSprites(set),
       outrunSceneryUses(programs).uses,
     );
-    const courses = [];
     const starts = startObjects(programs.main);
-    for (const route of OUTRUN_ROUTES) {
-      const road = outrunRoad(routeSpans(route, inputs), {
+    const roads = OUTRUN_ROUTES.map((route) =>
+      outrunRoad(routeSpans(route, inputs), {
         id: route.id,
         name: routeName(route, inputs),
         tables,
@@ -256,7 +255,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         lying,
         edges,
         split,
-        reach,
+        widths,
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,
@@ -273,15 +272,21 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             report: { dropped, ended, start, figures: figures.length },
           };
         },
-      });
-      const file = await saveCourse(route.id, road.document, check);
+      }),
+    );
+    // SAND reaches the original's ground: the farthest any road's objects shown on the ground reach.
+    const ground = Math.max(...roads.map((road) => road.beyond));
+    const courses = [];
+    for (const [k, route] of OUTRUN_ROUTES.entries()) {
+      const road = roads[k]!;
+      const document = road.write(ground);
+      const file = await saveCourse(route.id, document, check);
       const stations = Array.from({ length: Math.floor(road.end) + 1 }, (_, s) => s);
       courses.push({
         course: file,
-        sections: road.document.sections.length,
+        sections: document.sections.length,
         metres: round1(road.end),
         objects: road.objects,
-        ground: road.beyond,
         placing: road.placing,
         // Each span's fidelity, the most over the spans and their widened turns.
         ...(() => {
@@ -322,6 +327,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         zip,
         conversion: CONVERSION_VERSION,
         checked: check,
+        ground,
         courses,
         skies: OUTRUN_STAGES.flat().map(skyName),
       }),

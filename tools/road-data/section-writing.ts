@@ -15,7 +15,6 @@ import {
   type PlanSegmentGeometry,
 } from '../../src/course/geometry/plan-path.js';
 import { createPlanClearance } from '../../src/course/plan-clearance.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 
 /** A cut keeps this far from a gate, metres. */
 const GATE_ROOM = 2;
@@ -24,26 +23,18 @@ export const JOINT_SNAP = 2e-6;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 
-/** A picture's reach left and right of its base point, metres: to its texels' outer edges. */
-export const pictureReach = ({ width, anchorX }: { readonly width: number; readonly anchorX: number }) =>
-  [(anchorX + 0.5) / SPRITE_SOURCE_TEXELS_PER_METER, (width - 0.5 - anchorX) / SPRITE_SOURCE_TEXELS_PER_METER] as const;
-
 /**
- * The ground's width beside a course's road ([Original road data](../../docs/original-road-data.md#the-ground-beside-the-road)):
+ * The ground's width beside an original's road ([Original road data](../../docs/original-road-data.md#the-ground-beside-the-road)):
  * how far beyond the outermost lane's edge on its side the farthest of the pictures `standing` on the ground reaches,
- * metres; each stands at `lateral` right of P, reaching `reach` left and right of it, the outermost lanes' edges
+ * metres; each's outer edge its base point, `lateral` right of P, and half its `width`, the outermost lanes' edges
  * `edges` left and right of P there. 0 with none beyond.
  */
 export function groundWidth(
-  standing: Iterable<{
-    readonly lateral: number;
-    readonly reach: readonly [number, number];
-    readonly edges: readonly [number, number];
-  }>,
+  standing: Iterable<{ readonly lateral: number; readonly width: number; readonly edges: readonly [number, number] }>,
 ): number {
   let most = 0;
-  for (const { lateral, reach, edges } of standing)
-    most = Math.max(most, reach[0] - lateral - edges[0], lateral + reach[1] - edges[1]);
+  for (const { lateral, width, edges } of standing)
+    most = Math.max(most, width / 2 - lateral - edges[0], lateral + width / 2 - edges[1]);
   return round(most);
 }
 

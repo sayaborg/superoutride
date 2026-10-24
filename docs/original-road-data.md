@@ -261,12 +261,12 @@ where the arrangement changes. ASPHALT lies under each road from its centre ∓ 
 
 ## The ground beside the road
 
-A course's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
-farthest of its original's objects shown on the ground (at height 0) reaches, to its picture's outer edge
-(`groundWidth`): a picture reaches from its base point to its texels' outer edges (`pictureReach`), and an extending
-board counts by its one repeat and its edge, not as far as it repeats. A road that comes in or goes out (OUTRUN's forks)
-holds its verge at its outer lane's edge as its lanes are wide. One width a course, over all its objects; the course
-format ends the ground where the plan stops being one-to-one ([Architecture](architecture.md#plan-authority)).
+An original's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
+farthest of its objects shown on the ground (at height 0) reaches on any of its courses, to its picture's outer edge,
+its base point and half its width (`groundWidth`); an extending board counts by its one repeat and its edge, not as far
+as it repeats. One width an original (OUTRUN's that of ALL 15 STAGES, which holds every object). A road that comes in or
+goes out (OUTRUN's forks) holds its verge at its outer lane's edge as its lanes are wide. The course format ends the
+ground where the plan stops being one-to-one ([Architecture](architecture.md#plan-authority)).
 
 ## Plan
 

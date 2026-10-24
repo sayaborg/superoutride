@@ -9,7 +9,6 @@ import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { chosenLines, footAnchorY, paletteName, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
-import { pictureReach } from './section-writing.js';
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
 export const PIXEL_UNITS = 128 / 125;
@@ -157,7 +156,7 @@ export function enduroRacerBoards(
       const entry = (master: SpriteLodDocument) => ({
         name: master.name,
         colored: coloredWidth(source, unit),
-        reach: pictureReach(master),
+        width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         image: courseImageFile(master),
         split: false,
       });
