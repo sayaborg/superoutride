@@ -573,7 +573,8 @@ The rules of the originals (what never enters the repository, decryption, other 
   domains](content-and-gameplay.md#numeric-and-resource-domains).
 - Gates: the grid or start, checkpoints, the finish or goal, as the original places them. The grid's last slot, the
   player's, at GO in the lane where the original's own vehicle stands at GO (its x as its program sets it there), the
-  others alternating that lane and the next back from it.
+  others alternating that lane and the next back from it. Where the original's vehicle stands between two lanes, K
+  decides the lane (SUPER HANG-ON's and ENDURO RACER's: a, K, 2026-10-24).
 
 ### 10. Identity and checks
 

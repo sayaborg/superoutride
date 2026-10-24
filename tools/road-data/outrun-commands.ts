@@ -14,7 +14,7 @@ import { hillsAlong, tableRuns } from './hills.js';
 import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
 import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
-import { OUTRUN_NAMES, OUTRUN_SHORT_NAMES, skyName, slug } from './outrun-names.js';
+import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import {
   layRoad,
   OUTRUN_ROUTES,
@@ -234,7 +234,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       goals,
       goalOf: (row: number, column: number) => goalNumber(programs.main, row, column),
       idOf: (stage: Stage) => slug(nameOf(stage)),
-      shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
     };
     // What lies on the ground, its materials beneath it, the extending boards' edges and each board's width.
     const { lying, edges, split, widths } = boardShapes(
@@ -246,7 +245,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     const roads = OUTRUN_ROUTES.map((route) =>
       outrunRoad(routeSpans(route, inputs), {
         id: route.id,
-        name: routeName(route, inputs),
+        name: routeName(route, OUTRUN_ROUTES),
         tables,
         kmh: TOP_KMH,
         cameraDistance: cameraDistance(CAMERA_DEFINITION),

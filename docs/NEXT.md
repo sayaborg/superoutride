@@ -209,7 +209,7 @@ PRs, in this order:
   no turn tighter than its lanes keep, its hairpins left to the format. Its ground stays the band tables' limits
   until K decides between them and the ground width rule.
 - EX-7e: the player's grid slot at GO in the lane where the original's own vehicle stands there (OUTRUN's lane b, the
-  left road's centre); the bikes stand on P between their lanes, so K decides theirs.
+  left road's centre); the bikes stand on P between their lanes, so K decided theirs: a (2026-10-24).
 - EX-7f: ALL 15 STAGES deleted, with what it alone used: its join pieces, the checkpoints, guidance and passed-through
   objects of goals the road runs on from.
 - EX-7g: a `parting` gate in the course format (version 56): where the roads part and the side the course's road
@@ -247,7 +247,9 @@ PRs, in this order:
 
 - EX-7j: OUTRUN's courses six LONG (C's two now LRRL and RLLR) and six SHORT, each SHORT from a start on the straight
   between the two corners of a road into DESERT (L) or CLOUDY MOUNTAIN (R) from beyond the map; named OUTRUN A to E and
-  OUTRUN SHORT A to E, C's two by LEFT or RIGHT (K, 2026-10-24).
+  OUTRUN SHORT A to E, C's two by LEFT or RIGHT (K, 2026-10-24). Two PRs:
+  - EX-7j1: C's two LRRL and RLLR, and the names by the goal (`routeName`), the short names and marks deleted.
+  - EX-7j2: the six SHORT courses from their starts, the name rule's SHORT, and what the twelve hold together.
 - The run's setup (`src/`): a course whose road past the finish is shorter than a vehicle's stop is no longer refused;
   a road's end (the course's entry, or the end of a Section no Link leaves) is held as a fixed object is, so a vehicle
   that leaves the domain there recovers at rest, as a blocked one does; the present rules, no new constant (K,

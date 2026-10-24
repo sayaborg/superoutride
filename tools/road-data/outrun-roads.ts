@@ -56,7 +56,6 @@ import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import type { LyingBoard } from './outrun-boards.js';
 import { lyingMaterials, type LyingPiece } from './ground-materials.js';
-import { TEXT_MARKS } from '../../src/image/text-tiles.js';
 
 /**
  * The start grid: as many slots as a run's competitors, this far apart, the last (the player's) at GO in lane b, where
@@ -1191,22 +1190,21 @@ export interface OutrunRoute {
 export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
   { id: 'outrun-a', forks: 'LLLL' },
   { id: 'outrun-b', forks: 'LRLL' },
-  { id: 'outrun-c-left', forks: 'LLRR' },
-  { id: 'outrun-c-right', forks: 'RRLL' },
+  { id: 'outrun-c-left', forks: 'LRRL' },
+  { id: 'outrun-c-right', forks: 'RLLR' },
   { id: 'outrun-d', forks: 'RLRR' },
   { id: 'outrun-e', forks: 'RRRR' },
 ]);
-/** A left fork leads up the original's map, a right one down. */
-const FORK_MARKS: Readonly<Record<string, string>> = Object.freeze({ L: TEXT_MARKS.up, R: TEXT_MARKS.down });
+/** The goal a road reaches, A to E down the map from the left fork's side: each right fork one further down. */
+const goalOf = (route: OutrunRoute) => String.fromCharCode(0x41 + [...route.forks].filter((f) => f === 'R').length);
 
 /**
- * A road's name (K, 2026-10-20): its stages' short names in the order it runs them, each fork's side between them as
- * the map reads it (▲ left, up; ▼ right, down).
+ * A road's name among `routes` (K, 2026-10-24): OUTRUN and its goal's letter; where another road of `routes` reaches
+ * the same goal, the side it begins by, LEFT or RIGHT, its first fork's.
  */
-export function routeName(route: OutrunRoute, inputs: RouteInputs): string {
-  return routeSteps(route, inputs)
-    .map(({ stage }, k) => (k > 0 ? FORK_MARKS[route.forks[k - 1]!]! : '') + inputs.shortOf(stage))
-    .join('');
+export function routeName(route: OutrunRoute, routes: readonly OutrunRoute[]): string {
+  const twin = routes.some((r) => r !== route && goalOf(r) === goalOf(route));
+  return ['OUTRUN', goalOf(route), ...(twin ? [route.forks[0] === 'L' ? 'LEFT' : 'RIGHT'] : [])].join(' ');
 }
 
 /** What a route's spans are made from. */
@@ -1220,8 +1218,6 @@ export interface RouteInputs {
   readonly goalOf: (row: number, column: number) => number;
   /** A stage's Sections' ids' stem. */
   readonly idOf: (stage: Stage) => string;
-  /** A stage's short name. */
-  readonly shortOf: (stage: Stage) => string;
 }
 
 /**

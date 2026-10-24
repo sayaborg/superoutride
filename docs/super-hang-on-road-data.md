@@ -227,7 +227,7 @@ crossings:
   `<course>-GOAL` at GOAL.
 - **Grids.** The start gate's 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate
   lanes. The original's bike stands at GO on P (a game's start clears its x, 0x85B0), between lanes a and b, so the
-  grid's rule leaves its lane to K; lane a is kept until K decides.
+  grid's rule leaves its lane to K: a (K, 2026-10-24).
 - **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
   figures, as its last frame shows them (K's reading of the original's run: their frames, palettes, x and height
   above the road), at 56.0, where the original's bike stops.

@@ -191,7 +191,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grid is SUPER
   HANG-ON's: 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate lanes; the
   original's five abreast is not copied. The original's bike stands at GO on P (its x brought back to 0 at 4 units a
-  tick, 0x6210), between lanes a and b, so the grid's rule leaves its lane to K; lane a is kept until K decides.
+  tick, 0x6210), between lanes a and b, so the grid's rule leaves its lane to K: a (K, 2026-10-24).
 - **Skies.** Stage s's (0 from) is `enduror-<s + 1>-sky`, its environment `STAGE <s + 1>`, its background baked ([Sky
   baking](original-road-data.md#sky-baking)): its back and front layers ([ENDURO RACER's
   backgrounds](#enduro-racers-backgrounds)), each column's tiles in its palettes, both layers' bottom row the first

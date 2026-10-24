@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 27 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 28 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -601,24 +601,24 @@ Link's lane's centre:
   fork piece, 6 m before where the car reaches the original's width 360 (the camera, 6 m behind the car, then reaches
   the original's change).
 
-A road's name (`routeName`, K, 2026-10-20) is its stages' short names in the order it runs them, each fork's side
-between them as the original's map reads it: ▲ where it takes the left fork (up the map), ▼ the right (down). The goals'
-letters and L and R are not written; the courses' ids stay.
+The roads are K's (2026-10-24): C's two are LRRL and RLLR. A road's name (`routeName`, K, 2026-10-24) is OUTRUN and its goal's letter; C's two,
+the only two roads to one goal, add the side they begin by, LEFT or RIGHT, their first fork's. Names write no marks;
+the courses' ids stay.
 
-| Course           | Name               | Forks | Stages                                                                           |
-| ---------------- | ------------------ | ----- | -------------------------------------------------------------------------------- |
-| `outrun-a`       | CB▲GAT▲DES▲WIL▲VIN | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                         |
-| `outrun-b`       | CB▲GAT▼ALP▲OC▲DV   | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                      |
-| `outrun-c-left`  | CB▲GAT▲DES▼OC▼DH   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                 |
-| `outrun-c-right` | CB▼DC▼CM▲WF▲DH     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C) |
-| `outrun-d`       | CB▼DC▲ALP▼WF▼AUT   | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                   |
-| `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)       |
+| Course           | Name           | Forks | Stages                                                                     |
+| ---------------- | -------------- | ----- | -------------------------------------------------------------------------- |
+| `outrun-a`       | OUTRUN A       | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                   |
+| `outrun-b`       | OUTRUN B       | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                |
+| `outrun-c-left`  | OUTRUN C LEFT  | LRRL  | COCONUT BEACH, GATEWAY, ALPS, WHEAT FIELD, DESOLATION HILL (C)             |
+| `outrun-c-right` | OUTRUN C RIGHT | RLLR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, OLD CAPITAL, DESOLATION HILL (C)      |
+| `outrun-d`       | OUTRUN D       | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)             |
+| `outrun-e`       | OUTRUN E       | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E) |
 
-The six roads are each 24.17 km along P (each runs as many positions), with 17 to 19 Sections and 9,477 to 11,781
-objects. Their plans are 269 to 313 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
+The six roads are each 24.17 km along P (each runs as many positions), with 17 to 19 Sections and 9,477 to 12,188
+objects. Their plans are 264 to 313 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
 resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the [ground's
 width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes, 47.59 m on every road. Their
-heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11 crossings each are kept 6 m apart. In each goal
+heights reach −185 m and 266 m (the hills' rule, unchanged); 7 to 11 crossings each are kept 6 m apart. In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
 crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,
@@ -632,27 +632,6 @@ MOUNTAIN, 0x2F ALPS, 0x2A DESERT; row 4 0x2D SEASIDE TOWN, 0x35 WHEAT FIELD, 0x3
 0x32 LAKESIDE, 0x23 AUTOBAHN, 0x38 DESOLATION HILL, 0x22 DEATH VALLEY, 0x26 VINEYARD (`OUTRUN_NAMES`). On the map,
 from the left fork's side: COCONUT BEACH; GATEWAY, DEVIL'S CANYON; DESERT, ALPS, CLOUDY MOUNTAIN; WILDERNESS, OLD
 CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD (A), DEATH VALLEY (B), DESOLATION HILL (C), AUTOBAHN (D), LAKESIDE (E).
-A stage's short name (`OUTRUN_SHORT_NAMES`), which the roads' names write, is a name of two words' initials, or one
-word's first three letters. Numbered in the map's order (from the left column to the right, within a column from the
-left fork's side down):
-
-| Number | Stage           | Short name |
-| ------ | --------------- | ---------- |
-| 1      | COCONUT BEACH   | CB         |
-| 2      | GATEWAY         | GAT        |
-| 3      | DEVIL'S CANYON  | DC         |
-| 4      | DESERT          | DES        |
-| 5      | ALPS            | ALP        |
-| 6      | CLOUDY MOUNTAIN | CM         |
-| 7      | WILDERNESS      | WIL        |
-| 8      | OLD CAPITAL     | OC         |
-| 9      | WHEAT FIELD     | WF         |
-| 10     | SEASIDE TOWN    | ST         |
-| 11     | VINEYARD        | VIN        |
-| 12     | DEATH VALLEY    | DV         |
-| 13     | DESOLATION HILL | DH         |
-| 14     | AUTOBAHN        | AUT        |
-| 15     | LAKESIDE        | LAK        |
 
 Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320, baked from its background
 ([Backgrounds](#backgrounds)).
