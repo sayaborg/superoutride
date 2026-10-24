@@ -17,7 +17,6 @@ import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from '
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import {
   forkSpan,
-  joinSpan,
   rampLength,
   stageSpan,
   type DrawnRoad,
@@ -341,7 +340,6 @@ export interface RoadOptions {
       readonly position: number;
       readonly count: number;
       readonly type: number;
-      readonly passable: boolean;
     }[],
     road: {
       readonly go: number;
@@ -504,8 +502,8 @@ export function roadProfile(
 /**
  * One road as a course document, its Positions still measured from each Section's first joint, and what it reports:
  * spans in order, the first the entry, each joined to the next by its `leaves` lane. The first span's start is the
- * grid's; a stage reached through a fork or a join has its checkpoint where its banner passes the car; a stage
- * ending in a goal has a checkpoint at its end where the road runs on, the last stage its finish. Its height tables run per piece, each closed level at 0; its crossings are kept 6 m apart; where
+ * grid's; a stage reached through a fork has its checkpoint where its banner passes the car; the last stage ends in its
+ * finish. Its height tables run per piece, each closed level at 0; its crossings are kept 6 m apart; where
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
@@ -522,15 +520,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   };
   const roadEnd = positions.at(-1)! + laid.at(-1)!.road.span.length;
   const objects = options.objects(
-    // A goal's own objects, where the road runs on through them, are passed through (K, 2026-10-20, for now).
-    laid.flatMap((l, k) => {
-      const goal = l.road.span.stageEnd;
-      return l.road.span.scenery.map((p) => ({
-        ...p,
-        position: p.position + positions[k]!,
-        passable: goal !== undefined && p.position >= goal && k < laid.length - 1,
-      }));
-    }),
+    laid.flatMap((l, k) => l.road.span.scenery.map((p) => ({ ...p, position: p.position + positions[k]! }))),
     {
       go,
       width: (position) => {
@@ -594,7 +584,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
         const last = k === laid.length - 1 && i === starts.length - 1;
         const name = options.stageName(l.road.span.stages[0]!.stage).toUpperCase();
         const cp = checkpoints.find((c) => c.k === k && c.p > from && c.p <= to);
-        // A stage's end is the road's finish on its last span, else a checkpoint: a goal the road runs on from.
+        // The last stage's end is the road's finish.
         const end = l.road.span.stageEnd;
         const goal = end !== undefined && end > from && end <= to ? { id: `${name}-GOAL`, p: end } : null;
         sections.push(
@@ -606,11 +596,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
             first: k === 0 && i === 0,
             joinsBefore: k > 0 || i > 0,
             joinsAfter: !last,
-            checkpoints: [
-              ...(cp ? [{ id: `${name}-CP`, p: cp.p }] : []),
-              ...(goal && k < laid.length - 1 ? [goal] : []),
-            ],
-            finish: k === laid.length - 1 ? goal : null,
+            checkpoints: cp ? [{ id: `${name}-CP`, p: cp.p }] : [],
+            finish: goal,
             objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
             guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
             profile,
@@ -690,7 +677,7 @@ type Guide = { readonly k: number; readonly p: number } & (
 );
 
 /**
- * The guidance where a road is chosen (each fork, and each goal the road runs on from), all passed through: `route-arrow`
+ * The guidance where a road is chosen (each fork), all passed through: `route-arrow`
  * boards before the roads part, beyond the edge band of the side not taken; `route-chevron` boards in the gap between
  * the roads from where it is 2 m wide, and across the road not taken just before its end; and road arrows in the lanes
  * not taken, toward the road taken, from before the parting to just short of the dead end. Each points to the road
@@ -710,7 +697,7 @@ function roadGuidance(laid: readonly Laid[]): Guide[] {
   };
   return laid.flatMap((l, k) => {
     const choice = l.road.span.choice;
-    if (!choice || k === laid.length - 1) return [];
+    if (!choice) return [];
     const { span } = l.road;
     const station = (p: number) => stationOf(l, p);
     const toward: 'left' | 'right' = choice.side < 0 ? 'left' : 'right';
@@ -1168,31 +1155,26 @@ function regimes(span: Span, from: number, to: number) {
 /** One of OUTRUN's roads: its course id and the side each fork takes. */
 export interface OutrunRoute {
   readonly id: string;
-  /** Each fork's side, left (L) or right (R), in order; on the road through all 15, then each join's. */
+  /** Each fork's side, left (L) or right (R), in order. */
   readonly forks: string;
-  /** Whether it runs through all 15 stages in the map's order, each goal but the last joining the next stage. */
-  readonly all: boolean;
 }
-/** The six roads to the goals, each by its forks' sides, and the road through all 15, its sides alternating from L. */
+/** The six roads to the goals, each by its forks' sides. */
 export const OUTRUN_ROUTES: readonly OutrunRoute[] = Object.freeze([
-  { id: 'outrun-a', forks: 'LLLL', all: false },
-  { id: 'outrun-b', forks: 'LRLL', all: false },
-  { id: 'outrun-c-left', forks: 'LLRR', all: false },
-  { id: 'outrun-c-right', forks: 'RRLL', all: false },
-  { id: 'outrun-d', forks: 'RLRR', all: false },
-  { id: 'outrun-e', forks: 'RRRR', all: false },
-  { id: 'outrun-all', forks: 'LRLRLRLRLRLRLR', all: true },
+  { id: 'outrun-a', forks: 'LLLL' },
+  { id: 'outrun-b', forks: 'LRLL' },
+  { id: 'outrun-c-left', forks: 'LLRR' },
+  { id: 'outrun-c-right', forks: 'RRLL' },
+  { id: 'outrun-d', forks: 'RLRR' },
+  { id: 'outrun-e', forks: 'RRRR' },
 ]);
 /** A left fork leads up the original's map, a right one down. */
 const FORK_MARKS: Readonly<Record<string, string>> = Object.freeze({ L: TEXT_MARKS.up, R: TEXT_MARKS.down });
 
 /**
  * A road's name (K, 2026-10-20): its stages' short names in the order it runs them, each fork's side between them as
- * the map reads it (▲ left, up; ▼ right, down); the road through all 15, whose sides alternate only for the look,
- * ALL 15 STAGES.
+ * the map reads it (▲ left, up; ▼ right, down).
  */
 export function routeName(route: OutrunRoute, inputs: RouteInputs): string {
-  if (route.all) return 'ALL 15 STAGES';
   return routeSteps(route, inputs)
     .map(({ stage }, k) => (k > 0 ? FORK_MARKS[route.forks[k - 1]!]! : '') + inputs.shortOf(stage))
     .join('');
@@ -1214,8 +1196,8 @@ export interface RouteInputs {
 }
 
 /**
- * A stage on a road, its goal if it is of the last row, and the next stage and the side it is reached by (a fork's, or
- * a join's after a goal), if there is one.
+ * A stage on a road, its goal if it is of the last row, and the next stage and the fork's side it is reached by, if
+ * there is one.
  */
 interface Step {
   readonly stage: Stage;
@@ -1225,8 +1207,7 @@ interface Step {
 
 /**
  * A route's stages: from the first row's, each fork's side taken (left to the next row's stage at the same place counted
- * from the left, right to the one after it) to a last stage and its goal; or all 15 in the map's order, row by row and
- * within a row from the left, the forks' and joins' sides in turn.
+ * from the left, right to the one after it) to a last stage and its goal.
  */
 function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
   const fromLeft = inputs.rows.map((row) => [...row].reverse());
@@ -1238,14 +1219,6 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
     return { stretch: inputs.goals.stretches[number]!, number };
   };
   const side = (k: number) => (route.forks[k] === 'L' ? -1 : 1);
-  if (route.all) {
-    const places = fromLeft.flatMap((row, r) => row.map((_, c) => [r, c] as const));
-    return places.map(([r, c], k) => ({
-      stage: at(r, c),
-      goal: goal(r, c),
-      next: places[k + 1] ? { stage: at(...places[k + 1]!), side: side(k) } : null,
-    }));
-  }
   const steps: Step[] = [];
   let column = 0;
   for (let r = 0; r <= last; r++) {
@@ -1261,9 +1234,9 @@ function routeSteps(route: OutrunRoute, inputs: RouteInputs): Step[] {
 }
 
 /**
- * A route's spans: each stage of rows 1 to 4 and its fork piece's side taken, each last stage with its goal, and on the
- * road through all 15 each goal but the last followed by a join piece. A stage entered by a left side (L) has the road
- * taken as its right half (its centre lane e); by a right side (R), its left (b).
+ * A route's spans: each stage of rows 1 to 4 and its fork piece's side taken, and the last stage with its goal. A stage
+ * entered by a left side (L) has the road taken as its right half (its centre lane e); by a right side (R), its left
+ * (b).
  */
 export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] {
   const spans: RoadSpan[] = [];
@@ -1271,15 +1244,9 @@ export function routeSpans(route: OutrunRoute, inputs: RouteInputs): RoadSpan[] 
   routeSteps(route, inputs).forEach(({ stage, goal, next }, k) => {
     const id = inputs.idOf(stage);
     const first = k === 0;
-    // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b
-    // at a fork; L's e and R's b at a join.
-    if (goal) {
-      spans.push(...lastStageSpans(stage, { ...goal, path: inputs.goals.path }, first, centreLane, id));
-      if (next) {
-        const join = joinSpan(next.stage, next.side);
-        spans.push({ span: join, id: `${id}-join`, leaves: join.centreLane, starts: false });
-      }
-    } else {
+    // Each side leaves by its road taken's lane that continues as the next stage's centre lane: L's b as e, R's e as b.
+    if (goal) spans.push(...lastStageSpans(stage, { ...goal, path: inputs.goals.path }, first, centreLane, id));
+    else {
       const span = stageSpan(stage, { first, fork: inputs.fork, centreLane });
       spans.push({ span, id, leaves: next!.side < 0 ? 'b' : 'e', starts: true });
       const fork = forkSpan(inputs.fork, next!.side, stage, next!.stage);

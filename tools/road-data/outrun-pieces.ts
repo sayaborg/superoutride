@@ -14,7 +14,7 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { POSITION_METRES, Quadratic, type QuadraticPiece } from './offset-plan.js';
+import { Quadratic, type QuadraticPiece } from './offset-plan.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
@@ -516,70 +516,6 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     stageEnd: STAGE_LENGTH,
     goal: { at: STAGE_LENGTH, number: goal.number },
     resets: [STAGE_LENGTH, length],
-    choice: { parts: at(GOAL.parts), ends: apart, side: -1, taken: ['a', 'b', 'c'], dead: ['d', 'e', 'f'] },
-  };
-}
-
-/** A join piece's length, positions: the verge's ramp out to the road coming in (three lanes across), then its growth. */
-const JOIN_LENGTH = GROWS + Math.ceil(rampLength(3 * LANE * UNIT_METRES) / POSITION_METRES);
-
-/**
- * A join piece, after a goal piece on the road through all 15 (K's design, 2026-10-20): a straight of `JOIN_LENGTH`
- * at road width 212, lanes a, b, c | m0 | d, e, f. The road taken runs on from the goal; its verge ramps out to the
- * road coming in, which then appears beside it, its lanes growing over a position, so that the next stage begins in
- * six lanes. As a fork's sides, `side` −1 (L) has the road taken as d, e, f (centre lane e), the next stage's right
- * half, the road coming in from the left; 1 (R) its mirror, a, b, c (centre lane b). Level, with no scenery of its
- * own; the next stage's road, ground and sky, its sky rising there.
- */
-export function joinSpan(next: Stage, side: -1 | 1): Span {
-  const length = JOIN_LENGTH;
-  const comesIn = length - GROWS;
-  const coming = (p: number) => ramp(p, comesIn, length, 0, LANE);
-  const taken = side > 0 ? 'abc' : 'def';
-  const lanes = (p: number) =>
-    new Map([
-      ...[...'abc'].map((l) => [l, taken === 'abc' ? LANE : coming(p)] as const),
-      ['m0', 0],
-      ...[...'def'].map((l) => [l, taken === 'def' ? LANE : coming(p)] as const),
-    ]);
-  // The road taken's centre, 212 inside its outer lane's outer edge; the road coming in's, inside its inner lane's.
-  const takenCentre =
-    side > 0
-      ? ({ lane: 'a', side: 'left', units: TOUCHING } as const)
-      : ({ lane: 'f', side: 'right', units: -TOUCHING } as const);
-  const inner = side > 0 ? ({ lane: 'd', side: 'left' } as const) : ({ lane: 'c', side: 'right' } as const);
-  const fixed = side > 0 ? verge('a', 'left') : verge('f', 'right');
-  const ramps = vergeRamps(
-    side > 0 ? verge('c', 'right') : verge('d', 'left'),
-    farVerge(inner.lane, inner.side, side),
-    side,
-    comesIn,
-    length,
-    'in',
-  );
-  return {
-    length,
-    headings: { positions: [0, length], headings: [0, 0] },
-    width: new Quadratic([{ from: 0, to: length, a: TOUCHING, b: 0, c: 0 }]),
-    offset: new Quadratic([{ from: 0, to: length, a: side * centreLaneAt(TOUCHING) * UNIT_METRES, b: 0, c: 0 }]),
-    middle: () => 0,
-    order: STAGE_ORDER,
-    centreLane: side > 0 ? 'b' : 'e',
-    lanes,
-    laneBreaks: [comesIn],
-    roads: [
-      { from: 0, to: length, centre: takenCentre },
-      { from: comesIn, to: length, centre: { ...inner, units: side * TOUCHING } },
-    ],
-    verges:
-      side > 0
-        ? { left: [0, length].map((at) => ({ at, ref: fixed, outward: -1 as const })), right: ramps }
-        : { left: ramps, right: [0, length].map((at) => ({ at, ref: fixed, outward: 1 as const })) },
-    heights: [],
-    scenery: [],
-    stages: [{ from: 0, stage: next, arrival: 'rise' }],
-    // The next stage's road position starts where the join ends.
-    resets: [length],
   };
 }
 

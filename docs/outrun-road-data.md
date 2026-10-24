@@ -205,8 +205,8 @@ runs its slots:
   0x28000's step for its line and the tick's advance (advance × line × 0x400, half for drawing 2, the clouds). An object
   reaching line 512 vanishes, passing the car, and stands at that tick's road position: 34 ticks (46.06 positions)
   after it appeared at the top speed, a cloud 66 (89.4). This approach, counted once a tick, put every object about
-  87 positions farther from 2026-10-18 (RD-4) to RD-10e. At the top speed 48 to 78 objects live at once; on all 15
-  stages one object finds no slot, CLOUDY MOUNTAIN's of type 34 at 1063.
+  87 positions farther from 2026-10-18 (RD-4) to RD-10e. At the top speed 48 to 78 objects live at once; on the two
+  roads through CLOUDY MOUNTAIN one object finds no slot, its type 34 at 1063.
 - **The start.** The 69 objects standing at the game's start take slots 3 to 71 at their lines from GO and approach as
   any other. An object at line L is drawn L / 512 px a road unit: as large as this game's camera shows it at
   f × `UNIT_METRES` × 512 / L metres (3130 / L m) from the camera, which stands at the road's entry at GO. It stands
@@ -379,7 +379,7 @@ dust and smoke gone before it (the first halves, goal 2's object 12, goal 3's 11
 None is mirrored. A figure casts its shadow where its shadow's object runs at the last tick: goal 2's third's (9)
 never runs (its ticks 800 to 800), and at goal 4 object 9 is a figure, so the third there casts none.
 
-Each stands, wherever its goal is (a road's last or one the road runs on from), as the start's objects do
+Each stands, at its road's goal, as the start's objects do
 (`goalFigurePlacements`): where the camera stops (the car at the goal stretch's 401, the camera 6 m behind it), as
 far on as the original draws it at its line (`startDepth`, 3130 / line m: 6.1 m at 510, 7.8 m at 400), across from
 the left road's centre there (the goal's driver keeps to the road taken's centre on the straight) by its x road units,
@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 21 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 22 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -554,20 +554,12 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   coming back to P; at C (its point at 162, read while the width is still DESOLATION HILL's 0, so no change) it stays
   768 to 600. Once the road not taken has ended, the road taken keeps its three lanes. The goal's height points run
   their tables; its scenery stands.
-- **Join pieces** (`joinSpan`, K's design, 2026-10-20), on the road through all 15 between a goal piece and the next
-  stage: a straight of 34 positions at width 212, level, L and R as a fork's sides. The goal's road taken runs on; the
-  verge ramps out to the road coming in, whose three lanes then grow over the last position, so that the next stage
-  begins in six lanes. L has the road taken as d, e, f (centre lane e), the road coming in a, b, c on its left, so that
-  the next stage is entered in its right half; R mirrors it (a, b, c taken, centre lane b). It is the next stage's
-  road and ground, its sky rising (`rise`) at the join's start.
 
 ### OUTRUN's roads
 
 Each road (`outrunRoad`) is a LINEAR course of pieces: the first row's stage, each fork's side taken (left to the next
-row's stage at the same place counted from the left, right to the one after it), and the last stage with its goal;
-or, ALL 15 STAGES, all 15 stages in the map's order, row by row and within a row from the left, each of rows 1 to 4 left by
-its fork and each of row 5 but the last by its goal and a join, the forks' and then the joins' sides alternating from
-L (LRLRLRLRLR, then LRLR). Each span is laid in the world after the one before, the next's centre lane's centre on the
+row's stage at the same place counted from the left, right to the one after it), and the last stage with its goal.
+Each span is laid in the world after the one before, the next's centre lane's centre on the
 Link's lane's centre:
 
 - **Sections.** A fork piece is one Section (the centre lane changes at its ends). A last stage entered from the left
@@ -582,12 +574,9 @@ Link's lane's centre:
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
-  it stands beside. A solid object's body is at most its board's width in whole texels. Where the road runs on from a
-  goal, the objects its goal stretch brings out (its stands among them, on the road taken) are passed through (K,
-  2026-10-20, for now).
-- **Guidance**, a default K decides on Pages, wherever a road is chosen: each fork's side not taken, and the right
-  road of each goal the road runs on from (the road taken is the left). The goals of the six roads, after which the
-  driver takes the car, have none. It is added as each road is assembled (`roadGuidance`), all passed through, so no
+  it stands beside. A solid object's body is at most its board's width in whole texels.
+- **Guidance**, a default K decides on Pages, wherever a road is chosen: each fork's side not taken. The goals, after
+  which the driver takes the car, have none. It is added as each road is assembled (`roadGuidance`), all passed through, so no
   fence closes the road not taken; each piece points to the road taken. A low camera reads road marks only about 30 m
   ahead, so boards show the way from afar and road marks and chevrons near. Its two places are where the roads begin
   to part (the vertex where the road width starts to widen: a fork's 63, a goal's 182) and where the median between
@@ -611,32 +600,30 @@ Link's lane's centre:
 - **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
   yaw origin there, and the same direction in the world in every Section that shows it. It comes in by `wipe` in a
   fork piece, 6 m before where the car reaches the width 360 (the camera, 6 m behind the car, then reaches the original's
-  change), and by `rise` in a join piece where it begins.
+  change).
 
 A road's name (`routeName`, K, 2026-10-20) is its stages' short names in the order it runs them, each fork's side
-between them as the original's map reads it: ▲ where it takes the left fork (up the map), ▼ the right (down). The road
-through all 15 is ALL 15 STAGES: its sides alternate only for the look, and follow no way across the map. The goals'
+between them as the original's map reads it: ▲ where it takes the left fork (up the map), ▼ the right (down). The goals'
 letters and L and R are not written; the courses' ids stay.
 
-| Course           | Name               | Forks | Stages                                                                               |
-| ---------------- | ------------------ | ----- | ------------------------------------------------------------------------------------ |
-| `outrun-a`       | CB▲GAT▲DES▲WIL▲VIN | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                             |
-| `outrun-b`       | CB▲GAT▼ALP▲OC▲DV   | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                          |
-| `outrun-c-left`  | CB▲GAT▲DES▼OC▼DH   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                     |
-| `outrun-c-right` | CB▼DC▼CM▲WF▲DH     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C)     |
-| `outrun-d`       | CB▼DC▲ALP▼WF▼AUT   | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                       |
-| `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
-| `outrun-all`     | ALL 15 STAGES      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
+| Course           | Name               | Forks | Stages                                                                           |
+| ---------------- | ------------------ | ----- | -------------------------------------------------------------------------------- |
+| `outrun-a`       | CB▲GAT▲DES▲WIL▲VIN | LLLL  | COCONUT BEACH, GATEWAY, DESERT, WILDERNESS, VINEYARD (A)                         |
+| `outrun-b`       | CB▲GAT▼ALP▲OC▲DV   | LRLL  | COCONUT BEACH, GATEWAY, ALPS, OLD CAPITAL, DEATH VALLEY (B)                      |
+| `outrun-c-left`  | CB▲GAT▲DES▼OC▼DH   | LLRR  | COCONUT BEACH, GATEWAY, DESERT, OLD CAPITAL, DESOLATION HILL (C)                 |
+| `outrun-c-right` | CB▼DC▼CM▲WF▲DH     | RRLL  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, WHEAT FIELD, DESOLATION HILL (C) |
+| `outrun-d`       | CB▼DC▲ALP▼WF▼AUT   | RLRR  | COCONUT BEACH, DEVIL'S CANYON, ALPS, WHEAT FIELD, AUTOBAHN (D)                   |
+| `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)       |
 
 The six roads are each 24.17 km along P (each runs as many positions), with 13 to 16 Sections and 9,477 to 11,781
-objects; ALL 15 STAGES is 73.45 km, 45 Sections and 33,627 objects. Their plans are 269 to 313 elements, ALL 15 STAGES'
-877, at most 82 in a Section (DESERT's), hold their tables' headings within the resolution at every position, and lie
-within 0.11 m of the line their paths build. SAND reaches the [ground's
+objects. Their plans are 269 to 313 elements, at most 82 in a Section (DESERT's), hold their tables' headings within the
+resolution at every position, and lie within 0.11 m of the line their paths build. SAND reaches the [ground's
 width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes, 47.59 m on every road. Their
-heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11 crossings each are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to
-327, before where the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION
-HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner
-at y 352, pillars at ±320) at about 413 to 419, beyond 401.
+heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11 crossings each are kept 6 m apart. In each goal
+stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
+the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
+crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,
+pillars at ±320) at about 413 to 419, beyond 401.
 
 ## OUTRUN's stages
 
@@ -648,7 +635,7 @@ from the left fork's side: COCONUT BEACH; GATEWAY, DEVIL'S CANYON; DESERT, ALPS,
 CAPITAL, WHEAT FIELD, SEASIDE TOWN; VINEYARD (A), DEATH VALLEY (B), DESOLATION HILL (C), AUTOBAHN (D), LAKESIDE (E).
 A stage's short name (`OUTRUN_SHORT_NAMES`), which the roads' names write, is a name of two words' initials, or one
 word's first three letters. Numbered in the map's order (from the left column to the right, within a column from the
-left fork's side down), which is also the order ALL 15 STAGES runs them:
+left fork's side down):
 
 | Number | Stage           | Short name |
 | ------ | --------------- | ---------- |

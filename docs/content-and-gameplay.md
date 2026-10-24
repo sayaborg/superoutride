@@ -1736,15 +1736,14 @@ the verges' outer edges keep vehicles in. TSUKUBA CLUBMAN times it.
 
 OUTRUN's roads (`outrun-a` CB▲GAT▲DES▲WIL▲VIN, `outrun-b` CB▲GAT▼ALP▲OC▲DV, `outrun-c-left` CB▲GAT▲DES▼OC▼DH,
 `outrun-c-right` CB▼DC▼CM▲WF▲DH, `outrun-d` CB▼DC▲ALP▼WF▼AUT, `outrun-e` CB▼DC▼CM▼ST▼LAK, each one of the original's
-routes to a goal, and `outrun-all` ALL 15 STAGES through all 15 stages, named by their stages' short names and forks
-([OUTRUN road data](outrun-road-data.md#outruns-roads))) are LINEAR courses written by the road data tool from the
-original's road data ([OUTRUN road data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips,
-hills, scenery, start, forks, goals and joins; run the conversion rather than editing the documents. Each stage after a
-fork has its checkpoint where the original's checkpoint banner passes the car; a goal the road runs on from is a
-checkpoint, and the finish is at the last stage's end. Their scenery is the ROMs' sprites, provisionally; where a road
-is chosen, boards, chevrons and road arrows show which road to take. Until their hills are made again they have no class
-([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and their measured products are their racing
-lines alone.
+routes to a goal, named by their stages' short names and forks ([OUTRUN road data](outrun-road-data.md#outruns-roads)))
+are LINEAR courses written by the road data tool from the original's road data ([OUTRUN road
+data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals;
+run the conversion rather than editing the documents. Each stage after a fork has its checkpoint where the original's
+checkpoint banner passes the car, and the finish is at the last stage's end. Their scenery is the ROMs' sprites,
+provisionally; where a road is chosen, boards, chevrons and road arrows show which road to take. Until their hills are
+made again they have no class ([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and their
+measured products are their racing lines alone.
 
 SUPER HANG-ON's courses (`super-hang-on-africa` AFRICA, `super-hang-on-asia` ASIA, `super-hang-on-america` AMERICA,
 `super-hang-on-europe` EUROPE) are LINEAR courses, each one of the original's four from its start to its goal, written

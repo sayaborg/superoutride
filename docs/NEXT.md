@@ -208,6 +208,27 @@ PRs, in this order:
   minimax circle within one unit, two runs joined by a biarc (K, 2026-10-24), so the laps close as their points do;
   no turn tighter than its lanes keep, its hairpins left to the format. Its ground stays the band tables' limits
   until K decides between them and the ground width rule.
+- EX-7e: the player's grid slot at GO in the lane where the original's own vehicle stands there (OUTRUN's lane b, the
+  left road's centre); the bikes stand on P between their lanes, so K decides theirs.
+- EX-7f: ALL 15 STAGES deleted, with what it alone used: its join pieces, the checkpoints, guidance and passed-through
+  objects of goals the road runs on from.
+- EX-7g: OUTRUN's forks and goals by one rule (K, 2026-10-24), once the ROM shows the road not taken at a fork is the
+  mirror of the road taken: the road taken keeps its line (the original's laterals, roads and objects alike, shifted
+  so it stays where its stage left it); the road not taken leaves on its own curvature, 2w − w₀ out from the road that
+  curvature makes, drawn until the original stops (768) or the road taken's cross-section can no longer hold it; the
+  road coming in appears at 362 as the original's, 2w on the far side, and closes at the original's two-road rate to
+  touch at 431.5. The road taken's three lanes, with the lanes a Link needs, narrowing and widening at the original's
+  8 units a position; the ground with the lanes. The six lanes by 63, the road not taken's lanes to its dead end, the
+  road taken's sideways motion, `GROWS`, `DEAD_END` and `VERGE_RAMP` deleted.
+- EX-7h: OUTRUN's courses six LONG (C's two now LRRL and RLLR) and six SHORT, each SHORT from a start on the straight
+  between the two corners of a road into DESERT (L) or CLOUDY MOUNTAIN (R) from beyond the map; named OUTRUN A to E and
+  OUTRUN SHORT A to E, C's two by LEFT or RIGHT (K, 2026-10-24).
+- The run's setup (`src/`): a course whose road past the finish is shorter than a vehicle's stop is no longer refused;
+  a road's end (the course's entry, or the end of a Section no Link leaves) is held as a fixed object is, so a vehicle
+  that leaves the domain there recovers at rest, as a blocked one does; the present rules, no new constant (K,
+  2026-10-24).
+- The ground's width: each original's own limit of its vehicle beside the road, read from its ROM (SUPER MONACO GP's
+  the band tables'), measured from where the ROM measures it (K, 2026-10-24); K drives it after.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
   on play, with a proposal (read from the ROMs, derived from one shared rule, or kept as K's decision); documents
   only, K decides by the table, and EX-14 and EX-15 to EX-24 put the values in. Alongside EX-7c and EX-8.
@@ -279,17 +300,25 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   edge on the curve's inside, the vehicles' reach and the clearance tolerance), one rule for every original: EX-7c2.
 - **An arc's radius** is bounded only by the arc computation's precision, not by the ruler's length (EX-7c2a); a run is
   straight only where its slope is 0.
-- **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beyond the
-  outermost lane's edge, its base point and half its width, over all an original's courses (EX-7c3: SUPER HANG-ON's 14.5
-  m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m; SUPER MONACO GP's by EX-8).
+- **The ground's width**, one rule for every original: first (EX-7c3) to the outer edge of the farthest scenery
+  standing beyond the outermost lane's edge, its base point and half its width, over all an original's courses
+  (SUPER HANG-ON's 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m); then (K, 2026-10-24) each
+  original's own limit of its vehicle beside the road, as its ROM holds it (OUTRUN's 500 units beyond the road's
+  width, SUPER HANG-ON's 500 and ENDURO RACER's 512 from the centre, SUPER MONACO GP's band tables; TURBO OUTRUN's
+  confirmed from its program decrypted locally).
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars). First a PR of the run's setup, which no longer refuses
-  a course whose road past the finish is shorter than a vehicle's stop, and says what happens to a vehicle that reaches
-  the road's end; then the tool's lengths, EX-14 and EX-15 to EX-24.
+  a course whose road past the finish is shorter than a vehicle's stop; a vehicle that leaves the domain at the road's
+  end recovers at rest, as one a fixed object blocks (K, 2026-10-24); then the tool's lengths, EX-14 and EX-15 to
+  EX-24.
 - **The scale**: temporary DEV courses for SUPER HANG-ON's AFRICA (the original's bike at its real size, 3.883 m a
   lane, and one lane width for all, 3.6 m), SUPER MONACO GP's race and ENDURO RACER (3.6 m), with pictures of the same
-  places; OUTRUN's and TURBO OUTRUN's are not made.
+  places; OUTRUN's and TURBO OUTRUN's are not made. One temporary road data argument overrides an original's lateral
+  unit (reproducible by `--check`); the courses are shown in DEV only, named by their candidate, with a table of the
+  same vehicle's reference plan times and pictures at the start, a sharp curve and a wide road. When K has decided:
+  raised again at the value, measured again, the temporary courses and argument deleted, and how it was decided
+  written once in each chapter and Original road data.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut 2 m clear of a gate, the grids' 12 m and 3 m.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h

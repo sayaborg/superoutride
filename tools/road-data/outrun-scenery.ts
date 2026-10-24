@@ -66,12 +66,11 @@ export interface ObjectPlacement {
  * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
  * they look as large as the original draws them at their line (`startDepth`, a road position). A point is taken by
  * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
- * road position p; the roads are apart for an object where it was wider than 280 as it appeared. The objects a point
- * marked `passable` brings out are not hit.
+ * road position p; the roads are apart for an object where it was wider than 280 as it appeared.
  */
 export function roadObjects(
   main: Uint8Array,
-  points: readonly (SceneryPoint & { readonly passable?: boolean })[],
+  points: readonly SceneryPoint[],
   options: {
     readonly go: number;
     readonly end: number;
@@ -99,7 +98,7 @@ export function roadObjects(
   const checkpoints: number[] = [];
   const notConverted = new Map<number, number>();
   const unconverted: { drawing: number; position: number }[] = [];
-  const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean, solid = true) => {
+  const place = (use: SpriteUse, position: number, x: number, y: number, apart: boolean) => {
     const routine = OBJECT_ROUTINES.get(use.routine)!;
     if (routine.grantsTime) checkpoints.push(position);
     // At the original's lowest height (ALPS's grass strip, 894 m below the road), never seen: not placed.
@@ -125,7 +124,7 @@ export function roadObjects(
       y: fromMiddle?.up ?? y,
       image: boardName(use),
       palette: paletteName(use.palette),
-      hit: solid && routine.hits && !y && right > left ? Math.min(width, right - left) : null,
+      hit: routine.hits && !y && right > left ? Math.min(width, right - left) : null,
       width,
     });
   };
@@ -188,8 +187,7 @@ export function roadObjects(
         const shown = sceneryRoutine(main, e.flags, e.y);
         const [left, right] = hitExtents(main, e.sprite);
         ended.objects++;
-        if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left && !running.point.passable)
-          ended.solid++;
+        if (shown && OBJECT_ROUTINES.get(shown.routine)!.hits && !e.y && right > left) ended.solid++;
       }
       running = null;
     }
@@ -227,7 +225,6 @@ export function roadObjects(
         const drawing = e.flags >> 4;
         const shown = sceneryRoutine(main, e.flags, e.y);
         const apart = options.width(road) > RIGHT_FROM_LEFT_WIDTH;
-        const solid = !running.point.passable;
         live.push({
           depth,
           half: drawing === HALF_RATE_DRAWING,
@@ -245,7 +242,6 @@ export function roadObjects(
                   16 * e.x,
                   e.y,
                   apart,
-                  solid,
                 )
             : (position) => {
                 notConverted.set(drawing, (notConverted.get(drawing) ?? 0) + 1);

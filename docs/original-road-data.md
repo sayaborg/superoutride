@@ -265,9 +265,9 @@ where the arrangement changes. ASPHALT lies under each road from its centre ∓ 
 An original's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
 farthest of its objects shown on the ground (at height 0) reaches on any of its courses, to its picture's outer edge,
 its base point and half its width (`groundWidth`); an extending board counts by its one repeat and its edge, not as far
-as it repeats. One width an original (OUTRUN's that of ALL 15 STAGES, which holds every object). A road that comes in or
-goes out (OUTRUN's forks) holds its verge at its outer lane's edge as its lanes are wide. The course format ends the
-ground where the plan stops being one-to-one ([Architecture](architecture.md#plan-authority)).
+as it repeats. One width an original, the most over its courses. A road that comes in or goes out (OUTRUN's forks) holds
+its verge at its outer lane's edge as its lanes are wide. The course format ends the ground where the plan stops being
+one-to-one ([Architecture](architecture.md#plan-authority)).
 
 ## Plan
 
