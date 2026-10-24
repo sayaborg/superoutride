@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 17 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 18 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -492,10 +492,9 @@ them:
 - **Plan.** Each span's plan is its road path P: S's path table's headings at the span's positions (a goal piece's
   after its stage's, turning on from the heading the stage reaches; a fork's R side the table's mirror; a join
   straight; a fractional end at the last position's heading), raised by the
-  [plan from a heading table](original-road-data.md#plan-from-a-heading-table). Its least radius over an element is
-  the widest its coordinate domain (the verges, the SAND's outer edges, and the vehicles' 4 m beyond) reaches either
-  side of P there. A position is 2.0027 m along P, so a Section's stations are along P, and its `centerLateral` is its
-  centre lane's centre from P.
+  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
+  (from P to its outermost lane's edge on the curve's inside, `leastLaneRadius`); none is. A position is 2.0027 m along
+  P, so a Section's stations are along P, and its `centerLateral` is its centre lane's centre from P.
 - **Colors.** The surface, lane lines, edges and centre line are each two palette words repeated, half 0 and half 1;
   the conversion takes the first two of each, checking neither the repeat nor that the centre line is the surface's.
   The ground's two colors are the stage's (`groundStripes`, [Main CPU](#main-cpu)). Each half is half a period of
@@ -573,8 +572,9 @@ Link's lane's centre:
 
 - **Sections.** A fork piece is one Section (the centre lane changes at its ends). A last stage entered from the left
   is two, cut at its `GOAL_CENTRE` (1946), its centre lane e before and b after, since the goal's road taken is the
-  left one; they join by lane b. A span is otherwise one Section but where its coordinate domain passes over itself: then its passages lie in different Sections, cut at the last joint
-  before the later passage, after the earlier, where the road is one (w ≤ 212), joined by its centre lane.
+  left one; they join by lane b. A span is otherwise one Section but where its road comes near itself (`passagePairs`:
+  within its lanes' least radius): then its passages lie in different Sections, cut at the last joint before the later
+  passage, after the earlier, where the road is one (w ≤ 212), joined by its centre lane.
 - **Profile.** Each piece's height points run their tables at 293 km/h as the [profile](original-road-data.md#profile)
   says, the stage's cut at its end, and each piece is closed level at height 0 at its ends; the whole road's crossings
   (passages at least 200 m apart whose asphalt overlaps) are kept 6 m apart.
@@ -626,14 +626,14 @@ letters and L and R are not written; the courses' ids stay.
 | `outrun-e`       | CB▼DC▼CM▼ST▼LAK    | RRRR  | COCONUT BEACH, DEVIL'S CANYON, CLOUDY MOUNTAIN, SEASIDE TOWN, LAKESIDE (E)           |
 | `outrun-all`     | ALL 15 STAGES      | LRLR… | All 15 in [the map's order](#outruns-stages), goals A to D checkpoints, E the finish |
 
-The six roads are each 24.17 km along P (each runs as many positions), with 13 to 15 Sections and 9,477 to 11,781
-objects; ALL 15 STAGES is 73.45 km, 48 Sections and 33,627 objects. Their plans are 258 to 292 elements, ALL 15 STAGES'
-820, at most 64 in a Section (DESERT's), and lie within 0.72 m of the line their paths build (DESERT's, from its GO).
-Their heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11 crossings each are kept 6 m apart, ALL 15
-STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about
-321 to 327, before where the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and
-DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold
-(the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
+The six roads are each 24.17 km along P (each runs as many positions), with 13 to 16 Sections and 9,477 to 11,781
+objects; ALL 15 STAGES is 73.45 km, 45 Sections and 33,627 objects. Their plans are 269 to 313 elements, ALL 15 STAGES'
+877, at most 82 in a Section (DESERT's), hold their tables' headings within the resolution at every position, and lie
+within 0.11 m of the line their paths build. Their heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11
+crossings each are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite
+25, the banner 134 and 135) stands at about 321 to 327, before where the original's car stops (401) and drives under it;
+the stands (types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the
+second gate types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
 
 ## OUTRUN's stages
 

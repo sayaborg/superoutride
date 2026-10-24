@@ -152,14 +152,14 @@ that runs in more than one course and a sprite past the table.
 The road is the road path P itself: one road, no width points. A course's heading table is its sections' road paths'
 headings (each its vector's direction) in running order, section k's position p at 2049k + p, then the goal's, straight
 ahead, made 260 positions long: the original's 200, made longer so that every vehicle stops before its end (515.5 m
-past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its
-domain reaching SAND's edges and the vehicles' reach, 49.3 m. The curves only check it, for they follow the path roughly
-(radii 0.79 to 1.56 times the path's, their joints up to 13 positions off).
+past the finish). It becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no
+turn tighter than its lanes keep (a lane either side, 8.31 m); none is. The curves only check it, for they follow the
+path roughly (radii 0.79 to 1.56 times the path's, their joints up to 13 positions off).
 
-AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 263, 284, 581 and 842 elements; the sharpest arc
-is 50.5 m, a turn in ASIA's first section. Laid from its start, a course's plan lies at most 0.28, 0.13, 0.88 and 0.69
-m from its table's line, each position a step along its ends' mean heading; most of that is where a sharp turn takes
-more positions to keep the domain.
+AFRICA, ASIA, AMERICA and EUROPE become 142, 151, 317 and 466 runs and 273, 292, 614 and 904 elements; the sharpest arc
+is 23.8 m, a turn in AMERICA's seventh section. Every course's plan holds its table's headings within the resolution at
+every position; laid from its start, it lies at most 0.07, 0.09, 0.12 and 0.10 m from its table's line, each position a
+step along its ends' mean heading.
 
 A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its table's plan.
 
@@ -185,7 +185,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 7, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 8, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -210,7 +210,7 @@ crossings:
   from GO along P. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
   at the top speed; from the last of them to the section's end the road shows the next section's colors.
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
-  goal's, each cut again where its coordinate domain (to SAND's edges and the vehicles' reach) passes over itself, at
+  goal's, each cut again where its road comes near itself (`passagePairs`: within its lanes' least radius), at
   the middle of the longest straight between the passages, 2 m clear of the gates. They join by lane a.
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
   original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,

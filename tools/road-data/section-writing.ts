@@ -1,18 +1,21 @@
 /**
  * How the originals' Sections are written ([OUTRUN road data](../../docs/outrun-road-data.md#course-documents)):
  * knots simplified, sprites repeated, pictures raised, a road's plan as written and its Sections cut where their
- * coordinate domains would pass over themselves.
+ * road comes near itself.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { CourseInputError } from '../../src/course/course-diagnostics.js';
-import { compilePlanPath, type PlanSegmentGeometry } from '../../src/course/geometry/plan-path.js';
-import { validatePlanDomainInjectivity } from '../../src/course/plan-domain-injectivity.js';
 import type { CoursePath } from './course-path.js';
-import { overlappingCells } from './crossings.js';
+import { normalFromHeading } from '../../src/core/math.js';
+import {
+  compilePlanPath,
+  projectPlanSegmentInterval,
+  samplePlanPath,
+  type PlanPathProjection,
+  type PlanPathSample,
+  type PlanSegmentGeometry,
+} from '../../src/course/geometry/plan-path.js';
+import { createPlanClearance } from '../../src/course/plan-clearance.js';
 
-/** Within a Section, its coordinate domain is checked at least this far apart along the road and this close, metres. */
-const DOMAIN_APART = 10;
-const DOMAIN_MARGIN = 0.5;
 /** A cut keeps this far from a gate, metres. */
 const GATE_ROOM = 2;
 /** A station this near a joint of its Section's plan, metres, is written at the joint. */
@@ -87,29 +90,68 @@ export function raisedSplit<T>(elements: readonly T[], split: ReadonlySet<string
 }
 
 /**
- * Cuts of P's `[from, to]` (metres) so that no Section's coordinate domain, `reach` metres either side of P, passes over
- * itself: while two of its cells at least `DOMAIN_APART` apart overlap, the earliest later one with the latest earlier
- * one (with `once`, every pair whose earlier one lies before that later one, where one cut parts them all), it is cut
- * between them, at the middle of the longest straight there, else halfway, keeping clear of the gates (metres along
- * P).
+ * Where P's road over `[from, to]` (metres), written as one Section, comes near itself: each pair of P's metres, the
+ * earlier and the later, where the Section's plan clearance on a side ([Architecture](../../docs/architecture.md#plan-authority))
+ * falls short of `need(u, side)`, the least radius its lanes there keep (`leastLaneRadius`), sampled every `step`
+ * metres. The clearance falls short because another passage of the Section comes within twice the need, the passage
+ * the clearance's circle touches; a curve keeps its lanes' need by its plan (`headingPlan`).
+ */
+export function passagePairs(
+  path: CoursePath,
+  from: number,
+  to: number,
+  need: (u: number, side: 'left' | 'right') => number,
+  step: number,
+): [number, number][] {
+  const origin = path.station(from);
+  const at = (s: number) => path.along(origin + s);
+  const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, planGeometry(writtenPlan(path, { from, to })));
+  const clearance = createPlanClearance(plan);
+  const sample: PlanPathSample = { x: 0, z: 0, s: 0, heading: 0, segmentIndex: 0 };
+  const scratch: PlanPathSample = { ...sample };
+  const projection: PlanPathProjection = { s: 0, l: 0, segmentIndex: 0, distanceSquared: 0, isFoot: false };
+  const pairs: [number, number][] = [];
+  for (let k = 0; k * step <= plan.length; k++) {
+    const s = Math.min(k * step, plan.length);
+    for (const side of ['left', 'right'] as const) {
+      const sign = side === 'right' ? 1 : -1;
+      const wanted = need(at(s), side);
+      const c = clearance(s, sign, wanted);
+      if (c >= wanted) continue;
+      // The passage the circle of radius c touches: of the segments that come as near as c, the farthest along.
+      samplePlanPath(plan, s, sample);
+      const n = normalFromHeading(sample.heading);
+      const touch = { x: sample.x + sign * c * n.x, z: sample.z + sign * c * n.z };
+      let other = s;
+      for (const segment of plan.segments) {
+        projectPlanSegmentInterval(segment, touch, segment.sStart, segment.sEnd, projection, scratch);
+        if (Math.sqrt(projection.distanceSquared) <= c * (1 + 1e-9) && Math.abs(projection.s - s) > Math.abs(other - s))
+          other = projection.s;
+      }
+      pairs.push([at(Math.min(s, other)), at(Math.max(s, other))]);
+    }
+  }
+  return pairs.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+}
+
+/**
+ * Cuts of P's `[from, to]` (metres) where its road comes near itself (`passagePairs`, with `need` the least radius its
+ * lanes keep, or `need(u, side)`). While a pair remains, the earliest later passage with the latest earlier one (with
+ * `once`, every pair whose earlier one lies before that later one, where one cut parts them all), it is cut between
+ * them, at the middle of the longest straight there, else halfway, keeping clear of the gates (metres along P). Where
+ * the ground beyond the road stops being one-to-one is the course format's
+ * ([Architecture](../../docs/architecture.md#plan-authority)).
  */
 export function domainCuts(
   path: CoursePath,
   from: number,
   to: number,
-  reach: number,
+  need: number | ((u: number, side: 'left' | 'right') => number),
   gates: readonly number[],
   once = false,
 ): number[] {
   const step = 2.5;
-  const pairs = overlappingCells(path, {
-    from,
-    to,
-    step,
-    sides: () => [reach, reach],
-    apart: DOMAIN_APART,
-    margin: DOMAIN_MARGIN,
-  });
+  const pairs = passagePairs(path, from, to, typeof need === 'number' ? () => need : need, step);
   if (!pairs.length) return [];
   const later = Math.min(...pairs.map(([, b]) => b));
   // With `once`, one cut parts every pair whose earlier cell lies before the earliest later cell, where one can; else
@@ -125,8 +167,16 @@ export function domainCuts(
   let cut = straights.length ? (straights[0]!.a + straights[0]!.b) / 2 : (earlier + later) / 2;
   for (let d = 0; !clear(cut) && d < later - earlier; d += 0.5) cut = (earlier + later) / 2 + d;
   requireInput(cut > earlier && cut < later && clear(cut), '/plan', `No cut parts the road's passages at ${earlier} m`);
-  return [...domainCuts(path, from, cut, reach, gates, once), cut, ...domainCuts(path, cut, to, reach, gates, once)];
+  return [...domainCuts(path, from, cut, need, gates, once), cut, ...domainCuts(path, cut, to, need, gates, once)];
 }
+
+/** A written plan's geometry in the course format's terms (arcs turn right positive). */
+export const planGeometry = (written: readonly WrittenElement[]): PlanSegmentGeometry[] =>
+  written.map((e) =>
+    e.kind === 'straight'
+      ? { kind: 'straight', length: e.length }
+      : { kind: 'arc', radius: e.radius!, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius! },
+  );
 
 /** A plan element as written. */
 export interface WrittenElement {
@@ -160,66 +210,4 @@ export function writtenPlan(path: CoursePath, piece: { readonly from: number; re
     }
   }
   return elements;
-}
-
-/**
- * A coordinate domain about P: how far it reaches left and right of P at `u` metres along P, straight between the
- * metres along P its edges change at, `stations`.
- */
-export interface PathDomain {
-  readonly stations: readonly number[];
-  readonly sides: (u: number) => readonly [number, number];
-}
-
-/**
- * Where the course format does not admit a piece's coordinate domain, `reach` metres either side of P or `domain`: P's
- * metres from the start of the earlier of two of its cells that overlap to the end of the later, or null. Two cells
- * `DOMAIN_APART` or more apart are passages its cuts should have parted, and are refused.
- */
-export function domainOverlap(
-  path: CoursePath,
-  piece: { readonly id: string; readonly from: number; readonly to: number },
-  domain: number | PathDomain,
-): [number, number] | null {
-  const origin = path.station(piece.from);
-  const at = (s: number) => path.along(origin + s);
-  const { stations, sides }: PathDomain =
-    typeof domain === 'number' ? { stations: [], sides: () => [domain, domain] } : domain;
-  const written = writtenPlan(path, piece);
-  // A station as near a joint as a course writes at the joint is the joint's.
-  const joints = written.map((_, i) => written.slice(0, i).reduce((sum, e) => sum + e.length, 0));
-  joints.push(joints.at(-1)! + written.at(-1)!.length);
-  // The format's arcs turn right positive.
-  const geometry: PlanSegmentGeometry[] = written.map((e) =>
-    e.kind === 'straight'
-      ? { kind: 'straight', length: e.length }
-      : { kind: 'arc', radius: e.radius!, turn: ((e.turn === 'left' ? -1 : 1) * e.length) / e.radius! },
-  );
-  try {
-    validatePlanDomainInjectivity(
-      piece.id,
-      compilePlanPath({ x: 0, z: 0, heading: 0 }, geometry).segments,
-      {
-        stations: [...new Set(stations.map((u) => path.station(u) - origin))]
-          .filter((s) => joints.every((j) => Math.abs(s - j) > JOINT_SNAP))
-          .sort((x, y) => x - y),
-        lateralAt: (s, out) => {
-          const [left, right] = sides(at(s));
-          return Object.assign(out, { left: -left, right });
-        },
-      },
-      '',
-    );
-    return null;
-  } catch (error) {
-    const overlap = error instanceof CourseInputError && 'overlap' in error.diagnostic && error.diagnostic.overlap;
-    if (!overlap) throw error;
-    const [a, b] = overlap.intervals;
-    requireInput(
-      b!.sStart - a!.sEnd < DOMAIN_APART,
-      `/plan/${piece.id}`,
-      `The passages at ${round(at(a!.sStart))} m and ${round(at(b!.sStart))} m overlap`,
-    );
-    return [at(a!.sStart), at(b!.sEnd)];
-  }
 }

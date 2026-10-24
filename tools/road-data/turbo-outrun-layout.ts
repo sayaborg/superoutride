@@ -2,20 +2,20 @@
  * TURBO OUTRUN's course laid out ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-course)): its 16
  * stages one after another from the entry, each to where the original ends it, a leg's last joined to the next leg's
  * start; P, the plan, from the stages' road paths as one heading table; the road width from their width points, and
- * lane b's centre from it; the Sections, cut where their coordinate domains would pass over themselves; the profile
+ * lane b's centre from it; the Sections, cut where their road comes near itself; the profile
  * with the crossings' bumps.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { POSITION_METRES, Quadratic, type TurnSegment } from './offset-plan.js';
-import { departure, headingPlan, pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
-import { domainOverlap, writtenPlan } from './section-writing.js';
+import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
+import { leastLaneRadius } from '../../src/course/plan-clearance.js';
+import { passagePairs, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
 import { bendOf, closedGrades, LOOK, profileOf, separatedCrossings, stageGrades, type Change } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { UNIT_METRES } from './pixel-grid.js';
-import { centreLaneAt, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
+import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
 import { STAGE_COUNT, type TurboOutrunStage } from './turbo-outrun-road.js';
 import { roadWidths, WIDTH_RATE, type HeightTable, type WidthHeightPoint } from './road-tables.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
@@ -35,16 +35,9 @@ export const SAND = 40;
  * material changes metres away from where the lanes' rule does.
  */
 export const OPEN = 0.5;
-/** On a curve's inside, the sand and the vehicles' reach beyond it end at least this far from its centre, metres. */
-const INNER_ROOM = 10;
-/** Sand narrowed on a curve's inside returns to its width at one metre across for this many along. */
-const SAND_RAMP = 6;
 /** Two passages at least this far apart along the road may cross, metres; a passage runs on over gaps of 3 positions. */
 const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
-/** Within a Section its coordinate domain is checked at least this far apart along the road and this close, metres. */
-const DOMAIN_APART = 10;
-const DOMAIN_MARGIN = 0.5;
 /** A cut keeps this far from a gate, positions. */
 const GATE_ROOM = 2;
 
@@ -169,78 +162,48 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   // The road's sides from P: its asphalt, metres.
   const metres = (g: number) => g * POSITION_METRES;
   const asphalt = (g: number) => (width.at(g) + ROAD_HALF) * UNIT_METRES;
-  // The widest the asphalt is over positions [a, b], metres.
-  const widest = (a: number, b: number) =>
-    Math.max(
-      ...Array.from({ length: Math.ceil(b - a) + 1 }, (_, k) => asphalt(Math.min(b, a + k))),
-      ...width.breaks.filter((g) => g > a && g < b).map(asphalt),
-    );
   const gates = course.map(({ start, run }) => start + run.gate);
   // The Sections' seams: each stage's end, where the next begins; a leg's at its join's seam.
   const seams = course.slice(0, -1).map(({ start, length, joined }) => start + (joined ? JOIN.seam : length));
 
-  /** P laid from plan elements `planned` (the entry's straight, then the plan), and its sand. */
-  const lay = (planned: readonly TurnSegment[]) => {
-    const path: TurnSegment[] = [];
-    for (const s of [{ from: 0, to: go, turn: 0 }, ...planned]) {
-      const before = path.at(-1);
-      if (before && before.turn === 0 && s.turn === 0) path[path.length - 1] = { ...before, to: s.to };
-      else path.push(s);
-    }
-    const line = new CoursePath(
-      path.map((s) => ({ start: metres(s.from), length: metres(s.to - s.from), turn: s.turn })),
-      0,
+  // The plan, its turns no tighter than its lanes keep, and P laid from it after the entry's straight. A side's lanes
+  // reach from lane b's centre to lane a's left edge or lane f's right.
+  const laneReach = (g: number, side: 'left' | 'right') => {
+    const { a, b, c, m, d, e, f } = drivenLanes(width.at(g));
+    const left = (-b / 2 - a) * UNIT_METRES;
+    const right = left + (a + b + c + m + d + e + f) * UNIT_METRES;
+    return side === 'left' ? -(offset.at(g) + left) : offset.at(g) + right;
+  };
+  const least = (from: number, to: number, side: 'left' | 'right') =>
+    leastLaneRadius(
+      Math.max(
+        ...[from, to, ...Array.from({ length: Math.ceil(to - from) }, (_, k) => from + k), ...width.breaks]
+          .filter((g) => g >= from && g <= to)
+          .map((g) => laneReach(g, side)),
+      ),
     );
-    return { path, line, sand: narrowedSand(path, width) };
-  };
-  /**
-   * The Sections of P `line` with its sand: one a stage, each cut again where its domain passes over itself; and the
-   * domain, its edges changing slope where the width does and at the sand's knots.
-   */
-  const sections = (line: CoursePath, sand: ReturnType<typeof narrowedSand>) => {
-    const sides = (g: number) =>
-      [0, 1].map((side) => asphalt(g) + sand.at(g, side as 0 | 1) + MAXIMUM_VEHICLE_REACH) as [number, number];
-    const spans: { id: string; from: number; to: number; stage: number }[] = [];
-    course.forEach((_, n) => {
-      const from = n === 0 ? 0 : seams[n - 1]!;
-      const to = n === last ? total : seams[n]!;
-      const cuts = domainCuts(line, width, from, to, sides, [go, ...gates]);
-      [from, ...cuts].forEach((a, i) =>
-        spans.push({
-          id: i === 0 ? inputs.slug(n) : `${inputs.slug(n)}-${i + 1}`,
-          from: a,
-          to: cuts[i] ?? to,
-          stage: n,
-        }),
-      );
-    });
-    const stations = [...width.breaks, ...sand.knots.flatMap((k) => k.map(([g]) => g))].map(metres);
-    return { spans, domain: { stations, sides: (u: number) => sides(u / POSITION_METRES) } };
-  };
-  // The plan: its elements' radii over the least that leaves the sand on a curve's inside room to its centre, its turns
-  // widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(
-    table,
-    VECTOR_RESOLUTION,
-    POSITION_METRES,
-    (a, b) => INNER_ROOM + MAXIMUM_VEHICLE_REACH + widest(a, b),
-    (planned) => {
-      const { line, sand } = lay(planned);
-      if (sand.tight.length) return sand.tight.map((t) => [t.from, t.to] as [number, number]);
-      const { spans, domain } = sections(line, sand);
-      return spans.flatMap((span) => {
-        const overlap = domainOverlap(line, { id: span.id, from: metres(span.from), to: metres(span.to) }, domain);
-        return overlap ? [overlap.map((u) => u / POSITION_METRES) as [number, number]] : [];
-      });
-    },
+  const plan = headingPlan(table, VECTOR_RESOLUTION, POSITION_METRES, least);
+  const path: TurnSegment[] = [];
+  for (const s of [{ from: 0, to: go, turn: 0 }, ...plan.elements]) {
+    const before = path.at(-1);
+    if (before && before.turn === 0 && s.turn === 0) path[path.length - 1] = { ...before, to: s.to };
+    else path.push(s);
+  }
+  const line = new CoursePath(
+    path.map((s) => ({ start: metres(s.from), length: metres(s.to - s.from), turn: s.turn })),
+    0,
   );
-  const { path, line, sand } = lay(plan.elements);
-  requireInput(
-    !sand.tight.length,
-    `/plan/${sand.tight[0]?.from}`,
-    `The curve at ${sand.tight[0]?.from} is too tight for its road`,
-  );
-  const { spans } = sections(line, sand);
+  // The Sections: one a stage, each cut again where its road comes near itself.
+  const need = (g: number, side: 'left' | 'right') => leastLaneRadius(laneReach(g, side));
+  const spans: { id: string; from: number; to: number; stage: number }[] = [];
+  course.forEach((_, n) => {
+    const from = n === 0 ? 0 : seams[n - 1]!;
+    const to = n === last ? total : seams[n]!;
+    const cuts = domainCuts(line, width, from, to, need, [go, ...gates]);
+    [from, ...cuts].forEach((a, i) =>
+      spans.push({ id: i === 0 ? inputs.slug(n) : `${inputs.slug(n)}-${i + 1}`, from: a, to: cuts[i] ?? to, stage: n }),
+    );
+  });
 
   // Each Section's start, the lengths of the Sections before it as written, so seams agree exactly.
   const pieces: Piece[] = [];
@@ -289,12 +252,14 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     course,
     path,
     line,
-    plan: { ...plan, departure: departure(table, plan.elements, plan.start, POSITION_METRES) },
+    plan: {
+      ...plan,
+      fidelity: planFidelity(table, plan.elements, plan.start, POSITION_METRES, VECTOR_RESOLUTION, plan.widened),
+    },
     width,
     offset,
     laneBreaks,
     openings,
-    sand,
     pieces,
     station,
     /** P's pose at course position `g`. */
@@ -313,81 +278,23 @@ export function layTurboOutrun(inputs: LayoutInputs) {
 }
 
 /**
- * The sand beyond each side's asphalt (0 left, 1 right), metres, by course position: `SAND`, but on a curve's inside
- * narrowed to leave `INNER_ROOM` and the vehicles' reach to the curve's centre (its least over the curve), curves
- * narrowed one after another, or whose ramps would meet, as one stretch at the least of theirs, returning to `SAND` at
- * `SAND_RAMP` beyond it. Its knots, by side; between two knots it is straight. A curve too tight to leave that room is
- * `tight`.
- */
-function narrowedSand(path: readonly TurnSegment[], width: Quadratic) {
-  const knots: [[number, number][], [number, number][]] = [[], []];
-  const narrowed: { from: number; to: number; side: 0 | 1; sand: number }[] = [];
-  const tight: { from: number; to: number }[] = [];
-  for (const s of path) {
-    if (s.turn === 0) continue;
-    const radius = ((s.to - s.from) * POSITION_METRES) / Math.abs(s.turn);
-    const samples = Array.from({ length: Math.ceil(s.to - s.from) + 1 }, (_, k) => Math.min(s.to, s.from + k));
-    const widest = Math.max(
-      ...samples.map((g) => width.at(g)),
-      ...width.breaks.filter((g) => g > s.from && g < s.to).map((g) => width.at(g)),
-    );
-    const room = radius - INNER_ROOM - MAXIMUM_VEHICLE_REACH - (widest + ROAD_HALF) * UNIT_METRES;
-    if (room <= 0) tight.push({ from: s.from, to: s.to });
-    else if (room < SAND) narrowed.push({ from: s.from, to: s.to, side: s.turn > 0 ? 0 : 1, sand: room });
-  }
-  // Curves narrowed one after another, or whose ramps would meet, narrowed as one at the least of their sand.
-  const along = POSITION_METRES / SAND_RAMP;
-  const ramp = (n: { sand: number }) => (SAND - n.sand) / along;
-  let stretches = narrowed;
-  for (let merged = true; merged;) {
-    merged = false;
-    const out: typeof narrowed = [];
-    for (const n of stretches) {
-      const k = out.map((m) => m.side).lastIndexOf(n.side);
-      const before = out[k];
-      if (before && n.from - ramp(n) <= before.to + ramp(before)) {
-        out[k] = { ...before, to: n.to, sand: Math.min(before.sand, n.sand) };
-        merged = true;
-      } else out.push({ ...n });
-    }
-    stretches = out;
-  }
-  // Each stretch at its sand, rising at the ramp away from it.
-  for (const n of stretches)
-    knots[n.side].push([n.from - ramp(n), SAND], [n.from, n.sand], [n.to, n.sand], [n.to + ramp(n), SAND]);
-  for (const side of [0, 1] as const) knots[side].sort((a, b) => a[0] - b[0]);
-  return {
-    narrowed: stretches,
-    tight,
-    knots,
-    /** The sand at `g` as written: straight between its knots, below the narrowing's least, `SAND` beyond them. */
-    at: (g: number, side: 0 | 1) => (knots[side].length ? Math.min(SAND, linearAt(knots[side], g)) : SAND),
-  };
-}
-
-/**
- * Cuts of the course's positions `[from, to]` so that no Section's coordinate domain, `reach(g)` metres either side of P,
- * passes over itself: while two of its cells at least `DOMAIN_APART` apart overlap, the earliest later one with the
- * latest earlier one, it is cut between them where the road is one (its width at most 250), at the middle of the
- * longest straight of P there, else of the longest stretch, keeping clear of the gates (positions).
+ * Cuts of the course's positions `[from, to]` where its road comes near itself (`passagePairs`, its lanes' `need` at
+ * position g either side). While a pair remains, the earliest later passage with the latest earlier one, it is cut
+ * between them where the road is one (its width at most 250), at the middle of the longest straight of P there, else of
+ * the longest stretch, keeping clear of the gates (positions).
  */
 function domainCuts(
   line: CoursePath,
   width: Quadratic,
   from: number,
   to: number,
-  reach: (g: number) => [number, number],
+  need: (g: number, side: 'left' | 'right') => number,
   gates: readonly number[],
 ): number[] {
   const step = POSITION_METRES;
-  const pairs = overlappingCells(line, {
-    from: from * step,
-    to: to * step,
-    step,
-    sides: (u) => reach(u / step),
-    apart: DOMAIN_APART,
-    margin: DOMAIN_MARGIN,
-  }).map(([a, b]) => [a / step, b / step] as const);
+  const pairs = passagePairs(line, from * step, to * step, (u, side) => need(u / step, side), step).map(
+    ([a, b]) => [a / step, b / step] as const,
+  );
   if (!pairs.length) return [];
   const later = Math.min(...pairs.map(([, b]) => b));
   const earlier = Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + 1;
@@ -412,5 +319,5 @@ function domainCuts(
       .map((s) => (s.a + s.b) / 2)[0];
   const cut = middle(straights) ?? middle(one);
   requireInput(cut !== undefined, '/plan', `No cut where the road is one parts its passages at position ${earlier}`);
-  return [...domainCuts(line, width, from, cut, reach, gates), cut, ...domainCuts(line, width, cut, to, reach, gates)];
+  return [...domainCuts(line, width, from, cut, need, gates), cut, ...domainCuts(line, width, cut, to, need, gates)];
 }

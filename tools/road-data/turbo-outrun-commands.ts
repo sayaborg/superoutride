@@ -19,6 +19,7 @@ import { pathTurn } from './road-tables.js';
 
 import {
   dumpDirectory,
+  fidelityReport,
   oneZip,
   romDirectory,
   romSet,
@@ -162,14 +163,9 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         })),
         runs: layout.plan.runs.length,
         elements: layout.path.length,
-        fromPath: round3(layout.plan.departure),
+        ...fidelityReport(layout.plan.fidelity),
         planElements: built.document.sections.reduce((n, s) => n + s.plan.length, 0),
         tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
-        narrowedSand: layout.sand.narrowed.map((n) => ({
-          at: round1(n.from),
-          side: n.side ? 'right' : 'left',
-          sand: round1(n.sand),
-        })),
         crossings: layout.crossings.map((c) => ({
           passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
           levels: c.levels,

@@ -7,7 +7,7 @@ import type { TurnSegment } from './offset-plan.js';
 import type { CurvePoint, Path } from './road-tables.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONVERSION_VERSION = 16;
+export const CONVERSION_VERSION = 18;
 
 /**
  * At a join of its curves the path turns over a position or two beyond its curves' rates: the plan gives each join this

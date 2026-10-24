@@ -8,13 +8,13 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
-import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { CoursePath, type Pose } from './course-path.js';
-import { departure, headingPlan, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import {
   forkSpan,
   joinSpan,
@@ -44,15 +44,7 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import {
-  domainOverlap,
-  JOINT_SNAP,
-  raisedSplit,
-  repeated,
-  simplified,
-  writtenPlan,
-  type PathDomain,
-} from './section-writing.js';
+import { JOINT_SNAP, passagePairs, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -111,8 +103,11 @@ export interface Laid {
   readonly road: RoadSpan;
   /** P from the span's start, its plan's elements. */
   readonly line: CoursePath;
-  /** The plan from its heading table, and how far it departs from the line the table builds, metres. */
-  readonly plan: { readonly elements: readonly PlanElement[]; readonly departure: number };
+  /** The plan from its heading table, and its fidelity to the table (`planFidelity`). */
+  readonly plan: {
+    readonly elements: readonly PlanElement[];
+    readonly fidelity: ReturnType<typeof planFidelity>;
+  };
   /** Its frame in the world: a point of its frame `p` is at `rotate(p) + origin`. */
   readonly world: { readonly x: number; readonly y: number; readonly heading: number };
   readonly cuts: readonly number[];
@@ -199,25 +194,6 @@ function asphaltAt(span: Span, p: number): [number, number] {
     (-Math.min(...centres) + ROAD_HALF) * UNIT_METRES - offset,
     (Math.max(...centres) + ROAD_HALF) * UNIT_METRES + offset,
   ];
-}
-
-/**
- * A span's coordinate domain, as its Sections write it: its verges, the SAND's outer edges, and the vehicles' reach
- * beyond, metres left and right of P at each position; and the positions its edges change slope at.
- */
-function spanDomain(span: Span) {
-  const [left, right] = [vergeLine(span, span.verges.left), vergeLine(span, span.verges.right)];
-  const sides = (p: number) => [MAXIMUM_VEHICLE_REACH - left(p), right(p) + MAXIMUM_VEHICLE_REACH] as [number, number];
-  const breaks = [
-    ...new Set([
-      ...span.width.breaks,
-      ...span.offset.breaks,
-      ...span.laneBreaks,
-      ...span.roads.flatMap((r) => [r.from, r.to]),
-      ...[span.verges.left, span.verges.right].flatMap((knots) => placedVerges(span, knots).map((k) => k.at)),
-    ]),
-  ].filter((p) => p >= 0 && p <= span.length);
-  return { sides, breaks };
 }
 
 /** A point `pose` frame `world` puts in the world. */
@@ -365,63 +341,56 @@ export interface RoadOptions {
   readonly stageName: (stage: Stage) => string;
 }
 
-/**
- * A span laid on P: the plan from its heading table, its elements turning at radii over the widest its coordinate domain
- * reaches either side of P, its turns widened where a Section's domain, as written, passes over itself; and its
- * Sections' cuts.
- */
+/** A span laid on P: the plan from its heading table, and its Sections' cuts. */
 function laySpan(road: RoadSpan) {
   const { span } = road;
-  const { sides, breaks } = spanDomain(span);
-  const domain: PathDomain = { stations: breaks.map(along), sides: (u) => sides(u / POSITION_METRES) };
-  const lay = (elements: readonly PlanElement[]) =>
-    new CoursePath(
-      elements.map((e) => ({ start: along(e.from), length: along(e.to - e.from), turn: e.turn })),
-      0,
-    );
-  // The widest the domain reaches over positions [a, b], metres.
-  const widest = (a: number, b: number) =>
-    Math.max(
-      ...[...Array.from({ length: Math.ceil(b - a) + 1 }, (_, k) => Math.min(b, a + k)), ...breaks]
-        .filter((p) => p >= a && p <= b)
-        .flatMap(sides),
-    );
-  // The Sections' starts, positions: the span's, and each cut.
-  const sections = (line: CoursePath) => {
-    const cuts = spanCuts(road, line, sides);
-    return [0, ...cuts].map((from, i) => ({
-      id: i ? `${road.id}-${i + 1}` : road.id,
-      from,
-      to: cuts[i] ?? span.length,
-    }));
+  // The plan, its turns no tighter than its lanes keep: a side's lanes reach from P to its outermost lane's edge.
+  const laneReach = (p: number, side: 'left' | 'right') => {
+    const widths = span.lanes(p);
+    const edges = [...laneLines(span, p)].filter(([id]) => widths.get(id)! > 0).map(([, line]) => line);
+    const units = side === 'left' ? -Math.min(...edges.map((l) => l.left)) : Math.max(...edges.map((l) => l.right));
+    return units * UNIT_METRES + (side === 'left' ? -1 : 1) * span.offset.at(p);
   };
-  const plan = headingPlan(span.headings, VECTOR_RESOLUTION, POSITION_METRES, widest, (elements) => {
-    const line = lay(elements);
-    return sections(line).flatMap((piece) => {
-      const overlap = domainOverlap(line, { id: piece.id, from: along(piece.from), to: along(piece.to) }, domain);
-      return overlap ? [overlap.map((u) => u / POSITION_METRES) as [number, number]] : [];
-    });
-  });
-  const line = lay(plan.elements);
+  const least = (from: number, to: number, side: 'left' | 'right') =>
+    leastLaneRadius(
+      Math.max(
+        ...[from, to, ...Array.from({ length: Math.ceil(to - from) }, (_, k) => from + k), ...span.width.breaks]
+          .filter((p) => p >= from && p <= to && p < span.length)
+          .map((p) => laneReach(p, side)),
+      ),
+    );
+  const plan = headingPlan(span.headings, VECTOR_RESOLUTION, POSITION_METRES, least);
+  const line = new CoursePath(
+    plan.elements.map((e) => ({ start: along(e.from), length: along(e.to - e.from), turn: e.turn })),
+    0,
+  );
+  // The least radius a side's lanes keep, `u` metres along P.
+  const need = (u: number, side: 'left' | 'right') =>
+    leastLaneRadius(laneReach(Math.min(u / POSITION_METRES, span.length - 1e-9), side));
   return {
     line,
     plan: {
       elements: plan.elements,
-      departure: departure(span.headings, plan.elements, plan.start, POSITION_METRES),
+      fidelity: planFidelity(
+        span.headings,
+        plan.elements,
+        plan.start,
+        POSITION_METRES,
+        VECTOR_RESOLUTION,
+        plan.widened,
+      ),
     },
-    cuts: spanCuts(road, line, sides),
+    cuts: spanCuts(road, line, need),
   };
 }
 
 /**
- * Where a span's coordinate domain (`sides`, metres either side of P) passes over itself, its passages parted: a cut at
+ * Where a span's road comes near itself (`passagePairs`, its lanes' `need` either side), its passages parted: a cut at
  * the last joint before the later passage, after the earlier, where the road is one (its width at most 212).
  */
-function spanCuts(road: RoadSpan, line: CoursePath, sides: (p: number) => [number, number]): number[] {
+function spanCuts(road: RoadSpan, line: CoursePath, need: (u: number, side: 'left' | 'right') => number): number[] {
   const cuts: number[] = [];
-  const alone = { road, line, world: { x: 0, y: 0, heading: 0 }, cuts: [], origins: [0] };
-  for (const pairs of roadCrossings([alone], (_, p) => sides(p))) {
-    const [a, b] = [Math.max(...pairs.map(([x]) => x)), Math.min(...pairs.map(([, y]) => y))];
+  for (const [a, b] of passagePairs(line, 0, line.length, need, POSITION_METRES)) {
     if (cuts.some((c) => a < along(c) && along(c) <= b)) continue;
     const joints = line.elements
       .map((e) => e.start / POSITION_METRES)
@@ -633,7 +602,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     crossings,
     objects: placed.length,
     placing: objects.report,
-    departure: Math.max(...laid.map((l) => l.plan.departure)),
+    fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
   };
 }
 

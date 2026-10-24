@@ -134,7 +134,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 8, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 9, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -153,11 +153,11 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the goal's 450 positions straight ahead, at (0, 4096), with which every path ends and begins. It
-  becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), its domain reaching
-  the ground's edges and the vehicles' reach (26.3 m): 132 runs and 249 elements; laid from its start, it lies at most
-  0.09 m from its table's line, each position a step along its ends' mean heading. The tightest arc is 27.3 m, a turn
-  in stage 1 (positions 1661–1662). P is a straight of 6 m less the bike's 0.75 positions before position 0, then the
-  plan.
+  becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
+  its lanes keep (a lane either side, 7.51 m; none is): 132 runs and 256 elements, its headings within the resolution at
+  every position; laid from its start, it lies at most 0.05 m from its table's line, each position a step along its
+  ends' mean heading. The tightest arc is 21.9 m, a turn in stage 3. P is a straight of 6 m less the bike's 0.75
+  positions before position 0, then the plan.
 - **Stations.** Course position q is its station along P. GO, the bike at position 0.75, is station 6.
 - **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10689: past the finish (10254,
   station 12158.0) 515.6 m remain, more than any vehicle's takeover needs to stop (the longest, S13 DRIFT TUNED's,
@@ -183,10 +183,10 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4 and right of P on stage 5 (its white
   sand); the water's and the sand's materials are K's (2026-10-22).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
-  and `goal` from 10240, each cut again where its coordinate domain (to the ground's edges and the vehicles' reach)
-  passes over itself (`stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut
-  parts every overlap whose earlier cell lies before the earliest later cell, there (a loop's entry from its exit,
-  across the loop's far side), else as SUPER HANG-ON's are (`domainCuts`' `once`). 17 Sections; they join by lane a.
+  and `goal` from 10240, each cut again where its road comes near itself (`passagePairs`: within its lanes' least
+  radius; `stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut parts every
+  pair whose earlier passage lies before the earliest later one, there (a loop's entry from its exit, across the loop's
+  far side), else as SUPER HANG-ON's are (`domainCuts`' `once`). 17 Sections; they join by lane a.
 - **Gates.** The checkpoints `enduro-racer-CP1` to `-CP4` stand where each stage's CHECK banner does (2048k + 4), the
   finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grid is SUPER
   HANG-ON's: 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate lanes; the

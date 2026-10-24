@@ -49,6 +49,7 @@ import { pathOffset, pathTurn, readHeightTable, type HeightTable } from './road-
 
 import {
   dumpDirectory,
+  fidelityReport,
   ORIGINALS_DIRECTORY,
   romDirectory,
   romSet,
@@ -276,7 +277,16 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         metres: round1(road.end),
         objects: road.objects,
         placing: road.placing,
-        departure: Math.round(road.departure * 100) / 100,
+        // Each span's fidelity, the most over the spans and their widened turns.
+        ...(() => {
+          const spans = road.fidelity.map((f) => fidelityReport(f, f.span));
+          return {
+            heading: Math.max(...spans.map((f) => f.heading)),
+            beyond: spans.reduce((n, f) => n + f.beyond, 0),
+            positionDrift: Math.max(...spans.map((f) => f.positionDrift)),
+            widened: spans.flatMap((f) => f.widened),
+          };
+        })(),
         heights: [
           round1(Math.min(...stations.map(road.profile.height))),
           round1(Math.max(...stations.map(road.profile.height))),

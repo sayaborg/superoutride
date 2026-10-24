@@ -21,7 +21,7 @@ import {
   ROAD_HALF,
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
-import { layTurboOutrun, OPEN, type Piece } from './turbo-outrun-layout.js';
+import { layTurboOutrun, OPEN, SAND, type Piece } from './turbo-outrun-layout.js';
 import {
   assembleTurboOutrunPrograms,
   assembleTurboOutrunSprites,
@@ -43,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 8;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 9;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -273,7 +273,7 @@ function sectionDocument(
     readonly camera: number;
   },
 ) {
-  const { width, offset, laneBreaks, sand, line } = context.layout;
+  const { width, offset, laneBreaks, line } = context.layout;
   const { from, to, origin } = piece;
   /** The station of course position `g` from the Section's start. */
   const local = (g: number) => (g - from) * POSITION_METRES;
@@ -320,25 +320,21 @@ function sectionDocument(
   const written = (g: number) => laneLines(lanes(g));
   const ref = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
 
-  // The verges: the sand beyond each outer lane's asphalt, narrowed where the layout narrows it.
+  // The verges: the sand beyond each outer lane's asphalt.
   const asphaltBeyond = (ROAD_HALF - CENTRE_INSIDE) * UNIT_METRES;
   // A verge's lateral at position `g`, metres right of P.
   const vergeAt = (side: 0 | 1, g: number) => {
     const lines = written(g);
     return side === 0
-      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - asphaltBeyond - sand.at(g, 0)
-      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + asphaltBeyond + sand.at(g, 1);
+      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - asphaltBeyond - SAND
+      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + asphaltBeyond + SAND;
   };
-  const verge = (side: 0 | 1) => {
-    const inside = sand.knots[side].map(([g]) => g).filter((g) => g > from && g < to);
-    return [from, ...inside, to].map((g) => ({
+  const verge = (side: 0 | 1) =>
+    [from, to].map((g) => ({
       at: at(g),
       lateral:
-        side === 0
-          ? laneLateral('a', 'left', -asphaltBeyond - sand.at(g, 0))
-          : laneLateral('f', 'right', asphaltBeyond + sand.at(g, 1)),
+        side === 0 ? laneLateral('a', 'left', -asphaltBeyond - SAND) : laneLateral('f', 'right', asphaltBeyond + SAND),
     }));
-  };
 
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
   // picture shows, each in its two colors by halves of the stripes' period counted from GO.

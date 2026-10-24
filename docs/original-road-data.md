@@ -279,11 +279,9 @@ one shorter than a millimetre (two breaks all but together) is carried on into t
 
 A heading table, headings each at its position (a table's positions one apart, or as a course places them),
 becomes straights and arcs over its positions (`headingPlan`, `heading-plan`) by one constant, the table's resolution
-(K, 2026-10-23); its elements turn at radii over the least its coordinate domain admits, a domain of one reach either
-side its reach. A table of heading vectors about 4096 long, as
-the originals' road paths are, has a resolution of 1.5 / 4096 radians (`VECTOR_RESOLUTION`), a unit and a half of the
-4096, where the runs stop growing fewer: SUPER HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and
-ENDURO RACER 148, 132 and 128.
+(K, 2026-10-23). A table of heading vectors about 4096 long, as the originals' road paths are, has a resolution of
+1.5 / 4096 radians (`VECTOR_RESOLUTION`), a unit and a half of the 4096, where the runs stop growing fewer: SUPER
+HANG-ON's AFRICA has 167 runs at one unit, 142 at 1.5 and 141 at 2, and ENDURO RACER 148, 132 and 128.
 
 - **Runs.** In the table's order, a run takes the next heading while some line holds every heading of it within the
   resolution, and ends at the first it cannot take. Its line is its minimax one, the line whose largest departure is
@@ -292,17 +290,27 @@ ENDURO RACER 148, 132 and 128.
   be one) the level line through it. A line that holds a run holds each part of it, so the run taken a heading at a
   time is the longest, and the runs are the fewest any such rule makes.
 - **Arcs.** A run is an arc over its positions at its line's rate, from its line's heading at its first position to
-  its line's at its last; a run of one heading has no length.
+  its line's at its last, however little it turns (an arc's radius has no ceiling but being finite); a run whose line
+  is level is a straight, and a run of one heading has no length.
 - **Turns.** Two runs are joined by a turn over the step between them, from the first's line at its last position to the
-  next's at its first. A turn takes one more step on each side from the runs beside it, a round, every such turn at
-  once, where its radius would not be over the least or where it lies between two cells of a Section, as its course
-  writes it, whose coordinate domain the course format does not admit: cells less than 10 m apart along the road
-  (`domainOverlap`), for farther ones are passages, which the Sections' cuts part. A turn that takes a run's whole arc,
-  or overlaps the next turn, joins it, and turns between the runs beyond; a run whose own radius would not be over the
-  least is taken into the turns either side of it, as one.
+  next's at its first.
+- **The lanes' least radius.** No element turns tighter than the least radius the course format lets the lanes on its
+  inside keep there (`leastLaneRadius`: the distance from P to the farthest lane edge on that side, the vehicles'
+  reach and the clip's tolerance, the most over the element's positions; a tighter curve leaves a lane without
+  material, [Architecture](architecture.md#plan-authority)). A turn tighter than that takes one more step on each side
+  from the runs beside it, a round, every such turn at once, the fewest that keep it; a turn that takes a run's whole
+  arc, or overlaps the next turn, joins it, and turns between the runs beyond; a run whose own arc would be tighter
+  is taken into the turns either side of it, as one. This is the one place where the plan departs from its table's
+  headings by more than the resolution: a heading table that turns by several degrees in one position (TURBO
+  OUTRUN's, at four places) asks for a curve its road cannot take.
 - **Headings.** Each element turns from the heading the plan has reached to its end's on the lines: an arc's on its
-  run's line, a turn's on the next run's. One that would be straighter than the course format's longest radius
-  (42 km) is a straight, its turn left to the next; straights one after another are one.
+  run's line, a turn's on the next run's; straights one after another are one.
+
+The rule promises the heading: at every position of the table but a widened turn's, the plan's heading lies within the
+resolution of the table's. It does not promise the position: the minimax lines' departures do not sum to nothing, so the
+plan may drift from the line the table builds by up to the resolution times the distance (the originals' plans drift
+0.12 m at most, SUPER HANG-ON's AMERICA's), within the table's own rounding. `planFidelity` measures both at each
+position, and each widened turn's most; the road data commands report them.
 
 ## Plan from a path
 

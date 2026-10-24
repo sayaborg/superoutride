@@ -138,7 +138,7 @@ stage's description.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 8, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 9, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -151,12 +151,14 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
 - **Plan.** The road path P is the course's heading table: each stage's road path's headings at its positions on the
   course (a stage's start plus its own position, a position 2.002689 m), carried on straight ahead past 1495, with which
   every path ends, as it does before any stage's end (by 1411 at the latest), then the course's end. It becomes P by the
-  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), an element's least radius 10 m, the
-  vehicles' reach and the widest asphalt it spans, so that the sand on its inside keeps its room (Materials below), and
-  a Section's domain as written. Its curves only check it: some turns are not among them (INDIANAPOLIS's from 882, its
-  curves LOS ANGELES's), and DENVER's and NEW ORLEANS's roads waver. 781 runs and 1501 elements (DENVER's Section 687,
-  the most); the sharpest arc is 23.5 m, a turn in DALLAS; laid from its start, P lies at most 0.41 m from its table's
-  line.
+  [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than its lanes keep
+  (from P to lane a's left edge or lane f's right, `leastLaneRadius`). Four turns are widened to keep them, each over
+  three positions (turning 6.7° to 11.2° there): PITTSBURGH's at 4099 and 4147, SAN ANTONIO's at 15826 and OKLAHOMA
+  CITY's at 18565 (course positions). Its curves only check it: some turns are not among them (INDIANAPOLIS's from 882,
+  its curves LOS ANGELES's), and DENVER's and NEW ORLEANS's roads waver. 781 runs and 1533 elements (DENVER's Section
+  687, the most); the sharpest arc is 14.9 m, in SAN ANTONIO. Its headings lie within the resolution of its table's at
+  every position but the four widened turns' (at most 224 resolutions, 4.7°, in SAN ANTONIO's); laid from its start, P
+  lies at most 0.11 m from its table's line.
 - **Width.** The width points each stage runs (those before its end), by OUTRUN's rule ([Main
   CPU](outrun-road-data.md#main-cpu)), from 450 at the entry: a stage played on starts at the width the stage before it
   left, still approaching that stage's target. A leg's last stage is joined to the next leg's start, which the original
@@ -182,15 +184,13 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
   stage's colors begin at its start, a leg's first stage's at its GO.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units); between them SAND where the ground there is wider
-  than 0.5 m; SAND 40 m beyond the outermost asphalt, but on a curve's inside narrowed to leave 10 m and the vehicles'
-  reach to the curve's centre (curves narrowed one after another, or whose returns would meet, as one stretch at the
-  least), returning at 1 m across for 6 along: 58 stretches, the narrowest 0.5 m (a turn of PITTSBURGH's and one of NEW
-  ORLEANS's, at the least radius).
+  than 0.5 m; SAND 40 m beyond the outermost asphalt, which the course format ends where the plan stops being one-to-one
+  ([Architecture](architecture.md#plan-authority)).
 - **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
   from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY
-  hold the joins. Each is cut again where its coordinate domain (to SAND's edges and the vehicles' reach) passes over
-  itself, where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of
-  the longest such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 28 Sections.
+  hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
+  where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of the longest
+  such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 24 Sections.
 - **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating; each stage's
   checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish
   `los-angeles-GOAL` where the GOAL gate's does (1403.613).

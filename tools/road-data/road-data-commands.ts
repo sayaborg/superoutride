@@ -12,6 +12,7 @@ import { RomSet } from './rom-set.js';
 import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
+import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 
 /** A command's options, `--name value` or a flag. */
 export type RoadDataOptions = ReadonlyMap<string, string>;
@@ -29,6 +30,22 @@ export const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** A value rounded to tenths, and to thousandths. */
 export const round1 = (value: number) => Math.round(value * 10) / 10;
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
+/**
+ * A plan's fidelity to its table (`planFidelity`), as the commands report it: its heading's most departure, in the
+ * table's resolution, and the count of positions beyond it; its position's most drift, metres; and each widened turn's
+ * table positions with its heading's and position's most there.
+ */
+export const fidelityReport = (fidelity: ReturnType<typeof planFidelity>, span?: string) => ({
+  heading: round3(fidelity.heading / VECTOR_RESOLUTION),
+  beyond: fidelity.beyond.length,
+  positionDrift: round3(fidelity.drift),
+  widened: fidelity.turns.map((t) => ({
+    ...(span === undefined ? {} : { span }),
+    at: [round1(t.from), round1(t.to)],
+    heading: round3(t.heading / VECTOR_RESOLUTION),
+    drift: round3(t.drift),
+  })),
+});
 
 /** MAME's set `name` from its zips, each ROM found by its CRC-32 and size. */
 export async function romSet(name: string, zips: readonly string[]) {

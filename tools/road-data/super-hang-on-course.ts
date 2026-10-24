@@ -6,16 +6,16 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
-import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, domainOverlap, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
-import { departure, evenly, headingPlan, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
 import type { GatePart } from './super-hang-on-sprites.js';
@@ -150,7 +150,7 @@ interface Placed {
 
 /**
  * The course: P laid from the entry (a straight of `cameraDistance` before GO, then its heading table's plan); its
- * Sections, one a section and one the goal's, each cut where its coordinate domain passes over itself; their objects,
+ * Sections, one a section and one the goal's, each cut where its road comes near itself; their objects,
  * gates, skies, strips and level profile with the crossings' bumps.
  */
 export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
@@ -158,8 +158,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const count = sections.length;
   const unit = LANE / inputs.cross.linesIn;
   const entry = inputs.cameraDistance;
-  // The coordinate domain reaches SAND's edges and the vehicles' reach either side of P.
-  const reach = inputs.cross.edgesOut * unit + SAND + MAXIMUM_VEHICLE_REACH;
+  // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
+  const reach = leastLaneRadius(LANE);
   /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
   const along = (q: number) => entry + q * metres;
 
@@ -173,7 +173,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
 
   /**
    * P laid from plan elements `planned` (the entry, then the plan, straights one after another one), and its Sections:
-   * one a section and the goal's, each cut again where its domain passes over itself.
+   * one a section and the goal's, each cut again where its road comes near itself.
    */
   const lay = (planned: readonly PlanElement[]) => {
     const elements: PathElement[] = [];
@@ -199,20 +199,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     }
     return { path, pieces };
   };
-  // The plan: its turns widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(
-    evenly(inputs.headings),
-    VECTOR_RESOLUTION,
-    metres,
-    () => reach,
-    (planned) => {
-      const { path, pieces } = lay(planned);
-      return pieces.flatMap((piece) => {
-        const overlap = domainOverlap(path, piece, reach);
-        return overlap ? [overlap.map((u) => (u - entry) / metres) as [number, number]] : [];
-      });
-    },
-  );
+  const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
   const { path, pieces } = lay(plan.elements);
   const stationOf = (q: number) => path.station(along(q));
   const end = path.length;
@@ -350,7 +337,17 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       links,
     },
     path,
-    plan: { ...plan, departure: departure(evenly(inputs.headings), plan.elements, plan.start, metres) },
+    plan: {
+      ...plan,
+      fidelity: planFidelity(
+        evenly(inputs.headings),
+        plan.elements,
+        plan.start,
+        metres,
+        VECTOR_RESOLUTION,
+        plan.widened,
+      ),
+    },
     pieces,
     profile,
     pairs,

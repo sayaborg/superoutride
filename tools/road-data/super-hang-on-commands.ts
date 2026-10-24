@@ -10,6 +10,7 @@ import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from '
 
 import {
   dumpDirectory,
+  fidelityReport,
   oneZip,
   romDirectory,
   romSet,
@@ -54,7 +55,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         notBroughtOut: dropped,
         runs: road.plan.runs.length,
         elements: road.plan.elements.length,
-        fromPath: Math.round(road.plan.departure * 100) / 100,
+        ...fidelityReport(road.plan.fidelity),
         crossings: road.crossings.map((c) => ({
           passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
           levels: c.levels,

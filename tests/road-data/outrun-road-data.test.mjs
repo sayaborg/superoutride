@@ -430,7 +430,8 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
       radii.some((r) => Math.abs(r / (positions * POSITION_METRES) - 1) < 0.005),
       `${positions}: ${radii}`,
     );
-  assert.ok(road.departure <= VECTOR_RESOLUTION * road.end, `${road.departure}`);
+  for (const { heading, beyond } of road.fidelity)
+    assert.ok(!beyond.length && heading <= VECTOR_RESOLUTION * (1 + 1e-9), `${heading}`);
   const read = readCourseDocument(normalizeCoursePositions(road.document).document);
   assert.ok(read.ok, JSON.stringify(read.diagnostics));
   const [section] = road.document.sections;

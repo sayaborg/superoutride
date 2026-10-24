@@ -115,12 +115,14 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   plan at that heading. Because a line that holds a run holds each part of it, the run taken one heading at a time is
   the longest, and the runs are the fewest any such rule makes. Two runs are joined by a turn over the position
   between them. The tables' resolution is the one constant. It promises the heading at every position within the
-  resolution, not the position, which may drift by the resolution times the distance. A Section's plan holds up to
+  resolution, but over a turn widened for its lanes, not the position, which may drift by the resolution times the
+  distance. A Section's plan holds up to
   1024 elements, as its heightNodes do (TURBO OUTRUN's DENVER needs about 720).
 - **The format owns where a plan stops being one-to-one** (EX-7c). The compiler ends the material at the plan's
   clearance less the vehicles' reach ([Architecture](architecture.md#plan-authority)), so a document writes only what
-  it intends: its ground at one width, no turn widened and no ground narrowed to fit, a Section cut only where the road
-  itself comes near itself or crosses.
+  it intends: its ground by one rule, no ground narrowed to fit, a Section cut only where the road itself comes near
+  itself or crosses, and a turn widened only to the least radius its lanes keep, one rule for every original (K,
+  2026-10-24).
 - **SUPER MONACO GP's circuits** are raised the same way from their integer path's points, a run taking the next point
   while one arc holds every point of it within the path's resolution, EX-8 naming the one arc a run takes; the points
   close exactly, so no correction closes a lap.
@@ -195,11 +197,13 @@ PRs, in this order:
 - EX-7c1: the course format ends a Section's material where its plan stops being one-to-one, at the plan's
   clearance less the vehicles' reach, as the compiler finds it; the domain's own checks go. The courses that their
   tools fitted keep their form but where a material reached past the clearance.
-- EX-7c2 and on: the road data tool writes only what it intends, its constants as they are: no turn widened for the
-  domain, no ground narrowed (TURBO OUTRUN's), Sections cut only where the road comes near itself or crosses, one
-  ground width rule for every original, and a measure of the plan's heading against its table, which every plan PR
-  after reports. SUPER HANG-ON's, ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised again; shared and
-  per-original parts in PRs of their own if large.
+- EX-7c2: the road data tool writes only what it intends: a turn widened only where the table turns tighter than its
+  lanes keep (TURBO OUTRUN's four), no ground narrowed (TURBO OUTRUN's), Sections cut only where the road comes near
+  itself, and a measure of the plan's heading against its table, which every plan PR after reports. SUPER HANG-ON's,
+  ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised again.
+- EX-7c3: one ground width rule for every original, to the outer edge of the farthest standing scenery beyond the
+  outermost lane's edge; `SAND` (SUPER HANG-ON's, TURBO OUTRUN's), `GROUND` (ENDURO RACER's) and `VERGE` (OUTRUN's)
+  deleted.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path, the lap closed in position and heading by a
   rule alone, its hairpins left to the format.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
@@ -212,8 +216,7 @@ PRs, in this order:
   when the stage closes, it moves to Stage GR.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan, the fitted path plan and its folds,
   the plane, the widths' roundings, SUPER MONACO GP's closing, and the plan's injectivity check
-  (`plan-domain-injectivity.ts`) with its `plan_coordinate_overlap` diagnostic, which only the tool's Section cuts use
-  after EX-7c1.
+  (`plan-domain-injectivity.ts`) with its `plan_coordinate_overlap` diagnostic, which nothing uses after EX-7c2.
 - EX-10: the profile from a rise table, shared, and SUPER MONACO GP's hills by it.
 - EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m.
 - EX-12: SUPER HANG-ON's hills by the profile from a rise table.
@@ -265,17 +268,26 @@ The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 
 ### The constants' table (EX-7d)
 
-EX-7d's table (in its PR) lists every chosen value but the scale, and proposes, for K to decide:
+EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions on it (2026-10-24):
 
 - **The heading tables' resolution** (1.5/4096, K, 2026-10-23) stays K's: the value the ROMs' rounding gives (half a unit
   either way of each component, √2/2 of a unit at 4096) more than doubles every original's runs (AFRICA 142 to 359,
   ENDURO RACER 132 to 554, TURBO OUTRUN 781 to 1470), so the tables vary beyond their components' rounding.
-- **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beside the
-  road, the reason ENDURO RACER's 18 m was chosen. SUPER HANG-ON's would be 14.5 m (40 now), ENDURO RACER's 16.9 m
-  (18), TURBO OUTRUN's 49.6 m (40), OUTRUN's 47.6 m (40); or one shared 40 m. It bears on play, how far off the road a
-  vehicle may go, so K drives it.
-- **The road past the finish**, one rule: as long as the longest stop of the catalog's vehicles from their top speed,
-  for every original (now SUPER HANG-ON's 607 m, TURBO OUTRUN's 521 m, ENDURO RACER's 533 m, each its own count).
+- **A turn tighter than its lanes keep** is widened to the least radius they keep (from the plan to the farthest lane
+  edge on the curve's inside, the vehicles' reach and the clearance tolerance), one rule for every original: EX-7c2.
+- **An arc's radius** is bounded only by the arc computation's precision, not by the ruler's length (EX-7c2a); a run is
+  straight only where its slope is 0.
+- **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beyond the
+  outermost lane's edge (SUPER HANG-ON's 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m; SUPER
+  MONACO GP's by EX-8): EX-7c3.
+- **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
+  ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
+  stopped where the road ends is allowed (the DRIFT TUNED cars). First a PR of the run's setup, which no longer refuses
+  a course whose road past the finish is shorter than a vehicle's stop, and says what happens to a vehicle that reaches
+  the road's end; then the tool's lengths, EX-14 and EX-15 to EX-24.
+- **The scale**: temporary DEV courses for SUPER HANG-ON's AFRICA (the original's bike at its real size, 3.883 m a
+  lane, and one lane width for all, 3.6 m), SUPER MONACO GP's race and ENDURO RACER (3.6 m), with pictures of the same
+  places; OUTRUN's and TURBO OUTRUN's are not made.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut 2 m clear of a gate, the grids' 12 m and 3 m.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
@@ -306,10 +318,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 - The roundings' epsilons (`EPSILON`, 1e-5, in SUPER HANG-ON's, ENDURO RACER's and SUPER MONACO GP's writers, and
   `JOINT_SNAP`, 2e-6): EX-13 and EX-14. Since EX-5b and EX-7 put a Section's stations on one ruler, those no longer
   needed are deleted rather than made one.
-- One kind of case had two rules: where an original's sharp curve or nearing road meets the ground this game lays
-  beside it, OUTRUN, SUPER HANG-ON and ENDURO RACER widened the canon's turns, TURBO OUTRUN narrowed its sand, and
-  Sections were cut for the ground: EX-7c.
-- The plans' fidelity was reported as position drift from the start, not as the canon's promise, the heading: EX-7c2.
 - SUPER MONACO GP's lap closed by correcting elements: EX-8.
 - No PR reviewed the constants' values, only their names (EX-1 counted 119 chosen): EX-7d and the scale.
 

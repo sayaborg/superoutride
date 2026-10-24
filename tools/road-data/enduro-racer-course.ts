@@ -8,16 +8,23 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { MAXIMUM_VEHICLE_REACH } from '../../src/course/course-coordinate-domain.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName } from './pixel-grid.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
-import { departure, evenly, headingPlan, pathHeadings, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import {
+  evenly,
+  headingPlan,
+  pathHeadings,
+  planFidelity,
+  VECTOR_RESOLUTION,
+  type PlanElement,
+} from './heading-plan.js';
+import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, domainOverlap, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -42,7 +49,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 8;
+export const ENDURO_RACER_CONVERSION_VERSION = 9;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -264,7 +271,7 @@ interface Placed {
 
 /**
  * The course: P laid from the entry (a straight to position 0, then its heading table's plan); its Sections, one a
- * stage and the goal's, each cut where its coordinate domain passes over itself; their strips, skies, gates and level
+ * stage and the goal's, each cut where its road comes near itself; their strips, skies, gates and level
  * profile with the crossings' bumps.
  */
 function layCourse(inputs: CourseInputs) {
@@ -273,13 +280,13 @@ function layCourse(inputs: CourseInputs) {
   const along = (q: number) => inputs.entry + q * metres;
   const last = STAGES * STAGE_POSITIONS;
   const gateMetres = [START_GATE, ...inputs.checks, inputs.finish].map(along);
-  // The coordinate domain reaches the ground's edges and the vehicles' reach either side of P.
+  // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
   const edges = cross.edges * unit;
-  const reach = edges + GROUND + MAXIMUM_VEHICLE_REACH;
+  const reach = leastLaneRadius(LANE);
 
   /**
    * P laid from plan elements `planned` (a straight to position 0, then the plan, straights one after another one), and
-   * its Sections: one a stage and the goal's, each cut again where its domain passes over itself.
+   * its Sections: one a stage and the goal's, each cut again where its road comes near itself.
    */
   const lay = (planned: readonly PlanElement[]) => {
     const elements: PathElement[] = [];
@@ -310,20 +317,7 @@ function layCourse(inputs: CourseInputs) {
     }
     return { path, pieces };
   };
-  // The plan: its turns widened where a Section's domain, as written, passes over itself.
-  const plan = headingPlan(
-    evenly(inputs.headings),
-    VECTOR_RESOLUTION,
-    metres,
-    () => reach,
-    (planned) => {
-      const { path, pieces } = lay(planned);
-      return pieces.flatMap((piece) => {
-        const overlap = domainOverlap(path, piece, reach);
-        return overlap ? [overlap.map((u) => (u - inputs.entry) / metres) as [number, number]] : [];
-      });
-    },
-  );
+  const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
   const { path, pieces } = lay(plan.elements);
   const stationOf = (q: number) => path.station(along(q));
   const end = path.length;
@@ -437,7 +431,17 @@ function layCourse(inputs: CourseInputs) {
       links,
     },
     path,
-    plan: { ...plan, departure: departure(evenly(inputs.headings), plan.elements, plan.start, metres) },
+    plan: {
+      ...plan,
+      fidelity: planFidelity(
+        evenly(inputs.headings),
+        plan.elements,
+        plan.start,
+        metres,
+        VECTOR_RESOLUTION,
+        plan.widened,
+      ),
+    },
     pieces,
     profile,
     stationOf,

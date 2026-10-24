@@ -16,6 +16,12 @@ const CELL_TURN_RADIANS = Math.PI / 36;
  * clips to cells of metres. The line lies this much inside, so a chord within it of the clearance keeps out of it.
  */
 const CLEARANCE_TOLERANCE_METERS = 0.01;
+/**
+ * The least radius a curve may turn at for its lanes, whose farthest edge on its inside lies `edge` metres from the
+ * plan: the clip line lies the reach and the tolerance inside the clearance, and the clearance on a curve's inside is at
+ * most its radius, so a tighter curve leaves a lane without material (`invalid_lane`).
+ */
+export const leastLaneRadius = (edge: number) => edge + MAXIMUM_VEHICLE_REACH + CLEARANCE_TOLERANCE_METERS;
 /** Metres: the side of the grid that finds the segments near a station, about the clearance asked for. */
 const GRID_CELL_METERS = 64;
 /** A grid cell's key is its row times this plus its column: far more columns than any Section spans. */
