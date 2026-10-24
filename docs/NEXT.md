@@ -263,6 +263,24 @@ The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 - Shadows: fixed objects cast the shadow their original draws (an engine change in a PR of its own), or the shadows
   drawn into the pictures as they are.
 
+### The constants' table (EX-7d)
+
+EX-7d's table (in its PR) lists every chosen value but the scale, and proposes, for K to decide:
+
+- **The heading tables' resolution** (1.5/4096, K, 2026-10-23) stays K's: the value the ROMs' rounding gives (half a unit
+  either way of each component, √2/2 of a unit at 4096) more than doubles every original's runs (AFRICA 142 to 359,
+  ENDURO RACER 132 to 554, TURBO OUTRUN 781 to 1470), so the tables vary beyond their components' rounding.
+- **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beside the
+  road, the reason ENDURO RACER's 18 m was chosen. SUPER HANG-ON's would be 14.5 m (40 now), ENDURO RACER's 16.9 m
+  (18), TURBO OUTRUN's 49.6 m (40), OUTRUN's 47.6 m (40); or one shared 40 m. It bears on play, how far off the road a
+  vehicle may go, so K drives it.
+- **The road past the finish**, one rule: as long as the longest stop of the catalog's vehicles from their top speed,
+  for every original (now SUPER HANG-ON's 607 m, TURBO OUTRUN's 521 m, ENDURO RACER's 533 m, each its own count).
+- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
+  (K), passages 200 m apart, a passage running on over 3 positions, a cut 2 m clear of a gate, the grids' 12 m and 3 m.
+- **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
+  among them) are read from them by EX-15 to EX-24.
+
 ### What the audit found, and its PRs
 
 EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
