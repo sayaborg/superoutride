@@ -38,7 +38,12 @@ function flatWorld() {
     { s: 0, y: 0, curveLength: 0 },
     { s: end, y: 0, curveLength: 0 },
   ]);
-  return { extent: coordinates.domain, coordinates, height, surfaces: { sample: () => reference } };
+  return {
+    extent: { start: coordinates.domain.start, end, terminal: end },
+    coordinates,
+    height,
+    surfaces: { sample: () => reference },
+  };
 }
 
 for (const entry of definitions.vehicles) {

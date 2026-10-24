@@ -9,8 +9,11 @@ export interface SurfaceMapReader {
 
 /** Active physical readers; content/chart selection is resolved by composition. */
 export interface VehicleWorld {
-  /** Shared extent authority: the Route in live driving, the native domain in a standalone world. */
-  readonly extent: { readonly start: number; readonly end: number };
+  /**
+   * Shared extent authority: the Route in live driving, the native domain in a standalone world. `terminal` is the
+   * road's end where no Link leaves it (a standalone world's end), null while one does.
+   */
+  readonly extent: { readonly start: number; readonly end: number; readonly terminal: number | null };
   readonly coordinates: PlanCoordinateReader;
   readonly height: ProfileReader;
   readonly surfaces: SurfaceMapReader;

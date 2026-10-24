@@ -23,7 +23,8 @@ export function racingValidationWorld() {
     { s: plan.length, y: 0, curveLength: 0 },
   ]);
   const surface = Object.freeze({ id: 'ASPHALT', gripFactor: 1, rollingResistance: 0.014 });
-  return { extent: coordinates.domain, coordinates, height, surfaces: { sample: () => surface } };
+  const { start, end } = coordinates.domain;
+  return { extent: { start, end, terminal: end }, coordinates, height, surfaces: { sample: () => surface } };
 }
 
 function checkFinite(vehicle: VehicleState, id: string) {

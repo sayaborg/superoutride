@@ -27,7 +27,14 @@ import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
 type RecoveryReason =
-  'surface-penetration' | 'outside-domain' | 'blocked' | 'overturned' | 'manual' | 'wrong-course' | 'explosion';
+  | 'surface-penetration'
+  | 'outside-domain'
+  | 'road-end'
+  | 'blocked'
+  | 'overturned'
+  | 'manual'
+  | 'wrong-course'
+  | 'explosion';
 
 // Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
 // At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
@@ -146,7 +153,11 @@ function updateRecovery(
   if (!vehicle.course.inDomain) {
     state.outsideDomainSteps += 1;
     if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
-    return recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place }) ? 'outside-domain' : null;
+    // Out past the road's end (the course's entry, or the end of a Section no Link leaves) as against a fixed object.
+    const { terminal } = world.extent;
+    const reason =
+      vehicle.course.s <= 0 || (terminal !== null && vehicle.course.s >= terminal) ? 'road-end' : 'outside-domain';
+    return recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
   }
   state.outsideDomainSteps = 0;
   // Held against a fixed object it cannot leave, with no reverse gear: as long as outside the domain, then recovery.
@@ -228,10 +239,11 @@ export function recoverVehicleToPlanCoordinate(
 ): void {
   const surface = supportedTargetSurface(world, target.s, target.l);
 
-  // A vehicle a fixed object held had stopped against it: it recovers at rest behind it, since a recovery speed would
-  // carry it back into the same object. Every other recovery keeps a bounded share of its forward speed.
+  // A vehicle a fixed object held had stopped against it, and one out past the road's end has no road ahead: each
+  // recovers at rest behind it, since a recovery speed would carry it back into the same object or over the same end.
+  // Every other recovery keeps a bounded share of its forward speed.
   const speed =
-    reason === 'blocked' || reason === 'explosion'
+    reason === 'blocked' || reason === 'explosion' || reason === 'road-end'
       ? 0
       : clamp(
           Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,

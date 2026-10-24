@@ -181,8 +181,8 @@ export function resolveRunSetup(
     if (!resolved) mechanics.set(runVehicle, (resolved = createRunMechanics(runVehicle)));
     return resolved;
   };
-  // Each vehicle's fixed driver, compiled once at the rival utilization and its speed cap: the runout check below, the
-  // race's unpaced rivals and the player's run driver use the same one; traffic drivers use the same utilization.
+  // Each vehicle's fixed driver, compiled once at the rival utilization and its speed cap: the race's unpaced rivals and
+  // the player's run driver use the same one; traffic drivers use the same utilization.
   const rivalUtilization = 0.75;
   const drivers = new Map<RunVehicle, PlannedDriver>();
   const driverOf = (runVehicle: RunVehicle) => {
@@ -205,22 +205,6 @@ export function resolveRunSetup(
           field.rivalPool ?? [],
           field.vehicleOf!,
         );
-  // Runout covers the whole field: the entry needing the longest stop from its maximum speed decides it.
-  let longest: { readonly entry: RunEntry; readonly distance: number } | null = null;
-  for (const entry of entries) {
-    const driver = driverOf(entry.vehicle);
-    const distance = driver.speedCap ** 2 / (2 * driver.braking);
-    if (!longest || distance > longest.distance) longest = { entry, distance };
-  }
-  if (longest)
-    for (const { finish } of course.gates.intervals) {
-      if (!finish || finish.section.outgoing.length !== 0) continue;
-      const available = finish.section.coordinates.domain.end - finish.at.s;
-      if (available < longest.distance)
-        throw new RangeError(
-          `FINISH ${finish.id}: ${available.toFixed(2)} m of runout; ${longest.entry.vehicle.vehicleDefinition.compiledVehicle.id} requires ${longest.distance.toFixed(2)} m to stop from maximum speed`,
-        );
-    }
   // Traffic drives each candidate vehicle's driver at the rival utilization, capped at the one traffic speed, converted
   // from km/h here once (a vehicle slower than it keeps its own maximum speed); each driver is compiled once here.
   const trafficSpeed = configuration.traffic

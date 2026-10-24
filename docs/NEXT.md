@@ -253,7 +253,8 @@ PRs, in this order:
 - The run's setup (`src/`): a course whose road past the finish is shorter than a vehicle's stop is no longer refused;
   a road's end (the course's entry, or the end of a Section no Link leaves) is held as a fixed object is, so a vehicle
   that leaves the domain there recovers at rest, as a blocked one does; the present rules, no new constant (K,
-  2026-10-24). The format's `arrow`, once nothing uses it, deleted with it.
+  2026-10-24).
+- The format's `arrow`, which no course uses since OUTRUN's guidance went (EX-7h1), deleted: a deletion, so its own PR.
 - The ground's width: each original's own limit of its vehicle beside the road, read from its ROM (SUPER MONACO GP's
   the band tables'), measured from where the ROM measures it (K, 2026-10-24); K drives it after.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
@@ -641,8 +642,7 @@ cycle-closure check from walking the single circuit cycle to every directed cycl
 Tune physical parameters, tire sound and driver difficulty, including vehicle-specific tire settings: a vehicle's
 mechanics document may give its own tire and `wheelSlip` (Stage DT); introduce per-axle tire parameters only when
 this tuning needs them. Add asymmetric
-(rebound-only) suspension damping only if landings bounce. Size terminal runouts for paced rivals at the minimum pace
-utilization; runout admission still checks the fixed 0.75.
+(rebound-only) suspension damping only if landings bounce.
 Use continuous tool reference runs that complete reproducibly and use different vehicles' capabilities
 comparably; review proposed checkpoint margins against the resulting driving experience. FREE PLAY and
 TIME TRIAL have no time limit. Reference driving stays outside builds. Review the complete 32-vehicle

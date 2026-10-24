@@ -221,7 +221,9 @@ first four conditions in order; race composition and the player request the last
 The blocked step count resets when the contact ends or the speed reaches `blockedSpeed`: there is no reverse gear, so a
 vehicle held against a fixed object returns to the road this way, while one that steers or rolls away does not
 recover. Movable objects, barrier lines and other vehicles never count. A blocked vehicle recovers at rest, since a
-recovery speed would carry it back into the same object. The outside-domain step count resets when the center returns inside; the same condition covers lateral
+recovery speed would carry it back into the same object. An outside-domain exit past the Route's start (the course's
+entry) or its terminal (the end of a Section no Link leaves) is `road-end`: a road's end holds a vehicle as a fixed
+object does, so it too recovers at rest, and no course needs room past its FINISH for a vehicle to stop. The outside-domain step count resets when the center returns inside; the same condition covers lateral
 exits and either end of the resident window. Course limits keep vehicles inside the lateral domain except past an open
 edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. The 44 steps let a short excursion return and an
 unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,

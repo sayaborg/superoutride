@@ -898,7 +898,7 @@ therefore fixed at the ending: competitors unfinished at that moment rank behind
 their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's run
 driver at the fixed run driver utilization (0.75) drives it on the racing line, taken with a path offset from where
 the vehicle is at the end of the step it finished in (on a fork, toward the selected exit), and plans a stop at its
-station then plus that vehicle's runout distance (`speedCap² / (2*a)`, as admitted), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
+station then plus that vehicle's runout distance (`speedCap² / (2*a)`), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
 
 Rank limits are RACE series settings by race gate ID ([series](#series-documents)). At a gate with limit N, each
@@ -1098,14 +1098,9 @@ road tangent. It is finite and may be negative; product runs and reference runs 
 browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
-Before activation, every FINISH in a Section with no outgoing Link must have at least
-`speedCap² / (2*a)` metres remaining to that Section's end for every entry, the player included. Here `speedCap` is
-the entry vehicle's speed cap and `a` its run driver's planning braking at the fixed run driver utilization
-(0.75) ([Drivers](#drivers)),
-for RACE rivals too, whose own speed plan brakes for that end at their current utilization;
-the entry needing the longest stop decides the requirement. Admission rejects insufficient runout with a
-RangeError naming the FINISH, that entry's vehicle, available metres and required metres; the browser shows this
-through its loading failure state.
+A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): a vehicle that cannot stop
+before the road ends leaves the coordinate domain there and recovers at rest, as one held by a fixed object does
+([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)), so it does not cross the end again.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
 A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL, GAME OVER or ENDED
@@ -1300,7 +1295,7 @@ Where its schedule times no station (past the last timed station of a Section, o
 passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
 rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed run
 driver utilization (0.75). Run resolution compiles each entry vehicle's fixed driver (that utilization at the vehicle's speed cap)
-once; the runout check, the race's unpaced rivals and the player's run driver use that one.
+once; the race's unpaced rivals and the player's run driver use that one.
 
 ### Drivers
 
@@ -1690,7 +1685,7 @@ rules only, no live state or target resolution:
 | `holdSteps`          | 44       | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
 | `blockedSpeed`       | 0.15 m/s | Speed below which a vehicle held against a fixed object counts as stopped         |
 | `backtrackDistance`  | 8 m      | Route distance recovery backs off; loading coverage reads it                      |
-| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed (none for `blocked`, which recovers at rest)    |
+| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed (none for `blocked` and `road-end`, at rest)    |
 | `maxRecoverySpeed`   | 32 m/s   | Upper bound of the recovery speed                                                 |
 | `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
