@@ -21605,7 +21605,7 @@
           "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "c10", "offset": -47.696216 },
-          "lateral": 17.779245,
+          "lateral": 28.579245,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.732075, "movable": null }
@@ -40818,7 +40818,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -70953,7 +70953,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "DESERT",
           "background": { "image": "outrun-desert-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -92320,7 +92320,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 51.998118 },
+          "at": { "joint": "c0", "offset": 43.566557 },
           "name": "WILDERNESS",
           "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -116753,7 +116753,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "VINEYARD",
           "background": { "image": "outrun-vineyard-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"

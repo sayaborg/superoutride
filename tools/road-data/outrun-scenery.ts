@@ -66,7 +66,8 @@ export interface ObjectPlacement {
  * The objects at the game's start (`starts`) fill slots from GO at their lines and stand where they pass the car or, nearer, where
  * they look as large as the original draws them at their line (`startDepth`, a road position). A point is taken by
  * its whole-road position, and its stretch is the one its position lies in. `width(p)` is the road width (units) at
- * road position p; the roads are apart for an object where it was wider than 280 as it appeared.
+ * road position p, which an object's lateral follows; `originalWidth(p)` the original's, straight between its points,
+ * by which the roads are apart for an object, where it was wider than 280 as it appeared.
  */
 export function roadObjects(
   main: Uint8Array,
@@ -77,6 +78,7 @@ export function roadObjects(
     readonly resets: readonly number[];
     readonly kmh: number;
     readonly width: (p: number) => number;
+    readonly originalWidth: (p: number) => number;
     readonly startDepth: (line: number) => number;
     readonly starts: readonly StartObject[];
   },
@@ -224,7 +226,7 @@ export function roadObjects(
         }
         const drawing = e.flags >> 4;
         const shown = sceneryRoutine(main, e.flags, e.y);
-        const apart = options.width(road) > RIGHT_FROM_LEFT_WIDTH;
+        const apart = options.originalWidth(road) > RIGHT_FROM_LEFT_WIDTH;
         live.push({
           depth,
           half: drawing === HALF_RATE_DRAWING,

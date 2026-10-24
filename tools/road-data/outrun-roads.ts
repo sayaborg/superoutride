@@ -311,8 +311,8 @@ export interface RoadOptions {
    */
   readonly cameraDistance: number;
   /**
-   * The road's objects, by road position from the entry: given GO's, the road width (units) at each, where each
-   * stretch the original runs ends, and the road's end; with where each checkpoint banner passes the car, and what the
+   * The road's objects, by road position from the entry: given GO's, the road width (units) at each and the
+   * original's (straight between its points), where each stretch the original runs ends, and the road's end; with where each checkpoint banner passes the car, and what the
    * placing reports.
    */
   readonly objects: (
@@ -324,6 +324,7 @@ export interface RoadOptions {
     road: {
       readonly go: number;
       readonly width: (position: number) => number;
+      readonly originalWidth: (position: number) => number;
       readonly resets: readonly number[];
       readonly end: number;
       /** Where each goal stretch begins, and its goal's number. */
@@ -572,6 +573,10 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       width: (position) => {
         const { k, p } = spanAt(position);
         return laid[k]!.road.span.width.at(p);
+      },
+      originalWidth: (position) => {
+        const { k, p } = spanAt(position);
+        return laid[k]!.road.span.original.at(p);
       },
       resets: laid.flatMap((l, k) => l.road.span.resets.map((r) => positions[k]! + r)),
       end: roadEnd,

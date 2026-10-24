@@ -271,8 +271,10 @@ over the whole course, unbroken at Sections and pieces, and every line made from
 lanes) is taken from it. The format lays a lateral straight between knots, so a course writes the curve's value at each
 of the original's positions. The road passes the original's points; between them, where a point's side is level, the
 curve is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where
-OUTRUN's roads part from 0 to 768). OUTRUN's road widths are joined so (`joinedWidth`); the other originals' laterals are
-listed in NEXT, each joined so by its original's PR.
+OUTRUN's roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects'
+laterals. What the original's program decides by the lateral's value (whether the roads are apart as an object appears)
+is decided by the original's, straight between its points. OUTRUN's road widths are joined so (`joinedWidth`); EX-7i
+lists the other originals' laterals, each joined so by its original's PR.
 
 ## The ground beside the road
 

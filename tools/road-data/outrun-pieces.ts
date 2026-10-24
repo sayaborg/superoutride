@@ -83,8 +83,13 @@ export interface Span {
   readonly length: number;
   /** The original's road path P over the span: its headings at the span's positions. */
   readonly headings: HeadingTable;
-  /** The road width, units. */
+  /** The road width, units: the road's joined width (`joinedWidth`), which what is drawn follows. */
   readonly width: Quadratic;
+  /**
+   * The original's road width, units, straight between its points: what the original's program decides by a width
+   * (whether the roads are apart as an object appears) is decided by it.
+   */
+  readonly original: Quadratic;
   /** The centre lane's centre, metres right of P. */
   readonly offset: Quadratic;
   /** The original's middle, units right of P. */
@@ -358,11 +363,13 @@ export function stageSpan(
     `/stages/${stage.number}`,
     `Stage ${stage.number} ends wider than six lanes`,
   );
-  const width = options.width ?? straight(knots, length);
+  const original = straight(knots, length);
+  const width = options.width ?? original;
   return {
     length,
     headings: headingsOver(stage.path, 0, length),
     width,
+    original,
     offset: offsetOf(width, [{ to: length, f: (w) => sideOf(centre) * centreLaneAt(w), breaks: LANE_RULE_WIDTHS }]),
     middle: () => 0,
     order: STAGE_ORDER,
@@ -412,17 +419,16 @@ export function forkSpan(
   const length = FORK_END - start;
   const comesIn = at(FORK.closes);
   const apart = at(start + (FORK.apart - w0) / FORK.spread);
-  const width =
-    given ??
-    straight(
-      [
-        [0, w0],
-        [apart, FORK.apart],
-        [comesIn, FORK.apart],
-        [length, TOUCHING],
-      ],
-      length,
-    );
+  const original = straight(
+    [
+      [0, w0],
+      [apart, FORK.apart],
+      [comesIn, FORK.apart],
+      [length, TOUCHING],
+    ],
+    length,
+  );
+  const width = given ?? original;
   const left = side < 0;
   const parted = partedLanes(w0, side, 0);
   const coming = inTurn(
@@ -440,18 +446,14 @@ export function forkSpan(
   const centreLane = left ? 'b' : 'e';
   const breaks = [...parted.breaks, ...coming.breaks];
   const span = { width, lanes };
-  // The route is chosen, and the sky wipes in, where the width passes 360.
-  let [lo, hi] = [0, apart];
-  for (let i = 0; i < 60; i++) {
-    const mid = (lo + hi) / 2;
-    if (width.at(mid) < FORK.chosen) lo = mid;
-    else hi = mid;
-  }
+  // The route is chosen, and the sky wipes in, where the original's width passes 360.
+  const chosen = (FORK.chosen - w0) / FORK.spread;
   return {
     length,
     choice: { parts: 0, side },
     headings: mirrored(headingsOver(fork.path, start, FORK_END), side),
     width,
+    original,
     offset: new Quadratic([
       ...takenOffset(span, centreLane, side, taken, [0, comesIn], breaks).pieces,
       ...takenOffset(span, centreLane, side, taken, [comesIn, length], breaks).pieces,
@@ -490,7 +492,7 @@ export function forkSpan(
     scenery: shifted(fork.scenery, -start, start),
     stages: [
       { from: 0, stage: from, arrival: 'cut' },
-      { from: hi, stage: to, arrival: 'wipe' },
+      { from: chosen, stage: to, arrival: 'wipe' },
     ],
     resets: [length],
   };
@@ -530,13 +532,15 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const returned = apart + (GOAL.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
   knots.push([length, knots.at(-1)![1]]);
-  const width = given ?? straight(knots, length);
+  const original = straight(knots, length);
+  const width = given ?? original;
   const parted = partedLanes(w0, -1, parts);
   const lanes = (p: number) => (p < parts ? drivenAt(width.at(p)) : new Map([...parted.widths(p), ['m0', 0]]));
   return {
     length,
     headings: joined(headingsOver(stage.path, 0, STAGE_LENGTH), headingsOver(goal.path, 0, GOAL.end)),
     width,
+    original,
     offset: new Quadratic([
       ...offsetOf(width, [{ to: parts, f: (w) => sideOf(centre) * centreLaneAt(w), breaks: LANE_RULE_WIDTHS }]).pieces,
       ...takenOffset({ width, lanes }, centre, -1, (p) => -width.at(p), [parts, length], parted.breaks).pieces,
@@ -605,6 +609,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
     length: to - from,
     headings: slicedTable(span.headings, from, to),
     width: cut(span.width),
+    original: cut(span.original),
     offset: cut(span.offset),
     middle: (p) => span.middle(p + from),
     lanes: (p) => span.lanes(p + from),
@@ -658,6 +663,7 @@ export function withEntry(span: Span, entry: number): Span {
       headings: [span.headings.headings[0]!, ...span.headings.headings],
     },
     width: moved(span.width),
+    original: moved(span.original),
     offset: moved(span.offset),
     middle: (p) => span.middle(back(p)),
     lanes: (p) => span.lanes(back(p)),

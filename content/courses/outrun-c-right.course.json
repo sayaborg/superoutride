@@ -21605,7 +21605,7 @@
           "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "c10", "offset": -47.696216 },
-          "lateral": 17.779245,
+          "lateral": 28.579245,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.732075, "movable": null }
@@ -40953,7 +40953,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -71498,7 +71498,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "CLOUDY MOUNTAIN",
           "background": { "image": "outrun-cloudy-mountain-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -106992,7 +106992,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 41.110865 },
+          "at": { "joint": "c0", "offset": 31.049749 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -141704,7 +141704,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"

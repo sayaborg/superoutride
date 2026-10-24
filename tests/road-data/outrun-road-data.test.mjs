@@ -616,6 +616,7 @@ test('objects approach three phase steps a tick and pass the car 34 ticks after 
       resets: [],
       kmh: 293,
       width: () => 212,
+      originalWidth: () => 212,
       startDepth: () => Infinity,
       starts: [],
     });
@@ -638,6 +639,7 @@ test("a stretch's end ends the point it was running, and objects find no slot pa
       resets,
       kmh: 293,
       width: () => 212,
+      originalWidth: () => 212,
       startDepth: () => Infinity,
       starts: [],
     });

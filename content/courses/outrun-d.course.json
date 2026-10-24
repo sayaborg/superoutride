@@ -21605,7 +21605,7 @@
           "image": "outrun-015-shadowed",
           "palette": "p054",
           "at": { "joint": "c10", "offset": -47.696216 },
-          "lateral": 17.779245,
+          "lateral": 28.579245,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.732075, "movable": null }
@@ -40953,7 +40953,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "DEVIL'S CANYON",
           "background": { "image": "outrun-devils-canyon-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -71340,7 +71340,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -87016,7 +87016,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 51.998118 },
+          "at": { "joint": "c0", "offset": 43.566557 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -121890,7 +121890,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 86.121377 },
+          "at": { "joint": "c0", "offset": 84.121012 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -151442,7 +151442,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "s20", "offset": 153.689769 },
-          "lateral": 0.509434,
+          "lateral": 15.792453,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154662,7 +154662,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -155.868384 },
-          "lateral": 14.534444,
+          "lateral": 28.86933,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154682,7 +154682,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -150.442458 },
-          "lateral": 14.562937,
+          "lateral": 28.840837,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154702,7 +154702,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -142.303569 },
-          "lateral": 14.607017,
+          "lateral": 28.796757,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154722,7 +154722,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -134.16468 },
-          "lateral": 14.652676,
+          "lateral": 28.751098,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154742,7 +154742,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -131.451717 },
-          "lateral": 1.117308,
+          "lateral": 15.184578,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154752,7 +154752,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -128.738754 },
-          "lateral": 14.683986,
+          "lateral": 28.719787,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154772,7 +154772,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -123.312828 },
-          "lateral": 1.165022,
+          "lateral": 15.136864,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154782,7 +154782,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -123.312828 },
-          "lateral": 14.715966,
+          "lateral": 28.687808,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154802,7 +154802,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -117.886903 },
-          "lateral": 1.197661,
+          "lateral": 15.104226,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154812,7 +154812,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -115.17394 },
-          "lateral": 14.76518,
+          "lateral": 28.638594,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154822,7 +154822,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -112.460977 },
-          "lateral": 14.781907,
+          "lateral": 28.621867,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154842,7 +154842,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -104.322088 },
-          "lateral": 14.833066,
+          "lateral": 28.570707,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154862,7 +154862,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -96.183199 },
-          "lateral": 14.885647,
+          "lateral": 28.518126,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154882,7 +154882,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -90.757273 },
-          "lateral": 14.921484,
+          "lateral": 28.482289,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154902,7 +154902,7 @@
           "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c49", "offset": -85.331347 },
-          "lateral": 0.184336,
+          "lateral": 13.672268,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.222642, "movable": null }
@@ -154922,7 +154922,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -82.618384 },
-          "lateral": 1.425418,
+          "lateral": 14.876469,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154932,7 +154932,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -79.905421 },
-          "lateral": 14.994948,
+          "lateral": 28.408825,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154952,7 +154952,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -74.479495 },
-          "lateral": 1.481628,
+          "lateral": 14.820259,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154962,7 +154962,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c49", "offset": -74.479495 },
-          "lateral": 15.032571,
+          "lateral": 28.371202,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }
@@ -154982,7 +154982,7 @@
           "image": "outrun-030-mirrored",
           "palette": "p076",
           "at": { "joint": "c49", "offset": -69.053569 },
-          "lateral": 1.519829,
+          "lateral": 14.782058,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.630189, "movable": null }
@@ -154992,7 +154992,7 @@
           "image": "outrun-005-mirrored-shadowed",
           "palette": "p034",
           "at": { "joint": "c49", "offset": -66.340606 },
-          "lateral": 0.316494,
+          "lateral": 13.54011,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.222642, "movable": null }
@@ -164770,7 +164770,7 @@
           "image": "outrun-000-shadowed",
           "palette": "p000",
           "at": { "joint": "c3", "offset": -89.408263 },
-          "lateral": 25.662705,
+          "lateral": -11.602328,
           "groundOffset": 0,
           "unselectedLink": null,
           "body": { "width": 1.833962, "movable": null }

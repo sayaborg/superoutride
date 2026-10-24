@@ -123,10 +123,10 @@ A sprite is drawn from the sprite ROMs' words ([ROM set](#rom-set)), set 1's aft
   the goals](#the-figures-after-the-goals)).
 
 An object's x is from the left road's centre, but a right-side one's (x ≥ 0) is from the right road's centre, unless
-the roads were apart as it appeared (the road width over the word at 0xE308, 280: the spawn sets its flag) and its
-routine keeps it by the left road then. Its anchor byte: bits 0–1 put its sprite's left edge (1), right edge (2) or
-middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0, 12). A pixel of the largest size spans 2
-road units, or 1 where the routine halves the scale twice. The drawings read so far:
+the roads were apart as it appeared (the original's road width, straight between its points, over the word at 0xE308,
+280: the spawn sets its flag) and its routine keeps it by the left road then. Its anchor byte: bits 0–1 put its
+sprite's left edge (1), right edge (2) or middle (0, 3) at the object, bits 2–3 its top (4), bottom (8) or middle (0,
+12). A pixel of the largest size spans 2 road units, or 1 where the routine halves the scale twice. The drawings read so far:
 
 | Drawing | Routine               | Anchor (mirrored)   | Pixel | The car hits it               | Kept left when apart |
 | ------- | --------------------- | ------------------- | ----- | ----------------------------- | -------------------- |
@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 26 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 27 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -550,8 +550,8 @@ The roads are made of pieces, each one shape whatever comes before or after it (
   from each Section's outermost lanes, so it opens outward at 362's Link and closes with d, e, f on the side not taken,
   its edge the course limit that closes the road not taken; the road not taken's ASPHALT lies within it, cut where its
   edges cross the ground's edge, and beyond it the road is its colors alone. The fork piece's road and ground are the
-  stage before's; its sky changes to the next stage's by `wipe` where the width passes 360 (from w₀ = 0 at about 108,
-  from 212 at about 81.5). Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the
+  stage before's; its sky changes to the next stage's by `wipe` where the original's width passes 360 (from w₀ = 0 at
+  108, from 212 at 81.5). Entering a fork piece L leaves the stage by lane b, R by e; leaving, L by b and R by e, the
   road taken's middle lane, so the side taken enters the next stage's d, e, f (L), its centre lane e, or a, b, c (R),
   its centre lane b.
 - **Goal pieces** (`stageSpan` with a goal), the goal stretch (S's path at 0x3ACA0) from 0 to 600, after its stage in
@@ -598,8 +598,8 @@ Link's lane's centre:
   HUD shows.
 - **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
   yaw origin there, and the same direction in the world in every Section that shows it. It comes in by `wipe` in a
-  fork piece, 6 m before where the car reaches the width 360 (the camera, 6 m behind the car, then reaches the original's
-  change).
+  fork piece, 6 m before where the car reaches the original's width 360 (the camera, 6 m behind the car, then reaches
+  the original's change).
 
 A road's name (`routeName`, K, 2026-10-20) is its stages' short names in the order it runs them, each fork's side
 between them as the original's map reads it: ▲ where it takes the left fork (up the map), ▼ the right (down). The goals'
