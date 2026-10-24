@@ -216,23 +216,26 @@ PRs, in this order:
   takes, route information, neither shape nor picture; the HUD shows the next parting's side from the gate before it
   (the start, before the first) to where the roads part, with no distance of its own, nothing on a course without one
   (K, 2026-10-24). Its look and place are a proposal K decides on Pages; OUTRUN's forks carry theirs.
-- EX-7h: OUTRUN's forks and goals as the original's (K, 2026-10-24), once the ROM shows the road not taken at a fork is
-  the mirror of the road taken: the roads part ±w from P from where the stage left them (w₀) and close ±w about the V's
-  middle from 362, the road coming in appearing there, left and right alike, the objects where the original's x puts
-  them; the road not taken leaves on its own curvature, w out from the road it makes, taken on the road taken's
-  cross-section at every position until the original stops drawing it (768) or part of it no longer passes once
-  across. One rule for every original, written once in Original road data: a lateral the original changes straight
-  between points (a road width) is one monotone cubic through its points over the whole course (Fritsch–Carlson,
-  level at an extremum and at the course's ends), the lines it makes (road centres, lanes) taken from it, written at
-  every position; OUTRUN's road widths within the stages too. The fork piece cut into Sections at 362, where the
-  original carries the car 2w; its lanes the road taken's three and those a Link needs (L g, h, i | m0 | a, b, c | d,
-  e, f; a goal's a, b, c | d, e, f), changing at the original's 8 units a position by the same join; the ground from
-  the outermost lanes, zero wide ones counted, opening outward at 362's Link and closing with the lanes on the side not
-  taken, its edge the course limit that closes the road not taken; materials within it, ASPHALT's Strips cut where
-  they cross its edge. The guidance deleted (the boards, the chevrons, the road arrows, `roadGuidance`, `GUIDANCE`
-  and the guidance pictures); the parting gates (EX-7g) remain. The six lanes by 63, the road not taken's lanes to
-  its dead end, the road coming in grown over a position, `GROWS`, `DEAD_END` and `VERGE_RAMP` deleted. Pictures now
-  and new: the parting, where the road not taken goes from sight, the closing, C's goal and a width change in a stage.
+- EX-7h, OUTRUN's forks and goals as the original's (K, 2026-10-24), once the ROM shows the road not taken at a fork
+  is the mirror of the road taken; three PRs, a deletion and two logic changes:
+  - EX-7h1: the guidance deleted (the boards, the chevrons, the road arrows, `roadGuidance`, `GUIDANCE` and the
+    guidance pictures and their command); the parting gates (EX-7g) remain.
+  - EX-7h2: one rule for every original, written once in Original road data: a lateral the original changes straight
+    between points (a road width) is one monotone cubic through its points over the whole course (Fritsch–Carlson,
+    level at an extremum and at the course's ends), the lines it makes (road centres, lanes) taken from it, written at
+    every position; OUTRUN's road widths, within the stages too.
+  - EX-7h3: the roads part ±w from P from where the stage left them (w₀) and close ±w about the V's middle from 362,
+    the road coming in appearing there, left and right alike, the objects where the original's x puts them; the road
+    not taken leaves on its own curvature, w out from the road it makes, taken on the road taken's cross-section at
+    every position until the original stops drawing it (768) or part of it no longer passes once across. The fork
+    piece cut into Sections at 362, where the original carries the car 2w; its lanes the road taken's three and those
+    a Link needs (L g, h, i | m0 | a, b, c | d, e, f; a goal's a, b, c | d, e, f), changing at the original's 8 units a
+    position by the same join; the ground from the outermost lanes, zero wide ones counted, opening outward at 362's
+    Link and closing with the lanes on the side not taken, its edge the course limit that closes the road not taken;
+    materials within it, ASPHALT's Strips cut where they cross its edge. The six lanes by 63, the road not taken's
+    lanes to its dead end, the road coming in grown over a position, `GROWS`, `DEAD_END` and `VERGE_RAMP` deleted.
+    Pictures now and new: the parting, where the road not taken goes from sight, the closing, C's goal and a width
+    change in a stage.
 - EX-7i: TURBO OUTRUN's road widths by the same monotone cubic, with pictures now and new; a table of the other
   originals' laterals changed straight between points, each joined so by its original's PR (EX-15 to EX-24).
 - EX-7j: OUTRUN's courses six LONG (C's two now LRRL and RLLR) and six SHORT, each SHORT from a start on the straight
@@ -596,7 +599,7 @@ OUTRUN's seven roads, as Stage RD2 left them (K, 2026-10-19 to 20):
   grade separation; until then they keep today's rule, crossings keep the 6 m rule, and OUTRUN's roads have no class,
   FREE PLAY driving them untimed. Their classes are decided by the stage that makes the hills again (K, 2026-10-22).
 - **Guidance** is not the road's (K, 2026-10-24): the road stays the original's, the HUD shows which way the course
-  goes (EX-7g) and the course limit keeps a vehicle on the road taken (EX-7h).
+  goes (EX-7g) and the course limit keeps a vehicle on the road taken (EX-7h3).
 - **BRANCH.** OUTRUN no longer uses BRANCH; K decided to remove it from the engine in a later stage (2026-10-22).
 - **Pictures.** The ROMs' pictures are provisional: the product's are all drawn again, and the cars' pictures are this
   game's.

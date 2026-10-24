@@ -1746,7 +1746,7 @@ are LINEAR courses written by the road data tool from the original's road data (
 data](outrun-road-data.md#outruns-roads)), which owns their plan, lanes, strips, hills, scenery, start, forks and goals;
 run the conversion rather than editing the documents. Each stage after a fork has its checkpoint where the original's
 checkpoint banner passes the car, and the finish is at the last stage's end. Their scenery is the ROMs' sprites,
-provisionally; where a road is chosen, boards, chevrons and road arrows show which road to take. Until their hills are
+provisionally; where a road is chosen, its `parting` gate tells the HUD the side taken. Until their hills are
 made again they have no class ([NEXT](NEXT.md#courses-of-the-originals)): FREE PLAY drives them untimed, and their
 measured products are their racing lines alone.
 

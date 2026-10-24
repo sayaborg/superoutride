@@ -115,17 +115,10 @@ export interface Span {
   readonly choice?: Choice;
 }
 
-/**
- * Where a road is chosen: the roads part at `parts`; the road taken lies on `side` (−1 left), its lanes `taken`; the
- * road not taken, its lanes `dead`, ends at `ends`, its lanes narrowing to nothing over the positions before. Lane
- * names hold from the stage before the parting on.
- */
+/** Where a road is chosen: the roads part at `parts`, the road taken on `side` (−1 left). */
 export interface Choice {
   readonly parts: number;
-  readonly ends: number;
   readonly side: -1 | 1;
-  readonly taken: readonly string[];
-  readonly dead: readonly string[];
 }
 
 const ramp = (p: number, from: number, to: number, a: number, b: number) =>
@@ -315,19 +308,9 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
   const coming = (p: number) => ramp(p, at(FORK.closes), at(FORK.closes) + GROWS, 0, LANE);
   const wipe = at(FORK.parts + (FORK.chosen - TOUCHING) / FORK.spread);
   const breaks = [at(apartAt) - DEAD_END, at(apartAt), at(FORK.closes), at(FORK.closes) + GROWS];
-  const [left, right] = [
-    ['a', 'b', 'c'],
-    ['d', 'e', 'f'],
-  ];
   const common = {
     length,
-    choice: {
-      parts: at(FORK.parts),
-      ends: at(apartAt),
-      side,
-      taken: side < 0 ? left : right,
-      dead: side < 0 ? right : left,
-    },
+    choice: { parts: at(FORK.parts), side },
     headings: mirrored(headingsOver(fork.path, start, FORK_END), side),
     width,
     offset,
@@ -597,7 +580,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
       : { stageEnd: undefined }),
     ...(span.goal && inside(span.goal.at) ? { goal: { ...span.goal, at: span.goal.at - from } } : { goal: undefined }),
     ...(span.choice && inside(span.choice.parts)
-      ? { choice: { ...span.choice, parts: span.choice.parts - from, ends: span.choice.ends - from } }
+      ? { choice: { ...span.choice, parts: span.choice.parts - from } }
       : { choice: undefined }),
   };
 }
@@ -637,9 +620,7 @@ export function withEntry(span: Span, entry: number): Span {
     resets: span.resets.map((p) => p + entry),
     ...(span.stageEnd !== undefined ? { stageEnd: span.stageEnd + entry } : {}),
     ...(span.goal ? { goal: { ...span.goal, at: span.goal.at + entry } } : {}),
-    ...(span.choice
-      ? { choice: { ...span.choice, parts: span.choice.parts + entry, ends: span.choice.ends + entry } }
-      : {}),
+    ...(span.choice ? { choice: { ...span.choice, parts: span.choice.parts + entry } } : {}),
   };
 }
 

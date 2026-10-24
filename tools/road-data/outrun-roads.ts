@@ -76,23 +76,6 @@ const THIN = 1e-5;
 const THERE = 1e-9;
 /** Where the composite of the roads is sampled for changes, positions. */
 const SAMPLE = 0.25;
-/** The guidance where a road is chosen, a default K decides on Pages (`roadGuidance`), metres. */
-const GUIDANCE = Object.freeze({
-  /** The signs stand this far before the roads part, beyond the edge band of the side not taken by `aside`. */
-  signs: [500, 300, 150],
-  aside: 2,
-  /** The chevrons stand in the gap between the roads from where it is `apart` wide, `every` apart, `count` of them. */
-  apart: 2,
-  every: 15,
-  count: 3,
-  /** Across the road not taken this many positions before its end. */
-  deadEnd: 1,
-  /** Road arrows in each lane not taken at least `lane` wide, from `before` the parting to `short` of the dead end. */
-  arrows: { before: 150, short: 10, every: 25, lane: 2.5, width: 2.4, length: 12 },
-  /** The arrows' color, the lines' white on most stages (on DESERT and WILDERNESS the lines are the surface's). */
-  white: 31710,
-});
-
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 const metres = (units: number) => round(units * UNIT_METRES);
 /** The metres along P to position `p`: P is the plan, a position `POSITION_METRES` along it. */
@@ -562,8 +545,6 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
       }),
   );
 
-  const guidance = roadGuidance(laid);
-
   // The Sections, SAND reaching `ground` beyond the outermost lanes.
   // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
   const stageStarts = new Map<Stage, number>();
@@ -599,7 +580,6 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
             checkpoints: cp ? [{ id: `${name}-CP`, p: cp.p }] : [],
             finish: goal,
             objects: placed.filter((o) => o.k === k && o.p >= from && o.p < to),
-            guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
             profile,
             stageStarts,
             ground,
@@ -664,90 +644,6 @@ function project(laid: readonly Laid[], k: number, point: Pose, p: number) {
   return null;
 }
 
-/** A piece of guidance at position `p` of span `k`: a road arrow in a lane, or a board beside a lane's side. */
-type Guide = { readonly k: number; readonly p: number } & (
-  | { readonly kind: 'arrow'; readonly lane: string; readonly direction: 'left' | 'right' }
-  | {
-      readonly kind: 'sign';
-      readonly image: string;
-      readonly lane: string;
-      readonly side: 'left' | 'center' | 'right';
-      readonly offset: number;
-    }
-);
-
-/**
- * The guidance where a road is chosen (each fork), all passed through: `route-arrow`
- * boards before the roads part, beyond the edge band of the side not taken; `route-chevron` boards in the gap between
- * the roads from where it is 2 m wide, and across the road not taken just before its end; and road arrows in the lanes
- * not taken, toward the road taken, from before the parting to just short of the dead end. Each points to the road
- * taken.
- */
-function roadGuidance(laid: readonly Laid[]): Guide[] {
-  // A road station's span and position.
-  const positionAt = (station: number) => {
-    const k = laid.reduce((found, l, i) => (l.origins[0]! <= station ? i : found), 0);
-    const l = laid[k]!;
-    const i = l.origins.filter((o) => o <= station).length - 1;
-    const from = i > 0 ? l.cuts[i - 1]! : 0;
-    return {
-      k,
-      p: Math.max(0, Math.min(l.road.span.length, from + (station - l.origins[Math.max(0, i)]!) / POSITION_METRES)),
-    };
-  };
-  return laid.flatMap((l, k) => {
-    const choice = l.road.span.choice;
-    if (!choice) return [];
-    const { span } = l.road;
-    const station = (p: number) => stationOf(l, p);
-    const toward: 'left' | 'right' = choice.side < 0 ? 'left' : 'right';
-    const away = choice.side < 0 ? 'right' : 'left';
-    const board = (
-      at: { k: number; p: number },
-      name: string,
-      lane: string,
-      side: 'left' | 'center' | 'right',
-      offset: number,
-    ) => ({ kind: 'sign' as const, ...at, image: `${name}-${toward}`, lane, side, offset });
-    // The signs, beyond the edge band of the side not taken: its outer lane's edge, the asphalt beyond it, and more.
-    const outer = choice.side < 0 ? choice.dead.at(-1)! : choice.dead[0]!;
-    const beyond = ((ROAD_HALF - TOUCHING) * UNIT_METRES + GUIDANCE.aside) * (choice.side < 0 ? 1 : -1);
-    const signs = GUIDANCE.signs.map((before) =>
-      board(positionAt(station(choice.parts) - before), 'route-arrow', outer, away, beyond),
-    );
-    // The gap between the roads: the asphalt between the road taken and the road not taken.
-    const gap = (p: number) => 2 * (span.width.at(p) - ROAD_HALF) * UNIT_METRES;
-    let [lo, hi] = [choice.parts, choice.ends];
-    for (let i = 0; i < 60; i++) {
-      const mid = (lo + hi) / 2;
-      if (gap(mid) < GUIDANCE.apart) lo = mid;
-      else hi = mid;
-    }
-    const inner = choice.side < 0 ? choice.taken.at(-1)! : choice.taken[0]!;
-    const chevrons = Array.from({ length: GUIDANCE.count }, (_, i) => {
-      const at = positionAt(station(hi) + i * GUIDANCE.every);
-      // The gap's middle: half the median beside the road taken's inner lane, toward the road not taken.
-      const there = laid[at.k]!.road.span;
-      const median = there.lanes(at.p).get(there.order[there.order.indexOf(inner) - choice.side]!)!;
-      return board(at, 'route-chevron', inner, away, (-choice.side * median * UNIT_METRES) / 2);
-    });
-    const deadEnd = choice.dead.map((lane) =>
-      board({ k, p: choice.ends - GUIDANCE.deadEnd }, 'route-chevron', lane, 'center', 0),
-    );
-    const { before, short, every, lane: wide } = GUIDANCE.arrows;
-    const [from, to] = [station(choice.parts) - before, station(choice.ends) - short];
-    const arrows = Array.from({ length: Math.floor((to - from) / every) + 1 }, (_, i) =>
-      positionAt(from + i * every),
-    ).flatMap((at) => {
-      const widths = laid[at.k]!.road.span.lanes(at.p);
-      return choice.dead
-        .filter((lane) => (widths.get(lane) ?? 0) * UNIT_METRES >= wide)
-        .map((lane) => ({ kind: 'arrow' as const, ...at, lane, direction: toward }));
-    });
-    return [...signs, ...chevrons, ...deadEnd, ...arrows];
-  });
-}
-
 type Lateral = Record<string, unknown> | number;
 const laneLateral = (lane: string, side: string, offset: number): Lateral => ({ lane, side, offset: round(offset) });
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
@@ -768,7 +664,6 @@ function sectionDocument(
     readonly checkpoints: readonly { readonly id: string; readonly p: number }[];
     readonly finish: { readonly id: string; readonly p: number } | null;
     readonly objects: readonly { readonly p: number; readonly lateral: number; readonly object: ObjectPlacement }[];
-    readonly guidance: readonly Guide[];
     readonly profile: Profile;
     readonly stageStarts: ReadonlyMap<Stage, number>;
     /** How far SAND reaches beyond the outermost lanes, metres. */
@@ -957,20 +852,6 @@ function sectionDocument(
     }
   }
 
-  // The road arrows.
-  const { width: arrowWidth, length: arrowLength } = GUIDANCE.arrows;
-  for (const g of section.guidance)
-    if (g.kind === 'arrow')
-      strips.push({
-        kind: 'arrow',
-        at: at(g.p),
-        lateral: laneLateral(g.lane, 'center', 0),
-        width: arrowWidth,
-        length: arrowLength,
-        direction: g.direction,
-        color: GUIDANCE.white,
-      });
-
   // What lies on the ground's materials, colorless beneath its boards: the sea's and lakes' `WATER` from the waterline
   // out to the verges; the sand drifts and the patches of sand on the road none.
   const lyingPieces: LyingPiece[] = [];
@@ -1086,23 +967,6 @@ function sectionDocument(
           const edge = section.options.edges.get(o.image);
           return edge ? [board, { ...board, image: edge }] : board;
         }),
-        // The guidance's signs, passed through.
-        ...section.guidance.flatMap((g) =>
-          g.kind === 'sign'
-            ? [
-                {
-                  kind: 'sprite',
-                  image: g.image,
-                  palette: 'original',
-                  at: at(g.p),
-                  lateral: laneLateral(g.lane, g.side, g.offset),
-                  groundOffset: 0,
-                  unselectedLink: null,
-                  body: null,
-                },
-              ]
-            : [],
-        ),
       ]),
       section.options.split,
     ),

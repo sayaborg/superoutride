@@ -144,13 +144,6 @@ their bottom edge (the default anchor). Each picture is written as a source with
 `content/sprite-sources/<name>.png` and `.json`, and imported as a course image; replacing a source with another image
 of the same name and size and running its command replaces the picture without touching a course.
 
-The guidance's pictures where OUTRUN's roads part ([OUTRUN road data](outrun-road-data.md#outruns-roads)) are
-drawn by this program, `npm run guidance-pictures` ([Development](development.md#guidance-pictures-command)), as
-sprites with their recipes: yellow boards edged in black, black chevrons pointing to the road taken, grey posts.
-`route-arrow-left` is a 3 × 1.5 m board with a triple chevron on two posts, its bottom 1.2 m above the ground;
-`route-chevron-left` a 1.2 × 0.6 m board with a double chevron on one post, its bottom 0.8 m up; each `-right` is its
-mirror image.
-
 The [tire puffs](tire-puffs.md)' pictures are drawn by the same program, `npm run puff-pictures`
 ([Development](development.md#puff-pictures-command)), in the same look: clouds of overlapping lumps, each lump lit as a
 sphere from the upper left in three tones over a darker outline, opaque, standing on the middle of their bottom edge

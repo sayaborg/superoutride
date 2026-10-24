@@ -26,7 +26,6 @@
     "skies": "node --import tsx tools/build/skies.ts",
     "puff-pictures": "node --import tsx tools/build/puff-pictures.ts",
     "contact-explosion": "node --import tsx tools/build/contact-explosion.ts",
-    "guidance-pictures": "node --import tsx tools/build/guidance-pictures.ts",
     "check:dependencies": "node --test tests/infrastructure/layer-dependencies.test.mjs",
     "racing-pictures": "node --import tsx tools/build/racing-pictures.ts",
     "racing-validation": "node --import tsx tools/build/racing-validation.ts",

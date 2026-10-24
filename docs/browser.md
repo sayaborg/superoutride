@@ -615,6 +615,7 @@ the same race facts, their crossing events included ([Audio](audio.md#sound-effe
 | Rows  | Elements                                                                                                                                                                    |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                                            |
+| 3–6   | Columns 18–21: the 4×4-tile road arrow, steady, pointing the side of the next parting while no gate comes before it                                                         |
 | 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                     |
 | 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                                          |
 | 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                                            |

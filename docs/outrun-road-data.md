@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 23 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 24 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -575,21 +575,8 @@ Link's lane's centre:
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
   world point the original's x gives from its middle there (the V's middle from a fork's 362), measured on the plan
   it stands beside. A solid object's body is at most its board's width in whole texels.
-- **Guidance**, a default K decides on Pages, wherever a road is chosen: each fork's side not taken. The goals, after
-  which the driver takes the car, have none. It is added as each road is assembled (`roadGuidance`), all passed through, so no
-  fence closes the road not taken; each piece points to the road taken. A low camera reads road marks only about 30 m
-  ahead, so boards show the way from afar and road marks and chevrons near. Its two places are where the roads begin
-  to part (the vertex where the road width starts to widen: a fork's 63, a goal's 182) and where the median between
-  them is 2 m wide (`w` 289.3: a fork's 72.7, a goal's 197.9 on A and B, 218.2 on C, D and E).
-  - **Boards** `route-arrow-left` or `-right`, 500, 300 and 150 m before the roads begin to part, on the verge of the
-    side not taken, 2 m beyond its edge band.
-  - **Chevrons** `route-chevron-left` or `-right`, three, 15 m apart from where the median is 2 m wide, in its
-    middle.
-  - **The dead end**: three `route-chevron`s, one at the centre of each lane of the road not taken, one position
-    before it ends.
-  - **Road arrows**: the course format's `arrow` pointing to the road taken, 2.4 by 12 m in RGB555 31710 (most stages'
-    lane line color; DESERT's and WILDERNESS's lines are their road's color), one in each lane of the side not taken
-    at least 2.5 m wide, every 25 m from 150 m before the roads begin to part to 10 m before the dead end.
+- **Guidance** is not the road's (K, 2026-10-24): the road is the original's, and each fork's `parting` gate tells the
+  HUD the side taken.
 - **Gates.** The grid on COCONUT BEACH, 16 slots 12 m apart: the last, the player's, at GO in lane b, where the
   original's car stands (a game's start clears its x, 0x8564, and sets the width to 450, 0xB4E4; the width's first
   change then carries the car from 0 to the left road's centre, 0xC286), the others alternating c and b back from it; a
