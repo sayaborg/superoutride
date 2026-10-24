@@ -244,9 +244,24 @@ PR of its own, and EX-25 comes first if people begin correcting pictures or plac
   board.
 - The shadows, each original's own and apart from this game's (which draws a shadow's own picture, darkening only the
   road, cast by vehicles and moving objects alone): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow
-  sprite baked into a `-shadowed` picture, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel 10 by its kind's bit 2
-  and its shadow picture by bit 1, ENDURO RACER's pixel 10 split into the board's shadow picture. One proposal brings
-  them to this game's shadows, another bakes them into the pictures.
+  sprite (0xFF56) kept as a `-shadowed` picture's own shadow frame, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel
+  10 by its kind's bit 2 and its shadow picture (0x2667A) by bit 1, ENDURO RACER's pixel 10 split into the board's
+  shadow frame. Every original's object is fixed, and a fixed object casts no shadow, so none of those frames is drawn
+  and ENDURO RACER's foot shadows are not seen; OUTRUN's, SUPER HANG-ON's and TURBO OUTRUN's pixel 10 is drawn in its
+  palette colour. One proposal brings them to this game's shadows, another draws them into the pictures.
+
+The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
+
+- Standing height: the shadow rows at a picture's foot become its shadow frame, cast on the road, so the picture stands
+  on its lowest row not shadow without being drawn lower, and no `-raised` copy is needed (a raised use casts none);
+  or `footAnchorY` kept as K's decision of 2026-10-22.
+- Lying boards: the material under a board placed by the original's own projection (its horizon row and eye, which the
+  ROMs hold), not this game's camera, so a course does not change with the camera; TURBO OUTRUN's anchors read from its
+  ROM rather than set by OUTRUN's analogy.
+- Extending boards: the rule kept as this game's (one for every original), with the outer end shown once as a board of
+  its own rather than left out.
+- Shadows: fixed objects cast the shadow their original draws (an engine change in a PR of its own), or the shadows
+  drawn into the pictures as they are.
 
 ### What the audit found, and its PRs
 
