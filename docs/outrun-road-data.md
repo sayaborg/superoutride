@@ -476,7 +476,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 18 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 19 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -629,11 +629,14 @@ letters and L and R are not written; the courses' ids stay.
 The six roads are each 24.17 km along P (each runs as many positions), with 13 to 16 Sections and 9,477 to 11,781
 objects; ALL 15 STAGES is 73.45 km, 45 Sections and 33,627 objects. Their plans are 269 to 313 elements, ALL 15 STAGES'
 877, at most 82 in a Section (DESERT's), hold their tables' headings within the resolution at every position, and lie
-within 0.11 m of the line their paths build. Their heights reach −185 m and 266 m (the hills' rule, unchanged); 5 to 11
-crossings each are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210: pillars of sprite
-25, the banner 134 and 135) stands at about 321 to 327, before where the original's car stops (401) and drives under it;
-the stands (types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about 325 to 435, and the
-second gate types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419, beyond 401.
+within 0.11 m of the line their paths build. SAND reaches the [ground's
+width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes, 53.24 m on every road (a mirrored
+extending board, `outrun-strip-4608-mirrored`, by its repeat). Their heights reach −185 m and 266 m (the hills' rule,
+unchanged); 5 to 11 crossings each are kept 6 m apart, ALL 15 STAGES' 31. In each goal stretch the GOAL gate (type 210:
+pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where the original's car stops (401)
+and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending crowd (type 206) stand from about
+325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352, pillars at ±320) at about 413 to 419,
+beyond 401.
 
 ## OUTRUN's stages
 

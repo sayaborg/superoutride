@@ -256,8 +256,17 @@ middle is at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 
 wide of road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band
 2(w − 228) wide, beyond 250 the ground 2(w − 250) wide. Each line and band shown is a Strip between two features' edges
 held to lanes (a road's centre lies 212 units inside its outer lane's outer edge, or its inner lane's inner edge), cut
-where the arrangement changes. ASPHALT lies under each road from its centre ∓ 250, SAND beneath all from 40 m beyond the
-outermost asphalt; the ground's color is everywhere, its half 0 over its halves.
+where the arrangement changes. ASPHALT lies under each road from its centre ∓ 250, SAND beneath all to the
+[ground's width](#the-ground-beside-the-road); the ground's color is everywhere, its half 0 over its halves.
+
+## The ground beside the road
+
+A course's ground (its material beside the road) reaches as far beyond the outermost lane's edge on each side as the
+farthest of its original's objects shown on the ground (at height 0) reaches, to its picture's outer edge
+(`groundWidth`): a picture reaches from its base point to its texels' outer edges (`pictureReach`), and an extending
+board counts by its one repeat and its edge, not as far as it repeats. A road that comes in or goes out (OUTRUN's forks)
+holds its verge at its outer lane's edge as its lanes are wide. One width a course, over all its objects; the course
+format ends the ground where the plan stops being one-to-one ([Architecture](architecture.md#plan-authority)).
 
 ## Plan
 

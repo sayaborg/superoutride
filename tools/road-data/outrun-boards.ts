@@ -12,6 +12,7 @@ import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
+import { pictureReach } from './section-writing.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -67,7 +68,8 @@ export function sceneryBoards(main: Uint8Array, words: Uint32Array, uses: readon
 /**
  * What the courses need of the boards `uses` show: the pictures of what lies on the ground, by image name, whose
  * materials lie beneath them; each extending board's edge, which stands once where it does; and the pictures standing
- * at their foot that are shown raised too, by their `-raised` image.
+ * at their foot that are shown raised too, by their `-raised` image; and each board's reach either side of its base
+ * point.
  */
 export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly BoardUse[]) {
   const boards = boardMasters(main, words, uses);
@@ -75,6 +77,7 @@ export function boardShapes(main: Uint8Array, words: Uint32Array, uses: readonly
     lying: new Map(boards.flatMap((b) => (b.lying ? [[b.name, b.lying] as const] : []))),
     edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge.name] as const] : []))),
     split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
+    reach: new Map(boards.map((b) => [b.name, pictureReach(b.master)])),
   };
 }
 

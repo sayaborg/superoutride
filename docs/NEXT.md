@@ -203,7 +203,7 @@ PRs, in this order:
   ENDURO RACER's, TURBO OUTRUN's and OUTRUN's courses raised again.
 - EX-7c3: one ground width rule for every original, to the outer edge of the farthest standing scenery beyond the
   outermost lane's edge; `SAND` (SUPER HANG-ON's, TURBO OUTRUN's), `GROUND` (ENDURO RACER's) and `VERGE` (OUTRUN's)
-  deleted.
+  deleted, OUTRUN's verges held at lane edges.
 - EX-8: SUPER MONACO GP's circuits raised on P from their integer path, the lap closed in position and heading by a
   rule alone, its hairpins left to the format.
 - EX-7d: the constants other than the scale, a table of each one's value, use, how it is decided and whether it bears
@@ -278,8 +278,9 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
 - **An arc's radius** is bounded only by the arc computation's precision, not by the ruler's length (EX-7c2a); a run is
   straight only where its slope is 0.
 - **The ground's width**, one rule for every original: to the outer edge of the farthest scenery standing beyond the
-  outermost lane's edge (SUPER HANG-ON's 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 47.6 m; SUPER
-  MONACO GP's by EX-8): EX-7c3.
+  outermost lane's edge (EX-7c3, a course's own objects, each picture's reach from its base point: SUPER HANG-ON's 14.0
+  to 14.5 m, ENDURO RACER's 16.9 m, TURBO OUTRUN's 49.6 m, OUTRUN's 53.2 m, where EX-7d's table took half a picture's
+  width about its base point, 47.6 m; SUPER MONACO GP's by EX-8).
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars). First a PR of the run's setup, which no longer refuses
@@ -305,8 +306,8 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   above.
 - The hills' kind 2 has no effect (its `holdLength` is 0), and `STEEPEST` is a literal: EX-14.
 - Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
-  and the goal positions, SAND's 40 m beside ENDURO RACER's 18 m ground, the sky's horizon, the rounding helper and its
-  epsilon in 6, the yaw formula and the grid builder): EX-13 and EX-14.
+  and the goal positions, the sky's horizon, the rounding helper and its epsilon in 6, the yaw formula and the grid
+  builder): EX-13 and EX-14.
 - `turbo-outrun-layout.ts` keeps its own `domainCuts` (left by TD-4): EX-13.
 - Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's

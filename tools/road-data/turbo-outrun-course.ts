@@ -8,7 +8,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { JOINT_SNAP, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
+import { groundWidth, JOINT_SNAP, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
@@ -21,7 +21,7 @@ import {
   ROAD_HALF,
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
-import { layTurboOutrun, OPEN, SAND, type Piece } from './turbo-outrun-layout.js';
+import { layTurboOutrun, OPEN, type Piece } from './turbo-outrun-layout.js';
 import {
   assembleTurboOutrunPrograms,
   assembleTurboOutrunSprites,
@@ -43,7 +43,7 @@ import type { RomSet } from './rom-set.js';
 import { lyingMaterials, type LyingPicture, type LyingPiece } from './ground-materials.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 9;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 10;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -201,13 +201,31 @@ export function turboOutrunCourse(set: RomSet) {
     placing.placed.map((o) => ({ ...o.use, raised: o.height !== 0 })),
   );
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
+  const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
+  // SAND reaches to the farthest picture shown on the ground beyond the outermost lanes, an extending board's edge with
+  // it.
+  const reaches = new Map(boards.map((b) => [b.name, b.reach]));
+  const beyond = groundWidth(
+    placing.placed
+      .filter((o) => o.height === 0)
+      .flatMap((o) => {
+        const name = pictureName(o.use);
+        const lanes = [layout.laneReach(o.g, 'left'), layout.laneReach(o.g, 'right')] as const;
+        return [name, ...(edges.has(name) ? [edges.get(name)!] : [])].map((n) => ({
+          lateral: o.x,
+          reach: reaches.get(n)!,
+          edges: lanes,
+        }));
+      }),
+  );
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {
       layout,
       widths: new Map(boards.map((b) => [b.name, b.width])),
       wholes: new Map(boards.map((b) => [b.name, b.whole])),
-      edges: new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : []))),
+      edges,
+      beyond,
       split: new Set(boards.filter((b) => b.split).map((b) => b.name)),
       objects: placing.placed.filter((o) => o.g >= piece.from && (o.g < piece.to || i === pieces.length - 1)),
       first: i === 0,
@@ -246,6 +264,7 @@ export function turboOutrunCourse(set: RomSet) {
       document: bakeSky(skyName(n), stageBands(programs.main, planes, n, stage.sky.ramp.rgb555)),
     })),
     placing: placing.report,
+    beyond,
   };
 }
 
@@ -261,6 +280,8 @@ function sectionDocument(
     readonly wholes: ReadonlyMap<string, LyingPicture>;
     /** Each extending board's edge, by its name: standing once where the board does. */
     readonly edges: ReadonlyMap<string, string>;
+    /** How far SAND reaches beyond the outermost lanes, metres. */
+    readonly beyond: number;
     /** The pictures at their foot shown raised too, by their `-raised` image. */
     readonly split: ReadonlySet<string>;
     readonly first: boolean;
@@ -320,20 +341,19 @@ function sectionDocument(
   const written = (g: number) => laneLines(lanes(g));
   const ref = (r: LaneRef, more = 0) => laneLateral(r.lane, r.side, r.units * UNIT_METRES + more);
 
-  // The verges: the sand beyond each outer lane's asphalt.
-  const asphaltBeyond = (ROAD_HALF - CENTRE_INSIDE) * UNIT_METRES;
+  // The verges: the sand to its width beyond each outer lane.
+  const { beyond } = context;
   // A verge's lateral at position `g`, metres right of P.
   const vergeAt = (side: 0 | 1, g: number) => {
     const lines = written(g);
     return side === 0
-      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - asphaltBeyond - SAND
-      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + asphaltBeyond + SAND;
+      ? offset.at(g) + lines.get('a')!.left * UNIT_METRES - beyond
+      : offset.at(g) + lines.get('f')!.right * UNIT_METRES + beyond;
   };
   const verge = (side: 0 | 1) =>
     [from, to].map((g) => ({
       at: at(g),
-      lateral:
-        side === 0 ? laneLateral('a', 'left', -asphaltBeyond - SAND) : laneLateral('f', 'right', asphaltBeyond + SAND),
+      lateral: side === 0 ? laneLateral('a', 'left', -beyond) : laneLateral('f', 'right', beyond),
     }));
 
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'

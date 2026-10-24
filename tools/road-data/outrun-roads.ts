@@ -44,7 +44,15 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import { JOINT_SNAP, passagePairs, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
+import {
+  groundWidth,
+  JOINT_SNAP,
+  passagePairs,
+  raisedSplit,
+  repeated,
+  simplified,
+  writtenPlan,
+} from './section-writing.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -156,9 +164,16 @@ const drawnAt = (span: Span, p: number) =>
     .filter(({ road }) => p >= road.from && p < road.to)
     .sort((a, b) => lineOf(span, a.road.centre, p) - lineOf(span, b.road.centre, p));
 
-/** The verge's knots with their ramps placed: each NaN knot a ramp's length from the knot whose road it ramps to. */
-function placedVerges(span: Span, knots: readonly VergeKnot[]): VergeKnot[] {
-  const lateral = (k: VergeKnot, p: number) => lineOf(span, k.ref, p) * UNIT_METRES + k.metres;
+/** A verge knot's lateral at `p`, metres right of the centreline: the ground's width `beyond` its lane edge. */
+const vergeLateral = (span: Span, k: VergeKnot, p: number, beyond: number) =>
+  lineOf(span, k.ref, p) * UNIT_METRES + k.outward * beyond;
+
+/**
+ * The verge's knots with their ramps placed, the ground `beyond` the lanes: each NaN knot a ramp's length from the knot
+ * whose road it ramps to.
+ */
+function placedVerges(span: Span, knots: readonly VergeKnot[], beyond: number): VergeKnot[] {
+  const lateral = (k: VergeKnot, p: number) => vergeLateral(span, k, p, beyond);
   return knots.map((k, i) => {
     if (!Number.isNaN(k.at)) return k;
     const [before, after] = [knots[i - 1]!, knots[i + 1]!];
@@ -169,9 +184,9 @@ function placedVerges(span: Span, knots: readonly VergeKnot[]): VergeKnot[] {
 }
 
 /** A verge's lateral at position `p`, metres right of P: its knots' lines straight between them. */
-function vergeLine(span: Span, knots: readonly VergeKnot[]) {
-  const placed = placedVerges(span, knots);
-  const lateral = (k: VergeKnot, p: number) => lineOf(span, k.ref, p) * UNIT_METRES + k.metres;
+function vergeLine(span: Span, knots: readonly VergeKnot[], beyond: number) {
+  const placed = placedVerges(span, knots, beyond);
+  const lateral = (k: VergeKnot, p: number) => vergeLateral(span, k, p, beyond);
   return (p: number) => {
     const i = Math.max(
       1,
@@ -300,6 +315,8 @@ export interface RoadOptions {
   readonly lying: ReadonlyMap<string, LyingBoard>;
   /** Each extending board's edge, by its image name: standing once where the board does. */
   readonly edges: ReadonlyMap<string, string>;
+  /** Each picture's reach left and right of its base point, metres, by image name (`pictureReach`). */
+  readonly reach: ReadonlyMap<string, readonly [number, number]>;
   /** The pictures standing at their foot shown raised too, by their `-raised` image. */
   readonly split: ReadonlySet<string>;
   readonly name: string;
@@ -341,22 +358,24 @@ export interface RoadOptions {
   readonly stageName: (stage: Stage) => string;
 }
 
+/** How far a span's lanes reach from P at `p` on `side`, metres: to its outermost lane's edge there. */
+function laneReach(span: Span, p: number, side: 'left' | 'right') {
+  const widths = span.lanes(p);
+  const edges = [...laneLines(span, p)].filter(([id]) => widths.get(id)! > 0).map(([, line]) => line);
+  const units = side === 'left' ? -Math.min(...edges.map((l) => l.left)) : Math.max(...edges.map((l) => l.right));
+  return units * UNIT_METRES + (side === 'left' ? -1 : 1) * span.offset.at(p);
+}
+
 /** A span laid on P: the plan from its heading table, and its Sections' cuts. */
 function laySpan(road: RoadSpan) {
   const { span } = road;
-  // The plan, its turns no tighter than its lanes keep: a side's lanes reach from P to its outermost lane's edge.
-  const laneReach = (p: number, side: 'left' | 'right') => {
-    const widths = span.lanes(p);
-    const edges = [...laneLines(span, p)].filter(([id]) => widths.get(id)! > 0).map(([, line]) => line);
-    const units = side === 'left' ? -Math.min(...edges.map((l) => l.left)) : Math.max(...edges.map((l) => l.right));
-    return units * UNIT_METRES + (side === 'left' ? -1 : 1) * span.offset.at(p);
-  };
+  // The plan, its turns no tighter than its lanes keep.
   const least = (from: number, to: number, side: 'left' | 'right') =>
     leastLaneRadius(
       Math.max(
         ...[from, to, ...Array.from({ length: Math.ceil(to - from) }, (_, k) => from + k), ...span.width.breaks]
           .filter((p) => p >= from && p <= to && p < span.length)
-          .map((p) => laneReach(p, side)),
+          .map((p) => laneReach(span, p, side)),
       ),
     );
   const plan = headingPlan(span.headings, VECTOR_RESOLUTION, POSITION_METRES, least);
@@ -366,7 +385,7 @@ function laySpan(road: RoadSpan) {
   );
   // The least radius a side's lanes keep, `u` metres along P.
   const need = (u: number, side: 'left' | 'right') =>
-    leastLaneRadius(laneReach(Math.min(u / POSITION_METRES, span.length - 1e-9), side));
+    leastLaneRadius(laneReach(span, Math.min(u / POSITION_METRES, span.length - 1e-9), side));
   return {
     line,
     plan: {
@@ -532,6 +551,23 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const found = project(laid, k, point, p);
     return found ? [{ ...found, object: o }] : [];
   });
+  // SAND reaches to the farthest object shown on the ground beyond the outermost lanes, an extending board's edge with
+  // it.
+  const beyond = groundWidth(
+    placed
+      .filter(({ object: o }) => o.y === 0)
+      .flatMap(({ k, p, lateral, object: o }) => {
+        const span = laid[k]!.road.span;
+        const q = Math.min(p, span.length - 1e-9);
+        const edges = [laneReach(span, q, 'left'), laneReach(span, q, 'right')] as const;
+        const edge = options.edges.get(o.image);
+        return [o.image, ...(edge ? [edge] : [])].map((image) => ({
+          lateral,
+          reach: options.reach.get(image)!,
+          edges,
+        }));
+      }),
+  );
 
   const guidance = roadGuidance(laid);
 
@@ -572,6 +608,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
           guidance: guidance.filter((g) => g.k === k && g.p >= from && g.p < to),
           profile,
           stageStarts,
+          beyond,
           options,
         }),
       );
@@ -601,6 +638,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     profile,
     crossings,
     objects: placed.length,
+    beyond,
     placing: objects.report,
     fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
   };
@@ -737,6 +775,8 @@ function sectionDocument(
     readonly guidance: readonly Guide[];
     readonly profile: Profile;
     readonly stageStarts: ReadonlyMap<Stage, number>;
+    /** How far SAND reaches beyond the outermost lanes, metres. */
+    readonly beyond: number;
     readonly options: RoadOptions;
   },
 ) {
@@ -804,7 +844,7 @@ function sectionDocument(
 
   // The verges: knots within the Section, and its ends where a stretch of one reference holds.
   const verge = (knots: readonly VergeKnot[]) => {
-    const placed = placedVerges(span, knots);
+    const placed = placedVerges(span, knots, section.beyond);
     const inside = placed.filter((k) => k.at > from && k.at < to);
     const around = (p: number) => {
       const i = placed.findIndex((k) => k.at >= p);
@@ -812,17 +852,20 @@ function sectionDocument(
       const k = Math.abs(b.at - p) < 1e-9 ? b : Math.abs(a.at - p) < 1e-9 ? a : null;
       if (k) return k;
       requireInput(
-        JSON.stringify(a.ref) === JSON.stringify(b.ref) && a.metres === b.metres,
+        JSON.stringify(a.ref) === JSON.stringify(b.ref) && a.outward === b.outward,
         `/sections/${section.id}`,
         `Section ${section.id} is cut in a verge's ramp`,
       );
       return { ...a, at: p };
     };
-    return [around(from), ...inside, around(to)].map((k) => ({ at: at(k.at), lateral: ref(k.ref, k.metres) }));
+    return [around(from), ...inside, around(to)].map((k) => ({
+      at: at(k.at),
+      lateral: ref(k.ref, k.outward * section.beyond),
+    }));
   };
   // A verge's lateral at a Section station, metres right of P.
   const vergeAt = (side: 'left' | 'right') => {
-    const lateral = vergeLine(span, span.verges[side]);
+    const lateral = vergeLine(span, span.verges[side], section.beyond);
     return (s: number) => lateral((s + origin) / POSITION_METRES);
   };
 

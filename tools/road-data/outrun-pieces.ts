@@ -10,7 +10,6 @@ import {
   drivenLanes,
   LANE,
   LANE_RULE_WIDTHS,
-  ROAD_HALF,
   START_WIDTH,
   TOUCHING,
   UNIT_METRES,
@@ -45,8 +44,6 @@ const GOAL = Object.freeze({ parts: 182, spread: 8, apart: 0x300, end: 600 });
 const DEAD_END = 2;
 /** A road that comes in grows to its lanes over one position. */
 const GROWS = 1;
-/** The sand reaches this far beyond the outermost asphalt, metres. */
-export const VERGE = 40;
 /** A verge's outer edge moves no faster than one metre across for this many along. */
 const VERGE_RAMP = 6;
 
@@ -62,11 +59,11 @@ export interface DrawnRoad {
   readonly to: number;
   readonly centre: LaneRef;
 }
-/** A knot of a verge's outer edge: `metres` beyond `ref`. */
+/** A knot of a verge's outer edge: the ground's width beyond `ref`, an outermost lane's edge, `outward` (−1 left). */
 export interface VergeKnot {
   readonly at: number;
   readonly ref: LaneRef;
-  readonly metres: number;
+  readonly outward: -1 | 1;
 }
 /** A stretch of a span shown in one stage's colors and sky. */
 export interface SpanStage {
@@ -211,12 +208,16 @@ const drivenAt = (w: number) => {
   const { a, b, c, m, d, e, f } = drivenLanes(w);
   return new Map(Object.entries({ a, b, c, m0: m, d, e, f }));
 };
-/** A road's asphalt half, units: its edges to the surface's outer edge. */
-const ASPHALT_EDGE = ROAD_HALF - TOUCHING;
-const verge = (lane: string, side: 'left' | 'right'): LaneRef => ({
+/** Where a verge is held: lane `lane`'s outer edge `side`. */
+const verge = (lane: string, side: 'left' | 'right'): LaneRef => ({ lane, side, units: 0 });
+/**
+ * Where the verge of a road coming in or going out is held: its outer lane's edge as its lanes are wide, `sign` (−1 left)
+ * beyond lane `lane`'s `side`, its centre `TOUCHING` from that side and its outer edge `TOUCHING` from its centre.
+ */
+const farVerge = (lane: string, side: 'left' | 'right', sign: -1 | 1): LaneRef => ({
   lane,
   side,
-  units: side === 'left' ? -ASPHALT_EDGE : ASPHALT_EDGE,
+  units: sign * 2 * TOUCHING,
 });
 
 /**
@@ -261,8 +262,8 @@ export function stageSpan(
       { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
     ],
     verges: {
-      left: [0, length].map((at) => ({ at, ref: verge('a', 'left'), metres: -VERGE })),
-      right: [0, length].map((at) => ({ at, ref: verge('f', 'right'), metres: VERGE })),
+      left: [0, length].map((at) => ({ at, ref: verge('a', 'left'), outward: -1 as const })),
+      right: [0, length].map((at) => ({ at, ref: verge('f', 'right'), outward: 1 as const })),
     },
     heights: [
       {
@@ -371,22 +372,8 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
         { from: comesIn, to: length, centre: { lane: 'i', side: 'right', units: -TOUCHING } },
       ],
       verges: {
-        left: vergeRamps(
-          verge('a', 'left'),
-          { lane: 'i', side: 'right', units: -TOUCHING - ROAD_HALF },
-          -1,
-          comesIn,
-          length,
-          'in',
-        ),
-        right: vergeRamps(
-          verge('c', 'right'),
-          { lane: 'd', side: 'left', units: TOUCHING + ROAD_HALF },
-          1,
-          ends,
-          length,
-          'out',
-        ),
+        left: vergeRamps(verge('a', 'left'), farVerge('i', 'right', -1), -1, comesIn, length, 'in'),
+        right: vergeRamps(verge('c', 'right'), farVerge('d', 'left', 1), 1, ends, length, 'out'),
       },
     };
   return {
@@ -407,22 +394,8 @@ export function forkSpan(fork: Stretch & { readonly path: Path }, side: -1 | 1, 
       { from: comesIn, to: length, centre: { lane: 'j', side: 'left', units: TOUCHING } },
     ],
     verges: {
-      left: vergeRamps(
-        verge('d', 'left'),
-        { lane: 'c', side: 'right', units: -TOUCHING - ROAD_HALF },
-        -1,
-        ends,
-        length,
-        'out',
-      ),
-      right: vergeRamps(
-        verge('f', 'right'),
-        { lane: 'j', side: 'left', units: TOUCHING + ROAD_HALF },
-        1,
-        comesIn,
-        length,
-        'in',
-      ),
+      left: vergeRamps(verge('d', 'left'), farVerge('c', 'right', -1), -1, ends, length, 'out'),
+      right: vergeRamps(verge('f', 'right'), farVerge('j', 'left', 1), 1, comesIn, length, 'in'),
     },
   };
 }
@@ -441,19 +414,19 @@ function vergeRamps(
   length: number,
   way: 'in' | 'out',
 ): VergeKnot[] {
-  const metres = sign * VERGE;
+  const outward = sign;
   return way === 'in'
     ? [
-        { at: 0, ref: kept, metres },
-        { at: Number.NaN, ref: kept, metres },
-        { at, ref: other, metres },
-        { at: length, ref: other, metres },
+        { at: 0, ref: kept, outward },
+        { at: Number.NaN, ref: kept, outward },
+        { at, ref: other, outward },
+        { at: length, ref: other, outward },
       ]
     : [
-        { at: 0, ref: other, metres },
-        { at, ref: other, metres },
-        { at: Number.NaN, ref: kept, metres },
-        { at: length, ref: kept, metres },
+        { at: 0, ref: other, outward },
+        { at, ref: other, outward },
+        { at: Number.NaN, ref: kept, outward },
+        { at: length, ref: kept, outward },
       ];
 }
 /** A verge ramp's length along, metres, for a move of `across` metres. */
@@ -520,13 +493,13 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
       { from: apart - DEAD_END, to: apart, centre: { lane: 'd', side: 'left', units: TOUCHING } },
     ],
     verges: {
-      left: [0, length].map((p) => ({ at: p, ref: verge('a', 'left'), metres: -VERGE })),
+      left: [0, length].map((p) => ({ at: p, ref: verge('a', 'left'), outward: -1 as const })),
       right: [
-        { at: 0, ref: verge('f', 'right'), metres: VERGE },
-        { at: apart - DEAD_END, ref: verge('f', 'right'), metres: VERGE },
-        { at: apart, ref: { lane: 'd', side: 'left', units: TOUCHING + ROAD_HALF }, metres: VERGE },
-        { at: Number.NaN, ref: verge('c', 'right'), metres: VERGE },
-        { at: length, ref: verge('c', 'right'), metres: VERGE },
+        { at: 0, ref: verge('f', 'right'), outward: 1 as const },
+        { at: apart - DEAD_END, ref: verge('f', 'right'), outward: 1 as const },
+        { at: apart, ref: farVerge('d', 'left', 1), outward: 1 as const },
+        { at: Number.NaN, ref: verge('c', 'right'), outward: 1 as const },
+        { at: length, ref: verge('c', 'right'), outward: 1 as const },
       ],
     },
     heights: [
@@ -578,7 +551,7 @@ export function joinSpan(next: Stage, side: -1 | 1): Span {
   const fixed = side > 0 ? verge('a', 'left') : verge('f', 'right');
   const ramps = vergeRamps(
     side > 0 ? verge('c', 'right') : verge('d', 'left'),
-    { ...inner, units: side * (TOUCHING + ROAD_HALF) },
+    farVerge(inner.lane, inner.side, side),
     side,
     comesIn,
     length,
@@ -600,8 +573,8 @@ export function joinSpan(next: Stage, side: -1 | 1): Span {
     ],
     verges:
       side > 0
-        ? { left: [0, length].map((at) => ({ at, ref: fixed, metres: -VERGE })), right: ramps }
-        : { left: ramps, right: [0, length].map((at) => ({ at, ref: fixed, metres: VERGE })) },
+        ? { left: [0, length].map((at) => ({ at, ref: fixed, outward: -1 as const })), right: ramps }
+        : { left: ramps, right: [0, length].map((at) => ({ at, ref: fixed, outward: 1 as const })) },
     heights: [],
     scenery: [],
     stages: [{ from: 0, stage: next, arrival: 'rise' }],

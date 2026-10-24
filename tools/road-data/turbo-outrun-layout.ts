@@ -28,8 +28,6 @@ import type { StageRun } from './turbo-outrun-scenery.js';
 export const JOIN = Object.freeze({ from: 1460, speed: 80, seam: 1458 });
 /** The course ends 260 positions past the finish, a straight on from LOS ANGELES's road. */
 const GOAL_POSITIONS = 260;
-/** SAND reaches this far beyond the outermost asphalt, metres. */
-export const SAND = 40;
 /**
  * The ground between the roads is SAND where it is wider than this, metres; narrower, as it opens, the asphalt's, so the
  * material changes metres away from where the lanes' rule does.
@@ -258,6 +256,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     },
     width,
     offset,
+    laneReach,
     laneBreaks,
     openings,
     pieces,

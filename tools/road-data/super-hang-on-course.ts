@@ -7,7 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, groundWidth, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
@@ -26,8 +26,6 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/** SAND reaches this far beyond the asphalt, metres. */
-const SAND = 40;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
 const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
@@ -279,6 +277,13 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     `/${inputs.id}`,
     "An object stands past the course's end",
   );
+  // SAND reaches to the farthest picture standing on the ground beyond the lanes, a lane either side of P; a picture's
+  // base point is its middle.
+  const beyond = groundWidth(
+    placed
+      .filter((o) => o.groundOffset === 0)
+      .map((o) => ({ lateral: o.lateral, reach: [o.picture.width / 2, o.picture.width / 2], edges: [LANE, LANE] })),
+  );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
@@ -309,6 +314,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       first: i === 0,
       last: i === pieces.length - 1,
       stretches,
+      beyond,
       objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
       checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
       finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
@@ -363,6 +369,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       };
     }),
     objects: placed.length,
+    beyond,
   };
 }
 
@@ -378,6 +385,7 @@ function sectionDocument(
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
+    readonly beyond: number;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
@@ -405,8 +413,8 @@ function sectionDocument(
   const xs = inputs.cross;
   const asphalt = xs.edgesOut * unit;
 
-  // The strips: the ground, the sand beyond the asphalt, the road's surface, lines, edge bands and centre line, each in
-  // its two colors by halves of its period counted from GO.
+  // The strips: the ground, the sand to the ground's width beyond the lanes, the road's surface, lines, edge bands and
+  // centre line, each in its two colors by halves of its period counted from GO.
   const period = inputs.stripe * inputs.metres;
   const go = path.station(inputs.cameraDistance);
   const strips: unknown[] = [];
@@ -544,11 +552,11 @@ function sectionDocument(
     boundaries: [
       {
         id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-asphalt - SAND) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.beyond) })),
       },
       {
         id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(asphalt + SAND) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.beyond) })),
       },
     ],
     strips,

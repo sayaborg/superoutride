@@ -24,7 +24,7 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, groundWidth, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -49,7 +49,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 9;
+export const ENDURO_RACER_CONVERSION_VERSION = 10;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -63,8 +63,6 @@ export const POSITION_METRES = 65536 / (256 * 3.6 * 60);
  * the bike as tall as VFR750R's upright rear picture) rounded. It is the one measure of ENDURO RACER's sizes across.
  */
 export const LANE = 3.5;
-/** The ground reaches this far beyond the edge bands, metres: past the farthest scenery's outer edge. */
-const GROUND = 18;
 /**
  * The ground's material by stage, left and right of P: stage 1's grass, stage 3's water and stage 5's sea (left of P)
  * `WATER`, stages 2's and 4's ground and stage 5's white sand `SAND`.
@@ -188,6 +186,7 @@ export function enduroRacerCourse(set: RomSet) {
   const objects = enduroRacerObjects(main, unit);
   const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
+  const reach = new Map(pictures.map((p) => [p.name, p.reach]));
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
   const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
   const spots = objects.spots.map((spot) =>
@@ -209,6 +208,7 @@ export function enduroRacerCourse(set: RomSet) {
     yawOrigin,
     spots,
     colored: (image) => colored.get(image)!,
+    reach: (image) => reach.get(image)!,
   });
   // Each stage's sky, baked from its background over its ground's color (stage 5's the sea).
   const planes = assembleEnduroRacerTiles(set);
@@ -254,9 +254,10 @@ interface CourseInputs {
   }[];
   /** The yaw origin of a Section whose start faces the course's start, degrees. */
   readonly yawOrigin: number;
-  /** The objects, and each picture's colored width, metres. */
+  /** The objects, and each picture's colored width and reach either side of its base point, metres. */
   readonly spots: readonly ObjectSpot[];
   readonly colored: (image: string) => number;
+  readonly reach: (image: string) => readonly [number, number];
 }
 
 /** An object placed: its station, lateral, picture, height and body. */
@@ -374,6 +375,12 @@ function layCourse(inputs: CourseInputs) {
     `/${COURSE_ID}`,
     "An object stands past the course's end",
   );
+  // The ground reaches to the farthest picture standing on it beyond the lanes, a lane either side of P.
+  const beyond = groundWidth(
+    placed
+      .filter((o) => o.groundOffset === 0)
+      .map((o) => ({ lateral: o.lateral, reach: inputs.reach(o.image), edges: [LANE, LANE] as const })),
+  );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
@@ -404,6 +411,7 @@ function layCourse(inputs: CourseInputs) {
       first: i === 0,
       last: i === pieces.length - 1,
       stretches,
+      beyond,
       objects: placed.filter((o) => o.s >= origins[i]! && o.s < origins[i + 1]!),
       checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: stationOf(q) })),
       finish: { id: `${COURSE_ID}-GOAL`, s: stationOf(inputs.finish) },
@@ -446,6 +454,7 @@ function layCourse(inputs: CourseInputs) {
     profile,
     stationOf,
     placed,
+    beyond,
     dropped,
     passedThrough,
     crossings: crossings.map((crossing, k) => {
@@ -518,6 +527,7 @@ function sectionDocument(
     readonly first: boolean;
     readonly last: boolean;
     readonly stretches: readonly ColorStretch[];
+    readonly beyond: number;
     readonly objects: readonly Placed[];
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
@@ -667,11 +677,11 @@ function sectionDocument(
     boundaries: [
       {
         id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-edges - GROUND) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.beyond) })),
       },
       {
         id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(edges + GROUND) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.beyond) })),
       },
     ],
     strips,

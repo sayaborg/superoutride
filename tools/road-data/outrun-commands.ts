@@ -236,8 +236,12 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       idOf: (stage: Stage) => slug(nameOf(stage)),
       shortOf: (stage: Stage) => OUTRUN_SHORT_NAMES.get(stage.number)!,
     };
-    // What lies on the ground, its materials beneath it, and the extending boards' edges.
-    const { lying, edges, split } = boardShapes(programs.main, assembleSprites(set), outrunSceneryUses(programs).uses);
+    // What lies on the ground, its materials beneath it, the extending boards' edges and each board's reach.
+    const { lying, edges, split, reach } = boardShapes(
+      programs.main,
+      assembleSprites(set),
+      outrunSceneryUses(programs).uses,
+    );
     const courses = [];
     const starts = startObjects(programs.main);
     for (const route of OUTRUN_ROUTES) {
@@ -252,6 +256,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         lying,
         edges,
         split,
+        reach,
         objects: (points, road) => {
           const { placements, checkpoints, dropped, ended, start } = roadObjects(programs.main, points, {
             ...road,
@@ -276,6 +281,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         sections: road.document.sections.length,
         metres: round1(road.end),
         objects: road.objects,
+        ground: road.beyond,
         placing: road.placing,
         // Each span's fidelity, the most over the spans and their widened turns.
         ...(() => {

@@ -163,6 +163,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
           heights: c.heights.map(round1),
         })),
         objects: built.placed.length,
+        ground: built.beyond,
         bodies: built.placed.filter((o) => o.body !== null).length,
         // The pictures whose bodies the original's hit narrows, with their colored widths.
         narrowed: built.pictures

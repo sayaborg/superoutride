@@ -138,7 +138,7 @@ stage's description.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 9, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 10, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -184,7 +184,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
   stage's colors begin at its start, a leg's first stage's at its GO.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units); between them SAND where the ground there is wider
-  than 0.5 m; SAND 40 m beyond the outermost asphalt, which the course format ends where the plan stops being one-to-one
+  than 0.5 m; SAND to the [ground's width](original-road-data.md#the-ground-beside-the-road) beyond the outermost lanes,
+  49.57 m, which the course format ends where the plan stops being one-to-one
   ([Architecture](architecture.md#plan-authority)).
 - **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
   from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY

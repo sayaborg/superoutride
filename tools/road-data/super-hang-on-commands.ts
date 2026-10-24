@@ -52,6 +52,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         sections: road.document.sections.length,
         metres: round1(road.path.planeLength),
         objects: road.objects,
+        ground: road.beyond,
         notBroughtOut: dropped,
         runs: road.plan.runs.length,
         elements: road.plan.elements.length,

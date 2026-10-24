@@ -173,6 +173,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           heights: c.heights.map(round1),
         })),
         objects: built.placing,
+        ground: built.beyond,
         pictures: built.pictures.length,
         skies: skies.length,
       }),
