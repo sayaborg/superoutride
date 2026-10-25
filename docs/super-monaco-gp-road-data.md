@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 11, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 12, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -199,7 +199,7 @@ BRANCH course (K, 2026-10-21).
 ## SUPER MONACO GP's objects
 
 Every object of the scenery list but the surface boards (0x0DA4, 0x0DFE, 0x0E1C, 0x0E3A, 0x1F4A and 0x1F92, which are
-strips) and the kerbs (curbs) is a board standing on its bottom edge: the race's 8838, the qualifying's 3751. Whatever
+strips) and the kerbs (stripes) is a board standing on its bottom edge: the race's 8838, the qualifying's 3751. Whatever
 its kind (0x04, the original's flat board, among them: its buildings, trees, gate, signs, far bridge and cliffs), it
 stands as a sprite's board (K, 2026-10-22). None has a body: the original's band table alone acts on its car (K,
 2026-10-21).
@@ -239,11 +239,14 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   flag bit 10 alone (the word's bit 15 mirrors only its lateral): 0x0B22 for the barriers along the road, 0x09F6 across
   it, 0x0648 for the walls and 0x18DE for the boards. Its image is `smgp-<frame table>-<b1>[-mirrored][-flipped]`
   (hexadecimal), in every palette it is shown in, the lowest its default: 137 images.
-- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are curbs (K, 2026-10-22): each run of kerbs
-  at one lateral, 4 steps apart (up to 8) with their palettes alternating, one curb from 2 steps before the first to 2
-  after the last, as wide as view 0's picture (144 pixels, 1.76 m) about each kerb's x, two stripes a kerb, in the first
-  kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and white, the next kerb's palette swapping them): 139 curbs
-  on the race, 4 on the qualifying. An end within 1 mm of a whole stripe is drawn 1 mm short of it.
+- **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are stripes (K, 2026-10-22): each run of
+  kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
+  pixels, 1.76 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
+  white, the next kerb's palette swapping them); its kerbs evenly from the first to the last, each two stripes 2 steps
+  long, before it and after it, so kerbs further apart than 4 steps leave the road between them. Runs one after another
+  at one lateral in one palette, all their kerbs one spacing apart, are one run. A run's kerbs within a Section are one
+  Strip `repeat` of the first's two stripes (10 on the race, 3 on the qualifying); a kerb across a Section's ends is
+  its own stripes, cut there.
 - **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
   is).
 - **Images.** 14.33 M master texels, 71.4 MB of saved JSON (about 4.4 MB compressed, in Git and as Pages serves it);

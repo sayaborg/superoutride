@@ -191,11 +191,8 @@ PRs, in this order:
   times nearer, the rival straight ahead (x −6) 3.0, 2.6, 2.1 and 1.7 m ahead on courses 0 to 3, the last over a
   bike's length. Its reference runs are measured again.
 - FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
-  documents), stripes written by a Strip's `repeat` (K, 2026-10-25), and the limits' `heightNodes` named after the
-  field it bounds, `profile`. TSUKUBA's and SUPER MONACO GP's kerbs are written
-  again, the drawing unchanged in pictures of the same places before and after, with SUPER MONACO GP's kerbs' fixes:
-  `STRIPE_HAIR`, which shortens every kerb by 1 mm, and `KERB_GAP` 8 against the ends' `KERB_STEPS / 2`, which make
-  sector-2a's three kerbs' stripes 0.91–1.02 m rather than 0.74 m.
+  documents), no course using it now that the kerbs are written by a Strip's `repeat` (K, 2026-10-25); then, a rename
+  of its own, the limits' `heightNodes` named after the field it bounds, `profile`.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan and what of `offset-plan.ts` lives on
   (`POSITION_METRES`, `STRIPE_PERIOD`, `Quadratic`) moved to its owner; the fitted path plan and its folds, and
   `path-plan.ts`, which nothing uses; the plane at offset 0, once `course-path.ts` and SUPER MONACO GP no longer use

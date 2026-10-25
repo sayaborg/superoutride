@@ -41,7 +41,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 11;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 12;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -113,7 +113,7 @@ const SKY_AT_HEADING = (354 * SKY_WIDTH) / 1536;
 const BOARD_KINDS = Object.freeze(new Set([0x04, 0x08, VIEWED]));
 /**
  * The kerbs: the objects turning through view table 0x050A, 4 steps apart, each a blue and a white stripe (its pixels
- * 1–6 and 7–12, the next kerb's palette swapping them), drawn as curbs.
+ * 1–6 and 7–12, the next kerb's palette swapping them), drawn as stripes.
  */
 const KERBS = 0x050a;
 const KERB_STEPS = 4;
@@ -123,8 +123,6 @@ const KERB_CLASSES = [
 ] as const;
 /** A kerb stands on from the one before it within this many steps, alternating its palette. */
 const KERB_GAP = 8;
-/** A curb's end this near a whole stripe, metres, is drawn back this far short of it. */
-const STRIPE_HAIR = 1e-3;
 /** An object's height h that stands on the ground. */
 const GROUND = -50;
 /**
@@ -168,7 +166,7 @@ function spotsOf(sub: Uint8Array, scenery: number, steps: number): Spot[] {
 
 /** Whether an object is a flat board of the road's surface, drawn as strips. */
 const isSurface = (o: SceneryObject) => o.kind === 0x04 && SURFACE_FRAMES.has(o.frames);
-/** Whether an object is a kerb, drawn as curbs. */
+/** Whether an object is a kerb, drawn as stripes. */
 const isKerb = (o: SceneryObject) => o.kind === VIEWED && o.frames === KERBS;
 
 /** The linear-light mean of RGB555 colors. */
@@ -768,39 +766,60 @@ function sectionDocument(input: {
         null,
       );
   }
-  // The kerbs: each run of kerbs at one lateral, KERB_STEPS apart (up to KERB_GAP) with their palettes alternating, a
-  // curb from half a kerb's steps before the first to half after the last, two stripes a kerb in the first's colors.
-  const curb = (run: typeof input.kerbs) => {
+  // The kerbs: each run of kerbs at one lateral, up to KERB_GAP apart with their palettes alternating, as wide as its
+  // first about its x and in its colors, its kerbs evenly from the first to the last, each two stripes KERB_STEPS / 2
+  // long, before it and after it. A run's kerbs within the Section are one repeat of the first's stripes; a kerb across
+  // the Section's ends is its own stripes, cut there.
+  const kerbRun = (run: typeof input.kerbs) => {
     const [first, last] = [run[0]!, run.at(-1)!];
-    const [from, to] = [Math.max(0, first.q - KERB_STEPS / 2), Math.min(input.N, last.q + KERB_STEPS / 2)];
-    const r = span(from, to);
-    if (!r) return;
-    // An end within a hair past a whole stripe is drawn back a little short of it, so no stripe is empty.
-    const stripe = round((stationOf(to) - stationOf(from)) / (2 * run.length));
-    const [a, b] = [round(r[0]!), round(r[1]!)];
-    const whole = Math.floor((b - a) / stripe + STRIPE_HAIR / stripe);
-    const end = Math.abs(b - a - whole * stripe) < STRIPE_HAIR ? a + whole * stripe - STRIPE_HAIR : b;
-    if (end - a <= EPSILON) return;
-    strips.push({
-      kind: 'curb',
-      start: at(a),
-      end: at(end),
-      left: lateral(first.units - first.width / 2),
-      right: lateral(first.units + first.width / 2),
-      stripe,
-      colors: context.marks.kerb(first.palette),
-    });
+    const colors = context.marks.kerb(first.palette);
+    const [left, right] = [lateral(first.units - first.width / 2), lateral(first.units + first.width / 2)];
+    const s0 = stationOf(first.q);
+    const every = run.length > 1 ? (stationOf(last.q) - s0) / (run.length - 1) : 0;
+    // A stripe's length: KERB_STEPS / 2 of the run's mean metres a step, from half a kerb before the first to after the last.
+    const half =
+      ((stationOf(last.q + KERB_STEPS / 2) - stationOf(first.q - KERB_STEPS / 2)) / (last.q - first.q + KERB_STEPS)) *
+      (KERB_STEPS / 2);
+    const stripes = (s: number) =>
+      [
+        [s - half, s],
+        [s, s + half],
+      ].flatMap(([a, b], k) => {
+        const [from, to] = [Math.max(a!, origin), Math.min(b!, origin + size)];
+        return to - from > EPSILON
+          ? [{ kind: 'strip', start: at(from), end: at(to), left, right, color: colors[k]!, material: null }]
+          : [];
+      });
+    const inside = run
+      .map((_, k) => k)
+      .filter((k) => s0 + k * every - half >= origin && s0 + k * every + half <= origin + size);
+    for (const [k] of run.entries())
+      if (!inside.includes(k)) strips.push(...stripes(s0 + k * every));
+      else if (k === inside[0])
+        strips.push(
+          ...(inside.length > 1
+            ? [{ kind: 'repeat', every: round(every), count: inside.length, elements: stripes(s0 + k * every) }]
+            : stripes(s0 + k * every)),
+        );
   };
-  let kerbRun: (typeof input.kerbs)[number][] = [];
+  // The runs; then runs at one lateral in one palette, their kerbs and the gap between them all one spacing, as one.
+  const runs: (typeof input.kerbs)[number][][] = [];
   for (const kerb of input.kerbs) {
-    const before = kerbRun.at(-1);
-    if (before && (kerb.units !== before.units || kerb.q - before.q > KERB_GAP || kerb.palette === before.palette)) {
-      curb(kerbRun);
-      kerbRun = [];
-    }
-    kerbRun.push(kerb);
+    const before = runs.at(-1)?.at(-1);
+    if (before && kerb.units === before.units && kerb.q - before.q <= KERB_GAP && kerb.palette !== before.palette)
+      runs.at(-1)!.push(kerb);
+    else runs.push([kerb]);
   }
-  if (kerbRun.length) curb(kerbRun);
+  const spacing = (run: readonly { q: number }[]) => new Set(run.slice(1).map((kerb, k) => kerb.q - run[k]!.q));
+  const joined = runs.reduce<(typeof input.kerbs)[number][][]>((out, next) => {
+    const last = out.at(-1);
+    const both = last && [...last, ...next];
+    if (both && last[0]!.units === next[0]!.units && last[0]!.palette === next[0]!.palette && spacing(both).size === 1)
+      out[out.length - 1] = both;
+    else out.push(next);
+    return out;
+  }, []);
+  joined.forEach(kerbRun);
 
   // The grid's marks, each slot's, then the start line over them.
   for (let slot = 0; slot < GRID.slots; slot++) {
