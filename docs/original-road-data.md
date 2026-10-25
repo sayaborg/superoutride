@@ -425,19 +425,21 @@ A stage's profile turns its height tables' look on the original's screen into gr
   (`partedCrossings`), whatever made them:
   - _What moves._ Every height between the road's ends, whose heights stay. A passage moves as one, by its rise, so the
     roads keep their form where they cross; between two passages along the road, or a passage and an end, the road
-    ramps from the one's rise to the other's by two vertical curves of one radius meeting halfway, level at both ends.
+    ramps from the one's rise to the other's, level at both ends.
   - _How a change is measured._ By its ramps' curvatures (the vertical acceleration each adds at a speed, over the speed
     squared): the largest first, then the largest of the ramps left, and so on.
-  - _What it keeps._ The vertical curves' form: a ramp of rise r over L curves by 4r / L², the least of any ramp level
-    at both ends (its grade can be no more than its curvature times the distance to its nearer end, so its rise no more
-    than its curvature times L² / 4, equal only for these two curves). Its grade, 2r / L at its middle, is no steeper
-    than ±25 % (K's limit). The mounds' and humps' form, which the ramps add to.
-  - _The least._ Of two overlapping passages the higher over their pairs goes over (the later where level), and rises
-    by what 3 m lacks at their nearest pair more than the lower. These and the ramps bound the rises' differences, so
-    the least largest curvature is that of the cycle of ramps and orders needing most, what its orders need over its
-    ramps' squared lengths over 4 (Dinkelbach's iteration over Bellman and Ford's negative cycles); every least change
-    holds that cycle's ramps at it. Those fixed, the next cycle's are, and so on: the rises are one answer, and a ramp
-    no cycle needs stays level.
+  - _What it keeps._ The least ramp for its rise: no ramp level at both ends and no steeper than ±25 % (K's limit)
+    rises more at a curvature k over L than two vertical curves of curvature k meeting halfway, rising k L² / 4, or,
+    where they would be steeper (k L > 0.5), two such curves to 25 % and a tangent at it between them, rising
+    0.25 (L − 0.25 / k); a ramp is those curves at the least k that rises its r. The mounds' and humps' form, which the
+    ramps add to.
+  - _The least._ Of two overlapping passages the higher over their pairs goes over (the later where level, their mean
+    difference within a micrometre, as heights are written), and rises by what 3 m lacks at their nearest pair more
+    than the lower. These and the ramps bound the rises' differences, so the least largest curvature is that of the
+    cycle of ramps and orders needing most, where the ramps' most rises at it meet what its orders need (Dinkelbach's
+    iteration over Bellman and Ford's negative cycles, each cycle's curvature by bisection); every least change holds
+    that cycle's ramps at it. Those fixed, the next cycle's are, and so on: the rises are one answer, and a ramp no
+    cycle needs stays level.
 - **Jumps and humps.** What the originals throw a vehicle with is a symmetric triangle across the whole road on top of
   the profile, its top at the original's position: the grade kinked up at its foot, down over its top and back at its
   end; where two overlap the higher is taken, the road kinked up again where their sides meet. No vehicle's data shapes

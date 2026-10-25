@@ -84,19 +84,24 @@ export interface Profile {
   grade(s: number): number;
 }
 
+/** Stations nearer than this are one, a nanometre: two computations of one station differ by less. */
+const ONE = 1e-9;
+
 /**
  * The profile of `bends`, which may overlap: their curvatures add, and of `kinks`, the grade changing at each by its
- * change. The result's bends do not overlap and break at every bend's ends, at `breaks` and at the kinks; its kinks are
- * one at a station, in order.
+ * change. The result's bends do not overlap and break at every bend's ends, at `breaks` and at the kinks, stations
+ * within `ONE` one; its kinks are one at a station, in order.
  */
 export function profileOf(
   bends: readonly Bend[],
   breaks: readonly number[] = [],
   kinks: readonly Kink[] = [],
 ): Profile {
-  const cuts = [...new Set([...bends.flatMap((b) => [b.from, b.to]), ...breaks, ...kinks.map((k) => k.at)])].sort(
+  const cuts: number[] = [];
+  for (const at of [...bends.flatMap((b) => [b.from, b.to]), ...breaks, ...kinks.map((k) => k.at)].sort(
     (a, b) => a - b,
-  );
+  ))
+    if (!cuts.length || at - cuts.at(-1)! > ONE) cuts.push(at);
   // Each node a piece's start or a kink, its grade and height there; past it the grade is constant until the next.
   const nodes: { from: number; to: number; curvature: number; grade: number; height: number }[] = [];
   const turns: Kink[] = [];
@@ -109,13 +114,13 @@ export function profileOf(
     // The tangent to this piece.
     height += grade * (from - last);
     last = from;
-    const change = kinks.reduce((sum, k) => (k.at === from ? sum + k.change : sum), 0);
+    const change = kinks.reduce((sum, k) => (Math.abs(k.at - from) <= ONE ? sum + k.change : sum), 0);
     if (change !== 0) {
       grade += change;
       turns.push({ at: from, change });
       nodes.push({ from, to: from, curvature: 0, grade, height });
     }
-    const curvature = bends.reduce((k, b) => (b.from <= from && to <= b.to ? k + b.curvature : k), 0);
+    const curvature = bends.reduce((k, b) => (b.from <= from + ONE && to <= b.to + ONE ? k + b.curvature : k), 0);
     if (curvature === 0 || to === from) continue;
     nodes.push({ from, to, curvature, grade, height });
     height += grade * (to - from) + (curvature * (to - from) ** 2) / 2;

@@ -35,7 +35,7 @@ import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
 import { raisedSplit, scaleTag } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 15;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 16;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
