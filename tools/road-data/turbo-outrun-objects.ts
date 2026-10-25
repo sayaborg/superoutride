@@ -12,7 +12,7 @@ import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
-import { CAR_LINE, passedPositions, standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
@@ -71,17 +71,12 @@ const SIGN_NEARER = 0.1;
 const SOLID = 3;
 /**
  * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a dip across the
- * road, not an object. An object hits while its line is within 0x64 of the car's (0x6F20, in the decrypted program
- * alone): the hump's length is the road the car passes while it does.
+ * road, not an object.
  */
 export const DIP = 2;
-const HIT_LINES = 0x64;
 
 /** Whether the scenery model's object `o` is a dip. */
 export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === DIP;
-
-/** A hump's length at `kmh`, positions: the road the car passes at that speed while its object's line hits. */
-export const humpLength = (main: Uint8Array, kmh: number) => passedPositions(main, CAR_LINE - HIT_LINES, CAR_LINE, kmh);
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width

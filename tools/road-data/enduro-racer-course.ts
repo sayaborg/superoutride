@@ -9,8 +9,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
-import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
-import { bySlope, jumpMound, moundKinks, slopeColor, type Mound, type Slope } from './jump-mound.js';
+import { paletteName } from './pixel-grid.js';
+import { bySlope, moundKinks, slopeColor, type Mound, type Slope } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
@@ -44,10 +44,10 @@ import {
   type WaterCrossing,
 } from './enduro-racer-road.js';
 import { readJumps, readScenery } from './enduro-racer-scenery.js';
-import { bikeAhead, jumpFlight, lateralLimit, readGrid } from './enduro-racer-dump.js';
+import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards, PIXEL_UNITS } from './enduro-racer-boards.js';
+import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
@@ -144,9 +144,6 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
-/** The jumps' design speed, km/h: the speed a bike comes to a jump at before climbing it, which its mound throws over the rocks beyond it. */
-const DESIGN_SPEED = 105;
-
 /**
  * A jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's rise, 1 m high and 3 m
  * either side of its top (K, 2026-10-26).
@@ -157,7 +154,6 @@ const JUMP: Mound = { half: 3, height: 1 };
 export function enduroRacerCourse(set: RomSet) {
   const lane = LANE;
   const programs = assembleEnduroRacerPrograms(set);
-  const flight = jumpFlight(programs);
   const { main, sub } = programs;
   const metres = POSITION_METRES;
   const cross = roadCrossSection(enduroRacerRoadRom(set));
@@ -195,19 +191,8 @@ export function enduroRacerCourse(set: RomSet) {
   });
   const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit);
-  // The jumps: K's rise at each (`JUMP`). What follows, the mounds by the design speed for the report, goes next.
+  // The jumps: K's rise at each (`JUMP`).
   const jumps = readJumps(main).jumps;
-  const design = DESIGN_SPEED;
-  const flown = ((flight.ticks * flight.speed) / 256) * metres;
-  const atDesign = jumpFlight(programs, design);
-  const thrown = ((atDesign.ticks * design) / 256) * metres;
-  const rocks = objects.spots.filter((spot) => spot.onRoad && spot.hit);
-  const beyond = jumps.map((j) => {
-    const ahead = rocks.map((r) => (r.position - j.position) * metres).filter((d) => d > 0 && d <= flown);
-    return ahead.length ? Math.max(...ahead) : null;
-  });
-  const distances = beyond.map((rocksAt) => Math.max(rocksAt ?? 0, thrown));
-  const mounds = distances.map((distance) => jumpMound(design / 3.6, distance));
   const pictures = enduroRacerBoards(main, words, objects.uses, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
@@ -255,34 +240,8 @@ export function enduroRacerCourse(set: RomSet) {
     pictures,
     skies,
     hitWidth: HIT_WIDTH * unit,
-    // The original's flight off a jump at its top speed and at the design speed, and how the mounds join.
-    jump: (() => {
-      const height = PIXEL_UNITS * PIXEL_ASPECT * unit;
-      return {
-        speed: flight.speed,
-        ticks: flight.ticks,
-        seconds: flight.ticks / TICKS,
-        gravity: flight.gravity * TICKS * TICKS * height,
-        peak: flight.peak * height,
-        flown,
-        design,
-        designTicks: atDesign.ticks,
-        thrown,
-        ...built.mounds,
-      };
-    })(),
-    // Each jump's rocks beyond it, its mound's half and height, its slope, degrees, and its top's speed, km/h.
-    mounds: jumps.map((jump, k) => {
-      const mound = mounds[k]!;
-      return {
-        position: jump.position,
-        rocks: beyond[k]!,
-        half: distances[k]!,
-        height: mound?.height ?? null,
-        angle: mound ? (Math.atan(mound.height / mound.half) * 180) / Math.PI : null,
-        top: mound ? mound.topSpeed * 3.6 : null,
-      };
-    }),
+    // The jumps' shape, and how they join.
+    jumps: { count: jumps.length, ...JUMP, ...built.mounds },
   };
 }
 

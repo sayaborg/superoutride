@@ -1,45 +1,13 @@
-import { VEHICLE_GRAVITY } from '../../src/vehicle/physics/vehicle-state.js';
 import { halveRgb555 } from '../../src/image/rgb555.js';
 import type { Kink } from './road-profile.js';
 
 /**
- * A jump's or a dip's mound ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): metres either side
- * of its top, and its height.
+ * A jump's or a dip's mound ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): metres
+ * either side of its top, and its height.
  */
 export interface Mound {
   readonly half: number;
   readonly height: number;
-}
-
-/**
- * ENDURO RACER's jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and humps): the mound a
- * point mass coming to it at `speed`, metres a second, slowed by climbing it under this game's gravity g, leaves along
- * its rising side and comes down on at the end of its falling side, `distance` metres on. Its slope θ, the shallowest
- * with sin 2θ = g D / (2 v²) at its top's speed v, v² = speed² − 2 g D tan θ; its half is D, its height D tan θ, with
- * the top's speed, metres a second. Null where no slope throws the mass that far.
- */
-export function jumpMound(speed: number, distance: number): (Mound & { readonly topSpeed: number }) | null {
-  const g = VEHICLE_GRAVITY;
-  const lack = (theta: number) =>
-    Math.sin(2 * theta) * 2 * (speed * speed - 2 * g * distance * Math.tan(theta)) - g * distance;
-  // The first slope, in steps of a ten-thousandth of a radian, past which the mass flies far enough, then bisected.
-  const STEP = 1e-4;
-  for (let theta = STEP; theta <= Math.PI / 4; theta += STEP) {
-    if (lack(theta) < 0) continue;
-    let [low, high] = [theta - STEP, theta];
-    for (let i = 0; i < 60; i++) {
-      const middle = (low + high) / 2;
-      if (lack(middle) < 0) low = middle;
-      else high = middle;
-    }
-    const height = distance * Math.tan(high);
-    return {
-      half: distance,
-      height: Number(height.toFixed(6)),
-      topSpeed: Math.sqrt(speed * speed - 2 * g * height),
-    };
-  }
-  return null;
 }
 
 /** A stretch of a mound's slope, stations, facing the camera (rising) or away from it. */

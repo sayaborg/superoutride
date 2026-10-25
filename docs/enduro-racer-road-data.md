@@ -103,9 +103,6 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
   half is drawn as it is and the right half mirrored; the margin (120 for every kind) widens the halves' window where
   the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used.
-- **Mound.** The bike's ground over a jump (0x71D8): `$2a`, the bike's distance past the jump's position in 1/256
-  positions (0x703A), plus 0x1C2 (0x71E2) gives the rise from 1.758 positions before the position, and the fall as far
-  after.
 - **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
   position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
   (flags 0x88), banners and START board at position 1.5.

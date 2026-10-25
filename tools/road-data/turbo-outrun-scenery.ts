@@ -224,15 +224,3 @@ export function standsFrom(main: Uint8Array, line: number, kmh: number): number 
     if (depth >>> 16 >= CAR_LINE) return (tick * step) / 65536;
   }
 }
-
-/**
- * The road positions the car passes at `kmh` while an object approaches from line `from` to line `to`: on each line, a
- * tick's road advance over the lines the approach table moves an object there in a tick, at that speed's advance.
- */
-export function passedPositions(main: Uint8Array, from: number, to: number, kmh: number): number {
-  const { advance } = tickAdvance(kmh, 0);
-  let positions = 0;
-  for (let line = from; line < to; line++)
-    positions += (kmh * STEP_PER_KMH) / (approached(main, APPROACH, line << 16, advance) - (line << 16));
-  return positions;
-}
