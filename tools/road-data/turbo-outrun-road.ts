@@ -5,8 +5,10 @@
  * table and the program's constants the conversion uses. Where a format is OUTRUN's, OUTRUN's reader reads it. Every
  * reader takes a program as the 68000 addresses it and returns the table's entries as numbers.
  */
+import { long, s8, sword, u8, word } from './program-words.js';
 import {
-  paletteRgb555,
+  pathTurn,
+  readColors,
   readCurves,
   readPath,
   readScenery,
@@ -18,7 +20,6 @@ import {
   type WidthHeightPoint,
 } from './road-tables.js';
 import { requireInput } from '../course/authoring-io.js';
-import { pathTurn } from './road-tables.js';
 import type { TurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 
@@ -61,19 +62,6 @@ const ROUTINE_COUNT = 27;
 /** The stripes: 32 phases of a word for each of the road's 512 lines. */
 const STRIPE_PHASES = 32;
 const STRIPE_LINES = 512;
-
-const u8 = (p: Uint8Array, a: number) => {
-  if (!(a >= 0 && a < p.length)) throw new RangeError(`Address 0x${a.toString(16)} lies outside the program`);
-  return p[a]!;
-};
-const s8 = (p: Uint8Array, a: number) => (u8(p, a) << 24) >> 24;
-const word = (p: Uint8Array, a: number) => (u8(p, a) << 8) | u8(p, a + 1);
-const sword = (p: Uint8Array, a: number) => (word(p, a) << 16) >> 16;
-const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p, a + 2);
-const colors = (p: Uint8Array, address: number, count: number): Colors => {
-  const words = Array.from({ length: count }, (_, i) => word(p, address + 2 * i));
-  return { address, words, rgb555: words.map(paletteRgb555) };
-};
 
 /** The legs' stages in running order: four bytes of each leg's eight at 0x1E018. */
 export const readLegOrder = (main: Uint8Array): number[][] =>
@@ -151,13 +139,13 @@ export function readTurboOutrunStage({ main, sub }: TurboOutrunPrograms, number:
     number,
     block,
     colors: {
-      centreLine: colors(main, pointer(1), 4),
-      laneLines: colors(main, pointer(2), 4),
-      edges: colors(main, pointer(3), 4),
-      surface: colors(main, pointer(4), 4),
+      centreLine: readColors(main, pointer(1), 4),
+      laneLines: readColors(main, pointer(2), 4),
+      edges: readColors(main, pointer(3), 4),
+      surface: readColors(main, pointer(4), 4),
     },
-    sky: { number: sky, ramp: colors(main, long(main, SKY_RAMPS + 4 * sky), RAMP_WORDS) },
-    ground: { number: ground, words: colors(main, long(main, GROUNDS + 4 * ground), GROUND_WORDS) },
+    sky: { number: sky, ramp: readColors(main, long(main, SKY_RAMPS + 4 * sky), RAMP_WORDS) },
+    ground: { number: ground, words: readColors(main, long(main, GROUNDS + 4 * ground), GROUND_WORDS) },
     curves: readCurves(main, pointer(6)),
     widthsHeights: readWidthsHeights(main, pointer(7)),
     scenery: readScenery(main, pointer(8)),
@@ -325,7 +313,7 @@ export const readStripSizeTable = (main: Uint8Array, address: number) =>
 
 /** Sprite palette `palette`: the 14 palette words at 0x2470 + 28 × palette, pixels 1 to 14 (0 and 15 transparent). */
 export const readSpritePalette = (main: Uint8Array, palette: number): Colors =>
-  colors(main, PALETTES + 2 * PALETTE_WORDS * palette, PALETTE_WORDS);
+  readColors(main, PALETTES + 2 * PALETTE_WORDS * palette, PALETTE_WORDS);
 
 /** The stripes on the sub CPU at 0x109EE: 32 phases of a word for each of the road's 512 lines. */
 export const readStripes = (sub: Uint8Array): number[][] =>

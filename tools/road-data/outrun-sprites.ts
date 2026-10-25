@@ -3,6 +3,7 @@
  * the sprite ROMs' 32-bit words, each sprite's sizes, its pixels and palettes, the hit extents of its scenery, and the
  * objects standing at a stage's start.
  */
+import { long, sword, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import type { SpriteSize } from './sprite-pixels.js';
 
@@ -14,10 +15,6 @@ const SHADOW = 0xff56;
 const START_OBJECTS = 0x2b6e;
 /** A sprite lists five sizes, the largest first. */
 const SIZES = 5;
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const sword = (p: Uint8Array, a: number) => (word(p, a) << 16) >> 16;
-const long = (p: Uint8Array, a: number) => ((word(p, a) << 16) | word(p, a + 2)) >>> 0;
 
 /** A size at `a`: {word width, word height, word words a row, word bank (its low byte), word offset}. */
 const sizeAt = (main: Uint8Array, a: number): SpriteSize => ({

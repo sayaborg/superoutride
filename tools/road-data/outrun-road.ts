@@ -8,6 +8,7 @@ import type { OutrunPrograms } from './outrun-rom.js';
 import { long, s8, sword, u8, word } from './program-words.js';
 import {
   paletteRgb555,
+  readColors,
   readCurves,
   readPath,
   readScenery,
@@ -61,11 +62,6 @@ export function stageLength(main: Uint8Array): number {
     throw new RangeError("The program at 0x870A does not compare the road position with the stage's length");
   return word(main, STAGE_LENGTH_COMPARE + 2);
 }
-const colors = (p: Uint8Array, address: number, count: number): Colors => {
-  const words = Array.from({ length: count }, (_, i) => word(p, address + 2 * i));
-  return { address, words, rgb555: words.map(paletteRgb555) };
-};
-
 /** A stretch's tables: its curves, widths and heights, and scenery, by their addresses. */
 export interface Stretch {
   readonly addresses: { readonly curves: number; readonly widthsHeights: number; readonly scenery: number };
@@ -114,12 +110,12 @@ export function readStage({ main, sub }: OutrunPrograms, number: number): Stage 
     number,
     block,
     colors: {
-      sky: colors(main, pointer(0), 1),
-      centreLine: colors(main, pointer(1), 4),
-      laneLines: colors(main, pointer(2), 4),
-      edges: colors(main, pointer(3), 4),
-      surface: colors(main, pointer(4), 4),
-      ground: colors(main, pointer(5), 1),
+      sky: readColors(main, pointer(0), 1),
+      centreLine: readColors(main, pointer(1), 4),
+      laneLines: readColors(main, pointer(2), 4),
+      edges: readColors(main, pointer(3), 4),
+      surface: readColors(main, pointer(4), 4),
+      ground: readColors(main, pointer(5), 1),
     },
     groundStripes: (() => {
       const ground = long(main, GROUNDS + 4 * word(main, pointer(5)));

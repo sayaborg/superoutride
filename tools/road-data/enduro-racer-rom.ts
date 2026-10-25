@@ -1,6 +1,6 @@
 import { instruction, interleave } from './program-words.js';
+import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
 import { romRecords, type RomSet } from './rom-set.js';
-import { spriteWords } from './sprite-pixels.js';
 
 /** The main CPU's first 64 KiB ROMs: the first half of each holds the instructions, the second the data. */
 const FIRST_MAIN_ROM_SIZE = 0x10000;
@@ -152,12 +152,7 @@ export function assembleEnduroRacerPrograms(set: RomSet): EnduroRacerPrograms {
   const main = image(ROM_SIZE),
     mainInstructions = image(0);
   for (const [address, words, what] of MAIN_INSTRUCTIONS) instruction(mainInstructions, address, words, what);
-  const [sub] = ENDURO_RACER_PROGRAM_ROMS.sub;
-  return {
-    main,
-    mainInstructions,
-    sub: interleave(set.data(sub.even), set.data(sub.odd)),
-  };
+  return { main, mainInstructions, sub: programImage(set, ENDURO_RACER_PROGRAM_ROMS.sub) };
 }
 
 /** Every ROM the tool reads, the dump's record of them. */
@@ -170,15 +165,10 @@ export const enduroRacerRoms = (): Record<string, string> =>
   ]);
 
 /** The sprite ROMs' words (`spriteWords`), bank after bank, 0x8000 a bank. */
-export function assembleEnduroRacerSprites(set: RomSet): Uint32Array {
-  const words = new Uint32Array(ENDURO_RACER_SPRITE_ROMS.length * ROM_SIZE);
-  ENDURO_RACER_SPRITE_ROMS.forEach((bank, k) => words.set(spriteWords(bank.map((rom) => set.data(rom))), k * ROM_SIZE));
-  return words;
-}
+export const assembleEnduroRacerSprites = (set: RomSet): Uint32Array => spriteWordSets(set, ENDURO_RACER_SPRITE_ROMS);
 
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
-export const assembleEnduroRacerTiles = (set: RomSet): readonly Uint8Array[] =>
-  ENDURO_RACER_TILE_ROMS.map((rom) => set.data(rom));
+export const assembleEnduroRacerTiles = (set: RomSet): readonly Uint8Array[] => tilePlanes(set, ENDURO_RACER_TILE_ROMS);
 
 /** The road ROM's bytes. */
 export const enduroRacerRoadRom = (set: RomSet) => set.data(ENDURO_RACER_ROAD_ROM);

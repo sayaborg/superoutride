@@ -3,6 +3,7 @@
  * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)): each section's tile map, drawn in eight steps
  * of parts, the palettes it loads, and its two bands and ramp as a sky bakes them.
  */
+import { tilePixel } from './rom-images.js';
 import { long, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
@@ -107,7 +108,7 @@ export function sectionBands(
       for (let x = 0; x < width; x++) {
         const tileWord = map[(row + (y >> 3)) * MAP_COLUMNS + column + (x >> 3)]!;
         const [tile, u, v] = [tileWord & 0xfff, x & 7, y & 7];
-        const value = planes.reduce((n, plane, p) => n | (((plane[tile * TILE + v]! >> (7 - u)) & 1) << p), 0);
+        const value = tilePixel(planes, tile, u, v);
         const words = palettes.get((tileWord >> 5) & 0x7f);
         if (value && !words)
           throw new Error(

@@ -1,6 +1,6 @@
 import { requireInput } from '../course/authoring-io.js';
-import { interleave } from './program-words.js';
-import { romRecords, type Rom, type RomSet } from './rom-set.js';
+import { programImage, tilePlanes } from './rom-images.js';
+import { romRecords, type RomSet } from './rom-set.js';
 
 /** The ROMs' sizes: a program's half's byte ROM, a sprite ROM, a tile ROM, the road ROM. */
 const PROGRAM_ROM_SIZE = 0x10000;
@@ -77,21 +77,14 @@ export interface SuperHangOnPrograms {
  * mirrored half checked against the half it mirrors.
  */
 export function assembleSuperHangOnPrograms(set: RomSet): SuperHangOnPrograms {
-  const program = (halves: readonly { readonly even: Rom; readonly odd: Rom }[]) => {
-    const out = new Uint8Array(halves.length * 2 * PROGRAM_ROM_SIZE);
-    halves.forEach(({ even, odd }, half) =>
-      out.set(interleave(set.data(even), set.data(odd)), half * 2 * PROGRAM_ROM_SIZE),
-    );
-    return out;
-  };
-  const main = program(SUPER_HANG_ON_PROGRAM_ROMS.main);
+  const main = programImage(set, SUPER_HANG_ON_PROGRAM_ROMS.main);
   const mirrored = main.subarray(MIRROR.from, MIRROR.from + MIRROR.length);
   requireInput(
     mirrored.every((byte, i) => byte === main[MIRROR.of + i]),
     '/rom/main',
     "The main CPU's 0x30000–0x3FFFF does not mirror its 0x10000–0x1FFFF",
   );
-  return { main, sub: program(SUPER_HANG_ON_PROGRAM_ROMS.sub) };
+  return { main, sub: programImage(set, SUPER_HANG_ON_PROGRAM_ROMS.sub) };
 }
 
 /** The sprite ROMs' 16-bit words, bank after bank: each word its even ROM's byte over its odd ROM's. */
@@ -106,7 +99,7 @@ export function assembleSuperHangOnSprites(set: RomSet): Uint16Array {
 
 /** The tile ROMs' three bit planes, the lowest first. */
 export const assembleSuperHangOnTiles = (set: RomSet): readonly Uint8Array[] =>
-  SUPER_HANG_ON_TILE_ROMS.map((rom) => set.data(rom));
+  tilePlanes(set, SUPER_HANG_ON_TILE_ROMS);
 
 /** The road ROM's bytes. */
 export const superHangOnRoadRom = (set: RomSet) => set.data(SUPER_HANG_ON_ROAD_ROM);

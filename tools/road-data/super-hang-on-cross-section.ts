@@ -5,11 +5,10 @@
  * (an object's x is drawn at x × r / 224 pixels, the `divs.w #$E0` at 0x7262), so u is 224 times the slope of the
  * edge's pixels against the line, fitted by least squares over the lines drawn at every size.
  */
+import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted, and its lines' pixels. */
 const FITTED = { from: 60, to: 189 } as const;
-const LINE_PIXELS = 512;
-const PLANE_BYTES = 0x4000;
 /** The road's centre: the middle of its middle eight columns, 248 to 255, where a 3 draws the centre line. */
 const CENTRE = 252.5;
 /** An object's x is drawn at x × line / 224 pixels. */
@@ -27,15 +26,6 @@ export interface CrossSection {
   readonly edgesOut: number;
   /** How far the ROM's right side lies from its left: the right's inner line edge less the left's. */
   readonly skew: number;
-}
-
-/** The pixel values of road ROM line `row`: plane 0 the low bit, plane 1 the high, a byte's bit 7 the leftmost. */
-function lineOf(rom: Uint8Array, row: number): number[] {
-  return Array.from({ length: LINE_PIXELS }, (_, x) => {
-    const bit = (plane: number) =>
-      (rom[plane * PLANE_BYTES + row * (LINE_PIXELS / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1;
-    return bit(0) | (bit(1) << 1);
-  });
 }
 
 /** The least squares slope of `points` [x, y]. */
@@ -63,12 +53,13 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
   const fits = ([1, -1] as const).map((side) => {
     const edges = steps.map(() => [] as [number, number][]);
     for (let row = FITTED.from; row <= FITTED.to; row++) {
-      const line = lineOf(rom, row);
+      const line = roadLine(rom, row);
       // Outward from the centre on this side, each step's first column.
       let x = side > 0 ? Math.ceil(CENTRE) : Math.floor(CENTRE);
       steps.forEach(([from, to], k) => {
-        while (x >= 0 && x < LINE_PIXELS && !(line[x] === to && line[x - side] === from)) x += side;
-        if (x < 0 || x >= LINE_PIXELS) throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
+        while (x >= 0 && x < ROAD_LINE_PIXELS && !(line[x] === to && line[x - side] === from)) x += side;
+        if (x < 0 || x >= ROAD_LINE_PIXELS)
+          throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
         // The edge between two columns: a right edge where its column begins, a left one where the column within ends.
         edges[k]!.push([row, side > 0 ? x - CENTRE : CENTRE - (x + 1)]);
       });

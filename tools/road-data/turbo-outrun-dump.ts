@@ -4,6 +4,7 @@
  * stays on the machine that read the ROMs. Reading it checks the tables against what the description says of them, and
  * the tables it says are OUTRUN's against OUTRUN's ROM set.
  */
+import { word } from './program-words.js';
 import { requireInput } from '../course/authoring-io.js';
 import type { RomSet } from './rom-set.js';
 import { assemblePrograms } from './outrun-rom.js';
@@ -46,8 +47,6 @@ const SAME_AS_OUTRUN = Object.freeze({
   roadDrawing: { cpu: 'sub', turbo: 0x1280, outrun: 0x1334, bytes: 0x2156 - 0x1280 },
 } as const);
 const OUTRUN_HEIGHT_TABLES = 0x220a;
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
 
 /** Where TURBO OUTRUN's tables are OUTRUN's, each compared: how many words differ, and any that are not explained. */
 function compareWithOutrun(

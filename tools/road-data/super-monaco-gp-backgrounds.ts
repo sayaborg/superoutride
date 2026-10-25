@@ -4,6 +4,7 @@
  * run-length records, the tiles' palettes and the road layer's sky and ground colors, of the fine set, and the sky they
  * make.
  */
+import { tilePixel } from './rom-images.js';
 import { u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { BACK_WIDTH, FRONT_WIDTH, TRANSPARENT, type SkyBands } from './sky-baking.js';
@@ -87,16 +88,8 @@ const LAYERS = Object.freeze({
 const OVERLAP = 88;
 /** The ramp: color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row each, 0x00 above; 0x32 below. */
 const RAMP = Object.freeze({ low: 0x31, rows: 16, top: 0x00, below: 0x32 } as const);
-/** A page is 64 × 32 tiles of 8 × 8 pixels, three bit planes. */
+/** A page is 64 × 32 tiles of 8 × 8 pixels. */
 const TILE = 8;
-const PLANES = 3;
-
-/** Pixel (x, y) of tile `tile` (the X board's 16B tiles: three bit planes, the lowest first, 8 bytes a tile); 0 none. */
-export function tilePixel(tiles: readonly Uint8Array[], tile: number, x: number, y: number): number {
-  let v = 0;
-  for (let p = 0; p < PLANES; p++) v |= ((tiles[p]![tile * TILE + y]! >> (7 - x)) & 1) << p;
-  return v;
-}
 
 /**
  * The fine set's sky as `sky-baking` takes it: each layer's rows of its pages side by side, a pixel its tile's color in

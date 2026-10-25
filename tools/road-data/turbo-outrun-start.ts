@@ -3,13 +3,11 @@
  * the start objects the main CPU's start table lists, and the start figures its encrypted code moves, as the stage's
  * description gives them.
  */
+import { long, word } from './program-words.js';
 import { readItem, LEG_COUNT, type TurboOutrunItem } from './turbo-outrun-road.js';
 
 /** The start table at 0x7B46: for each leg {long items' address, word c}, 8 bytes. */
 const START_TABLE = 0x7b46;
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p, a + 2);
 
 /**
  * Leg `leg`'s start objects: items 0 to c of the list its entry names, 8-byte scenery items whose flags' bit 1 sets

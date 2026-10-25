@@ -3,6 +3,7 @@
  * ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-backgrounds)): each stage's two layers of tile
  * columns, their vertical offsets, the tiles' palettes, and the sky's ramp and top color.
  */
+import { tilePixel } from './rom-images.js';
 import { long, sword, u8, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { readSpritePalette } from './enduro-racer-sprites.js';
@@ -121,8 +122,7 @@ export function stageSky(main: Uint8Array, planes: readonly Uint8Array[], stage:
           colors = palettes.get((tileWord >> 5) & 0x7f);
         for (let y = 0; y < TILE; y++)
           for (let x = 0; x < TILE; x++) {
-            const bit = (plane: number) => (planes[plane]![tile * TILE + y]! >> (7 - x)) & 1;
-            const v = bit(0) | (bit(1) << 1) | (bit(2) << 2);
+            const v = tilePixel(planes, tile, x, y);
             if (!v) continue;
             if (!colors)
               throw new RangeError(`Stage ${stage + 1}'s ${which} layer uses palette ${(tileWord >> 5) & 0x7f}`);

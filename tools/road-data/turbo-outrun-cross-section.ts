@@ -3,6 +3,7 @@
  * lines and edge bands as its road ROM draws them (`two-roads` draws two together), and the lanes driven over two of
  * them. Every amount is in road units, across from the roads' middle (P), positive right.
  */
+import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { requireInput } from '../course/authoring-io.js';
 import { paintAt, type Paint, type RoadPicture } from './two-roads.js';
 import { TURBO_OUTRUN_ROAD_ROMS } from './turbo-outrun-rom.js';
@@ -70,19 +71,18 @@ const CENTRE = 252;
 const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
 
 /**
- * Check one road's picture against the road ROM's nearest line: each pixel's value (plane 0 its low bit, plane 1 at
- * 0x4000 its high, the most significant bit of a byte the leftmost pixel) is what `paintAt` gives at its centre, but
- * within a unit of an edge. Throws where they disagree.
+ * Check one road's picture against the road ROM's nearest line: each pixel's value (`roadLine`) is what `paintAt`
+ * gives at its centre, but within a unit of an edge. Throws where they disagree.
  */
 export function checkTurboOutrunRoadRom(set: RomSet) {
   const rom = TURBO_OUTRUN_ROAD_ROMS[0];
   const { name } = rom;
   const data = set.data(rom);
-  const bit = (plane: number, x: number) => (data[plane * 0x4000 + NEAREST * 64 + (x >> 3)]! >> (7 - (x & 7))) & 1;
-  for (let x = 0; x < 512; x++) {
+  const line = roadLine(data, NEAREST);
+  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
     const d = x + 0.5 - CENTRE;
     if (TURBO_OUTRUN_ROAD.some((e) => Math.abs(d - e.at) < 1)) continue;
-    const rom = ROM_PAINT[bit(0, x) | (bit(1, x) << 1)]!;
+    const rom = ROM_PAINT[line[x]!]!;
     const drawn = paintAt(TURBO_OUTRUN_ROAD, d);
     requireInput(
       rom === drawn,

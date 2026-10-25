@@ -5,11 +5,10 @@
  * object's unit is (d3 + 3) / 128 pixels, so an edge's units are 0.991 × 128 times the slope of its pixels against the
  * line, fitted by least squares over the lines drawn at every size.
  */
+import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 
 /** The road ROM's lines fitted (lines 0 and past 128 draw no road), and its lines' pixels. */
 const FITTED = { from: 20, to: 128 } as const;
-const LINE_PIXELS = 512;
-const PLANE_BYTES = 0x4000;
 /** An edge's units per pixel a line: the line the sub CPU draws a depth number with, by the unit it draws there. */
 const UNITS_A_LINE = 0.991 * 128;
 
@@ -22,15 +21,6 @@ export interface CrossSection {
   readonly middle: number;
   /** The edge bands' outer edge: where the ground begins. */
   readonly edges: number;
-}
-
-/** The pixel values of road ROM line `row`: plane 0 the low bit, plane 1 the high, a byte's bit 7 the leftmost. */
-function lineOf(rom: Uint8Array, row: number): number[] {
-  return Array.from({ length: LINE_PIXELS }, (_, x) => {
-    const bit = (plane: number) =>
-      (rom[plane * PLANE_BYTES + row * (LINE_PIXELS / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1;
-    return bit(0) | (bit(1) << 1);
-  });
 }
 
 /** The least squares slope of `points` [x, y]. */
@@ -56,12 +46,12 @@ export function roadCrossSection(rom: Uint8Array): CrossSection {
   ] as const;
   const edges = steps.map(() => [] as [number, number][]);
   for (let row = FITTED.from; row <= FITTED.to; row++) {
-    const line = lineOf(rom, row);
-    let x = LINE_PIXELS - 1;
+    const line = roadLine(rom, row);
+    let x = ROAD_LINE_PIXELS - 1;
     steps.forEach(([from, to], k) => {
       while (x > 0 && !(line[x] === from && line[x - 1] === to)) x--;
       if (x <= 0) throw new RangeError(`Road ROM line ${row} has no edge from ${from} to ${to}`);
-      edges[k]!.push([row, LINE_PIXELS - x]);
+      edges[k]!.push([row, ROAD_LINE_PIXELS - x]);
     });
   }
   const [surface, inner, middle, outer] = edges.map((points) => slope(points) * UNITS_A_LINE) as [

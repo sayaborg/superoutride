@@ -4,7 +4,7 @@
  * position where stage 3's background comes in.
  */
 import { entries, long, sword, u8, word } from './program-words.js';
-import { paletteRgb555, type Colors } from './road-tables.js';
+import { readColors } from './road-tables.js';
 
 /** Main CPU (its data image). */
 const STAGE_ENDS = 0x53ac;
@@ -56,23 +56,18 @@ export function readRoadPaths(sub: Uint8Array): RoadPath[] {
   }));
 }
 
-const colors = (main: Uint8Array, address: number, count: number): Colors => {
-  const words = Array.from({ length: count }, (_, k) => word(main, address + 2 * k));
-  return { address, words, rgb555: words.map(paletteRgb555) };
-};
-
 /**
  * Stage s's road colors: palette 0x38–0x3F, the 8 words at 0xD948 + 16s (stage 5's at 0xD948 + 0x60): surface,
  * edge's narrow band and edge's middle band, each band A then B.
  */
 export const readRoadColors = (main: Uint8Array, stage: number) =>
-  colors(main, ROAD_COLORS + 16 * (stage === STAGES - 1 ? 6 : stage), 8);
+  readColors(main, ROAD_COLORS + 16 * (stage === STAGES - 1 ? 6 : stage), 8);
 
 /**
  * Stage s's ground colors: background colors 0x7D0–0x7D7, the 8 words at 0xD918 + 8s; 0x7D3 left of the road's fold
  * and 0x7D1 right of it, 0x7D2 and 0x7D0 on the row where the stripes change.
  */
-export const readGroundColors = (main: Uint8Array, stage: number) => colors(main, GROUND_COLORS + 8 * stage, 8);
+export const readGroundColors = (main: Uint8Array, stage: number) => readColors(main, GROUND_COLORS + 8 * stage, 8);
 
 /** A water crossing: the road's surface and edges give way to the ground from `from` to `to` (positions). */
 export interface WaterCrossing {

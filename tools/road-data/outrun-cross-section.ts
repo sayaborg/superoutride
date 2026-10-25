@@ -3,6 +3,7 @@
  * edges as the road ROM draws them (`two-roads` draws two together), and the lanes driven over two of them. Every amount
  * is in road units, across from the roads' middle, positive right.
  */
+import { ROAD_LINE_PIXELS, roadLine } from './rom-images.js';
 import { requireInput } from '../course/authoring-io.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import type { RomSet } from './rom-set.js';
@@ -71,18 +72,18 @@ const CENTRE_PIXEL = 252;
 const ROM_PAINT: readonly Paint[] = ['surface', 'line', 'edge', 'outside'];
 
 /**
- * Check one road's features against the road ROM's nearest line: each pixel's value (plane 0 its low bit, plane 1 its
- * high, the most significant bit of a byte the leftmost pixel) is what `paintAt` gives at its centre, but within a
- * pixel of a feature's edge (the ROM draws them on whole pixels) and on the centre line. Throws where they disagree.
+ * Check one road's features against the road ROM's nearest line: each pixel's value (`roadLine`) is what `paintAt`
+ * gives at its centre, but within a pixel of a feature's edge (the ROM draws them on whole pixels) and on the centre
+ * line. Throws where they disagree.
  */
 export function checkRoadRom(set: RomSet) {
   const { name } = OUTRUN_ROAD_ROM;
   const data = set.data(OUTRUN_ROAD_ROM);
-  const bit = (plane: number, x: number) => (data[plane * 0x4000 + NEAREST * 64 + (x >> 3)]! >> (7 - (x & 7))) & 1;
-  for (let x = 0; x < 512; x++) {
+  const line = roadLine(data, NEAREST);
+  for (let x = 0; x < ROAD_LINE_PIXELS; x++) {
     const d = x + 0.5 - CENTRE_PIXEL;
     if (Math.abs(d) < 4 || OUTRUN_ROAD.some((e) => Math.abs(Math.abs(d) - Math.abs(e.at)) < 1)) continue;
-    const rom = ROM_PAINT[bit(0, x) | (bit(1, x) << 1)]!;
+    const rom = ROM_PAINT[line[x]!]!;
     requireInput(
       rom === paintAt(OUTRUN_ROAD, d),
       `/rom/${name}`,

@@ -1,6 +1,5 @@
-import { interleave } from './program-words.js';
-import { romRecords, type Rom, type RomSet } from './rom-set.js';
-import { spriteWords } from './sprite-pixels.js';
+import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
+import { romRecords, type RomSet } from './rom-set.js';
 
 /** The ROMs' sizes: a program's byte ROM, the road ROM, a tile ROM, a sprite ROM. */
 const PROGRAM_ROM_SIZE = 0x10000;
@@ -81,14 +80,10 @@ export function assembleTurboOutrunPrograms(set: RomSet): TurboOutrunPrograms {
   for (const rom of TURBO_OUTRUN_ROAD_ROMS) set.data(rom);
   for (const rom of TURBO_OUTRUN_TILE_ROMS) set.data(rom);
   for (const rom of TURBO_OUTRUN_SPRITE_ROMS.flat()) set.data(rom);
-  const program = (halves: readonly { readonly even: Rom; readonly odd: Rom }[]) => {
-    const out = new Uint8Array(halves.length * 2 * PROGRAM_ROM_SIZE);
-    halves.forEach(({ even, odd }, part) =>
-      out.set(interleave(set.data(even), set.data(odd)), part * 2 * PROGRAM_ROM_SIZE),
-    );
-    return out;
+  return {
+    main: programImage(set, TURBO_OUTRUN_PROGRAM_ROMS.main),
+    sub: programImage(set, TURBO_OUTRUN_PROGRAM_ROMS.sub),
   };
-  return { main: program(TURBO_OUTRUN_PROGRAM_ROMS.main), sub: program(TURBO_OUTRUN_PROGRAM_ROMS.sub) };
 }
 
 /** Every ROM the tool reads, the dump's record of them. */
@@ -101,14 +96,7 @@ export const turboOutrunRoms = (): Record<string, string> =>
   ]);
 
 /** The sprite ROMs' words (`spriteWords`: .9 and .13 the lowest bytes, .12 and .16 the highest), set 1's after set 0's. */
-export function assembleTurboOutrunSprites(set: RomSet): Uint32Array {
-  const words = new Uint32Array(TURBO_OUTRUN_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
-  TURBO_OUTRUN_SPRITE_ROMS.forEach((roms, s) =>
-    words.set(spriteWords(roms.map((rom) => set.data(rom))), s * SPRITE_ROM_SIZE),
-  );
-  return words;
-}
+export const assembleTurboOutrunSprites = (set: RomSet): Uint32Array => spriteWordSets(set, TURBO_OUTRUN_SPRITE_ROMS);
 
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
-export const assembleTurboOutrunTiles = (set: RomSet): readonly Uint8Array[] =>
-  TURBO_OUTRUN_TILE_ROMS.map((rom) => set.data(rom));
+export const assembleTurboOutrunTiles = (set: RomSet): readonly Uint8Array[] => tilePlanes(set, TURBO_OUTRUN_TILE_ROMS);

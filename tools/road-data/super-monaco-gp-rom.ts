@@ -1,6 +1,5 @@
-import { interleave } from './program-words.js';
-import { romRecords, type Rom, type RomSet } from './rom-set.js';
-import { spriteWords } from './sprite-pixels.js';
+import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
+import { romRecords, type RomSet } from './rom-set.js';
 
 /** The X board's program, tile and sprite ROMs' sizes, bytes. */
 export const PROGRAM_ROM_SIZE = 0x20000;
@@ -71,11 +70,12 @@ export interface SuperMonacoGpPrograms {
  * size; the main CPU's program is not decrypted.
  */
 export function assembleSuperMonacoGpPrograms(set: RomSet): SuperMonacoGpPrograms {
-  xBoardTiles(set, SUPER_MONACO_GP_TILE_ROMS);
-  xBoardSpriteWords(set, SUPER_MONACO_GP_SPRITE_ROMS);
-  const program = ({ even, odd }: { readonly even: Rom; readonly odd: Rom }) =>
-    interleave(set.data(even), set.data(odd));
-  return { main: program(SUPER_MONACO_GP_PROGRAM_ROMS.main), sub: program(SUPER_MONACO_GP_PROGRAM_ROMS.sub) };
+  tilePlanes(set, SUPER_MONACO_GP_TILE_ROMS);
+  spriteWordSets(set, SUPER_MONACO_GP_SPRITE_ROMS);
+  return {
+    main: programImage(set, [SUPER_MONACO_GP_PROGRAM_ROMS.main]),
+    sub: programImage(set, [SUPER_MONACO_GP_PROGRAM_ROMS.sub]),
+  };
 }
 
 /** Every ROM the tool reads, the dump's record of them. */
@@ -86,23 +86,10 @@ export const superMonacoGpRoms = (): Record<string, string> =>
     ...SUPER_MONACO_GP_SPRITE_ROMS.flat(),
   ]);
 
-/**
- * The X board's sprite ROMs' words (`spriteWords`), set of four after set of four: banks of 0x10000
- * words, OUTRUN's.
- */
-export function xBoardSpriteWords(set: RomSet, sets: readonly (readonly Rom[])[]): Uint32Array {
-  const words = new Uint32Array(sets.length * SPRITE_ROM_SIZE);
-  sets.forEach((roms, g) => words.set(spriteWords(roms.map((rom) => set.data(rom))), g * SPRITE_ROM_SIZE));
-  return words;
-}
-
-/** The X board's tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
-export const xBoardTiles = (set: RomSet, roms: readonly Rom[]) => roms.map((rom) => set.data(rom));
-
 /** The sprite ROMs' words (`spriteWords`), set after set: banks of 0x10000 words, OUTRUN's. */
 export const assembleSuperMonacoGpSprites = (set: RomSet): Uint32Array =>
-  xBoardSpriteWords(set, SUPER_MONACO_GP_SPRITE_ROMS);
+  spriteWordSets(set, SUPER_MONACO_GP_SPRITE_ROMS);
 
 /** The tile ROMs' bit planes, the lowest first, 8 bytes a tile. */
 export const assembleSuperMonacoGpTiles = (set: RomSet): readonly Uint8Array[] =>
-  xBoardTiles(set, SUPER_MONACO_GP_TILE_ROMS);
+  tilePlanes(set, SUPER_MONACO_GP_TILE_ROMS);

@@ -3,6 +3,8 @@
  * each stage's two tile layers, front and back, and its sky's ramp, which the shared sky baking draws as the stage's
  * sky.
  */
+import { tilePixel } from './rom-images.js';
+import { long, word } from './program-words.js';
 import { requireInput } from '../course/authoring-io.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
@@ -33,13 +35,6 @@ const FRONT_PAGES = 4;
 const BACK_PAGES = 3;
 /** A sky ramp: 64 palette words, 0 below the horizon, then two rows each up from it, the last above. */
 const RAMP = 64;
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const long = (p: Uint8Array, a: number) => ((word(p, a) << 16) | word(p, a + 2)) >>> 0;
-
-/** A tile's pixel, 0 transparent: its planes' bits at (x, y), plane k bit k. */
-const tilePixel = (planes: readonly Uint8Array[], tile: number, x: number, y: number) =>
-  planes.reduce((v, plane, k) => v | (((plane[tile * TILE + y]! >> (7 - x)) & 1) << k), 0);
 
 /**
  * The palette RAM words a stage's layers are drawn in: palettes 0–7 from 0x16ED8, 8–127 each the 8 words at

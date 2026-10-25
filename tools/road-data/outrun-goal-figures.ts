@@ -3,13 +3,11 @@
  * who stands before the stopped camera at the last tick of each goal's scene, as the program at 0x5B42 runs them, and
  * where they stand on a road.
  */
+import { long, word } from './program-words.js';
 import { boardName, type SpriteUse } from './outrun-boards.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 import { objectSize, spriteOfFrame } from './outrun-sprites.js';
 import { paletteName } from './pixel-grid.js';
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const long = (p: Uint8Array, a: number) => ((word(p, a) << 16) | word(p, a + 2)) >>> 0;
 
 /** The figures' routine: each a frame on its bottom middle, a pixel 1 road unit, casting its shadow object's. */
 const FIGURES = 0x5b42;

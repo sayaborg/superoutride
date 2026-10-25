@@ -1,6 +1,5 @@
-import { interleave } from './program-words.js';
+import { programImage, spriteWordSets, tilePlanes } from './rom-images.js';
 import type { Rom, RomSet } from './rom-set.js';
-import { spriteWords } from './sprite-pixels.js';
 
 /** The ROMs' sizes: a program's half, a tile ROM, a sprite ROM, the road ROM, a sound ROM. */
 const ROM_SIZE = 0x10000;
@@ -49,12 +48,7 @@ export interface OutrunPrograms {
 
 /** The main and sub CPUs' programs from the ROM set. */
 export function assemblePrograms(set: RomSet): OutrunPrograms {
-  const program = (halves: readonly { readonly even: Rom; readonly odd: Rom }[]) => {
-    const out = new Uint8Array(halves.length * 2 * ROM_SIZE);
-    halves.forEach(({ even, odd }, half) => out.set(interleave(set.data(even), set.data(odd)), half * 2 * ROM_SIZE));
-    return out;
-  };
-  return { main: program(OUTRUN_PROGRAM_ROMS.main), sub: program(OUTRUN_PROGRAM_ROMS.sub) };
+  return { main: programImage(set, OUTRUN_PROGRAM_ROMS.main), sub: programImage(set, OUTRUN_PROGRAM_ROMS.sub) };
 }
 
 /** The tile ROMs: three bit planes, each two 32 KiB ROMs (tiles 0–4095, then 4096–8191), the lowest bit first. */
@@ -74,13 +68,7 @@ export const OUTRUN_TILE_ROMS = Object.freeze([
 ] as const);
 
 /** The tile ROMs' three bit planes, each 8 bytes a tile (a byte a row, its bit 7 the leftmost pixel). */
-export function assembleTiles(set: RomSet): readonly Uint8Array[] {
-  return OUTRUN_TILE_ROMS.map((halves) => {
-    const plane = new Uint8Array(halves.length * TILE_ROM_SIZE);
-    halves.forEach((rom, h) => plane.set(set.data(rom), h * TILE_ROM_SIZE));
-    return plane;
-  });
-}
+export const assembleTiles = (set: RomSet): readonly Uint8Array[] => tilePlanes(set, OUTRUN_TILE_ROMS);
 
 /** The sprite ROMs: two sets of four, each ROM one byte of a 32-bit word, the least significant first. */
 export const OUTRUN_SPRITE_ROMS = Object.freeze([
@@ -99,13 +87,7 @@ export const OUTRUN_SPRITE_ROMS = Object.freeze([
 ] as const);
 
 /** The sprite ROMs' words (`spriteWords`: .9 and .13 the lowest bytes, .12 and .16 the highest), set 1's after set 0's. */
-export function assembleSprites(set: RomSet): Uint32Array {
-  const words = new Uint32Array(OUTRUN_SPRITE_ROMS.length * SPRITE_ROM_SIZE);
-  OUTRUN_SPRITE_ROMS.forEach((roms, s) =>
-    words.set(spriteWords(roms.map((rom) => set.data(rom))), s * SPRITE_ROM_SIZE),
-  );
-  return words;
-}
+export const assembleSprites = (set: RomSet): Uint32Array => spriteWordSets(set, OUTRUN_SPRITE_ROMS);
 
 /**
  * The road ROM: 256 lines of 512 pixels, two bit planes of 64 bytes a line one after the other, 32 KiB.

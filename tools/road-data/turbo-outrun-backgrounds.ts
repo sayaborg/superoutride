@@ -3,6 +3,8 @@
  * each stage's background number, its two layers' tile words, the tile palettes its leg has loaded by that stage, and
  * its two layers and sky ramp as a sky bakes them.
  */
+import { tilePixel } from './rom-images.js';
+import { long, word } from './program-words.js';
 import { paletteRgb555 } from './road-tables.js';
 import { TRANSPARENT, type SkyBands, type SkyLayer } from './sky-baking.js';
 import { LEG_STAGES } from './turbo-outrun-road.js';
@@ -24,9 +26,6 @@ const PAGE_ROWS = 32;
 const FRONT_PAGES = 4;
 const BACK_PAGES = 3;
 const UNWRITTEN = 0x0020;
-
-const word = (p: Uint8Array, a: number) => (p[a]! << 8) | p[a + 1]!;
-const long = (p: Uint8Array, a: number) => word(p, a) * 0x10000 + word(p, a + 2);
 
 /**
  * Each stage's palette patch, which the main CPU's encrypted code applies as the stage's background is loaded: its
@@ -204,7 +203,7 @@ export function stageBands(
         const page = order[Math.floor(x / (PAGE_COLUMNS * TILE))]!;
         const tileWord = tiles[(page * PAGE_ROWS + (y >> 3)) * PAGE_COLUMNS + ((x >> 3) % PAGE_COLUMNS)]!;
         const [tile, u, v] = [tileWord & 0x1fff, x & 7, y & 7];
-        const value = planes.reduce((n, plane, p) => n | (((plane[tile * TILE + v]! >> (7 - u)) & 1) << p), 0);
+        const value = tilePixel(planes, tile, u, v);
         const palette = Math.floor(tile / TILES_A_PALETTE) - FIRST_TILE_PALETTE;
         if (value && palette < 0)
           throw new Error(

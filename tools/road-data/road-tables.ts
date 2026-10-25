@@ -25,6 +25,12 @@ export interface Colors {
   readonly rgb555: readonly number[];
 }
 
+/** The `count` palette words at `address`, and their RGB555. */
+export const readColors = (p: Uint8Array, address: number, count: number): Colors => {
+  const words = Array.from({ length: count }, (_, k) => word(p, address + 2 * k));
+  return { address, words, rgb555: words.map(paletteRgb555) };
+};
+
 /** A curve segment's start: its position, radius in positions and kind (1 straight, 2 right, 3 left). */
 export interface CurvePoint {
   readonly position: number;
