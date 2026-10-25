@@ -12,7 +12,7 @@ import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
-import { standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { CAR_LINE, standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
@@ -67,8 +67,46 @@ const GIRL_FRAMES = 0x8fce;
 const GIRL_FRAME_COUNT = 16;
 const ONE_TO_ONE = 254;
 const SIGN_NEARER = 0.1;
-/** Collision classes 0 to 3 stop or spin the car: the objects of those standing on the ground have a body. */
+/** Collision classes 0, 1 and 3 stop or spin the car: the objects of those standing on the ground have a body. */
 const SOLID = 3;
+/**
+ * Collision class 2 throws the car: a jump, a mound across the road, not an object. What follows is in the decrypted
+ * program alone. The program runs 30 ticks a second (it waits two frames at 0xFE4E). Its class 2 handler (0x742A) cuts
+ * the speed in high gear without turbo by 1/32 and sets the upward speed to the speed / 64 + 1 a tick; each tick the
+ * car's height gains its upward speed and, while above the road, the upward speed loses 1 (0x12536), until the height
+ * is 0, the landing. The height is the car's pixels up on screen at its line (0x12252), where a road unit is drawn
+ * 0x180 / 512 px.
+ */
+export const JUMP = 2;
+const JUMP_TICKS = 30;
+const JUMP_CUT = 31 / 32;
+const JUMP_LIFT = 64;
+const CAR_UNIT_PIXELS = CAR_LINE / 512;
+
+/** Whether the scenery model's object `o` is a jump. */
+export const isJump = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === JUMP;
+
+/**
+ * The program's flight off a jump at `kmh`, high gear without turbo (K, 2026-10-25): the ticks from the hit to the
+ * landing, the original's gravity and its peak, metres.
+ */
+export function turboOutrunJump(kmh: number) {
+  const lift = Math.floor((kmh * JUMP_CUT) / JUMP_LIFT) + 1;
+  let [height, upward, ticks, peak] = [0, lift, 0, 0];
+  do {
+    ticks++;
+    height += upward;
+    if (height > 0) upward--;
+    peak = Math.max(peak, height);
+  } while (height > 0);
+  const metres = (UNIT_METRES * PIXEL_ASPECT) / CAR_UNIT_PIXELS;
+  return {
+    ticks,
+    seconds: ticks / JUMP_TICKS,
+    gravity: metres * JUMP_TICKS * JUMP_TICKS,
+    peak: peak * metres,
+  };
+}
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width

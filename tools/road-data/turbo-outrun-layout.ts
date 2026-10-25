@@ -14,6 +14,7 @@ import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
 import { bendOf, closedGrades, LOOK, profileOf, separatedCrossings, stageGrades, type Change } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
+import { moundKinks, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
 import { STAGE_COUNT, type TurboOutrunStage } from './turbo-outrun-road.js';
@@ -78,6 +79,9 @@ export interface LayoutInputs {
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
   readonly slug: (stage: number) => string;
+  /** The jumps, each's stage and road position in it, and their mound. */
+  readonly jumps: readonly { readonly stage: number; readonly position: number }[];
+  readonly mound: Mound;
 }
 
 /** The function straight between `points` `[position, value]`, from the first's position to the last's. */
@@ -262,8 +266,17 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     apart: PASSAGES_APART,
   }).map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * POSITION_METRES);
-  const separated = separatedCrossings(changes, crossings, end);
-  const profile = profileOf(separated.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), cuts.map(station));
+  // Each row of jumps a mound across the whole road.
+  const mounds = moundKinks(
+    inputs.jumps.map((j) => station(course[j.stage]!.start + j.position)),
+    inputs.mound,
+  );
+  const separated = separatedCrossings(changes, crossings, end, mounds.kinks);
+  const profile = profileOf(
+    separated.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
+    cuts.map(station),
+    mounds.kinks,
+  );
 
   return {
     go,
@@ -285,6 +298,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     /** P's pose at course position `g`. */
     pose: (g: number) => line.pose(metres(g)),
     profile,
+    mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     crossings: crossings.map((crossing, k) => {
       const moves = separated.separations.filter((m) => m.crossing === k);
       return {

@@ -1749,14 +1749,14 @@ each leg's end joined to the next leg's start, written by the road data tool fro
 road data](turbo-outrun-road-data.md#turbo-outruns-course)), which owns its plan, lanes, strips, profile, scenery, gates
 and skies; run the conversion rather than editing the document. Each stage but the last has its checkpoint where its
 CHECK POINT gate passes the car, and the finish is at the GOAL gate. Its scenery shows the original's sprites,
-provisionally.
+provisionally, and its jumps are mounds across its road.
 
 ENDURO RACER's course (`enduro-racer` ENDURO RACER) is a LINEAR course of the original's five stages in running order,
 written by the road data tool from the original's ROMs ([ENDURO RACER road
 data](enduro-racer-road-data.md#enduro-racers-course)), which owns its plan, lanes, strips, materials, profile, scenery,
 gates and skies; run the conversion rather than editing the document. Each stage after the first has its checkpoint
 where its CHECK banner stands, and the finish is at the GOAL board. Its scenery shows the original's sprites,
-provisionally, and its jumps stand as boards passed through until the hills make them.
+provisionally, and its jumps are mounds across its road.
 
 SUPER MONACO GP's courses (`super-monaco-gp` SUPER MONACO GP, the race's form, and `super-monaco-gp-qualifying` MONACO
 QUALIFYING) are CIRCUIT courses written by the road data tool from the original's ROMs ([SUPER MONACO GP

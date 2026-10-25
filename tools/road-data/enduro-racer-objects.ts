@@ -1,19 +1,11 @@
 /**
  * Where ENDURO RACER's objects stand ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-objects)): the
- * scenery table's items, the start's templates and the jumps, each at its road position, its lateral from P, its
+ * scenery table's items and the start's templates, each at its road position, its lateral from P, its
  * picture, its height above the road and whether the original's hit mark gives it a body.
  */
 import { PIXEL_ASPECT } from './pixel-grid.js';
-import { PIXEL_UNITS, pictureName, type MoundUse, type PictureUse } from './enduro-racer-boards.js';
-import {
-  readJumpKind,
-  readJumps,
-  readScaledX,
-  readScenery,
-  readSceneryType,
-  readStartTemplates,
-  takesScaledX,
-} from './enduro-racer-scenery.js';
+import { PIXEL_UNITS, pictureName, type PictureUse } from './enduro-racer-boards.js';
+import { readScaledX, readScenery, readSceneryType, readStartTemplates, takesScaledX } from './enduro-racer-scenery.js';
 
 /** A scenery item's x is in 8 lateral units. */
 const X_UNITS = 8;
@@ -27,8 +19,6 @@ const HIT = 0x08;
 const ON_ROAD = 30;
 /** Every object the course places stands by its bottom middle (placement 4). */
 const BOTTOM_MIDDLE = 4;
-/** Kinds 0 and 2 show one picture in two palettes. */
-const moundName = (kind: number) => `enduror-mound-${kind === 2 ? 0 : kind}`;
 
 /** An object to place: its road position, lateral units right of P, picture, height in metres and hit mark. */
 export interface ObjectSpot {
@@ -40,19 +30,18 @@ export interface ObjectSpot {
   readonly hit: boolean;
   /** Whether the original marks it as on the road. */
   readonly onRoad: boolean;
-  /** What the object is, for the report: its scenery type, `start` or `jump`. */
+  /** What the object is, for the report: its scenery type or `start`. */
   readonly what: string;
 }
 
 /**
- * The objects at `unit` metres a lateral unit, and the pictures and jumps' boards they show: the scenery table's items
- * (a scaled item of types 0x48–0x4E its x from the scaled types' x, its height its own), the start's templates at their
- * position, and each jump as one board at P; their pictures' names carry `tag`.
+ * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
+ * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position;
+ * their pictures' names carry `tag`.
  */
 export function enduroRacerObjects(main: Uint8Array, unit: number, tag = '') {
   const spots: ObjectSpot[] = [];
   const uses: PictureUse[] = [];
-  const mounds: MoundUse[] = [];
   const lift = (pixels: number) => pixels * PIXEL_UNITS * PIXEL_ASPECT * unit;
   const show = (use: PictureUse) => {
     uses.push(use);
@@ -99,29 +88,5 @@ export function enduroRacerObjects(main: Uint8Array, unit: number, tag = '') {
       what: 'start',
     });
   }
-  for (const jump of readJumps(main).jumps) {
-    const kind = readJumpKind(main, jump.kind);
-    const mound = {
-      name: moundName(jump.kind) + tag,
-      sizes: kind.sizes,
-      left: 2 * jump.left,
-      right: 2 * jump.right,
-      palette: kind.palette,
-    };
-    const same = mounds.find((m) => m.name === mound.name);
-    if (same && (same.sizes !== mound.sizes || same.left !== mound.left || same.right !== mound.right))
-      throw new RangeError(`The jumps shown as ${mound.name} differ in their halves`);
-    mounds.push(mound);
-    spots.push({
-      position: jump.position,
-      x: 0,
-      image: mound.name,
-      palette: kind.palette,
-      height: 0,
-      hit: false,
-      onRoad: false,
-      what: 'jump',
-    });
-  }
-  return { spots, uses, mounds };
+  return { spots, uses };
 }

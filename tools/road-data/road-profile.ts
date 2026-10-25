@@ -72,43 +72,64 @@ export interface Bend {
   readonly curvature: number;
 }
 
-/** A profile from bends: its height and grade at any station, level and at 0 at station 0. */
+/** A point where the grade changes by `change` at station `at`, metres: a vertical curve of no length. */
+export interface Kink {
+  readonly at: number;
+  readonly change: number;
+}
+
+/** A profile from bends and kinks: its height and grade at any station, level and at 0 at station 0. */
 export interface Profile {
   readonly bends: readonly Bend[];
+  readonly kinks: readonly Kink[];
   height(s: number): number;
   grade(s: number): number;
 }
 
 /**
- * The profile of `bends`, which may overlap: their curvatures add. The result's bends do not overlap and break at
- * every bend's ends and at `breaks`.
+ * The profile of `bends`, which may overlap: their curvatures add, and of `kinks`, the grade changing at each by its
+ * change. The result's bends do not overlap and break at every bend's ends, at `breaks` and at the kinks; its kinks are
+ * one at a station, in order.
  */
-export function profileOf(bends: readonly Bend[], breaks: readonly number[] = []): Profile {
-  const cuts = [...new Set([...bends.flatMap((b) => [b.from, b.to]), ...breaks])].sort((a, b) => a - b);
-  const pieces: { from: number; to: number; curvature: number; grade: number; height: number }[] = [];
+export function profileOf(
+  bends: readonly Bend[],
+  breaks: readonly number[] = [],
+  kinks: readonly Kink[] = [],
+): Profile {
+  const cuts = [...new Set([...bends.flatMap((b) => [b.from, b.to]), ...breaks, ...kinks.map((k) => k.at)])].sort(
+    (a, b) => a - b,
+  );
+  // Each node a piece's start or a kink, its grade and height there; past it the grade is constant until the next.
+  const nodes: { from: number; to: number; curvature: number; grade: number; height: number }[] = [];
+  const turns: Kink[] = [];
   let grade = 0,
     height = 0,
     last = 0;
-  for (let i = 0; i + 1 < cuts.length; i++) {
+  for (let i = 0; i < cuts.length; i++) {
     const from = cuts[i]!,
-      to = cuts[i + 1]!;
-    const curvature = bends.reduce((k, b) => (b.from <= from && to <= b.to ? k + b.curvature : k), 0);
+      to = cuts[i + 1] ?? from;
     // The tangent to this piece.
     height += grade * (from - last);
     last = from;
-    if (curvature === 0) continue;
-    pieces.push({ from, to, curvature, grade, height });
+    const change = kinks.reduce((sum, k) => (k.at === from ? sum + k.change : sum), 0);
+    if (change !== 0) {
+      grade += change;
+      turns.push({ at: from, change });
+      nodes.push({ from, to: from, curvature: 0, grade, height });
+    }
+    const curvature = bends.reduce((k, b) => (b.from <= from && to <= b.to ? k + b.curvature : k), 0);
+    if (curvature === 0 || to === from) continue;
+    nodes.push({ from, to, curvature, grade, height });
     height += grade * (to - from) + (curvature * (to - from) ** 2) / 2;
     grade += curvature * (to - from);
     last = to;
   }
-  // Each piece's start, its grade and height there; past it the grade is constant until the next.
   const find = (s: number) => {
     let lo = 0,
-      hi = pieces.length;
+      hi = nodes.length;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (pieces[mid]!.from <= s) lo = mid + 1;
+      if (nodes[mid]!.from <= s) lo = mid + 1;
       else hi = mid;
     }
     return lo - 1;
@@ -116,14 +137,15 @@ export function profileOf(bends: readonly Bend[], breaks: readonly number[] = []
   const at = (s: number) => {
     const i = find(s);
     if (i < 0) return { grade: 0, height: 0 };
-    const p = pieces[i]!;
+    const p = nodes[i]!;
     const x = Math.min(s, p.to) - p.from;
     const g = p.grade + p.curvature * x,
       h = p.height + p.grade * x + (p.curvature * x * x) / 2;
     return { grade: g, height: h + g * Math.max(0, s - p.to) };
   };
   return {
-    bends: pieces.map(({ from, to, curvature }) => ({ from, to, curvature })),
+    bends: nodes.filter((p) => p.curvature !== 0).map(({ from, to, curvature }) => ({ from, to, curvature })),
+    kinks: turns,
     height: (s) => at(s).height,
     grade: (s) => at(s).grade,
   };
@@ -333,7 +355,7 @@ const flatBump = (a: number, b: number, rise: number, L: number): Change[] => [
 ];
 
 /**
- * Crossings kept `CLEARANCE` apart on the road `changes` make, its stations `[0, end]`: one after another, in the order
+ * Crossings kept `CLEARANCE` apart on the road `changes` and `kinks` make, its stations `[0, end]`: one after another, in the order
  * given, then again while any is nearer. Where a crossing's passages are nearer, they take levels (of two passages, the
  * lower first, the earlier where level; of more, in running order), each the lowest that no passage it overlaps already
  * holds, and each moves by a bump of its level less their mean times a spacing, from what `CLEARANCE` lacks by 0.2 m
@@ -345,13 +367,18 @@ const flatBump = (a: number, b: number, rise: number, L: number): Change[] => [
  * (the held passages aside) and short of the next passage at another level. Where the bumps cannot keep the passages
  * apart (their spacing grown by 40 m), they are all flat.
  */
-export function separatedCrossings(changes: readonly Change[], crossings: readonly Crossing[], end: number) {
+export function separatedCrossings(
+  changes: readonly Change[],
+  crossings: readonly Crossing[],
+  end: number,
+  kinks: readonly Kink[] = [],
+) {
   let out = [...changes];
   const separations: Separation[] = [];
   for (let pass = 0; ; pass++) {
     let kept = true;
     crossings.forEach((crossing, k) => {
-      const moved = separation(out, crossing, end);
+      const moved = separation(out, crossing, end, kinks);
       if (!moved) return;
       if (pass === PASSES) throw new Error(`Crossings are nearer than ${CLEARANCE} m after ${PASSES} passes`);
       out = [...out, ...moved.bumps];
@@ -363,9 +390,9 @@ export function separatedCrossings(changes: readonly Change[], crossings: readon
 }
 
 /** The bumps that keep `crossing` apart on the road `changes` make, and how; null where it is apart. */
-function separation(changes: readonly Change[], crossing: Crossing, end: number) {
+function separation(changes: readonly Change[], crossing: Crossing, end: number, kinks: readonly Kink[]) {
   const { passages, pairs } = crossing;
-  const before = profileOf(changes.map(bendOf));
+  const before = profileOf(changes.map(bendOf), [], kinks);
   const apart = (p: Profile) => Math.min(...pairs.map(([a, b]) => Math.abs(p.height(a) - p.height(b))));
   if (apart(before) >= CLEARANCE - NEAR) return null;
   const n = passages.length;
@@ -419,7 +446,7 @@ function separation(changes: readonly Change[], crossing: Crossing, end: number)
       if (rise === 0) return [];
       return flat.has(k) ? flatBump(p.from, p.to, rise, L) : smoothBump(middles[k]!, rise, L);
     });
-  const after = (spacing: number, L: number) => profileOf([...changes, ...bumps(spacing, L)].map(bendOf));
+  const after = (spacing: number, L: number) => profileOf([...changes, ...bumps(spacing, L)].map(bendOf), [], kinks);
   // Of more than two passages, each holds its level: a passage a smooth bump would not hold there is flat.
   const first = Math.min(HALF, reach());
   if (n > 2)
@@ -510,8 +537,8 @@ const round = (value: number, step = 1e-6) => Number((Math.round(value / step) *
 const CURVE_GAP = 2e-6;
 
 /**
- * A Section's profile knots, stations `[from, to]`: its ends, and a PVI for each of the profile's bends within, at the
- * intersection of the tangents at the bend's ends. A knot next to an end that joins another Section lies on that end's
+ * A Section's profile knots, stations `[from, to]`: its ends, a PVI for each of the profile's bends within, at the
+ * intersection of the tangents at the bend's ends, and one of no curve at each of its kinks within. A knot next to an end that joins another Section lies on that end's
  * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`).
  */
 export function sectionProfile(profile: Profile, from: number, to: number, joinsBefore: boolean, joinsAfter: boolean) {
@@ -523,6 +550,10 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
     const s = computedValue((a + b) / 2);
     knots.push({ s, y: profile.height(a) + profile.grade(a) * (s - a), curveLength: round(b - a - 2 * CURVE_GAP) });
   }
+  // Each kink within, a knot of no curve.
+  for (const { at } of profile.kinks)
+    if (at > from + 1e-6 && at < to - 1e-6) knots.push({ s: computedValue(at), y: profile.height(at), curveLength: 0 });
+  knots.sort((p, q) => p.s - q.s);
   knots.push({ s: to, y: profile.height(to), curveLength: 0 });
   const n = knots.length;
   if (n === 3 && joinsBefore && joinsAfter) {

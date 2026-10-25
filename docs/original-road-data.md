@@ -138,7 +138,7 @@ shown so by its `-raised` image on its bottom edge (`raisedSplit`).
   10 is then a color drawn on the nearer ground.
 - **ENDURO RACER.** Pixel 10 is the board's shadow picture ([ENDURO RACER's
   objects](enduro-racer-road-data.md#enduro-racers-objects)); a board with transparent rows below its other pixels
-  stands at its foot, its shadow picture anchored as it is. The jumps stand on their bottom edge.
+  stands at its foot, its shadow picture anchored as it is.
 
 The anchors raised, texels above the bottom edge (a mirrored and a shadowed board as the plain one):
 
@@ -429,12 +429,23 @@ A stage's profile turns its height tables' look on the original's screen into gr
   half is found as above, not cut by the held passage's distance to the road's end. Where the bumps grown by 40 m cannot
   keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by no more than a micrometre are apart.
   OUTRUN's crossings (its own, `roadCrossings`) are of two passages; SUPER HANG-ON's, ENDURO RACER's and TURBO
-  OUTRUN's (`crossingsOf`) join passages linked by overlaps into one crossing.
+  OUTRUN's (`crossingsOf`) join passages linked by overlaps into one crossing. The passages' heights include the
+  jumps' mounds.
+- **Jumps.** What throws a vehicle is a symmetric mound across the whole road on top of the profile, its top at the
+  jump's position (K, 2026-10-25): the grade kinked up at its foot, down over its top and back at its end. It throws a
+  point mass as the original throws its vehicle: leaving its top along its rising side at the original's top speed v,
+  under this game's gravity g, the mass comes down at the end of its falling side after the original's flight T, the
+  ticks its program steps from the throw to the landing at that speed. So its slope θ has sin θ = g T / (4 v), each
+  side is v T cos θ long and its height is v T sin θ. Where mounds overlap the higher is taken, the road kinked up
+  again where their sides meet. No vehicle's data shapes it; this game's physics throws a vehicle that climbs it, and
+  the original's table of take-off speeds, its least speed to throw, its slowdown and its landing bounce are not
+  taken.
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
-  that meet stay apart; stretches break at the Sections' cuts, and a knot next to a cut lies on the cut's tangent, so
-  joined Sections' heights and grades agree; a Section joined at both ends whose one stretch spans it has its knot where
-  the tangents at its two cuts meet, so both grades hold.
+  that meet stay apart; a mound's kink is a knot of no curve, the stretches broken there; stretches break at the
+  Sections' cuts, and a knot next to a cut lies on the cut's tangent, so joined Sections' heights and grades agree; a
+  Section joined at both ends whose one stretch spans it has its knot where the tangents at its two cuts meet, so both
+  grades hold.
 
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).

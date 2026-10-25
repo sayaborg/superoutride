@@ -101,7 +101,8 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
 - **Jumps.** 0xC8AE: a word, the count of halves the program stops at (216, two a jump), then jumps {word position,
   signed byte left, signed byte right (× 2 units, each half's bottom middle), byte kind, byte spare} up to the first
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
-  half is drawn as it is and the right half mirrored.
+  half is drawn as it is and the right half mirrored; the margin (120 for every kind) widens the halves' window where
+  the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used.
 - **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
   position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
   (flags 0x88), banners and START board at position 1.5.
@@ -134,7 +135,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 14, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 15, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -209,11 +210,18 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   one `cut` (the original's column-by-column change is not made). At a stage's start heading, every stage's the same,
   the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
-- **Profile.** Level but for the crossings' bumps ([Profile](original-road-data.md#profile)): passages at least 200 m
-  apart whose roads, to the edge bands' outer edges, overlap. 30 crossings, 62 passages, two of them clumps of three
-  (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and 11954–11978); the loops at stages 2 to 5's
-  starts and stages 1 and 2's parallel stretch (stations 1930–1986 and 2720–2774) among them. Heights run from −11.4 to
-  +12.1 m, the steepest grade 7.5 %.
+- **Profile.** Level but for the jumps' mounds and the crossings' bumps ([Profile](original-road-data.md#profile)).
+  Each of the 69 jumps is a mound across the road ([Jumps](original-road-data.md#profile)), 50.629 m either side of the
+  jump's position and 2.060 m high; 39 of them join in 14 runs, the longest 326.4 m. The program throws the bike
+  (0x727A) at its top speed, the speed's cap 0x3F80 (0x6C36) read as 199 km/h, the lift lever at rest (0x20, MAME's):
+  its height 0x2A (0x72D8), its upward speed the byte its pose picks at 0x72EC (28) times the speed, × 16, plus
+  0x20000 (16.16 units a tick); each tick of 1/60 s the upward speed loses 0x2664 (0x721C), and the bike comes down
+  on the road on the 55th tick, 0.917 s, its peak 77 units up, 1.554 m at a scenery item's height unit, its gravity
+  10.9 m/s². The crossings: passages at
+  least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart with the mounds. 30 crossings, 62
+  passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
+  11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
+  2720–2774) among them. The crossings' heights run from −13.2 to +13.3 m; the steepest grade is 10.7 %.
 
 ## ENDURO RACER's objects
 
@@ -227,11 +235,6 @@ hit narrows and the objects left out:
 - **Start.** The five start templates stand at position 1.5: the gate's posts at ±208 units, its banners at +163 and
   −162 units and the START board at 0, the banners and board lifted 155 pixels, each in its template's size set and
   palette.
-- **Jumps.** Each of the 69 jumps is one board at P: its kind's half drawn with its bottom middle at 2 × left units and
-  the half mirrored at 2 × right units, each to the nearest pixel, the mirrored half over the other as the original
-  brings it out after. Kinds 0 and 2 show one picture, `enduror-mound-0`, in their palettes 0x1B and 0x54; kinds 4 and
-  6 `enduror-mound-4` and `enduror-mound-6`. A jump has no body and is passed through: the road's mound is the hills'
-  (NEXT's).
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road
   too, but on the road (below): the original's bike hits within 0x5A units of the object's x either side, so a body is 2 × 0x5A
   units (3.31 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside), whichever is narrower. The
@@ -243,8 +246,8 @@ hit narrows and the objects left out:
   behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 53, 0, 24 and 53 a stage).
 - **Other passages.** An object whose base point, or body, stands on another passage's road (within its edge bands'
   outer edges, at least 200 m away along P) is left out (K, 2026-10-21): the original never shows the two together.
-  150 are, 17 of them on their own road and 5 of them jumps.
-- **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`) and the jumps' three: the unscaled size's drawn
+  144 are, 17 of them on their own road.
+- **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other
   pixels and its shadow pixel 10, so neither is a texel off the other. A board's base point is the middle of its words'

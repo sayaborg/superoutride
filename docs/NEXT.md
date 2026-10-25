@@ -197,7 +197,7 @@ PRs, in this order:
   crossings (`overlap`, `roadCrossings`, its 2 positions and 60 m) and ENDURO RACER's `otherPassages` (another passage
   found by the metre) become it. A change is not measured by this game's camera: `LOOK_ROWS` is measured on
   `CAMERA_DEFINITION`'s screen and `TILT_RAMP` is the renderer's farthest depth today, a dependence SUPER HANG-ON's
-  canon crossings carry. The jumps' bumps stand on the heights the rule makes, which does not change their form
+  canon crossings carry. The jumps' mounds stand on the heights the rule makes, which does not change their form
   (5 of ENDURO RACER's 69 jumps lie at crossings).
 - EX-12: SUPER HANG-ON's hills by the profile from a rise table.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
@@ -235,13 +235,6 @@ PRs, in this order:
 
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
-
-With K's locally decrypted TURBO OUTRUN program (the tool decrypts nothing; values that encrypted code alone holds are
-written with their reasons):
-
-- What throws a vehicle written as a bump across the whole road (K, 2026-10-25): ENDURO RACER's 69 jumps and TURBO
-  OUTRUN's flat boards (27034, their kind 2 to confirm), in one PR (part 7); ENDURO RACER's jump table's `margin`, read
-  but not used today, used or its reason written.
 
 Alongside the stage, outside its numbering: the sprites' extraction and its rules. A rule either makes the extract,
 taking what the ROMs hold and the original draws as it is, or is this game's way of showing every picture alike
@@ -560,7 +553,7 @@ Left by the stages that raised them, beside what follows:
   music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
   made the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
   then.
-- ENDURO RACER: the hills (the original's grade tables) and jumping, the ENDURO RACER series itself (bikes, rivals,
+- ENDURO RACER: the hills (the original's grade tables), the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.
 - SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits, time and the overcast set),
@@ -570,8 +563,7 @@ Left by the stages that raised them, beside what follows:
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
-- The hills and jumping: ENDURO RACER's grade tables, its jumps and the 5 jump mounds standing on another passage's
-  road, and its crossings made again.
+- The hills: ENDURO RACER's grade tables, and its crossings made again.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
 

@@ -9,7 +9,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
-import { paletteName } from './pixel-grid.js';
+import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
+import { moundKinks, moundOf, type Mound } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
@@ -42,23 +43,25 @@ import {
   STAGES,
   type WaterCrossing,
 } from './enduro-racer-road.js';
-import { readScenery } from './enduro-racer-scenery.js';
-import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
+import { readJumps, readScenery } from './enduro-racer-scenery.js';
+import { bikeAhead, jumpFlight, lateralLimit, readGrid } from './enduro-racer-dump.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards } from './enduro-racer-boards.js';
+import { enduroRacerBoards, PIXEL_UNITS } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 14;
+export const ENDURO_RACER_CONVERSION_VERSION = 15;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
+/** The program's ticks a second. */
+const TICKS = 60;
 /**
  * One road position, metres: the displayed speed is the speed word in km/h, and each tick of 1/60 s the 16.16 road
  * position gains it × 256.
  */
-export const POSITION_METRES = 65536 / (256 * 3.6 * 60);
+export const POSITION_METRES = 65536 / (256 * 3.6 * TICKS);
 /**
  * A lane, metres, over the road's surface's half: K's 3.5 m, SUPER HANG-ON's rule (the original's upright rear frame of
  * the bike as tall as VFR750R's upright rear picture) rounded. It is the one measure of ENDURO RACER's sizes across.
@@ -152,6 +155,8 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
   const lane = candidate ?? LANE;
   const tag = scaleTag(candidate);
   const programs = assembleEnduroRacerPrograms(set);
+  const jump = jumpFlight(programs);
+  const mound = moundOf(jump.speed / 3.6, jump.ticks / TICKS);
   const { main, sub } = programs;
   const metres = POSITION_METRES;
   const cross = roadCrossSection(enduroRacerRoadRom(set));
@@ -189,7 +194,7 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
   });
   const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit, tag);
-  const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit, tag);
+  const pictures = enduroRacerBoards(main, words, objects.uses, unit, tag);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
@@ -208,6 +213,8 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
     camera,
     go: bikeAhead(programs),
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
+    jumps: readJumps(main).jumps.map((jump) => jump.position),
+    mound,
     limit: lateralLimit(programs) * unit,
     checks,
     finish,
@@ -236,6 +243,19 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
     pictures,
     skies,
     hitWidth: HIT_WIDTH * unit,
+    // The original's flight off a jump at its top speed, and the mound that throws so here.
+    jump: (() => {
+      const height = PIXEL_UNITS * PIXEL_ASPECT * unit;
+      return {
+        speed: jump.speed,
+        ticks: jump.ticks,
+        seconds: jump.ticks / TICKS,
+        gravity: jump.gravity * TICKS * TICKS * height,
+        peak: jump.peak * height,
+        ...mound,
+        ...built.mounds,
+      };
+    })(),
   };
 }
 
@@ -255,6 +275,9 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
+  /** The jumps' positions, and their mound. */
+  readonly jumps: readonly number[];
+  readonly mound: Mound;
   /** The rivals on the grid at GO: their positions and x, metres from P. */
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
   /** The bike's lateral limit, metres either side of P: the ground and the course limits reach it. */
@@ -402,11 +425,13 @@ function layCourse(inputs: CourseInputs) {
     apart: PASSAGES_APART,
   }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
-  const separated = separatedCrossings([], crossings, end);
+  const mounds = moundKinks(inputs.jumps.map(stationOf), inputs.mound);
+  const kinks = mounds.kinks;
+  const separated = separatedCrossings([], crossings, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1));
+  const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1), kinks);
 
   // The stripes' bands: band `band` (0 A, 1 B) over position q where ⌊q / 2⌋ + FIRST_BAND is odd for B.
   const bands = { path, metres, entry: inputs.entry };
@@ -467,6 +492,7 @@ function layCourse(inputs: CourseInputs) {
     },
     pieces,
     profile,
+    mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     stationOf,
     placed,
     ground: inputs.limit - inputs.lane,

@@ -32,7 +32,8 @@ import {
 import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
-import { turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
+import { isJump, turboOutrunJump, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
+import { moundOf } from './jump-mound.js';
 import {
   readConstants,
   readTurboOutrunStages,
@@ -44,7 +45,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 17;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 18;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -150,6 +151,9 @@ export function turboOutrunCourse(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
+  // The jumps, mounds across the road that throw as the original throws at its top speed.
+  const jump = turboOutrunJump(kmh);
+  const mound = moundOf(kmh / 3.6, jump.seconds);
   const layout = layTurboOutrun({
     stages,
     runs,
@@ -158,6 +162,8 @@ export function turboOutrunCourse(set: RomSet) {
     kmh,
     cameraDistance: camera,
     slug: stageSlug,
+    jumps: objects.filter((o) => isJump(programs.main, o)),
+    mound,
   });
   const { station, course, pieces } = layout;
 
@@ -194,7 +200,7 @@ export function turboOutrunCourse(set: RomSet) {
 
   // The objects, and the pictures they show.
   const placing = turboOutrunPlacements(programs.main, {
-    objects,
+    objects: objects.filter((o) => !isJump(programs.main, o)),
     runs,
     start: (stage) => course[stage]!.start,
     width: layout.width,
@@ -264,6 +270,7 @@ export function turboOutrunCourse(set: RomSet) {
     })),
     placing: placing.report,
     beyond,
+    jump: { ...jump, ...mound, ...layout.mounds },
   };
 }
 

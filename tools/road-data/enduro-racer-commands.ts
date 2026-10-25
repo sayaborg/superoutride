@@ -152,6 +152,8 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         finish: round1(stationOf(built.finish)),
         pastFinish: round1(built.path.length - stationOf(built.finish)),
         yawOrigin: round3(built.yawOrigin),
+        // The original's flight off a jump, and the mound's height that gives it here.
+        jump: Object.fromEntries(Object.entries(built.jump).map(([k, v]) => [k, round3(v)])),
         // The profile's steepest grade, sampled every metre.
         steepest: round3(
           Math.max(
