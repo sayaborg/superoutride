@@ -12,7 +12,7 @@ import type { RomSet } from './rom-set.js';
 import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
 import { jumpMound, moundKinks, type Mound } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
-import { crossingsOf, overlappingCells } from './crossings.js';
+import { crossingsOf, roadCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
@@ -51,7 +51,7 @@ import { enduroRacerBoards, jumpPicture, PIXEL_UNITS } from './enduro-racer-boar
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 16;
+export const ENDURO_RACER_CONVERSION_VERSION = 17;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -102,9 +102,6 @@ const START_GATE = 1.5;
  * body is as wide as that or the object's colored pixels, whichever is narrower.
  */
 const HIT_WIDTH = 2 * 0x5a;
-/** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
-const PASSAGES_APART = 200;
-const PASSAGE_GAP = 3;
 /** The skies' horizon row, the generic skies'. */
 const SKY_HORIZON = 320;
 /**
@@ -425,7 +422,7 @@ function layCourse(inputs: CourseInputs) {
 
   // The objects: each at its position's station, its x right of P, but none whose base point or body stands on another
   // passage's road (to its edge bands' outer edges), which the original never shows together.
-  const onOtherPassage = otherPassages(path, () => edges);
+  const cells = roadCells(path, { from: 0, to: end, step: metres, sides: () => [edges, edges] });
   const placed: Placed[] = [];
   const dropped: { position: number; x: number; what: string }[] = [];
   const passedThrough: { position: number; x: number; what: string }[] = [];
@@ -434,7 +431,7 @@ function layCourse(inputs: CourseInputs) {
       fromP = spot.x * unit;
     // The objects on the road are passed through: the drivers do not steer around them.
     const body = spot.hit && !spot.onRoad ? Math.min(HIT_WIDTH * unit, inputs.colored(spot.image)) : null;
-    if (onOtherPassage(u, fromP, (body ?? 0) / 2)) {
+    if (cells.onOtherPassage(u, fromP, (body ?? 0) / 2)) {
       dropped.push({ position: spot.position, x: spot.x, what: spot.what });
       continue;
     }
@@ -456,14 +453,7 @@ function layCourse(inputs: CourseInputs) {
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
-  const pairs = overlappingCells(path, {
-    from: 0,
-    to: end,
-    step: metres,
-    sides: () => [edges, edges],
-    apart: PASSAGES_APART,
-  });
-  const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
+  const crossings = crossingsOf(cells.pairs, metres);
   const mounds = moundKinks(inputs.jumps.map(stationOf), inputs.mound);
   const kinks = mounds.kinks;
   const separated = separatedCrossings([], crossings, end, kinks);
@@ -804,29 +794,3 @@ function sectionDocument(
 
 type Lateral = { readonly boundary: string; readonly offset: number };
 const boundary = (id: string): Lateral => ({ boundary: id, offset: 0 });
-
-/** A step along P where another passage's road is sampled, metres. */
-const PASSAGE_STEP = 1;
-
-/**
- * Whether a point `lateral` metres right of P `u` metres along it, widened `half` metres either side, lies on another
- * passage's road: within `edges(v)` of P at v (and half a step along) where v is at least `PASSAGES_APART` from `u`.
- */
-export function otherPassages(path: CoursePath, edges: (u: number) => number) {
-  const samples = Array.from({ length: Math.floor(path.length / PASSAGE_STEP) + 1 }, (_, k) => ({
-    u: k * PASSAGE_STEP,
-    pose: path.pose(k * PASSAGE_STEP),
-    edges: edges(k * PASSAGE_STEP),
-  }));
-  return (u: number, lateral: number, half: number) => {
-    const point = path.aside(u, lateral);
-    return samples.some(({ u: v, pose, edges: e }) => {
-      if (Math.abs(v - u) < PASSAGES_APART) return false;
-      const [dx, dy] = [point.x - pose.x, point.y - pose.y];
-      if (Math.abs(dx) > e + half + PASSAGE_STEP || Math.abs(dy) > e + half + PASSAGE_STEP) return false;
-      const along = dx * Math.cos(pose.heading) + dy * Math.sin(pose.heading);
-      const across = dx * Math.sin(pose.heading) - dy * Math.cos(pose.heading);
-      return Math.abs(along) <= PASSAGE_STEP / 2 && Math.abs(across) <= e + half;
-    });
-  };
-}

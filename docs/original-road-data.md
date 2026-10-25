@@ -13,7 +13,7 @@ The road data tool keeps each original's ROM set, addresses and formats in its o
 a program's words and the halves it is interleaved from (`program-words`), the road tables in OUTRUN's format
 (`road-tables`: palette words, curves, widths and heights, scenery points, road paths and height tables, and the road
 widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile, the crossings' bumps and a Section's profile knots
-(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), a function
+(`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another passage, and their crossings), a function
 of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
 (`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them) and a
 plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
@@ -398,8 +398,10 @@ A stage's profile turns its height tables' look on the original's screen into gr
 - **Closed.** A grade still left at the road's end (a table running to it) is returned to 0 over its last 200 m; then
   the road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it ends level
   at height 0 as it begins, where its ends join other roads.
-- **Crossings.** Where a plan passes over itself (pairs of stations at least 200 m apart whose cross-sections, to the
-  edge bands, overlap between them and the next position), its passages are kept at least 6 m apart, crossing by
+- **Crossings.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
+  plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
+  cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
+  what stands on another passage overlaps a cell starting at least 200 m away. Its passages are kept at least 6 m apart, crossing by
   crossing in running order, then again while a bump placed later has brought one nearer (K's decision). Where a
   crossing's passages are nearer, they take levels, of two passages the lower first (the earlier where level), of more
   in running order, each the lowest no passage it overlaps holds; each moves by its level less their mean times a
@@ -411,8 +413,7 @@ A stage's profile turns its height tables' look on the original's screen into gr
   stays level, and the crossing's other passages move by their levels less its level, so they take all of the 6 m; their
   half is found as above, not cut by the held passage's distance to the road's end. Where the bumps grown by 40 m cannot
   keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by no more than a micrometre are apart.
-  OUTRUN's crossings (its own, `roadCrossings`) are of two passages; SUPER HANG-ON's, ENDURO RACER's and TURBO
-  OUTRUN's (`crossingsOf`) join passages linked by overlaps into one crossing. The passages' heights include the
+  The passages' heights include the
   jumps' mounds and the humps.
 - **Jumps and humps.** What the originals throw a vehicle with is a symmetric triangle across the whole road on top of
   the profile, its top at the original's position: the grade kinked up at its foot, down over its top and back at its

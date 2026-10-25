@@ -31,7 +31,6 @@ import type { Quadratic } from './quadratic.js';
 import {
   bendOf,
   closedGrades,
-  crossingOf,
   LOOK,
   profileOf,
   sectionProfile,
@@ -41,6 +40,7 @@ import {
   type Profile,
 } from './road-profile.js';
 import { tableRuns } from './hills.js';
+import { crossingsOf, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import {
@@ -57,11 +57,6 @@ import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 
-/**
-/** Two passages of a road at least this far apart along it may cross. */
-const PASSAGES_APART = 200;
-/** One crossing's later passage moves by less than this from one of its earlier passage's positions to the next, metres. */
-const CROSSING_REACH = 60;
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
 const THIN = 1e-5;
 /** A width is there where it is wider than this, units. */
@@ -204,87 +199,6 @@ const aside = (pose: Pose, lateral: number): Pose => ({
   y: pose.y - lateral * Math.cos(pose.heading),
   heading: pose.heading,
 });
-
-/** Whether two convex polygons overlap: no edge of either separates them. */
-function overlap(a: readonly (readonly [number, number])[], b: readonly (readonly [number, number])[]): boolean {
-  for (const polygon of [a, b])
-    for (let i = 0; i < polygon.length; i++) {
-      const [x0, y0] = polygon[i]!,
-        [x1, y1] = polygon[(i + 1) % polygon.length]!;
-      const [nx, ny] = [y0 - y1, x1 - x0];
-      const span = (q: readonly (readonly [number, number])[]) => q.map(([x, y]) => nx * x + ny * y);
-      const [pa, pb] = [span(a), span(b)];
-      if (Math.max(...pa) <= Math.min(...pb) || Math.max(...pb) <= Math.min(...pa)) return false;
-    }
-  return true;
-}
-
-/**
- * Where a road passes over itself: pairs of road stations at least 200 m apart whose cross-sections (each span's
- * `sides(span, p)`, metres left and right of P) overlap between a position and the next; each crossing's pairs grouped
- * where their earlier stations run on.
- */
-function roadCrossings(
-  laid: readonly Pick<Laid, 'road' | 'line' | 'world' | 'cuts' | 'origins' | 'leaving'>[],
-  sides: (l: Pick<Laid, 'road' | 'leaving'>, p: number) => [number, number],
-) {
-  const cells: { points: [number, number][]; at: number }[] = [];
-  laid.forEach((l) => {
-    const corners = Array.from({ length: Math.floor(l.road.span.length) + 1 }, (_, i) => {
-      const p = Math.min(i, l.road.span.length);
-      const pose = toWorld(l.world, l.line.pose(along(p)));
-      const [left, right] = sides(l, p);
-      const [a, b] = [aside(pose, -left), aside(pose, right)];
-      return {
-        at: stationOf(l, p),
-        points: [
-          [a.x, a.y],
-          [b.x, b.y],
-        ] as [number, number][],
-      };
-    });
-    for (let i = 0; i + 1 < corners.length; i++)
-      cells.push({
-        points: [
-          corners[i]!.points[0]!,
-          corners[i]!.points[1]!,
-          corners[i + 1]!.points[1]!,
-          corners[i + 1]!.points[0]!,
-        ],
-        at: corners[i]!.at,
-      });
-  });
-  const SQUARE = 50;
-  const squares = (cell: { points: [number, number][] }) => {
-    const xs = cell.points.map(([x]) => Math.floor(x / SQUARE)),
-      ys = cell.points.map(([, y]) => Math.floor(y / SQUARE));
-    const keys: string[] = [];
-    for (let i = Math.min(...xs); i <= Math.max(...xs); i++)
-      for (let j = Math.min(...ys); j <= Math.max(...ys); j++) keys.push(`${i},${j}`);
-    return keys;
-  };
-  const grid = new Map<string, number[]>();
-  cells.forEach((cell, i) => {
-    for (const key of squares(cell)) grid.set(key, [...(grid.get(key) ?? []), i]);
-  });
-  const groups: [number, number][][] = [];
-  cells.forEach((cell) => {
-    const near = new Set(
-      squares(cell).flatMap((key) => grid.get(key)!.filter((j) => cells[j]!.at >= cell.at + PASSAGES_APART)),
-    );
-    for (const j of [...near].sort((a, b) => a - b)) {
-      if (!overlap(cell.points, cells[j]!.points)) continue;
-      // The crossing this pair runs on: its earlier passage a position or two on, its later one near.
-      const pair: [number, number] = [cell.at, cells[j]!.at];
-      const group = groups.find(
-        (g) => cell.at - g.at(-1)![0] <= 2 * POSITION_METRES && Math.abs(pair[1] - g.at(-1)![1]) < CROSSING_REACH,
-      );
-      if (group) group.push(pair);
-      else groups.push([pair]);
-    }
-  });
-  return groups;
-}
 
 /** What a road's course takes beside its spans. */
 export interface RoadOptions {
@@ -529,10 +443,36 @@ export function roadProfile(
       return own.map((c) => ({ ...c, from: c.from + origin, to: c.to + origin }));
     }),
   );
-  const crossings = roadCrossings(laid, asphaltAt);
+  // The crossings: the road's cells a position each, its asphalt across, by the metres along P from its start.
+  const spanAt = (u: number) => {
+    const position = u / POSITION_METRES;
+    const k = Math.max(0, starts.filter((p) => p <= position).length - 1);
+    return { l: laid[k]!, p: Math.min(position - starts[k]!, laid[k]!.road.span.length) };
+  };
+  const cells = roadCells(
+    {
+      aside: (u, lateral) => {
+        const { l, p } = spanAt(u);
+        return aside(toWorld(l.world, l.line.pose(along(p))), lateral);
+      },
+    },
+    {
+      from: 0,
+      to: along(starts.at(-1)! + last.road.span.length),
+      step: POSITION_METRES,
+      sides: (u) => {
+        const { l, p } = spanAt(u);
+        return asphaltAt(l, p);
+      },
+    },
+  );
+  const crossings = crossingsOf(
+    cells.pairs.map(([a, b]) => [stationAt(a / POSITION_METRES), stationAt(b / POSITION_METRES)] as const),
+    POSITION_METRES,
+  );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
   const profile = profileOf(
-    separatedCrossings(changes, crossings.map(crossingOf), end)
+    separatedCrossings(changes, crossings, end)
       .changes.filter((c) => c.from >= 0 && c.to <= end)
       .map(bendOf),
     cutStations,

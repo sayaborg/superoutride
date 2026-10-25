@@ -10,13 +10,13 @@ import { paletteRgb555, pathOffset, pathTurn, readHeightTable, roadWidths } from
 import {
   bendOf,
   closedGrades,
-  crossingOf,
   gradeRamps,
   profileOf,
   separatedCrossings,
   stageGrades,
   STEEPEST,
 } from '../../tools/road-data/road-profile.ts';
+import { crossingsOf } from '../../tools/road-data/crossings.ts';
 import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
@@ -487,6 +487,7 @@ test('crossings kept 6 m apart: two passages by smooth bumps, more by levels, a 
   /** Pairs of stations `step` apart over `[a, a + length]` and `[b, b + length]`, each earlier then later. */
   const pairs = (a, b, length, step = 2) =>
     Array.from({ length: Math.floor(length / step) + 1 }, (_, i) => [a + i * step, b + i * step]);
+  const crossingOf = (stations) => crossingsOf(stations, 2)[0];
   const apart = (profile, crossing) =>
     Math.min(...crossing.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))));
   const end = 8000;

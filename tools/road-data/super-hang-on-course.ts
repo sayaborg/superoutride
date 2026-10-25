@@ -12,7 +12,7 @@ import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { crossingsOf, overlappingCells } from './crossings.js';
+import { crossingsOf, roadCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
@@ -27,9 +27,6 @@ import type { GatePart } from './super-hang-on-sprites.js';
  * across and up.
  */
 export const LANE = 4.3;
-/** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
-const PASSAGES_APART = 200;
-const PASSAGE_GAP = 3;
 /** The skies' horizon row, the generic skies'. */
 const SKY_HORIZON = 320;
 /** The gates' x is drawn at x × line / 191 and their lift at lift × line / 192: units are × 224/191 and 224/192. */
@@ -282,14 +279,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
   const half = inputs.cross.edgesOut * unit;
-  const pairs = overlappingCells(path, {
-    from: 0,
-    to: end,
-    step: metres,
-    sides: () => [half, half],
-    apart: PASSAGES_APART,
-  });
-  const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
+  const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
+  const crossings = crossingsOf(pairs, metres);
   const separated = separatedCrossings([], crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));

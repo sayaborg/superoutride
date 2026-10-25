@@ -300,9 +300,11 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           round1(Math.max(...stations.map(road.profile.height))),
         ],
         steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
-        crossings: road.crossings.map((pairs) => ({
-          at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
-          apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b))))),
+        crossings: road.crossings.map((c) => ({
+          passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+          apart: round1(
+            Math.min(...c.pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b)))),
+          ),
         })),
       });
     }
@@ -377,9 +379,9 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             round1(Math.max(...stations.map(profile.height))),
           ],
           steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
-          crossings: crossings.map((pairs) => ({
-            at: [round1(pairs[0]![0]), round1(pairs[0]![1])],
-            apart: round1(Math.min(...pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
+          crossings: crossings.map((c) => ({
+            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
+            apart: round1(Math.min(...c.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
           })),
           tables: runs.map((run) => {
             const from = Math.max(0, Math.floor(run.start - ahead)),

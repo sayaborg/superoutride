@@ -189,9 +189,8 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m. OUTRUN's own
-  crossings (`overlap`, `roadCrossings`, its 2 positions and 60 m) and ENDURO RACER's `otherPassages` (another passage
-  found by the metre) become it. A change is not measured by this game's camera: `LOOK_ROWS` is measured on
+- EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m, every original's
+  crossings found by its cells already. A change is not measured by this game's camera: `LOOK_ROWS` is measured on
   `CAMERA_DEFINITION`'s screen and `TILT_RAMP` is the renderer's farthest depth today, a dependence SUPER HANG-ON's
   canon crossings carry. The jumps' mounds stand on the heights the rule makes, which does not change their form
   (5 of ENDURO RACER's 69 jumps lie at crossings).

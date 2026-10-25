@@ -313,17 +313,6 @@ export interface Crossing {
   readonly pairs: readonly (readonly [number, number])[];
 }
 
-/** The crossing of two passages whose overlapping pairs of stations are `pairs`: their earlier and later stations'. */
-export function crossingOf(pairs: readonly (readonly [number, number])[]): Crossing {
-  const passage = (k: 0 | 1) => ({
-    from: Math.min(...pairs.map((p) => p[k])),
-    to: Math.max(...pairs.map((p) => p[k])),
-  });
-  const passages = [passage(0), passage(1)];
-  if (passages[0]!.to >= passages[1]!.from) throw new Error(`A crossing's passages at ${passages[0]!.from} m overlap`);
-  return { passages, pairs };
-}
-
 /**
  * How one crossing was moved apart: each passage's level, whether its bump is flat and whether it holds its height near
  * the road's end, their spacing and the half.

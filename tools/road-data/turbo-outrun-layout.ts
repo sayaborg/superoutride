@@ -14,7 +14,7 @@ import { passagePairs, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
 import { bendOf, closedGrades, LOOK, profileOf, separatedCrossings, stageGrades, type Change } from './road-profile.js';
-import { crossingsOf, overlappingCells } from './crossings.js';
+import { crossingsOf, roadCells } from './crossings.js';
 import { moundKinks, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
@@ -39,9 +39,6 @@ const GOAL_POSITIONS = 260;
  * material changes metres away from where the lanes' rule does.
  */
 export const OPEN = 0.5;
-/** Two passages at least this far apart along the road may cross, metres; a passage runs on over gaps of 3 positions. */
-const PASSAGES_APART = 200;
-const PASSAGE_GAP = 3;
 /** A cut keeps this far from a gate, positions. */
 const GATE_ROOM = 2;
 
@@ -258,14 +255,13 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     return own.map((c) => ({ ...c, from: c.from + origin, to: c.to + origin }));
   });
   const end = station(total);
-  const pairs = overlappingCells(line, {
+  const pairs = roadCells(line, {
     from: 0,
     to: metres(total),
     step: POSITION_METRES,
     sides: (u) => [asphalt(u / POSITION_METRES), asphalt(u / POSITION_METRES)],
-    apart: PASSAGES_APART,
-  }).map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
-  const crossings = crossingsOf(pairs, PASSAGE_GAP * POSITION_METRES);
+  }).pairs.map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
+  const crossings = crossingsOf(pairs, POSITION_METRES);
   // Each row of humps one across the whole road.
   const mounds = moundKinks(
     inputs.humps.map((j) => station(course[j.stage]!.start + j.position)),
