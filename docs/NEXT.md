@@ -67,7 +67,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), CAM-2, FMT-1
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), FMT-1
 and EX-9 onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
@@ -116,8 +116,10 @@ K's decisions (2026-10-25):
 
 - **The ground's materials stay each original's own.** The ROMs hold no material, so each is K's decision, written with
   its reason in its original's chapter.
-- **On a circuit the start's camera may stand in the lap's last Section** (CAM-2). A linear course keeps its road from
-  the camera's distance before GO, which the start needs.
+- **On a circuit the start's camera may stand in the lap's last Section.** No run needs it yet: the camera-space check
+  reads the slots a run starts from, the rearmost of SUPER MONACO GP's 16 at 40.2 m past its line and TSUKUBA's at
+  8 m, so the Route reaching behind a circuit's entry is built when a circuit's grid needs it. A linear course keeps
+  its road from the camera's distance before GO, which the start needs.
 - **Stripes are written one way**: `curb` is deleted from the course format and stripes are written by a Strip's
   `repeat` (FMT-1).
 
@@ -183,12 +185,6 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- CAM-2: the run's check that the rearmost grid slot stands the camera's distance from the entry applies to a course
-  with an entry alone; on a circuit the camera's place is measured back along the Route into the lap's last Section
-  (K, 2026-10-25), with drawing and loading (the resident window, loading coverage) checked there. SUPER MONACO GP's
-  grid and its marks go back to the original's position (12 steps, 4.5 m, behind today's); TSUKUBA's grid goes back to
-  the real position if the check had moved it. A linear course's road from the camera's distance before GO stays,
-  written once in [Content and gameplay](content-and-gameplay.md).
 - FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
   documents), stripes written by a Strip's `repeat` (K, 2026-10-25), and the limits' `heightNodes` named after the
   field it bounds, `profile`. TSUKUBA's and SUPER MONACO GP's kerbs are written

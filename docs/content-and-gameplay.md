@@ -759,10 +759,11 @@ and incoming Link distinguish repeated visits and retain the selected predecesso
 extension/retention distances. Geometry/content indexes and race cross-section lists rebuild when
 the shared sequence changes. All actors retain their route coordinates at a seam.
 
-A driving scene requires run settings and compiled start gates, and checks the rearmost grid
-station against the camera's distance behind the player (`D_cam`, 6 m with the product camera): the rearmost slot
-must be at least that far from the entry. Driving beyond the entry uses the same coordinate-domain recovery rule
-as any other domain exit. Recovery preserves
+A driving scene requires run settings and compiled start gates, and checks the rearmost slot a run can start from
+(the first sixteen of either grid, `courseStartGrid`) against the camera's distance behind the player (`D_cam`, 6 m
+with the product camera): it must be at least that far from the entry, where the Route begins. A linear course
+therefore lays at least that much road before its rearmost slot; a circuit's slots past its line meet it alone. Driving
+beyond the entry uses the same coordinate-domain recovery rule as any other domain exit. Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff

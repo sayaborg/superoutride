@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 10, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 11, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -173,9 +173,9 @@ BRANCH course (K, 2026-10-21).
   `sector-1a`/`1b`, `2a`/`2b`, `3a`/`3b` split at 2224, 7393 and 12110 (1348/1348, 1408/1409, 1661/1664 boards), the
   qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by
   lane a, the last to the first.
-- **Gates.** The grid's 24 slots, from the front, slot s at step 588 − 12s (lap step 300 − 12s), lane a for even s and
-  b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as TSUKUBA's are, 12 steps further
-  than the original's line moves them so that the rearmost leaves the camera's 6 m behind it (the format asks it).
+- **Gates.** The grid's 24 slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and
+  b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves
+  them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line.
   `bikeGrid` is null. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
 - **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background
