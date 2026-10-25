@@ -8,10 +8,11 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { groundWidth, JOINT_SNAP, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
+import { JOINT_SNAP, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
+import { word } from './program-words.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import {
@@ -42,7 +43,14 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 13;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 14;
+
+/**
+ * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
+ * (FD1094), so its address is written here, read from the program decrypted locally (K, 2026-10-25); the word itself is
+ * a plain table entry, read from the ROMs.
+ */
+const LATERAL_LIMIT = 0x1ddf6;
 export const COURSE_ID = 'turbo-outrun';
 const COURSE_NAME = 'TURBO OUTRUN';
 
@@ -202,22 +210,10 @@ export function turboOutrunCourse(set: RomSet) {
   );
   const pictures = boards.map(({ name, width, image }) => ({ name, width, image }));
   const edges = new Map(boards.flatMap((b) => (b.edge ? [[b.name, b.edge] as const] : [])));
-  // SAND reaches to the farthest picture shown on the ground beyond the outermost lanes, an extending board's edge with
-  // it.
   const widths = new Map(boards.map((b) => [b.name, b.width]));
-  const beyond = groundWidth(
-    placing.placed
-      .filter((o) => o.height === 0)
-      .flatMap((o) => {
-        const name = pictureName(o.use);
-        const lanes = [layout.laneReach(o.g, 'left'), layout.laneReach(o.g, 'right')] as const;
-        return [name, ...(edges.has(name) ? [edges.get(name)!] : [])].map((n) => ({
-          lateral: o.x,
-          width: widths.get(n)!,
-          edges: lanes,
-        }));
-      }),
-  );
+  // SAND reaches the car's lateral limit: as OUTRUN's 0xC2B0, the program's 0x16266 holds the car's x (0x260050) within
+  // the word it adds at 0x16274 of its road's centre, that far beyond the road's outer lane edge.
+  const beyond = round((word(programs.main, LATERAL_LIMIT) - CENTRE_INSIDE) * UNIT_METRES);
 
   const sections = pieces.map((piece, i) =>
     sectionDocument(piece, {

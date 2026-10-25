@@ -25,6 +25,7 @@ import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
 import { POSITION_METRES } from '../../tools/road-data/offset-plan.ts';
+import { UNIT_METRES } from '../../tools/road-data/pixel-grid.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { readCourseDocument } from '../../src/course/course-document.ts';
@@ -424,7 +425,8 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   });
   // P turns as the path does: its arcs at the stage's 60 and the goal's 80 positions' radius, the plan within the
   // table's resolution held over the road.
-  const document = road.write(road.beyond);
+  // The ground as OUTRUN's courses have it: the car's limit, 500 units from its road's centre, 288 beyond its lanes.
+  const document = road.write(288 * UNIT_METRES);
   const radii = document.sections.flatMap((s) => s.plan.filter((e) => e.kind === 'arc').map((e) => e.radius));
   for (const positions of [60, 80])
     assert.ok(

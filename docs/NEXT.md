@@ -26,7 +26,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX has
   put them on their road path P: their plans raised from the ROMs' heading tables (SUPER MONACO GP's from its point
   path, closing by the rule alone), their widths unrounded and joined by one monotone cubic, their material ended at
-  the plan's clearance and their ground at each original's own limit beside the road (TURBO OUTRUN's to come); OUTRUN's
+  the plan's clearance and their ground at each original's own limit beside the road; OUTRUN's
   forks and goals are the original's, with parting gates, and the lying pictures have no material. What remains is
   [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few)'s list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
@@ -253,10 +253,9 @@ PRs, in this order:
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
 
-Once K's locally decrypted TURBO OUTRUN program is at hand (the tool decrypts nothing; values that encrypted code alone
-holds are written with their reasons, and the chapter's "never decrypted" says so):
+With K's locally decrypted TURBO OUTRUN program (the tool decrypts nothing; values that encrypted code alone holds are
+written with their reasons):
 
-- TURBO OUTRUN's ground width, its vehicle's limit beside the road, and its car's x at GO (the auditor's part 4, §2.2).
 - What throws a vehicle written as a bump across the whole road (K, 2026-10-25): ENDURO RACER's 69 jumps and TURBO
   OUTRUN's flat boards (27034, their kind 2 to confirm), in one PR (part 7); ENDURO RACER's jump table's `margin`, read
   but not used today, used or its reason written.
@@ -328,8 +327,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   ([plan from a heading table](original-road-data.md#plan-from-a-heading-table)).
 - **The ground's width** is each original's own limit of its vehicle beside the road, as its ROM holds it (K,
   2026-10-24): OUTRUN's 500 units from the car's road's centre, SUPER HANG-ON's 500 and ENDURO RACER's 512 from P,
-  SUPER MONACO GP's band tables. TURBO OUTRUN's still reaches the farthest standing scenery (49.6 m) until its limit is
-  confirmed from its program decrypted locally.
+  SUPER MONACO GP's band tables, and TURBO OUTRUN's 500 as OUTRUN's (read from its program decrypted locally).
 - **The road past the finish** is the original's own, not lengthened (SUPER HANG-ON's 200 positions; TURBO OUTRUN's and
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end

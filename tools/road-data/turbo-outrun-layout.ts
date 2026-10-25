@@ -278,7 +278,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     width,
     original,
     offset,
-    laneReach,
     laneBreaks,
     openings,
     pieces,

@@ -23,21 +23,6 @@ export const JOINT_SNAP = 2e-6;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 
-/**
- * The ground's width beside an original's road ([Original road data](../../docs/original-road-data.md#the-ground-beside-the-road)):
- * how far beyond the outermost lane's edge on its side the farthest of the pictures `standing` on the ground reaches,
- * metres; each's outer edge its base point, `lateral` right of P, and half its `width`, the outermost lanes' edges
- * `edges` left and right of P there. 0 with none beyond.
- */
-export function groundWidth(
-  standing: Iterable<{ readonly lateral: number; readonly width: number; readonly edges: readonly [number, number] }>,
-): number {
-  let most = 0;
-  for (const { lateral, width, edges } of standing)
-    most = Math.max(most, width / 2 - lateral - edges[0], lateral + width / 2 - edges[1]);
-  return round(most);
-}
-
 /** Knots without repeats of a position, nor knots where the value neither starts nor stops changing. */
 export function simplified(knots: readonly [number, number][]): [number, number][] {
   const out: [number, number][] = [];

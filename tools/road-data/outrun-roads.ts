@@ -43,15 +43,7 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import {
-  groundWidth,
-  JOINT_SNAP,
-  passagePairs,
-  raisedSplit,
-  repeated,
-  simplified,
-  writtenPlan,
-} from './section-writing.js';
+import { JOINT_SNAP, passagePairs, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -602,23 +594,6 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     const found = project(laid, k, point, p);
     return found ? [{ ...found, object: o }] : [];
   });
-  // How far the objects shown on the ground reach beyond the outermost lanes, an extending board's edge with it.
-  const beyond = groundWidth(
-    placed
-      .filter(({ object: o }) => o.y === 0)
-      .flatMap(({ k, p, lateral, object: o }) => {
-        const span = laid[k]!.road.span;
-        const q = Math.min(p, span.length - 1e-9);
-        const edges = [laneReach(span, q, 'left'), laneReach(span, q, 'right')] as const;
-        const edge = options.edges.get(o.image);
-        return [o.image, ...(edge ? [edge] : [])].map((image) => ({
-          lateral,
-          width: options.widths.get(image)!,
-          edges,
-        }));
-      }),
-  );
-
   // The Sections, SAND reaching `ground` beyond the outermost lanes.
   // Each stage's sky faces as at its start, its GO: where the span that begins it begins.
   const stageStarts = new Map<Stage, number>();
@@ -681,14 +656,13 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     };
   };
   return {
-    /** The road's document, SAND reaching `ground` beyond the lanes (the original's; `beyond`, this road's most). */
+    /** The road's document, SAND reaching `ground` beyond the lanes, the original's lateral limit. */
     write,
     laid,
     end,
     profile,
     crossings,
     objects: placed.length,
-    beyond,
     placing: objects.report,
     fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),
   };

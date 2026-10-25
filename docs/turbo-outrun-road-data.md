@@ -7,7 +7,8 @@ TURBO OUTRUN's course is raised from MAME's `toutrun` (Turbo Out Run, the Out Ru
 cabinets' sets are only compared. It runs on OUTRUN's board and its program is OUTRUN's remade: where its formats are
 OUTRUN's, [OUTRUN's](outrun-road-data.md) sections describe them, and its own ROM set, programs and tables are described
 here as the road data tool reads them. Its main CPU's program is encrypted for instruction fetches alone: the tables are
-read as the ROMs' bytes, and the program is never decrypted.
+read as the ROMs' bytes, and the tool decrypts nothing. What only the encrypted code holds was read from the program
+decrypted locally (K, 2026-10-25) and is written into the tool with its reason.
 
 ## TURBO OUTRUN's ROM set
 
@@ -138,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 13, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 14, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -187,19 +188,24 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
   stage's colors begin at its start, a leg's first stage's at its GO.
 - **Materials.** ASPHALT under both roads (each centre ± 250 units); between them SAND where the ground there is wider
-  than 0.5 m; SAND beyond the outermost lanes as far as the farthest object standing on the ground reaches, 49.57 m,
-  until the car's [lateral limit](original-road-data.md#the-ground-beside-the-road) is read from its program decrypted
-  locally, which the course format ends where the plan stops being one-to-one
-  ([Architecture](architecture.md#plan-authority)). Both are K's decision (2026-10-25), for the ROMs hold no material.
+  than 0.5 m; SAND beyond the outermost lanes to the car's
+  [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units
+  (7.285 m) beyond the outermost lanes, which the course format ends where the plan stops being one-to-one
+  ([Architecture](architecture.md#plan-authority)). The limit is OUTRUN's rule: 0x16266, called each tick from 0x157A4,
+  holds the car's x (0x260050) within the word it adds at 0x16274, 0x1DDF6 (500), of its road's centre, with no
+  narrower limit while the roads part. The instruction is encrypted, so the tool writes its address (`LATERAL_LIMIT`)
+  and reads the word, a plain table entry, from the ROMs. Both are K's decision (2026-10-25), for the ROMs hold no
+  material.
 - **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
   from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY
   hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
   where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of the longest
   such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 24 Sections.
 - **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating (lane b the left
-  road's centre, where OUTRUN's car stands at GO; TURBO OUTRUN's own program is encrypted, so its car's x there is not
-  read); each stage's checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car
-  (1408.107), and the finish `los-angeles-GOAL` where the GOAL gate's does (1403.613).
+  road's centre, where the car stands at GO: a game's start clears its x with the RAM, 0x10E84, sets the width to its
+  stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to the left road's
+  centre, 0x1623C, as OUTRUN's); each stage's checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post
+  passes the car (1408.107), and the finish `los-angeles-GOAL` where the GOAL gate's does (1403.613).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
   programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from 6 m before the car
   reaches where its background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the

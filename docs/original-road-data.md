@@ -258,9 +258,8 @@ An original's ground (its material beside the road) reaches its vehicle's latera
 player's vehicle go beside the road, measured from where the program measures it (K, 2026-10-24). OUTRUN's is 500
 units from the car's road's centre (the word at 0xE2F4, which 0xC2B0 adds), 288 beyond the road's three lanes; SUPER
 HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0x65FE) from P; SUPER MONACO GP's its
-band tables' limits. TURBO OUTRUN's program is encrypted: its limit is to be read from the program decrypted locally
-(K, 2026-10-20), and until then its ground reaches as far beyond the outermost lane's edge as the farthest of its
-objects shown on the ground does (`groundWidth`: its picture's outer edge, its base point and half its width). The
+band tables' limits. TURBO OUTRUN's is OUTRUN's 500 from the car's road's centre (the word at 0x1DDF6), read from
+its encrypted program decrypted locally (K, 2026-10-25), the word itself from the ROMs. The
 course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
 its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
 255 to where it passes 768), OUTRUN's program holds the car within 320 of its road's centre; the ground keeps 500 there
