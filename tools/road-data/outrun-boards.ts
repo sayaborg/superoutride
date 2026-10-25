@@ -5,12 +5,20 @@
  * original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard, type StripCut } from './extending-boards.js';
 import { OBJECT_ROUTINES, objectAside, objectSize, shadowSizes, spritePalette } from './outrun-sprites.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
-import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
+import {
+  boardMaster,
+  chosenLines,
+  footAnchorY,
+  SHADOW_PEN,
+  shadowFrame,
+  texelsAPixel,
+  turned,
+  UNIT_METRES,
+} from './pixel-grid.js';
 
 /** One way an object shows a sprite: mirrored or not, by an anchor and routine, in a palette, shadowed or not. */
 export interface SpriteUse {
@@ -121,9 +129,9 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const extending = routine.family !== undefined;
     const size = { ...largest, pixels: spritePixels(words, largest) };
     // The unmirrored picture by chosen lines; a mirrored board is its output mirrored.
-    const texels = texelsAPixel(routine.pixelUnits);
+    const texels = texelsAPixel(routine.pixelUnits * UNIT_METRES);
     const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-    const indices = first!.mirrored ? mirror(grid.indices, grid.width) : grid.indices;
+    const indices = turned(grid.indices, grid.width, first!.mirrored);
     const scale = { x: grid.width / size.width, y: grid.height / size.height };
     const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
     const byEdge = standsByEdge(first!);
@@ -136,18 +144,8 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const aside = byEdge ? 0 : (objectAside(main, first!) / routine.pixelUnits) * scale.x;
     const cast = shadowOf(routine.shadow?.sizes);
     const castScale = routine.shadow?.scale ?? 1;
-    const colors = (k: number) => [0, ...spritePalette(main, palettes[k]!).slice(1)];
-    const whole: SpriteLodDocument = {
-      format: 'superoutride.sprite-lod',
-      version: 7,
-      name,
-      width: grid.width,
-      height: grid.height,
-      anchorX: point.x + aside,
-      ...(point.y !== grid.height - 0.5 ? { anchorY: point.y } : {}),
-      defaultPalette: paletteName(palettes[0]!),
-      palettes: Object.fromEntries(palettes.map((p, k) => [paletteName(p), { colors: colors(k) }])),
-      levels: [{ paletteRgb555: colors(0), indices, mixtures: spriteIdentityMixtures() }],
+    const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
+    const whole = boardMaster(name, grid, indices, { x: point.x + aside, y: point.y }, palettes, colors, {
       ...(extending ? { extend: first!.mirrored ? ('left' as const) : ('right' as const) } : {}),
       // The shadow: the original's, drawn at its scale against the object's and at the object's anchor.
       ...(first!.shadow
@@ -161,7 +159,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
             ),
           }
         : {}),
-    };
+    });
     const split = foot !== undefined && group.some((u) => u.raised);
     if (split && extending) throw new RangeError(`Strip ${name} stands at its foot and raised`);
     if (!extending) {

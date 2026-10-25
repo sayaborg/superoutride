@@ -4,7 +4,7 @@
  * the part that repeats, whose two ends join; its transparent end columns and the shape of its outer end are not used.
  */
 import type { SpriteLodDocument } from '../../src/image/sprite.js';
-import { mirror } from './pixel-grid.js';
+import { turned } from './pixel-grid.js';
 
 /** Where a strip picture is cut, in its columns: its edge's shape `[start, repeat)` and the repeating part `[repeat, end)`. */
 export interface StripCut {
@@ -90,7 +90,7 @@ export function cutBoard(master: SpriteLodDocument, edgeName: string) {
   if (!extend || more.length || master.shadow) throw new Error(`Board ${master.name} is no strip's whole picture`);
   const { width } = master;
   const mirrored = extend === 'left';
-  const cut = stripCut(mirrored ? mirror(level!.indices, width) : level!.indices, width);
+  const cut = stripCut(turned(level!.indices, width, mirrored), width);
   const part = (a: number, b: number): SpriteLodDocument => {
     const [from, to] = mirrored ? [width - b, width - a] : [a, b];
     return {

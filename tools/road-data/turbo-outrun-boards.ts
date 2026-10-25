@@ -5,10 +5,18 @@
  * original's. The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { cutBoard } from './extending-boards.js';
-import { chosenLines, footAnchorY, mirror, paletteName, SHADOW_PEN, shadowFrame, texelsAPixel } from './pixel-grid.js';
+import {
+  boardMaster,
+  chosenLines,
+  footAnchorY,
+  SHADOW_PEN,
+  shadowFrame,
+  texelsAPixel,
+  turned,
+  UNIT_METRES,
+} from './pixel-grid.js';
 import { anchorPoint, outline, spritePixels } from './sprite-pixels.js';
 import { readShadowSizes, readSizeList, readSpritePalette } from './turbo-outrun-road.js';
 
@@ -87,9 +95,9 @@ export function turboOutrunBoards(
       if (group.some((u) => u.anchor !== first.anchor || u.aside !== first.aside || u.units !== first.units))
         throw new RangeError(`Board ${name} is shown with different base points or scales`);
       const size = picturePixels(main, words, first);
-      const texels = texelsAPixel(first.units);
+      const texels = texelsAPixel(first.units * UNIT_METRES);
       const grid = chosenLines(size.pixels, size.width, texels.across, texels.down);
-      const indices = first.mirrored ? mirror(grid.indices, grid.width) : grid.indices;
+      const indices = turned(grid.indices, grid.width, first.mirrored);
       const scale = { x: grid.width / size.width, y: grid.height / size.height };
       const point = anchorPoint(first.anchor, grid.width, grid.height);
       const aside = (first.aside / first.units) * scale.x;
@@ -100,28 +108,12 @@ export function turboOutrunBoards(
       const foot =
         standing && group.some((u) => u.shades && !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
       const anchorY = foot ?? point.y;
-      const board: SpriteLodDocument = {
-        format: 'superoutride.sprite-lod',
-        version: 7,
-        name,
-        width: grid.width,
-        height: grid.height,
-        anchorX: point.x + aside,
-        ...(anchorY !== grid.height - 0.5 ? { anchorY } : {}),
-        defaultPalette: paletteName(palettes[0]!),
-        palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
-        levels: [
-          {
-            paletteRgb555: colors(palettes[0]!),
-            indices,
-            mixtures: spriteIdentityMixtures(),
-          },
-        ],
+      const board = boardMaster(name, grid, indices, { x: point.x + aside, y: anchorY }, palettes, colors, {
         ...(first.shadow
           ? { shadow: shadowFrame(shadowPixels, shadow!.width, scale, first.anchor, -aside / scale.x) }
           : {}),
         ...(first.strip ? { extend: first.mirrored ? ('left' as const) : ('right' as const) } : {}),
-      };
+      });
       const entry = (master: SpriteLodDocument, edge?: string, split = false) => ({
         name: master.name,
         width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,

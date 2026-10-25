@@ -198,7 +198,6 @@ PRs, in this order:
 - K's grades: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades, which K is solving, in one PR when they come, after
   the PR then open: they replace the draft grades and `c_look`, the crossings parted on them by their rule.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
-  - The pictures' making: `sprite-lod`'s master, `texelsAPixel` freed from OUTRUN's unit, the mirror.
   - The widths joined by one monotone cubic (OUTRUN's `joinedWidth` and TURBO OUTRUN's copy).
   - The stripes at one period, EX-7j2's count of halves in every original.
   - The Sections' cuts by one rule, their distance from a gate one length in metres; `turbo-outrun-layout.ts`'s own

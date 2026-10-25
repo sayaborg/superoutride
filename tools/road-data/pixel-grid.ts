@@ -1,13 +1,20 @@
 /**
  * The originals' pixels on this game's texel grid ([OUTRUN road data](../../docs/outrun-road-data.md#boards)):
- * a road unit's metres, the pixels' aspect, a board's grid, chosen lines, mirroring and a palette's name.
+ * a road unit's metres, the pixels' aspect, a pixel's texels, chosen lines, a picture turned as shown, a palette's name
+ * and a board's master.
  */
-import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
+import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
 import { anchorPoint } from './sprite-pixels.js';
 
-/** `pixels`, `width` wide, mirrored left to right. */
-export const mirror = <T>(pixels: readonly T[], width: number) =>
-  pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
+/** `pixels`, `width` wide, turned as shown: mirrored left to right, flipped upside down. */
+export function turned(pixels: ArrayLike<number>, width: number, mirrored: boolean, flipped = false): number[] {
+  const height = pixels.length / width;
+  return Array.from({ length: pixels.length }, (_, i) => {
+    const [x, y] = [i % width, Math.floor(i / width)];
+    return pixels[(flipped ? height - 1 - y : y) * width + (mirrored ? width - 1 - x : x)]!;
+  });
+}
 
 /**
  * Pen 10, the sprite hardware's shadow in a picture drawn with shadows allowed: it darkens what lies behind it, its
@@ -40,21 +47,38 @@ export const UNIT_METRES = (3.6 * 3) / 424;
 /** The original's pixels are 14 wide to 15 tall: 320 × 224 shown at 4:3. Its vertical amounts grow by this. */
 export const PIXEL_ASPECT = 15 / 14;
 
-/** The texels a pixel of `units` road units spans across at 40 texels/m, and down (`PIXEL_ASPECT` times that). */
-export function texelsAPixel(units: number) {
-  const across = units * UNIT_METRES * SPRITE_SOURCE_TEXELS_PER_METER;
+/** The texels a pixel `metres` wide spans across at 40 texels/m, and down (`PIXEL_ASPECT` times that). */
+export function texelsAPixel(metres: number) {
+  const across = metres * SPRITE_SOURCE_TEXELS_PER_METER;
   return { across, down: across * PIXEL_ASPECT };
 }
 
 /**
- * The texel grid a size of `width` × `height` pixels, each `units` road units, takes at 40 texels/m: across
- * `units × UNIT_METRES` metres a pixel, down `PIXEL_ASPECT` times that.
+ * A board's master: `indices` on its texel grid in each of `palettes`' colors (`colors`, the first palette its
+ * default), its base point (`anchorY` written where it is given and not the bottom edge's) and what more it carries
+ * (`more`, in its order).
  */
-export function boardGrid(width: number, height: number, units: number) {
-  const { across } = texelsAPixel(units);
+export function boardMaster(
+  name: string,
+  grid: { readonly width: number; readonly height: number },
+  indices: readonly number[],
+  anchor: { readonly x: number; readonly y?: number },
+  palettes: readonly number[],
+  colors: (palette: number) => readonly number[],
+  more: Partial<SpriteLodDocument> = {},
+): SpriteLodDocument {
   return {
-    width: Math.max(1, Math.round(width * across)),
-    height: Math.max(1, Math.round(height * across * PIXEL_ASPECT)),
+    format: 'superoutride.sprite-lod',
+    version: 7,
+    name,
+    width: grid.width,
+    height: grid.height,
+    anchorX: anchor.x,
+    ...(anchor.y === undefined || anchor.y === grid.height - 0.5 ? {} : { anchorY: anchor.y }),
+    defaultPalette: paletteName(palettes[0]!),
+    palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
+    levels: [{ paletteRgb555: colors(palettes[0]!), indices, mixtures: spriteIdentityMixtures() }],
+    ...more,
   };
 }
 

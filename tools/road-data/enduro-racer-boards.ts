@@ -5,9 +5,8 @@
  * The pictures are the ROMs', provisional: the product draws its own.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { chosenLines, footAnchorY, paletteName, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
+import { boardMaster, chosenLines, footAnchorY, SHADOW_PEN, texelsAPixel, turned } from './pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
@@ -32,9 +31,6 @@ interface Source {
   readonly height: number;
   readonly pixels: Uint8Array;
 }
-
-const mirror = (pixels: Uint8Array, width: number) =>
-  pixels.map((_, i) => pixels[i - (i % width) + width - 1 - (i % width)]!);
 
 /**
  * The colored pixels' width, metres at `unit` a lateral unit: from the leftmost to the rightmost column holding a pixel
@@ -82,44 +78,35 @@ export function enduroRacerBoards(
       use.palette,
       use.raised,
     );
-  const across = PIXEL_UNITS * unit * SPRITE_SOURCE_TEXELS_PER_METER;
+  const texels = texelsAPixel(PIXEL_UNITS * unit);
   const boards = [...sources]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, { source, palettes, ground, raised }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
       const mirrored = name.slice(0, name.length - tag.length).endsWith('-mirrored');
-      const grid = chosenLines(source.pixels, source.width, across, across * PIXEL_ASPECT);
-      const chosen = mirrored ? mirror(Uint8Array.from(grid.indices), grid.width) : grid.indices;
+      const grid = chosenLines(source.pixels, source.width, texels.across, texels.down);
+      const chosen = turned(grid.indices, grid.width, mirrored);
       const indices = Array.from(chosen, (v) => (v === SHADOW ? 0 : v));
       const shadow = Array.from(chosen, (v) => (v === SHADOW ? 1 : 0));
       const scale = { x: grid.width / source.width, y: grid.height / source.height };
       const anchorX = (source.width / 2) * scale.x - 0.5;
       const sorted = [...palettes].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...readSpritePalette(main, p).rgb555.slice(1, 15), 0];
-      const board = (named: string, anchorY: number | undefined): SpriteLodDocument => ({
-        format: 'superoutride.sprite-lod',
-        version: 7,
-        name: named,
-        width: grid.width,
-        height: grid.height,
-        anchorX,
-        ...(anchorY === undefined ? {} : { anchorY }),
-        defaultPalette: paletteName(sorted[0]!),
-        palettes: Object.fromEntries(sorted.map((p) => [paletteName(p), { colors: colors(p) }])),
-        levels: [{ paletteRgb555: colors(sorted[0]!), indices, mixtures: spriteIdentityMixtures() }],
-        // The shadow on the picture's grid, anchored as the picture is.
-        ...(shadow.some((v) => v)
-          ? {
-              shadow: {
-                width: grid.width,
-                height: grid.height,
-                anchorX,
-                anchorY: anchorY ?? grid.height - 0.5,
-                levels: [{ indices: shadow }],
-              },
-            }
-          : {}),
-      });
+      const board = (named: string, anchorY: number | undefined) =>
+        boardMaster(named, grid, indices, { x: anchorX, y: anchorY }, sorted, colors, {
+          // The shadow on the picture's grid, anchored as the picture is.
+          ...(shadow.some((v) => v)
+            ? {
+                shadow: {
+                  width: grid.width,
+                  height: grid.height,
+                  anchorX,
+                  anchorY: anchorY ?? grid.height - 0.5,
+                  levels: [{ indices: shadow }],
+                },
+              }
+            : {}),
+        });
       const entry = (master: SpriteLodDocument) => ({
         name: master.name,
         colored: coloredWidth(source, unit),

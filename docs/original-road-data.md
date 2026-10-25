@@ -23,8 +23,9 @@ plan laid in the world (`course-path`: `CoursePath`), how Sections are written (
 sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
 a station within 2 µm of a joint the joint's), two roads drawn together from one road's picture across (`two-roads`),
-the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, its
-pixels by [chosen lines](#chosen-lines) `chosenLines`, palettes' names and shadows' frames), a background baked into one
+the sprite hardware's pixels (`sprite-pixels`), the originals' pixels on this game's texel grid (`pixel-grid`, a
+pixel's texels at its width in metres, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as
+shown, palettes' names, shadows' frames and a board's master), a background baked into one
 sky ([`sky-baking`](#sky-baking)), and how objects approach the car (`object-approach`: the tick's advance, an approach
 table's step and `startDepth`). Each original's ROM set, and which of its ROMs make which image, are its `<original>-rom` module's.
 

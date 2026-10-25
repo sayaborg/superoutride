@@ -5,9 +5,8 @@
  * of its bottom. They are the original's pictures, provisional: the product's are drawn again.
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
-import { spriteIdentityMixtures } from '../graphics/sprite-source-compiler.js';
-import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { chosenLines, footAnchorY, paletteName, PIXEL_ASPECT, SHADOW_PEN } from './pixel-grid.js';
+import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
+import { boardMaster, chosenLines, footAnchorY, SHADOW_PEN, texelsAPixel } from './pixel-grid.js';
 import { sizeList, spriteList, spritePalette, spritePixels, SPRITE_COUNT } from './super-hang-on-sprites.js';
 
 /**
@@ -38,8 +37,8 @@ export function pictureName(main: Uint8Array, use: Pick<PictureUse, 'list' | 'mi
 /** Size list `list`'s largest size by chosen lines at `metres` a road unit, 40 texels a metre. */
 export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number, metres: number) {
   const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
-  const across = PIXEL_UNITS * metres * SPRITE_SOURCE_TEXELS_PER_METER;
-  return chosenLines(pixels, width, across, across * PIXEL_ASPECT);
+  const texels = texelsAPixel(PIXEL_UNITS * metres);
+  return chosenLines(pixels, width, texels.across, texels.down);
 }
 
 /**
@@ -72,24 +71,8 @@ export function superHangOnPictures(
       const palettes = [...new Set(group.map((u) => u.palette))].sort((a, b) => a - b);
       const colors = (p: number) => [0, ...spritePalette(main, p).slice(1)];
       const foot = group.some((u) => !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
-      const master = (named: string, anchorY: number | undefined): SpriteLodDocument => ({
-        format: 'superoutride.sprite-lod',
-        version: 7,
-        name: named,
-        width: grid.width,
-        height: grid.height,
-        anchorX: grid.width / 2 - 0.5,
-        ...(anchorY === undefined ? {} : { anchorY }),
-        defaultPalette: paletteName(palettes[0]!),
-        palettes: Object.fromEntries(palettes.map((p) => [paletteName(p), { colors: colors(p) }])),
-        levels: [
-          {
-            paletteRgb555: colors(palettes[0]!),
-            indices,
-            mixtures: spriteIdentityMixtures(),
-          },
-        ],
-      });
+      const master = (named: string, anchorY: number | undefined) =>
+        boardMaster(named, grid, indices, { x: grid.width / 2 - 0.5, y: anchorY }, palettes, colors);
       const picture = (named: string, anchorY: number | undefined, split = false) => ({
         name: named,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
