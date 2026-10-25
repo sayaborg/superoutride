@@ -68,6 +68,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
           };
         }),
         waterCrossings: dump.waterCrossings,
+        hills: dump.hills.map((h) => h.start),
         scenery: Array.from({ length: 6 }, (_, s) => dump.scenery.filter((i) => i.position >> 11 === s).length),
         scaledScenery: dump.scenery.filter((i) => i.height !== undefined).length,
         sceneryTypes: Object.keys(dump.sceneryTypes).length,

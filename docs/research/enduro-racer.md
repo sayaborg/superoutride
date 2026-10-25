@@ -60,8 +60,9 @@ decryption, not in the repository.
 ## Hills and jumps (for the hills stage)
 
 - The main CPU sends 16 slope words to the sub CPU at 0x126198 from the table 0xDAE4 (indexed by P & 0xFF, four words
-  summed), gated by the hills' section table at 0xDE9C (the specification's name; 6-byte entries; handlers
-  0xDDF6–0xDE62); stage 3 has a special handler 0xDD84.
+  summed), gated by the hills' table at 0xDE9C (8-byte entries; the hills' routine from 0xDDA4); stage 3's words at
+  0xDD84 are 16 of 0x200, not a routine. The specification's [ENDURO RACER's
+  screen](../enduro-racer-road-data.md#enduro-racers-screen) owns the rule.
 - The jump mounds' table 0xC8AE (the specification's format: a count word, 0xD8 = 216 halves, then 6-byte entries
   {position, left, right, kind, spare} to the first position 0xFFFF: 69).
 - The main CPU's blocks 0x28000, 0x2A000, 0x2C000, 0x2E000 (profiles A and B, flags 0x00 / 0x80, sparse ids, pairs) are

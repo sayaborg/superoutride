@@ -192,9 +192,13 @@ Rules of the stage:
 
 PRs, in this order:
 
-- K's grades, EX-G1 to EX-G4: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades and SUPER HANG-ON's and SUPER MONACO
-  GP's scales by the screen's pieces, replacing the draft grades and `c_look`, the crossings parted on them by their
-  rule.
+- K's grades by the [grades' rule](original-road-data.md#profile-from-the-originals-screen) (K, 2026-10-26):
+  - EX-G2: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades from the screen's pieces, placed where the originals run
+    them, replacing the draft grades, `c_look`, the grades left and the closing at height 0; the crossings parted on
+    them by their rule.
+  - EX-G3: SUPER HANG-ON's and SUPER MONACO GP's heights times their factor, the lens ratio within the grade limit.
+  - EX-G4: what EX-G2 and EX-G3 no longer use deleted (`road-profile`'s table grades, `c_look` and the closing,
+    `outrun-look`, SUPER HANG-ON's eye scale).
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The widths joined by one monotone cubic (OUTRUN's `joinedWidth` and TURBO OUTRUN's copy).
   - The stripes at one period, EX-7j2's count of halves in every original.
@@ -225,6 +229,8 @@ PRs, in this order:
   | ENDURO RACER    | None: one road of two fixed lanes                                                         |
   | SUPER MONACO GP | The materials' edges and the course limits, moved straight over the 4 steps between bands |
 
+- EX-G5a to EX-G5c: the pieces solved from the repository alone: the originals' screens, the measure and the solve,
+  and the `screen-pieces` command, which compares what it solves with the pieces kept and does not write them.
 - EX-25: the canon's ownership.
 - EX-26: this section deleted, and "Next PR" pointing to Stage GR.
 

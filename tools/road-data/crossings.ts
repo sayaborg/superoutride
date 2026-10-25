@@ -13,8 +13,8 @@ const PASSAGE_GAP = 3;
 const SQUARE = 50;
 /** The height two overlapping passages are kept apart, metres (K, 2026-10-26). */
 const CLEARANCE = 3;
-/** K's grade limit: no ramp that parts the crossings is steeper. */
-const GRADE_LIMIT = 0.25;
+/** K's grade limit: no piece of the grades' rule and no ramp that parts the crossings is steeper. */
+export const GRADE_LIMIT = 0.25;
 /** Passages whose heights differ by no more than this over their pairs are level: a micrometre, as heights are written. */
 const LEVEL = 1e-6;
 

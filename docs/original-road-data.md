@@ -18,7 +18,9 @@ widths they give), the hills, with OUTRUN's road position and stripes' period (`
 passage, and their crossings, parted by the least change), a function
 of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
 (`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them), a
-closed height path's profile (`point-profile`), a rise table's profile (`rise-profile`) and a
+closed height path's profile (`point-profile`), a rise table's profile (`rise-profile`), the grades' pieces K's
+researcher solved and their reader (`screen-pieces`, [Profile from the original's
+screen](#profile-from-the-originals-screen)) and a
 plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
 sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
@@ -213,6 +215,13 @@ along a stage (`hillsAlong`) follows from its height points and tables alone; no
   R = 512 − s0 − s1 halved in turn, R/2, R/4, R/8, R/16, R/16. Segment 0's slope is the base; each further segment's is
   its predecessor's plus an increment. Each line's row is 223 − the slopes summed from the nearest line ÷ 65536; the
   road's top is the least row.
+- **Every line's row.** Line k (0 the nearest) lies in the segment s holding k + 0.5 (b_{s−1} < k + 0.5 ≤ b_s, b_s the
+  segments' lengths summed to s's end, b_{−1} = 0); its slope is 16 × base plus segments 1's to s's increments, and its
+  row 223 − lines 0's to k's slopes summed ÷ 65536. The screen is 224 rows (0 to 223); a line on row 224 or below is
+  not seen. Lines 0 to 510 are read: line 511 lies, by the lines' distances, at the horizon, infinitely far.
+- **A line's distance.** Line k lies ln(511 / (511 − k)) / 0.145 positions ahead of the car (ln(511 / (511 − k)) / 0.145
+  × 2.0027 + 6 m from this game's camera). The 0.145 is a fit, the stripe tables' flips at lines ≈ 511 e^(−0.145 d), d
+  in positions ([OUTRUN's research note](research/outrun.md#camera-eye-height)).
 - **Points.** A height point starts its table when the road position reaches it; one reached while a table runs is
   dropped.
 - **Kind 0** slides its entries through the segments: at entry `i`, a share `f` of it passed, segment 1's increment is
@@ -224,6 +233,9 @@ along a stage (`hillsAlong`) follows from its height points and tables alone; no
 - **Kind 3** slides its entries in as kind 0 does (each over 2.125 × step), holds the full window by its word as kinds 1
   and 2 hold, and returns it at a falling share over 2.125 × step.
 - **Kind 4** moves the horizon's base to its word over 2.125 × step positions, and it stays.
+
+At a road position the screen's window is the base, the increments and f `hillsAlong` holds there: kind 0's f is the
+segments' (`roadTop`'s), kind 3's only its window's increments, the segments' f 0.
 
 Kinds 0 and 1 are checked on OUTRUN's `k1` ([Checks on `k1`](outrun-road-data.md#checks-on-k1)). Kinds 3 and 4
 follow the same idea and are not yet checked against footage; under kind 4's raised base some of stage 0x3B's tables
@@ -388,6 +400,114 @@ table](#plan-from-a-heading-table)), by one constant, the table's resolution, a 
 The rule promises the grade: at every position the profile's grade lies within the resolution of the table's. It does
 not promise the height, which the minimax lines' departures leave to drift by up to the resolution times the distance.
 
+## Profile from the original's screen
+
+An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
+length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26). The courses take it as NEXT's Stage EX
+lists.
+
+- **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors, SUPER MONACO GP's point path) is what its screen read
+  back gives: its heights times one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the
+  lens ratio its focal length over this game's, in screen heights. The road's form is kept and the limit kept by f: a
+  camera that tilts with the road, as these two originals' and this game's do, does not tell a long uniform grade on
+  the screen, so its screen read again within the limit would change the large form (on SUPER MONACO GP the tunnel's
+  climb became a descent).
+- **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words) is read back piece by
+  piece: each piece the road whose screen lies nearest the original's, both ways, its grades within the limit (the form
+  bending to it), with the fewest PVIs that match within half a row of the nearest. OUTRUN and TURBO OUTRUN bend their
+  512 lines on the screen, which no camera does, so they are read through this game's camera (a lens ratio of 1);
+  ENDURO RACER draws through a level camera (its horizon does not move), and is read through it at this game's focal
+  length.
+
+The rule's constants:
+
+| Constant           | Value                                                                                                      | Why                                                                                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grade limit        | ±0.25 (`GRADE_LIMIT`)                                                                                      | K's limit                                                                                                                                         |
+| PVIs               | the fewest within half a row of the best look                                                              | where the looks cannot be told apart, the simplest form                                                                                           |
+| Hill frames        | the frames where the original's road lies more than a row from its level road                              | the look is measured where there is a hill                                                                                                        |
+| Cell               | the whole number of the original's positions nearest 10 m: 5 (10.01 m) OUTRUN's, 8 (9.48 m) ENDURO RACER's | the solve's fineness; one of OUTRUN's screen segments is ln 2 / 0.145 = 4.78 positions (9.57 m) on the road, and ENDURO RACER's cycle is 32 cells |
+| Distance steps     | 1/5 row of the reading camera's level road                                                                 | the fineness at which this game's road bands are counted                                                                                          |
+| Far                | 200 m (`RENDER_FAR_DEPTH_METERS`)                                                                          | how far this game draws the road                                                                                                                  |
+| This game's camera | 6 m behind, 2 m above, focal length 240 (rows of 240) (`CAMERA_DEFINITION`)                                | the product camera                                                                                                                                |
+
+- **Pieces.** OUTRUN's and TURBO OUTRUN's: one a height table the courses run (kinds 0 to 3), the table run alone on the
+  level road (base 0x240) as `tableRuns` runs it, a held shape (kinds 1 and 3) at the original's top speed (OUTRUN's
+  293 km/h, TURBO OUTRUN's 324). A table run at one speed is one piece wherever it runs; TURBO OUTRUN's tables are
+  OUTRUN's 225, so a piece not held serves both, and a held one is one a speed.
+  - _Cells_ of 5 positions from the piece's start.
+  - _Stretch:_ from the camera's place when the table starts to the first cell border at or past the camera's place when
+    it ends. The grades at the cell borders within are free within ±0.25, 0 at its ends; outside it the road is level.
+    Past the table's end the original's screen is level, so no grade lies beyond the camera's place then; what the
+    original shows ahead before the table ends is not read.
+  - _Frames:_ from the fewest cells that reach 200 m (20 cells, 200.3 m) before the stretch to its end: before them no
+    stretch lies within 200 m of the camera, and both screens are level. The original's screen is the table's window
+    while it runs, the level road elsewhere.
+  - _Kind 4_ moves only the base: against the level road of its base its screen stays level, so it has no piece (the
+    measure's result, no exception). A piece solved at base 0x240 serves after kind 4 has moved the base, a choice of
+    the rule: the original's rows' differences from the level road's do not depend on the base line by line, but which
+    lines count (each row's first, the cut at 224) do, so a piece solved at another base would differ a little.
+
+  ENDURO RACER's: the cycle, the normal path's 256 positions (P & 0xFF from 0 to 255), 32 cells of 8 positions, the
+  grade 0 at the cycle's start; the road repeats by the cycle ahead and behind (three cycles alike, the middle one's 256
+  frames counted). And each hill's cycles as one piece: from the last cycle start at or before the hill's start to the
+  first at or after where it ends (the position after its phase 4), or to stage 3's start (4096) where that comes first
+  (hill 4, 3840–4096); within, the original's words are the hill's while it runs and the normal path's elsewhere, level
+  outside; its frames from 22 cells (176 positions, 208.6 m) before its stretch to its end. No hill's stretch shares a
+  cycle with another's. Stage 3 (4096–6143) is level.
+
+- **Cameras.** The road read is seen by the reading camera on rows:
+  - _This game's_ (OUTRUN, TURBO OUTRUN), as `roadTopRow`: the player where the original's car is, the camera 6 m behind
+    it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row
+    120 − 240 sin θ − (240 / D)(h − y_c) cos θ of its 240, y_c = h₀ + (2 + 6 sin θ) / cos θ with h₀ the height under
+    it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
+  - _ENDURO RACER's_ at this game's focal length: level, 4.19 positions behind the bike. The road d positions ahead of
+    the bike lies on ENDURO RACER's row (64 − 165 × 4/128) + (165c/128 − 224 Δh) / (d + 4.19), Δh its height above the
+    road at the bike in positions, d + 4.19 its distance from the camera: 165c/128 (694.2) is ENDURO RACER's level road's
+    and 224 this game's focal length (its 240 of 240 rows, on the original's 224). ENDURO RACER's own focal length and
+    eye are not needed: its screen shows only their product, and a hill's height only with the focal length, so the
+    reading does not depend on the lateral scale.
+- **Measure.** Each frame, on the original's rows, each screen against its own level road, both ways:
+  - _The original's rows,_ one an integer row: its lines are taken near to far, a line seen where it lies above every
+    nearer one and its row is below 224; each integer row (its row's floor) takes the first seen line to reach it. At
+    that line's distance D the difference is (min(y(D), E(D)) − y₀(D)) − (o − ℓ): y the read road's row, y₀ the reading
+    camera's level road's, E(D) the least read row over the distance steps to the farthest at or below D (behind a
+    nearer crest, the crest's row), o and ℓ the original line's row and its level road's.
+  - _The read road's rows,_ one a distance step: steps D₀ < D₁ < … evenly in 1/D, 1/5 row of the reading camera's level
+    road apart (Δ(1/D) 0.2/448 m⁻¹ for OUTRUN and TURBO OUTRUN, 0.2/(694.2 × 32/27) m⁻¹ for ENDURO RACER), from the
+    original's nearest line's distance to 200 m. Step k (k ≥ 1) weighs w_k = max(0, E(D_{k−1}) − y(D_k)), the rows it
+    shows above the top of the nearer road; its difference is (y(D_k) − y₀(D_k)) − e(D_k), e(D) what the original's
+    road shows at D: its lines' rows, cut at 224 and made least from near to far, linear in D between lines and its
+    farthest line's beyond, less its level road's rows likewise. The read road's rows are not cut.
+  - _Cost:_ the squares of both ways' differences summed over the frames, the original's rows one each and the read
+    road's by w; ENDURO RACER's cycle counts the middle cycle's frames.
+  - _Look:_ the root mean square of both ways' differences over the hill frames, divided by the original's rows counted
+    and the w summed: rows of the original's 224.
+- **Solve.** The grades lie on the cell borders, linear within a cell (the heights quadratic). The stretch's grades
+  within ±0.25 that make the cost least are found from level by a quasi-Newton method with bounds (L-BFGS-B's kind),
+  the cost's derivative taken with the hidden original's rows moving with the crest's step (the cost is not smooth
+  where they are hidden).
+- **PVIs.** At first every cell of the stretch is a vertical curve. One move at a time, solved again from the last
+  answer (a joined border's grade from the mean of the two before, a border gone dropped), until one vertical curve is
+  left, which is level (0 PVIs):
+  - _Moves:_ a vertical curve made straight (its two ends' grades one), or two neighbouring vertical curves made one (the
+    middle border's grade on the line between the outer two's).
+  - _The move taken_ is the one of least linearised cost (L v)² / (L P Lᵀ): v the free grades, L the move's linear
+    condition (= 0), P = (JᵀJ + 10⁻⁹ tr(JᵀJ)/n I)⁻¹ with J the differences' Jacobian at the answer and n the free grades,
+    the read road's weights w held at their values and the hidden original's rows moving as for the derivative. A move
+    with L P Lᵀ at most 0 is not counted; where none is, the first vertical curve is made straight. Of equal values the
+    vertical curve nearer the stretch's start comes first, and for one vertical curve straight before joined; a later
+    move replaces an earlier only when strictly less.
+  - _The piece_ is, of the answers along the way, the one with the fewest vertical curves within 0.5 row of the best
+    look, the looks rounded to 0.001 row. A piece with no hill frame (a table whose screen keeps within a row of the
+    level road, table 0) is level.
+- **The pieces kept.** The pieces lie in the repository (`tools/road-data/screen-pieces.json`): solving them all takes
+  over an hour, so the courses read them. K's researcher solved them (2026-10-26), OUTRUN's and TURBO OUTRUN's tables
+  their courses run and ENDURO RACER's all. `screenPieces` (`screen-pieces`) admits them once: their shape, each
+  piece's changes within its stretch and summing to 0, and its grades within `GRADE_LIMIT`. The solve is not convex,
+  and the PVIs are taken greedily one at a time, so another implementation may solve a few weakly determined tables
+  to other pieces; the canon is the pieces kept.
+
 ## Profile
 
 A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
@@ -483,6 +603,9 @@ with what is committed. Each command's result is one line of JSON; a command tha
 a document differing) is reported on its line and the rest still run, and the command then ends with a failure. The
 last line names the courses whose documents changed, whose identities change with them: their measured products are
 made again with `npm run measure -- generate` ([Measured products](development.md#measured-products)).
+
+The grades' pieces are the repository's (`tools/road-data/screen-pieces.json`): the commands read them and do not solve
+them ([Profile from the original's screen](#profile-from-the-originals-screen)).
 
 The local originals of the recordings are not raised by it: `outrun-sounds` writes them, with ffmpeg
 ([Local originals](development.md#local-originals)). The dumps (`<original>-read`) are research's, not the courses'.

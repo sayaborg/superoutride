@@ -44,8 +44,9 @@ decrypts.
 
 Both CPUs are 68000s. The main CPU's shared RAM 0x124000–0x127FFF is the sub CPU's 0x07C000–0x07FFFF. Before it reads
 a table, the tool checks on the instructions' image the instructions that name it (`MAIN_INSTRUCTIONS`): the position's
-step, the bike's place, and the `lea` of each main CPU table below but the start templates' (0xCA78) and stage 3's
-background's word (0xDEB8); the sub CPU's paths' list (0x592) and stripes (0xD4E) are read unchecked.
+step, the bike's place, and the `lea` of each main CPU table below but the start templates' (0xCA78), and the hills'
+([ENDURO RACER's screen](#enduro-racers-screen)); the sub CPU's paths' list (0x592) and stripes (0xD4E) are read
+unchecked.
 
 - **Time and distance.** A tick is 1/60 s. The road position is the long at 0x126188, 16.16; each tick it gains the
   speed, the word at 0x12618C, × 256 (`asl.w #8, d0` at 0x608C, `add.l d0, $188(a6)` at 0x608E). The display shows
@@ -67,8 +68,8 @@ background's word (0xDEB8); the sub CPU's paths' list (0x592) and stripes (0xD4E
   CPU's pattern at 0xD4E + (the position's long & 0x1F0), 32 steps of 128 rows' bits.
 - **Water crossings.** {long start, long end (position << 8), word frame} at 0xD83C, ending at 0x7FFFFFFF: three, all
   frame 0, at 5236–5286, 5456–5526 and 5596–5656, where the road's surface and edges give way to the ground.
-- **Stage 3's background** comes in at position 4068, the word at 0xDEB8 of the hills' section table, which the tool
-  checks.
+- **Stage 3's background** comes in at position 4068, hill 4's hold's end (the word at 0xDEB8 of the hills' table),
+  which the tool checks.
 
 ## ENDURO RACER's sprites
 
@@ -121,6 +122,49 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
   0xD0F2 + 2s (0, 0, 0, 0, −4).
 - **Sky.** The 48 bits at 0xD8DC + 6s mark, from the horizon up, where each of colors 0x7C1–0x7CE begins: pixels 1–14
   of sprite palette 0x3C + s. Above them is the word at 0xD900 + 4s.
+
+## ENDURO RACER's screen
+
+How the original draws its road's hills, which the [grades' rule](original-road-data.md#profile-from-the-originals-screen)
+reads back. The main CPU sends the sub CPU 16 slope words, word 0 the farthest; the sub CPU lays the road's lines by
+them. K's researcher checked these words and rows against the original's screen in a research harness: the normal path
+at 16 positions and hill 1 at every position from 1530 to 1959.
+
+- **Tables.** The slope table T, 320 words at 0xDAE4 (`lea` at M 0xDA60); the hills' table, 8-byte entries {word start,
+  signed word target1, word hold's end, signed word target2} at 0xDE9C (`lea` at M 0xDA4C and 0xD6C2), seven to the
+  start 0x7FFF at 0xDED4: hills 1 to 7 start at 1536, 2560, 3328, 3878, 6144, 7424 and 8960 (`readHills`); stage 3's
+  words, 16 of 0x200 at 0xDD84 (`lea` at M 0xDACC). The next hill's start is compared at M 0xDA54
+  (`cmp.w (a2)+, d0`), which branches at 0xDA56 to the hills' routine at 0xDDA4; stage 3 is tested at M 0xDAC2
+  (`cmpi.w #2, $4040E`).
+- **The normal path** (M 0xDA48). At position P: buf[i] = T[(P & 0xFF) + 4i] + T[… + 1] + T[… + 2] + T[… + 3] (i 0
+  the nearest to 15 the farthest, summed in 16 bits); d3 = the 16-bit sum buf[0] + buf[1] + buf[2] + buf[3], shifted
+  arithmetically right 6 bits; word 15 − i = 0x200 − buf[i] − i × d3 (16 bits), a word from −0x40 to 0x40 made ±0x40
+  (0 made +0x40). The road repeats every 256 positions.
+- **Hills** (M 0xDDA4–0xDE9A), the table's entries in turn. At an entry's start all 16 words become 0x200; then once
+  each new whole position, by phase:
+  - 0: words 6, 5, …, 0 gain −1, −2, −4, …, −64; phase 1 when word 0 falls below target1.
+  - 1: unchanged until the position reaches the hold's end; then phase 2.
+  - 2: words 6 to 0 gain +1 to +64; phase 3 when word 0 rises above target2.
+  - 3: words 6 to 0 gain −2 to −128; phase 4 when word 0 is 0x200 or below.
+  - 4: done; from the next position the normal path, awaiting the next entry.
+
+  The words shown are these with a value above −0x40 and below 0 made −0x40, 0 left 0.
+
+- **Stage 3.** From 4096 to 6143 (while the stage count at 0x4040E is 2) every word is stage 3's (level). Hill 4's
+  phases run on to 4121, but the screen is level from 4096; hill 5 starts anew at 6144 (checked by the instructions; the
+  screen was checked on the normal path and hill 1).
+- **The sub CPU's layout** (S 0x6E6). The road lies from row 64 to row 229 in 16 segments, the farthest (word 0)
+  first. Σ is the 16 words' 16-bit sum; d2 = Σ shifted arithmetically right 6 bits (1 where 0); d1 = (165 × 128) ÷ d2,
+  rounded toward 0 to a signed 16-bit value. Segment j spans s16((word j × d1) shifted arithmetically right 6 bits) ÷ 128
+  rows, the product taken in full, the shifted value taken as a signed 16-bit value and divided as a real. y₀ = 64 and
+  y_{j+1} = y_j + segment j's rows; a negative segment is drawn upward. The road ROM's line r (1 the farthest to 129
+  the nearest) lies in segment j = min(15, ⌊(r − 1)/8⌋) on row y_j + (r − 1 − 8j)/8 × (y_{j+1} − y_j), lines taken by
+  eighths, linear between. Where word 0 is 0 the last screen stays drawn. The screen is 224 rows.
+- **A line's distance.** Line r lies d = c / (r + 3) − 4.19 positions ahead of the bike, c = 0.991 × 128 × 4.2456,
+  from two laws of this chapter: the sub CPU draws depth index d3 on line 0.991 (d3 + 3) − 3, where an object's unit is
+  (d3 + 3)/128 pixels, and an object d positions ahead is 4.2456 x / (d + 4.19) pixels.
+- **The level road.** All 16 words 0x200: line r on row 64 + 165 (r − 1)/128, that is (64 − 165 × 4/128) + (165c/128)
+  / (d + 4.19), a level pinhole whose horizon is row 58.84. The bike stands 0.75 positions ahead of the road position.
 
 ## ENDURO RACER's dump
 

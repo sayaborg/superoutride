@@ -1,7 +1,7 @@
 /**
  * ENDURO RACER's road as its programs hold it ([ENDURO RACER road data](../../docs/enduro-racer-road-data.md#enduro-racers-programs)):
- * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern and the
- * position where stage 3's background comes in.
+ * the stages' ends and road paths, the road's and ground's colors, the water crossings, the stripes' pattern, the
+ * hills' table and the position where stage 3's background comes in.
  */
 import { entries, long, sword, u8, word } from './program-words.js';
 import { readColors } from './road-tables.js';
@@ -11,8 +11,9 @@ const STAGE_ENDS = 0x53ac;
 const ROAD_COLORS = 0xd948;
 const GROUND_COLORS = 0xd918;
 const WATER_CROSSINGS = 0xd83c;
-/** The word holding the position where stage 3's background comes in: the hills' section table's. */
-const STAGE_3_BACKGROUND = 0xdeb8;
+/** The hills' table: 8-byte {start, target1, hold's end, target2}, ending at a start of 0x7FFF. */
+const HILLS = 0xde9c;
+const HILLS_END = 0x7fff;
 /** Sub CPU: the road paths' list and the stripes' pattern. */
 const PATH_LIST = 0x592;
 const PATH_LIST_LENGTH = 8;
@@ -91,9 +92,34 @@ export const readWaterCrossings = (main: Uint8Array): WaterCrossing[] =>
 export const readStripes = (sub: Uint8Array): number[] =>
   Array.from({ length: STRIPES_BYTES }, (_, i) => u8(sub, STRIPES + i));
 
-/** The position where stage 3's background comes in: the word at 0xDEB8, checked to be 4068. */
+/**
+ * A hill as the main CPU runs it: from `start` the slope words fall to `target1`, hold to `holdEnd`, rise past
+ * `target2` and return to level (positions; words of the sub CPU's slope).
+ */
+export interface Hill {
+  readonly start: number;
+  readonly target1: number;
+  readonly holdEnd: number;
+  readonly target2: number;
+}
+
+/** The hills' table at 0xDE9C, in running order: {word start, signed word target1, word hold's end, signed word target2}. */
+export const readHills = (main: Uint8Array): Hill[] =>
+  entries(
+    HILLS,
+    8,
+    (a) => word(main, a) === HILLS_END,
+    (a) => ({
+      start: word(main, a),
+      target1: sword(main, a + 2),
+      holdEnd: word(main, a + 4),
+      target2: sword(main, a + 6),
+    }),
+  );
+
+/** The position where stage 3's background comes in: the fourth hill's hold's end (0xDEB8), checked to be 4068. */
 export function readStage3Background(main: Uint8Array): number {
-  const position = word(main, STAGE_3_BACKGROUND);
+  const position = readHills(main)[3]?.holdEnd;
   if (position !== 4068) throw new RangeError(`Stage 3's background comes in at ${position}, not 4068`);
   return position;
 }

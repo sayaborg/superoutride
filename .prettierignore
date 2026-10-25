@@ -12,5 +12,6 @@ content/**/*.json
 
 .cache/
 
-# Design sources are saved exactly as given.
+# The grades' pieces and design sources are saved exactly as given.
+tools/road-data/screen-pieces.json
 content/hud-design-sources/
