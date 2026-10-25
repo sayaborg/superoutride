@@ -27,7 +27,7 @@ import {
 import { stageSpan } from './outrun-pieces.js';
 import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
 import { instruction, word } from './program-words.js';
-import { POSITION_METRES } from './offset-plan.js';
+import { POSITION_METRES } from './hills.js';
 import { roadObjects } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';

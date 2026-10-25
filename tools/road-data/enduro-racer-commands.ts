@@ -154,7 +154,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         elements: built.path.elements.length,
         ...fidelityReport(built.plan.fidelity),
         turn: degrees(built.plan.elements.reduce((sum, e) => sum + e.turn, 0)),
-        tightest: { at: round1(built.path.station(tightest.start)), radius: round1(radius(tightest)) },
+        tightest: { at: round1(tightest.start), radius: round1(radius(tightest)) },
         checkpoints: built.checks.map((q) => round1(stationOf(q))),
         finish: round1(stationOf(built.finish)),
         pastFinish: round1(built.path.length - stationOf(built.finish)),

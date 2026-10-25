@@ -378,7 +378,7 @@ function layCourse(inputs: CourseInputs) {
     };
     push(inputs.entry, 0);
     for (const e of planned) push((e.to - e.from) * metres, e.turn);
-    const path = new CoursePath(elements, 0);
+    const path = new CoursePath(elements);
     const pieces: Piece[] = [];
     for (let stage = 0; stage <= STAGES; stage++) {
       const from = stage === 0 ? 0 : along(STAGE_POSITIONS * stage);
@@ -398,7 +398,7 @@ function layCourse(inputs: CourseInputs) {
   };
   const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
   const { path, pieces } = lay(plan.elements);
-  const stationOf = (q: number) => path.station(along(q));
+  const stationOf = along;
   const end = path.length;
 
   // The colors along the road: each stage's from its start, the road's in the ground's colors over the water.
@@ -440,7 +440,7 @@ function layCourse(inputs: CourseInputs) {
     }
     if (spot.hit && spot.onRoad) passedThrough.push({ position: spot.position, x: spot.x, what: spot.what });
     placed.push({
-      s: path.station(u),
+      s: u,
       lateral: fromP,
       image: spot.image,
       palette: spot.palette,
@@ -462,7 +462,7 @@ function layCourse(inputs: CourseInputs) {
     step: metres,
     sides: () => [edges, edges],
     apart: PASSAGES_APART,
-  }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
+  });
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
   const mounds = moundKinks(inputs.jumps.map(stationOf), inputs.mound);
   const kinks = mounds.kinks;
@@ -566,13 +566,9 @@ interface Bands {
 function bandSpans(bands: Bands, band: 0 | 1, a: number, b: number) {
   const { path, metres, entry } = bands;
   const spans: { from: number; to: number; every: number; count: number }[] = [];
-  const pa = path.along(a),
-    pb = path.along(b);
   for (const e of path.elements) {
-    const [u0, u1] = [Math.max(e.start, pa), Math.min(e.start + e.length, pb)];
+    const [u0, u1] = [Math.max(e.start, a), Math.min(e.start + e.length, b)];
     if (u1 - u0 <= 1e-9) continue;
-    const scale = path.planeScale(e);
-    const station = (u: number) => path.station(e.start) + scale * (u - e.start);
     const width = STRIPE * metres;
     const period = 2 * width;
     // The band's first start at or before u0: its stretches begin at position 2k × STRIPE (k + FIRST_BAND + band even).
@@ -581,15 +577,15 @@ function bandSpans(bands: Bands, band: 0 | 1, a: number, b: number) {
     const out: { from: number; to: number }[] = [];
     for (; start < u1 - 1e-9; start += period) {
       const [x, y] = [Math.max(start, u0), Math.min(start + width, u1)];
-      if (scale * (y - x) > EPSILON) out.push({ from: station(x), to: station(y) });
+      if (y - x > EPSILON) out.push({ from: x, to: y });
     }
     // Whole stretches one after another are one repeat; a cut one at either end stands alone.
-    const whole = (s: { from: number; to: number }) => Math.abs(s.to - s.from - scale * width) < EPSILON;
+    const whole = (s: { from: number; to: number }) => Math.abs(s.to - s.from - width) < EPSILON;
     let k = 0;
     while (k < out.length) {
       let n = 1;
       while (whole(out[k]!) && k + n < out.length && whole(out[k + n]!)) n++;
-      spans.push({ ...out[k]!, every: scale * period, count: n });
+      spans.push({ ...out[k]!, every: period, count: n });
       k += n;
     }
   }

@@ -54,7 +54,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
       courses.push({
         course: file,
         sections: road.document.sections.length,
-        metres: round1(road.path.planeLength),
+        metres: round1(road.path.length),
         objects: road.objects,
         notBroughtOut: dropped,
         runs: road.plan.runs.length,

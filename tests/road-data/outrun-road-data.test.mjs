@@ -18,13 +18,12 @@ import {
   STEEPEST,
 } from '../../tools/road-data/road-profile.ts';
 import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
-import { stagePlan } from '../../tools/road-data/outrun-course.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
 import { composite } from '../../tools/road-data/two-roads.ts';
 import { stageSpan } from '../../tools/road-data/outrun-pieces.ts';
 import { OUTRUN_ROUTES, outrunRoad, routeName, stationOf } from '../../tools/road-data/outrun-roads.ts';
 import { roadObjects } from '../../tools/road-data/outrun-scenery.ts';
-import { POSITION_METRES } from '../../tools/road-data/offset-plan.ts';
+import { POSITION_METRES } from '../../tools/road-data/hills.ts';
 import { UNIT_METRES } from '../../tools/road-data/pixel-grid.ts';
 import { VECTOR_RESOLUTION } from '../../tools/road-data/heading-plan.ts';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
@@ -303,29 +302,7 @@ function pathOf(length, rate) {
   return { address: 0, x, y };
 }
 
-test('a stage becomes a road: its path turns between breaks at its joins, its width follows its points', () => {
-  // A left arc of radius 50 from 100 to 178 between two straights; the path turns from position 100 to 177.
-  const path = pathOf(400, (p) => (p >= 100 && p < 178 ? 1 / 50 : 0));
-  const curves = [
-    { position: 0, radius: 0, kind: 1 },
-    { position: 100, radius: 50, kind: 3 },
-    { position: 178, radius: 0, kind: 1 },
-  ];
-  // Breaks two positions either side of each join; the straights hold their headings, the rest turns as the path.
-  const plan = stagePlan(curves, path, 0, 300);
-  assert.deepEqual(
-    plan.map((s) => [s.from, s.to]),
-    [
-      [0, 98],
-      [98, 102],
-      [102, 176],
-      [176, 180],
-      [180, 300],
-    ],
-  );
-  [0, 2, 74, 2, 0].forEach((positions, i) => assert.ok(Math.abs(plan[i].turn - positions / 50) < 1e-3));
-  assert.throws(() => stagePlan([curves[0], { ...curves[1], kind: 2 }, curves[2]], path, 0, 300), /turns left/);
-
+test("a stage's road width follows its points", () => {
   // The road width falls from 450 to 300 at 30 × 16 / 303 units a position from 50.
   const width = [{ position: 50, kind: 1, value: 300, speed: 30 }];
   assert.deepEqual(roadWidths(width, 300, 450), [

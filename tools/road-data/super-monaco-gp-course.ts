@@ -341,7 +341,6 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       length: e.length * PATH_UNIT,
       turn: e.turn,
     })),
-    0,
   );
   const stationAt = [...plan.stations, plan.length].map((s) => s * PATH_UNIT);
   const station = (q: number) => {
@@ -372,7 +371,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   };
   /** P's radius at step q, and whether it turns right there (Infinity on a straight). */
   const curveAt = (q: number) => {
-    const u = line.station(station(q));
+    const u = station(q);
     const e = line.elements.find((x) => u >= x.start && u < x.start + x.length) ?? line.elements.at(-1)!;
     return { radius: e.turn === 0 ? Infinity : e.length / Math.abs(e.turn), right: e.turn < 0 };
   };

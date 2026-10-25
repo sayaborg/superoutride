@@ -7,7 +7,7 @@
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { long } from './program-words.js';
 import { UNIT_METRES } from './pixel-grid.js';
-import { POSITION_METRES } from './offset-plan.js';
+import { POSITION_METRES } from './hills.js';
 
 /** The phase word gains km/h / 64 three times a tick, its remainder shared: twice in the frame interrupt, once in object 0. */
 const PHASE_STEPS = 3;

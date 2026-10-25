@@ -1,6 +1,7 @@
 /**
  * OUTRUN's hills as its screen shows them ([Original road data](../../docs/original-road-data.md#hills)): the road's top
- * row along a stage, from its height points and height tables, by the original's rule. Nothing is fitted.
+ * row along a stage, from its height points and height tables, by the original's rule. Nothing is fitted. With them,
+ * the board's ticks and what a road position and a stripe are in metres.
  */
 import type { HeightTable, WidthHeightPoint } from './road-tables.js';
 
@@ -15,6 +16,10 @@ const WAIT_RATE = 120;
 /** Ticks a second, and the road position each km/h advances a tick (0x12F, 16.16). */
 export const TICKS = 30;
 export const POSITION_PER_KMH = 0x12f / 65536;
+/** One road position in metres: each tick the displayed km/h advances it by 0x12F / 65536 positions. */
+export const POSITION_METRES = 1 / (3.6 * TICKS * POSITION_PER_KMH);
+/** The stripes' period, metres: each tick adds km/h / 64 three times to the road's fine position, 32 of it a period. */
+export const STRIPE_PERIOD = ((32 * 303) / 3072) * POSITION_METRES;
 
 /**
  * The road's top row: 512 lines in seven segments, near to far, `s0 = 255(1 − f)`, `s1 = (256 + 255f)/2`, and the rest

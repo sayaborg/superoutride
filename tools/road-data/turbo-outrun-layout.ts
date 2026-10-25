@@ -6,8 +6,9 @@
  * with the humps and the crossings' bumps.
  */
 import { requireInput } from '../course/authoring-io.js';
-import { POSITION_METRES, Quadratic, type TurnSegment } from './offset-plan.js';
-import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
+import { POSITION_METRES } from './hills.js';
+import { Quadratic } from './quadratic.js';
+import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { passagePairs, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
@@ -206,7 +207,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
       ),
     );
   const plan = headingPlan(table, VECTOR_RESOLUTION, POSITION_METRES, least);
-  const path: TurnSegment[] = [];
+  const path: PlanElement[] = [];
   for (const s of [{ from: 0, to: go, turn: 0 }, ...plan.elements]) {
     const before = path.at(-1);
     if (before && before.turn === 0 && s.turn === 0) path[path.length - 1] = { ...before, to: s.to };
@@ -214,7 +215,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   }
   const line = new CoursePath(
     path.map((s) => ({ start: metres(s.from), length: metres(s.to - s.from), turn: s.turn })),
-    0,
   );
   // The Sections: one a stage, each cut again where its road comes near itself.
   const need = (g: number, side: 'left' | 'right') => leastLaneRadius(laneReach(g, side));

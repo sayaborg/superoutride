@@ -14,7 +14,7 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { Quadratic, type QuadraticPiece } from './offset-plan.js';
+import { Quadratic, type QuadraticPiece } from './quadratic.js';
 import { monotoneCubic } from './monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';

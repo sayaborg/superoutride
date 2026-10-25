@@ -10,7 +10,7 @@ import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { JOINT_SNAP, laneCentre, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
-import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
+import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';

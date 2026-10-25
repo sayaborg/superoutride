@@ -12,11 +12,10 @@ The road data tool keeps each original's ROM set, addresses and formats in its o
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
 a program's words and the halves it is interleaved from (`program-words`), the road tables in OUTRUN's format
 (`road-tables`: palette words, curves, widths and heights, scenery points, road paths and height tables, and the road
-widths they give), the hills (`hills`), the profile, the crossings' bumps and a Section's profile knots
-(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), the plan
-laid off a road path with its corners rounded (`offset-plan`, with OUTRUN's road position and stripes' period), a road
-path as straights and arcs (`path-plan`: `sectionPlan`), a heading table's plan (`heading-plan`: its runs and the turns
-between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them) and a
+widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile, the crossings' bumps and a Section's profile knots
+(`road-profile`), where a road passes over itself (`crossings`: its overlapping cells and their crossings), a function
+of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
+(`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them) and a
 plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
 sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
@@ -290,22 +289,6 @@ as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, which every ori
    - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
      apart.
 
-## Plan
-
-The offset plan (`OffsetPlan`), on which no original's course is now laid, is where the original draws the centre lane:
-its road path P laid off sideways by the centre lane's centre. P turns as S's path table does, at one rate between
-breaks: the stretch's ends, and two positions either side of each join of its curves (moved back by `pathOffset`), so
-that a join's own turn stays at the join; a straight holds the middle of the path's headings inside it. Over any 50 m,
-fitted, P lies within 0.26 m of the path the table draws. The centre lane is at a stage b's (−(w + 70.67 + c) / 2 from
-the roads' middle, −w at w ≥ 212), or e's (its mirror) where the stage is entered from a fork's left side. A position's
-station is the arc length along the plan to the point across from P there (`OffsetPlan`); everything placed by position
-(widths, objects, gates, height tables, sky changes) takes it. As straights and arcs: a straight where P is straight and
-the offset changes evenly, an arc where P is an arc and the offset holds, else arcs of at most 2 positions (4 on a
-straight) turning as the curve does, each joint within 1 cm of the curve (the largest of the roads 4.5 mm). A corner of
-the curve (P's curvature changing while the offset changes) is turned by an arc either side, each turning half of it, no
-sharper than 120 m and within 3 mm of it. An arc that would be straighter than 40 km is a straight, its turn carried on;
-one shorter than a millimetre (two breaks all but together) is carried on into the next, its length and its turn.
-
 ## Plan from a heading table
 
 A heading table, headings each at its position (a table's positions one apart, or as a course places them),
@@ -367,23 +350,6 @@ closes as the path does and lies within the resolution of every point.
 - **Lap.** The plan runs from the foot of the first point round to it again, and each point's station is its foot's.
   A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
   closes to under a micrometre).
-
-## Plan from a path
-
-A road path becomes straights and arcs over its positions (`sectionPlan`, `path-plan`), on which no original's course
-is now laid:
-
-- **Folds.** A position turning more than 1° off the median of the seven about it (fewer at the path's ends) is a fold:
-  its excess is spread evenly over those seven, the sum kept. The headings are rebuilt, and their line laid, each
-  position a step along its ends' mean heading.
-- **Elements.** From the section's start, each element is the longest that stays within 0.25 m of the line at every
-  position it spans, grown a position at a time until eight longer ones in a row miss: a straight where it turns less
-  than 0.01°, else an arc turning evenly from heading to heading.
-- **Ends.** The first and last elements are straights at the section's end headings, which are every section's, (0,
-  4096); each arc turns from the heading the elements before it reach to its end heading, the last arc to the
-  section's end heading, so no turn dropped is lost. An arc straighter than 40 km is a straight, its turn carried by the
-  next arc (the course format's lengths); the last arc straighter than that is a straight too, the arc before it then
-  the last. Straights one after another are one.
 
 ## Profile
 

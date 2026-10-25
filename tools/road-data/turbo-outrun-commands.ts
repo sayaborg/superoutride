@@ -5,7 +5,7 @@
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
-import { POSITION_METRES } from './offset-plan.js';
+import { POSITION_METRES } from './hills.js';
 import { turboOutrunDump } from './turbo-outrun-dump.js';
 import { assembleTurboOutrunPrograms } from './turbo-outrun-rom.js';
 import { turboOutrunObjects } from './turbo-outrun-scenery.js';

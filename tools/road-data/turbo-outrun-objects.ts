@@ -6,8 +6,8 @@
  * height and, where the original tests a hit and it stands on the ground, a body.
  */
 import { long } from './program-words.js';
-import type { Quadratic } from './offset-plan.js';
-import { POSITION_METRES } from './offset-plan.js';
+import type { Quadratic } from './quadratic.js';
+import { POSITION_METRES } from './hills.js';
 import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { type PictureUse } from './turbo-outrun-boards.js';

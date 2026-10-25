@@ -185,13 +185,6 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- EX-9: the old plan's parts deleted, with what they alone use: the offset plan and what of `offset-plan.ts` lives on
-  (`POSITION_METRES`, `STRIPE_PERIOD`, `Quadratic`) moved to its owner; the fitted path plan and its folds, and
-  `path-plan.ts`, which nothing uses; the plane at offset 0, once `course-path.ts` and SUPER MONACO GP no longer use
-  it; the widths' roundings; OUTRUN's `stagePlan`, `STRAIGHT_TOLERANCE` and copy of `pathHeadings`, which tests alone
-  use; and the plan's injectivity check (`plan-domain-injectivity.ts`) with its `plan_coordinate_overlap` diagnostic,
-  which nothing calls. Original road data's Plan and Plan from a path, and Content and gameplay's diagnostic, go with
-  them.
 - EX-10: the profile from a rise table, shared, and SUPER MONACO GP's hills by it.
 - EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m. OUTRUN's own
   crossings (`overlap`, `roadCrossings`, its 2 positions and 60 m) and ENDURO RACER's `otherPassages` (another passage

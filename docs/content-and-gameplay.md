@@ -723,8 +723,6 @@ content build, authoring tools) supplies its document path once, and receives a 
 Build image compilation delivers, under each name, every sprite master the course names (a placement's image or a
 movable body's knocked image) as saved, with every level of its LOD, and each background as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
-The `plan_coordinate_overlap` variant additionally requires
-`overlap: {section, intervals: [{sStart, sEnd}, ...]}`; ordinary diagnostics have no overlap fields.
 `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
 counts, ordering, lane support, grid, lock/closure and circuit finish conditions.
 Shared shape, numeric, reference and position rules keep their own codes (for example

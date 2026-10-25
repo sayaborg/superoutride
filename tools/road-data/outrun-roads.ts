@@ -11,7 +11,7 @@ import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
 import { compositeOf, type FeatureEdge } from './two-roads.js';
-import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
+import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
@@ -27,7 +27,7 @@ import {
   joinedWidth,
   withEntry,
 } from './outrun-pieces.js';
-import type { Quadratic } from './offset-plan.js';
+import type { Quadratic } from './quadratic.js';
 import {
   bendOf,
   closedGrades,
@@ -359,7 +359,6 @@ function laySpan(road: RoadSpan) {
   const plan = headingPlan(span.headings, VECTOR_RESOLUTION, POSITION_METRES, least);
   const line = new CoursePath(
     plan.elements.map((e) => ({ start: along(e.from), length: along(e.to - e.from), turn: e.turn })),
-    0,
   );
   // The least radius a side's lanes keep, `u` metres along P.
   const need = (u: number, side: 'left' | 'right') =>

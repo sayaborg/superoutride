@@ -29,14 +29,7 @@ type CourseDiagnosticCode =
   | 'invalid_rules';
 
 /** The shared admission diagnostic, with the course's semantic codes. */
-type InputDiagnostic =
-  | AdmissionDiagnostic<CourseDiagnosticCode>
-  | (AdmissionDiagnostic<'plan_coordinate_overlap'> & {
-      readonly overlap: {
-        readonly section: string;
-        readonly intervals: readonly { readonly sStart: number; readonly sEnd: number }[];
-      };
-    });
+type InputDiagnostic = AdmissionDiagnostic<CourseDiagnosticCode>;
 
 interface AssetDiagnostic {
   readonly kind: 'asset';
@@ -78,7 +71,7 @@ export type CourseResult<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly diagnostics: readonly CourseDiagnostic[] };
 
 /** The shared admission error with the course's semantic codes and optional diagnostic detail. */
-export class CourseInputError extends AdmissionError<CourseDiagnosticCode | 'plan_coordinate_overlap'> {
+export class CourseInputError extends AdmissionError<CourseDiagnosticCode> {
   readonly diagnostic: InputDiagnostic;
 
   constructor(diagnostic: InputDiagnostic);

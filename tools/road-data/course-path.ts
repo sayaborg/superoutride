@@ -1,7 +1,6 @@
 /**
- * An original's road path P laid in the world ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md)):
- * its straights and arcs one after another from the course's entry, the plane the centre lane runs on (P laid off a
- * fixed distance to its left, so again straights and arcs), and each road position's station on the plane.
+ * An original's road path P laid in the world ([Original road data](../../docs/original-road-data.md#plan-from-a-heading-table)):
+ * its straights and arcs one after another from the course's entry, a station a distance along it.
  */
 
 /** A pose: metres, heading in radians counterclockwise from +x. */
@@ -18,36 +17,17 @@ export interface PathElement {
   readonly turn: number;
 }
 
-/**
- * P and its plane: P's elements from the entry, facing +y; the plane `offset` metres left of P, where an arc turning
- * left (its inside) is shorter and one turning right longer by the offset times the turn.
- */
+/** P: its elements from the entry, facing +y. */
 export class CoursePath {
   readonly length: number;
-  /** Each element's station on the plane where it starts, and the plane's length. */
-  private readonly stations: readonly number[];
-  readonly planeLength: number;
+  /** Each element's pose where it starts. */
   private readonly poses: readonly Pose[];
-  constructor(
-    readonly elements: readonly PathElement[],
-    readonly offset: number,
-  ) {
+  constructor(readonly elements: readonly PathElement[]) {
     const last = elements.at(-1)!;
     this.length = last.start + last.length;
-    const stations = [0];
     const poses: Pose[] = [{ x: 0, y: 0, heading: Math.PI / 2 }];
-    for (const e of elements) {
-      stations.push(stations.at(-1)! + this.planeScale(e) * e.length);
-      poses.push(advance(poses.at(-1)!, e, e.length));
-    }
-    this.stations = stations;
-    this.planeLength = stations.at(-1)!;
+    for (const e of elements) poses.push(advance(poses.at(-1)!, e, e.length));
     this.poses = poses;
-  }
-
-  /** How much longer the plane is than P along `e`. */
-  planeScale(e: PathElement): number {
-    return 1 - (this.offset * e.turn) / e.length;
   }
 
   /** The element holding `u` metres along P (the later at a joint), and its index. */
@@ -59,24 +39,6 @@ export class CoursePath {
       else hi = mid - 1;
     }
     return { e: this.elements[lo]!, k: lo };
-  }
-
-  /** The station on the plane across from `u` metres along P. */
-  station(u: number): number {
-    const { e, k } = this.at(u);
-    return this.stations[k]! + this.planeScale(e) * (u - e.start);
-  }
-
-  /** The metres along P across from station `s`. */
-  along(s: number): number {
-    let [lo, hi] = [0, this.elements.length - 1];
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      if (this.stations[mid]! <= s) lo = mid;
-      else hi = mid - 1;
-    }
-    const e = this.elements[lo]!;
-    return e.start + (s - this.stations[lo]!) / this.planeScale(e);
   }
 
   /** P's pose `u` metres along it. */

@@ -185,7 +185,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     };
     push(entry, 0);
     for (const e of planned) push((e.to - e.from) * metres, e.turn);
-    const path = new CoursePath(elements, 0);
+    const path = new CoursePath(elements);
     const pieces: Piece[] = [];
     for (let order = 0; order <= count; order++) {
       const from = order === 0 ? 0 : along(length * order);
@@ -200,7 +200,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   };
   const plan = headingPlan(evenly(inputs.headings), VECTOR_RESOLUTION, metres, () => reach);
   const { path, pieces } = lay(plan.elements);
-  const stationOf = (q: number) => path.station(along(q));
+  const stationOf = along;
   const end = path.length;
 
   // The colors along the road: each section's until its ground changes, the ground's steps, then the next's.
@@ -288,7 +288,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     step: metres,
     sides: () => [half, half],
     apart: PASSAGES_APART,
-  }).map(([a, b]) => [path.station(a), path.station(b)] as [number, number]);
+  });
   const crossings = crossingsOf(pairs, PASSAGE_GAP * metres);
   const separated = separatedCrossings([], crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
@@ -409,7 +409,7 @@ function sectionDocument(
   // The strips: the ground, the sand to the ground's width beyond the lanes, the road's surface, lines, edge bands and
   // centre line, each in its two colors by halves of its period counted from GO.
   const period = inputs.stripe * inputs.metres;
-  const go = path.station(inputs.cameraDistance);
+  const go = inputs.cameraDistance;
   const strips: unknown[] = [];
   type Edge = number | Lateral | null;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => ({

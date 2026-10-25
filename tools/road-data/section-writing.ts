@@ -119,8 +119,7 @@ export function passagePairs(
   need: (u: number, side: 'left' | 'right') => number,
   step: number,
 ): [number, number][] {
-  const origin = path.station(from);
-  const at = (s: number) => path.along(origin + s);
+  const at = (s: number) => from + s;
   const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, planGeometry(writtenPlan(path, { from, to })));
   const clearance = createPlanClearance(plan);
   const sample: PlanPathSample = { x: 0, z: 0, s: 0, heading: 0, segmentIndex: 0 };
@@ -215,7 +214,7 @@ export function writtenPlan(
   const elements: WrittenElement[] = [];
   const fixed = exact ? (value: number) => value : round;
   // Each joint at its station from the piece's start to the micrometre, so the lengths add to the stations.
-  const station = (u: number) => fixed(path.station(u) - path.station(piece.from));
+  const station = (u: number) => fixed(u - piece.from);
   for (const e of path.elements) {
     const [a, b] = [Math.max(e.start, piece.from), Math.min(e.start + e.length, piece.to)];
     if (b - a <= 1e-9) continue;
