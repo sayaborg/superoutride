@@ -7,7 +7,7 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, stripeHalves, writtenPlan, type WrittenElement } from './section-writing.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
@@ -411,27 +411,8 @@ function sectionDocument(
     material,
   });
   /** Half `h` of each period `p` from GO over stations `[a, b]` in `color`. */
-  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: number) => {
-    const w = p / 2;
-    const out: unknown[] = [];
-    // The first period whose half h ends after a.
-    let k = Math.floor((a - go - h * w) / p);
-    if (go + k * p + h * w + w <= a + EPSILON) k++;
-    const startOf = (j: number) => go + j * p + h * w;
-    if (startOf(k) < a - EPSILON) {
-      if (Math.min(b, startOf(k) + w) - a > EPSILON)
-        out.push(strip(a, Math.min(b, startOf(k) + w), left, right, color, null));
-      k++;
-    }
-    let n = 0;
-    while (startOf(k + n) + w <= b + EPSILON) n++;
-    if (n > 0) {
-      const element = strip(startOf(k), startOf(k) + w, left, right, color, null);
-      out.push(n === 1 ? element : { kind: 'repeat', every: round(p), count: n, elements: [element] });
-    }
-    if (startOf(k + n) < b - EPSILON) out.push(strip(startOf(k + n), b, left, right, color, null));
-    return out;
-  };
+  const halves = (h: 0 | 1, p: number, a: number, b: number, left: Edge, right: Edge, color: number) =>
+    stripeHalves(h, p, go, a, b, (from, to) => strip(from, to, left, right, color, null));
   const two = (pair: ColorPair | readonly [number, number]) =>
     ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
   const own = context.stretches

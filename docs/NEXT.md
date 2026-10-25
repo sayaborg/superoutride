@@ -193,7 +193,6 @@ Rules of the stage:
 PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
-  - The stripes at one period, EX-7j2's count of halves in every original.
   - The Sections' cuts by one rule, their distance from a gate one length in metres; `turbo-outrun-layout.ts`'s own
     `domainCuts`, and SUPER MONACO GP's cuts by checkpoints and objects' counts, among them.
   - The material under two roads by one rule (OUTRUN's by road, TURBO OUTRUN's one sheet and `OPEN`), and the lanes

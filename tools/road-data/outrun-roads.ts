@@ -41,6 +41,7 @@ import {
   raisedSplit,
   repeated,
   simplified,
+  stripeHalves,
   writtenPlan,
 } from './section-writing.js';
 import { ruleGrid, type GridKind } from './grid-rule.js';
@@ -787,7 +788,6 @@ function sectionDocument(
   const { colors } = span.stages[0]!.stage;
   const ground = span.stages[0]!.stage.groundStripes;
   const surface = colors.surface.rgb555;
-  const half = STRIPE_PERIOD / 2;
   const strip = (
     a: number,
     b: number,
@@ -804,26 +804,11 @@ function sectionDocument(
     color,
     material,
   });
-  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO:
-  // a part half where `a` falls in one, the whole halves as a repeat, a part half where `b` does.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
-    const phase = h * half - (roadOrigin - section.options.cameraDistance);
-    const first = phase + Math.ceil((a - phase) / STRIPE_PERIOD - 1e-9) * STRIPE_PERIOD;
-    const pieces: unknown[] = [];
-    if (first - STRIPE_PERIOD + half > a + 1e-6)
-      pieces.push(strip(a, Math.min(b, first - STRIPE_PERIOD + half), left, right, color, null));
-    // The whole halves whose last, repeated at the period as written, ends within `b`.
-    const every = round(STRIPE_PERIOD);
-    const count = first + half <= b + 1e-9 ? Math.max(0, Math.floor((b - first - half + 1e-9) / every) + 1) : 0;
-    const within = count > 0 && first + half + (count - 1) * every > b ? count - 1 : count;
-    if (within > 0) {
-      const element = strip(first, first + half, left, right, color, null);
-      pieces.push(within === 1 ? element : { kind: 'repeat', every, count: within, elements: [element] });
-    }
-    const last = first + within * STRIPE_PERIOD;
-    if (last < b - 1e-6) pieces.push(strip(last, b, left, right, color, null));
-    return pieces;
-  };
+  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
+    stripeHalves(h, STRIPE_PERIOD, section.options.cameraDistance - roadOrigin, a, b, (from, to) =>
+      strip(from, to, left, right, color, null),
+    );
   const colored = (
     a: number,
     b: number,

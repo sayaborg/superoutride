@@ -9,7 +9,15 @@ import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
-import { JOINT_SNAP, laneCentre, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
+import {
+  JOINT_SNAP,
+  laneCentre,
+  raisedSplit,
+  repeated,
+  simplified,
+  stripeHalves,
+  writtenPlan,
+} from './section-writing.js';
 import { sectionProfile } from './road-profile.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
@@ -358,7 +366,6 @@ function sectionDocument(
 
   // The strips: the ground, the sand between the verges, each road's asphalt, and the lines and edge bands the roads'
   // picture shows, each in its two colors by halves of the stripes' period counted from GO.
-  const half = STRIPE_PERIOD / 2;
   const go = context.layout.station(context.layout.go);
   const strip = (
     a: number,
@@ -368,23 +375,9 @@ function sectionDocument(
     color: number | null,
     material: string | null,
   ) => ({ kind: 'strip', start: atStation(a), end: atStation(b), left, right, color, material });
-  // A color over half `h` of every period within `[a, b]`, Section metres: a part half where `a` falls in one, the whole
-  // halves as a repeat, a part half where `b` does.
-  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) => {
-    const phase = h * half - (origin - go);
-    const firstHalf = phase + Math.ceil((a - phase) / STRIPE_PERIOD - 1e-9) * STRIPE_PERIOD;
-    const out: unknown[] = [];
-    if (firstHalf - STRIPE_PERIOD + half > a + 1e-6)
-      out.push(strip(a, Math.min(b, firstHalf - STRIPE_PERIOD + half), left, right, color, null));
-    const count = firstHalf + half <= b + 1e-9 ? Math.floor((b - firstHalf - half) / STRIPE_PERIOD + 1e-9) + 1 : 0;
-    if (count > 0) {
-      const element = strip(firstHalf, firstHalf + half, left, right, color, null);
-      out.push(count === 1 ? element : { kind: 'repeat', every: round(STRIPE_PERIOD), count, elements: [element] });
-    }
-    const lastHalf = firstHalf + count * STRIPE_PERIOD;
-    if (lastHalf < b - 1e-6) out.push(strip(lastHalf, b, left, right, color, null));
-    return out;
-  };
+  // A color over half `h` of every period within `[a, b]`, Section metres, the periods counted from GO.
+  const halves = (h: 0 | 1, a: number, b: number, left: Lateral | null, right: Lateral | null, color: number) =>
+    stripeHalves(h, STRIPE_PERIOD, go - origin, a, b, (from, to) => strip(from, to, left, right, color, null));
   const colored = (
     a: number,
     b: number,
