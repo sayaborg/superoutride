@@ -422,10 +422,13 @@ one flat board that does not bend:
   environment at the point of interest, as the game's is the one at the point its camera follows.
 
 Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
-beyond it), the visible walls, the boards (standing rows, lying rows, shadows, boards repeating sideways, movable
-objects, base points, and outlines and folds, which show each repetition), the sky, and the boards colored by how they
-are written (a repeat's original or copy, one element by reference or by number). At first only what the game shows is
-on: the ground, the visible walls, the boards, the shadows and the sky.
+beyond it), the road (centreline and distances, lanes, Boundaries, the plan's straights and arcs with their radii, the
+profile's PVIs, vertical curves and grades, whose colors step at ±20 % and ±25 %), the walls (visible, invisible and the
+course limits, the unseen ones as translucent curtains), the boards (standing rows, lying rows, shadows, boards repeating
+sideways, movable objects, the contact lines, base points, and outlines and folds, which show each repetition), the
+marks (Section ends, start, checkpoints and finish, the grid), the sky, and the boards colored by how they are written
+(a repeat's original or copy, one element by reference or by number). At first only what the game shows is on: the
+ground, the visible walls, the boards, the shadows and the sky.
 
 The view turns about its point of interest, comes nearer and moves sideways: one finger turns and two pinch and move on
 a touch screen, the mouse's first button turns, its other buttons (or Shift) move and its wheel comes nearer. A slider

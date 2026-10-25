@@ -9,7 +9,7 @@ import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../../src/view/display-scale.js';
 import { backgroundYawX } from '../../src/view/tile-background.js';
 import { stationIndexAt } from '../../src/course/geometry/station-sequence.js';
 import { openPublishedStore } from '../workbench/published-store.js';
-import { createViewerGl, type GpuMesh } from './viewer-gl.js';
+import { createViewerGl, type GpuMesh, type ViewParameters } from './viewer-gl.js';
 import { attachCameraInput, focalPixels, screenRay, viewParameters, type OrbitCamera } from './viewer-camera.js';
 import {
   layOutCourse,
@@ -30,6 +30,23 @@ import {
   type BoardMeshes,
   type BoardRecord,
 } from './viewer-boards.js';
+import {
+  buildBoundaries,
+  buildCentreline,
+  buildGates,
+  buildGrid,
+  buildInvisibleWallCurtains,
+  buildLanes,
+  buildLimitCurtains,
+  buildObjectLines,
+  buildPlan,
+  buildProfile,
+  buildSectionEnds,
+  GRADE_LEGEND,
+  gradeColor,
+  type Label,
+  type LineLayer,
+} from './viewer-overlays.js';
 import { pickBoard } from './viewer-pick.js';
 
 /**
@@ -42,14 +59,25 @@ type LayerKey =
   | 'outside'
   | 'clearance'
   | 'unclear'
+  | 'centreline'
+  | 'lanes'
+  | 'boundaries'
+  | 'plan'
+  | 'profile'
   | 'walls'
+  | 'invisibleWalls'
+  | 'limits'
   | 'standing'
   | 'lying'
   | 'shadows'
   | 'bands'
   | 'movable'
+  | 'objects'
   | 'anchors'
   | 'outlines'
+  | 'sections'
+  | 'gates'
+  | 'grid'
   | 'sky'
   | 'form';
 
@@ -74,12 +102,51 @@ const LAYERS: readonly LayerDefinition[] = [
     initial: false,
     legend: [{ color: [255, 0, 200], text: 'not one-to-one' }],
   },
+  { key: 'centreline', label: 'Centreline and distances', group: 'Road', initial: false },
+  { key: 'lanes', label: 'Lanes', group: 'Road', initial: false },
+  { key: 'boundaries', label: 'Boundaries', group: 'Road', initial: false },
+  {
+    key: 'plan',
+    label: 'Plan: straights, arcs, radii',
+    group: 'Road',
+    initial: false,
+    legend: [
+      { color: [230, 230, 230], text: 'straight' },
+      { color: [90, 160, 255], text: 'arc left' },
+      { color: [255, 90, 90], text: 'arc right' },
+    ],
+  },
+  {
+    key: 'profile',
+    label: 'Profile: PVIs, vertical curves, grade',
+    group: 'Road',
+    initial: false,
+    legend: [
+      ...GRADE_LEGEND.map(({ text, grade }) => ({ color: gradeColor(grade), text })),
+      { color: [255, 0, 255], text: 'vertical curve ends' },
+    ],
+  },
   { key: 'walls', label: 'Visible walls', group: 'Walls', initial: true },
+  {
+    key: 'invisibleWalls',
+    label: 'Invisible walls',
+    group: 'Walls',
+    initial: false,
+    legend: [{ color: [255, 200, 0], text: 'curtain' }],
+  },
+  {
+    key: 'limits',
+    label: 'Course limits',
+    group: 'Walls',
+    initial: false,
+    legend: [{ color: [255, 60, 60], text: 'curtain' }],
+  },
   { key: 'standing', label: 'Standing rows', group: 'Boards', initial: true },
   { key: 'lying', label: 'Lying rows', group: 'Boards', initial: true },
   { key: 'shadows', label: 'Shadows', group: 'Boards', initial: true },
   { key: 'bands', label: 'Boards repeating sideways', group: 'Boards', initial: true },
   { key: 'movable', label: 'Movable objects', group: 'Boards', initial: true },
+  { key: 'objects', label: 'Contact lines', group: 'Boards', initial: false },
   { key: 'anchors', label: 'Base points', group: 'Boards', initial: false },
   {
     key: 'outlines',
@@ -91,6 +158,9 @@ const LAYERS: readonly LayerDefinition[] = [
       { color: [255, 0, 255], text: 'fold' },
     ],
   },
+  { key: 'sections', label: 'Section ends', group: 'Marks', initial: false },
+  { key: 'gates', label: 'Start, checkpoints, finish', group: 'Marks', initial: false },
+  { key: 'grid', label: 'Grid', group: 'Marks', initial: false },
   { key: 'sky', label: 'Sky', group: 'Sky', initial: true },
   {
     key: 'form',
@@ -106,6 +176,19 @@ const LAYERS: readonly LayerDefinition[] = [
   },
 ];
 
+/** The line layers read from the compiled course, each built when first shown. */
+const LINE_LAYERS: Partial<Record<LayerKey, (layout: CourseLayout) => LineLayer>> = {
+  centreline: buildCentreline,
+  lanes: buildLanes,
+  boundaries: buildBoundaries,
+  plan: buildPlan,
+  profile: buildProfile,
+  objects: buildObjectLines,
+  sections: buildSectionEnds,
+  gates: buildGates,
+  grid: buildGrid,
+};
+
 /** Metres the ground is drawn beyond each course limit at first, and the slider's most. */
 const INITIAL_DISPLAY_WIDTH = 20;
 const MAXIMUM_DISPLAY_WIDTH = 1000;
@@ -113,6 +196,7 @@ const MAXIMUM_DISPLAY_WIDTH = 1000;
 const LINE_WIDTH = 2;
 
 const canvas = mustGet<HTMLCanvasElement>('view');
+const labelCanvas = mustGet<HTMLCanvasElement>('labels');
 const status = mustGet<HTMLElement>('status');
 const courseSelect = mustGet<HTMLSelectElement>('course');
 const slider = mustGet<HTMLInputElement>('s');
@@ -142,6 +226,9 @@ interface Loaded {
   levels: Uint8Array;
   outlines: GpuMesh | null;
   anchors: GpuMesh | null;
+  lines: Map<LayerKey, { mesh: GpuMesh; labels: Label[] }>;
+  limits: GpuMesh | null;
+  invisibleWalls: GpuMesh | null;
   sky: object | null;
 }
 let loaded: Loaded | null = null;
@@ -213,7 +300,21 @@ function buildLayers() {
 function layersChanged(key: LayerKey) {
   if (key === 'outside') rebuildGround();
   else if (key === 'materials' && loaded && !loaded.materialGround) rebuildGround();
+  else ensureLayer(key);
   requestDraw();
+}
+
+/** Build a line layer or curtain the first time it is shown. */
+function ensureLayer(key: LayerKey) {
+  if (!loaded || !shown.get(key)) return;
+  const build = LINE_LAYERS[key];
+  if (build && !loaded.lines.has(key)) {
+    const layer = build(loaded.layout);
+    loaded.lines.set(key, { mesh: gpu.linesFrom(layer.lines), labels: layer.labels });
+  }
+  if (key === 'limits' && !loaded.limits) loaded.limits = gpu.meshFrom(buildLimitCurtains(loaded.layout));
+  if (key === 'invisibleWalls' && !loaded.invisibleWalls && loaded.document)
+    loaded.invisibleWalls = gpu.meshFrom(buildInvisibleWallCurtains(loaded.layout, loaded.document));
 }
 
 /** The drawn ground's width beyond each course limit. */
@@ -262,9 +363,12 @@ function release(course: Loaded) {
     course.walls,
     course.outlines,
     course.anchors,
+    course.limits,
+    course.invisibleWalls,
   ])
     gpu.remove(mesh);
   if (course.boards) for (const mesh of Object.values(course.boards)) gpu.remove(mesh);
+  for (const layer of course.lines.values()) gpu.remove(layer.mesh);
 }
 
 const describe = (course: Loaded) =>
@@ -297,11 +401,15 @@ async function openCourse(id: string) {
       levels: new Uint8Array(0),
       outlines: null,
       anchors: null,
+      lines: new Map(),
+      limits: null,
+      invisibleWalls: null,
       sky: null,
     };
     info.hidden = true;
     rebuildGround();
     loaded.walls = gpu.meshFrom(buildWalls(loaded.layout));
+    for (const layer of LAYERS) ensureLayer(layer.key);
     const length = routeLength(loaded.layout.route);
     slider.max = String(length);
     slider.step = String(Math.max(0.1, length / 4000));
@@ -489,14 +597,65 @@ function draw() {
   }
   if (shown.get('unclear')) gpu.drawMesh(loaded.unclear, view, { translucent: true });
   if (shown.get('clearance')) gpu.drawLines(loaded.clearance, view, LINE_WIDTH, true);
+  for (const [key, layer] of loaded.lines)
+    if (shown.get(key) && key !== 'objects') gpu.drawLines(layer.mesh, view, LINE_WIDTH, true);
   if (shown.get('walls')) gpu.drawMesh(loaded.walls, view);
   if (boards && shown.get('standing')) {
     gpu.drawBoards(boards.standing, view, view.eye, false, tint);
     if (shown.get('bands')) gpu.drawBoards(boards.bandStanding, view, view.eye, false, tint);
     if (shown.get('movable')) gpu.drawBoards(boards.movableStanding, view, view.eye, false, tint);
   }
+  if (shown.get('objects')) gpu.drawLines(loaded.lines.get('objects')?.mesh ?? null, view, LINE_WIDTH, true);
   if (shown.get('outlines')) gpu.drawLines(loaded.outlines, view, LINE_WIDTH / 2, true);
   if (shown.get('anchors')) gpu.drawLines(loaded.anchors, view, LINE_WIDTH, true);
+  if (shown.get('limits')) gpu.drawMesh(loaded.limits, view, { translucent: true });
+  if (shown.get('invisibleWalls')) gpu.drawMesh(loaded.invisibleWalls, view, { translucent: true });
+  drawLabels(view, ratio);
+}
+
+/** The shown layers' labels, nearest first, none over another. */
+function drawLabels(view: ViewParameters, ratio: number) {
+  const context = labelCanvas.getContext('2d')!;
+  if (labelCanvas.width !== view.width || labelCanvas.height !== view.height) {
+    labelCanvas.width = view.width;
+    labelCanvas.height = view.height;
+  }
+  context.clearRect(0, 0, view.width, view.height);
+  if (!loaded) return;
+  const placed: { x: number; y: number; depth: number; label: Label }[] = [];
+  const v = view.view,
+    p = view.projection;
+  for (const [key, layer] of loaded.lines) {
+    if (!shown.get(key)) continue;
+    for (const label of layer.labels) {
+      const [x, y, z] = label.at as [number, number, number];
+      const ex = v[0]! * x + v[4]! * y + v[8]! * z + v[12]!,
+        ey = v[1]! * x + v[5]! * y + v[9]! * z + v[13]!,
+        ez = v[2]! * x + v[6]! * y + v[10]! * z + v[14]!;
+      if (view.perspective && ez > -0.1) continue;
+      const w = view.perspective ? -ez : 1;
+      const sx = ((p[0]! * ex) / w + 1) * 0.5 * view.width,
+        sy = (1 - (p[5]! * ey) / w) * 0.5 * view.height;
+      if (sx < -50 || sy < -20 || sx > view.width + 50 || sy > view.height + 20) continue;
+      placed.push({ x: sx, y: sy, depth: -ez, label });
+    }
+  }
+  placed.sort((a, b) => a.depth - b.depth);
+  context.font = `${12 * ratio}px system-ui, sans-serif`;
+  context.textBaseline = 'bottom';
+  const taken: number[][] = [];
+  for (const item of placed) {
+    if (taken.length >= 300) break;
+    const w = context.measureText(item.label.text).width + 6 * ratio,
+      h = 16 * ratio;
+    const box = [item.x, item.y - h, item.x + w, item.y];
+    if (taken.some((t) => box[0]! < t[2]! && box[2]! > t[0]! && box[1]! < t[3]! && box[3]! > t[1]!)) continue;
+    taken.push(box);
+    context.fillStyle = 'rgb(0 0 0 / 60%)';
+    context.fillRect(box[0]!, box[1]!, w, h);
+    context.fillStyle = item.label.color;
+    context.fillText(item.label.text, item.x + 3 * ratio, item.y - 2 * ratio);
+  }
 }
 
 /** What a tap on a board shows: its data, and a button to look at it. */
