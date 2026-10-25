@@ -6,7 +6,15 @@
  */
 import { courseImageFile } from '../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER, type SpriteLodDocument } from '../../src/image/sprite.js';
-import { boardMaster, chosenLines, footAnchorY, SHADOW_PEN, texelsAPixel, turned } from './pixel-grid.js';
+import {
+  boardMaster,
+  chosenLines,
+  coloredColumns,
+  footAnchorY,
+  SHADOW_PEN,
+  texelsAPixel,
+  turned,
+} from './pixel-grid.js';
 import { readSpritePalette, sizeSetPixels } from './enduro-racer-sprites.js';
 
 /** Lateral units an unscaled pixel spans: the hardware draws it at depth number 0x7F, where a unit is 125/128 pixels. */
@@ -30,20 +38,6 @@ interface Source {
   readonly width: number;
   readonly height: number;
   readonly pixels: Uint8Array;
-}
-
-/**
- * The colored pixels' width, metres at `unit` a lateral unit: from the leftmost to the rightmost column holding a pixel
- * other than the shadow's.
- */
-function coloredWidth(source: Source, unit: number) {
-  let [lo, hi] = [Infinity, -Infinity];
-  source.pixels.forEach((v, i) => {
-    if (v === 0 || v === SHADOW) return;
-    const x = i % source.width;
-    [lo, hi] = [Math.min(lo, x), Math.max(hi, x)];
-  });
-  return hi < lo ? 0 : (hi - lo + 1) * PIXEL_UNITS * unit;
 }
 
 /**
@@ -102,7 +96,7 @@ export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: re
         });
       const entry = (master: SpriteLodDocument) => ({
         name: master.name,
-        colored: coloredWidth(source, unit),
+        colored: coloredColumns(source.pixels, source.width) * PIXEL_UNITS * unit,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         image: courseImageFile(master),
         split: false,

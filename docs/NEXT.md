@@ -194,7 +194,6 @@ PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The lanes over two roads alike (OUTRUN's and TURBO OUTRUN's).
-  - The objects' body widths bounded alike (SUPER HANG-ON's and ENDURO RACER's).
   - A lane's Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of
     `outrun-a`'s 103, 6 of TSUKUBA's 27).
   - `round`, the three 2 µm constants and `onJoint`.

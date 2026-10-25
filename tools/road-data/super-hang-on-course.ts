@@ -50,7 +50,9 @@ export interface EndingFigure {
 export interface PictureNames {
   readonly image: string;
   readonly palette: string;
+  /** Its width and its colored columns' (`coloredColumns`), metres. */
   readonly width: number;
+  readonly colored: number;
 }
 
 /** What a course is made from beside its sections. */
@@ -237,7 +239,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       lateral: across(item.x),
       picture,
       groundOffset: 0,
-      body: Math.min(2 * inputs.hitWidth(item.sprite) * PIXEL_UNITS * unit, picture.width),
+      body: Math.min(2 * inputs.hitWidth(item.sprite) * PIXEL_UNITS * unit, picture.colored),
     });
   }
   const gate = (q: number, banner: number, parts: readonly number[]) => {

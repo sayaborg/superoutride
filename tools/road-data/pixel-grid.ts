@@ -23,6 +23,20 @@ export function turned(pixels: ArrayLike<number>, width: number, mirrored: boole
 export const SHADOW_PEN = 10;
 
 /**
+ * The colored columns of a picture `width` pixels wide: from the leftmost to the rightmost column holding a pixel
+ * neither transparent (0) nor the shadow's (`SHADOW_PEN`). An object's body is at most this wide.
+ */
+export function coloredColumns(pixels: ArrayLike<number>, width: number): number {
+  let [lo, hi] = [Infinity, -Infinity];
+  for (let i = 0; i < pixels.length; i++) {
+    const v = pixels[i]!;
+    if (v === 0 || v === SHADOW_PEN) continue;
+    [lo, hi] = [Math.min(lo, i % width), Math.max(hi, i % width)];
+  }
+  return hi < lo ? 0 : hi - lo + 1;
+}
+
+/**
  * Where a picture standing on the ground has its foot ([Original road data](../../docs/original-road-data.md#foot-shadows)):
  * the bottom edge of its lowest row holding a pixel other than the shadow pen `shadow` (`indices` row-major, `width`
  * wide, 0 transparent), its anchor's height where that row is not its last, the shadow's rows below it lying on the

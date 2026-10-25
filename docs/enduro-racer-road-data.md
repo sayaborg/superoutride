@@ -276,7 +276,7 @@ hit narrows and the objects left out:
   palette.
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road
   too, but on the road (below): the original's bike hits within 0x5A units of the object's x either side, so a body is 2 × 0x5A
-  units (3.595 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside), whichever is narrower. The
+  units (3.595 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside; `coloredColumns`), whichever is narrower. The
   wide tree (0x13), the farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed
   to 3.595 m.
 - **On the road.** The original marks an item within 30 of the road's centre (in 8 units) as on the road, but for types

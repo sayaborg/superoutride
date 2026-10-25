@@ -27,16 +27,22 @@ import {
 import { pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
 import { lensFactor } from './screen-pieces.js';
 import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
-import { hitWidth, readGateParts, readGrid, spriteList } from './super-hang-on-sprites.js';
+import { hitWidth, readGateParts, readGrid, sizeList, spriteList, spritePixels } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
-import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
+import {
+  pictureName,
+  chosenPicture,
+  PIXEL_UNITS,
+  superHangOnPictures,
+  type PictureUse,
+} from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
-import { paletteName } from './pixel-grid.js';
+import { coloredColumns, paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 18;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 19;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -179,16 +185,17 @@ export function superHangOnCourses(set: RomSet) {
       CAMERA_DEFINITION.focalLength) *
     (180 / Math.PI);
   const uses: PictureUse[] = [];
-  const widths = new Map<number, number>();
+  const widths = new Map<number, { width: number; colored: number }>();
   const picture = (list: number, mirrored: boolean, palette: number, raised: boolean) => {
     uses.push({ list, mirrored, palette, raised });
-    if (!widths.has(list))
-      widths.set(list, chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER);
-    return {
-      image: pictureName(main, { list, mirrored }),
-      palette: paletteName(palette),
-      width: widths.get(list)!,
-    };
+    if (!widths.has(list)) {
+      const { width, pixels } = spritePixels(words, sizeList(main, list)[0]!);
+      widths.set(list, {
+        width: chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER,
+        colored: coloredColumns(pixels, width) * PIXEL_UNITS * unit,
+      });
+    }
+    return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), ...widths.get(list)! };
   };
   const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));

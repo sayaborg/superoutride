@@ -698,8 +698,8 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Place each object at its station and lateral as the original's routine places it, with its picture's bottom edge at
   the height the original draws it, its mirroring and palette; spawn and approach rules decide where it stands (simulate
   them tick by tick at the speed the original's layout assumes).
-- Bodies follow the original's hit routines: an object it tests gets a body as wide as its extents; the rest pass
-  through.
+- Bodies follow the original's hit routines: an object it tests gets a body as wide as its extents, at most its
+  picture's colored columns, the shadow's pixels aside (`coloredColumns`); the rest pass through.
 - Pictures by chosen lines at their size class; check the course's texel and image bounds.
 
 ### 7. Skies
