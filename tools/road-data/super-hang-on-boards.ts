@@ -42,21 +42,15 @@ export function chosenPicture(main: Uint8Array, words: Uint16Array, list: number
 }
 
 /**
- * The pictures `uses` need, at `metres` a road unit, their names carrying `tag`: one a size list and mirroring, carrying every palette it is shown
+ * The pictures `uses` need, at `metres` a road unit: one a size list and mirroring, carrying every palette it is shown
  * in (the lowest its default), from its largest size's pixels by chosen lines, with its width in metres. Every sprite is
  * drawn with shadows allowed: a picture shown on the ground stands at its foot (`footAnchorY`), its shadow's rows below
  * it lying on the nearer ground, and is shown raised off it by its `-raised` image (`split`) on its bottom edge.
  */
-export function superHangOnPictures(
-  main: Uint8Array,
-  words: Uint16Array,
-  uses: readonly PictureUse[],
-  metres: number,
-  tag = '',
-) {
+export function superHangOnPictures(main: Uint8Array, words: Uint16Array, uses: readonly PictureUse[], metres: number) {
   const groups = new Map<string, PictureUse[]>();
   for (const use of uses) {
-    const name = pictureName(main, use) + tag;
+    const name = pictureName(main, use);
     groups.set(name, [...(groups.get(name) ?? []), use]);
   }
   return [...groups]

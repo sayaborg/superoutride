@@ -7,7 +7,6 @@ import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
 import { superHangOnDump } from './super-hang-on-dump.js';
 import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from './super-hang-on-courses.js';
-import { scaleTag } from './section-writing.js';
 
 import {
   crossingReport,
@@ -46,13 +45,10 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
     // SUPER HANG-ON's courses, pictures and skies from the ROMs, written to content, or with `--check` compared.
     const check = options.has('--check');
     const zip = await oneZip(options.get('--zip'), romDirectory('super-hang-on'), '--zip');
-    // `--lane`, temporary until K decides the scale: AFRICA alone at that lane's width, its id and pictures tagged.
-    const lane = options.get('--lane');
-    const candidate = lane === undefined ? undefined : { lane: Number(lane), courses: ['AFRICA'] };
-    const built = superHangOnCourses(await romSet('shangon', [zip]), candidate);
+    const built = superHangOnCourses(await romSet('shangon', [zip]));
     const courses = [];
     for (const { course, road, dropped, passed } of built.built) {
-      const file = await saveCourse(courseId(course.name) + scaleTag(candidate?.lane), road.document, check);
+      const file = await saveCourse(courseId(course.name), road.document, check);
       courses.push({
         course: file,
         sections: road.document.sections.length,

@@ -221,8 +221,7 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   program alone): its boards (0x27034), 124 in 96 rows of one to three at a road position, are a hump across the road
   at each row's position ([Jumps and humps](original-road-data.md#profile)), not objects. Its length is the road the
   car passes at 324 km/h while a board hits, its line within 0x64 of the car's (0x6F20): the approach table's lines 284
-  to 384, 1.931 positions (3.867 m). It is 0.2 m high; the candidates' courses `turbo-outrun-hump-100` and `-hump-300`
-  0.1 m and 0.3 m. The two pairs of rows 3 m apart in san-antonio join. The boards are not painted (K).
+  to 384, 1.931 positions (3.867 m). It is 0.2 m high. The two pairs of rows 3 m apart in san-antonio join. The boards are not painted (K).
 
 ## TURBO OUTRUN's objects
 

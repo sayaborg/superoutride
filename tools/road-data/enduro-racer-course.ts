@@ -25,7 +25,7 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, scaleTag, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -144,21 +144,12 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
-/**
- * The jumps' design speed, km/h: the speed a bike comes to a jump at before climbing it, which its mound throws over
- * the rocks beyond it. K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 80, 105 and
- * 130 km/h.
- */
+/** The jumps' design speed, km/h: the speed a bike comes to a jump at before climbing it, which its mound throws over the rocks beyond it. */
 const DESIGN_SPEED = 105;
 
-/**
- * The course's document and report, from the ROM set; with `lane`, a candidate of the scale, and with `speed`, one of
- * the jumps' design speed (NEXT's Stage EX), raised as a temporary DEV course until K decides, its id and name carrying
- * it (and its pictures the scale's).
- */
-export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: number) {
-  const lane = candidate ?? LANE;
-  const tag = scaleTag(candidate);
+/** The course's document and report, from the ROM set. */
+export function enduroRacerCourse(set: RomSet) {
+  const lane = LANE;
   const programs = assembleEnduroRacerPrograms(set);
   const flight = jumpFlight(programs);
   const { main, sub } = programs;
@@ -197,13 +188,13 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
     };
   });
   const words = assembleEnduroRacerSprites(set);
-  const objects = enduroRacerObjects(main, unit, tag);
+  const objects = enduroRacerObjects(main, unit);
   // The jumps: each's mound throws a mass coming at the design speed as far as the farthest of the rocks beyond it,
   // those on the road with the hit mark within the original's flight at its top speed (it moves its speed in 1/256
   // positions a tick), or as the original throws its bike at the design speed, whichever is farther (K, 2026-10-26);
   // its picture's color painted on the road where the program draws it.
   const jumps = readJumps(main).jumps;
-  const design = speed ?? DESIGN_SPEED;
+  const design = DESIGN_SPEED;
   const flown = ((flight.ticks * flight.speed) / 256) * metres;
   const atDesign = jumpFlight(programs, design);
   const thrown = ((atDesign.ticks * design) / 256) * metres;
@@ -215,7 +206,7 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
   const distances = beyond.map((rocksAt) => Math.max(rocksAt ?? 0, thrown));
   const mounds = distances.map((distance) => jumpMound(design / 3.6, distance));
   const ground = jumpGround(programs);
-  const pictures = enduroRacerBoards(main, words, objects.uses, unit, tag);
+  const pictures = enduroRacerBoards(main, words, objects.uses, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
@@ -228,8 +219,6 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
     metres,
     unit,
     lane,
-    candidate,
-    speed,
     cross,
     entry: camera - bikeAhead(programs) * metres,
     camera,
@@ -308,11 +297,8 @@ interface CourseInputs {
   readonly headings: readonly number[];
   readonly metres: number;
   readonly unit: number;
-  /** A lane's width, metres: `LANE`, or `candidate`'s, the scale's temporary DEV course's. */
+  /** A lane's width, metres: `LANE`. */
   readonly lane: number;
-  readonly candidate: number | undefined;
-  /** The jumps' design speed's candidate, km/h, a temporary DEV course's. */
-  readonly speed: number | undefined;
   readonly cross: CrossSection;
   /** P's metres before position 0; the camera's distance behind the bike; GO, the bike's position at the start. */
   readonly entry: number;
@@ -517,7 +503,7 @@ function layCourse(inputs: CourseInputs) {
     document: {
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      name: `${COURSE_NAME}${inputs.candidate === undefined ? '' : ` LANE ${inputs.lane}`}${inputs.speed === undefined ? '' : ` JUMP ${inputs.speed}`}`,
+      name: COURSE_NAME,
       entry: pieces[0]!.id,
       maxLaps: 1,
       bearing: 0,

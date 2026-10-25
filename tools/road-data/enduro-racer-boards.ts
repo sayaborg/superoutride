@@ -47,20 +47,13 @@ function coloredWidth(source: Source, unit: number) {
 }
 
 /**
- * The boards the uses need, at `unit` metres a lateral unit, with each one's colored width in metres: one a name (`tag`
- * after a use's),
+ * The boards the uses need, at `unit` metres a lateral unit, with each one's colored width in metres: one a name,
  * carrying every palette it is shown in (the lowest its default), its pixels (a size set's drawn rows, a mirrored
  * picture the unmirrored one's mirrored) by chosen lines onto its texel grid, a pixel `PIXEL_UNITS` across and
  * `PIXEL_ASPECT` times that down at 40 texels/m, chosen once with pixel 10 among the colors: the board its other
  * pixels, its shadow its pixel 10. Its base point is its middle on its bottom edge.
  */
-export function enduroRacerBoards(
-  main: Uint8Array,
-  words: Uint32Array,
-  uses: readonly PictureUse[],
-  unit: number,
-  tag = '',
-) {
+export function enduroRacerBoards(main: Uint8Array, words: Uint32Array, uses: readonly PictureUse[], unit: number) {
   const sources = new Map<string, { source: Source; palettes: Set<number>; ground: boolean; raised: boolean }>();
   const add = (name: string, source: () => Source, palette: number, raised: boolean) => {
     if (!sources.has(name)) sources.set(name, { source: source(), palettes: new Set(), ground: false, raised: false });
@@ -70,7 +63,7 @@ export function enduroRacerBoards(
   };
   for (const use of uses)
     add(
-      pictureName(use) + tag,
+      pictureName(use),
       () => {
         const { width, height, pixels } = sizeSetPixels(main, words, use.sizes);
         return { width, height, pixels };
@@ -83,7 +76,7 @@ export function enduroRacerBoards(
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, { source, palettes, ground, raised }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
-      const mirrored = name.slice(0, name.length - tag.length).endsWith('-mirrored');
+      const mirrored = name.endsWith('-mirrored');
       const grid = chosenLines(source.pixels, source.width, texels.across, texels.down);
       const chosen = turned(grid.indices, grid.width, mirrored);
       const indices = Array.from(chosen, (v) => (v === SHADOW ? 0 : v));

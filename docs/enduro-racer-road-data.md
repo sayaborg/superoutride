@@ -223,9 +223,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   on the road on the 55th tick, 0.917 s, 42.75 positions (50.671 m) on, its peak 77 units up, 1.554 m at a scenery
   item's height unit, its gravity 10.9 m/s². At the design speed of 105 km/h it comes down on the 48th tick, 23.333 m
   on: the mounds are 1.639 m (4.02°, their tops reached at 103.0 km/h) to 9.464 m (10.77°, 92.8 km/h) high, 20 of
-  them joining in 9 runs, the longest 165.9 m. The candidates' courses: `enduro-racer-jump-80`, 17.037 m on the 46th
-  tick, mounds 1.548 to 3.266 m and none at the 30 jumps whose rocks lie farther than any slope throws at 80 km/h;
-  `-jump-130`, 29.491 m on the 49th tick, mounds 1.683 to 5.098 m. Its picture's color, its halves' pixels' average in its kind's palette but
+  them joining in 9 runs, the longest 165.9 m. Its picture's color, its halves' pixels' average in its kind's palette but
   the shadow's, covers the road from its left half's left edge to its right half's right edge over the program's
   ground under it, 1.758 positions (2.083 m) either side of its position. The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62

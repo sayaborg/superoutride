@@ -36,16 +36,15 @@ export interface ObjectSpot {
 
 /**
  * The objects at `unit` metres a lateral unit, and the pictures they show: the scenery table's items (a scaled item of
- * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position;
- * their pictures' names carry `tag`.
+ * types 0x48–0x4E its x from the scaled types' x, its height its own) and the start's templates at their position.
  */
-export function enduroRacerObjects(main: Uint8Array, unit: number, tag = '') {
+export function enduroRacerObjects(main: Uint8Array, unit: number) {
   const spots: ObjectSpot[] = [];
   const uses: PictureUse[] = [];
   const lift = (pixels: number) => pixels * PIXEL_UNITS * PIXEL_ASPECT * unit;
   const show = (use: PictureUse) => {
     uses.push(use);
-    return pictureName(use) + tag;
+    return pictureName(use);
   };
   const scaledX = readScaledX(main);
   for (const item of readScenery(main)) {

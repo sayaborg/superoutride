@@ -457,8 +457,8 @@ A stage's profile turns its height tables' look on the original's screen into gr
   - A hump (TURBO OUTRUN's) is a step the vehicle bumps over: as long as the original's object hits, at the original's
     top speed, its height its own.
 
-  The design speed and the hump's height are K's to decide by driving: until then a course carries the middle of three
-  candidates and two temporary DEV courses the others (NEXT's Stage EX).
+  ENDURO RACER's course carries a design speed of 105 km/h and TURBO OUTRUN's humps are 0.2 m high until K's shapes
+  replace them (NEXT's Stage EX).
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves

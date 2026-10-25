@@ -104,7 +104,7 @@ export interface SuperHangOnCourseInputs {
   readonly yawOrigin: number;
   /** The camera's distance behind the player: GO lies this far into the entry. */
   readonly cameraDistance: number;
-  /** A lane's width, metres: `LANE`, or a candidate of the scale's temporary DEV courses. */
+  /** A lane's width, metres: `LANE`. */
   readonly lane: number;
   /** The rivals the original places at GO: their positions ahead of the bike and x, metres right of P. */
   readonly rivals: readonly { readonly position: number; readonly x: number }[];

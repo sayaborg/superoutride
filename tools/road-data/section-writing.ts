@@ -26,19 +26,6 @@ const round = (value: number, step = 1e-6) => Number((Math.round(value / step) *
 /** A lateral at a lane's centre, where each grid slot the conversions write stands. */
 export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });
 
-/**
- * A temporary DEV course's tag on its id and its pictures' names: the scale's candidate lane in millimetres (NEXT's
- * Stage EX, until K decides the scale); none for the courses as they are.
- */
-export const scaleTag = (lane?: number) => (lane === undefined ? '' : `-lane-${Math.round(lane * 1000)}`);
-/**
- * A temporary DEV course's tag on its id: a candidate `value` of what K decides by driving, named `name` (NEXT's Stage
- * EX, ENDURO RACER's jumps' design speed in km/h and TURBO OUTRUN's humps' height in millimetres); none for the courses
- * as they are.
- */
-export const candidateTag = (name: string, value?: number) =>
-  value === undefined ? '' : `-${name}-${Math.round(value)}`;
-
 /** Knots without repeats of a position, nor knots where the value neither starts nor stops changing. */
 export function simplified(knots: readonly [number, number][]): [number, number][] {
   const out: [number, number][] = [];

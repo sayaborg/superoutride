@@ -105,8 +105,7 @@ K's decisions (2026-10-24):
 - **The design's beauty and concision come first**, and the course format may change to that end.
 - **A course is made in one of two ways**, raised from an original's ROMs or a real circuit made from its reference
   material ([Product courses](content-and-gameplay.md#product-courses)).
-- **The scale bears on play**, so K decides it after driving the candidates on devices; until then each original keeps
-  its scale.
+- **The scale bears on play**, so it is K's, decided by driving (2026-10-26, the constants' table below).
 - **The pictures and placements extracted faithfully from the ROMs are the extract.** The extract is not the canon:
   the product corrects or draws them again, in the people's layer, never in the extract itself. It is what a correction
   starts from, so the extraction is faithful and raising it again gives it unchanged (`--check`). The grades the ROMs
@@ -193,10 +192,12 @@ Rules of the stage:
 
 PRs, in this order:
 
-- The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
-  closes, it moves to Stage GR.
-- K's grades: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades, which K is solving, in one PR when they come, after
-  the PR then open: they replace the draft grades and `c_look`, the crossings parted on them by their rule.
+- The jumps and dips by K's shapes (K, 2026-10-26, the constants' table below), then the calculations they no longer
+  use deleted, a PR of its own.
+- The scale by K's values (K, 2026-10-26, the constants' table below).
+- K's grades, EX-G1 to EX-G4: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades and SUPER HANG-ON's and SUPER MONACO
+  GP's scales by the screen's pieces, replacing the draft grades and `c_look`, the crossings parted on them by their
+  rule.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The widths joined by one monotone cubic (OUTRUN's `joinedWidth` and TURBO OUTRUN's copy).
   - The stripes at one period, EX-7j2's count of halves in every original.
@@ -298,20 +299,25 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
-- **The scale**: temporary DEV courses for SUPER HANG-ON's AFRICA (the original's bike at its real size, 3.883 m a
-  lane, and one lane width for all, 3.6 m) and ENDURO RACER (3.6 m), with pictures of the same places; OUTRUN's and
-  TURBO OUTRUN's are not made, nor SUPER MONACO GP's: K decides by AFRICA and ENDURO RACER, and should one lane of 3.6 m
-  be chosen for all, SUPER MONACO GP is raised again at it then (K, 2026-10-25). The road data commands' temporary
-  `--lane <metres>` overrides an original's lane, and so its lateral unit (reproducible with `--check`); the courses, in
-  no series and so DEV's alone, carry the candidate in their ids, names and pictures (`super-hang-on-africa-lane-3883`,
-  `-lane-3600`, `enduro-racer-lane-3600`), with pictures at the start, a sharp curve and a long straight; the reference
-  times wait until the courses are finished (K). When K has decided: raised again at the value, measured again, the
-  temporary courses and argument deleted, and how it was decided written once in each chapter and Original road data.
-- **The jumps' design speed and the humps' height** ([Jumps and humps](original-road-data.md#profile)): K decides them
-  by driving, as the scale. ENDURO RACER's course carries 105 km/h and the temporary DEV courses `enduro-racer-jump-80`
-  and `-jump-130` the other candidates (`--jump-speed <km/h>`); TURBO OUTRUN's carries 0.2 m and `turbo-outrun-hump-100`
-  and `-hump-300` 0.1 m and 0.3 m (`--hump <metres>`). When K has decided: raised again at the value, the temporary
-  courses and arguments deleted, and K's decision written once in Original road data's Jumps and humps and each chapter.
+- **The scale** (K, 2026-10-26): OUTRUN's and TURBO OUTRUN's lane 3.6 m and SUPER HANG-ON's 4.3 m, as they are;
+  ENDURO RACER's lane 3.8 m (from 3.5 m); SUPER MONACO GP's barriers 11 m apart (from 10 m), its widths, objects'
+  laterals and pictures a tenth larger, its lane about 3.43 m, its lengths along the road and its hills' heights as
+  they are. The lengths along every original's road are its original's speed's and stay. Its PR raises ENDURO RACER and
+  SUPER MONACO GP again (courses, pictures and racing lines), stopping first should SUPER MONACO GP's pictures pass the
+  course format's image bound, and writes how it was decided once in each chapter and Original road data as K's.
+- **The jumps and dips** (K, 2026-10-26): a symmetric triangle across the whole road with K's values, computed from
+  neither the ROMs nor a vehicle, added to the profile as the mounds' kinks are, the crossings parted on it as they
+  are; where two overlap the one farther from the road is taken (a rise's higher, a dip's lower), every row kept.
+  ENDURO RACER's jump a rise 1 m high 3 m either side, at all 69 of its original's jumps; TURBO OUTRUN's a dip 0.1 m
+  deep 2 m either side (4 m long), at its original's 96 rows of boards. The road's colors on a slope (stripes, lines,
+  edge bands) change in the conversion, the ground beside the road's not: a slope facing the camera (a rise's near
+  side, a dip's far side) brightened halfway to white, one facing away (a rise's far side, a dip's near side) at the
+  shadow's half brightness, a stripe split where a slope's end falls within it. Names follow the shapes (TURBO OUTRUN's
+  are no humps); the rule is written once, as K's, in Original road data's section, its heading after the shapes, the
+  chapters pointing to it. Its PR replaces EX-11d's mounds; the next deletes what they alone used: ENDURO RACER's
+  `DESIGN_SPEED`, `jumpMound`, the rocks' D, `jumpFlight`, `jumpGround`, the pictures' average color painted
+  (`paints`, `jumpPicture`) and the report's `jump` and `mounds`, and TURBO OUTRUN's `humpLength` (3.867 m) and
+  `HUMP_HEIGHT`. K drives them; no driving test or report.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 3 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.

@@ -127,17 +127,11 @@ interface SkyChange {
   readonly arrival: 'cut' | 'rise';
 }
 
-/**
- * The humps' height, metres: K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 0.1,
- * 0.2 and 0.3 m.
- */
+/** The humps' height, metres. */
 const HUMP_HEIGHT = 0.2;
 
-/**
- * TURBO OUTRUN's course from its ROM set: its document and what the conversion reports; with `height`, a candidate of
- * the humps' height (NEXT's Stage EX), raised as a temporary DEV course until K decides, its id and name carrying it.
- */
-export function turboOutrunCourse(set: RomSet, height?: number) {
+/** TURBO OUTRUN's course from its ROM set: its document and what the conversion reports. */
+export function turboOutrunCourse(set: RomSet) {
   checkTurboOutrunRoadRom(set);
   const programs = assembleTurboOutrunPrograms(set);
   const planes = assembleTurboOutrunTiles(set);
@@ -160,7 +154,7 @@ export function turboOutrunCourse(set: RomSet, height?: number) {
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
   // The humps: symmetric across the road, as long as the road the car passes at the top speed while their objects hit.
-  const hump = { half: (humpLength(programs.main, kmh) / 2) * POSITION_METRES, height: height ?? HUMP_HEIGHT };
+  const hump = { half: (humpLength(programs.main, kmh) / 2) * POSITION_METRES, height: HUMP_HEIGHT };
   const layout = layTurboOutrun({
     stages,
     runs,
@@ -259,7 +253,7 @@ export function turboOutrunCourse(set: RomSet, height?: number) {
     document: {
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      name: height === undefined ? COURSE_NAME : `${COURSE_NAME} HUMP ${height}`,
+      name: COURSE_NAME,
       entry: pieces[0]!.id,
       maxLaps: 1,
       bearing: 0,
