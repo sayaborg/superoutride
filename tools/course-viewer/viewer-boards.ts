@@ -266,7 +266,7 @@ export function buildBoards(
       const tint = form ? [...FORM_COLORS[form], 255] : [0, 0, 0, 0];
       const planes = boardPlanes(placed, s);
       // Facing the coming cars: toward −s.
-      const facing = [-planes.across[2]!, 0, planes.across[0]!];
+      const facing = [planes.across[2]!, 0, -planes.across[0]!];
       const quads: BoardRecord['quads'] = [];
       // Master texel (u, v) of the repetition `offset` metres across: standing above the fold, lying below it.
       const point = (offset: number, u: number, v: number, lying: boolean) => {

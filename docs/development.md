@@ -434,7 +434,7 @@ The view turns about its point of interest, comes nearer and moves sideways: one
 a touch screen, the mouse's first button turns, its other buttons (or Shift) move and its wheel comes nearer. A slider
 moves the point of interest along the Route. Three views are offered: from above, from the side, and the game's camera
 (the camera definition's place and field of view behind a car standing on the centreline at that station, facing along
-the road); and the projection is perspective or parallel. A tap on a board shows its data (kind, position, height,
+the road and pitched to its grade there, the lying plane's, the camera fixed to the body as in the game); and the projection is perspective or parallel. A tap on a board shows its data (kind, position, height,
 image and palette, its placement and repeat, its Section) and can make it the point of interest. The view is fitted to
 the game's 320 by 240 frame at its focal length; touch selects no text and opens no menu.
 

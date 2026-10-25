@@ -510,8 +510,9 @@ function viewSide() {
 }
 
 /**
- * The game's camera behind a car standing on the centreline at the focus, facing along the road: `updateCamera` with
- * the camera definition, carried to the world by the occurrence.
+ * The game's camera behind a car standing on the centreline at the focus, facing along the road and pitched to the
+ * road's grade there (the lying plane's), as the camera is fixed to the body: `updateCamera` with the camera definition,
+ * carried to the world by the occurrence.
  */
 function viewGame() {
   if (!focus) return;
@@ -524,7 +525,8 @@ function viewGame() {
     yaw: heading,
     course: { s, l: 0 },
     renderY: placed.section.height.sample(s),
-    sprungPitch: 0,
+    // Nose-up positive, the grade's angle.
+    sprungPitch: Math.atan(placed.section.height.sampleDifferential(s).dYdS),
     longitudinalSpeed: 0,
     lateralSpeed: 0,
   };
