@@ -540,7 +540,7 @@ The rules of the originals (what never enters the repository, decryption, other 
   check them where possible (K's video, the clock against frames).
 - Across and up, the original's world often keeps no one scale, so the scale is K's, decided by driving (K,
   2026-10-26): a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER, and SUPER
-  MONACO GP's street, where the player's vehicle is an overlay drawn smaller than the world, 10 m between its
+  MONACO GP's street, where the player's vehicle is an overlay drawn smaller than the world, 11 m between its
   barriers. Up is 15/14 of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a
   new original, report the alternatives with their costs (texel bounds, grid lengths, closure, how objects and the eye
   compare) for K to choose.

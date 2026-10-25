@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 14, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 15, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -120,29 +120,26 @@ BRANCH course (K, 2026-10-21).
 
 - **Scale.** A step is 96 units along the road and a unit 0.0349 / 9 m (the original's clock adds 0.0349 s a tick, and
   its camera moves 2.5 units a tick for each displayed km/h): 0.372267 m, the race's lap 5.27 km and the
-  qualifying's 2.28 km. Across, 1640 units, the space between the barriers, are a real Monaco street's 10 m: a unit is
-  6.0976 mm, 15/14 of that up. The original's world keeps one scale across and along the road, so the road here is
-  0.64 times as long against its width as the original looks. K kept this scale (2026-10-21): seen from above, a unit
-  is 3.88 mm along the road, 6.10 mm across and 6.53 mm up. The alternatives were (R) the real lap, 3.328 km (a step
-  0.235095 m), whose qualifying form does not close with two straights and whose grid must stand one slot further;
-  (C) the rivals' cars as wide as TESTAROSSA (a unit 9.4095 mm), whose pictures pass the course's texel bound (46.8 M
-  with their levels, and 0x0D86's 1.42 M one image's); and (A) both, one scale (a step 0.903314 m).
+  qualifying's 2.28 km. Across, 1640 units, the space between the barriers, are K's 11 m (2026-10-26): a unit is
+  6.7073 mm, 15/14 of that up (7.1864 mm). The original's world keeps one scale across and along the road, so the road
+  here is 0.58 times as long against its width as the original looks: seen from above, a unit is 3.88 mm along the
+  road, 6.71 mm across and 7.19 mm up. The lap's length and the hills' heights are the scale along the road's.
 - **Lap.** A lap runs from the race's line, step 288, round to it again; the qualifying's own line, step 276, is 12
   steps (4.5 m) behind it.
 - **Plan.** P is the road path's points from step 288 round to it again (x right and y ahead, the steps' dx and dy
   summed, a unit 3.878 mm), by the [plan from a point path](original-road-data.md#plan-from-a-point-path) at the
-  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.13 m; none is): the race's 49
+  path's resolution, one unit, no turn tighter than its lanes keep (a lane either side, 7.44 m; none is): the race's 49
   runs and 153 elements, every one an arc, its tightest 40.4 m; the qualifying's 17 and 54, 53.2 m. Every point lies
   within a unit (3.9 mm) of P, and the lap closes as the points do, by the rule alone: laid from the line, P comes back
   to it within 5 × 10⁻¹⁰ m and 7 × 10⁻¹³ rad. The elements are written as P has them, unrounded, and cut at the
   Sections' borders.
 - **Stations.** A step's station is where its point stands across from P, the stations between steps straight between
   them. A Section's start is the lengths of the Sections before it.
-- **Lanes.** a and b, 512 units (3.122 m) each, either side of P; their centres at ±256 units, the grid's, lane a's
+- **Lanes.** a and b, 512 units (3.434 m) each, either side of P; their centres at ±256 units, the grid's, lane a's
   centre (the centre lane's) each Section's `centerLateral`. The road out to the barriers is one surface: the original
   has no lane lines. Every lateral, the materials', the marks' and the objects', is measured from P.
 - **Materials and limits** (each side, from the band tables alone, barrier kinds 1 and 4 one band): a barrier band is
-  `ASPHALT` to 820 units (5.000 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
+  `ASPHALT` to 820 units (5.500 m), an escape area `ASPHALT` to 992 (the surface boards' edge) and `GRASS` to 1333
   (its hit line 1228 plus half a car), the open band `ASPHALT` to 2712 (the side paving's outer edge); the bands' places
   are the ROMs', their materials K's decision (2026-10-25), for the ROMs hold no material. The materials'
   outer edges are the course's limits. Between two bands the edges move linearly over the 4 steps about their border.
@@ -212,30 +209,30 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   and three decimal digits).
 - **Height.** h = −50 is the ground, where the barriers stand. A board's foot is h, or h less half its picture's
   height for an object with flag bit 13; it stands by the middle of its bottom edge, `groundOffset` (foot − (−50))
-  × 6.5331 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
-  and the barriers, 0.80 m, stand higher than its eye, 0.52 m), and places some boards with their foot below it. Those
+  × 7.1864 mm. The original hides everything below the ground (its road and pavements are pictures drawn far to near,
+  and the barriers, 0.88 m, stand higher than its eye, 0.57 m), and places some boards with their foot below it. Those
   stand by three groups (K, 2026-10-22), the race's and the qualifying's counts each:
   - **At the original's height** (76, 20): every flat board (kind 0x04) but the roadside ones below, the supports and
-    the tunnel mouths' rocks, placed so that their heads meet what they hold. The flag poles 051C (−2.051 m), the
-    signs' pipes 143A flipped (−1.111 m), the start's and checkpoints' gate posts 141C and the bridge's piers 1B9C
-    (−1.013 m), the crane 099C (−1.189 m), the tunnel entrance's rocks 0D86 b1 0 (−3.378 m) and 0D68 b1 0 (−0.725 m)
-    and its exit's 0D86 b1 0xFF (−9.336 m once, by its middle, and −0.261 m four times) and 0D68 b1 0xFF (−3.443 m)
+    the tunnel mouths' rocks, placed so that their heads meet what they hold. The flag poles 051C (−2.257 m), the
+    signs' pipes 143A flipped (−1.222 m), the start's and checkpoints' gate posts 141C and the bridge's piers 1B9C
+    (−1.114 m), the crane 099C (−1.308 m), the tunnel entrance's rocks 0D86 b1 0 (−3.715 m) and 0D68 b1 0 (−0.798 m)
+    and its exit's 0D86 b1 0xFF (−10.269 m once, by its middle, and −0.287 m four times) and 0D68 b1 0xFF (−3.787 m)
     keep their negative `groundOffset`, the part below the ground hidden by the nearer drawn ground
     ([Sprites and Painter](architecture.md#sprites-and-painter)).
-  - **Folded at the ground's row** (127, 12): the flat boards at h −80, 30 units (0.196 m) below the ground, the
+  - **Folded at the ground's row** (127, 12): the flat boards at h −80, 30 units (0.216 m) below the ground, the
     roadside buildings, stone walls and rock faces (18FC, 191A, 1938, 1A04, 1A22, 1A40, 1A7C, 1A9A, 1B42, 1B60, 1B7E,
-    1BD8), stand at height 0 with their anchor 30 units above their bottom edge (anchorY = H − 0.5 − 7.8397): their
+    1BD8), stand at height 0 with their anchor 30 units above their bottom edge (anchorY = H − 0.5 − 8.6237): their
     slanted foot lies on the nearer ground.
-  - **Standing on the ground** (665, 414): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.287 m
-    below; 0738, 0756, 1.633 m), stand on the ground.
+  - **Standing on the ground** (665, 414): the upright boards (kind 0x08), the far buildings (0684 to 071A, 2.515 m
+    below; 0738, 0756, 1.797 m), stand on the ground.
 
   The SUPER MONACO GP ground is one colored Strip without Boundaries, so beyond the player no part below the ground
   shows, as in the original. Nearer than the player a board is drawn after it, over the ground, so a flag pole passed
-  close by the left barrier may show its 2 m below the ground at the frame's lower left for a few frames.
+  close by the left barrier may show its 2.3 m below the ground at the frame's lower left for a few frames.
 
 - **Pictures.** A frame table's largest size, pixels 0 and 15 transparent, by [chosen
   lines](original-road-data.md#chosen-lines): a pixel 8 / 2^b1 units across (16 for b1 0xFF) and 15/14 of that down at
-  40 texels/m, so a 2-unit pixel is 0.49 texel across (the barriers' 61 rows 32 texels, 0.80 m), a 4-unit one 0.98. A
+  40 texels/m, so a 2-unit pixel is 0.54 texel across (the barriers' 61 rows 35 texels, 0.88 m), a 4-unit one 1.07. A
   board shows its picture mirrored as its flag bit 10 and the word's bit 15 together mirror it, and flipped by bit 11,
   the unturned picture's lines turned. An object turning through a view table (kind 0x0C: the barriers along and across
   the road, the concrete walls, the advertising boards) shows its view 0's frame table (K, 2026-10-22), mirrored by its
@@ -244,7 +241,7 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   (hexadecimal), in every palette it is shown in, the lowest its default: 137 images.
 - **Kerbs** (view table 0x050A, 517 on the race and 163 on the qualifying) are stripes (K, 2026-10-22): each run of
   kerbs at one lateral, 4 steps apart (up to 8) with their palettes alternating, as wide as view 0's picture (144
-  pixels, 1.76 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
+  pixels, 1.93 m) about its first's x, in the first kerb's palette's mean colors of pixels 1–6 and 7–12 (blue and
   white, the next kerb's palette swapping them); its kerbs evenly from the first to the last, each two stripes 2 steps
   long, before it and after it, so kerbs further apart than 4 steps leave the road between them. Runs one after another
   at one lateral in one palette, all their kerbs one spacing apart, are one run. A run's kerbs within a Section are one
@@ -252,6 +249,6 @@ stands as a sprite's board (K, 2026-10-22). None has a body: the original's band
   its own stripes, cut there.
 - **Curves' insides.** An object on an arc's inside farther from P than the arc's radius less 2 m is left out (none
   is).
-- **Images.** 14.33 M master texels, 71.4 MB of saved JSON (about 4.4 MB compressed, in Git and as Pages serves it);
-  the 16-unit class, the far buildings and cliffs, holds 45.3 MB of it, each of the original's pixels about 4 × 4
+- **Images.** 17.33 M master texels, 86.1 MB of saved JSON (about 5.3 MB compressed, in Git and as Pages serves it);
+  the 16-unit class, the far buildings and cliffs, holds 54.6 MB of it, each of the original's pixels about 4 × 4
   texels. The 2-unit class drops about half its columns and no row.

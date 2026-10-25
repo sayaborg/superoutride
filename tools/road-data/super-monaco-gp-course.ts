@@ -44,15 +44,15 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 14;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 15;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
  * (the camera moves 2.5 units a tick for each km/h) give it.
  */
 export const STEP_METRES = (96 * 0.0349) / 9;
-/** A lateral unit, metres: 1640 units between the barriers are a real Monaco street's 10 m. */
-export const UNIT = 10 / 1640;
+/** A lateral unit, metres: 1640 units between the barriers are K's 11 m (2026-10-26). */
+export const UNIT = 11 / 1640;
 /** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
 export const UNIT_DOWN = (UNIT * 15) / 14;
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288. */
