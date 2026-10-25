@@ -696,7 +696,9 @@ and are not committed.
   give 16 joins of a curve and a straight. The integral's lag behind the ROM grows from 0 to about −55 positions over
   the stage. Through the others, a join is predicted within 0.6 to 17 positions (median 9; the last, 30), not 2: the
   original advances its position by `(R + car_x/40) / R` on a curve, which the integral does not follow.
-- **Hills.** `k1`'s road top, climbed from the bottom, against the [hills](original-road-data.md#hills)' extremes:
+- **Hills.** `k1`'s road top, climbed from the bottom, against the [hills](original-road-data.md#hills)' extremes over
+  each table's span, as `outrun-hills` gives them (no fit; `k1`'s position is the displayed speed's integral, which lags
+  the original's later in the stage):
 
   | Table at | Kind | Rule's top   | `k1`'s   |
   | -------- | ---- | ------------ | -------- |
@@ -705,17 +707,10 @@ and are not committed.
   | 1044     | 0    | 101.4, 187.1 | 100, 187 |
   | 1600     | 1    | 169.1        | 163      |
 
-  Four of the seven extremes are within 3 rows. `k1` ends before table 1824.
-
-  The rule's crests against `k1`'s, kinds 0 and 1 (no fit; `k1`'s position is the displayed speed's integral, which
-  lags the original's later in the stage):
-
-  | Table (kind) | Rule's road top      | `k1`'s     |
-  | ------------ | -------------------- | ---------- |
-  | 211 (0)      | row 112.5 at 40.5    | 107 to 113 |
-  | 134 (0)      | row 122.2 at 462     | 121        |
-  | 213 (0)      | rows 101.4 and 109.4 | 100, 107   |
-  | 32 (1)       | hold at row 169.1    | 166 to 173 |
+  Four of the seven extremes are within 3 rows. `k1` ends before table 1824. The rule's tops were measured again by
+  the tool as it stands (2026-10-25) and are unchanged. `k1`'s were read once from its footage, which is not at hand
+  to read again; an earlier reading of the kind 1 table's hold, the rows its top took while held (166 to 173), measured
+  another thing than this extreme.
 
 - **Width.** The road's edges lie off the screen on the car's row: the road there is 10.3 m, about 410 px. The lane
   lines either side of the car stand `k1`'s median 136.0 px apart there, this game's lane 137.6 px at its 40 px/m.

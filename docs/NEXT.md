@@ -181,8 +181,8 @@ Rules of the stage:
 
 PRs, in this order:
 
-- The scale's DEV courses (the constants' table below): SUPER MONACO GP's race at 3.6 m remains, its pictures about 90
-  MB more, on K's word; if undecided when the stage closes, the scale moves to Stage GR.
+- The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
+  closes, it moves to Stage GR.
 - CAM-1: a course document writes a sky change at the original's position, and the renderer changes the sky when the
   point the camera follows (the player's base point; a still picture's and the workbench's too) reaches it; the rule
   written once in [Architecture](architecture.md), the chapters' and Original road data's copies deleted. OUTRUN's,
@@ -334,14 +334,14 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
 - **The scale**: temporary DEV courses for SUPER HANG-ON's AFRICA (the original's bike at its real size, 3.883 m a
-  lane, and one lane width for all, 3.6 m), SUPER MONACO GP's race and ENDURO RACER (3.6 m), with pictures of the same
-  places; OUTRUN's and TURBO OUTRUN's are not made. The road data commands' temporary `--lane <metres>` overrides an
-  original's lane, and so its lateral unit (reproducible with `--check`); the courses, in no series and so DEV's alone,
-  carry the candidate in their ids, names and pictures (`super-hang-on-africa-lane-3883`, `-lane-3600`,
-  `enduro-racer-lane-3600`), with pictures at the start, a sharp curve and a long straight; the reference times wait
-  until the courses are finished (K). When K has decided:
-  raised again at the value, measured again, the temporary courses and argument deleted, and how it was decided
-  written once in each chapter and Original road data.
+  lane, and one lane width for all, 3.6 m) and ENDURO RACER (3.6 m), with pictures of the same places; OUTRUN's and
+  TURBO OUTRUN's are not made, nor SUPER MONACO GP's: K decides by AFRICA and ENDURO RACER, and should one lane of 3.6 m
+  be chosen for all, SUPER MONACO GP is raised again at it then (K, 2026-10-25). The road data commands' temporary
+  `--lane <metres>` overrides an original's lane, and so its lateral unit (reproducible with `--check`); the courses, in
+  no series and so DEV's alone, carry the candidate in their ids, names and pictures (`super-hang-on-africa-lane-3883`,
+  `-lane-3600`, `enduro-racer-lane-3600`), with pictures at the start, a sharp curve and a long straight; the reference
+  times wait until the courses are finished (K). When K has decided: raised again at the value, measured again, the
+  temporary courses and argument deleted, and how it was decided written once in each chapter and Original road data.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.
