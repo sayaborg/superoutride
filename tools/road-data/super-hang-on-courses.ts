@@ -25,6 +25,7 @@ import {
   type Section,
 } from './super-hang-on-road.js';
 import { pathHeadings, VECTOR_RESOLUTION } from './heading-plan.js';
+import { lensFactor } from './screen-pieces.js';
 import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import { hitWidth, readGateParts, readGrid, spriteList } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
@@ -35,7 +36,7 @@ import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 16;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 17;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -150,12 +151,29 @@ function hillScale(sub: Uint8Array, metres: number, unit: number): number {
 }
 
 /**
- * The grades along a course from its `sections`' height points, each section `length` positions, the goal level after:
- * each point starts its table's grades (`scale × x / y`) where the road reaches it, unless a table runs, until its
- * projection meets its end, `ahead` positions before it; a point reached then is passed by, as the sub CPU takes a new
- * table only once it has none.
+ * The hills' focal length, scanlines: the sub CPU turns a step by the camera's pitch at 2^14 (the `moveq #$E, d1` at
+ * 0x1682) and raises its lines by that over its depth, shifted down 4 bits into a line's height (0x14AC) and 4 bits again
+ * to a scanline (0x154C): 2^(14 − 4 − 4) = 64.
  */
-function courseGrades(sub: Uint8Array, sections: readonly Section[], length: number, total: number, scale: number) {
+function hillsFocalLength(sub: Uint8Array): number {
+  const [pitch] = instruction(sub, 0x1682, [null], "the hills' pitch's unit");
+  const [lineShift] = instruction(sub, 0x14ac, [null], "the lines' heights' shift");
+  const [drawShift] = instruction(sub, 0x154c, [null], "the lines' scanline shift");
+  const asr = (op: number) => {
+    if ((op & 0xf1f8) !== 0xe040) throw new RangeError("The sub CPU's hills are not projected as read");
+    return (op >> 9) & 7 || 8;
+  };
+  if (pitch! >> 8 !== 0x72) throw new RangeError("The sub CPU's hills are not projected as read");
+  return 2 ** ((pitch! & 0xff) - asr(lineShift!) - asr(drawShift!));
+}
+
+/**
+ * The sines along a course from its `sections`' height points, each section `length` positions, the goal level after:
+ * each point starts its table's (`x / √(x² + y²)`, a vector's rise a position along it) where the road reaches it,
+ * unless a table runs, until its projection meets its end, `ahead` positions before it; a point reached then is passed
+ * by, as the sub CPU takes a new table only once it has none.
+ */
+function courseGrades(sub: Uint8Array, sections: readonly Section[], length: number, total: number) {
   const [steps] = instruction(sub, 0x16ba, [null], "the hills' steps");
   const ahead = 2 * (steps! & 0xff);
   const grades = new Array<number>(total).fill(0);
@@ -171,7 +189,7 @@ function courseGrades(sub: Uint8Array, sections: readonly Section[], length: num
       }
       running = at + vectors.length - ahead;
       vectors.forEach(([x, y], i) => {
-        if (at + i < total) grades[at + i] = (scale * x) / y;
+        if (at + i < total) grades[at + i] = x / Math.hypot(x, y);
       });
     }
   });
@@ -190,7 +208,7 @@ export function superHangOnCourses(set: RomSet) {
   const amounts = programAmounts(main);
   const cross = roadCrossSection(superHangOnRoadRom(set));
   const unit = LANE / cross.linesIn;
-  const scale = hillScale(programs.sub, metres, unit);
+  const eyeScale = hillScale(programs.sub, metres, unit);
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
@@ -212,8 +230,21 @@ export function superHangOnCourses(set: RomSet) {
       width: widths.get(list)!,
     };
   };
-  const built = readCourses(main).flatMap((course, c) => {
+  const courses = readCourses(main).map((course) => {
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
+    return { course, sections };
+  });
+  // The grades: each course's sines, times one factor for the four, the hills' lens ratio within the grade limit.
+  const sines = courses.map(({ sections }) =>
+    courseGrades(
+      programs.sub,
+      sections,
+      positions.length,
+      sections.length * positions.length + Math.max(goal.path.x.length, GOAL_POSITIONS),
+    ),
+  );
+  const factor = lensFactor(hillsFocalLength(programs.sub), Math.max(...sines.flatMap((s) => s.grades.map(Math.abs))));
+  const built = courses.flatMap(({ course, sections }, c) => {
     // The heading table: the sections' road paths, then the goal's, straight ahead, made `GOAL_POSITIONS` long.
     const goalPath = [...goal.path.x.keys()].map((i) => [goal.path.x[i]!, goal.path.y[i]!] as const);
     while (goalPath.length < GOAL_POSITIONS) goalPath.push(goalPath.at(-1)!);
@@ -223,7 +254,7 @@ export function superHangOnCourses(set: RomSet) {
       y: [...sections.flatMap((s) => s.path.y), ...goalPath.map(([, y]) => y)],
     });
     // The grades: the sections' height tables, then the goal's level straight.
-    const hills = courseGrades(programs.sub, sections, positions.length, headings.length, scale);
+    const hills = sines[c]!;
     const { spots, dropped } = courseScenery(
       main,
       sections.map((s) => s.scenery),
@@ -236,8 +267,8 @@ export function superHangOnCourses(set: RomSet) {
       slug: courseSlug(course.name),
       sections,
       headings,
-      grades: hills.grades,
-      gradeResolution: scale * VECTOR_RESOLUTION,
+      grades: hills.grades.map((sine) => factor * sine),
+      gradeResolution: factor * VECTOR_RESOLUTION,
       metres,
       length: positions.length,
       middle: amounts.middle,
@@ -290,5 +321,5 @@ export function superHangOnCourses(set: RomSet) {
       },
     };
   });
-  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground, hillScale: scale };
+  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground, factor, eyeScale };
 }

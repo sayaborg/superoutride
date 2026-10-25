@@ -148,16 +148,13 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
 - **SUPER MONACO GP's circuits** are raised the same way, from their integer path's points by the
   [plan from a point path](original-road-data.md#plan-from-a-point-path) (K, 2026-10-24): the points close exactly, so
   no correction closes a lap.
-- **The canon's grades.** SUPER MONACO GP's path is the original's 3D road, so its heights are its rises' sum at the
-  plan's scale and its grades the original's, raised from its points as its plan is, by the
-  [profile from a point path](original-road-data.md#profile-from-a-point-path) (EX-10): so a lap closes, where its
-  rises written as a heading table is would need 3178 runs to lie within K's 1.5/4096 (a Section holds 1024 knots) and
-  miss the lap's height by 11.5 m at 1/96. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
-  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m), raised as a
-  heading table is, by their own runs: the [profile from a rise table](original-road-data.md#profile-from-a-rise-table)
-  (EX-12). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables and slope words are shapes on the screen; their
-  grades are the [grades' rule](original-road-data.md#profile-from-the-originals-screen)'s, the screen read back piece
-  by piece, and canon (EX-G2).
+- **The canon's grades** are the [grades' rule](original-road-data.md#profile-from-the-originals-screen)'s (K,
+  2026-10-26). SUPER MONACO GP's path is the original's 3D road: its heights are its rises' sum at the plan's scale,
+  raised from its points as its plan is, by the [profile from a point path](original-road-data.md#profile-from-a-point-path)
+  (EX-10), so a lap closes, times its factor (EX-G3). SUPER HANG-ON's vertical heading vectors are its road's
+  directions, their sines times its factor, raised as a heading table is, by their own runs: the [profile from a rise
+  table](original-road-data.md#profile-from-a-rise-table) (EX-12, EX-G3). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's
+  height tables and slope words are shapes on the screen, read back piece by piece (EX-G2).
 - **Crossings.** Where the heights leave two passages nearer than 3 m, one fixed rule parts them by the least change,
   whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
   part of the canon.
@@ -196,7 +193,6 @@ Rules of the stage:
 PRs, in this order:
 
 - K's grades by the [grades' rule](original-road-data.md#profile-from-the-originals-screen) (K, 2026-10-26):
-  - EX-G3: SUPER HANG-ON's and SUPER MONACO GP's heights times their factor, the lens ratio within the grade limit.
   - EX-G4: what EX-G2 and EX-G3 no longer use deleted (`road-profile`'s table grades, `c_look` and the closing,
     `outrun-look`, SUPER HANG-ON's eye scale).
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:

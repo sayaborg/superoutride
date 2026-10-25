@@ -12,6 +12,8 @@ import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filte
 import type { RomSet } from './rom-set.js';
 import { sectionProfile, type Profile } from './road-profile.js';
 import { pointProfile } from './point-profile.js';
+import { lensFactor, steepestGrade } from './screen-pieces.js';
+import { instruction } from './program-words.js';
 import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
@@ -44,7 +46,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 15;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 16;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -55,6 +57,18 @@ export const STEP_METRES = (96 * 0.0349) / 9;
 export const UNIT = 11 / 1640;
 /** The original's pixels are 14 wide to 15 tall: its vertical amounts grow by this. */
 export const UNIT_DOWN = (UNIT * 15) / 14;
+/**
+ * The sub CPU's focal length, rows: its transform (S 0x3C5A–0x3E00) projects a camera-relative point across and up
+ * alike by q = 0x80000 / (Z + 64), 512 pixels at the screen ([research notes](../../docs/research/super-monaco-gp.md),
+ * Camera).
+ */
+const FOCAL_ROWS = 512;
+/** The focal length, with the transform's dividend checked where it is written (`move.l #$80000, $4000(a6)`, S 0x3C72). */
+function focalLength(sub: Uint8Array): number {
+  instruction(sub, 0x3c72, [0x2d7c, 0x0008, 0x0000, 0x4000], "the transform's dividend");
+  return FOCAL_ROWS;
+}
+
 /** The lap's line: every grid slot's lap count reaches its first lap at step 288. */
 const LAP_LINE = 288;
 /** A road path unit, metres: a step's 96 units are `STEP_METRES` (the scale along the road). */
@@ -224,7 +238,7 @@ export function superMonacoGpCourses(set: RomSet) {
         meanColor(colorsOf(readViewTable(programs.sub, KERBS)[0]!, palette, (_x, _y, v) => v >= a && v <= b)),
       ),
   };
-  const courses = COURSES.map((course) =>
+  const laps = COURSES.map((course) =>
     superMonacoGpCourse(programs, course, {
       marks,
       ground: roadLayer[GROUND_COLOR]!,
@@ -232,6 +246,9 @@ export function superMonacoGpCourses(set: RomSet) {
       width: (frames: number) => largestSize(main, frames).width,
     }),
   );
+  // One factor for both laps, which share most of the road: the lens ratio within the grade limit.
+  const factor = lensFactor(focalLength(programs.sub), Math.max(...laps.map((l) => l.steepest)));
+  const courses = laps.map((l) => l.write(factor));
   const boards = superMonacoGpBoards(
     main,
     words,
@@ -243,7 +260,7 @@ export function superMonacoGpCourses(set: RomSet) {
     { name: SKIES.fine, document: bakeSky(SKIES.fine, superMonacoGpSkyBands(main, assembleSuperMonacoGpTiles(set))) },
     { name: SKIES.tunnel, document: bakeSky(SKIES.tunnel, uniformSkyBands(TUNNEL_DARK)) },
   ];
-  return { courses, boards, skies };
+  return { courses, boards, skies, factor };
 }
 
 /**
@@ -360,16 +377,19 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     return origins[s]! + station(q) - station(sections[s]!.from);
   };
   // The profile: the road path's heights from the line round to it again, its rises summed at the plan's scale, by the
-  // profile from a point path at the path's resolution, broken at the Sections' cuts.
+  // profile from a point path at the path's resolution, broken at the Sections' cuts; at a factor, the heights and the
+  // resolution times it, so that its runs are the same and it is the profile times the factor.
   const heights = [0];
   for (let q = 1; q < N; q++) heights.push(heights[q - 1]! + road.dz[(LAP_LINE + q - 1) % N]! * PATH_UNIT);
-  const hills = pointProfile(
-    heights.map((_, q) => stationOf(q)),
-    heights,
-    origins.at(-1)!,
-    PATH_RESOLUTION * PATH_UNIT,
-    origins.slice(1, -1),
-  );
+  const hillsAt = (factor: number) =>
+    pointProfile(
+      heights.map((_, q) => stationOf(q)),
+      heights.map((h) => h * factor),
+      origins.at(-1)!,
+      PATH_RESOLUTION * PATH_UNIT * factor,
+      origins.slice(1, -1),
+    );
+  const level = hillsAt(1);
   /** P's direction at step q, clockwise from the original's heading 0 (the path's y). */
   const thetaAt = (q: number) => {
     const u = station(q) / PATH_UNIT;
@@ -490,68 +510,74 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     objects.push({ q, units, image, palette, groundOffset, ...(group ? { below: group } : {}) });
   }
 
-  const documents = sections.map((section, s) =>
-    sectionDocument({
+  /** The course with its heights times `factor`. */
+  const write = (factor: number) => {
+    const hills = hillsAt(factor);
+    if (hills.runs.length !== level.runs.length) throw new Error("The profile's runs changed with its factor");
+    const documents = sections.map((section, s) =>
+      sectionDocument({
+        course,
+        section,
+        index: s,
+        last: s === sections.length - 1,
+        plan: written[s]!,
+        origin: origins[s]!,
+        size: origins[s + 1]! - origins[s]!,
+        stationOf,
+        lap,
+        N,
+        theta0: thetaAt(section.from),
+        edgeAt: (side: number, which: 'paving' | 'limit', q: number) => (side < 0 ? left : right).at(which, q),
+        borders,
+        surface,
+        asphalt,
+        paving,
+        startBoards,
+        gridPalette,
+        objects: objects.filter(({ q }) => q >= section.from && q < section.to),
+        kerbs,
+        profile: hills.profile,
+        context,
+      }),
+    );
+    const links = sections.map((section, s) => {
+      const next = sections[(s + 1) % sections.length]!;
+      return { id: `${section.id}-to-${next.id}`, from: { section: section.id, lane: 'a' }, to: next.id };
+    });
+    return {
       course,
-      section,
-      index: s,
-      last: s === sections.length - 1,
-      plan: written[s]!,
-      origin: origins[s]!,
-      size: origins[s + 1]! - origins[s]!,
+      document: {
+        format: 'superoutride.course',
+        version: COURSE_DOCUMENT_VERSION,
+        name: course.name,
+        entry: sections[0]!.id,
+        maxLaps: 30,
+        bearing: 0,
+        sections: documents,
+        links,
+      },
+      plan,
+      written,
+      hills,
+      sections: sections.map((section, s) => ({
+        ...section,
+        steps: [section.from, section.to].map((q) => (q + LAP_LINE) % N),
+        boards: boards.filter((q) => q >= section.from && q < section.to).length,
+        origin: origins[s]!,
+      })),
       stationOf,
       lap,
+      /** The original's step of step q of the lap. */
+      stepOf: (q: number) => (q + LAP_LINE) % N,
       N,
-      theta0: thetaAt(section.from),
-      edgeAt: (side: number, which: 'paving' | 'limit', q: number) => (side < 0 ? left : right).at(which, q),
-      borders,
-      surface,
-      asphalt,
-      paving,
-      startBoards,
-      gridPalette,
-      objects: objects.filter(({ q }) => q >= section.from && q < section.to),
+      spots,
+      uses,
+      objects,
       kerbs,
-      profile: hills.profile,
-      context,
-    }),
-  );
-  const links = sections.map((section, s) => {
-    const next = sections[(s + 1) % sections.length]!;
-    return { id: `${section.id}-to-${next.id}`, from: { section: section.id, lane: 'a' }, to: next.id };
-  });
-  return {
-    course,
-    document: {
-      format: 'superoutride.course',
-      version: COURSE_DOCUMENT_VERSION,
-      name: course.name,
-      entry: sections[0]!.id,
-      maxLaps: 30,
-      bearing: 0,
-      sections: documents,
-      links,
-    },
-    plan,
-    written,
-    hills,
-    sections: sections.map((section, s) => ({
-      ...section,
-      steps: [section.from, section.to].map((q) => (q + LAP_LINE) % N),
-      boards: boards.filter((q) => q >= section.from && q < section.to).length,
-      origin: origins[s]!,
-    })),
-    stationOf,
-    lap,
-    /** The original's step of step q of the lap. */
-    stepOf: (q: number) => (q + LAP_LINE) % N,
-    N,
-    spots,
-    uses,
-    objects,
-    kerbs,
-    inside,
+      inside,
+    };
   };
+  return { steepest: steepestGrade(level.profile), write };
 }
 
 /**

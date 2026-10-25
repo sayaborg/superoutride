@@ -135,6 +135,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
         ok: true,
         zip,
         conversion: SUPER_MONACO_GP_CONVERSION_VERSION,
+        factor: built.factor,
         checked: check,
         metresAStep: SUPER_MONACO_GP_STEP,
         courses,

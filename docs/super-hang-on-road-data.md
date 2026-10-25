@@ -177,20 +177,24 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   at 0x16BA), meets its end, 64 positions before it, and a point the road reaches meanwhile is passed by. Five are, each
   reached while a longer table runs: AFRICA's third section's at 1000 (table 2), ASIA's second's at 1400 (14) and
   third's at 900 (12), AMERICA's fourth's at 900 (17) and EUROPE's sixth's at 1000 (7).
-- **Grades.** A vector (x up, y along) is a direction in the hills' space, which the sub CPU projects with its own eye
-  (`hillScale`): it sums a table's vectors two a step ahead of the camera, turns each sum (X up, Y along) by the
-  camera's pitch and raises the step's lines 2X over its depth Y / 32 + 0x300 scanlines; the nearest step's far edge
-  (the rows the table at 0x19A6 gives it) lies as far below the vanishing line as an eye of 38400 units above a level
-  road sees it. Taken at the scale that puts this eye at the road's, 112 units (2.17 m), and a level vector (4096) a
-  position long, a vector's grade is 0.09895 x / y: the tables' steepest are +20.4 % (table 11, which no section
-  names) and −25.5 % (table 2).
-- **Resolution.** The vectors' heading resolution at that scale, 1.5 / 4096 × 0.09895 ([plan from a heading
+- **Grades.** A vector (x up, y along) is a direction of the road: a position along it rises by its sine, x / √(x² +
+  y²), as the stripes and objects stand at positions. The sub CPU sums a table's vectors two a step ahead of the camera,
+  turns each sum (X up, Y along) by the camera's pitch at 2^14 (`moveq #$E, d1` at 0x1682) and raises the step's lines
+  by it over its depth, shifted down 4 bits into a line's height (0x14AC) and 4 again to a scanline (0x154C): a pinhole
+  of focal length 2^(14 − 4 − 4) = 64 scanlines (`hillsFocalLength`), 6 positions behind, on a screen of 224, so a lens
+  ratio of 64/224. By the [grades' rule](original-road-data.md#profile-from-the-originals-screen) the grade is f ×
+  sine, one factor for the four courses, f = min(64/224, 0.25 ÷ the steepest sine the courses' tables reach), 0.932069
+  (table 2's (−3818, 1484)): f = 0.268221, 0.939 of the lens ratio. It depends on the positions and 4096 alone, not
+  on the lateral scale. K's researcher measured both ways on this game's screen: the sine fits best at 0.277 to 0.287
+  times (1.13 to 1.27 rows), f within 0.04 to 0.08 rows of it.
+- **Resolution.** The vectors' heading resolution times f, 1.5 / 4096 × f ([plan from a heading
   table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
   position.
 
-AFRICA, ASIA, AMERICA and EUROPE become 445, 1097, 1368 and 1636 runs, their heights with the crossings' ramps from
-−36.5 to +68.1 m, −49.2 to +118.9 m, −9.6 to +245.8 m and −65.4 to +273.2 m, the steepest grade 25.5 % (ASIA's
-25.6 %, a crossing's ramp on a hill).
+AFRICA, ASIA, AMERICA and EUROPE become 256, 631, 801 and 980 runs, their heights with the crossings' ramps from
+−48.2 to +126.6 m, −92.1 to +196.1 m, −20.5 to +419.1 m and −94.0 to +506.9 m, the steepest grade 25 % (ASIA's 26.3 %,
+a crossing's ramp on a hill). At the top speed with the turbo (324 km/h) the bike leaves the road on 16, 37, 49 and 63
+crests, the longest 228.9 m of road.
 
 ## Placing SUPER HANG-ON's scenery
 
@@ -214,7 +218,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 16, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 17, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:

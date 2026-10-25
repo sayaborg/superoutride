@@ -403,8 +403,7 @@ not promise the height, which the minimax lines' departures leave to drift by up
 ## Profile from the original's screen
 
 An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
-length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26). SUPER HANG-ON and SUPER MONACO GP take
-it as NEXT's Stage EX lists.
+length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
 
 - **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors, SUPER MONACO GP's point path) is what its screen read
   back gives: its heights times one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the

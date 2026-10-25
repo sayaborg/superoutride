@@ -1,7 +1,8 @@
 /**
- * The grades' pieces ([Original road data](../../docs/original-road-data.md#profile-from-the-originals-screen)), read
- * once from `screen-pieces.json`, which K's researcher solved: each piece the changes of grade over its stretch, metres
- * from the stretch's start, the grade 0 at both ends and within `GRADE_LIMIT`.
+ * The grades' rule ([Original road data](../../docs/original-road-data.md#profile-from-the-originals-screen)): a 3D
+ * road's factor, and the pieces of a screen read back, read once from `screen-pieces.json`, which K's researcher
+ * solved: each piece the changes of grade over its stretch, metres from the stretch's start, the grade 0 at both ends
+ * and within `GRADE_LIMIT`.
  */
 import { readFileSync } from 'node:fs';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -9,7 +10,7 @@ import { cameraDistance } from '../../src/view/camera.js';
 import { requireInput } from '../course/authoring-io.js';
 import { GRADE_LIMIT } from './crossings.js';
 import type { TableRun } from './hills.js';
-import type { Change } from './road-profile.js';
+import type { Change, Profile } from './road-profile.js';
 
 /** A piece: its stretch, metres, and the changes of grade over it, stations from the stretch's start. */
 export interface Piece {
@@ -128,6 +129,31 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
     }),
   });
   return read;
+}
+
+/** The originals' screens' rows: they draw 320 × 224. */
+export const ORIGINAL_SCREEN_ROWS = 224;
+
+/**
+ * A 3D road's factor by the grades' rule: its original's lens ratio, its focal length over this game's in screen
+ * heights (`focalRows` of the original's `ORIGINAL_SCREEN_ROWS`), or less, `GRADE_LIMIT` over the road's `steepest`
+ * grade, where that would pass the limit.
+ */
+export function lensFactor(focalRows: number, steepest: number): number {
+  const game = CAMERA_DEFINITION.focalLength / (2 * CAMERA_DEFINITION.horizonRow);
+  return Math.min(focalRows / ORIGINAL_SCREEN_ROWS / game, GRADE_LIMIT / steepest);
+}
+
+/**
+ * A profile's steepest grade: its grade is linear within a bend and constant between, so it is at a bend's end or
+ * either side of a kink.
+ */
+export function steepestGrade(profile: Profile): number {
+  const at = [
+    ...profile.bends.flatMap((b) => [b.from, b.to]),
+    ...profile.kinks.flatMap((k) => [k.at - 1e-9, k.at + 1e-9]),
+  ];
+  return Math.max(0, ...at.map((s) => Math.abs(profile.grade(s))));
 }
 
 /** Where a piece's stretch lies on a road, stations. */
