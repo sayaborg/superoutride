@@ -54,8 +54,8 @@ export function createCourseScene(
   let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
   const backgrounds = createBackgroundTransition(),
     turnSample = createPlanCoordinateSample();
-  // The sign of the road's turn from the camera's station to `WIPE_TURN_AHEAD_METERS` ahead, 0 within the threshold or
-  // beyond the resident Route.
+  // The sign of the road's turn from the point the camera follows to `WIPE_TURN_AHEAD_METERS` ahead, 0 within the
+  // threshold or beyond the resident Route.
   const turnAhead = (s: number) => {
     const ahead = s + WIPE_TURN_AHEAD_METERS;
     if (!runtime.window.at(s) || !runtime.window.at(ahead)) return 0;
@@ -70,11 +70,11 @@ export function createCourseScene(
       return runtime.readers;
     },
     /**
-     * One fixed step of the screen showing the course from `camera`: it advances the background's transition. Still
-     * frames, which never step, show the environment at the camera's station as it is.
+     * One fixed step of the screen showing the course from `camera`: it advances the background's transition. The
+     * environment is the one at the point the camera follows; still frames, which never step, show it as it is.
      */
     advance(camera: CameraState) {
-      backgrounds.advance(rendering.read().environmentAt(camera.s), turnAhead(camera.s));
+      backgrounds.advance(rendering.read().environmentAt(camera.follows), turnAhead(camera.follows));
     },
     render(
       target: Parameters<typeof renderDriving>[0],
@@ -166,7 +166,7 @@ export function createCourseScene(
       return renderDriving(
         target,
         {
-          background: backgrounds.frame(renderData.environmentAt(camera.s)),
+          background: backgrounds.frame(renderData.environmentAt(camera.follows)),
           guide: readers,
           camera,
           player: player && {

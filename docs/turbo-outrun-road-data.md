@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 14, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 15, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -207,8 +207,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   centre, 0x1623C, as OUTRUN's); each stage's checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post
   passes the car (1408.107), and the finish `los-angeles-GOAL` where the GOAL gate's does (1403.613).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
-  programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from 6 m before the car
-  reaches where its background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the
+  programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from where its
+  background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
 - **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](original-road-data.md#profile)),

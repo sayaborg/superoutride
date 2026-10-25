@@ -60,6 +60,8 @@ export interface CameraRig {
 }
 
 export interface CameraState extends PseudoCamera {
+  /** The route position of the point the camera follows, the player's base point, `D_cam` ahead of its own `s`. */
+  readonly follows: number;
   /**
    * Whether the camera is held at its yaw limit, and on which side of the road heading: 1 when its source has turned
    * right beyond the limit, -1 left, 0 while it is within the limit.
@@ -170,6 +172,7 @@ export function updateCamera(
     yaw,
     pitch,
     s: sCamera,
+    follows: base.s,
     focalLength: definition.focalLength,
     centerX: definition.centerX,
     centerY: definition.horizonRow,

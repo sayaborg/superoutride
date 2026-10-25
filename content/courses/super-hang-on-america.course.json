@@ -6495,7 +6495,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c78", "offset": -8.335835 },
+          "at": { "joint": "c78", "offset": -2.335835 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -13422,7 +13422,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c71", "offset": 1.007506 },
+          "at": { "joint": "c72", "offset": 4.671671 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-3-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -21725,7 +21725,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c76", "offset": -120.455923 },
+          "at": { "joint": "c76", "offset": -114.455923 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-4-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -30603,7 +30603,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c34", "offset": -111.112581 },
+          "at": { "joint": "c34", "offset": -105.112581 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-5-sky", "horizonY": 320, "yawOrigin": -67.372553 },
           "arrival": "cut"
@@ -38038,7 +38038,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c19", "offset": -174.180131 },
+          "at": { "joint": "c19", "offset": -168.180131 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-6-sky", "horizonY": 320, "yawOrigin": 139.48204 },
           "arrival": "cut"
@@ -46289,7 +46289,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c60", "offset": 54.731716 },
+          "at": { "joint": "c60", "offset": 60.731716 },
           "name": "AMERICA",
           "background": { "image": "shangon-america-7-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"

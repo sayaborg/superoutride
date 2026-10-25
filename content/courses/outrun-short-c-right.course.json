@@ -35438,7 +35438,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 31.049749 },
+          "at": { "joint": "c0", "offset": 37.049749 },
           "name": "WHEAT FIELD",
           "background": { "image": "outrun-wheat-field-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -69978,7 +69978,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 84.121012 },
+          "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DESOLATION HILL",
           "background": { "image": "outrun-desolation-hill-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"

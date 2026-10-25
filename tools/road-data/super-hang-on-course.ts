@@ -322,9 +322,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
         finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
         grid: stationOf(0),
         profile,
-        skyChanges: sections
-          .slice(0, -1)
-          .map((_, k) => stationOf(length * k + inputs.transition) - inputs.cameraDistance),
+        skyChanges: sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition)),
         startHeading,
       }),
     ),

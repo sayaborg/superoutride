@@ -1017,11 +1017,8 @@ function sectionDocument(
     .map((s) => {
       const start = section.stageStarts.get(s.stage) ?? heading;
       return {
-        // A sky the original changes changes where the car comes to it, the camera this game draws from behind it.
-        at:
-          s.from >= from && s.arrival === 'wipe'
-            ? atStation(round(local(s.from) - section.options.cameraDistance))
-            : at(Math.max(s.from, from)),
+        // A sky changes where the original changes it, as the car comes to it.
+        at: at(Math.max(s.from, from)),
         name: section.options.stageName(s.stage),
         background: {
           ...section.options.sky(s.stage),

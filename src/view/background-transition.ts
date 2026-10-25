@@ -36,12 +36,13 @@ interface Transition {
 }
 
 /**
- * The background the frame shows: the environment at the camera's station, or a transition into it. A transition runs
- * in screen time, `BACKGROUND_TRANSITION_SECONDS` of fixed steps from the step the camera's station crosses a knot whose
- * background arrives by `wipe` or `rise`, and finishes whatever the vehicle does next; crossing a knot backward runs
- * the reverse, by the arrival of the knot crossed. Every frame shows whole tiles of one map or the other, each in its
- * own palettes: a wipe lays both on one horizontal scroll, the incoming map's, and a rise moves whole tile rows. `cut`
- * (and a knot whose picture does not change) switches at once. Without fixed steps (a still frame) the environment at the camera's station is shown as it is.
+ * The background the frame shows: the environment at the point the camera follows, or a transition into it. A
+ * transition runs in screen time, `BACKGROUND_TRANSITION_SECONDS` of fixed steps from the step that point crosses a
+ * knot whose background arrives by `wipe` or `rise`, and finishes whatever the vehicle does next; crossing a knot
+ * backward runs the reverse, by the arrival of the knot crossed. Every frame shows whole tiles of one map or the other,
+ * each in its own palettes: a wipe lays both on one horizontal scroll, the incoming map's, and a rise moves whole tile
+ * rows. `cut` (and a knot whose picture does not change) switches at once. Without fixed steps (a still frame) the
+ * environment at that point is shown as it is.
  */
 export function createBackgroundTransition() {
   let current: RouteEnvironment | null = null,

@@ -8351,7 +8351,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c79", "offset": -55.052538 },
+          "at": { "joint": "c79", "offset": -49.052538 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -16994,7 +16994,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c73", "offset": 68.746726 },
+          "at": { "joint": "c73", "offset": 74.746726 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-3-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -25359,7 +25359,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c82", "offset": -45.709198 },
+          "at": { "joint": "c82", "offset": -39.709198 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-4-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -32741,7 +32741,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c29", "offset": -78.410889 },
+          "at": { "joint": "c29", "offset": -72.410889 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-5-sky", "horizonY": 320, "yawOrigin": -91.514716 },
           "arrival": "cut"
@@ -39490,7 +39490,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c73", "offset": -34.030022 },
+          "at": { "joint": "c73", "offset": -28.030022 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-6-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -45853,7 +45853,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c74", "offset": -80.746725 },
+          "at": { "joint": "c74", "offset": -74.746725 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-7-sky", "horizonY": 320, "yawOrigin": 76.991352 },
           "arrival": "cut"
@@ -52072,7 +52072,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c120", "offset": 12.686683 },
+          "at": { "joint": "c120", "offset": 18.686683 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-8-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -60369,7 +60369,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c17", "offset": 8.015012 },
+          "at": { "joint": "c17", "offset": 14.015012 },
           "name": "EUROPE",
           "background": { "image": "shangon-europe-9-sky", "horizonY": 320, "yawOrigin": 110.693158 },
           "arrival": "cut"

@@ -28229,7 +28229,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "WASHINGTON D.C.",
           "background": { "image": "toutrun-washington-dc-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
@@ -41856,7 +41856,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "PITTSBURGH",
           "background": { "image": "toutrun-pittsburgh-sky", "horizonY": 320, "yawOrigin": 75.605762 },
           "arrival": "cut"
@@ -59477,7 +59477,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "INDIANAPOLIS",
           "background": { "image": "toutrun-indianapolis-sky", "horizonY": 320, "yawOrigin": -19.113355 },
           "arrival": "cut"
@@ -98751,7 +98751,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "ST. LOUIS",
           "background": { "image": "toutrun-st-louis-sky", "horizonY": 320, "yawOrigin": -91.701262 },
           "arrival": "cut"
@@ -128441,7 +128441,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "MEMPHIS",
           "background": { "image": "toutrun-memphis-sky", "horizonY": 320, "yawOrigin": 75.601461 },
           "arrival": "cut"
@@ -145306,7 +145306,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "ATLANTA",
           "background": { "image": "toutrun-atlanta-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
@@ -206989,7 +206989,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "NEW ORLEANS",
           "background": { "image": "toutrun-new-orleans-sky", "horizonY": 320, "yawOrigin": -146.888219 },
           "arrival": "cut"
@@ -232608,7 +232608,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "SAN ANTONIO",
           "background": { "image": "toutrun-san-antonio-sky", "horizonY": 320, "yawOrigin": 75.597441 },
           "arrival": "cut"
@@ -264768,7 +264768,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "DALLAS",
           "background": { "image": "toutrun-dallas-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
@@ -309824,7 +309824,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "DENVER",
           "background": { "image": "toutrun-denver-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
@@ -336840,7 +336840,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "GRAND CANYON",
           "background": { "image": "toutrun-grand-canyon-sky", "horizonY": 320, "yawOrigin": 75.598598 },
           "arrival": "cut"
@@ -365224,7 +365224,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "end", "offset": -9 },
+          "at": { "joint": "end", "offset": -3 },
           "name": "LOS ANGELES",
           "background": { "image": "toutrun-los-angeles-sky", "horizonY": 320, "yawOrigin": -108.310712 },
           "arrival": "cut"

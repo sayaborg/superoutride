@@ -8189,7 +8189,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c68", "offset": 26.701693 },
+          "at": { "joint": "c68", "offset": 32.701693 },
           "name": "AFRICA LANE 3.6",
           "background": { "image": "shangon-africa-2-sky", "horizonY": 320, "yawOrigin": 77.001151 },
           "arrival": "cut"
@@ -16806,7 +16806,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c26", "offset": 12.686682 },
+          "at": { "joint": "c26", "offset": 18.686682 },
           "name": "AFRICA LANE 3.6",
           "background": { "image": "shangon-africa-3-sky", "horizonY": 320, "yawOrigin": 193.078244 },
           "arrival": "cut"

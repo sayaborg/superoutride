@@ -528,7 +528,8 @@ The rules of the originals (what never enters the repository, decryption, other 
 ### 7. Skies
 
 - Bake the background into one sky by [Sky baking](#sky-baking);
-  background changes (stages, tunnels, weather) become sky changes where the original's camera reaches them.
+  background changes (stages, tunnels, weather) become sky changes at the original's positions, which the renderer
+  reaches with the point its camera follows ([Architecture](architecture.md#ground-and-background)).
 
 ### 8. The original's camera
 

@@ -443,8 +443,10 @@ sprung height at the base point, at rest relative to it; route seams need no res
 ## Ground and background
 
 BG is one infinite tiled plane. Yaw and pitch change its view; translation does not.
-Its yaw origin uses the shared route frame across every occurrence. The background is selected
-at camera chainage `camera.s`; distant sprites and ground rows do not change that selection.
+Its yaw origin uses the shared route frame across every occurrence. The background is selected at the point the camera
+follows, the player's base point (`camera.follows`, `D_cam` ahead of `camera.s`; a still frame's and the workbench's
+too), so a course writes a background change where the drawn world changes it, and a camera of another distance changes
+no course; distant sprites and ground rows do not change that selection.
 It scrolls with camera yaw at the focal length, so it turns with distant road and sprites. A change of background
 arrives by its environment's transition ([Image assets](image-assets.md#background-transitions)).
 [Image assets](image-assets.md#infinite-tiled-background) owns its format and angular mapping.

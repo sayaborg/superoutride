@@ -187,7 +187,7 @@ BRANCH course (K, 2026-10-21).
   0.5 back pixels, 0.12°); the road layer's ramp, color 0x31 the 16 rows above the horizon, then 0x30 to 0x01 a row
   each and 0x00 above, below the horizon the ground's 0x32. `smgp-tunnel-sky` is the tunnel's dark, 0x0842,
   everywhere. Each Section starts with the sky that holds at its start step (the race's `sector-3a`, from 9538, with
-  `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes as the camera reaches step 9054, where the
+  `smgp-tunnel-sky`); in the race the tunnel's `smgp-tunnel-sky` comes at step 9054, where the
   original's background is wholly dark, and `smgp-sky` again at 10750, a step before the middle of its brightening
   (10655–10847), each a `cut` (K, 2026-10-21). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −

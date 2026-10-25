@@ -134,7 +134,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 11, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 12, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -203,7 +203,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   0.375 back pixels, 0.09°); the ramp's 48 rows by its bits and the top color above; below the horizon the ground's
   color (stage 5's the sea). Stage 5's sea glitter stands at its first step, the palette as loaded, and the ground's
   rows where the stripes change are not drawn. A Section starts with the sky in force there; stage 2's, 4's and 5's come
-  in at their start and stage 3's at position 4068, where its background does, each 6 m before the bike reaches it, by
+  in at their start and stage 3's at position 4068, where its background does, each by
   one `cut` (the original's column-by-column change is not made). At a stage's start heading, every stage's the same,
   the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.

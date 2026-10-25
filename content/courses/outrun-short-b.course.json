@@ -21926,7 +21926,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 43.566557 },
+          "at": { "joint": "c0", "offset": 49.566557 },
           "name": "WILDERNESS",
           "background": { "image": "outrun-wilderness-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -46552,7 +46552,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 84.121012 },
+          "at": { "joint": "c0", "offset": 90.121012 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"

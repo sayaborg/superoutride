@@ -35448,7 +35448,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 31.049749 },
+          "at": { "joint": "c0", "offset": 37.049749 },
           "name": "SEASIDE TOWN",
           "background": { "image": "outrun-seaside-town-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -62443,7 +62443,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 66.09681 },
+          "at": { "joint": "c0", "offset": 72.09681 },
           "name": "AUTOBAHN",
           "background": { "image": "outrun-autobahn-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"

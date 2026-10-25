@@ -39716,7 +39716,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 84.121012 },
+          "at": { "joint": "c0", "offset": 90.121012 },
           "name": "GATEWAY",
           "background": { "image": "outrun-gateway-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -69957,7 +69957,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 84.121012 },
+          "at": { "joint": "c0", "offset": 90.121012 },
           "name": "ALPS",
           "background": { "image": "outrun-alps-sky", "horizonY": 320, "yawOrigin": -0.463647 },
           "arrival": "wipe"
@@ -85112,7 +85112,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 43.566557 },
+          "at": { "joint": "c0", "offset": 49.566557 },
           "name": "OLD CAPITAL",
           "background": { "image": "outrun-old-capital-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"
@@ -115662,7 +115662,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "c0", "offset": 66.09681 },
+          "at": { "joint": "c0", "offset": 72.09681 },
           "name": "DEATH VALLEY",
           "background": { "image": "outrun-death-valley-sky", "horizonY": 320, "yawOrigin": 0.463647 },
           "arrival": "wipe"

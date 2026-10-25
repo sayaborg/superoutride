@@ -43,7 +43,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 14;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 15;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -163,8 +163,8 @@ export function turboOutrunCourse(set: RomSet) {
     to: station(start + length),
     stage,
   }));
-  // The skies: each stage's from the course's start or where it comes in, 6 m before the car reaches where the original
-  // changes its background (the camera this game draws from is behind the car); a leg's start's rising at its GO.
+  // The skies: each stage's from the course's start or where it comes in, where the original changes its background as
+  // the car comes to it; a leg's start's rising at its GO.
   const skies: SkyChange[] = [{ s: 0, stage: 0, arrival: 'cut' }];
   course
     .slice(0, -1)
@@ -172,7 +172,7 @@ export function turboOutrunCourse(set: RomSet) {
       skies.push(
         joined
           ? { s: station(course[n + 1]!.start), stage: n + 1, arrival: 'rise' }
-          : { s: station(start + run.backgroundChange) - camera, stage: n + 1, arrival: 'cut' },
+          : { s: station(start + run.backgroundChange), stage: n + 1, arrival: 'cut' },
       ),
     );
   const yawBase =

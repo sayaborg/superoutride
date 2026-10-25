@@ -8997,12 +8997,6 @@
           "name": "STAGE 1",
           "background": { "image": "enduror-1-sky", "horizonY": 320, "yawOrigin": 28.247308 },
           "arrival": "cut"
-        },
-        {
-          "at": { "joint": "end", "offset": -6 },
-          "name": "STAGE 2",
-          "background": { "image": "enduror-2-sky", "horizonY": 320, "yawOrigin": 28.247308 },
-          "arrival": "cut"
         }
       ],
       "gates": []
@@ -20319,7 +20313,7 @@
           "arrival": "cut"
         },
         {
-          "at": { "joint": "s25", "offset": 22.444444 },
+          "at": { "joint": "s25", "offset": 28.444444 },
           "name": "STAGE 3",
           "background": { "image": "enduror-3-sky", "horizonY": 320, "yawOrigin": 215.87114 },
           "arrival": "cut"
@@ -29981,12 +29975,6 @@
           "at": { "joint": "s0", "offset": 0 },
           "name": "STAGE 3",
           "background": { "image": "enduror-3-sky", "horizonY": 320, "yawOrigin": 173.912079 },
-          "arrival": "cut"
-        },
-        {
-          "at": { "joint": "end", "offset": -5.999999 },
-          "name": "STAGE 4",
-          "background": { "image": "enduror-4-sky", "horizonY": 320, "yawOrigin": 173.912079 },
           "arrival": "cut"
         }
       ],
@@ -41006,12 +40994,6 @@
           "name": "STAGE 4",
           "background": { "image": "enduror-4-sky", "horizonY": 320, "yawOrigin": 258.838735 },
           "arrival": "cut"
-        },
-        {
-          "at": { "joint": "end", "offset": -5.999999 },
-          "name": "STAGE 5",
-          "background": { "image": "enduror-5-sky", "horizonY": 320, "yawOrigin": 258.838735 },
-          "arrival": "cut"
         }
       ],
       "gates": []
@@ -42524,6 +42506,12 @@
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
+          "name": "STAGE 4",
+          "background": { "image": "enduror-4-sky", "horizonY": 320, "yawOrigin": 97.688807 },
+          "arrival": "cut"
+        },
+        {
+          "at": { "joint": "s0", "offset": 0.000001 },
           "name": "STAGE 5",
           "background": { "image": "enduror-5-sky", "horizonY": 320, "yawOrigin": 97.688807 },
           "arrival": "cut"

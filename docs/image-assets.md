@@ -157,7 +157,8 @@ name and size and importing it with the sprite command replaces the picture.
 
 ## Background transitions
 
-The background shown is the one of the environment interval at `camera.s`. When `camera.s` crosses a knot, its
+The background shown is the one of the environment interval at the point the camera follows
+([Architecture](architecture.md#ground-and-background)). When that point crosses a knot, its
 `arrival` decides how the new map arrives ([environments](content-and-gameplay.md#sprites-and-environment)); crossing
 it backward runs the reverse, by the same knot's arrival. A transition runs in the screen's fixed steps for 1 s (60
 steps) from the step the crossing is observed, and finishes even if the vehicle stops or reverses; a crossing during a
@@ -167,13 +168,13 @@ each in its own palettes, with no mixing of pixels or palettes, as a late-1980s 
 - `cut`: the new map at once.
 - `wipe`: both maps lie on one horizontal scroll, the incoming map's; the frame's tile columns on that scroll turn to
   the new map one after another, the revealed count rising evenly over the steps, sweeping from the left edge to the
-  right where the road ahead (150 m from the camera's station) turns right by 0.05 rad or more or runs straight, and
+  right where the road ahead (150 m from that point) turns right by 0.05 rad or more or runs straight, and
   from the right edge where it turns left; backward the sweep is mirrored.
 - `rise`: over the first half the old map sinks below the horizon row in whole tile rows, over the second the new map
   rises from it in whole tile rows, each at its own scroll; the rows above the horizon are counted in whole tiles.
 
 A knot whose map is the same picture as the one shown changes nothing. Still frames, which take no fixed steps (the
-course command's renders), show the interval at `camera.s` as it is. The [course scene](../src/view/course-scene.ts)
+course command's renders), show the interval at that point as it is. The [course scene](../src/view/course-scene.ts)
 owns the transition and advances it with the run's fixed steps.
 
 ## Text tiles

@@ -475,7 +475,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 31 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 32 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -613,8 +613,7 @@ Link's lane's centre:
   HUD shows.
 - **Skies.** Each stage's Sections show its sky, facing at the stage's GO as the original's scroll starts there (0): its
   yaw origin there, and the same direction in the world in every Section that shows it. It comes in by `wipe` in a
-  fork piece, 6 m before where the car reaches the original's width 360 (the camera, 6 m behind the car, then reaches
-  the original's change).
+  fork piece, where the car reaches the original's width 360.
 
 The roads are K's (2026-10-24): six LONG, C's two LRRL and RLLR, and six SHORT. Together every one of the 20 fork
 pieces is run by a road, each stage of the third row by four roads and each of the fourth by three; LONG C runs
