@@ -192,8 +192,7 @@ Rules of the stage:
 
 PRs, in this order:
 
-- The jumps and dips by K's shapes (K, 2026-10-26, the constants' table below), then the calculations they no longer
-  use deleted, a PR of its own.
+- The calculations the jumps and dips no longer use deleted (the constants' table below).
 - The scale by K's values (K, 2026-10-26, the constants' table below).
 - K's grades, EX-G1 to EX-G4: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades and SUPER HANG-ON's and SUPER MONACO
   GP's scales by the screen's pieces, replacing the draft grades and `c_look`, the crossings parted on them by their
@@ -305,19 +304,9 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   they are. The lengths along every original's road are its original's speed's and stay. Its PR raises ENDURO RACER and
   SUPER MONACO GP again (courses, pictures and racing lines), stopping first should SUPER MONACO GP's pictures pass the
   course format's image bound, and writes how it was decided once in each chapter and Original road data as K's.
-- **The jumps and dips** (K, 2026-10-26): a symmetric triangle across the whole road with K's values, computed from
-  neither the ROMs nor a vehicle, added to the profile as the mounds' kinks are, the crossings parted on it as they
-  are; where two overlap the one farther from the road is taken (a rise's higher, a dip's lower), every row kept.
-  ENDURO RACER's jump a rise 1 m high 3 m either side, at all 69 of its original's jumps; TURBO OUTRUN's a dip 0.1 m
-  deep 2 m either side (4 m long), at its original's 96 rows of boards. The road's colors on a slope (stripes, lines,
-  edge bands) change in the conversion, the ground beside the road's not: a slope facing the camera (a rise's near
-  side, a dip's far side) brightened halfway to white, one facing away (a rise's far side, a dip's near side) at the
-  shadow's half brightness, a stripe split where a slope's end falls within it. Names follow the shapes (TURBO OUTRUN's
-  are no humps); the rule is written once, as K's, in Original road data's section, its heading after the shapes, the
-  chapters pointing to it. Its PR replaces EX-11d's mounds; the next deletes what they alone used: ENDURO RACER's
-  `DESIGN_SPEED`, `jumpMound`, the rocks' D, `jumpFlight`, `jumpGround`, the pictures' average color painted
-  (`paints`, `jumpPicture`) and the report's `jump` and `mounds`, and TURBO OUTRUN's `humpLength` (3.867 m) and
-  `HUMP_HEIGHT`. K drives them; no driving test or report.
+- **The jumps and dips** are K's shapes ([Jumps and dips](original-road-data.md#profile)); what they alone used goes:
+  ENDURO RACER's `DESIGN_SPEED`, `jumpMound`, the rocks' D, `jumpFlight`, `jumpGround`, the pictures' average color
+  (`jumpPicture`) and the report's `jump` and `mounds`, and TURBO OUTRUN's `humpLength` (3.867 m).
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 3 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.

@@ -170,7 +170,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         crossings: layout.crossings.map((c) => crossingReport(c, layout.profile.height)),
         rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
         objects: built.placing,
-        hump: Object.fromEntries(Object.entries(built.hump).map(([k, v]) => [k, round3(v)])),
+        dip: Object.fromEntries(Object.entries(built.dip).map(([k, v]) => [k, round3(v)])),
         ground: built.beyond,
         pictures: built.pictures.length,
         skies: skies.length,

@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 20, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 21, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -215,13 +215,12 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
 - **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](original-road-data.md#profile)),
-  the stage closed level at height 0 over its stretch; the humps; the nine crossings, each of two passages, kept apart
-  with the humps; bends broken at the Sections' cuts.
-- **Humps.** Collision class 2 throws the car (its handler at 0x742A; this and what follows are in the decrypted
-  program alone): its boards (0x27034), 124 in 96 rows of one to three at a road position, are a hump across the road
-  at each row's position ([Jumps and humps](original-road-data.md#profile)), not objects. Its length is the road the
-  car passes at 324 km/h while a board hits, its line within 0x64 of the car's (0x6F20): the approach table's lines 284
-  to 384, 1.931 positions (3.867 m). It is 0.2 m high. The two pairs of rows 3 m apart in san-antonio join. The boards are not painted (K).
+  the stage closed level at height 0 over its stretch; the dips; the nine crossings, each of two passages, kept apart
+  with the dips; bends broken at the Sections' cuts.
+- **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
+  (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
+  ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards
+  are not painted (K).
 
 ## TURBO OUTRUN's objects
 

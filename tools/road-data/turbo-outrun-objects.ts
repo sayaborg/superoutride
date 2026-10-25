@@ -70,15 +70,15 @@ const SIGN_NEARER = 0.1;
 /** Collision classes 0, 1 and 3 stop or spin the car: the objects of those standing on the ground have a body. */
 const SOLID = 3;
 /**
- * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a hump across the
+ * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a dip across the
  * road, not an object. An object hits while its line is within 0x64 of the car's (0x6F20, in the decrypted program
  * alone): the hump's length is the road the car passes while it does.
  */
-export const HUMP = 2;
+export const DIP = 2;
 const HIT_LINES = 0x64;
 
-/** Whether the scenery model's object `o` is a hump. */
-export const isHump = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === HUMP;
+/** Whether the scenery model's object `o` is a dip. */
+export const isDip = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === DIP;
 
 /** A hump's length at `kmh`, positions: the road the car passes at that speed while its object's line hits. */
 export const humpLength = (main: Uint8Array, kmh: number) => passedPositions(main, CAR_LINE - HIT_LINES, CAR_LINE, kmh);

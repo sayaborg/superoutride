@@ -3,7 +3,7 @@
  * stages one after another from the entry, each to where the original ends it, a leg's last joined to the next leg's
  * start; P, the plan, from the stages' road paths as one heading table; the road width from their width points, and
  * lane b's centre from it; the Sections, cut where their road comes near itself; the profile
- * with the humps and the crossings' bumps.
+ * with the dips and the crossings' ramps.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { POSITION_METRES } from './hills.js';
@@ -77,9 +77,9 @@ export interface LayoutInputs {
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
   readonly slug: (stage: number) => string;
-  /** The humps, each's stage and road position in it, and their shape. */
-  readonly humps: readonly { readonly stage: number; readonly position: number }[];
-  readonly hump: Mound;
+  /** The dips, each's stage and road position in it, and their shape. */
+  readonly dips: readonly { readonly stage: number; readonly position: number }[];
+  readonly dip: Mound;
 }
 
 /** The function straight between `points` `[position, value]`, from the first's position to the last's. */
@@ -262,9 +262,9 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     sides: (u) => [asphalt(u / POSITION_METRES), asphalt(u / POSITION_METRES)],
   }).pairs.map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
   const crossings = crossingsOf(pairs, POSITION_METRES);
-  // Each row of humps one across the whole road.
+  // Each row of boards a dip across the whole road.
   const mounds = moundKinks(
-    inputs.humps.map((j) => ({ top: station(course[j.stage]!.start + j.position), ...inputs.hump })),
+    inputs.dips.map((j) => ({ top: station(course[j.stage]!.start + j.position), ...inputs.dip })),
   );
   const parted = partedCrossings(changes, crossings, end, mounds.kinks);
   const profile = profileOf(
@@ -294,6 +294,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     pose: (g: number) => line.pose(metres(g)),
     profile,
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
+    slopes: mounds.slopes,
     crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };

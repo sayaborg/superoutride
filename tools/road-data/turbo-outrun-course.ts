@@ -3,6 +3,7 @@
  * 16 stages laid out as one LINEAR course (`turbo-outrun-layout`), each Section written with its lanes, verges, strips
  * (two roads as the road ROM draws them, in each stage's colors), gates and skies.
  */
+import { bySlope, slopeColor, type Mound, type Slope } from './jump-mound.js';
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -32,7 +33,7 @@ import {
 import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
-import { humpLength, isHump, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
+import { isDip, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
   readConstants,
   readTurboOutrunStages,
@@ -44,7 +45,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 20;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 21;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -127,8 +128,11 @@ interface SkyChange {
   readonly arrival: 'cut' | 'rise';
 }
 
-/** The humps' height, metres. */
-const HUMP_HEIGHT = 0.2;
+/**
+ * A dip ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's, 0.1 m deep and 2 m either
+ * side of its bottom (K, 2026-10-26).
+ */
+const DIP: Mound = { half: 2, height: -0.1 };
 
 /** TURBO OUTRUN's course from its ROM set: its document and what the conversion reports. */
 export function turboOutrunCourse(set: RomSet) {
@@ -153,8 +157,6 @@ export function turboOutrunCourse(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  // The humps: symmetric across the road, as long as the road the car passes at the top speed while their objects hit.
-  const hump = { half: (humpLength(programs.main, kmh) / 2) * POSITION_METRES, height: HUMP_HEIGHT };
   const layout = layTurboOutrun({
     stages,
     runs,
@@ -163,8 +165,8 @@ export function turboOutrunCourse(set: RomSet) {
     kmh,
     cameraDistance: camera,
     slug: stageSlug,
-    humps: objects.filter((o) => isHump(programs.main, o)),
-    hump,
+    dips: objects.filter((o) => isDip(programs.main, o)),
+    dip: DIP,
   });
   const { station, course, pieces } = layout;
 
@@ -201,7 +203,7 @@ export function turboOutrunCourse(set: RomSet) {
 
   // The objects, and the pictures they show.
   const placing = turboOutrunPlacements(programs.main, {
-    objects: objects.filter((o) => !isHump(programs.main, o)),
+    objects: objects.filter((o) => !isDip(programs.main, o)),
     runs,
     start: (stage) => course[stage]!.start,
     width: layout.width,
@@ -271,7 +273,7 @@ export function turboOutrunCourse(set: RomSet) {
     })),
     placing: placing.report,
     beyond,
-    hump: { ...hump, ...layout.mounds },
+    dip: { ...DIP, ...layout.mounds },
   };
 }
 
@@ -428,14 +430,19 @@ function sectionDocument(
   for (const q of stretchesOf(ROAD_HALF + OPEN / (2 * UNIT_METRES)))
     if (q.apart) strips.push(strip(q.a, q.b, roadSides[0]![1], roadSides[1]![0], null, 'SAND'));
   const asphalt = stretchesOf(ROAD_HALF);
+  // On the dips' slopes the road's colors are brightened or darkened (`slopeColor`), its stripes cut where they end.
+  const { slopes } = context.layout;
+  const toned = (two: readonly number[], facing: Slope['facing'] | null) => two.map((c) => slopeColor(c, facing));
   for (const t of owned) {
-    const surface = t.stage.colors.surface.rgb555;
     for (const q of asphalt) {
       const [sa, sb] = [Math.max(q.a, t.from), Math.min(q.b, t.to)];
       if (sb - sa <= 1e-6) continue;
-      for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const]) {
-        strips.push(strip(sa, sb, left, right, surface[1]!, null));
-        if (surface[0] !== surface[1]) strips.push(...halves(0, sa, sb, left, right, surface[0]!));
+      for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin)) {
+        const surface = toned(t.stage.colors.surface.rgb555, facing);
+        for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const]) {
+          strips.push(strip(pa, pb, left, right, surface[1]!, null));
+          if (surface[0] !== surface[1]) strips.push(...halves(0, pa, pb, left, right, surface[0]!));
+        }
       }
     }
   }
@@ -470,7 +477,8 @@ function sectionDocument(
         if (sb - sa <= 1e-6) continue;
         const { laneLines: lines, edges, surface } = t.stage.colors;
         const two = interval.paint === 'line' ? lines.rgb555 : edges.rgb555;
-        strips.push(...colored(sa, sb, ref(lr), ref(rr), two, surface.rgb555));
+        for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))
+          strips.push(...colored(pa, pb, ref(lr), ref(rr), toned(two, facing), toned(surface.rgb555, facing)));
       }
     }
   }

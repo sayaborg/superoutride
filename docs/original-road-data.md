@@ -422,7 +422,7 @@ A stage's profile turns its height tables' look on the original's screen into gr
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
   what stands on another passage overlaps a cell starting at least 200 m away. Two overlapping passages are kept at
-  least 3 m apart (K, 2026-10-26) by the least change, on the heights the profile, the jumps' mounds and the humps make
+  least 3 m apart (K, 2026-10-26) by the least change, on the heights the profile, the jumps and the dips make
   (`partedCrossings`), whatever made them:
   - _What moves._ Every height between the road's ends, whose heights stay. A passage moves as one, by its rise, so the
     roads keep their form where they cross; between two passages along the road, or a passage and an end, the road
@@ -432,7 +432,7 @@ A stage's profile turns its height tables' look on the original's screen into gr
   - _What it keeps._ The least ramp for its rise: no ramp level at both ends and no steeper than ±25 % (K's limit)
     rises more at a curvature k over L than two vertical curves of curvature k meeting halfway, rising k L² / 4, or,
     where they would be steeper (k L > 0.5), two such curves to 25 % and a tangent at it between them, rising
-    0.25 (L − 0.25 / k); a ramp is those curves at the least k that rises its r. The mounds' and humps' form, which the
+    0.25 (L − 0.25 / k); a ramp is those curves at the least k that rises its r. The jumps' and dips' form, which the
     ramps add to.
   - _The least._ Of two overlapping passages the higher over their pairs goes over (the later where level, their mean
     difference within a micrometre, as heights are written), and rises by what 3 m lacks at their nearest pair more
@@ -441,24 +441,16 @@ A stage's profile turns its height tables' look on the original's screen into gr
     iteration over Bellman and Ford's negative cycles, each cycle's curvature by bisection); every least change holds
     that cycle's ramps at it. Those fixed, the next cycle's are, and so on: the rises are one answer, and a ramp no
     cycle needs stays level.
-- **Jumps and humps.** What the originals throw a vehicle with is a symmetric triangle across the whole road on top of
-  the profile, its top at the original's position: the grade kinked up at its foot, down over its top and back at its
-  end; where two overlap the higher is taken, the road kinked up again where their sides meet. No vehicle's data shapes
-  one; this game's physics throws a vehicle that climbs it, and the originals' tables of take-off speeds, least speeds
-  to throw, slowdowns and landing bounces are not taken. Two kinds, each its own rule (K, 2026-10-25):
-  - A jump (ENDURO RACER's) throws a point mass coming to it at the design speed u, under this game's gravity g, over
-    the rocks beyond it: it comes down at the end of its falling side, D on (K, 2026-10-26). D is each jump's own, the
-    farther of its rocks' far end from its top (the objects on the road with a body within the original's flight from
-    it at its top speed) and the original's flight from it at the design speed (its rule at 0x727A counted at u). The
-    mass climbs to its top at v, v² = u² − 2 g D tan θ, and leaves it along its slope θ, the shallowest with
-    sin 2θ = g D / (2 v²); each side is D long and its height D tan θ. Where no slope throws the mass that far, no mound
-    is raised, for K to decide. Where mounds overlap the highest is taken, kinked where their sides meet. The road the
-    original draws its picture over is painted its picture's average color.
-  - A hump (TURBO OUTRUN's) is a step the vehicle bumps over: as long as the original's object hits, at the original's
-    top speed, its height its own.
-
-  ENDURO RACER's course carries a design speed of 105 km/h and TURBO OUTRUN's humps are 0.2 m high until K's shapes
-  replace them (NEXT's Stage EX).
+- **Jumps and dips** (K, 2026-10-26). What the originals throw or jolt a vehicle with is a symmetric triangle across the
+  whole road of K's values, computed from neither the ROMs nor a vehicle's data: ENDURO RACER's jump a rise 1 m high,
+  3 m either side of its top, at each of its original's 69 jumps; TURBO OUTRUN's a dip 0.1 m deep, 2 m either side of
+  its bottom (4 m long), at each of its original's 96 rows of boards. It is added to the profile, the grade kinked at its
+  foot, over its top and back at its end (`moundKinks`), and the crossings are parted on it as on every height. Where
+  two overlap the one farther from the road is taken (a rise's higher, a dip's lower), kinked where their sides meet;
+  none is left out. On its slopes the road's colors (its stripes, lines and edge bands, not the ground beside it) are
+  changed in the conversion (`slopeColor`): a slope facing the camera (a rise's near side, a dip's far side) brightened
+  halfway to white, one facing away (a rise's far side, a dip's near side) at the shadow's half brightness, a stripe cut
+  where a slope ends within it. On a hill a slope's grade adds to the profile's, so the steepest grade may pass 25 %.
 
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
