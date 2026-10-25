@@ -649,7 +649,7 @@ function section(value: unknown, path: string): SectionDocument {
           }),
         });
       },
-      { max: COURSE_DOCUMENT_LIMITS.heightNodes },
+      { max: COURSE_DOCUMENT_LIMITS.profile },
     ),
     lanes: lanes(v.lanes, `${path}/lanes`),
     centerLane: readString(v.centerLane, `${path}/centerLane`, ID),

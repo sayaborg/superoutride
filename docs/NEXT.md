@@ -67,8 +67,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), FMT-1c
-and EX-9 onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-9
+onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -190,7 +190,6 @@ PRs, in this order:
   and the farthest 8.4 m ahead of the bike; or at the scenery's depth where they draw on the same line, 0xD240, three
   times nearer, the rival straight ahead (x −6) 3.0, 2.6, 2.1 and 1.7 m ahead on courses 0 to 3, the last over a
   bike's length. Its reference runs are measured again.
-- FMT-1c, a rename of its own: the limits' `heightNodes` named after the field it bounds, `profile`.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan and what of `offset-plan.ts` lives on
   (`POSITION_METRES`, `STRIPE_PERIOD`, `Quadratic`) moved to its owner; the fitted path plan and its folds, and
   `path-plan.ts`, which nothing uses; the plane at offset 0, once `course-path.ts` and SUPER MONACO GP no longer use

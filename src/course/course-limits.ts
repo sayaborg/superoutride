@@ -11,7 +11,7 @@ export const COURSE_DOCUMENT_LIMITS = Object.freeze({
   links: 3 * graphSections,
   images: 2048,
   planElements: 1024,
-  heightNodes: 1024,
+  profile: 1024,
   boundaries: 32,
   knots: 1024,
   environmentKnots: 256,
