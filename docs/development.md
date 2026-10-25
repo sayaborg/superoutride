@@ -380,14 +380,14 @@ each fork's first exit, each occurrence placed by its transform to the world).
 
 Every position, height and direction comes from the functions physics and the game read: the plan (`toWorld`), the
 profile, the occurrences' transforms, the resolved Strips (`readSlab`), the sprites' placement and their repeats'
-expansion, a band's period, the camera definition and the compiler's clearance (`sampleClearance`). The viewer adds
-its camera and the rules below. It draws with the GPU's perspective (or parallel) projection and a depth buffer, at
-true scale in metres, unlit, in the game's colors: ground and walls in the resolved Strips' colors, without the
-preblend; pictures by nearest texel, each at the level of its picture (LOD) the game's nearest-octave rule
-(`selectSpriteLevel`) picks for its scale at its base point, with palette index 0 cut away. Depth is written on a
-logarithmic scale of the distance, so one buffer holds the whole course and the ground at one's feet; what lies on the
-ground draws with a bias toward the eye that grows with its depth slope, so it never flickers against the ground.
-Curves and the profile's curves are drawn as straight pieces within 1 cm.
+expansion, a band's period, the camera definition and the compiler's clearance (`sampleClearance`). The viewer adds its
+camera and the rules below. It draws with the GPU's perspective (or parallel) projection and a depth buffer, at true
+scale in metres, unlit, in the game's colors: ground and walls in the resolved Strips' colors, without the preblend;
+pictures by nearest texel, each at the level of its picture (LOD) the game's nearest-octave rule (`selectSpriteLevel`)
+picks for its scale at its base point (a board repeating sideways, at each repetition's centre), with palette index 0
+cut away. Depth is written on a logarithmic scale of the distance, so one buffer holds the whole course and the ground
+at one's feet; what lies on the ground draws with a bias toward the eye that grows with its depth slope, so it never
+flickers against the ground. Curves and the profile's curves are drawn as straight pieces within 1 cm.
 
 A picture in the game is one base point and one flat picture on the screen; its rows below the anchor lie on the
 ground only in how they overlap, neither shortened by perspective nor bent by a curve. The viewer places each picture as
@@ -409,7 +409,9 @@ one flat board that does not bend:
   what casts a shadow in the game casts one: the movable objects.
 - **Boards repeating sideways** (`extend`) repeat within their plane toward the side the game repeats them, every
   `W / 40` m, and stop at the edge of the ground drawn at their station (the outer edge of its opaque colors, or the
-  display width where that cuts it). The picture itself is always drawn; each repetition folds as above.
+  display width where that cuts it). The picture itself is always drawn; each repetition folds as above. Each
+  repetition, the picture itself included, is one board at one depth, as the game draws a picture: it is drawn at the
+  level its scale at its own centre picks (across what it shows, and halfway up the picture as it would stand).
 - **Ground.** The resolved Strips are drawn as they are, as cross sections along s; transparent ones are not drawn.
   The ground within the course limits is always drawn, and beyond them out to the display width, which the page sets.
   Where ground from two parts of the course lies at one place and one height, the ground nearer its own course limit

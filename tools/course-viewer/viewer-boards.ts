@@ -61,6 +61,15 @@ export interface BoardRecord {
   readonly quads: { readonly corners: number[]; readonly texels: number[]; readonly lying: boolean }[];
 }
 
+/**
+ * One board drawn at one depth, whose level its scale there picks: a picture at its base point, or each repetition of a
+ * board repeating sideways at its centre.
+ */
+export interface LevelSlot {
+  readonly image: SpriteLodAsset;
+  readonly point: readonly number[];
+}
+
 /** The boards by what shows them: their standing and lying parts apart, as lying parts draw onto the ground. */
 export interface BoardMeshes {
   standing: BoardBuilder;
@@ -164,6 +173,7 @@ export function buildBoards(
 ): {
   meshes: BoardMeshes;
   records: BoardRecord[];
+  slots: LevelSlot[];
   textures: BoardTextures;
   outlines: LineBuilder;
   anchors: LineBuilder;
@@ -210,6 +220,7 @@ export function buildBoards(
     shadows: new BoardBuilder(),
   };
   const records: BoardRecord[] = [];
+  const slots: LevelSlot[] = [];
   const outlines = new LineBuilder(),
     anchors = new LineBuilder();
   const slab: StripSlabTarget = { start: 0, end: 0, colors: [], edges: [] };
@@ -247,7 +258,6 @@ export function buildBoards(
       const movable = sprite.knocked !== null;
       const s = sprite.at.s,
         l = sprite.l;
-      const boardIndex = records.length;
       // The base point: the game's own placement of a course picture, carried to the world by the occurrence.
       const native = compileCourseSprite(section, section.height, {
         name: image.name,
@@ -266,6 +276,9 @@ export function buildBoards(
       // Facing the coming cars: toward −s.
       const facing = [planes.across[2]!, 0, -planes.across[0]!];
       const quads: BoardRecord['quads'] = [];
+      // A picture takes its level at its base point; each repetition of a band at its own centre, below.
+      const slot = (point: readonly number[]) => slots.push({ image, point }) - 1;
+      const pictureSlot = image.extend ? -1 : slot(base);
       // Master texel (u, v) of the repetition `offset` metres across: standing above the fold, lying below it.
       const point = (offset: number, u: number, v: number, lying: boolean) => {
         const across = offset + (u - level.anchorX - 0.5) / TEXELS;
@@ -274,7 +287,13 @@ export function buildBoards(
         else for (let c = 0; c < 3; c++) p[c] = p[c]! - ((v - fold) / TEXELS) * planes.along[c]!;
         return p;
       };
-      const quad = (target: BoardBuilder, corners: number[][], texels: number[], lying: boolean) => {
+      const quad = (
+        target: BoardBuilder,
+        corners: number[][],
+        texels: number[],
+        lying: boolean,
+        boardIndex: number,
+      ) => {
         for (const i of [0, 1, 2, 2, 1, 3])
           target.vertex(
             corners[i]!,
@@ -307,6 +326,15 @@ export function buildBoards(
         // A left band's partial copy keeps its right part, nearer the picture.
         const u0 = image.extend === 'left' && k ? level.width - copy.width : 0,
           u1 = image.extend === 'left' || !k ? level.width : copy.width;
+        // A repetition is one board at one depth: its centre, across what it shows and up the picture as it stands.
+        const across = copy.offset + ((u0 + u1) / 2 - level.anchorX - 0.5) / TEXELS;
+        const board = image.extend
+          ? slot([
+              base[0]! + across * planes.across[0]!,
+              base[1]! + (fold - level.height / 2) / TEXELS,
+              base[2]! + across * planes.across[2]!,
+            ])
+          : pictureSlot;
         const standing = movable ? meshes.movableStanding : k ? meshes.bandStanding : meshes.standing,
           lying = movable ? meshes.movableLying : k ? meshes.bandLying : meshes.lying;
         // The rows on and above the anchor stand.
@@ -318,7 +346,7 @@ export function buildBoards(
             point(copy.offset, u0, v1, false),
             point(copy.offset, u1, v1, false),
           ];
-          quad(standing, corners, [u0, 0, u1, 0, u0, v1, u1, v1], false);
+          quad(standing, corners, [u0, 0, u1, 0, u0, v1, u1, v1], false, board);
           outlines.segment(corners[0]!, corners[1]!, OUTLINE);
           outlines.segment(corners[0]!, corners[2]!, OUTLINE);
           outlines.segment(corners[1]!, corners[3]!, OUTLINE);
@@ -333,7 +361,7 @@ export function buildBoards(
             point(copy.offset, u0, level.height, true),
             point(copy.offset, u1, level.height, true),
           ];
-          quad(lying, corners, [u0, v0, u1, v0, u0, level.height, u1, level.height], true);
+          quad(lying, corners, [u0, v0, u1, v0, u0, level.height, u1, level.height], true, board);
           outlines.segment(corners[0]!, corners[2]!, OUTLINE);
           outlines.segment(corners[1]!, corners[3]!, OUTLINE);
           outlines.segment(corners[2]!, corners[3]!, OUTLINE);
@@ -368,7 +396,7 @@ export function buildBoards(
             texels[2 * i + 1]!,
             shadowTable,
             0,
-            boardIndex,
+            pictureSlot,
             up,
             [0, 0, 0, 0],
           );
@@ -393,6 +421,7 @@ export function buildBoards(
   return {
     meshes,
     records,
+    slots,
     textures: {
       size: ATLAS_SIZE,
       pages: atlas.pages,
@@ -405,24 +434,22 @@ export function buildBoards(
 }
 
 /**
- * Each board's level this frame, by the game's nearest-octave rule (`selectSpriteLevel`) for its scale at its base
- * point: `focal` device pixels over its depth along the view, or, in a parallel view, over the view's distance.
+ * Each board's level this frame, by the game's nearest-octave rule (`selectSpriteLevel`) for its scale at its point:
+ * `focal` device pixels over its depth along the view, or, in a parallel view, over the view's distance.
  */
 export function boardLevels(
-  records: readonly BoardRecord[],
+  slots: readonly LevelSlot[],
   eye: readonly number[],
   forward: readonly number[],
   focal: number,
   parallelDistance: number | null,
   out: Uint8Array,
 ): void {
-  for (let i = 0; i < records.length; i++) {
-    const record = records[i]!;
+  for (let i = 0; i < slots.length; i++) {
+    const { image, point } = slots[i]!;
     const depth =
       parallelDistance ??
-      (record.base[0]! - eye[0]!) * forward[0]! +
-        (record.base[1]! - eye[1]!) * forward[1]! +
-        (record.base[2]! - eye[2]!) * forward[2]!;
-    out[i] = depth > 0 ? selectSpriteLevel(record.image, focal / depth) : 0;
+      (point[0]! - eye[0]!) * forward[0]! + (point[1]! - eye[1]!) * forward[1]! + (point[2]! - eye[2]!) * forward[2]!;
+    out[i] = depth > 0 ? selectSpriteLevel(image, focal / depth) : 0;
   }
 }

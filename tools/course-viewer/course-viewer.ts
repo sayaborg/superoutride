@@ -31,6 +31,7 @@ import {
   LEVEL_TABLE_WIDTH,
   type BoardMeshes,
   type BoardRecord,
+  type LevelSlot,
 } from './viewer-boards.js';
 import {
   buildBoundaries,
@@ -225,6 +226,8 @@ interface Loaded {
   walls: GpuMesh | null;
   boards: Record<keyof BoardMeshes, GpuMesh> | null;
   records: BoardRecord[];
+  /** The boards drawn at one depth each, whose levels this frame picks. */
+  slots: LevelSlot[];
   levels: Uint8Array;
   outlines: GpuMesh | null;
   anchors: GpuMesh | null;
@@ -349,7 +352,8 @@ function rebuildBoards() {
     Object.entries(built.meshes).map(([key, builder]) => [key, gpu.boardsFrom(builder)]),
   ) as Record<keyof BoardMeshes, GpuMesh>;
   loaded.records = built.records;
-  loaded.levels = new Uint8Array(built.records.length);
+  loaded.slots = built.slots;
+  loaded.levels = new Uint8Array(built.slots.length);
   loaded.outlines = gpu.linesFrom(built.outlines);
   loaded.anchors = gpu.linesFrom(built.anchors);
   requestDraw();
@@ -400,6 +404,7 @@ async function openCourse(id: string) {
       walls: null,
       boards: null,
       records: [],
+      slots: [],
       levels: new Uint8Array(0),
       outlines: null,
       anchors: null,
@@ -571,7 +576,7 @@ function draw() {
   const tint = shown.get('form') ? 0.6 : 0;
   if (boards) {
     boardLevels(
-      loaded.records,
+      loaded.slots,
       view.eye,
       view.forward,
       focal,
