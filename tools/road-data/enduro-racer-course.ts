@@ -51,7 +51,7 @@ import { enduroRacerBoards, jumpPicture, PIXEL_UNITS } from './enduro-racer-boar
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 19;
+export const ENDURO_RACER_CONVERSION_VERSION = 20;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -145,8 +145,9 @@ interface Piece {
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
 /**
- * The jumps' design speed, km/h: the speed a bike comes to a jump at, which its mound throws over the rocks beyond it.
- * K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 80, 105 and 130 km/h.
+ * The jumps' design speed, km/h: the speed a bike comes to a jump at before climbing it, which its mound throws over
+ * the rocks beyond it. K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 80, 105 and
+ * 130 km/h.
  */
 const DESIGN_SPEED = 105;
 
@@ -197,18 +198,22 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
   });
   const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit, tag);
-  // The jumps: each's mound throws a mass at the design speed over the rocks beyond it, those on the road with the hit
-  // mark within the original's flight (it moves its speed in 1/256 positions a tick), the farthest of any jump's the
-  // mound's half; its picture's color painted on the road where the program draws it.
+  // The jumps: each's mound throws a mass coming at the design speed as far as the farthest of the rocks beyond it,
+  // those on the road with the hit mark within the original's flight at its top speed (it moves its speed in 1/256
+  // positions a tick), or as the original throws its bike at the design speed, whichever is farther (K, 2026-10-26);
+  // its picture's color painted on the road where the program draws it.
   const jumps = readJumps(main).jumps;
+  const design = speed ?? DESIGN_SPEED;
   const flown = ((flight.ticks * flight.speed) / 256) * metres;
+  const atDesign = jumpFlight(programs, design);
+  const thrown = ((atDesign.ticks * design) / 256) * metres;
   const rocks = objects.spots.filter((spot) => spot.onRoad && spot.hit);
   const beyond = jumps.map((j) => {
     const ahead = rocks.map((r) => (r.position - j.position) * metres).filter((d) => d > 0 && d <= flown);
     return ahead.length ? Math.max(...ahead) : null;
   });
-  const distance = Math.max(...beyond.map((d) => d ?? 0));
-  const mound = jumpMound((speed ?? DESIGN_SPEED) / 3.6, distance);
+  const distances = beyond.map((rocksAt) => Math.max(rocksAt ?? 0, thrown));
+  const mounds = distances.map((distance) => jumpMound(design / 3.6, distance));
   const ground = jumpGround(programs);
   const pictures = enduroRacerBoards(main, words, objects.uses, unit, tag);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
@@ -230,8 +235,7 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
     camera,
     go: bikeAhead(programs),
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
-    jumps: jumps.map((jump) => jump.position),
-    mound,
+    jumps: jumps.map((jump, k) => ({ position: jump.position, mound: mounds[k]! })),
     paints: jumps.map((j) => ({
       from: j.position - ground,
       to: j.position + ground,
@@ -265,7 +269,7 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
     pictures,
     skies,
     hitWidth: HIT_WIDTH * unit,
-    // The original's flight off a jump at its top speed, the rocks beyond each jump within it, and the mound.
+    // The original's flight off a jump at its top speed and at the design speed, and how the mounds join.
     jump: (() => {
       const height = PIXEL_UNITS * PIXEL_ASPECT * unit;
       return {
@@ -275,13 +279,24 @@ export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: numbe
         gravity: flight.gravity * TICKS * TICKS * height,
         peak: flight.peak * height,
         flown,
-        design: speed ?? DESIGN_SPEED,
-        ...mound,
-        angle: (Math.atan(mound.height / mound.half) * 180) / Math.PI,
+        design,
+        designTicks: atDesign.ticks,
+        thrown,
         ...built.mounds,
       };
     })(),
-    rocks: beyond,
+    // Each jump's rocks beyond it, its mound's half and height, its slope, degrees, and its top's speed, km/h.
+    mounds: jumps.map((jump, k) => {
+      const mound = mounds[k]!;
+      return {
+        position: jump.position,
+        rocks: beyond[k]!,
+        half: distances[k]!,
+        height: mound?.height ?? null,
+        angle: mound ? (Math.atan(mound.height / mound.half) * 180) / Math.PI : null,
+        top: mound ? mound.topSpeed * 3.6 : null,
+      };
+    }),
   };
 }
 
@@ -303,9 +318,8 @@ interface CourseInputs {
   readonly entry: number;
   readonly camera: number;
   readonly go: number;
-  /** The jumps' positions, and their mound. */
-  readonly jumps: readonly number[];
-  readonly mound: Mound;
+  /** The jumps' positions and mounds (null where none throws as far). */
+  readonly jumps: readonly { readonly position: number; readonly mound: Mound | null }[];
   /** Where the jumps' pictures are painted on the road: positions, metres from P, and their colors (RGB555). */
   readonly paints: readonly {
     readonly from: number;
@@ -454,7 +468,9 @@ function layCourse(inputs: CourseInputs) {
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
   // level road.
   const crossings = crossingsOf(cells.pairs, metres);
-  const mounds = moundKinks(inputs.jumps.map(stationOf), inputs.mound);
+  const mounds = moundKinks(
+    inputs.jumps.flatMap(({ position, mound }) => (mound ? [{ top: stationOf(position), ...mound }] : [])),
+  );
   const kinks = mounds.kinks;
   const parted = partedCrossings([], crossings, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.

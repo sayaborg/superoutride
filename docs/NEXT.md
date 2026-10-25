@@ -68,8 +68,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), the jumps'
-candidates made again, then EX-13 onward and K's grades when they come, with the sprites' SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-13 onward and K's
+grades when they come, with the sprites' SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -119,11 +119,6 @@ K's decisions (2026-10-26):
 - **OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades are K's** to solve: they come in one PR replacing the draft
   grades and `c_look`. EX-14 takes `road-profile`'s `UNIT` 576, `ORIGINAL_LEVEL_TOP` 151 and `ORIGINAL_ROWS` 224, and
   OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` which write them again, after it.
-- **ENDURO RACER's jumps' candidates are made again**, the design speeds 80, 105 and 130 km/h kept: each mound by its
-  own D, the larger of the distance to its rocks' far end beyond it and the original bike's flight from it at the
-  design speed (its rule at 0x727A counted at that speed); the design speed is the speed before the mound, the top's
-  less what climbing its height costs (by energy), and the shape's formula is kept with v the top's speed. A mound
-  whose far rocks overturn R80 GS keeps its shape and is reported for K to decide.
 
 K's decisions (2026-10-25):
 
@@ -200,7 +195,6 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- The jumps' candidates made again by K's rule (2026-10-26, below).
 - K's grades: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades, which K is solving, in one PR when they come, after
   the PR then open: they replace the draft grades and `c_look`, the crossings parted on them by their rule.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:

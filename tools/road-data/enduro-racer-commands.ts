@@ -160,10 +160,13 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         finish: round1(stationOf(built.finish)),
         pastFinish: round1(built.path.length - stationOf(built.finish)),
         yawOrigin: round3(built.yawOrigin),
-        // The original's flight off a jump, and the mound's height that gives it here.
+        // The original's flight off a jump at its top speed and at the design speed, and how the mounds join.
         jump: Object.fromEntries(Object.entries(built.jump).map(([k, v]) => [k, round3(v)])),
-        // Each jump's farthest rock beyond it within the original's flight, metres, or null.
-        rocks: built.rocks.map((d) => (d === null ? null : round3(d))),
+        // Each jump's farthest rock beyond it within the original's flight at its top speed (or null), its mound's half
+        // and height, metres (null where no mound throws as far), its slope, degrees, and its top's speed, km/h.
+        mounds: built.mounds.map((m) =>
+          Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v === null ? null : round3(v)])),
+        ),
         // The profile's steepest grade, sampled every metre.
         steepest: round3(
           Math.max(

@@ -445,11 +445,14 @@ A stage's profile turns its height tables' look on the original's screen into gr
   end; where two overlap the higher is taken, the road kinked up again where their sides meet. No vehicle's data shapes
   one; this game's physics throws a vehicle that climbs it, and the originals' tables of take-off speeds, least speeds
   to throw, slowdowns and landing bounces are not taken. Two kinds, each its own rule (K, 2026-10-25):
-  - A jump (ENDURO RACER's) throws a point mass leaving its top along its rising side at the design speed v, under this
-    game's gravity g, over the rocks beyond it: it comes down at the end of its falling side, D on, D the farthest of
-    any jump's rocks from its top, the objects on the road with a body within the original's flight from it. So its
-    slope θ has sin 2θ = g D / (2 v²), each side is D long and its height D tan θ. The road the original draws its
-    picture over is painted its picture's average color.
+  - A jump (ENDURO RACER's) throws a point mass coming to it at the design speed u, under this game's gravity g, over
+    the rocks beyond it: it comes down at the end of its falling side, D on (K, 2026-10-26). D is each jump's own, the
+    farther of its rocks' far end from its top (the objects on the road with a body within the original's flight from
+    it at its top speed) and the original's flight from it at the design speed (its rule at 0x727A counted at u). The
+    mass climbs to its top at v, v² = u² − 2 g D tan θ, and leaves it along its slope θ, the shallowest with
+    sin 2θ = g D / (2 v²); each side is D long and its height D tan θ. Where no slope throws the mass that far, no mound
+    is raised, for K to decide. Where mounds overlap the highest is taken, kinked where their sides meet. The road the
+    original draws its picture over is painted its picture's average color.
   - A hump (TURBO OUTRUN's) is a step the vehicle bumps over: as long as the original's object hits, at the original's
     top speed, its height its own.
 

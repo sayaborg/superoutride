@@ -138,7 +138,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 19, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 20, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -215,22 +215,24 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** Level but for the jumps' mounds and the crossings' ramps ([Profile](original-road-data.md#profile)).
   Each of the 69 jumps is a mound across the road at the jump's position ([Jumps and
-  humps](original-road-data.md#profile)), 49.778 m either side of it: the farthest rock beyond a jump, an object on
-  the road with the hit mark within the original's flight, is 42 positions past jump 51. The program throws the bike
-  (0x727A) at its top speed, the speed's cap 0x3F80 (0x6C36) read as 199 km/h, the lift lever at rest (0x20, MAME's):
-  its height 0x2A (0x72D8), its upward speed the byte its pose picks at 0x72EC (28) times the speed, × 16, plus
+  humps](original-road-data.md#profile)). 32 have rocks beyond them, objects on the road with the hit mark within the
+  original's flight, their far ends 11.852 m (10 positions) to 49.778 m (42, past jump 51) on. The program throws the
+  bike (0x727A) at its top speed, the speed's cap 0x3F80 (0x6C36) read as 199 km/h, the lift lever at rest (0x20,
+  MAME's): its height 0x2A (0x72D8), its upward speed the byte its pose picks at 0x72EC (28) times the speed, × 16, plus
   0x20000 (16.16 units a tick); each tick of 1/60 s the upward speed loses 0x2664 (0x721C), and the bike comes down
   on the road on the 55th tick, 0.917 s, 42.75 positions (50.671 m) on, its peak 77 units up, 1.554 m at a scenery
-  item's height unit, its gravity 10.9 m/s². At the design speed of 105 km/h the mound is 7.294 m high (8.34°); the
-  candidates' courses `enduro-racer-jump-80` and `-jump-130` 13.161 m (14.81°) and 4.700 m (5.39°). 39 of the mounds
-  join in 14 runs, the longest 324.7 m. Its picture's color, its halves' pixels' average in its kind's palette but
+  item's height unit, its gravity 10.9 m/s². At the design speed of 105 km/h it comes down on the 48th tick, 23.333 m
+  on: the mounds are 1.639 m (4.02°, their tops reached at 103.0 km/h) to 9.464 m (10.77°, 92.8 km/h) high, 20 of
+  them joining in 9 runs, the longest 165.9 m. The candidates' courses: `enduro-racer-jump-80`, 17.037 m on the 46th
+  tick, mounds 1.548 to 3.266 m and none at the 30 jumps whose rocks lie farther than any slope throws at 80 km/h;
+  `-jump-130`, 29.491 m on the 49th tick, mounds 1.683 to 5.098 m. Its picture's color, its halves' pixels' average in its kind's palette but
   the shadow's, covers the road from its left half's left edge to its right half's right edge over the program's
   ground under it, 1.758 positions (2.083 m) either side of its position. The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The crossings' heights run from −8.0 to +8.4 m, the ramps' least radius 140 m; the steepest
-  grade is 25.5 %.
+  2720–2774) among them. The crossings' heights run from −6.7 to +8.6 m, the ramps' least radius 71 m; the steepest
+  grade is 34.2 %.
 
 ## ENDURO RACER's objects
 

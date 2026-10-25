@@ -264,8 +264,7 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const crossings = crossingsOf(pairs, POSITION_METRES);
   // Each row of humps one across the whole road.
   const mounds = moundKinks(
-    inputs.humps.map((j) => station(course[j.stage]!.start + j.position)),
-    inputs.hump,
+    inputs.humps.map((j) => ({ top: station(course[j.stage]!.start + j.position), ...inputs.hump })),
   );
   const parted = partedCrossings(changes, crossings, end, mounds.kinks);
   const profile = profileOf(

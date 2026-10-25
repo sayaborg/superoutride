@@ -56,14 +56,15 @@ export function bikeAhead(programs: EnduroRacerPrograms) {
 const LEVER_AT_REST = 0x20;
 
 /**
- * The program's flight off a jump at its top speed, the lift lever at rest (K, 2026-10-25), in ticks from its take-off
- * to its landing. The take-off (0x727A) sets the bike's height to 0x2A (0x72D8) and its upward speed to the byte at
- * 0x72EC (lea at 0x72B4), indexed 4 × (clamp(lever / 16 − 2, 0, 8) − 3) + 0x15 (0x72AA, 0x72B0), times the speed, × 16,
- * plus 0x20000 (0x72D0, 16.16 units a tick); each tick the upward speed loses 0x2664 (0x721C) and the height gains it,
- * and the bike lands when the height falls below the road (0x7232), past the jump's own ground by then. The top speed
- * is the speed's cap, 0x3F80 (0x6C36), read as km/h (0x6C86: / 16 × 16 × 0x326 >> 16).
+ * The program's flight off a jump at `kmh` (its top speed where none is given), the lift lever at rest (K, 2026-10-25),
+ * in ticks from its take-off to its landing. The take-off (0x727A) sets the bike's height to 0x2A (0x72D8) and its
+ * upward speed to the byte at 0x72EC (lea at 0x72B4), indexed 4 × (clamp(lever / 16 − 2, 0, 8) − 3) + 0x15 (0x72AA,
+ * 0x72B0), times the speed, × 16, plus 0x20000 (0x72D0, 16.16 units a tick); each tick the upward speed loses 0x2664
+ * (0x721C) and the height gains it, and the bike lands when the height falls below the road (0x7232), past the jump's
+ * own ground by then. The top speed is the speed's cap, 0x3F80 (0x6C36), read as km/h (0x6C86: / 16 × 16 × 0x326 >>
+ * 16).
  */
-export function jumpFlight(programs: EnduroRacerPrograms) {
+export function jumpFlight(programs: EnduroRacerPrograms, kmh?: number) {
   const code = programs.mainInstructions;
   const [top] = instruction(code, 0x72d8, [0x3b7c, null, 0x0024], "the jump's take-off height");
   const [gravityHigh, gravityLow] = instruction(code, 0x721c, [0x203c, null, null], 'the fall a tick');
@@ -74,7 +75,7 @@ export function jumpFlight(programs: EnduroRacerPrograms) {
   const [cap] = instruction(code, 0x6c36, [0x0c6d, null, 0x0036], 'the speed cap');
   const [factor] = instruction(code, 0x6c94, [0xc0fc, null], "the speed's km/h");
   const gravity = gravityHigh! * 0x10000 + gravityLow!;
-  const speed = (((cap! >> 4) << 4) * factor!) >>> 16;
+  const speed = kmh ?? (((cap! >> 4) << 4) * factor!) >>> 16;
   const lever = Math.min(8, Math.max(0, (LEVER_AT_REST >> 4) - 2));
   const value = programs.main[table! + 4 * (lever - shift!) + base!]!;
   let [velocity, height, ticks] = [
