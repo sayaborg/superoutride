@@ -269,6 +269,23 @@ road beyond it (OUTRUN's road not taken) is its colors alone. The course format 
 being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
 and road materials are K's decision (2026-10-25), each its own, named with its reason in its chapter.
 
+## The grid
+
+A start gate's grids, a car grid and a bike grid, each hold as many slots as a run's competitors, in three parts (K,
+2026-10-25; `ruleGrid`):
+
+1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it):
+   OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's P.
+2. **The original's slots**: each rival the original places at GO, where it places it, on the grid of its vehicle
+   kind: ENDURO RACER's four bikes abreast with the player's, TURBO OUTRUN's 959 beside the player's car. A position
+   behind the player's, or one at which this game's bodies would overlap or leave the course limits, is K's to decide
+   before it is placed. SUPER MONACO GP's grid is its 24 slots as the original places them, a run taking the first 16.
+3. **The rest**, forward of the frontmost of these, 12 m apart for cars and 3 m for bikes, at the centres of the
+   original vehicle's lane and its left neighbour, or of the two lanes it stands between (a and b in every original):
+   counted on from the player's slot, the original's among them, the first at the left lane's centre, the second at
+   the right's, alternating. A grid of a kind the original places no vehicle of is the player's slot and this part
+   alone.
+
 ## Plan
 
 The offset plan (`OffsetPlan`), on which no original's course is now laid, is where the original draws the centre lane:
@@ -544,11 +561,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Cut Sections where the original changes stage or sector, and again where its road comes near itself (within its lanes'
   least radius) or its boards pass the format's sprite element bound; check every bound in [Numeric and resource
   domains](content-and-gameplay.md#numeric-and-resource-domains).
-- Gates: the grid or start, checkpoints, the finish or goal, as the original places them. The grid's last slot, the
-  player's, at GO in the lane where the original's own vehicle stands at GO (its x as its program sets it there), the
-  others alternating that lane and a lane beside it on the same road, which each chapter names (OUTRUN's c, right of
-  b; TURBO OUTRUN's a, left of b). Where the original's vehicle stands between two lanes, K
-  decides the lane (SUPER HANG-ON's and ENDURO RACER's: a, K, 2026-10-24).
+- Gates: the grids by [The grid](#the-grid); checkpoints, the finish or goal, as the original places them.
 
 ### 10. Identity and checks
 

@@ -52,17 +52,12 @@ import {
   simplified,
   writtenPlan,
 } from './section-writing.js';
+import { GRID_SPACING, ruleGrid } from './grid-rule.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
 
 /**
- * The start grid: as many slots as a run's competitors, this far apart, the last (the player's) at GO in lane b, where
- * the original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), the
- * others alternating c and b back from it; a SHORT road's the same on its road's lanes.
- */
-const GRID_SLOTS = 16;
-const GRID_SPACING = 12;
 /** Two passages of a road at least this far apart along it may cross. */
 const PASSAGES_APART = 200;
 /** One crossing's later passage moves by less than this from one of its earlier passage's positions to the next, metres. */
@@ -999,18 +994,16 @@ function sectionDocument(
 
   // The gates.
   const gates: unknown[] = [];
-  // The grid on the centre lane and the one right of it, as on COCONUT BEACH's left road (b and c), whichever road.
-  const gridLanes = [span.centreLane, span.order[span.order.indexOf(span.centreLane) + 1]!];
-  if (section.first)
-    gates.push({
-      kind: 'start',
-      grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
-        // The last slot at GO, the camera's distance on from the road's entry.
-        at: atStation(round(section.options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING)),
-        lateral: laneCentre(gridLanes[(GRID_SLOTS - 1 - i) % 2]!),
-      })),
-      bikeGrid: null,
-    });
+  // The player's slot at GO, the camera's distance on from the road's entry, at the centre lane's centre, where the
+  // original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), as on
+  // COCONUT BEACH's left road (b), whichever road; the rule's lanes that one and the one left of it.
+  if (section.first) {
+    const lanes = [span.order[span.order.indexOf(span.centreLane) - 1]!, span.centreLane] as const;
+    const player = { s: section.options.cameraDistance, lateral: laneCentre(span.centreLane) };
+    const grid = (spacing: number) =>
+      ruleGrid(player, [], spacing, lanes).map((slot) => ({ at: atStation(round(slot.s)), lateral: slot.lateral }));
+    gates.push({ kind: 'start', grid: grid(GRID_SPACING.car), bikeGrid: grid(GRID_SPACING.bike) });
+  }
   for (const c of section.checkpoints) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.p) });
   if (section.finish) gates.push({ kind: 'finish', id: section.finish.id, at: at(section.finish.p) });
   // Where the roads part, the side the road takes: route information the HUD shows.

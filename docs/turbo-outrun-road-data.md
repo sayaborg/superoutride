@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 15, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 16, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -201,11 +201,14 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
   where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of the longest
   such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 24 Sections.
-- **Gates.** The grid's 16 slots 12 m apart, the last at GO in lane b, the next in a, alternating (lane b the left
-  road's centre, where the car stands at GO: a game's start clears its x with the RAM, 0x10E84, sets the width to its
-  stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to the left road's
-  centre, 0x1623C, as OUTRUN's); each stage's checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post
-  passes the car (1408.107), and the finish `los-angeles-GOAL` where the GOAL gate's does (1403.613).
+- **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO at
+  lane b's centre, the left road's, where the car stands at GO (a game's start clears its x with the RAM, 0x10E84, sets
+  the width to its stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to
+  the left road's centre, 0x1623C, as OUTRUN's); the car grid's next the 959 beside it, 128 units (3.26 m) to its left
+  at its depth (0xC238 brings it onto the left road, 0xC28E, at the car's depth 0x180, 0xC27C and 0x11D28, its x
+  −0x80 at 0xC294 and 0xC29C; the encrypted instructions' value is written into the tool, `RIVAL_X`); each stage's
+  checkpoint but the last's, `<stage>-CP`, where its CHECK POINT gate's post passes the car (1408.107), and the finish
+  `los-angeles-GOAL` where the GOAL gate's does (1403.613).
 - **Skies.** Stage n's is `toutrun-<stage>-sky`, its background baked ([TURBO OUTRUN's
   programs](#turbo-outruns-programs)): NEW YORK's from the start; within a leg the next stage's from where its
   background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the

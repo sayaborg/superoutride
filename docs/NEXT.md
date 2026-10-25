@@ -185,14 +185,11 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- The grid's arrangement by K's rule (2026-10-25), written once in Original road data: the player's slot where the
-  original's vehicle stands at GO (OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's
-  P); the original's rivals' positions as they are, on the grid of their vehicle kind (SUPER HANG-ON's 7 a course,
-  ENDURO RACER's 5, TURBO OUTRUN's 959 beside the player at GO, SUPER MONACO GP's 24 at ±256); the rest forward of
-  the original's frontmost, 12 m apart for cars and 3 m for bikes, alternating from the player's slot between the
-  left and right of lanes a and b. K is asked first if a position lies behind the player, makes bodies overlap or
-  leave the course limits. Split by original if large; SUPER HANG-ON's and ENDURO RACER's reference runs measured
-  again.
+- SUPER HANG-ON's grids by [the grid's rule](original-road-data.md#the-grid), once K reads its rivals' depth (0x86C0's
+  seven a course, x certain, road units from P): by the rivals' own depth-to-line table, 0xCE40, the nearest 0.7 m
+  and the farthest 8.4 m ahead of the bike; or at the scenery's depth where they draw on the same line, 0xD240, three
+  times nearer, the rival straight ahead (x −6) 3.0, 2.6, 2.1 and 1.7 m ahead on courses 0 to 3, the last over a
+  bike's length. Its reference runs are measured again.
 - FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
   documents), stripes written by a Strip's `repeat` (K, 2026-10-25), and the limits' `heightNodes` named after the
   field it bounds, `profile`. TSUKUBA's and SUPER MONACO GP's kerbs are written
@@ -225,8 +222,6 @@ PRs, in this order:
   - The material under two roads by one rule (OUTRUN's by road, TURBO OUTRUN's one sheet and `OPEN`), and the lanes
     over two roads alike (OUTRUN's and TURBO OUTRUN's).
   - The objects' body widths bounded alike (SUPER HANG-ON's and ENDURO RACER's).
-  - The grid's second lane by one rule: OUTRUN's c, right of b, TURBO OUTRUN's a, left of b; K decides which where one
-    rule would move a grid.
   - A lane's Lateral written as it is, with no Boundary tracing one lane's line (48 of TURBO OUTRUN's 48, 38 of
     `outrun-a`'s 103, 6 of TSUKUBA's 27).
   - `round`, the three 2 µm constants and `onJoint`.

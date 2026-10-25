@@ -13,6 +13,7 @@ import { sectionProfile } from './road-profile.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
+import { GRID_SPACING, ruleGrid, type GridPlace } from './grid-rule.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import {
@@ -43,7 +44,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 15;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 16;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -59,9 +60,12 @@ export const stageSlug = (n: number) => TURBO_OUTRUN_NAMES[n]!.toLowerCase().rep
 /** A stage's sky, baked from its background. */
 export const skyName = (n: number) => `toutrun-${stageSlug(n)}-sky`;
 
-/** The start grid: as many slots as a run's competitors, this far apart, the last at GO in lane b, the next in a. */
-const GRID_SLOTS = 16;
-const GRID_SPACING = 12;
+/**
+ * The 959 at GO, road units right of the car (0xC238 places it on the left road, 0xC28E, at the car's depth, 0xC27C
+ * and 0x11D28, its x −0x80 at 0xC294 and 0xC29C): the instructions are encrypted, read from the program decrypted
+ * locally ([TURBO OUTRUN road data](../../docs/turbo-outrun-road-data.md#turbo-outruns-programs)).
+ */
+const RIVAL_X = -0x80;
 /**
  * The skies face as the original's backgrounds: at heading 0 its back layer's pixel 1376 of 1536 is at the screen's
  * middle, here 1376 × 1504 / 1536 of the sky's 1504.
@@ -465,15 +469,18 @@ function sectionDocument(
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: unknown[] = [];
-  if (context.first)
-    gates.push({
-      kind: 'start',
-      grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
-        at: atStation(go + (GRID_SLOTS - 1 - i) * GRID_SPACING - origin),
-        lateral: laneCentre((GRID_SLOTS - 1 - i) % 2 ? 'a' : 'b'),
-      })),
-      bikeGrid: null,
-    });
+  // The player's slot at GO at lane b's centre, the left road's, where the original's car stands; the cars' grid with the
+  // original's 959 beside it.
+  if (context.first) {
+    const player = { s: go - origin, lateral: laneCentre('b') };
+    const grid = (originals: readonly GridPlace[], spacing: number) =>
+      ruleGrid(player, originals, spacing, ['a', 'b']).map((slot) => ({
+        at: atStation(slot.s),
+        lateral: slot.lateral,
+      }));
+    const rival = { s: player.s, lateral: { ...laneCentre('b'), offset: round(RIVAL_X * UNIT_METRES) } };
+    gates.push({ kind: 'start', grid: grid([rival], GRID_SPACING.car), bikeGrid: grid([], GRID_SPACING.bike) });
+  }
   const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
   for (const c of context.checkpoints)
     if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: atStation(c.s - origin) });

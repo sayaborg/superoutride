@@ -4,7 +4,7 @@
  * ROMs.
  */
 import type { RomSet } from './rom-set.js';
-import { instruction } from './program-words.js';
+import { instruction, long, sword } from './program-words.js';
 import {
   assembleEnduroRacerPrograms,
   assembleEnduroRacerSprites,
@@ -32,6 +32,11 @@ import {
 import { readSizeSet, readSpritePalette, undrawnPixels } from './enduro-racer-sprites.js';
 import { readBackOffset, readLayer, readSky, readTilePalettes } from './enduro-racer-backgrounds.js';
 
+/** The objects' template pointers, the first rival's object and the rivals. */
+const GRID_TEMPLATES = 0x41f8;
+const FIRST_RIVAL = 32;
+const GRID_RIVALS = 6;
+
 /** The dump's format: raw tables, local to the machine that read the ROMs. */
 export const ENDURO_RACER_DUMP_FORMAT = Object.freeze({
   format: 'superoutride.enduro-racer-road-data',
@@ -42,6 +47,22 @@ export const ENDURO_RACER_DUMP_FORMAT = Object.freeze({
 export function bikeAhead(programs: EnduroRacerPrograms) {
   const [high, low] = instruction(programs.mainInstructions, 0x60ee, [0x2a3c, null, null], "the bike's place");
   return (high! * 0x10000 + low!) / 256;
+}
+
+/**
+ * The rivals on the grid at GO. The start copies the 48 objects' templates (0x18A2), each's long pointer at 0x41F8;
+ * the rivals are objects 32 to 42, every second (each followed by its companion), a template's long 0x10 their road
+ * position as 24.8 and signed word 0x14 their x, road units from P. Those at the bike's place stand abreast with it at
+ * GO; the others are held back.
+ */
+export function readGrid(programs: EnduroRacerPrograms) {
+  const go = bikeAhead(programs);
+  return Array.from({ length: GRID_RIVALS }, (_, k) => long(programs.main, GRID_TEMPLATES + 4 * (FIRST_RIVAL + 2 * k)))
+    .map((template) => ({
+      position: long(programs.main, template + 0x10) / 256,
+      x: sword(programs.main, template + 0x14),
+    }))
+    .filter((rival) => rival.position === go);
 }
 
 /**
