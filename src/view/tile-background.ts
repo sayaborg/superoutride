@@ -8,9 +8,17 @@ export interface TileBackground {
   readonly yawOriginRadians: number;
 }
 
+/**
+ * How far along the image, in pixels, a direction of yaw `yaw` lies from its yaw origin: `focalLength` pixels per radian.
+ * Facing `yaw`, the screen's centre column shows image x `backgroundYawX + centerX` (modulo the image's width).
+ */
+export function backgroundYawX(background: TileBackground, yaw: number, focalLength: number): number {
+  return focalLength * (yaw - background.yawOriginRadians);
+}
+
 /** The image x the frame's left edge shows: the camera's yaw from the background's yaw origin at the focal length. */
 export function backgroundPan(background: TileBackground, camera: PseudoCamera): number {
-  return Math.round(camera.focalLength * (camera.yaw - background.yawOriginRadians));
+  return Math.round(backgroundYawX(background, camera.yaw, camera.focalLength));
 }
 
 /** The screen row the background's horizon stands at: the camera's horizon. */

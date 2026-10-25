@@ -19,7 +19,7 @@ import { drawWallColumn, type RouteWall, type WallWorkspace } from './course-wal
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
 import { placeShadow, shadowRowSpans, type PlacedShadow } from './sprite-shadow.js';
-import type { SpriteAsset } from '../image/sprite.js';
+import { spriteFolds, type SpriteAsset } from '../image/sprite.js';
 import type { BasePoint } from './base-point.js';
 
 /** DEV and tool measurements of one rendered frame; the product render takes none. */
@@ -209,10 +209,9 @@ export function renderDriving(
   // terrain rows nearer than it are followed in Painter order up to the first facing away, to the picture's bottom row.
   // A row below draws after its screen row's farthest terrain row nearer than the anchor where that is one of them, else
   // at the anchor's depth, so a picture beyond a crest lays no row over the nearer slope. A picture anchored at its full
-  // size's bottom edge all stands (a reduced level's last row, rounded up, reaches below it by less than a texel).
+  // size's bottom edge all stands (`spriteFolds`).
   const drawSprite = (sprite: VisibleCourseSprite, index: number) => {
-    const full = sprite.asset.levels[0]!;
-    if (full.anchorY >= full.height - 0.5) return drawRows(sprite, 0, height);
+    if (!spriteFolds(sprite.asset)) return drawRows(sprite, 0, height);
     const { y, scale } = sprite.projection;
     const bounds = scaledSpriteBounds(sprite.asset, scale);
     const anchorRow = Math.floor(y),

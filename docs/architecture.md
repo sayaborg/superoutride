@@ -501,7 +501,8 @@ per span, edge or field. Resolved material records and public metadata are deepl
 a cached cell's base and node coefficients and active count, or the instantaneous resolved Strips at a station
 (`readInstant`: the first span's color as the base, then a node at each later span's left edge with its color and no
 slope), into view-owned reusable scratch without allocating once the scratch holds the largest field; compiled numeric
-buffers stay private.
+buffers stay private. It also copies a resolved slab whole (`readSlab`: its stations, each span's RGB555 color and the
+edges between spans at the slab's ends), for a view that draws the Strips as they are.
 The view layer owns row sampling.
 
 A row uses the terrain projection's representative s and effective depth footprint `deltaS`.

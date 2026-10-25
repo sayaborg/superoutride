@@ -356,8 +356,24 @@ export interface StripCellTarget {
   count: number;
   active: number;
 }
+/**
+ * Caller-owned scratch for one resolved slab: its stations `[start, end)` and its spans left to right, each span's RGB555
+ * color (`-1` transparent) in `colors`, and after the first span its left edge's laterals at `start` and at `end` in
+ * `edges` (two per span after the first, the right edge of the span before it); the first span is open to the left and
+ * the last to the right.
+ */
+export interface StripSlabTarget {
+  start: number;
+  end: number;
+  colors: number[];
+  edges: number[];
+}
 export interface StripGroundCellReader {
   readonly levelCount: number;
+  /** The resolved slabs' count, the last also owning the ground's end. */
+  readonly slabCount: number;
+  /** Resolved slab `slab`, as compiled, without preblending: copied into `target`, which it returns. */
+  readSlab(slab: number, target: StripSlabTarget): StripSlabTarget;
   /**
    * The instantaneous resolved Strips at `s`, following the resolved span order without preblending or sorting: the
    * first span's color as the base, then one node at each later span's left edge with that span's color and no slope.
@@ -534,6 +550,19 @@ export async function compileStripGround(
   };
   const reader: StripGroundCellReader = Object.freeze({
     levelCount: levels.length,
+    slabCount: slabs.count,
+    readSlab(slab: number, target: StripSlabTarget) {
+      const first = slabs.firstSpan[slab]!,
+        last = slabs.firstSpan[slab + 1]!;
+      target.start = slabs.stations[slab]!;
+      target.end = slabs.stations[slab + 1]!;
+      target.colors.length = target.edges.length = 0;
+      for (let span = first; span < last; span++) {
+        target.colors.push(slabs.colors[span]!);
+        if (span > first) target.edges.push(slabs.edges[2 * span]!, slabs.edges[2 * span + 1]!);
+      }
+      return target;
+    },
     readInstant(s: number, target: StripCellTarget) {
       const slab = slabAt(slabs, s),
         first = slabs.firstSpan[slab]!,

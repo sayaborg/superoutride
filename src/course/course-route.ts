@@ -5,6 +5,8 @@ import {
   type PlanarTransform,
 } from '../core/planar-transform.js';
 import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
+import type { CompiledCourse } from './compiler/compiled-course.js';
+import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 
 /** One selected traversal, shared by all vehicles. Stations never change when the resident window advances. */
 export interface RouteOccurrence {
@@ -126,6 +128,24 @@ export function createCourseRoute(entry: CompiledSection): CourseRouteBuilder {
       }
     },
   });
+}
+
+/**
+ * A course's Route from its entry as its map draws it: one lap of a circuit, else to its end, each fork taking its first
+ * exit; each occurrence carries its transform to the world.
+ */
+export function firstExitRoute(course: Pick<CompiledCourse, 'entry' | 'type'>): readonly RouteOccurrence[] {
+  const builder = createCourseRoute(course.entry);
+  const occurrences: RouteOccurrence[] = [];
+  for (let i = 0; i <= COURSE_DOCUMENT_LIMITS.sections; i++) {
+    const occurrence = builder.route.occurrences[i]!;
+    occurrences.push(occurrence);
+    const outgoing = occurrence.section.outgoing;
+    if (outgoing.length === 0) break;
+    builder.select(outgoing[0]!);
+    if (course.type === 'CIRCUIT' && builder.route.occurrences[i + 1]!.section === course.entry) break;
+  }
+  return Object.freeze(occurrences);
 }
 
 /**

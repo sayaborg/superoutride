@@ -1,9 +1,8 @@
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import type { Vec2 } from '../core/math.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import { createCourseRoute, type RouteOccurrence } from '../course/course-route.js';
+import { firstExitRoute, type RouteOccurrence } from '../course/course-route.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
-import { COURSE_DOCUMENT_LIMITS } from '../course/course-limits.js';
 import type { SoftwareSurface } from './software-surface.js';
 
 /** Metres between the centreline's samples. */
@@ -38,17 +37,7 @@ export function createCourseMap(course: CompiledCourse): CourseMap {
     east: world.x * cos + world.z * sin,
     north: world.z * cos - world.x * sin,
   });
-  // The route from the entry: one lap of a circuit, else to its end, each fork taking its first exit.
-  const builder = createCourseRoute(course.entry);
-  const occurrences: RouteOccurrence[] = [];
-  for (let i = 0; i <= COURSE_DOCUMENT_LIMITS.sections; i++) {
-    const occurrence = builder.route.occurrences[i]!;
-    occurrences.push(occurrence);
-    const outgoing = occurrence.section.outgoing;
-    if (outgoing.length === 0) break;
-    builder.select(outgoing[0]!);
-    if (course.type === 'CIRCUIT' && builder.route.occurrences[i + 1]!.section === course.entry) break;
-  }
+  const occurrences = firstExitRoute(course);
   const sample = createPlanCoordinateSample();
   const at = (occurrence: RouteOccurrence, s: number) => {
     occurrence.section.coordinates.toWorld(s, 0, sample);

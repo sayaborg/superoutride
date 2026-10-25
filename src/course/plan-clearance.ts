@@ -136,14 +136,64 @@ function touching(segment: CompiledPlanSegment, px: number, pz: number, nx: numb
   return (swept < 0 ? swept + 2 * Math.PI : swept) <= Math.abs(turn) ? r : Infinity;
 }
 
+/** One sample of the clearance on a side: its station, the clearance asked for there and the clearance up to it. */
+export interface ClearanceSample {
+  readonly s: number;
+  readonly bound: number;
+  readonly c: number;
+}
+
+/**
+ * The plan's clearance on side `side`, up to `asked(s)` at each station, sampled as a polyline that keeps within it:
+ * at the `base` stations (sorted, the Section's ends among them), at cells no longer than the extent asked for nor
+ * turning more than five degrees, and halved wherever the clearance lies more than `CLEARANCE_TOLERANCE_METERS` below
+ * the line between its samples. Where `asked` is 0 nothing is asked and the sample's clearance is 0.
+ */
+export function sampleClearance(
+  path: PlanPath,
+  side: 1 | -1,
+  asked: (s: number) => number,
+  base: readonly number[],
+  clearance = createPlanClearance(path),
+): ClearanceSample[] {
+  const sample = (s: number): ClearanceSample => {
+    const bound = asked(s);
+    return { s, bound, c: bound > 0 ? clearance(s, side, bound) : 0 };
+  };
+  const samples: ClearanceSample[] = [];
+  const refine = (a: ClearanceSample, b: ClearanceSample, depth: number) => {
+    const m = sample((a.s + b.s) / 2);
+    if (depth < MAXIMUM_HALVINGS && m.c < (a.c + b.c) / 2 - CLEARANCE_TOLERANCE_METERS) {
+      refine(a, m, depth + 1);
+      samples.push(m);
+      refine(m, b, depth + 1);
+    }
+  };
+  let index = 0;
+  for (let i = 0; i + 1 < base.length; i++) {
+    const [from, to] = [base[i]!, base[i + 1]!];
+    while (path.segments[index]!.sEnd < to) index++;
+    const turn = Math.abs(path.segments[index]!.curvature) * (to - from);
+    const scale = Math.max(asked(from), asked(to), MAXIMUM_VEHICLE_REACH);
+    const count = Math.max(1, Math.ceil(turn / CELL_TURN_RADIANS), Math.ceil((to - from) / scale));
+    let a = sample(from);
+    if (i === 0) samples.push(a);
+    for (let j = 1; j <= count; j++) {
+      const b = sample(j === count ? to : from + ((to - from) * j) / count);
+      refine(a, b, 0);
+      samples.push(b);
+      a = b;
+    }
+  }
+  return samples;
+}
+
 /**
  * The material table's clips ([Architecture](../../docs/architecture.md#plan-authority)): on each side, where the
  * plan's clearance falls short of the outer covered edge plus `MAXIMUM_VEHICLE_REACH`, a piece of no material beyond the
  * clip line, declared after the Section's material so that it overrides it. The line is a polyline through the
- * clearance less the reach and `CLEARANCE_TOLERANCE_METERS`, sampled at the segments' and the slabs' ends, at cells no
- * longer than the extent asked for nor turning more than five degrees, and halved wherever the clearance lies more than
- * the tolerance below the line between its samples; so it keeps within the clearance less the reach. Each clip begins
- * and ends on the edge it crosses.
+ * clearance less the reach and `CLEARANCE_TOLERANCE_METERS`, sampled by `sampleClearance` at the segments' and the
+ * slabs' ends; so it keeps within the clearance less the reach. Each clip begins and ends on the edge it crosses.
  */
 export function clearanceClips(path: PlanPath, material: StripMaterial): StripPiece<SurfaceMaterial | null>[] {
   const clips: StripPiece<SurfaceMaterial | null>[] = [];
@@ -173,39 +223,10 @@ export function clearanceClips(path: PlanPath, material: StripMaterial): StripPi
       const edge = outer(s, side);
       return edge === null ? 0 : Math.max(0, side * edge + MAXIMUM_VEHICLE_REACH + CLEARANCE_TOLERANCE_METERS);
     };
-    const sample = (s: number) => {
-      const bound = asked(s);
-      return { s, bound, c: bound > 0 ? clearance(s, side, bound) : 0 };
-    };
-    type Sample = ReturnType<typeof sample>;
-    const samples: Sample[] = [];
-    const refine = (a: Sample, b: Sample, depth: number) => {
-      const m = sample((a.s + b.s) / 2);
-      if (depth < MAXIMUM_HALVINGS && m.c < (a.c + b.c) / 2 - CLEARANCE_TOLERANCE_METERS) {
-        refine(a, m, depth + 1);
-        samples.push(m);
-        refine(m, b, depth + 1);
-      }
-    };
-    let index = 0;
-    for (let i = 0; i + 1 < base.length; i++) {
-      const [from, to] = [base[i]!, base[i + 1]!];
-      while (path.segments[index]!.sEnd < to) index++;
-      const turn = Math.abs(path.segments[index]!.curvature) * (to - from);
-      const scale = Math.max(asked(from), asked(to), MAXIMUM_VEHICLE_REACH);
-      const count = Math.max(1, Math.ceil(turn / CELL_TURN_RADIANS), Math.ceil((to - from) / scale));
-      let a = sample(from);
-      if (i === 0) samples.push(a);
-      for (let j = 1; j <= count; j++) {
-        const b = sample(j === count ? to : from + ((to - from) * j) / count);
-        refine(a, b, 0);
-        samples.push(b);
-        a = b;
-      }
-    }
+    const samples = sampleClearance(path, side, asked, base, clearance);
     // The clip line, lateral on this side, at a sample short of what it asked for; a clip between two such samples, or
     // from where the outer edge crosses the line to such a sample and back.
-    const line = (x: Sample) => side * (x.c - MAXIMUM_VEHICLE_REACH - CLEARANCE_TOLERANCE_METERS);
+    const line = (x: ClearanceSample) => side * (x.c - MAXIMUM_VEHICLE_REACH - CLEARANCE_TOLERANCE_METERS);
     for (let k = 0; k + 1 < samples.length; k++) {
       const [a, b] = [samples[k]!, samples[k + 1]!];
       const [da, db] = [a.bound - a.c, b.bound - b.c];

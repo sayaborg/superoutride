@@ -1,6 +1,11 @@
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import { SoftwareSurface } from './software-surface.js';
-import { selectSpriteLevel, SPRITE_SOURCE_TEXELS_PER_METER, type SpriteAsset } from '../image/sprite.js';
+import {
+  selectSpriteLevel,
+  spriteRepeatPeriodMeters,
+  SPRITE_SOURCE_TEXELS_PER_METER,
+  type SpriteAsset,
+} from '../image/sprite.js';
 
 // Palette index 0 is transparent in every sprite image.
 const SPRITE_TRANSPARENT_INDEX = 0;
@@ -70,8 +75,8 @@ export function drawScaledSprite(
   const extend = asset.extend;
   const x0 = extend === 'left' ? 0 : Math.max(0, unclippedX0);
   const x1 = extend === 'right' ? target.width - 1 : Math.min(target.width - 1, unclippedX1);
-  // The repetition's period in the level's texels: the master's width at this level.
-  const period = asset.levels[0]!.width / 2 ** levelIndex;
+  // The repetition's period in the level's texels.
+  const period = (spriteRepeatPeriodMeters(asset) * SPRITE_SOURCE_TEXELS_PER_METER) / 2 ** levelIndex;
   const y0 = Math.max(0, rowStart, unclippedY0);
   const y1 = Math.min(target.height - 1, rowEnd - 1, unclippedY1);
 

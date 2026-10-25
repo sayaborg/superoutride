@@ -334,6 +334,23 @@ export function createSpritePalette(asset: SpriteLodAsset, name: string): Sprite
   return Object.freeze({ ...asset, levels: Object.freeze(levels) });
 }
 
+/**
+ * How far a board extending sideways repeats, in metres: its master's width at 40 texels per metre, the same at every
+ * level, so every repetition is the true form of one plane at one depth.
+ */
+export function spriteRepeatPeriodMeters(asset: SpriteAsset): number {
+  return asset.levels[0]!.width / SPRITE_SOURCE_TEXELS_PER_METER;
+}
+
+/**
+ * Whether a picture has rows below its anchor, which lie on the ground in front of it: one anchored at its full size's
+ * bottom edge all stands (a reduced level's last row, rounded up, reaches below it by less than a texel).
+ */
+export function spriteFolds(asset: SpriteAsset): boolean {
+  const full = asset.levels[0]!;
+  return full.anchorY < full.height - 0.5;
+}
+
 /** Geometric-mean transitions; the exact boundary selects the coarser level. */
 export function selectSpriteLevel(asset: SpriteAsset, pixelsPerMeter: number): number {
   return selectImageLodLevel(pixelsPerMeter / SPRITE_SOURCE_TEXELS_PER_METER, asset.levels.length - 1);
