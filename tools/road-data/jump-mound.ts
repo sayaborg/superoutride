@@ -11,19 +11,16 @@ export interface Mound {
 }
 
 /**
- * The mound that throws a point mass as the original throws its vehicle (K, 2026-10-25): leaving its top along its
- * rising side at the original's top speed `speed`, metres a second, under this game's gravity, the mass comes down at
- * the end of its falling side after the original's flight `seconds`. Its slope θ has sin θ = g T / (4 v), its half is
- * the flight's distance v T cos θ, its height v T sin θ.
+ * ENDURO RACER's jump ([Original road data](../../docs/original-road-data.md#profile), Jumps): the mound a point mass
+ * leaving its top along its rising side at the design speed `speed`, metres a second, under this game's gravity, comes
+ * down on at the end of its falling side, `distance` metres on. Its slope θ has sin 2θ = g D / (2 v²); its half is D,
+ * its height D tan θ.
  */
-export function moundOf(speed: number, seconds: number): Mound {
-  const sin = (VEHICLE_GRAVITY * seconds) / (4 * speed);
-  if (!(sin > 0 && sin < 1)) throw new RangeError(`No mound throws a mass at ${speed} m/s for ${seconds} s`);
-  const round = (value: number) => Number(value.toFixed(6));
-  return {
-    half: round(speed * seconds * Math.sqrt(1 - sin * sin)),
-    height: round(speed * seconds * sin),
-  };
+export function jumpMound(speed: number, distance: number): Mound {
+  const sin = (VEHICLE_GRAVITY * distance) / (2 * speed * speed);
+  if (!(sin > 0 && sin <= 1)) throw new RangeError(`No mound throws a mass at ${speed} m/s ${distance} m`);
+  const theta = Math.asin(sin) / 2;
+  return { half: distance, height: Number((distance * Math.tan(theta)).toFixed(6)) };
 }
 
 /**

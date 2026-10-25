@@ -93,6 +93,16 @@ export function jumpFlight(programs: EnduroRacerPrograms) {
 }
 
 /**
+ * The program's ground over a jump (0x71D8), its half, positions: the bike's distance past the jump's position in 1/256
+ * positions (0x703A) plus 0x1C2 (`move.l #$1C2, d1` at 0x71E2) is where the ground rises from, as far before the
+ * position as it falls to after it. The jump's picture stands for it.
+ */
+export function jumpGround(programs: EnduroRacerPrograms) {
+  const [high, low] = instruction(programs.mainInstructions, 0x71e2, [0x223c, null, null], "the jump's half");
+  return (high! * 0x10000 + low!) / 256;
+}
+
+/**
  * The rivals on the grid at GO. The start copies the 48 objects' templates (0x18A2), each's long pointer at 0x41F8;
  * the rivals are objects 32 to 42, every second (each followed by its companion), a template's long 0x10 their road
  * position as 24.8 and signed word 0x14 their x, road units from P. Those at the bike's place stand abreast with it at

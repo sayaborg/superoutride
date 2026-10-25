@@ -15,6 +15,7 @@ import {
   turboOutrunCourse,
 } from './turbo-outrun-course.js';
 import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
+import { candidateTag } from './section-writing.js';
 import { pathTurn } from './road-tables.js';
 
 import {
@@ -108,8 +109,15 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     // TURBO OUTRUN's course and skies from its ROM zip, written to content, or with `--check` compared.
     const check = options.has('--check');
     const zip = await oneZip(options.get('--zip'), romDirectory('turbo-outrun'), '--zip');
-    const built = turboOutrunCourse(await romSet('toutrun', [zip]));
-    const file = await saveCourse(TURBO_OUTRUN_COURSE_ID, built.document, check);
+    // `--hump`, temporary until K decides the humps' height: the course at that height, metres, its id tagged.
+    const hump = options.get('--hump');
+    const height = hump === undefined ? undefined : Number(hump);
+    const built = turboOutrunCourse(await romSet('toutrun', [zip]), height);
+    const file = await saveCourse(
+      TURBO_OUTRUN_COURSE_ID + candidateTag('hump', height === undefined ? undefined : height * 1000),
+      built.document,
+      check,
+    );
     for (const { image } of built.pictures) {
       const picture = `content/${image.path}`;
       if (check) {
@@ -173,7 +181,7 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           heights: c.heights.map(round1),
         })),
         objects: built.placing,
-        jump: Object.fromEntries(Object.entries(built.jump).map(([k, v]) => [k, round3(v)])),
+        hump: Object.fromEntries(Object.entries(built.hump).map(([k, v]) => [k, round3(v)])),
         ground: built.beyond,
         pictures: built.pictures.length,
         skies: skies.length,

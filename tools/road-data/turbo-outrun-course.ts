@@ -32,8 +32,7 @@ import {
 import { BACK_WIDTH, bakeSky, SKY_HORIZON, SKY_WIDTH } from './sky-baking.js';
 import { stageBands } from './turbo-outrun-backgrounds.js';
 import { pictureName, turboOutrunBoards } from './turbo-outrun-boards.js';
-import { isJump, turboOutrunJump, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
-import { moundOf } from './jump-mound.js';
+import { humpLength, isHump, turboOutrunPlacements, type PlacedObject } from './turbo-outrun-objects.js';
 import {
   readConstants,
   readTurboOutrunStages,
@@ -45,7 +44,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 18;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 19;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -128,8 +127,17 @@ interface SkyChange {
   readonly arrival: 'cut' | 'rise';
 }
 
-/** TURBO OUTRUN's course from its ROM set: its document and what the conversion reports. */
-export function turboOutrunCourse(set: RomSet) {
+/**
+ * The humps' height, metres: K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 0.1,
+ * 0.2 and 0.3 m.
+ */
+const HUMP_HEIGHT = 0.2;
+
+/**
+ * TURBO OUTRUN's course from its ROM set: its document and what the conversion reports; with `height`, a candidate of
+ * the humps' height (NEXT's Stage EX), raised as a temporary DEV course until K decides, its id and name carrying it.
+ */
+export function turboOutrunCourse(set: RomSet, height?: number) {
   checkTurboOutrunRoadRom(set);
   const programs = assembleTurboOutrunPrograms(set);
   const planes = assembleTurboOutrunTiles(set);
@@ -151,9 +159,8 @@ export function turboOutrunCourse(set: RomSet) {
     ]),
   );
   const camera = cameraDistance(CAMERA_DEFINITION);
-  // The jumps, mounds across the road that throw as the original throws at its top speed.
-  const jump = turboOutrunJump(kmh);
-  const mound = moundOf(kmh / 3.6, jump.seconds);
+  // The humps: symmetric across the road, as long as the road the car passes at the top speed while their objects hit.
+  const hump = { half: (humpLength(programs.main, kmh) / 2) * POSITION_METRES, height: height ?? HUMP_HEIGHT };
   const layout = layTurboOutrun({
     stages,
     runs,
@@ -162,8 +169,8 @@ export function turboOutrunCourse(set: RomSet) {
     kmh,
     cameraDistance: camera,
     slug: stageSlug,
-    jumps: objects.filter((o) => isJump(programs.main, o)),
-    mound,
+    humps: objects.filter((o) => isHump(programs.main, o)),
+    hump,
   });
   const { station, course, pieces } = layout;
 
@@ -200,7 +207,7 @@ export function turboOutrunCourse(set: RomSet) {
 
   // The objects, and the pictures they show.
   const placing = turboOutrunPlacements(programs.main, {
-    objects: objects.filter((o) => !isJump(programs.main, o)),
+    objects: objects.filter((o) => !isHump(programs.main, o)),
     runs,
     start: (stage) => course[stage]!.start,
     width: layout.width,
@@ -252,7 +259,7 @@ export function turboOutrunCourse(set: RomSet) {
     document: {
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      name: COURSE_NAME,
+      name: height === undefined ? COURSE_NAME : `${COURSE_NAME} HUMP ${height}`,
       entry: pieces[0]!.id,
       maxLaps: 1,
       bearing: 0,
@@ -270,7 +277,7 @@ export function turboOutrunCourse(set: RomSet) {
     })),
     placing: placing.report,
     beyond,
-    jump: { ...jump, ...mound, ...layout.mounds },
+    hump: { ...hump, ...layout.mounds },
   };
 }
 

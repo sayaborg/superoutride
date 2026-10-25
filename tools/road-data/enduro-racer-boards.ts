@@ -135,3 +135,33 @@ export function enduroRacerBoards(
     });
   return boards;
 }
+
+/**
+ * Where the program draws a jump's picture across the road, and its color: its two halves, the left as it is and the
+ * right mirrored, each's bottom middle at its x (`left`, `right`, lateral units from P), from the left half's left edge
+ * to the right half's right edge, metres at `unit` a lateral unit; the average of their pixels' colors in the kind's
+ * palette, the shadow's and the transparent ones aside (RGB555).
+ */
+export function jumpPicture(
+  main: Uint8Array,
+  words: Uint32Array,
+  jump: { readonly left: number; readonly right: number; readonly sizes: number; readonly palette: number },
+  unit: number,
+) {
+  const half = sizeSetPixels(main, words, jump.sizes);
+  const palette = readSpritePalette(main, jump.palette).rgb555;
+  const sums = [0, 0, 0];
+  let count = 0;
+  for (const v of half.pixels) {
+    if (v === 0 || v === SHADOW || v === 15) continue;
+    for (let c = 0; c < 3; c++) sums[c]! += (palette[v]! >> (5 * c)) & 31;
+    count++;
+  }
+  if (!count) throw new RangeError(`The jump's picture 0x${jump.sizes.toString(16)} has no colored pixel`);
+  const width = (half.width * PIXEL_UNITS) / 2;
+  return {
+    left: (Math.min(jump.left, jump.right) - width) * unit,
+    right: (Math.max(jump.left, jump.right) + width) * unit,
+    color: sums.reduce((rgb, sum, c) => rgb | (Math.round(sum / count) << (5 * c)), 0),
+  };
+}

@@ -430,16 +430,23 @@ A stage's profile turns its height tables' look on the original's screen into gr
   keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by no more than a micrometre are apart.
   OUTRUN's crossings (its own, `roadCrossings`) are of two passages; SUPER HANG-ON's, ENDURO RACER's and TURBO
   OUTRUN's (`crossingsOf`) join passages linked by overlaps into one crossing. The passages' heights include the
-  jumps' mounds.
-- **Jumps.** What throws a vehicle is a symmetric mound across the whole road on top of the profile, its top at the
-  jump's position (K, 2026-10-25): the grade kinked up at its foot, down over its top and back at its end. It throws a
-  point mass as the original throws its vehicle: leaving its top along its rising side at the original's top speed v,
-  under this game's gravity g, the mass comes down at the end of its falling side after the original's flight T, the
-  ticks its program steps from the throw to the landing at that speed. So its slope θ has sin θ = g T / (4 v), each
-  side is v T cos θ long and its height is v T sin θ. Where mounds overlap the higher is taken, the road kinked up
-  again where their sides meet. No vehicle's data shapes it; this game's physics throws a vehicle that climbs it, and
-  the original's table of take-off speeds, its least speed to throw, its slowdown and its landing bounce are not
-  taken.
+  jumps' mounds and the humps.
+- **Jumps and humps.** What the originals throw a vehicle with is a symmetric triangle across the whole road on top of
+  the profile, its top at the original's position: the grade kinked up at its foot, down over its top and back at its
+  end; where two overlap the higher is taken, the road kinked up again where their sides meet. No vehicle's data shapes
+  one; this game's physics throws a vehicle that climbs it, and the originals' tables of take-off speeds, least speeds
+  to throw, slowdowns and landing bounces are not taken. Two kinds, each its own rule (K, 2026-10-25):
+  - A jump (ENDURO RACER's) throws a point mass leaving its top along its rising side at the design speed v, under this
+    game's gravity g, over the rocks beyond it: it comes down at the end of its falling side, D on, D the farthest of
+    any jump's rocks from its top, the objects on the road with a body within the original's flight from it. So its
+    slope θ has sin 2θ = g D / (2 v²), each side is D long and its height D tan θ. The road the original draws its
+    picture over is painted its picture's average color.
+  - A hump (TURBO OUTRUN's) is a step the vehicle bumps over: as long as the original's object hits, at the original's
+    top speed, its height its own.
+
+  The design speed and the hump's height are K's to decide by driving: until then a course carries the middle of three
+  candidates and two temporary DEV courses the others (NEXT's Stage EX).
+
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
   that meet stay apart; a mound's kink is a knot of no curve, the stretches broken there; stretches break at the

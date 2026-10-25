@@ -2,7 +2,7 @@
  * ENDURO RACER's road data commands ([Development](../../docs/development.md#road-data-commands)): each prints one JSON
  * result, or its diagnostics and exits 1.
  */
-import { scaleTag } from './section-writing.js';
+import { candidateTag, scaleTag } from './section-writing.js';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
@@ -103,8 +103,15 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
     // `--lane`, temporary until K decides the scale: the course at that lane's width, its id and pictures tagged.
     const lane = options.get('--lane');
     const candidate = lane === undefined ? undefined : Number(lane);
-    const built = enduroRacerCourse(set, candidate);
-    const file = await saveCourse(ENDURO_RACER_COURSE_ID + scaleTag(candidate), built.document, check);
+    // `--jump-speed`, temporary until K decides the jumps' design speed: the course at that speed, its id tagged.
+    const jumpSpeed = options.get('--jump-speed');
+    const speed = jumpSpeed === undefined ? undefined : Number(jumpSpeed);
+    const built = enduroRacerCourse(set, candidate, speed);
+    const file = await saveCourse(
+      ENDURO_RACER_COURSE_ID + scaleTag(candidate) + candidateTag('jump', speed),
+      built.document,
+      check,
+    );
     for (const { image } of built.pictures) {
       const picture = `content/${image.path}`;
       if (check) {
@@ -154,6 +161,8 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         yawOrigin: round3(built.yawOrigin),
         // The original's flight off a jump, and the mound's height that gives it here.
         jump: Object.fromEntries(Object.entries(built.jump).map(([k, v]) => [k, round3(v)])),
+        // Each jump's farthest rock beyond it within the original's flight, metres, or null.
+        rocks: built.rocks.map((d) => (d === null ? null : round3(d))),
         // The profile's steepest grade, sampled every metre.
         steepest: round3(
           Math.max(

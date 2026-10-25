@@ -103,6 +103,9 @@ Space Harrier's sprite hardware draws them (`SPACE_HARRIER_SPRITES` in `sprite-p
   whose position is 0xFFFF: 69. Kind k's record is at 0xCA60 + 3k: {long size set, byte palette, byte margin}. The left
   half is drawn as it is and the right half mirrored; the margin (120 for every kind) widens the halves' window where
   the bike jumps (0x701E), and the course's mound is the whole road's, so it is not used.
+- **Mound.** The bike's ground over a jump (0x71D8): `$2a`, the bike's distance past the jump's position in 1/256
+  positions (0x703A), plus 0x1C2 (0x71E2) gives the rise from 1.758 positions before the position, and the fall as far
+  after.
 - **Start.** Five templates of 38 bytes at 0xCA78 come out at the start: {byte flags, byte placement, …, word 0x12
   position (8.8), word 0x14 x (units), …, long 0x1A size set, byte 0x1E palette, …, byte 0x25 height}: the gate's posts
   (flags 0x88), banners and START board at position 1.5.
@@ -135,7 +138,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 15, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 16, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -211,17 +214,22 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
 - **Profile.** Level but for the jumps' mounds and the crossings' bumps ([Profile](original-road-data.md#profile)).
-  Each of the 69 jumps is a mound across the road ([Jumps](original-road-data.md#profile)), 50.629 m either side of the
-  jump's position and 2.060 m high; 39 of them join in 14 runs, the longest 326.4 m. The program throws the bike
+  Each of the 69 jumps is a mound across the road at the jump's position ([Jumps and
+  humps](original-road-data.md#profile)), 49.778 m either side of it: the farthest rock beyond a jump, an object on
+  the road with the hit mark within the original's flight, is 42 positions past jump 51. The program throws the bike
   (0x727A) at its top speed, the speed's cap 0x3F80 (0x6C36) read as 199 km/h, the lift lever at rest (0x20, MAME's):
   its height 0x2A (0x72D8), its upward speed the byte its pose picks at 0x72EC (28) times the speed, × 16, plus
   0x20000 (16.16 units a tick); each tick of 1/60 s the upward speed loses 0x2664 (0x721C), and the bike comes down
-  on the road on the 55th tick, 0.917 s, its peak 77 units up, 1.554 m at a scenery item's height unit, its gravity
-  10.9 m/s². The crossings: passages at
+  on the road on the 55th tick, 0.917 s, 42.75 positions (50.671 m) on, its peak 77 units up, 1.554 m at a scenery
+  item's height unit, its gravity 10.9 m/s². At the design speed of 105 km/h the mound is 7.294 m high (8.34°); the
+  candidates' courses `enduro-racer-jump-80` and `-jump-130` 13.161 m (14.81°) and 4.700 m (5.39°). 39 of the mounds
+  join in 14 runs, the longest 324.7 m. Its picture's color, its halves' pixels' average in its kind's palette but
+  the shadow's, covers the road from its left half's left edge to its right half's right edge over the program's
+  ground under it, 1.758 positions (2.083 m) either side of its position. The crossings: passages at
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The crossings' heights run from −13.2 to +13.3 m; the steepest grade is 10.7 %.
+  2720–2774) among them. The crossings' heights run from −17.0 to +17.0 m; the steepest grade is 24.4 %.
 
 ## ENDURO RACER's objects
 

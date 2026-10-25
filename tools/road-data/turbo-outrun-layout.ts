@@ -3,7 +3,7 @@
  * stages one after another from the entry, each to where the original ends it, a leg's last joined to the next leg's
  * start; P, the plan, from the stages' road paths as one heading table; the road width from their width points, and
  * lane b's centre from it; the Sections, cut where their road comes near itself; the profile
- * with the crossings' bumps.
+ * with the humps and the crossings' bumps.
  */
 import { requireInput } from '../course/authoring-io.js';
 import { POSITION_METRES, Quadratic, type TurnSegment } from './offset-plan.js';
@@ -79,9 +79,9 @@ export interface LayoutInputs {
   readonly cameraDistance: number;
   /** A stage's Sections' ids' stem. */
   readonly slug: (stage: number) => string;
-  /** The jumps, each's stage and road position in it, and their mound. */
-  readonly jumps: readonly { readonly stage: number; readonly position: number }[];
-  readonly mound: Mound;
+  /** The humps, each's stage and road position in it, and their shape. */
+  readonly humps: readonly { readonly stage: number; readonly position: number }[];
+  readonly hump: Mound;
 }
 
 /** The function straight between `points` `[position, value]`, from the first's position to the last's. */
@@ -266,10 +266,10 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     apart: PASSAGES_APART,
   }).map(([a, b]) => [station(a / POSITION_METRES), station(b / POSITION_METRES)] as [number, number]);
   const crossings = crossingsOf(pairs, PASSAGE_GAP * POSITION_METRES);
-  // Each row of jumps a mound across the whole road.
+  // Each row of humps one across the whole road.
   const mounds = moundKinks(
-    inputs.jumps.map((j) => station(course[j.stage]!.start + j.position)),
-    inputs.mound,
+    inputs.humps.map((j) => station(course[j.stage]!.start + j.position)),
+    inputs.hump,
   );
   const separated = separatedCrossings(changes, crossings, end, mounds.kinks);
   const profile = profileOf(

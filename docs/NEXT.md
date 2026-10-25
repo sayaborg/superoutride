@@ -318,6 +318,11 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   `-lane-3600`, `enduro-racer-lane-3600`), with pictures at the start, a sharp curve and a long straight; the reference
   times wait until the courses are finished (K). When K has decided: raised again at the value, measured again, the
   temporary courses and argument deleted, and how it was decided written once in each chapter and Original road data.
+- **The jumps' design speed and the humps' height** ([Jumps and humps](original-road-data.md#profile)): K decides them
+  by driving, as the scale. ENDURO RACER's course carries 105 km/h and the temporary DEV courses `enduro-racer-jump-80`
+  and `-jump-130` the other candidates (`--jump-speed <km/h>`); TURBO OUTRUN's carries 0.2 m and `turbo-outrun-hump-100`
+  and `-hump-300` 0.1 m and 0.3 m (`--hump <metres>`). When K has decided: raised again at the value, the temporary
+  courses and arguments deleted, and K's decision written once in Original road data's Jumps and humps and each chapter.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.

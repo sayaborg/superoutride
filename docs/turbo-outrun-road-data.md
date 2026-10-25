@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 18, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 19, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -215,16 +215,14 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
 - **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](original-road-data.md#profile)),
-  the stage closed level at height 0 over its stretch; the jumps' mounds; the nine crossings, each of two passages, kept
-  apart with the mounds; bends broken at the Sections' cuts.
-- **Jumps.** Collision class 2 throws the car (its handler at 0x742A; this and what follows are in the decrypted
-  program alone): its boards (0x27034), 124 in 96 rows of one to three at a road position, are a mound across the road
-  at each row's position ([Jumps](original-road-data.md#profile)), not objects: 32.998 m either side of it and 0.330 m
-  high, 95 of them joined in 8 runs, the longest 222.0 m. At 324 km/h, high gear without turbo, the program cuts the
-  speed by 1/32, to 313 km/h, and sets the upward speed to 313 / 64 + 1 = 5 a tick; each tick of 1/30 s the height
-  gains it and, while the car is up, it loses 1 (0x12536), and the car lands on the 11th tick, 0.367 s, its peak 15.
-  The height is the car's pixels up at its line (0x12252), where a road unit is 3/4 px: its peak 0.546 m, its gravity
-  32.7 m/s².
+  the stage closed level at height 0 over its stretch; the humps; the nine crossings, each of two passages, kept apart
+  with the humps; bends broken at the Sections' cuts.
+- **Humps.** Collision class 2 throws the car (its handler at 0x742A; this and what follows are in the decrypted
+  program alone): its boards (0x27034), 124 in 96 rows of one to three at a road position, are a hump across the road
+  at each row's position ([Jumps and humps](original-road-data.md#profile)), not objects. Its length is the road the
+  car passes at 324 km/h while a board hits, its line within 0x64 of the car's (0x6F20): the approach table's lines 284
+  to 384, 1.931 positions (3.867 m). It is 0.2 m high; the candidates' courses `turbo-outrun-hump-100` and `-hump-300`
+  0.1 m and 0.3 m. The two pairs of rows 3 m apart in san-antonio join. The boards are not painted (K).
 
 ## TURBO OUTRUN's objects
 

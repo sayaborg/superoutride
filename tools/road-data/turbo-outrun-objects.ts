@@ -12,7 +12,7 @@ import { startDepth } from './object-approach.js';
 import { PIXEL_ASPECT, UNIT_METRES } from './pixel-grid.js';
 import { type PictureUse } from './turbo-outrun-boards.js';
 import { readConstants, readKind } from './turbo-outrun-road.js';
-import { CAR_LINE, standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
+import { CAR_LINE, passedPositions, standsFrom, type StageRun, type StandingObject } from './turbo-outrun-scenery.js';
 import { START_FIGURES } from './turbo-outrun-start.js';
 
 /**
@@ -70,43 +70,18 @@ const SIGN_NEARER = 0.1;
 /** Collision classes 0, 1 and 3 stop or spin the car: the objects of those standing on the ground have a body. */
 const SOLID = 3;
 /**
- * Collision class 2 throws the car: a jump, a mound across the road, not an object. What follows is in the decrypted
- * program alone. The program runs 30 ticks a second (it waits two frames at 0xFE4E). Its class 2 handler (0x742A) cuts
- * the speed in high gear without turbo by 1/32 and sets the upward speed to the speed / 64 + 1 a tick; each tick the
- * car's height gains its upward speed and, while above the road, the upward speed loses 1 (0x12536), until the height
- * is 0, the landing. The height is the car's pixels up on screen at its line (0x12252), where a road unit is drawn
- * 0x180 / 512 px.
+ * Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): here a hump across the
+ * road, not an object. An object hits while its line is within 0x64 of the car's (0x6F20, in the decrypted program
+ * alone): the hump's length is the road the car passes while it does.
  */
-export const JUMP = 2;
-const JUMP_TICKS = 30;
-const JUMP_CUT = 31 / 32;
-const JUMP_LIFT = 64;
-const CAR_UNIT_PIXELS = CAR_LINE / 512;
+export const HUMP = 2;
+const HIT_LINES = 0x64;
 
-/** Whether the scenery model's object `o` is a jump. */
-export const isJump = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === JUMP;
+/** Whether the scenery model's object `o` is a hump. */
+export const isHump = (main: Uint8Array, o: StandingObject) => readKind(main, o.item.kind).collision === HUMP;
 
-/**
- * The program's flight off a jump at `kmh`, high gear without turbo (K, 2026-10-25): the ticks from the hit to the
- * landing, the original's gravity and its peak, metres.
- */
-export function turboOutrunJump(kmh: number) {
-  const lift = Math.floor((kmh * JUMP_CUT) / JUMP_LIFT) + 1;
-  let [height, upward, ticks, peak] = [0, lift, 0, 0];
-  do {
-    ticks++;
-    height += upward;
-    if (height > 0) upward--;
-    peak = Math.max(peak, height);
-  } while (height > 0);
-  const metres = (UNIT_METRES * PIXEL_ASPECT) / CAR_UNIT_PIXELS;
-  return {
-    ticks,
-    seconds: ticks / JUMP_TICKS,
-    gravity: metres * JUMP_TICKS * JUMP_TICKS,
-    peak: peak * metres,
-  };
-}
+/** A hump's length at `kmh`, positions: the road the car passes at that speed while its object's line hits. */
+export const humpLength = (main: Uint8Array, kmh: number) => passedPositions(main, CAR_LINE - HIT_LINES, CAR_LINE, kmh);
 
 /**
  * An object placed on the course: its course position, metres right of P, metres up, its picture, and its body's width

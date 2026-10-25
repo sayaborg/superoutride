@@ -10,7 +10,7 @@ import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
-import { moundKinks, moundOf, type Mound } from './jump-mound.js';
+import { jumpMound, moundKinks, type Mound } from './jump-mound.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { crossingsOf, overlappingCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
@@ -43,15 +43,15 @@ import {
   STAGES,
   type WaterCrossing,
 } from './enduro-racer-road.js';
-import { readJumps, readScenery } from './enduro-racer-scenery.js';
-import { bikeAhead, jumpFlight, lateralLimit, readGrid } from './enduro-racer-dump.js';
+import { readJumpKind, readJumps, readScenery } from './enduro-racer-scenery.js';
+import { bikeAhead, jumpFlight, jumpGround, lateralLimit, readGrid } from './enduro-racer-dump.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
-import { enduroRacerBoards, PIXEL_UNITS } from './enduro-racer-boards.js';
+import { enduroRacerBoards, jumpPicture, PIXEL_UNITS } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 15;
+export const ENDURO_RACER_CONVERSION_VERSION = 16;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -148,15 +148,21 @@ interface Piece {
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
 /**
- * The course's document and report, from the ROM set; with `lane`, a candidate of the scale (NEXT's Stage EX), raised as
- * a temporary DEV course until K decides, its id, name and pictures carrying it.
+ * The jumps' design speed, km/h: the speed a bike comes to a jump at, which its mound throws over the rocks beyond it.
+ * K decides it by driving (NEXT's Stage EX); until then the middle of the candidates 80, 105 and 130 km/h.
  */
-export function enduroRacerCourse(set: RomSet, candidate?: number) {
+const DESIGN_SPEED = 105;
+
+/**
+ * The course's document and report, from the ROM set; with `lane`, a candidate of the scale, and with `speed`, one of
+ * the jumps' design speed (NEXT's Stage EX), raised as a temporary DEV course until K decides, its id and name carrying
+ * it (and its pictures the scale's).
+ */
+export function enduroRacerCourse(set: RomSet, candidate?: number, speed?: number) {
   const lane = candidate ?? LANE;
   const tag = scaleTag(candidate);
   const programs = assembleEnduroRacerPrograms(set);
-  const jump = jumpFlight(programs);
-  const mound = moundOf(jump.speed / 3.6, jump.ticks / TICKS);
+  const flight = jumpFlight(programs);
   const { main, sub } = programs;
   const metres = POSITION_METRES;
   const cross = roadCrossSection(enduroRacerRoadRom(set));
@@ -194,6 +200,19 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
   });
   const words = assembleEnduroRacerSprites(set);
   const objects = enduroRacerObjects(main, unit, tag);
+  // The jumps: each's mound throws a mass at the design speed over the rocks beyond it, those on the road with the hit
+  // mark within the original's flight (it moves its speed in 1/256 positions a tick), the farthest of any jump's the
+  // mound's half; its picture's color painted on the road where the program draws it.
+  const jumps = readJumps(main).jumps;
+  const flown = ((flight.ticks * flight.speed) / 256) * metres;
+  const rocks = objects.spots.filter((spot) => spot.onRoad && spot.hit);
+  const beyond = jumps.map((j) => {
+    const ahead = rocks.map((r) => (r.position - j.position) * metres).filter((d) => d > 0 && d <= flown);
+    return ahead.length ? Math.max(...ahead) : null;
+  });
+  const distance = Math.max(...beyond.map((d) => d ?? 0));
+  const mound = jumpMound((speed ?? DESIGN_SPEED) / 3.6, distance);
+  const ground = jumpGround(programs);
   const pictures = enduroRacerBoards(main, words, objects.uses, unit, tag);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
@@ -208,13 +227,19 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
     unit,
     lane,
     candidate,
+    speed,
     cross,
     entry: camera - bikeAhead(programs) * metres,
     camera,
     go: bikeAhead(programs),
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
-    jumps: readJumps(main).jumps.map((jump) => jump.position),
+    jumps: jumps.map((jump) => jump.position),
     mound,
+    paints: jumps.map((j) => ({
+      from: j.position - ground,
+      to: j.position + ground,
+      ...jumpPicture(main, words, { left: 2 * j.left, right: 2 * j.right, ...readJumpKind(main, j.kind) }, unit),
+    })),
     limit: lateralLimit(programs) * unit,
     checks,
     finish,
@@ -243,19 +268,23 @@ export function enduroRacerCourse(set: RomSet, candidate?: number) {
     pictures,
     skies,
     hitWidth: HIT_WIDTH * unit,
-    // The original's flight off a jump at its top speed, and the mound that throws so here.
+    // The original's flight off a jump at its top speed, the rocks beyond each jump within it, and the mound.
     jump: (() => {
       const height = PIXEL_UNITS * PIXEL_ASPECT * unit;
       return {
-        speed: jump.speed,
-        ticks: jump.ticks,
-        seconds: jump.ticks / TICKS,
-        gravity: jump.gravity * TICKS * TICKS * height,
-        peak: jump.peak * height,
+        speed: flight.speed,
+        ticks: flight.ticks,
+        seconds: flight.ticks / TICKS,
+        gravity: flight.gravity * TICKS * TICKS * height,
+        peak: flight.peak * height,
+        flown,
+        design: speed ?? DESIGN_SPEED,
         ...mound,
+        angle: (Math.atan(mound.height / mound.half) * 180) / Math.PI,
         ...built.mounds,
       };
     })(),
+    rocks: beyond,
   };
 }
 
@@ -270,6 +299,8 @@ interface CourseInputs {
   /** A lane's width, metres: `LANE`, or `candidate`'s, the scale's temporary DEV course's. */
   readonly lane: number;
   readonly candidate: number | undefined;
+  /** The jumps' design speed's candidate, km/h, a temporary DEV course's. */
+  readonly speed: number | undefined;
   readonly cross: CrossSection;
   /** P's metres before position 0; the camera's distance behind the bike; GO, the bike's position at the start. */
   readonly entry: number;
@@ -278,6 +309,14 @@ interface CourseInputs {
   /** The jumps' positions, and their mound. */
   readonly jumps: readonly number[];
   readonly mound: Mound;
+  /** Where the jumps' pictures are painted on the road: positions, metres from P, and their colors (RGB555). */
+  readonly paints: readonly {
+    readonly from: number;
+    readonly to: number;
+    readonly left: number;
+    readonly right: number;
+    readonly color: number;
+  }[];
   /** The rivals on the grid at GO: their positions and x, metres from P. */
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
   /** The bike's lateral limit, metres either side of P: the ground and the course limits reach it. */
@@ -456,6 +495,7 @@ function layCourse(inputs: CourseInputs) {
         right: rival.x,
       })),
       lane: inputs.lane,
+      paints: inputs.paints.map((paint) => ({ ...paint, from: stationOf(paint.from), to: stationOf(paint.to) })),
       profile,
       skyChanges: inputs.skyChanges.map((q) => stationOf(q)),
       startHeading,
@@ -471,7 +511,7 @@ function layCourse(inputs: CourseInputs) {
     document: {
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      name: inputs.candidate === undefined ? COURSE_NAME : `${COURSE_NAME} LANE ${inputs.lane}`,
+      name: `${COURSE_NAME}${inputs.candidate === undefined ? '' : ` LANE ${inputs.lane}`}${inputs.speed === undefined ? '' : ` JUMP ${inputs.speed}`}`,
       entry: pieces[0]!.id,
       maxLaps: 1,
       bearing: 0,
@@ -576,6 +616,14 @@ function sectionDocument(
     readonly grid: number;
     readonly rivals: readonly OriginalPlace[];
     readonly lane: number;
+    /** The jumps' pictures' paint: stations, metres from P, and colors. */
+    readonly paints: readonly {
+      readonly from: number;
+      readonly to: number;
+      readonly left: number;
+      readonly right: number;
+      readonly color: number;
+    }[];
     readonly profile: ReturnType<typeof profileOf>;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
@@ -674,6 +722,11 @@ function sectionDocument(
       for (const band of [0, 1] as const)
         if (colors[band] !== under[band]) banded(band, t.from, t.to, lateral(f.left), lateral(f.right), colors[band]);
     }
+  // The jumps' pictures' color over the road where the program draws them.
+  for (const paint of context.paints) {
+    const [from, to] = [snap(Math.max(paint.from, origin)), snap(Math.min(paint.to, origin + size))];
+    if (to - from > EPSILON) strips.push(strip(from, to, lateral(paint.left), lateral(paint.right), paint.color, null));
+  }
 
   // The gates.
   const gates: unknown[] = [];
