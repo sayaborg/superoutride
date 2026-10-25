@@ -165,8 +165,9 @@ BRANCH course (K, 2026-10-21).
     its runs of bright (pixels 8–10) and dark (11–13) pixels, each run its mean, over the grid marks.
   - The tire marks and rubber are in the surface's mean; the boards' oval edges and grain are not drawn.
 - **Sections.** One a sector between the original's CHECKPOINTs (the race's 288–4697, 4697–9538 and 9538–288; the
-  qualifying's 288–4697 and 4697–288), halved where its boards (the objects but the surface boards and the kerbs)
-  would pass a Section's 2048 sprite elements: at the step of the board in its middle, in step order. The race's
+  qualifying's 288–4697 and 4697–288), by [the Sections' cuts](original-road-data.md#sections-cuts): its road comes
+  near itself nowhere, and a sector whose boards (the objects but the surface boards and the kerbs) would pass a
+  Section's 2048 sprite elements is halved at the step of the board in its middle, in step order. The race's
   `sector-1a`/`1b`, `2a`/`2b`, `3a`/`3b` split at 2224, 7393 and 12110 (1348/1348, 1408/1409, 1661/1664 boards), the
   qualifying's `sector-1a`/`1b` at 2224 and its `sector-2` (1055). No Section's domain passes over itself. They join by
   lane a, the last to the first.

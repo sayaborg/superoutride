@@ -18,7 +18,8 @@ import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
 import { pointPlan, onElement } from './point-plan.js';
-import { laneCentre, writtenPlan, type WrittenElement } from './section-writing.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../src/course/course-limits.js';
+import { cutsByCount, domainCuts, laneCentre, writtenPlan, type WrittenElement } from './section-writing.js';
 import { ruleGrid, type GridPlace } from './grid-rule.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import {
@@ -315,26 +316,6 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
   const lap = (step: number) => (((step - LAP_LINE) % N) + N) % N;
   const spots = spotsOf(sub, descriptor.scenery, N);
 
-  // The Sections: one a sector between the checkpoints, cut into the fewest parts where its boards would pass 2048.
-  const boards = spots
-    .filter(({ object }) => !isSurface(object) && !isKerb(object))
-    .map(({ step }) => lap(step))
-    .sort((a, b) => a - b);
-  const sectors = [0, ...course.checkpoints.map(lap), N];
-  const sections: { id: string; from: number; to: number }[] = [];
-  for (let k = 0; k + 1 < sectors.length; k++) {
-    const [from, to] = [sectors[k]!, sectors[k + 1]!];
-    const cuts = cutsByCount(
-      boards.filter((q) => q >= from && q < to),
-      SPRITE_ELEMENTS,
-    );
-    if (!cuts.length) sections.push({ id: `sector-${k + 1}`, from, to });
-    else
-      [from, ...cuts].forEach((a, j) =>
-        sections.push({ id: `sector-${k + 1}${String.fromCharCode(0x61 + j)}`, from: a, to: cuts[j] ?? to }),
-      );
-  }
-
   // The materials' edges each side, units from P, by step of the lap: each band's, moving to the next's over the
   // 4 steps about their border.
   const bands = readCourseBands(main, course.course, N);
@@ -365,6 +346,42 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     const k = Math.min(N - 1, Math.max(0, Math.floor(q)));
     return stationAt[k]! + (q - k) * (stationAt[k + 1]! - stationAt[k]!);
   };
+
+  // The Sections: one a sector between the checkpoints, cut where its road comes near itself and into the fewest parts
+  // where its boards would pass 2048 (Original road data's Sections' cuts).
+  const boards = spots
+    .filter(({ object }) => !isSurface(object) && !isKerb(object))
+    .map(({ step }) => lap(step))
+    .sort((a, b) => a - b);
+  const sectors = [0, ...course.checkpoints.map(lap), N];
+  const gateMetres = sectors.map(station);
+  // The lap step at `u` metres along P, the nearest whole one.
+  const stepAt = (u: number) => {
+    let [lo, hi] = [0, N];
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (station(mid) <= u) lo = mid;
+      else hi = mid;
+    }
+    return u - station(lo) < station(hi) - u ? lo : hi;
+  };
+  const sections: { id: string; from: number; to: number }[] = [];
+  for (let k = 0; k + 1 < sectors.length; k++) {
+    const [from, to] = [sectors[k]!, sectors[k + 1]!];
+    const passages = domainCuts(line, station(from), station(to), leastLaneRadius(LANE), gateMetres).map(stepAt);
+    [from, ...passages].forEach((a, i) => {
+      const [b, id] = [passages[i] ?? to, `sector-${k + 1}${i === 0 ? '' : `-${i + 1}`}`];
+      const cuts = cutsByCount(
+        boards.filter((q) => q >= a && q < b),
+        COURSE_DOCUMENT_LIMITS.spriteElements,
+      );
+      if (!cuts.length) sections.push({ id, from: a, to: b });
+      else
+        [a, ...cuts].forEach((c, j) =>
+          sections.push({ id: `${id}${String.fromCharCode(0x61 + j)}`, from: c, to: cuts[j] ?? b }),
+        );
+    });
+  }
 
   // Each Section's plan as P has it, unrounded, so the lap closes as P does; its start's station the lengths before it.
   const written = sections.map((section) =>
@@ -591,32 +608,6 @@ interface ObjectSpot {
   readonly palette: number;
   readonly groundOffset: number;
   readonly below?: 'original' | 'folded' | 'standing';
-}
-
-/** A Section's sprite elements and Strip elements at most (the course format's bounds). */
-export const SPRITE_ELEMENTS = 2048;
-export const STRIP_ELEMENTS = 2048;
-
-/**
- * Where a stretch's objects at sorted places `at` (n of them) are cut into the fewest parts of at most `limit` each
- * that `fits` takes (by default every cut does): k parts, the j-th cut (1 ≤ j < k) at the place of the ⌊j·n/k⌋-th
- * object (0 from), whose place's objects go to the later part. No cut where all fit in one part.
- */
-export function cutsByCount(
-  at: readonly number[],
-  limit: number,
-  fits: (cuts: readonly number[]) => boolean = () => true,
-): number[] {
-  for (let k = Math.max(1, Math.ceil(at.length / limit)); k <= at.length + 1; k++) {
-    const cuts = Array.from({ length: k - 1 }, (_, j) => at[Math.floor(((j + 1) * at.length) / k)]!);
-    const ends = [-Infinity, ...cuts, Infinity];
-    const counts = cuts
-      .map((_, j) => j)
-      .concat(k - 1)
-      .map((j) => at.filter((q) => q >= ends[j]! && q < ends[j + 1]!).length);
-    if (counts.every((n) => n <= limit) && fits(cuts)) return cuts;
-  }
-  throw new RangeError(`No cuts part ${at.length} objects into parts of at most ${limit}`);
 }
 
 /** A value moving linearly from `before` at `border − ramp` to `after` at `border + ramp`, at `q` between them. */
