@@ -193,8 +193,8 @@ Rules of the stage:
 PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
-  - The Sections' cuts by one rule, their distance from a gate one length in metres; `turbo-outrun-layout.ts`'s own
-    `domainCuts`, and SUPER MONACO GP's cuts by checkpoints and objects' counts, among them.
+  - The Sections' cuts at the format's element bounds a shared part of [their rule](original-road-data.md#sections-cuts):
+    SUPER MONACO GP's sectors halved by their boards' count (`cutsByCount`), and its circuit cut by the rule.
   - The material under two roads by one rule (OUTRUN's by road, TURBO OUTRUN's one sheet and `OPEN`), and the lanes
     over two roads alike (OUTRUN's and TURBO OUTRUN's).
   - The objects' body widths bounded alike (SUPER HANG-ON's and ENDURO RACER's).

@@ -166,13 +166,21 @@ export function passagePairs(
   return pairs.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
 }
 
+/** A stretch of P, metres along it. */
+export interface Stretch {
+  readonly a: number;
+  readonly b: number;
+}
+
 /**
- * Cuts of P's `[from, to]` (metres) where its road comes near itself (`passagePairs`, with `need` the least radius its
- * lanes keep, or `need(u, side)`). While a pair remains, the earliest later passage with the latest earlier one (with
- * `once`, every pair whose earlier one lies before that later one, where one cut parts them all), it is cut between
- * them, at the middle of the longest straight there, else halfway, keeping clear of the gates (metres along P). Where
- * the ground beyond the road stops being one-to-one is the course format's
- * ([Architecture](../../docs/architecture.md#plan-authority)).
+ * Cuts of P's `[from, to]` (metres) where its road comes near itself (`passagePairs` every `step` metres, with `need`
+ * the least radius its lanes keep, or `need(u, side)`) ([Original road data](../../docs/original-road-data.md#9-sections-gates-limits-of-admission)).
+ * While a pair remains, one cut parts every pair whose earlier passage lies before the earliest later one where one
+ * can, else the earliest later passage's pairs: between them, where `one` says the road is one road (all of it by
+ * default) and before the `finish` (the format keeps it in the course's last Section), at the middle of the longest
+ * straight there, else of the longest such stretch, clear of the gates (metres along P) by `GATE_ROOM`, else on from
+ * that stretch's middle by half metres until clear. Where the ground beyond the
+ * road stops being one-to-one is the course format's ([Architecture](../../docs/architecture.md#plan-authority)).
  */
 export function domainCuts(
   path: CoursePath,
@@ -180,26 +188,44 @@ export function domainCuts(
   to: number,
   need: number | ((u: number, side: 'left' | 'right') => number),
   gates: readonly number[],
-  once = false,
+  options: {
+    readonly step?: number;
+    readonly one?: (a: number, b: number) => readonly Stretch[];
+    readonly finish?: number;
+  } = {},
 ): number[] {
-  const step = 2.5;
+  const step = options.step ?? 2.5;
   const pairs = passagePairs(path, from, to, typeof need === 'number' ? () => need : need, step);
   if (!pairs.length) return [];
   const later = Math.min(...pairs.map(([, b]) => b));
-  // With `once`, one cut parts every pair whose earlier cell lies before the earliest later cell, where one can; else
-  // the earliest later cell's pairs are parted first.
   const latest = Math.max(...pairs.filter(([a]) => a < later).map(([a]) => a)) + step;
-  const earlier =
-    once && latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
+  const earlier = latest < later ? latest : Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + step;
   const clear = (u: number) => gates.every((g) => Math.abs(g - u) > GATE_ROOM);
+  const stretches = (options.one ?? ((a, b) => [{ a, b }]))(earlier, Math.min(later, options.finish ?? later)).filter(
+    (t) => t.b > t.a,
+  );
   const straights = path.elements
-    .map((e) => ({ a: Math.max(e.start, earlier), b: Math.min(e.start + e.length, later), turn: e.turn }))
-    .filter((e) => e.turn === 0 && e.b - e.a > 2 * GATE_ROOM && clear((e.a + e.b) / 2))
-    .sort((x, y) => y.b - y.a - (x.b - x.a));
-  let cut = straights.length ? (straights[0]!.a + straights[0]!.b) / 2 : (earlier + later) / 2;
-  for (let d = 0; !clear(cut) && d < later - earlier; d += 0.5) cut = (earlier + later) / 2 + d;
-  requireInput(cut > earlier && cut < later && clear(cut), '/plan', `No cut parts the road's passages at ${earlier} m`);
-  return [...domainCuts(path, from, cut, need, gates, once), cut, ...domainCuts(path, cut, to, need, gates, once)];
+    .filter((e) => e.turn === 0)
+    .flatMap((e) => stretches.map((t) => ({ a: Math.max(t.a, e.start), b: Math.min(t.b, e.start + e.length) })));
+  const longest = (all: readonly Stretch[]) => [...all].sort((x, y) => y.b - y.a - (x.b - x.a));
+  const middle = (all: readonly Stretch[]) =>
+    longest(all.filter((t) => t.b - t.a > 2 * GATE_ROOM && clear((t.a + t.b) / 2))).map((t) => (t.a + t.b) / 2)[0];
+  let cut = middle(straights) ?? middle(stretches);
+  const widest = longest(stretches)[0];
+  if (cut === undefined && widest) {
+    cut = (widest.a + widest.b) / 2;
+    for (let d = 0; !clear(cut) && d < widest.b - widest.a; d += 0.5) cut = (widest.a + widest.b) / 2 + d;
+  }
+  requireInput(
+    cut !== undefined && cut > earlier && cut < later && clear(cut),
+    '/plan',
+    `No cut parts the road's passages at ${earlier} m`,
+  );
+  return [
+    ...domainCuts(path, from, cut, need, gates, options),
+    cut,
+    ...domainCuts(path, cut, to, need, gates, options),
+  ];
 }
 
 /** A written plan's geometry in the course format's terms (arcs turn right positive). */

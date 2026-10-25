@@ -7,10 +7,10 @@
  */
 import { requireInput } from '../course/authoring-io.js';
 import { POSITION_METRES } from './hills.js';
-import { levelBeyond, Quadratic } from './quadratic.js';
+import { levelBeyond } from './quadratic.js';
 import { headingPlan, pathHeadings, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
-import { passagePairs, writtenPlan } from './section-writing.js';
+import { domainCuts, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
 import { bendOf, profileOf } from './road-profile.js';
@@ -40,9 +40,6 @@ const GOAL_POSITIONS = 260;
  * material changes metres away from where the lanes' rule does.
  */
 export const OPEN = 0.5;
-/** A cut keeps this far from a gate, positions. */
-const GATE_ROOM = 2;
-
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
 export interface CourseStage {
   readonly stage: TurboOutrunStage;
@@ -203,11 +200,20 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   );
   // The Sections: one a stage, each cut again where its road comes near itself.
   const need = (g: number, side: 'left' | 'right') => leastLaneRadius(laneReach(g, side));
+  const gateMetres = [go, ...gates].map(metres);
+  // Where the road is one (its width at most 250), metres along P: a cut parts no two roads.
+  const single = width.atMost(ROAD_HALF).map((t) => ({ a: metres(t.from), b: metres(t.to) }));
+  const one = (a: number, b: number) =>
+    single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
   const spans: { id: string; from: number; to: number; stage: number }[] = [];
   course.forEach((_, n) => {
     const from = n === 0 ? 0 : seams[n - 1]!;
     const to = n === last ? total : seams[n]!;
-    const cuts = domainCuts(line, width, from, to, need, [go, ...gates]);
+    const cuts = domainCuts(line, metres(from), metres(to), (u, side) => need(u / POSITION_METRES, side), gateMetres, {
+      step: POSITION_METRES,
+      one,
+      finish: metres(gates.at(-1)!),
+    }).map((u) => u / POSITION_METRES);
     [from, ...cuts].forEach((a, i) =>
       spans.push({ id: i === 0 ? inputs.slug(n) : `${inputs.slug(n)}-${i + 1}`, from: a, to: cuts[i] ?? to, stage: n }),
     );
@@ -299,56 +305,4 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
     rampRadius: parted.radius,
   };
-}
-
-/**
- * Cuts of the course's positions `[from, to]` where its road comes near itself (`passagePairs`, its lanes' `need` at
- * position g either side). While a pair remains, the earliest later passage with the latest earlier one, it is cut
- * between them where the road is one (its width at most 250), at the middle of the longest straight of P there, else of
- * the longest stretch, keeping clear of the gates (positions).
- */
-function domainCuts(
-  line: CoursePath,
-  width: Quadratic,
-  from: number,
-  to: number,
-  need: (g: number, side: 'left' | 'right') => number,
-  gates: readonly number[],
-): number[] {
-  const step = POSITION_METRES;
-  const pairs = passagePairs(line, from * step, to * step, (u, side) => need(u / step, side), step).map(
-    ([a, b]) => [a / step, b / step] as const,
-  );
-  if (!pairs.length) return [];
-  const later = Math.min(...pairs.map(([, b]) => b));
-  const earlier = Math.max(...pairs.filter(([, b]) => b === later).map(([a]) => a)) + 1;
-  const clear = (g: number) => gates.every((gate) => Math.abs(gate - g) > GATE_ROOM);
-  // The stretches between them where the road is one, and of them the straights of P.
-  const one = width
-    .map((w) => w, [ROAD_HALF])
-    .pieces.filter((q) => q.to > earlier && q.from < later && width.at((q.from + q.to) / 2) <= ROAD_HALF)
-    .map((q) => ({ a: Math.max(q.from, earlier), b: Math.min(q.to, later) }))
-    // Pieces that touch, one stretch.
-    .reduce<{ a: number; b: number }[]>((all, s) => {
-      const last = all.at(-1);
-      if (last && last.b === s.a) last.b = s.b;
-      else all.push({ ...s });
-      return all;
-    }, []);
-  const straights = line.elements
-    .filter((e) => e.turn === 0)
-    .flatMap((e) =>
-      one.map((o) => ({
-        a: Math.max(o.a, e.start / step),
-        b: Math.min(o.b, (e.start + e.length) / step),
-      })),
-    );
-  const middle = (stretches: readonly { a: number; b: number }[]) =>
-    stretches
-      .filter((s) => s.b - s.a > 2 * GATE_ROOM && clear((s.a + s.b) / 2))
-      .sort((x, y) => y.b - y.a - (x.b - x.a))
-      .map((s) => (s.a + s.b) / 2)[0];
-  const cut = middle(straights) ?? middle(one);
-  requireInput(cut !== undefined, '/plan', `No cut where the road is one parts its passages at position ${earlier}`);
-  return [...domainCuts(line, width, from, cut, need, gates), cut, ...domainCuts(line, width, cut, to, need, gates)];
 }

@@ -228,10 +228,9 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   decision, for the ROMs hold no material: the water's and the sand's (2026-10-22), and the road's `DIRT` and stage 1's
   `GRASS`, which ER-3 chose with no record of who decided (2026-10-25).
 - **Sections.** One a stage, `stage-1` to `stage-5`, from the stage's position 0 (the first from the course's start),
-  and `goal` from 10240, each cut again where its road comes near itself (`passagePairs`: within its lanes' least
-  radius; `stage-2-2` and on), 2 m clear of the start's gate, the checkpoints and the finish: where one cut parts every
-  pair whose earlier passage lies before the earliest later one, there (a loop's entry from its exit, across the loop's
-  far side), else as SUPER HANG-ON's are (`domainCuts`' `once`). 17 Sections; they join by lane a.
+  and `goal` from 10240, each cut again where its road comes near itself ([the Sections'
+  cuts](original-road-data.md#sections-cuts); `stage-2-2` and on: a loop's entry parted from its exit by one cut across
+  the loop's far side). 17 Sections; they join by lane a.
 - **Gates.** The checkpoints `enduro-racer-CP1` to `-CP4` stand where each stage's CHECK banner does (2048k + 4), the
   finish `enduro-racer-GOAL` where the GOAL board does (10254), as the scenery table places them. The grids are by
   [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO on P, where the original's

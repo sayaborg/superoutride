@@ -68,6 +68,17 @@ export class Quadratic {
     }
     return new Quadratic(out);
   }
+  /** The stretches where this function is at most `limit`, those that touch one stretch. */
+  atMost(limit: number): { from: number; to: number }[] {
+    const out: { from: number; to: number }[] = [];
+    for (const q of this.map((v) => v, [limit]).pieces) {
+      if (this.at((q.from + q.to) / 2) > limit) continue;
+      const last = out.at(-1);
+      if (last && last.to === q.from) last.to = q.to;
+      else out.push({ from: q.from, to: q.to });
+    }
+    return out;
+  }
 }
 
 const valueAt = (q: QuadraticPiece, t: number) => q.a + q.b * t + q.c * t * t;

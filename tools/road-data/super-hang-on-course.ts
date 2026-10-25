@@ -192,7 +192,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
       const from = order === 0 ? 0 : along(length * order);
       const to = order === count ? path.length : along(length * (order + 1));
       const stem = `${inputs.slug}-${order === count ? 'goal' : order + 1}`;
-      const cuts = domainCuts(path, from, to, reach, gateMetres);
+      const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(finish) });
       [from, ...cuts].forEach((a, i) =>
         pieces.push({ id: i === 0 ? stem : `${stem}-${i + 1}`, from: a, to: cuts[i] ?? to, order }),
       );

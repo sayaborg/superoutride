@@ -218,7 +218,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 17, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 18, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -245,8 +245,7 @@ crossings:
   from GO along P. From position 1930 the ground takes its 32 steps toward the next section's, two ticks each
   at the top speed; from the last of them to the section's end the road shows the next section's colors.
 - **Sections.** One a section, from its position 0 to the next's (the first from the course's start), and one the
-  goal's, each cut again where its road comes near itself (`passagePairs`: within its lanes' least radius), at
-  the middle of the longest straight between the passages, 2 m clear of the gates. They join by lane a.
+  goal's, each cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)). They join by lane a.
 - **Objects.** Each scenery item stands at its station, its x units right of P, showing its sprite's picture as the
   original shows it (mirrored or not, in its palette), with a body its hit width wide (pixels at the bike's line,
   224/191 units each, either side) or its picture's width where narrower. A picture is its sprite's largest size on its

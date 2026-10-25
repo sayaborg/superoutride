@@ -35,9 +35,9 @@ import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import {
+  domainCuts,
   JOINT_SNAP,
   laneCentre,
-  passagePairs,
   raisedSplit,
   repeated,
   simplified,
@@ -250,6 +250,21 @@ function laneReach(span: Span, p: number, side: 'left' | 'right') {
   return units * UNIT_METRES + (side === 'left' ? -1 : 1) * span.offset.at(p);
 }
 
+/**
+ * Where a span's road comes near itself, its passages parted by the Sections' cut rule (`domainCuts`), where the road
+ * is one (its width at most 212), before the road's finish where the span holds it: positions. Its other gates lie at
+ * its stages' ends.
+ */
+function passageCuts(span: Span, line: CoursePath, need: (u: number, side: 'left' | 'right') => number): number[] {
+  const single = span.width.atMost(TOUCHING).map((t) => ({ a: along(t.from), b: along(t.to) }));
+  const one = (a: number, b: number) =>
+    single.map((t) => ({ a: Math.max(t.a, a), b: Math.min(t.b, b) })).filter((t) => t.b > t.a);
+  const finish = span.stageEnd === undefined ? [] : [along(span.stageEnd)];
+  return domainCuts(line, 0, line.length, need, finish, { step: POSITION_METRES, one, finish: finish[0] }).map(
+    (u) => u / POSITION_METRES,
+  );
+}
+
 /** A span laid on P: the plan from its heading table, and its Sections' cuts. */
 function laySpan(road: RoadSpan) {
   const { span } = road;
@@ -283,7 +298,7 @@ function laySpan(road: RoadSpan) {
       ),
     },
     // Its road's passages parted, and the piece's own cuts (a fork's 362).
-    cuts: [...new Set([...spanCuts(road, line, need), ...(span.sections ?? [])])].sort((a, b) => a - b),
+    cuts: [...new Set([...passageCuts(span, line, need), ...(span.sections ?? [])])].sort((a, b) => a - b),
     leaving: leavingRoad(span, line),
   };
 }
@@ -350,28 +365,6 @@ function leavingRoad(span: Span, line: CoursePath): LaidLeaving | null {
     }),
   );
   return { from: leaving.from, to, side: leaving.side, edges };
-}
-
-/**
- * Where a span's road comes near itself (`passagePairs`, its lanes' `need` either side), its passages parted: a cut at
- * the last joint before the later passage, after the earlier, where the road is one (its width at most 212).
- */
-function spanCuts(road: RoadSpan, line: CoursePath, need: (u: number, side: 'left' | 'right') => number): number[] {
-  const cuts: number[] = [];
-  for (const [a, b] of passagePairs(line, 0, line.length, need, POSITION_METRES)) {
-    if (cuts.some((c) => a < along(c) && along(c) <= b)) continue;
-    const joints = line.elements
-      .map((e) => e.start / POSITION_METRES)
-      .filter((p) => p > 0 && a < along(p) && along(p) <= b && road.span.width.at(p) <= TOUCHING);
-    requireInput(
-      joints.length > 0,
-      `/${road.id}`,
-      `No joint where the road is one parts ${road.id}'s passages at ${a} m`,
-    );
-    cuts.push(joints.at(-1)!);
-    cuts.sort((x, y) => x - y);
-  }
-  return cuts;
 }
 
 /** Each span laid on P, and in the world after the one before, its Link's lane continuing as its centre lane. */

@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 22, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 23, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -198,9 +198,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   material.
 - **Sections.** One a stage, joined by lane b: a stage within a leg from where the stage before it ends; a leg's first
   from its leg's last stage's 1458, where its road is one of three lanes (width 0), so CHICAGO, MIAMI and OKLAHOMA CITY
-  hold the joins. Each is cut again where its road comes near itself (`passagePairs`: within its lanes' least radius),
-  where the road is one (w ≤ 250), at the middle of the longest straight of P between the passages, else of the longest
-  such stretch, two positions clear of the gates; the cut ones are `<stage>-2` on. 24 Sections.
+  hold the joins. Each is cut again where its road comes near itself ([the Sections' cuts](original-road-data.md#sections-cuts)),
+  where the road is one (w ≤ 250); the cut ones are `<stage>-2` on. 24 Sections.
 - **Gates.** The grids by [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO at
   lane b's centre, the left road's, where the car stands at GO (a game's start clears its x with the RAM, 0x10E84, sets
   the width to its stage's start width, 450 at 0x1063C, and the width's first change then carries the car from 0 to

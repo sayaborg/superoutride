@@ -474,7 +474,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 38 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 39 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -589,9 +589,8 @@ Link's lane's centre:
 - **Sections.** A fork piece is two Sections, cut at 362, where the original carries the car 2w (the centre lane changes
   at its ends). A last stage entered from the left is two, cut at its `GOAL_CENTRE` (1946), its centre lane e before and
   b after, since the goal's road taken is the left one; they join by lane b. A span is otherwise one Section but where
-  its road comes near itself (`passagePairs`: within its lanes' least radius): then its passages lie in different
-  Sections, cut at the last joint before the later passage, after the earlier, where the road is one (w ≤ 212), joined
-  by its centre lane.
+  its road comes near itself: then it is cut by [the Sections' cuts](original-road-data.md#sections-cuts), where the
+  road is one (w ≤ 212), joined by its centre lane.
 - **Profile.** The road's height points, in its order, run their tables at 293 km/h along the whole road, each table's
   piece laid as the [profile](original-road-data.md#profile) says; the whole road's crossings
   ([Crossings](original-road-data.md#profile), its cells across its asphalt) are kept 3 m apart.

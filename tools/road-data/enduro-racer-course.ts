@@ -338,7 +338,7 @@ function layCourse(inputs: CourseInputs) {
       const from = stage === 0 ? 0 : along(STAGE_POSITIONS * stage);
       const to = stage === STAGES ? path.length : along(STAGE_POSITIONS * (stage + 1));
       const stem = stage === STAGES ? 'goal' : `stage-${stage + 1}`;
-      const cuts = domainCuts(path, from, to, reach, gateMetres, true);
+      const cuts = domainCuts(path, from, to, reach, gateMetres, { finish: along(inputs.finish) });
       [from, ...cuts].forEach((a, i) =>
         pieces.push({
           id: i === 0 ? stem : `${stem}-${i + 1}`,

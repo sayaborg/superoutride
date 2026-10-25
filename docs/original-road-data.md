@@ -266,6 +266,19 @@ is decided by the original's, straight between its points. OUTRUN's and TURBO OU
 [NEXT](NEXT.md#stage-ex--the-originals-courses-exact-their-constants-few) lists the other originals' laterals, each
 joined so by its original's PR.
 
+## Sections' cuts
+
+A course's Sections begin where its original changes stage or sector, and each is cut again where its road comes near
+itself (`domainCuts`): where the road at one place lies within its lanes' least radius of the road at another
+(`passagePairs`, sampled every metre or position), those two passages lie in different Sections. While a pair remains,
+one cut parts every pair whose earlier passage lies before the earliest later one, where one can, else the earliest
+later passage's pairs. The cut lies between the passages, where the road is one road (OUTRUN's and TURBO OUTRUN's,
+where two roads are drawn, at road widths of at most 212 and 250) and before the finish (the format keeps it in the
+course's last Section), at the middle of the longest straight of P there,
+else of the longest such stretch, its middle more than 2 m from a gate; failing that, on from that stretch's middle by
+half metres until it is. The format refuses a Section whose ground beyond the road stops being one-to-one
+([Architecture](architecture.md#plan-authority)).
+
 ## The ground beside the road
 
 An original's ground (its material beside the road) reaches its vehicle's lateral limit: as far as its program lets the
