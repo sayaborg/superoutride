@@ -16,6 +16,7 @@ import { crossingsOf, roadCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
+import { riseProfile } from './rise-profile.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import type { ColorPair, SceneryItem, Section } from './super-hang-on-road.js';
 import type { ScenerySpot } from './super-hang-on-scenery.js';
@@ -64,6 +65,9 @@ export interface SuperHangOnCourseInputs {
    */
   readonly sections: readonly Section[];
   readonly headings: readonly number[];
+  /** Its grade table, a grade at each course position, as its height tables give them, and the table's resolution. */
+  readonly grades: readonly number[];
+  readonly gradeResolution: number;
   /**
    * A road position, metres; a section's positions; where a CHECK gate comes out inside a section; where the next
    * section's background and ground come in.
@@ -281,7 +285,9 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const half = inputs.cross.edgesOut * unit;
   const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
   const crossings = crossingsOf(pairs, metres);
-  const separated = separatedCrossings([], crossings, end);
+  // The hills, by the profile from their rise table, and the crossings kept apart on them.
+  const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
+  const separated = separatedCrossings(hills.changes, crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -340,6 +346,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     },
     pieces,
     profile,
+    hills: { runs: hills.runs, departure: hills.departure },
     pairs,
     crossings: crossings.map((crossing, k) => {
       const moves = separated.separations.filter((m) => m.crossing === k);

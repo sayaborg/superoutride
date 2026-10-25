@@ -13,7 +13,7 @@ const PLANE_BYTES = 0x4000;
 /** The road's centre: the middle of its middle eight columns, 248 to 255, where a 3 draws the centre line. */
 const CENTRE = 252.5;
 /** An object's x is drawn at x × line / 224 pixels. */
-const UNITS_A_LINE = 224;
+export const UNITS_A_LINE = 224;
 
 /** The road's features across: each edge's units from its centre, the left's and right's mean. */
 export interface CrossSection {

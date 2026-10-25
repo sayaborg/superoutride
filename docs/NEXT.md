@@ -68,8 +68,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-11
-onward, with the sprites' SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-13
+onward and EX-11's parting once K chooses its measure, with the sprites' SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -145,8 +145,9 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   [profile from a point path](original-road-data.md#profile-from-a-point-path) (EX-10): so a lap closes, where its
   rises written as a heading table is would need 3178 runs to lie within K's 1.5/4096 (a Section holds 1024 knots) and
   miss the lap's height by 11.5 m at 1/96. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
-  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m), written as a
-  heading table is, by their own runs. OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
+  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m), raised as a
+  heading table is, by their own runs: the [profile from a rise table](original-road-data.md#profile-from-a-rise-table)
+  (EX-12). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
   shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
 - **Crossings.** Where the heights leave two passages nearer than 6 m, one fixed rule parts them by the least change;
   on a canon's heights it is part of the canon. The least change depends on what it measures, so before it is built
@@ -194,7 +195,6 @@ PRs, in this order:
   `CAMERA_DEFINITION`'s screen and `TILT_RAMP` is the renderer's farthest depth today, a dependence SUPER HANG-ON's
   canon crossings carry. The jumps' mounds stand on the heights the rule makes, which does not change their form
   (5 of ENDURO RACER's 69 jumps lie at crossings).
-- EX-12: SUPER HANG-ON's hills by the profile from a rise table.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The ROM readers: the 68000's words (by `program-words`), the colour tables, the tile layers and bit-plane pixels,
     the sprite ROMs' words, the road ROMs' lines and their checks.

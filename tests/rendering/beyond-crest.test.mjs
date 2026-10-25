@@ -60,11 +60,12 @@ const prepared = await compileCourseImages(base, images);
 /** Section 0's station `s` from its nearest joint: `s0` to 228.4 m, then `c1` at 456.816188 m. */
 const at = (s) =>
   s <= 228.4 ? { joint: 's0', offset: s } : { joint: 'c1', offset: Number((s - 456.816188).toFixed(6)) };
-/** Section 0's profile through `knots` ([station, height]), level at 0 m over its last 50 m. */
+/** Section 0's profile through `knots` ([station, height]), level at its own end's height over its last 50 m. */
+const endHeight = base.sections[0].profile.at(-1).y;
 const profile = (knots) => [
   ...knots.map(([s, y]) => ({ at: at(s), y, curveLength: 0 })),
-  { at: { joint: 'end', offset: -50 }, y: 0, curveLength: 0 },
-  { at: { joint: 'end', offset: 0 }, y: 0, curveLength: 0 },
+  { at: { joint: 'end', offset: -50 }, y: endHeight, curveLength: 0 },
+  { at: { joint: 'end', offset: 0 }, y: endHeight, curveLength: 0 },
 ];
 
 /**

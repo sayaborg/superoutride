@@ -15,7 +15,8 @@ a program's words and the halves it is interleaved from (`program-words`), the r
 widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile, the crossings' bumps and a Section's profile knots
 (`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another passage, and their crossings), a function
 of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
-(`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them) and a
+(`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them), a
+closed height path's profile (`point-profile`), a rise table's profile (`rise-profile`) and a
 plan laid in the world (`course-path`: `CoursePath`), how Sections are written (`section-writing`: knots simplified,
 sprites repeated, pictures raised, the plan as written, each joint at its station to the micrometre, so that a station
 written at a joint is the joint's, and a Section's domain, its cuts and whether the course format admits it as written,
@@ -367,6 +368,23 @@ as the path does, in height and in grade, and lies within the resolution of ever
   and one more step on each side while the join holds every point it spans within the resolution, taking at most half
   of either run.
 - **Lap.** The profile runs from the first point round to it again, its height there 0 and its grade there the lap's.
+
+## Profile from a rise table
+
+A rise table, grades each at its position (a table's positions one apart, or as a course places them), becomes vertical
+curves over its positions (`riseProfile`, `rise-profile`) as a heading table becomes arcs ([plan from a heading
+table](#plan-from-a-heading-table)), by one constant, the table's resolution, a grade:
+
+- **Runs.** A heading table's runs ([plan from a heading table](#plan-from-a-heading-table), `headingRuns`), of its
+  grades: each the grades one line holds within the resolution, its line its minimax one.
+- **Curves.** A run is a vertical curve over its positions at its line's rate, to its line's grade at its last
+  position; a run whose line is level is a tangent, and a run of one grade has no length.
+- **Joins.** Two runs are joined by a vertical curve over the step between them, to the next's line at its first
+  position.
+- **Grades.** Each curve changes the grade from the one the profile has reached; the road is level before the table.
+
+The rule promises the grade: at every position the profile's grade lies within the resolution of the table's. It does
+not promise the height, which the minimax lines' departures leave to drift by up to the resolution times the distance.
 
 ## Profile
 

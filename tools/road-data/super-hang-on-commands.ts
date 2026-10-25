@@ -16,6 +16,7 @@ import {
   romDirectory,
   romSet,
   round1,
+  round3,
   saveCourse,
   type RoadDataCommands,
 } from './road-data-commands.js';
@@ -49,7 +50,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
     const candidate = lane === undefined ? undefined : { lane: Number(lane), courses: ['AFRICA'] };
     const built = superHangOnCourses(await romSet('shangon', [zip]), candidate);
     const courses = [];
-    for (const { course, road, dropped } of built.built) {
+    for (const { course, road, dropped, passed } of built.built) {
       const file = await saveCourse(courseId(course.name) + scaleTag(candidate?.lane), road.document, check);
       courses.push({
         course: file,
@@ -60,6 +61,19 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         runs: road.plan.runs.length,
         elements: road.plan.elements.length,
         ...fidelityReport(road.plan.fidelity),
+        // The profile: its rise table's runs, the height points passed by, its heights' range and steepest grade.
+        hills: (() => {
+          const stations = Array.from({ length: Math.floor(road.path.length) + 1 }, (_, s) => s);
+          const heights = stations.map(road.profile.height);
+          return {
+            runs: road.hills.runs,
+            departure: road.hills.departure,
+            passed,
+            lowest: round1(Math.min(...heights)),
+            highest: round1(Math.max(...heights)),
+            steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
+          };
+        })(),
         crossings: road.crossings.map((c) => ({
           passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
           levels: c.levels,
@@ -95,6 +109,7 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         checked: check,
         metresAPosition: built.metres,
         metresAUnit: built.unit,
+        hillScale: built.hillScale,
         ground: built.ground,
         courses,
         pictures: built.pictures.length,

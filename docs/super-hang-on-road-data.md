@@ -76,7 +76,7 @@ tool.
   position −1. They follow the road path only roughly ([SUPER HANG-ON's plan](#super-hang-ons-plan)).
 - **Heights.** {word position, word height table (1 from), word 0, word 0}, ending at position 0x7FFF. Height table t is
   the long at 0x1A48 + 4(t − 1) on the sub CPU: vertical heading vectors {signed word x, signed word y}, (0, 4096)
-  level, ending at (0, 0). They are dumped for the hills to come; the road is level.
+  level, ending at (0, 0): the hills ([SUPER HANG-ON's profile](#super-hang-ons-profile)).
 - **Scenery points.** {word position, u8 count, u8 type}, ending at a negative position
   ([Placing SUPER HANG-ON's scenery](#placing-super-hang-ons-scenery)).
 - **Road paths.** Section n's is the long at 0x19E8 + 4n on the sub CPU: a heading vector {signed word x, signed word y},
@@ -164,6 +164,34 @@ step along its ends' mean heading.
 
 A course's P is a 6 m straight before GO, the camera's distance behind the bike, then its table's plan.
 
+## SUPER HANG-ON's profile
+
+A course's rise table is its height tables' grades along it, section k's position p at 2049k + p, then the goal's,
+level; it becomes the profile by the [profile from a rise table](original-road-data.md#profile-from-a-rise-table), the
+6 m before GO level.
+
+- **Tables along the road.** A height point starts its table where the road reaches it (the main CPU passes the
+  table's number to the sub CPU when its position passes the point's, 0x657E), its vectors one a position (the sub CPU
+  advances it by the road's advance, the long at 0x260074), the table running on into the next section. The sub CPU
+  takes a table only when it has none: one runs until its projection, 33 steps of two vectors ahead (`moveq #$20, d6`
+  at 0x16BA), meets its end, 64 positions before it, and a point the road reaches meanwhile is passed by. Five are, each
+  reached while a longer table runs: AFRICA's third section's at 1000 (table 2), ASIA's second's at 1400 (14) and
+  third's at 900 (12), AMERICA's fourth's at 900 (17) and EUROPE's sixth's at 1000 (7).
+- **Grades.** A vector (x up, y along) is a direction in the hills' space, which the sub CPU projects with its own eye
+  (`hillScale`): it sums a table's vectors two a step ahead of the camera, turns each sum (X up, Y along) by the
+  camera's pitch and raises the step's lines 2X over its depth Y / 32 + 0x300 scanlines; the nearest step's far edge
+  (the rows the table at 0x19A6 gives it) lies as far below the vanishing line as an eye of 38400 units above a level
+  road sees it. Taken at the scale that puts this eye at the road's, 112 units (2.17 m), and a level vector (4096) a
+  position long, a vector's grade is 0.09895 x / y: the tables' steepest are +20.4 % (table 11, which no section
+  names) and −25.5 % (table 2).
+- **Resolution.** The vectors' heading resolution at that scale, 1.5 / 4096 × 0.09895 ([plan from a heading
+  table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
+  position.
+
+AFRICA, ASIA, AMERICA and EUROPE become 445, 1097, 1368 and 1636 runs, their heights from −36.1 to +68.1 m, −70.0 to
++161.0 m, −9.6 to +245.8 m and −65.4 to +273.2 m, the steepest grade 25.5 % (ASIA's 26.7 %, a crossing's bump on a
+hill).
+
 ## Placing SUPER HANG-ON's scenery
 
 A course's scenery stands where the main CPU's program brings it out and it passes the bike, the program run tick by
@@ -186,7 +214,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 13, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 14, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -244,5 +272,5 @@ crossings:
   last section's. At heading 0 the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
   1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
   start.
-- **Profile.** Level but for the crossings' bumps ([Profile](original-road-data.md#profile)), its bends broken at the
-  Sections' cuts.
+- **Profile.** The [hills](#super-hang-ons-profile) with the crossings' bumps ([Profile](original-road-data.md#profile)),
+  its bends broken at the Sections' cuts.

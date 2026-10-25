@@ -96,5 +96,4 @@ are MAME `shangon` (Super Hang-On, sitdown/upright, unprotected; no encryption),
 
 ## Open
 
-- The hills' vertical scale and the meaning of the 21 tables' angles in metres.
 - Limited Edition Hang-On's and the mini ride-on's courses (7 new path shapes) are not raised.
