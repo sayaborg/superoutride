@@ -26,14 +26,14 @@ export interface CourseEditHost {
   commit(document: Json, label: string): void;
 }
 
-/** Screen pixels within which a press grabs an end of a wall, curb or open limit. */
+/** Screen pixels within which a press grabs an end of a wall or open limit. */
 const END_PIXELS = 10;
 
 /**
  * The plan's drags, each an edit that keeps form, made by the core's edit functions on the document as it was at the
  * press. Only the selected element drags: a plan element's joint moves along the Section, the element before it and
  * the element taking up the move; where an arc's tangents meet sets its radius, its turning angle and that meeting
- * point kept; a near end of a wall, curb or open limit moves that Position; anything else with a Position moves its
+ * point kept; a near end of a wall or open limit moves that Position; anything else with a Position moves its
  * Positions and laterals along and across the Section. The pending document is previewed and committed on release.
  */
 export function createPlanEditing(host: CourseEditHost) {

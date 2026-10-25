@@ -184,7 +184,7 @@ Strips, sprites and environment lists use one recursive shape:
 including the original occurrence. `elements` is nonempty and contains only elements of its enclosing list, including
 nested repeats. One shared expansion implementation visits declaration order, then repetition index,
 then child order. For index i, it adds `i*every` to every contained Position's resolved s, including
-Strip `start`/`end`, wall Strip knot `at`, decorative `at`, and curb `start`/`end`. Nested offsets accumulate. Lateral expressions
+Strip `start`/`end`, wall Strip knot `at` and decorative `at`. Nested offsets accumulate. Lateral expressions
 are evaluated at the shifted stations. All resulting Positions must fit the Section.
 Repeated Strips remain color-only. The repeat depth/count and collection/expansion ceilings below
 apply independently; limits reject rather than truncate.
@@ -210,12 +210,11 @@ switch.
 
 Section `strips` is an ordered array of these constructs. Each record includes `kind`.
 
-| Element  | Fields                                                                                    |
-| -------- | ----------------------------------------------------------------------------------------- |
-| `strip`  | Position `start`, `end`, Lateral or null `left`, `right`, `color`, `material`             |
-| `repeat` | positive `every`, integer `count`, `elements`                                             |
-| `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                                |
-| `curb`   | Position `start`, `end`, Lateral `left`, `right`, positive `stripe`, RGB555 `colors` list |
+| Element  | Fields                                                                        |
+| -------- | ----------------------------------------------------------------------------- |
+| `strip`  | Position `start`, `end`, Lateral or null `left`, `right`, `color`, `material` |
+| `repeat` | positive `every`, integer `count`, `elements`                                 |
+| `text`   | `at`, `lateral`, `text`, positive `height`, RGB555 `color`                    |
 
 A Strip's color is an RGB555 integer from 0 through 32767, `"transparent"` to erase earlier color,
 or null to leave color unchanged. Zero is opaque black. Material is a material ID or null to leave
@@ -240,10 +239,8 @@ original line and adds the offset after evaluating it. With zero offset, every e
 Decorative constructs carry color only. Text at/lateral specifies the near/left edge of its cells;
 height covers seven cells, horizontal advance is six cells per character. Text admits uppercase
 A–Z, digits 0–9 and spaces; the text length ceiling is listed below. Glyph row runs expand
-to affine pieces. A curb repeats its colors in list order from start, one color per stripe, clips the
-last stripe to end, and resolves its Lateral edges over each stripe interval. The list holds at least
-two colors; its ceiling is listed below. Across the full road width, a curb paints striped or
-gradient road surfaces. All expanded intervals must fit the Section.
+to affine pieces. Stripes (a kerb, a striped or gradient road surface) are color Strips in a `repeat`, one Strip a
+stripe of each color. All expanded intervals must fit the Section.
 
 The numeric and resource table below bounds each element array, repetition, expansion work,
 simultaneously active pieces, resolved slabs and cached fields. Covered pieces still count;
@@ -399,7 +396,7 @@ for longitudinal detail and length. One Section can therefore hold nearly the wh
 planned circuit representation uses at least two Sections and does not divide the long Section's budget.
 Assume 10 corners, 20 PVIs/profile knots, 30 authored decoration records and 220 placements per km.
 The latter includes both verges at 10 m spacing (200/km) plus 20/km for signs and other sprites.
-Every corner can receive two curbs and lettering: curbs can cover both sides of the entire
+Every corner can receive two kerbs and lettering: kerbs can cover both sides of the entire
 21 km at 1 m stripes, with 100 lane dashes/km and up to 10 two-character markings/km. This is
 conservatively 3000 expanded pieces/km; detailed glyphs and inherited edge points consume that budget.
 Counts are rounded upward to powers of two after the stated margin, except the metre ceiling.
@@ -431,8 +428,7 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                            |
 | Section `stripExpansion` (pieces and visited constructs separately)     |             131072 | 21 × 3000/km × 2, rounded up                                                                                            |
-| Each curb `curbColors`                                                  |                 64 | Two 16-step hue ramps (32 colors) × 2                                                                                   |
-| Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 curbs, doubled; counts hidden pieces                                         |
+| Section `activeStrips`                                                  |                 64 | 16 base layers + 14 glyph/marking runs + 2 kerbs, doubled; counts hidden pieces                                         |
 | Section `stripSlabs` (all color and material tables)                    |            1048576 | Expanded-piece budget × two endpoints × four for crossing subdivisions                                                  |
 | Section `preblendCells`                                                 |             131072 | All 1 m dyadic levels at 42000 m, one phase each: 42000 + 21000 + … + 1 over 17 levels = 84008 cells, rounded up        |
 | Section `coefficientBytes`                                              |            512 MiB | Moving-edge 21 km probe used about 121 MiB in its one phase; ×2 length and ×2 Strip complexity, 484 MiB, rounded up     |
@@ -568,13 +564,13 @@ and every result resolves through the course compiler's functions.
 **Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: plan elements at
 their joints and the Section's end, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
 vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
-texts, curbs, walls and their Strips and knots, open limits, sprites (an object when it has a body),
+texts, walls and their Strips and knots, open limits, sprites (an object when it has a body),
 environments, gates, grid slots and lanes (each lane's centre line), and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
 as written (`joint`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
 resolved at the element's station (`l`), the repetitions enclosing it (each repeat's Pointer, the copy's index (0 the
 original), its `count` and `every`, outermost first), its resolved height and plan `x` and `z`, and resolved lines for
-Boundaries, Strip and curb edges and walls. Repetitions expand with `expandCourseElements`, Positions with
+Boundaries, Strip edges and walls. Repetitions expand with `expandCourseElements`, Positions with
 `resolveCoursePosition`, Boundaries with `compileCourseBoundaries` and laterals with `resolveCourseLateral` and
 `resolveLateralInterval`. A document admission rejects is read as far as it goes: the result keeps admission's first
 diagnostic, and each element that does not resolve carries its problem (code, message and Pointer).
@@ -671,7 +667,7 @@ stale; the driving changes only when the shift is not 0.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary or lane line at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
   on it); a Position (of a knot, wall,
-  curb, open limit or gate) near another element's Position takes it, either way round; a Position near a joint's station
+  open limit or gate) near another element's Position takes it, either way round; a Position near a joint's station
   is measured from that joint with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
   takes its written value. A join that leaves the Section unreadable is not proposed.
 - `mergeCandidates` proposes each width written at Positions whose values all agree as that one number (`merge-width`),

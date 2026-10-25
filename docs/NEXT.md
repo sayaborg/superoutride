@@ -67,7 +67,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), FMT-1
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), FMT-1c
 and EX-9 onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
@@ -121,7 +121,7 @@ K's decisions (2026-10-25):
   8 m, so the Route reaching behind a circuit's entry is built when a circuit's grid needs it. A linear course keeps
   its road from the camera's distance before GO, which the start needs.
 - **Stripes are written one way**: `curb` is deleted from the course format and stripes are written by a Strip's
-  `repeat` (FMT-1).
+  `repeat`.
 
 The stage's defaults, each chosen for the fewest constants and no rule made for one case (K may change any in its PR):
 
@@ -190,9 +190,7 @@ PRs, in this order:
   and the farthest 8.4 m ahead of the bike; or at the scenery's depth where they draw on the same line, 0xD240, three
   times nearer, the rival straight ahead (x −6) 3.0, 2.6, 2.1 and 1.7 m ahead on courses 0 to 3, the last over a
   bike's length. Its reference runs are measured again.
-- FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
-  documents), no course using it now that the kerbs are written by a Strip's `repeat` (K, 2026-10-25); then, a rename
-  of its own, the limits' `heightNodes` named after the field it bounds, `profile`.
+- FMT-1c, a rename of its own: the limits' `heightNodes` named after the field it bounds, `profile`.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan and what of `offset-plan.ts` lives on
   (`POSITION_METRES`, `STRIPE_PERIOD`, `Quadratic`) moved to its owner; the fitted path plan and its folds, and
   `path-plan.ts`, which nothing uses; the plane at offset 0, once `course-path.ts` and SUPER MONACO GP no longer use

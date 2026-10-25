@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 58;
+export const COURSE_DOCUMENT_VERSION = 59;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -96,15 +96,6 @@ export type StripElementDocument = RepeatElement<
       readonly text: string;
       readonly height: number;
       readonly color: number;
-    }
-  | {
-      readonly kind: 'curb';
-      readonly start: CoursePosition;
-      readonly end: CoursePosition;
-      readonly left: Lateral;
-      readonly right: Lateral;
-      readonly stripe: number;
-      readonly colors: readonly number[];
     }
 >;
 
@@ -477,22 +468,6 @@ function stripLeaf(value: unknown, path: string): Exclude<StripElementDocument, 
       text: v.text,
       height: metre(v.height, `${path}/height`, true),
       color: readRgb555(v.color, `${path}/color`),
-    });
-  }
-  if (kind === 'curb') {
-    const v = readRecord(value, path, ['kind', 'start', 'end', 'left', 'right', 'stripe', 'colors']);
-    const colors = readArray(v.colors, `${path}/colors`, readRgb555, {
-      min: 2,
-      max: COURSE_DOCUMENT_LIMITS.curbColors,
-    });
-    return Object.freeze({
-      kind,
-      start: position(v.start, `${path}/start`),
-      end: position(v.end, `${path}/end`),
-      left: lateral(v.left, `${path}/left`),
-      right: lateral(v.right, `${path}/right`),
-      stripe: metre(v.stripe, `${path}/stripe`, true),
-      colors,
     });
   }
   throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Unknown Strip authoring construct');

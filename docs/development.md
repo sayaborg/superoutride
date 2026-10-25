@@ -298,7 +298,7 @@ The selected element is edited on the plan by the [edits that keep form](content
 dragging a plan element's joint moves it along the Section, the element before it and the element taking up the move;
 dragging where a selected arc's tangents meet (drawn with the tangents) along the line to the arc's middle sets its
 radius, its turning angle and that meeting point kept, offered for an arc of less than half a circle between straights
-alone; dragging a near end of a wall, curb or
+alone; dragging a near end of a wall or
 open limit moves that Position, and dragging anything else moves its Positions and laterals along and across the
 Section; a repeat copy drags its original, and every copy with it. On the profile, dragging a PVI moves its Position's
 `offset` and its `y`, and dragging an end of its vertical curve sets its `curveLength`. While dragging, only the plan and

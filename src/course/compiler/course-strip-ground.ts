@@ -1,6 +1,5 @@
 import { createStripBudget, type StripBudget } from '../strip-budget.js';
 import { courseElementLeaves, shiftedCoursePosition } from '../course-repeat.js';
-import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { compileStripMaterial, validateMaterialContinuity } from '../strip-material.js';
 import { clearanceClips } from '../plan-clearance.js';
 import type { PlanPath } from '../geometry/plan-path.js';
@@ -205,34 +204,6 @@ async function expandCourseStrips(
           at,
         );
         break;
-      case 'curb': {
-        const start = position(element.start, `${at}/start`).s;
-        const end = position(element.end, `${at}/end`).s;
-        requireCourse(end > start, at, 'Curb extent must be positive', 'invalid_strip');
-        const count = Math.ceil((end - start) / element.stripe);
-        requireCourse(
-          count <= COURSE_DOCUMENT_LIMITS.stripExpansion,
-          at,
-          `Curb expansion exceeds ${COURSE_DOCUMENT_LIMITS.stripExpansion} stripes`,
-          'resource_limit',
-        );
-        for (let i = 0; i < count; i++)
-          strip(
-            [
-              { s: start + i * element.stripe, left: element.left, right: element.right, path: edgePath },
-              {
-                s: Math.min(end, start + (i + 1) * element.stripe),
-                left: element.left,
-                right: element.right,
-                path: edgePath,
-              },
-            ],
-            element.colors[i % element.colors.length]!,
-            null,
-            at,
-          );
-        break;
-      }
       case 'text': {
         const station = position(element.at, `${at}/at`).s;
         const lateral = resolveCourseLateral(element.lateral, station, lines, `${at}/lateral`);

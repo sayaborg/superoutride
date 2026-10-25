@@ -475,4 +475,4 @@ owns authoring; [Architecture](architecture.md#strip-rendering) owns preblending
 
 Ground and walls are drawn by one method, LEVEL-POINT, defined only in the rendering contract linked above; there is
 no display setting for it. Ground contains no image assets;
-lettering, curbs and cliff edges expand from saved Strip constructs.
+lettering, kerbs and cliff edges expand from saved Strip constructs.

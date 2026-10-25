@@ -60,7 +60,6 @@ export type CourseElementKind =
   | 'repeat'
   | 'strip'
   | 'text'
-  | 'curb'
   | 'wall'
   | 'wall-strip'
   | 'wall-strip-knot'
@@ -161,7 +160,7 @@ export interface CourseElement {
   readonly y: number | null;
   readonly x: number | null;
   readonly z: number | null;
-  /** Resolved lines: a Boundary's vertices, a Strip's or curb's `left` and `right` edges, a wall's line. */
+  /** Resolved lines: a Boundary's vertices, a Strip's `left` and `right` edges, a wall's line. */
   readonly lines: Readonly<Record<string, ResolvedLine>>;
   /** Other written values that identify the element (`id`, `kind`, `color`, `image`, `boundary`, `every`...). */
   readonly values: Readonly<Record<string, unknown>>;
@@ -596,14 +595,6 @@ function readSection(
         ...strip,
         lines: edges([source, source], [strip.positions.start?.s ?? null, strip.positions.end?.s ?? null], path),
       };
-    } else if (kind === 'curb') {
-      add('curb', path, source, {
-        offset,
-        copies,
-        positions: ['start', 'end'],
-        laterals: ['left', 'right'],
-        values: { stripe: source.stripe, colors: source.colors },
-      });
     } else if (kind === 'text')
       add(kind, path, source, {
         offset,

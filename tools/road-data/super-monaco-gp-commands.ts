@@ -84,7 +84,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
         departure: round3(plan.departure * SUPER_MONACO_GP_PATH_UNIT),
         lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
         sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
-        // The boards placed, the kerbs drawn as curbs, and the boards left out on a curve's inside.
+        // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
         boards: objects.length,
         // The boards whose foot is below the ground, by group: at the original's height, folded, standing.
         below: Object.fromEntries(
