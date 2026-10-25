@@ -147,7 +147,7 @@ export function createCourseFrameRenderer(
       const camera = updateCamera(createCameraRig(), scene.world, vehicle, CAMERA_DEFINITION, 'FACING'),
         target = createLogicalFrame();
       const stats = createRenderMeasurements();
-      const player = { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach };
+      const player = { vehicle, set: sprites.off };
       scene.render(target, player, camera, [], [], [], stats);
       return {
         width: target.width,

@@ -549,7 +549,9 @@ mark for it:
   overlaps.
 
 How much of a picture lies follows from where its anchor is in it alone: anchored at its bottom edge (every course
-image by default) it all stands, at its middle half of it lies. A board's part below the ground (anchored at its bottom,
+image by default) it all stands, at its middle half of it lies. An image that declares it all lies (`lies`) does not
+stand: it is a ground picture, drawn as a shadow is ([Shadows](#shadows)). Pictures at one depth are drawn in their
+documents' order, a later one over an earlier. A board's part below the ground (anchored at its bottom,
 a negative `groundOffset`) stands at the anchor's depth like the rest, so the nearer drawn ground hides it and
 transparent ground shows it, as a cliff's face.
 
@@ -587,19 +589,23 @@ hold NaN for the player's point and -1 for its variants.
 
 ### Shadows
 
-A shadow is a picture of its own, drawn with the picture it belongs to: the same level, at the same scale, with its
-anchor at the road beneath that picture's base point (the profile height at the base point's station), so it is the
-picture's shadow at every size and turns with the vehicle. Every vehicle, the player included, and every movable
-object, standing, flying or landed, casts the shadow of the picture drawn for it; fixed objects cast none. A shadow does
-not follow the slope it lies on.
+A shadow is a picture of its own, drawn with the picture it belongs to: the same level, at the same scale. Every
+picture that has one casts it: a vehicle's, the player's included, and a movable object's, standing, flying or landed,
+with its anchor at the road beneath the picture's base point (the profile height at the base point's station), so it
+is the picture's shadow at every size and turns with the vehicle; a fixed object's at its picture's own place and size,
+its base point, above the road for one that floats.
 
-A shadow darkens only the road. The ground rows draw it as they write the ground: a row takes a shadow only where its
-chainage footprint (`[sNear, sNear + deltaS]`) meets the stretch of road within the owner's reach of its station (a
-vehicle's half diagonal, a movable object's square's), so a row hidden behind a crest, or nearer ground covering it,
-does not show it. On a row it takes, each texel row of the shadow's level and each run of its opaque texels take the
-pixels whose centres they hold when they span at least a pixel, and the pixel holding their centre when they are
-narrower, so no shadow texel vanishes at a distance. Rows and pixels outside the frame and the near and far depths
-clip it.
+A shadow and an image that all lies are ground pictures, and one rule lays them. A ground picture lies on the ground
+about its anchor that faces the camera: its rows on and above its anchor's screen row on the farther ground, the
+terrain rows farther than the anchor followed in Painter order to the first facing away (a crest), and those below on
+the nearer ground, the rows nearer followed to the first facing away. The ground rows draw it as they write the ground,
+before their walls and pictures: a shadow darkens only the road, an image paints its colors; a screen row with no such
+ground row draws none of it, and none is drawn on a wall or a picture. It is drawn at its anchor's scale where it falls
+on the screen, neither shortened by the ground's perspective nor shifted, so it lies only in how it overlaps. On a row
+it takes, each texel row of a shadow's level and each run of its opaque texels take the pixels whose centres they hold
+when they span at least a pixel, and the pixel holding their centre when they are narrower, so no shadow texel vanishes
+at a distance; an image's row is drawn as a standing picture's is. Rows and pixels outside the frame and the near and
+far depths clip it.
 
 The ground sampler writes the covered pixels of its row at half brightness (`halveRgb555`, the one half-brightness
 operation) as it writes them, for every display method; transparent ground writes nothing and so stays undarkened.

@@ -45,13 +45,14 @@ export interface SpriteLevel extends SpriteFrame {
 export type SpriteExtend = 'left' | 'right';
 
 /**
- * An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre, and, for a board extending
- * sideways, the way it repeats.
+ * An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre, for a board extending sideways the
+ * way it repeats, and whether all of it lies on the ground.
  */
 export interface SpriteAsset {
   readonly name: string;
   readonly levels: readonly SpriteLevel[];
   readonly extend?: SpriteExtend;
+  readonly lies?: true;
 }
 
 /** A shadow master and its build-generated levels: binary frames, nonzero opaque. */
@@ -65,7 +66,7 @@ export interface SpriteShadowDocument {
 
 export interface SpriteLodDocument {
   readonly format: 'superoutride.sprite-lod';
-  readonly version: 6;
+  readonly version: 7;
   readonly name: string;
   readonly width: number;
   readonly height: number;
@@ -83,6 +84,8 @@ export interface SpriteLodDocument {
   readonly shadow?: SpriteShadowDocument;
   /** A board extending sideways: the way it repeats. */
   readonly extend?: SpriteExtend;
+  /** All of it lies on the ground about its base point, as a shadow does, drawn in its colors. */
+  readonly lies?: true;
 }
 
 export function spriteLodLayout(width: number, height: number) {
@@ -141,9 +144,10 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
       'levels',
       ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'shadow') ? ['shadow'] : []),
       ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'extend') ? ['extend'] : []),
+      ...(typeof value === 'object' && value !== null && Object.hasOwn(value, 'lies') ? ['lies'] : []),
     ],
     'superoutride.sprite-lod',
-    6,
+    7,
   );
   const name = readString(document.name, '/name');
   const { palettes, defaultPalette } = readSpritePalettes(document);
@@ -151,7 +155,10 @@ export function readSpriteLodAsset(value: unknown): SpriteLodAsset {
     document.shadow === undefined ? null : readShadow(document.shadow, count),
   );
   const extend = document.extend === undefined ? {} : { extend: readExtend(document.extend, '/extend') };
-  return Object.freeze({ name, ...picture, defaultPalette, palettes, ...extend });
+  if (document.lies !== undefined)
+    requireAdmission(document.lies === true, 'invalid_value', '/lies', 'lies must be true when present');
+  const lies = document.lies === undefined ? {} : { lies: true as const };
+  return Object.freeze({ name, ...picture, defaultPalette, palettes, ...extend, ...lies });
 }
 
 function readExtend(value: unknown, path: string): SpriteExtend {

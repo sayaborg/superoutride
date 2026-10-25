@@ -74,7 +74,7 @@ export function superHangOnPictures(
       const foot = group.some((u) => !u.raised) ? footAnchorY(indices, grid.width, SHADOW_PEN) : undefined;
       const master = (named: string, anchorY: number | undefined): SpriteLodDocument => ({
         format: 'superoutride.sprite-lod',
-        version: 6,
+        version: 7,
         name: named,
         width: grid.width,
         height: grid.height,

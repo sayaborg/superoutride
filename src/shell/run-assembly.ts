@@ -435,7 +435,6 @@ async function assembleCourseRun(
         : {
             vehicle: observations.player,
             set: observations.player.brakeLampOn ? sprites.on : sprites.off,
-            reach: entry.compiledVehicle.reach,
           },
       lifecycle.camera,
       others,

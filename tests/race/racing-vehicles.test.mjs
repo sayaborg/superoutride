@@ -96,7 +96,7 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
     const frame = createLogicalFrame(),
       text = createTextLayer(tiles);
     const visual = createVehicleSprites(entry);
-    scene.render(frame, { vehicle: player, set: visual.off, reach: entry.compiledVehicle.reach }, camera, [], [], []);
+    scene.render(frame, { vehicle: player, set: visual.off }, camera, [], [], []);
     writeHud(
       {
         race,

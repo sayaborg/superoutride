@@ -2,30 +2,72 @@ import { selectSpriteLevel, type SpriteAsset, type SpriteFrame } from '../image/
 import { levelScale } from './sprite.js';
 
 /**
- * A shadow placed in one frame: its level's frame, where its texel grid starts on screen and its screen pixels per
- * texel, and the stretch of road `[sStart, sEnd]` it lies on.
+ * Where a picture lying on the ground lies in one frame: its anchor's depth and screen row, and the depths of the ground
+ * it lies on, `[dNear, dFar]`: the terrain rows facing the camera on from its anchor, nearer to the first facing away
+ * and farther to the first facing away (a crest). Its rows on and above its anchor's screen row lie on the farther of
+ * that ground, those below on the nearer; a row with no such ground is not drawn.
  */
-export interface PlacedShadow {
+export interface GroundPlace {
+  d: number;
+  row: number;
+  dNear: number;
+  dFar: number;
+}
+
+/** A terrain row as a ground picture reads it: its screen row, depth and whether it faces away from the camera. */
+interface GroundRow {
+  readonly y: number;
+  readonly d: number;
+  readonly away: boolean;
+}
+
+/**
+ * The ground a picture anchored at depth `d` on screen row `y` lies on (`GroundPlace`), among `terrain`'s rows far to
+ * near.
+ */
+export function placeOnGround(terrain: readonly GroundRow[], d: number, y: number, out: GroundPlace): GroundPlace {
+  out.d = out.dNear = out.dFar = d;
+  out.row = Math.floor(y);
+  // The first row nearer than the anchor, by halving: the rows' depths fall from far to near.
+  let [lo, hi] = [0, terrain.length];
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (terrain[mid]!.d < d) hi = mid;
+    else lo = mid + 1;
+  }
+  for (let i = lo - 1; i >= 0 && !terrain[i]!.away; i--) out.dFar = terrain[i]!.d;
+  for (let i = lo; i < terrain.length && !terrain[i]!.away; i++) out.dNear = terrain[i]!.d;
+  return out;
+}
+
+/** Whether a ground picture placed at `place` lies on the terrain row at screen row `y` and depth `d`. */
+export function liesOn(place: GroundPlace, y: number, d: number): boolean {
+  if (d > place.dFar || d < place.dNear) return false;
+  return y <= place.row ? d >= place.d : d <= place.d;
+}
+
+/**
+ * A shadow placed in one frame: its level's frame, where its texel grid starts on screen and its screen pixels per
+ * texel, and the ground it lies on.
+ */
+export interface PlacedShadow extends GroundPlace {
   frame: SpriteFrame;
   left: number;
   top: number;
   scale: number;
-  sStart: number;
-  sEnd: number;
 }
 
 /**
- * Place the shadow of `asset` with its anchor at (`xAnchor`, `yAnchor`), the projection of the road under the base point
- * at station `s`, drawn at `pixelsPerMeter` as the picture is, and lying on the road within `reach` of `s`; false
- * when the selected level has no shadow.
+ * Place the shadow of `asset` with its anchor at (`xAnchor`, `yAnchor`) at depth `d`, drawn at `pixelsPerMeter` as the
+ * picture is, lying on the ground of `terrain` about it; false when the selected level has no shadow.
  */
 export function placeShadow(
   asset: SpriteAsset,
   xAnchor: number,
   yAnchor: number,
   pixelsPerMeter: number,
-  s: number,
-  reach: number,
+  d: number,
+  terrain: readonly GroundRow[],
   out: PlacedShadow,
 ): boolean {
   const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
@@ -36,16 +78,8 @@ export function placeShadow(
   out.scale = scale;
   out.left = xAnchor - scale * (frame.anchorX + 0.5);
   out.top = yAnchor - scale * (frame.anchorY + 0.5);
-  out.sStart = s - reach;
-  out.sEnd = s + reach;
+  placeOnGround(terrain, d, yAnchor, out);
   return true;
-}
-
-/** One ground row: its screen row and its chainage footprint `[sNear, sNear + deltaS]`. */
-interface ShadowRow {
-  readonly y: number;
-  readonly sNear: number;
-  readonly deltaS: number;
 }
 
 /**
@@ -67,20 +101,20 @@ const span = { start: 0, end: 0 };
 
 /**
  * The pixels of one ground row that shadows darken, written to `out` as ascending, disjoint `[start, end)` pixel
- * pairs within `[0, width)`. A shadow lies only on the ground rows whose footprint meets its stretch of road; there its
- * texel rows and runs of opaque texels take the pixels `pixelSpan` gives them.
+ * pairs within `[0, width)`. A shadow lies only on the ground rows it lies on (`liesOn`); there its texel rows and runs
+ * of opaque texels take the pixels `pixelSpan` gives them.
  */
 export function shadowRowSpans(
-  row: ShadowRow,
+  row: GroundRow,
   shadows: readonly PlacedShadow[],
   width: number,
   out: number[],
 ): number[] {
   out.length = 0;
-  const sFar = row.sNear + row.deltaS;
   for (let i = 0; i < shadows.length; i++) {
-    const { frame, left, top, scale, sStart, sEnd } = shadows[i]!;
-    if (row.sNear > sEnd || sFar < sStart) continue;
+    const shadow = shadows[i]!;
+    if (!liesOn(shadow, row.y, row.d)) continue;
+    const { frame, left, top, scale } = shadow;
     // The texel rows near this screen row; each takes the rows of its own span.
     const first = Math.max(0, Math.floor((row.y - top) / scale) - 1),
       last = Math.min(frame.height - 1, Math.floor((row.y + 1 - top) / scale) + 1);

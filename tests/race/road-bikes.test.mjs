@@ -117,7 +117,7 @@ for (const [id, gears] of identities) {
     const frame = createLogicalFrame(),
       text = createTextLayer(tiles);
     const camera = updateCamera(createCameraRig(), scene.world, player, CAMERA_DEFINITION, 'FACING');
-    scene.render(frame, { vehicle: player, set: visual.off, reach: entry.compiledVehicle.reach }, camera, [], [], []);
+    scene.render(frame, { vehicle: player, set: visual.off }, camera, [], [], []);
     writeHud(
       {
         race,

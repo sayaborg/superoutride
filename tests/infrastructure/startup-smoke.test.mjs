@@ -36,7 +36,7 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const vehicle = createVehicle(model, scene.world, { s: slot.at.s, l: slot.l, initialSpeed: 0 });
     const rig = createCameraRig(),
       target = createLogicalFrame();
-    const player = { vehicle, set: sprites.off, reach: entry.compiledVehicle.reach };
+    const player = { vehicle, set: sprites.off };
     for (let frame = 0; frame < 3; frame++) {
       updateVehicle(scene.world, vehicle, model, { steering: 0, throttle: true, brake: false }, steering);
       const camera = updateCamera(rig, scene.world, vehicle, CAMERA_DEFINITION, 'FACING');

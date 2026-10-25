@@ -139,7 +139,7 @@ function boardMasters(main: Uint8Array, words: Uint32Array, uses: readonly Board
     const colors = (k: number) => [0, ...spritePalette(main, palettes[k]!).slice(1)];
     const whole: SpriteLodDocument = {
       format: 'superoutride.sprite-lod',
-      version: 6,
+      version: 7,
       name,
       width: grid.width,
       height: grid.height,

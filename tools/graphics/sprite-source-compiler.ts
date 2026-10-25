@@ -84,7 +84,7 @@ export function normalizeSpriteSource(image: SourceImage, recipe: unknown): Spri
     }
   return {
     format: 'superoutride.sprite-lod',
-    version: 6,
+    version: 7,
     name,
     width,
     height,

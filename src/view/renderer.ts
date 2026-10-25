@@ -18,7 +18,14 @@ import {
 import { drawWallColumn, type RouteWall, type WallWorkspace } from './course-wall.js';
 
 import { deriveVehicleLeanRadians } from './vehicle-visuals.js';
-import { placeShadow, shadowRowSpans, type PlacedShadow } from './sprite-shadow.js';
+import {
+  liesOn,
+  placeOnGround,
+  placeShadow,
+  shadowRowSpans,
+  type GroundPlace,
+  type PlacedShadow,
+} from './sprite-shadow.js';
 import { spriteFolds, type SpriteAsset } from '../image/sprite.js';
 import type { BasePoint } from './base-point.js';
 
@@ -108,6 +115,9 @@ export function createRenderWorkspace() {
     /** The frame's placed shadows and their pool. */
     shadows: [] as PlacedShadow[],
     shadowPool: [] as PlacedShadow[],
+    /** The frame's pictures lying on the ground, far to near, and their places and the places' pool. */
+    lying: [] as VisibleCourseSprite[],
+    lyingPlaces: [] as GroundPlace[],
     shadowAnchor: { x: 0, y: 0, z: 0, s: 0 },
     shadowProjection: { x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 },
     /** Each screen row's terrain rows, far to near: `rowLines` from `rowFirst[y]` to `rowFirst[y + 1]`. */
@@ -141,11 +151,25 @@ export function renderDriving(
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
   background.draw(target, renderCamera);
-  const sprites = visible ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd) : [];
+  const visibleSprites = visible
+    ? collectVisibleCourseSprites(worldSprites, renderCamera, visible.dStart, visible.dEnd)
+    : [];
+  // A picture that all lies on the ground is drawn into the ground rows it lies on, as a shadow is, in its colors; the
+  // others stand.
+  const lying = workspace.lying,
+    lyingPlaces = workspace.lyingPlaces;
+  lying.length = 0;
+  for (const sprite of visibleSprites)
+    if (sprite.asset.lies) {
+      const place = (lyingPlaces[lying.length] ??= { d: 0, row: 0, dNear: 0, dFar: 0 });
+      placeOnGround(terrain, sprite.d, sprite.projection.y, place);
+      lying.push(sprite);
+    }
+  const sprites = lying.length ? visibleSprites.filter((sprite) => !sprite.asset.lies) : visibleSprites;
   const playerProjection = player && pseudoProject(player.base, camera);
   const relativeYaw = player ? wrapAngle(player.vehicle.yaw - renderCamera.yaw) : NaN;
   const selected = player && selectVehicleSprite(player.set, relativeYaw, deriveVehicleLeanRadians(player.vehicle));
-  // Every drawn picture with a shadow place casts its level's shadow on the road beneath it, drawn into the ground rows.
+  // Every drawn picture with a shadow place casts its level's shadow there, drawn into the ground rows it lies on.
   const shadows = workspace.shadows,
     pool = workspace.shadowPool,
     anchor = workspace.shadowAnchor;
@@ -156,8 +180,18 @@ export function renderDriving(
     anchor.z = z;
     anchor.s = s;
     const projected = pseudoProject(anchor, camera, workspace.shadowProjection);
-    const shadow = (pool[shadows.length] ??= { frame: null!, left: 0, top: 0, scale: 0, sStart: 0, sEnd: 0 });
-    if (placeShadow(asset, projected.x, projected.y, projected.scale, s, place.reach, shadow)) shadows.push(shadow);
+    const shadow = (pool[shadows.length] ??= {
+      frame: null!,
+      left: 0,
+      top: 0,
+      scale: 0,
+      d: 0,
+      row: 0,
+      dNear: 0,
+      dFar: 0,
+    });
+    if (placeShadow(asset, projected.x, projected.y, projected.scale, projected.depth, terrain, shadow))
+      shadows.push(shadow);
   };
   for (const sprite of sprites)
     if (sprite.shadow) cast(sprite.asset, sprite.x, sprite.z, sprite.sRender, sprite.shadow);
@@ -272,6 +306,9 @@ export function renderDriving(
         shadowRowSpans(line, shadows, target.width, workspace.shade),
       );
       terrainOutputPixels += stripStats.outputPixels - before;
+      // Then the pictures lying on this ground row, far to near, painted into it as its shadows darken it.
+      for (let i = 0; i < lying.length; i++)
+        if (liesOn(lyingPlaces[i]!, line.y, line.d)) drawRows(lying[i]!, line.y, line.y + 1);
       // At equal depth: ground, then walls, then sprites.
       for (let i = 0; i < shownWalls.length; i++) {
         const wall = shownWalls[i]!;
@@ -297,7 +334,7 @@ export function renderDriving(
   measurements.terrainLineCount = terrain.length;
   measurements.terrainOutputPixels = terrainOutputPixels;
   measurements.wallPixels = wallWorkspace.wallPixels;
-  measurements.visibleSpriteCount = sprites.length;
+  measurements.visibleSpriteCount = visibleSprites.length;
   measurements.spriteOutputSamples = spriteOutputSamples;
   measurements.spriteWrittenPixels = spriteWrittenPixels;
   measurements.playerOutputSamples = playerStats.outputSamples;

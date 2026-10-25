@@ -14,7 +14,7 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
 
 ```text
 {
-  format: "superoutride.sprite-lod", version: 6, name,
+  format: "superoutride.sprite-lod", version: 7, name,
   width: W, height: H, anchorX, anchorY?,
   defaultPalette: "original",
   palettes: {original: {colors: [RGB555 integers]},
@@ -22,7 +22,8 @@ format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-librar
   levels: [{paletteRgb555: [16 integers], indices: [row-major indices],
             mixtures: [[], [[baseIndex,weight], ...], ...]}, ...],
   shadow?: {width, height, anchorX, anchorY, levels: [{indices: [row-major indices]}, ...]},
-  extend?: "left" | "right"
+  extend?: "left" | "right",
+  lies?: true
 }
 ```
 
@@ -54,6 +55,9 @@ provisional ones are the object's square seen by the size-0 contract camera ([Pi
 to the frame's edge ([Architecture](architecture.md#sprites-and-painter)); an image without it is drawn once. An
 image's mirror image (`-mirrored`) extends the other way. It is for looks alone: an extending image is never a solid
 object's ([Sprites and environment](content-and-gameplay.md#sprites-and-environment)).
+`lies` is optional and only `true`: all of the image lies on the ground about its anchor, drawn in its colors as a
+shadow is, and none of it stands ([Shadows](architecture.md#shadows)); it is for looks alone, a picture lying on the
+road no material.
 Course sprites select one declared palette by its required name, including an explicit default name.
 The course compiler validates that reference and shares image/name resources. Rendering applies each
 selected palette once; no raw course replacement palettes or value-by-value LOD membership checks remain.
@@ -398,7 +402,8 @@ the constructs and builds private numeric fields; these are not image assets or 
 Every picture is drawn at its base point ([Architecture](architecture.md#sprites-and-painter)): a vehicle's position
 seen from above at its body's underside, an object's placement at its height. Its anchor is that point. Every picture
 folds at its anchor: what lies above stands at the anchor's depth, what lies below lies on the ground nearer than the
-anchor as far as that ground faces the camera (beyond a crest, the nearer slope hides it). A course image stands on its bottom edge unless it carries its anchor's height. Pictures come in sizes; size `k`
+anchor as far as that ground faces the camera (beyond a crest, the nearer slope hides it). A course image carrying
+`lies` all lies on the ground about its anchor, as its shadow would. A course image stands on its bottom edge unless it carries its anchor's height. Pictures come in sizes; size `k`
 (`k = 0` full size) is drawn at `40 / 2^k` texels per metre at the base point, and the renderer draws the size nearest
 its scale ([Shared image level selection](architecture.md#shared-image-level-selection)). Vehicle pictures and their
 generator follow this contract; this section is its only statement:

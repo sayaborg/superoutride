@@ -258,8 +258,8 @@ says. The two items below the road (kind 0 at y −1024), never seen, are not pl
   the stop. A girl shows her READY pose (0x27F8E, of her frames at 0x8FCE) in her kind's palette, a pixel 2 units, her
   x × 32 units from P; her sign its kind's picture, its y × 2 units up, 0.1 m nearer.
 - **Shadows.** In the original, a kind whose flags' bit 1 is set casts the shadow picture (the size list at 0x2667A)
-  on the road, at its scale and base point; the board keeps it as its shadow frame (`-shadowed`), which a fixed object
-  does not draw ([Sprites and painter](architecture.md#sprites-and-painter)); a kind's pixel 10 that shades (bit 2)
+  on the road, at its scale and base point; the board keeps it as its shadow frame (`-shadowed`), drawn at the picture's
+  place and size ([Shadows](architecture.md#shadows)); a kind's pixel 10 that shades (bit 2)
   keeps its palette's color.
 - **Boards** (`turboOutrunBoards`). `toutrun-<size list, five hex digits>`, with `-u<thousandths>` where a pixel is not
   2 road units, then `-mirrored` and `-shadowed` as shown: its largest size's pixels onto its texel grid by [chosen

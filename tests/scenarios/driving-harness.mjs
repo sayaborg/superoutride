@@ -282,7 +282,6 @@ export async function runScenario({ course }, scenario) {
       {
         vehicle: observed.player,
         set: observed.player.brakeLampOn ? visual.on : visual.off,
-        reach: entry.compiledVehicle.reach,
       },
       camera,
       sprites([...observed.rivals, ...observed.traffic], camera, scene.world),

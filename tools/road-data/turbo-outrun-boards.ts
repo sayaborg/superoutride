@@ -102,7 +102,7 @@ export function turboOutrunBoards(
       const anchorY = foot ?? point.y;
       const board: SpriteLodDocument = {
         format: 'superoutride.sprite-lod',
-        version: 6,
+        version: 7,
         name,
         width: grid.width,
         height: grid.height,

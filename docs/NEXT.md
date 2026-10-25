@@ -40,7 +40,8 @@ Each line is one area as it stands, with the document that owns it.
   and images named by file; circuits are closed cycles of two or more Sections
   ([CourseDocument](content-and-gameplay.md#coursedocument)).
 - **Drawing.** Strips author surface color and material; ground and walls are drawn by LEVEL-POINT; sprites are indexed;
-  every picture folds at its anchor, and vehicles and movable objects cast their own shadows; BG is one infinite tiled
+  every picture folds at its anchor, every picture with a shadow casts it, and shadows and lying images lie on the
+  ground that faces the camera about their anchors; BG is one infinite tiled
   plane; the camera stands 6 m behind and 2 m above the player's base point
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
@@ -67,8 +68,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-9
-onward, with the sprites' SP-1, SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-10
+onward, with the sprites' SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -246,12 +247,12 @@ PR of its own, and EX-25 comes first if people begin correcting pictures or plac
   outline, texel, length and nearness to the road, the outer end's shape unused, the road's end a separate `-edge`
   board.
 - The shadows, each original's own and apart from this game's (which draws a shadow's own picture, darkening only the
-  road, cast by vehicles and moving objects alone): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow
-  sprite (0xFF56) kept as a `-shadowed` picture's own shadow frame, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel
-  10 by its kind's bit 2 and its shadow picture (0x2667A) by bit 1, ENDURO RACER's pixel 10 split into the board's
-  shadow frame. Every original's object is fixed, and a fixed object casts no shadow, so none of those frames is drawn
-  and ENDURO RACER's foot shadows are not seen; OUTRUN's, SUPER HANG-ON's and TURBO OUTRUN's pixel 10 is drawn in its
-  palette colour. One proposal brings them to this game's shadows, another draws them into the pictures.
+  road): OUTRUN's pixel 10 by its drawing mode's shadow bit and its shadow sprite (0xFF56) kept as a `-shadowed`
+  picture's own shadow frame, SUPER HANG-ON's every pixel 10, TURBO OUTRUN's pixel 10 by its kind's bit 2 and its
+  shadow picture (0x2667A) by bit 1, ENDURO RACER's pixel 10 split into the board's shadow frame. Since SP-1 a fixed
+  object draws its shadow frame at its picture's place and size, so OUTRUN's and TURBO OUTRUN's shadow pictures and
+  ENDURO RACER's foot shadows are seen; OUTRUN's, SUPER HANG-ON's and TURBO OUTRUN's pixel 10 is drawn in its palette
+  colour until SP-2.
 
 The table (2026-10-24, in its PR) proposes, for K to decide on Pages:
 
@@ -272,11 +273,6 @@ made.
 
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
-- SP-1 (`src/`): one rule in Sprites and Painter: a picture splits at its base row on the screen, its rows below lying
-  on the nearer ground and those above standing at its base's depth, a ground picture lying on the farther ground;
-  fixed objects draw their shadow frame at their picture's own place and size; the shadow's reach constants go; an
-  image may declare that all of it lies (a format version); the HUD's measure is taken before and after on the target
-  device.
 - SP-2 (`tools/`): the extract, its rules and K's table, in one shared module with each original's flags;
   `footAnchorY` and the `-raised` copies removed. A picture lies where its original draws it by a routine that puts it
   on the road (OUTRUN's drawing 13; TURBO OUTRUN's routines 0x08, 0x4C and 0x50), K's table's `lies` kept for the bands

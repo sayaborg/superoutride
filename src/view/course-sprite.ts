@@ -12,10 +12,12 @@ interface CourseSpriteAuthoring {
   asset: SpriteAsset;
 }
 
-/** Where a picture's shadow lies: the road's height under its base point and how far along the road it reaches. */
+/**
+ * Where a picture's shadow is anchored: the height at its base point, the road's under a moving picture's and a fixed
+ * object's own (a floating one's above the road), the shadow lying on the ground about it as every ground picture does.
+ */
 export interface SpriteShadowPlace {
   readonly y: number;
-  readonly reach: number;
 }
 
 interface CourseSpritePlace {
@@ -24,7 +26,7 @@ interface CourseSpritePlace {
   y: number;
   z: number;
   sRender: number;
-  /** Its shadow's place; null for a picture that casts none (a fixed object's). */
+  /** Its shadow's place; null for a picture that casts none. */
   shadow: SpriteShadowPlace | null;
 }
 
@@ -44,7 +46,8 @@ export function compileCourseSprite(
 ): CourseSprite {
   const position = guide.coordinates.toWorld(source.s, source.l, createPlanCoordinateSample());
   const y = height.sample(source.s) + (source.groundOffset ?? 0);
-  const place = { name: source.name, x: position.x, y, z: position.z, sRender: position.s, shadow: null };
+  // A fixed object casts its shadow frame at its picture's own place and size.
+  const place = { name: source.name, x: position.x, y, z: position.z, sRender: position.s, shadow: { y } };
   return { ...place, asset: source.asset };
 }
 
