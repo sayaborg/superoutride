@@ -261,9 +261,10 @@ HANG-ON's 500 (the word at 0x8850, which 0x812C reads) and ENDURO RACER's 512 (0
 band tables' limits. TURBO OUTRUN's program is encrypted: its limit is to be read from the program decrypted locally
 (K, 2026-10-20), and until then its ground reaches as far beyond the outermost lane's edge as the farthest of its
 objects shown on the ground does (`groundWidth`: its picture's outer edge, its base point and half its width). The
-course limits lie on the ground's edge, and a vehicle's body meets them, so its centre stops half its width inside the
-original's limit. While its roads part (0x260310 = 4, from where the width passes 255 to where it passes 768), OUTRUN's
-program holds the car within 320 of its road's centre; the ground keeps 500 there until K decides. The ground reaches from a Section's outermost lanes,
+course limits lie on the ground's edge, the original's line, and a vehicle's body meets them, so its centre stops half
+its width inside the original's limit (K, 2026-10-25). While its roads part (0x260310 = 4, from where the width passes
+255 to where it passes 768), OUTRUN's program holds the car within 320 of its road's centre; the ground keeps 500 there
+too, and 320 is not used (K, 2026-10-25). The ground reaches from a Section's outermost lanes,
 zero-wide ones counted, so its edge moves with them and jumps only at a Link; a road's material lies within it, and a
 road beyond it (OUTRUN's road not taken) is its colors alone. The course format ends the ground where the plan stops
 being one-to-one ([Architecture](architecture.md#plan-authority)). The ROMs hold no material: each original's ground
