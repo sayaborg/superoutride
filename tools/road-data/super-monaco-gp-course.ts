@@ -15,7 +15,7 @@ import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
 import { pointPlan, onElement } from './point-plan.js';
-import { writtenPlan, type WrittenElement } from './section-writing.js';
+import { laneCentre, writtenPlan, type WrittenElement } from './section-writing.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,
@@ -826,7 +826,7 @@ function sectionDocument(input: {
       kind: 'start',
       grid: Array.from({ length: GRID.slots }, (_, slot) => ({
         at: at(stationOf(input.lap(GRID.first - GRID.spacing * slot))),
-        lane: slot % 2 ? 'b' : 'a',
+        lateral: laneCentre(slot % 2 ? 'b' : 'a'),
       })),
       bikeGrid: null,
     });

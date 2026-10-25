@@ -43,7 +43,15 @@ import {
 import { tableRuns } from './hills.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
-import { JOINT_SNAP, passagePairs, raisedSplit, repeated, simplified, writtenPlan } from './section-writing.js';
+import {
+  JOINT_SNAP,
+  laneCentre,
+  passagePairs,
+  raisedSplit,
+  repeated,
+  simplified,
+  writtenPlan,
+} from './section-writing.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -999,7 +1007,7 @@ function sectionDocument(
       grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
         // The last slot at GO, the camera's distance on from the road's entry.
         at: atStation(round(section.options.cameraDistance + (GRID_SLOTS - 1 - i) * GRID_SPACING)),
-        lane: gridLanes[(GRID_SLOTS - 1 - i) % 2]!,
+        lateral: laneCentre(gridLanes[(GRID_SLOTS - 1 - i) % 2]!),
       })),
       bikeGrid: null,
     });

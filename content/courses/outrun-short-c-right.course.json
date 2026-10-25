@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 57,
+  "version": 58,
   "name": "OUTRUN SHORT C RIGHT",
   "entry": "cloudy-mountain-start",
   "maxLaps": 1,
@@ -1015,67 +1015,67 @@
           "grid": [
             {
               "at": { "joint": "c3", "offset": -28.279672 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -40.279672 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -52.279672 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -64.279672 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -76.279672 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -88.279672 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c3", "offset": -100.279672 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 93.997311 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 81.997311 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 69.997311 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 57.997311 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 45.997311 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 33.997311 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 21.997311 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s2", "offset": 9.997311 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 0 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": null

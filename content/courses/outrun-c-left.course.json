@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 57,
+  "version": 58,
   "name": "OUTRUN C LEFT",
   "entry": "coconut-beach",
   "maxLaps": 1,
@@ -30495,67 +30495,67 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": -140.430265 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -152.430265 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 162 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 150 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 138 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 126 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 114 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 102 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 90 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 78 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 66 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 54 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 42 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 30 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 18 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 6 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": null

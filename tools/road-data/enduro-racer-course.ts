@@ -24,7 +24,7 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, scaleTag, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, laneCentre, repeated, scaleTag, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -650,11 +650,11 @@ function sectionDocument(
       kind: 'start',
       grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
         at: at(context.grid + (GRID_SLOTS - 1 - i) * CAR_SPACING),
-        lane: (GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a',
+        lateral: laneCentre((GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a'),
       })),
       bikeGrid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
         at: at(context.grid + (GRID_SLOTS - 1 - i) * BIKE_SPACING),
-        lane: (GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a',
+        lateral: laneCentre((GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a'),
       })),
     });
   for (const c of context.checkpoints) if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.s) });

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 57,
+  "version": 58,
   "name": "ASIA",
   "entry": "asia-1",
   "maxLaps": 1,
@@ -2553,133 +2553,133 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": 180 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 168 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 156 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 144 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 132 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 120 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 108 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 96 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 84 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 72 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 60 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 48 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 36 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 24 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 12 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 0 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": [
             {
               "at": { "joint": "c1", "offset": 45 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 42 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 39 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 36 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 33 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 30 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 27 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 24 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 21 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 18 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 15 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 12 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 9 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 6 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 3 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 0 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             }
           ]
         },

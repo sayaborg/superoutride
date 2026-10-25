@@ -3,12 +3,13 @@ import type { CourseDocument, CourseGridSlotDocument, CourseLandmarkDocument } f
 import { requireCourse } from '../course-diagnostics.js';
 import { resolveCoursePosition, type CompiledCoursePosition, type CourseJoints } from '../course-geometry.js';
 import { courseBoundaryAt } from '../course-boundaries.js';
-import { courseLane, courseRoadsAt } from '../course-lanes.js';
+import { courseRoadsAt } from '../course-lanes.js';
+import { resolveCourseLateral } from './course-lateral.js';
 import { stripSupportsInterval } from '../strip-material.js';
 import { RUN_RULE_LIMITS } from '../run-rules.js';
 import type { CompiledSection } from './course-graph.js';
 
-/** A grid slot: its Position in the entry Section and its lateral, the lane's centre there. */
+/** A grid slot: its Position in the entry Section and its resolved lateral. */
 export interface CompiledGridSlot {
   readonly at: CompiledCoursePosition;
   readonly l: number;
@@ -137,6 +138,7 @@ export function compileCourseGates(
     first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(entry),
     entry.fork?.lock.s ?? Infinity,
   );
+  const lines = { boundaries: new Map(entry.boundaries.map((b) => [b.id, b])), lanes: entry.lanes };
   // Grid order runs from the front of the grid to its back.
   const compileGrid = (slots: readonly CourseGridSlotDocument[], path: string) => {
     check(slots.length > 0, path, 'Grid must contain the player');
@@ -151,14 +153,7 @@ export function compileCourseGates(
         );
         check(position.s <= front, `${path}/${i}`, 'Grid slots must be ordered from front to back');
         front = position.s;
-        const lane = courseLane(entry.lanes, slot.lane);
-        requireCourse(lane !== undefined, `${path}/${i}/lane`, 'Unknown lane', 'unresolved_reference');
-        check(
-          courseBoundaryAt(lane.width, position.s) > 0,
-          `${path}/${i}/lane`,
-          'A grid slot lies in a lane wider than zero',
-        );
-        const l = courseBoundaryAt(lane.center, position.s);
+        const l = resolveCourseLateral(slot.lateral, position.s, lines, `${path}/${i}/lateral`);
         check(surface.sample(position.s, l) !== null, `${path}/${i}`, 'Grid must be supported');
         return Object.freeze({ at: position, l });
       }),

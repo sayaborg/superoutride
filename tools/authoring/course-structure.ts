@@ -27,7 +27,6 @@ import type { ProfileReader } from '../../src/course/geometry/profile.js';
 import { compileCoursePhysicalContent } from '../../src/course/compiler/course-physical-content.js';
 import { compileCourseLanes } from '../../src/course/compiler/course-lanes.js';
 import {
-  courseLane,
   courseRoadsAt,
   type CompiledLane,
   type CompiledLanes,
@@ -681,23 +680,13 @@ function readSection(
     const v = record(gate);
     if (v.kind === 'start')
       for (const grid of ['grid', 'bikeGrid'] as const)
-        list(v[grid]).forEach((slot, k) => {
-          // A slot lies at its lane's centre.
-          const sv = record(slot);
-          const lane = courseLane(lanes, String(sv.lane));
-          let station: { s: number; l: number } | undefined;
-          try {
-            const s = resolve(sv.at as unknown as CoursePosition, `${at}/${grid}/${k}/at`).s;
-            if (lane) station = { s, l: courseBoundaryAt(lane.center, s) };
-          } catch {
-            // The Position's problem is read with it below.
-          }
-          add('grid-slot', `${at}/${grid}/${k}`, sv, {
+        list(v[grid]).forEach((slot, k) =>
+          add('grid-slot', `${at}/${grid}/${k}`, record(slot), {
             positions: ['at'],
-            values: { grid, slot: k, lane: sv.lane },
-            ...(station ? { station } : {}),
-          });
-        });
+            laterals: ['lateral'],
+            values: { grid, slot: k },
+          }),
+        );
     else add('gate', at, v, { positions: ['at'], values: { kind: v.kind, id: v.id } });
   });
   // Lanes and medians: each lane's edges and centre and each median's edges, derived; their written widths (a list's

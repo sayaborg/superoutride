@@ -185,6 +185,14 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
+- The grid's arrangement by K's rule (2026-10-25), written once in Original road data: the player's slot where the
+  original's vehicle stands at GO (OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's
+  P); the original's rivals' positions as they are, on the grid of their vehicle kind (SUPER HANG-ON's 7 a course,
+  ENDURO RACER's 5, TURBO OUTRUN's 959 beside the player at GO, SUPER MONACO GP's 24 at ±256); the rest forward of
+  the original's frontmost, 12 m apart for cars and 3 m for bikes, alternating from the player's slot between the
+  left and right of lanes a and b. K is asked first if a position lies behind the player, makes bodies overlap or
+  leave the course limits. Split by original if large; SUPER HANG-ON's and ENDURO RACER's reference runs measured
+  again.
 - FMT-1: `curb` deleted from the course format (its reader, compiling, authoring and workbench fields, its limits and
   documents), stripes written by a Strip's `repeat` (K, 2026-10-25), and the limits' `heightNodes` named after the
   field it bounds, `profile`. TSUKUBA's and SUPER MONACO GP's kerbs are written
@@ -659,7 +667,6 @@ and switching is a cut.
 | References       | Exact editions/layout evidence, tolerances and remaster departures                                                                                                                                                                                                                                                                                                                       |
 | Series values    | Rank limits, ahead distances, pace ratios, laps, grid spacing, colors and margins per class (Stage 16 playtests)                                                                                                                                                                                                                                                                         |
 | Series values    | TSUKUBA CLUBMAN's pace ratios (1.02 at the pole to 0.88), margin 1.35 and 5 laps on real devices; a rival reaches its 95% ceiling at about 1.02, so the pole has no room above it                                                                                                                                                                                                        |
-| Grids            | Whether grid slots take a free lateral: TSUKUBA's bike slots stand at lane centres, about 5.7 m apart, wider than the real grid's about 4 m                                                                                                                                                                                                                                              |
 | Rivals           | Whether one-make rivals' pace ratios are shuffled each run (today each slot keeps its own)                                                                                                                                                                                                                                                                                               |
 | Series content   | CISCO HEAT course type; COOL RIDERS connections, rivals and traffic; FINAL LAP layout and cars                                                                                                                                                                                                                                                                                           |
 | Series content   | WEC LE MANS 24 layout and field; BIG RUN vehicles and field; RALLY STAGE title and course set                                                                                                                                                                                                                                                                                            |

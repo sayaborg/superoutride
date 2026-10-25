@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 57,
+  "version": 58,
   "name": "TSUKUBA",
   "entry": "sector-1",
   "maxLaps": 30,
@@ -2542,141 +2542,141 @@
           "grid": [
             {
               "at": { "joint": "t1-entry", "offset": -58.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -66.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -74.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -82.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -90.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 88 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 80 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 72 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 64 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 56 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 48 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 40 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 32 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 24 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 16 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 8 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": [
             {
               "at": { "joint": "t1-entry", "offset": -58.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -61.47 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -64.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -67.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -70.47 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -73.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -76.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -79.47 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -82.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -85.47 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -88.47 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "t1-entry", "offset": -91.47 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 92 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 89 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 86 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 83 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 80 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "home-a", "offset": 77 },
-              "lane": "c"
+              "lateral": { "lane": "c", "side": "center", "offset": 0 }
             }
           ]
         },

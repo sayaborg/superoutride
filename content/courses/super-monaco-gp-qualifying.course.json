@@ -1,6 +1,6 @@
 {
   "format": "superoutride.course",
-  "version": 57,
+  "version": 58,
   "name": "MONACO QUALIFYING",
   "entry": "sector-1a",
   "maxLaps": 30,
@@ -15915,99 +15915,99 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": 9.306666342 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 4.839466342 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 0.372266342 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -4.091055658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -8.558255658 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -13.025455658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -17.492655658 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -21.959855658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -26.423177658 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -30.890377658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -35.357577658 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -39.824778658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -44.291978658 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -48.755300658 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 44.664245 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 40.197045 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 35.729845 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 31.262645 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 26.799322 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 22.332123 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 17.864923 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 13.397723 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 8.930523 },
-              "lane": "a"
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c0", "offset": 4.4672 },
-              "lane": "b"
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             }
           ],
           "bikeGrid": null

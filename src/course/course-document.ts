@@ -15,7 +15,7 @@ import {
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 
-export const COURSE_DOCUMENT_VERSION = 57;
+export const COURSE_DOCUMENT_VERSION = 58;
 const ID = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
 
 /** A station: `offset` metres (negative before) from a joint, the start of the plan element `joint` or `"end"`. */
@@ -213,13 +213,13 @@ export interface CourseLandmarkDocument {
 
 export interface CourseGridSlotDocument {
   readonly at: CoursePosition;
-  readonly lane: string;
+  readonly lateral: Lateral;
 }
 
 export type CourseGateDocument =
   | CourseLandmarkDocument
   /**
-   * The grids: each slot a lane at a Position, its lateral the lane's centre. `grid` serves every run; `bikeGrid`,
+   * The grids: each slot a Position and a lateral, as a sprite's. `grid` serves every run; `bikeGrid`,
    * when not null, serves the runs whose competitors all ride bikes.
    */
   | {
@@ -707,8 +707,8 @@ function gate(value: unknown, path: string): CourseGateDocument {
         slots,
         at,
         (item, at) => {
-          const slot = readRecord(item, at, ['at', 'lane']);
-          return Object.freeze({ at: position(slot.at, `${at}/at`), lane: readString(slot.lane, `${at}/lane`, ID) });
+          const slot = readRecord(item, at, ['at', 'lateral']);
+          return Object.freeze({ at: position(slot.at, `${at}/at`), lateral: lateral(slot.lateral, `${at}/lateral`) });
         },
         { max: COURSE_DOCUMENT_LIMITS.startGridSlots },
       );

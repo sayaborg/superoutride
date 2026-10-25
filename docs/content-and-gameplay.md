@@ -100,9 +100,9 @@ supported material, one continuous supported span covering it through each cell 
 Section-local Boundary ID and a signed metre offset (positive right), or `{lane, side, offset}`: lane `lane`'s
 `left` edge, `center` or `right` edge plus a signed offset. A reference to a lane where its width is 0 reads the line
 where its neighbours touch. The field is named
-`lateral` on Boundary knots and sprites; a grid slot names a lane instead ([Section
-gates](#section-gates-and-run-settings)). Numeric values and offsets lie in `[-1000,1000]`, and every resolved l must
-also lie in that range. Strip edges use the same Lateral values in `left` and `right`.
+`lateral` on Boundary knots, sprites and grid slots ([Section gates](#section-gates-and-run-settings)). Numeric values
+and offsets lie in `[-1000,1000]`, and every resolved l must also lie in that range. Strip edges use the same Lateral
+values in `left` and `right`.
 
 A point placement evaluates a numeric Lateral directly, or the referenced Boundary at its s
 plus offset, or the referenced lane line. The Boundary must cover that station, including each repeated sprite. References may name any Boundary in the same
@@ -321,8 +321,8 @@ and height while flying, and once landed the Section and Section coordinates it 
 
 ### Section gates and run settings
 
-Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position; a grid slot's
-`lane` names a lane of the entry Section, and the slot lies at that lane's centre. Only checkpoint and finish gates have IDs, and
+Section `gates` is an array with these records. Every `at` uses the enclosing Section's Position, and a grid slot's
+`lateral` the entry Section's lines. Only checkpoint and finish gates have IDs, and
 those IDs are unique across the whole course, including across the two kinds. They are stable keys
 for author-confirmed time limits. Array order supplies checkpoint order within each Section.
 
@@ -335,14 +335,14 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 | `parting`    | `at`, `side`        | Increasing Section positions from zero through its end                                                            |
 
-A start gate has two grids, each a list of slots `{at, lane}`: `grid` serves every run, and `bikeGrid`, when it
+A start gate has two grids, each a list of slots `{at, lateral}`: `grid` serves every run, and `bikeGrid`, when it
 is not null, serves a run whose competitors all ride bikes, in place of `grid`; a run with a car starts from
 `grid`. Which one a run starts from thus depends only on its field's vehicles, in every mode (`courseStartGrid`).
 Slots are listed in grid order, from the front of the grid to its back: their route s never increases along the list.
 A grid may hold more slots than a run's sixteen competitors (`startGridSlots`, 32); a run uses only its first
 sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. A run's field takes the
 rearmost of the slots it uses: the rivals in order, then the player in its last slot. Each slot of either grid must be
-in a lane wider than zero there, on supported material, at/after entry and before the first checkpoint, finish or lock
+on supported material, at/after entry and before the first checkpoint, finish or lock
 gate; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.

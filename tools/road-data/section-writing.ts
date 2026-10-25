@@ -23,6 +23,9 @@ export const JOINT_SNAP = 2e-6;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 
+/** A lateral at a lane's centre, where each grid slot the conversions write stands. */
+export const laneCentre = (lane: string) => ({ lane, side: 'center' as const, offset: 0 });
+
 /**
  * A temporary DEV course's tag on its id and its pictures' names: the scale's candidate lane in millimetres (NEXT's
  * Stage EX, until K decides the scale); none for the courses as they are.
