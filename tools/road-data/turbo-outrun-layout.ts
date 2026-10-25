@@ -13,8 +13,8 @@ import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { passagePairs, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
-import { bendOf, closedGrades, LOOK, profileOf, separatedCrossings, stageGrades, type Change } from './road-profile.js';
-import { crossingsOf, roadCells } from './crossings.js';
+import { bendOf, closedGrades, LOOK, profileOf, stageGrades, type Change } from './road-profile.js';
+import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { moundKinks, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
 import { centreLaneAt, drivenLanes, LANE_RULE_WIDTHS, ROAD_HALF } from './turbo-outrun-cross-section.js';
@@ -267,9 +267,9 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     inputs.humps.map((j) => station(course[j.stage]!.start + j.position)),
     inputs.hump,
   );
-  const separated = separatedCrossings(changes, crossings, end, mounds.kinks);
+  const parted = partedCrossings(changes, crossings, end, mounds.kinks);
   const profile = profileOf(
-    separated.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
+    parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf),
     cuts.map(station),
     mounds.kinks,
   );
@@ -295,15 +295,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     pose: (g: number) => line.pose(metres(g)),
     profile,
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
-    crossings: crossings.map((crossing, k) => {
-      const moves = separated.separations.filter((m) => m.crossing === k);
-      return {
-        passages: crossing.passages,
-        levels: moves[0]?.levels ?? null,
-        moves: moves.length,
-        heights: crossing.passages.map((p) => profile.height((p.from + p.to) / 2)),
-      };
-    }),
+    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    rampRadius: parted.radius,
   };
 }
 

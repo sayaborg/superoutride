@@ -11,8 +11,8 @@ import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
 import { jumpMound, moundKinks, type Mound } from './jump-mound.js';
-import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
-import { crossingsOf, roadCells } from './crossings.js';
+import { bendOf, profileOf, sectionProfile } from './road-profile.js';
+import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
 import {
@@ -51,7 +51,7 @@ import { enduroRacerBoards, jumpPicture, PIXEL_UNITS } from './enduro-racer-boar
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 17;
+export const ENDURO_RACER_CONVERSION_VERSION = 18;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -456,11 +456,11 @@ function layCourse(inputs: CourseInputs) {
   const crossings = crossingsOf(cells.pairs, metres);
   const mounds = moundKinks(inputs.jumps.map(stationOf), inputs.mound);
   const kinks = mounds.kinks;
-  const separated = separatedCrossings([], crossings, end, kinks);
+  const parted = partedCrossings([], crossings, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1), kinks);
+  const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1), kinks);
 
   // The stripes' bands: band `band` (0 A, 1 B) over position q where ⌊q / 2⌋ + FIRST_BAND is odd for B.
   const bands = { path, metres, entry: inputs.entry };
@@ -528,17 +528,8 @@ function layCourse(inputs: CourseInputs) {
     ground: inputs.limit - inputs.lane,
     dropped,
     passedThrough,
-    crossings: crossings.map((crossing, k) => {
-      const moves = separated.separations.filter((m) => m.crossing === k);
-      return {
-        passages: crossing.passages,
-        levels: moves[0]?.levels ?? null,
-        flat: moves[0]?.flat ?? null,
-        half: moves[0]?.half ?? null,
-        moves: moves.length,
-        heights: crossing.passages.map((p) => profile.height((p.from + p.to) / 2)),
-      };
-    }),
+    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    rampRadius: parted.radius,
   };
 }
 

@@ -188,9 +188,9 @@ level; it becomes the profile by the [profile from a rise table](original-road-d
   table](original-road-data.md#plan-from-a-heading-table)); the profile's grade lies within it of the table's at every
   position.
 
-AFRICA, ASIA, AMERICA and EUROPE become 445, 1097, 1368 and 1636 runs, their heights from −36.1 to +68.1 m, −70.0 to
-+161.0 m, −9.6 to +245.8 m and −65.4 to +273.2 m, the steepest grade 25.5 % (ASIA's 26.7 %, a crossing's bump on a
-hill).
+AFRICA, ASIA, AMERICA and EUROPE become 445, 1097, 1368 and 1636 runs, their heights with the crossings' ramps from
+−36.5 to +68.1 m, −49.2 to +118.9 m, −9.6 to +245.8 m and −65.4 to +273.2 m, the steepest grade 25.5 % (ASIA's
+25.6 %, a crossing's ramp on a hill).
 
 ## Placing SUPER HANG-ON's scenery
 
@@ -214,7 +214,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 14, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 15, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -272,5 +272,5 @@ crossings:
   last section's. At heading 0 the original's back layer's pixel 1370 of 1536 is at the screen's middle, here 1370 ×
   1504 / 1536 of the sky's 1504: a Section's yaw origin is 77.0° plus the road's turn from the course's start to its
   start.
-- **Profile.** The [hills](#super-hang-ons-profile) with the crossings' bumps ([Profile](original-road-data.md#profile)),
+- **Profile.** The [hills](#super-hang-ons-profile) with the crossings' ramps ([Profile](original-road-data.md#profile)),
   its bends broken at the Sections' cuts.

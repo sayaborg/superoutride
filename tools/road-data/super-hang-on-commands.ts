@@ -10,6 +10,7 @@ import { courseId, superHangOnCourses, SUPER_HANG_ON_CONVERSION_VERSION } from '
 import { scaleTag } from './section-writing.js';
 
 import {
+  crossingReport,
   dumpDirectory,
   fidelityReport,
   oneZip,
@@ -74,14 +75,8 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
             steepest: round3(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s))))),
           };
         })(),
-        crossings: road.crossings.map((c) => ({
-          passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-          levels: c.levels,
-          flat: c.flat,
-          half: c.half,
-          moves: c.moves,
-          heights: c.heights.map(round1),
-        })),
+        crossings: road.crossings.map((c) => crossingReport(c, road.profile.height)),
+        rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });
     }
     for (const { image } of built.pictures) {

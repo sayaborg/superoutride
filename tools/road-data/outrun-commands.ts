@@ -49,6 +49,7 @@ import {
 import { pathOffset, pathTurn, readHeightTable, type HeightTable } from './road-tables.js';
 
 import {
+  crossingReport,
   dumpDirectory,
   fidelityReport,
   ORIGINALS_DIRECTORY,
@@ -300,12 +301,8 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           round1(Math.max(...stations.map(road.profile.height))),
         ],
         steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
-        crossings: road.crossings.map((c) => ({
-          passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-          apart: round1(
-            Math.min(...c.pairs.map(([a, b]) => Math.abs(road.profile.height(a) - road.profile.height(b)))),
-          ),
-        })),
+        crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
+        rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });
     }
     // Each stage's sky, baked from its background.
@@ -358,7 +355,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
           ...(goal === null ? {} : { goal: { stretch: goals.stretches[goal]!, path: goals.path, number: goal } }),
         });
         const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
-        const { end, profile, crossings } = roadProfile(laid, { tables, kmh: TOP_KMH });
+        const { end, profile, crossings, partings } = roadProfile(laid, { tables, kmh: TOP_KMH });
         const stationOf = (p: number) => roadStation(laid[0]!, p);
         const course = { stage: number };
         const positions = Array.from({ length }, (_, p) => p);
@@ -379,10 +376,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             round1(Math.max(...stations.map(profile.height))),
           ],
           steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
-          crossings: crossings.map((c) => ({
-            passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-            apart: round1(Math.min(...c.pairs.map(([a, b]) => Math.abs(profile.height(a) - profile.height(b))))),
-          })),
+          crossings: crossings.map((c, k) => crossingReport({ ...c, ...partings[k]! }, profile.height)),
           tables: runs.map((run) => {
             const from = Math.max(0, Math.floor(run.start - ahead)),
               to = Math.min(length, Math.ceil(run.end));

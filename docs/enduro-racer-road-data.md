@@ -138,7 +138,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 17, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 18, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -213,7 +213,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   one `cut` (the original's column-by-column change is not made). At a stage's start heading, every stage's the same,
   the original's road vanishes at its back layer's pixel 1281.5 of 1536, here 1281.5 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 97.69° plus the road's turn from the course's start to its start.
-- **Profile.** Level but for the jumps' mounds and the crossings' bumps ([Profile](original-road-data.md#profile)).
+- **Profile.** Level but for the jumps' mounds and the crossings' ramps ([Profile](original-road-data.md#profile)).
   Each of the 69 jumps is a mound across the road at the jump's position ([Jumps and
   humps](original-road-data.md#profile)), 49.778 m either side of it: the farthest rock beyond a jump, an object on
   the road with the hit mark within the original's flight, is 42 positions past jump 51. The program throws the bike
@@ -226,10 +226,11 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   join in 14 runs, the longest 324.7 m. Its picture's color, its halves' pixels' average in its kind's palette but
   the shadow's, covers the road from its left half's left edge to its right half's right edge over the program's
   ground under it, 1.758 positions (2.083 m) either side of its position. The crossings: passages at
-  least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart with the mounds. 30 crossings, 62
+  least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The crossings' heights run from −17.0 to +17.0 m; the steepest grade is 24.4 %.
+  2720–2774) among them. The crossings' heights run from −6.4 to +8.4 m, the ramps' least radius 310 m; the steepest
+  grade is 22.8 %.
 
 ## ENDURO RACER's objects
 

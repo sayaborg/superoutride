@@ -19,6 +19,7 @@ import { candidateTag } from './section-writing.js';
 import { pathTurn } from './road-tables.js';
 
 import {
+  crossingReport,
   dumpDirectory,
   fidelityReport,
   oneZip,
@@ -174,12 +175,8 @@ export const TURBO_OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         ...fidelityReport(layout.plan.fidelity),
         planElements: built.document.sections.reduce((n, s) => n + s.plan.length, 0),
         tightest: { at: round1(tightest.from), radius: round1(radius(tightest)) },
-        crossings: layout.crossings.map((c) => ({
-          passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-          levels: c.levels,
-          moves: c.moves,
-          heights: c.heights.map(round1),
-        })),
+        crossings: layout.crossings.map((c) => crossingReport(c, layout.profile.height)),
+        rampRadius: layout.rampRadius === null ? null : Math.round(layout.rampRadius),
         objects: built.placing,
         hump: Object.fromEntries(Object.entries(built.hump).map(([k, v]) => [k, round3(v)])),
         ground: built.beyond,

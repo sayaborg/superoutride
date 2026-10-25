@@ -1,9 +1,9 @@
 /**
  * Where a road passes over itself ([Original road data](../../docs/original-road-data.md#profile)): its cells, which
- * of them overlap and what stands on another passage, whether two convex polygons overlap, and its overlapping pairs of
- * stations gathered into crossings, each the passages that overlaps join.
+ * of them overlap and what stands on another passage, whether two convex polygons overlap, its overlapping pairs of
+ * stations gathered into crossings, each the passages that overlaps join, and the crossings parted by the least change.
  */
-import type { Crossing, Passage } from './road-profile.js';
+import { bendOf, profileOf, type Change, type Kink } from './road-profile.js';
 
 /** Passages at least this far apart along a road may cross, metres. */
 const PASSAGES_APART = 200;
@@ -11,6 +11,25 @@ const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
 /** The side of the squares a road's cells are found by, metres. */
 const SQUARE = 50;
+/** The height two overlapping passages are kept apart, metres (K, 2026-10-26). */
+const CLEARANCE = 3;
+/** K's grade limit: no ramp that parts the crossings is steeper. */
+const GRADE_LIMIT = 0.25;
+
+/** A stretch of road stations where a road passes over or under itself: its first and last overlapping stations. */
+export interface Passage {
+  readonly from: number;
+  readonly to: number;
+}
+
+/**
+ * Where a plan passes over itself: its passages, apart and in running order, and the pairs of their stations whose
+ * roads overlap, each pair's earlier station first.
+ */
+export interface Crossing {
+  readonly passages: readonly Passage[];
+  readonly pairs: readonly (readonly [number, number])[];
+}
 
 /**
  * The crossings of overlapping pairs of stations `pairs`, each earlier then later, of cells `step` metres long: a
@@ -122,4 +141,179 @@ export function roadCells(
       );
     },
   };
+}
+
+/** How a crossing was parted: each passage's rise, and its passages' least height apart after, metres. */
+export interface Parting {
+  readonly rises: readonly number[];
+  readonly apart: number;
+}
+
+/** That passage node `to` rises at least `least` metres more than node `from`. */
+interface Order {
+  readonly from: number;
+  readonly to: number;
+  readonly least: number;
+}
+
+/**
+ * A stretch of road from node `from` to node `to`: a change Δ of their rises curves it by Δ over `scale`, and the
+ * grade limit holds Δ within `[least, most]`.
+ */
+interface Stretch {
+  readonly from: number;
+  readonly to: number;
+  readonly scale: number;
+  readonly least: number;
+  readonly most: number;
+}
+
+/**
+ * The rises of nodes 1 to `n` (node 0 the road's ends, held at 0) that keep `orders` with the least largest curvature
+ * over `stretches`, then the largest of the stretches left, and so on. Each round finds the cycle of stretches and
+ * orders needing the largest curvature (Dinkelbach's iteration over Bellman and Ford's negative cycles) and fixes its
+ * stretches there, as every least change holds them; the stretches no cycle needs stay level.
+ */
+function leastRises(n: number, stretches: readonly Stretch[], orders: readonly Order[]): number[] {
+  const fixed: (number | null)[] = stretches.map((t) => (t.scale > 0 ? null : 0));
+  // A rise x[v] ≤ x[u] + weight(curvature) for each edge u → v; a stretch's within its grade limit.
+  const edges = [
+    ...stretches.flatMap((t, k) => [
+      { u: t.from, v: t.to, stretch: k, sign: 1, cap: t.most },
+      { u: t.to, v: t.from, stretch: k, sign: -1, cap: -t.least },
+    ]),
+    ...orders.map((o) => ({ u: o.to, v: o.from, stretch: -1, sign: 0, cap: -o.least })),
+  ];
+  type Edge = (typeof edges)[number];
+  const free = (e: Edge) => e.stretch >= 0 && fixed[e.stretch] === null;
+  const weight = (e: Edge, curvature: number) =>
+    e.stretch < 0
+      ? e.cap
+      : free(e)
+        ? Math.min(curvature * stretches[e.stretch]!.scale, e.cap)
+        : e.sign * fixed[e.stretch]!;
+  const negativeCycle = (curvature: number) => {
+    const distance = new Array<number>(n + 1).fill(0);
+    const before = new Array<number>(n + 1).fill(-1);
+    let last = -1;
+    for (let i = 0; i <= n; i++) {
+      last = -1;
+      edges.forEach((e, k) => {
+        const w = weight(e, curvature);
+        if (distance[e.u]! + w < distance[e.v]! - 1e-9) {
+          distance[e.v] = distance[e.u]! + w;
+          before[e.v] = k;
+          last = e.v;
+        }
+      });
+      if (last < 0) return null;
+    }
+    let v = last;
+    for (let i = 0; i <= n; i++) v = edges[before[v]!]!.u;
+    const cycle: Edge[] = [];
+    for (let u = v; ;) {
+      const e = edges[before[u]!]!;
+      cycle.push(e);
+      u = e.u;
+      if (u === v) break;
+    }
+    return cycle;
+  };
+  // The least curvature at which `cycle` is not negative: its weight, rising with the curvature, reaches 0.
+  const root = (cycle: readonly Edge[]) => {
+    let known = cycle.filter((e) => !free(e)).reduce((sum, e) => sum + weight(e, 0), 0);
+    const variable = cycle
+      .filter(free)
+      .map((e) => ({ scale: stretches[e.stretch]!.scale, cap: e.cap }))
+      .sort((a, b) => a.cap / a.scale - b.cap / b.scale);
+    let scale = variable.reduce((sum, e) => sum + e.scale, 0);
+    for (const e of variable) {
+      const curvature = -known / scale;
+      if (curvature <= e.cap / e.scale) return curvature;
+      known += e.cap;
+      scale -= e.scale;
+    }
+    if (known < -1e-9) throw new Error('Crossings the road cannot part within the grade limit');
+    return Infinity;
+  };
+  for (;;) {
+    let curvature = 0;
+    let critical: Edge[] | null = null;
+    for (let cycle = negativeCycle(curvature); cycle; cycle = negativeCycle(curvature)) {
+      const next = root(cycle);
+      if (!(next > curvature)) break;
+      [curvature, critical] = [next, cycle];
+    }
+    if (!critical) break;
+    for (const e of critical) if (free(e)) fixed[e.stretch] = e.sign * weight(e, curvature);
+  }
+  const rises = new Array<number>(n + 1).fill(0);
+  stretches.forEach((t, k) => {
+    if (t.to !== 0) rises[t.to] = rises[t.from]! + (fixed[k] ?? 0);
+    else if (Math.abs(rises[t.from]! + (fixed[k] ?? 0)) > 1e-9) throw new Error("The crossings' rises do not close");
+  });
+  return rises;
+}
+
+/**
+ * `crossings`, on the road `changes` and `kinks` make, its stations `[0, end]`, parted by the least change
+ * ([Original road data](../../docs/original-road-data.md#profile), Crossings): each passage moves as one by its rise,
+ * and the road between two passages along it, or a passage and the road's end (whose height stays), ramps from the
+ * one's rise to the other's, two vertical curves of one radius. Of two overlapping passages the higher over their pairs
+ * is over (the later where level), rising by what `CLEARANCE` lacks at their nearest pair more than the lower; no ramp
+ * is steeper than `GRADE_LIMIT`; the rises are the least by `leastRises`. The changes with the ramps', each
+ * crossing's parting and the ramps' least radius.
+ */
+export function partedCrossings(
+  changes: readonly Change[],
+  crossings: readonly Crossing[],
+  end: number,
+  kinks: readonly Kink[] = [],
+) {
+  const before = profileOf(changes.map(bendOf), [], kinks);
+  // Node 0 is the road's ends, node k + 1 the k-th passage along the road.
+  const all = crossings.flatMap((c) => c.passages).sort((a, b) => a.from - b.from);
+  const node = (p: Passage) => all.indexOf(p) + 1;
+  // The ramps between them: a ramp changing the rise by Δ over L is steepest at its middle, 2Δ / L.
+  const ramps = [...all, null].map((p, k): Stretch & { start: number; length: number } => {
+    const [start, stop] = [k > 0 ? all[k - 1]!.to : 0, p ? p.from : end];
+    const length = stop - start;
+    const most = (GRADE_LIMIT * length) / 2;
+    return { from: k, to: p ? k + 1 : 0, scale: (length * length) / 4, least: -most, most, start, length };
+  });
+  const orders = crossings.flatMap(({ passages, pairs }) => {
+    const passageOf = (s: number) => passages.find((p) => s >= p.from && s <= p.to)!;
+    const differences = new Map<Passage, Map<Passage, number[]>>();
+    for (const [a, b] of pairs) {
+      const [earlier, later] = [passageOf(a), passageOf(b)];
+      const byLater = differences.get(earlier) ?? new Map<Passage, number[]>();
+      byLater.set(later, [...(byLater.get(later) ?? []), before.height(b) - before.height(a)]);
+      differences.set(earlier, byLater);
+    }
+    return [...differences].flatMap(([earlier, byLater]) =>
+      [...byLater].map(([later, d]): Order =>
+        d.reduce((sum, x) => sum + x, 0) >= 0
+          ? { from: node(earlier), to: node(later), least: CLEARANCE - Math.min(...d) }
+          : { from: node(later), to: node(earlier), least: CLEARANCE + Math.max(...d) },
+      ),
+    );
+  });
+  const rises = leastRises(all.length, ramps, orders);
+  const added = ramps.flatMap((r) => {
+    const change = rises[r.to]! - rises[r.from]!;
+    if (change === 0) return [];
+    const middle = r.start + r.length / 2;
+    return [
+      { from: r.start, to: middle, change: (2 * change) / r.length },
+      { from: middle, to: r.start + r.length, change: (-2 * change) / r.length },
+    ];
+  });
+  const out = [...changes, ...added];
+  const after = profileOf(out.map(bendOf), [], kinks);
+  const partings = crossings.map((c): Parting => ({
+    rises: c.passages.map((p) => rises[node(p)]!),
+    apart: Math.min(...c.pairs.map(([a, b]) => Math.abs(after.height(a) - after.height(b)))),
+  }));
+  const curvatures = ramps.map((r) => Math.abs(rises[r.to]! - rises[r.from]!) / r.scale).filter((k) => k > 0);
+  return { changes: out, partings, radius: curvatures.length ? 1 / Math.max(...curvatures) : null };
 }

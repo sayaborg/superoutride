@@ -13,6 +13,7 @@ import { normalizeCoursePositions } from '../authoring/course-joints.js';
 import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
+import type { Parting, Passage } from './crossings.js';
 
 /** A command's options, `--name value` or a flag. */
 export type RoadDataOptions = ReadonlyMap<string, string>;
@@ -30,6 +31,20 @@ export const ORIGINALS_DIRECTORY = 'reference-media/originals';
 /** A value rounded to tenths, and to thousandths. */
 export const round1 = (value: number) => Math.round(value * 10) / 10;
 export const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
+/**
+ * A parted crossing's report: its passages, each one's rise and height at its middle (by `height`), and their least
+ * height apart, metres.
+ */
+export const crossingReport = (
+  crossing: { readonly passages: readonly Passage[] } & Parting,
+  height: (s: number) => number,
+) => ({
+  passages: crossing.passages.map((p) => [round1(p.from), round1(p.to)]),
+  rises: crossing.rises.map(round1),
+  apart: round3(crossing.apart),
+  heights: crossing.passages.map((p) => round1(height((p.from + p.to) / 2))),
+});
 /**
  * A plan's fidelity to its table (`planFidelity`), as the commands report it: its heading's most departure, in the
  * table's resolution, and the count of positions beyond it; its position's most drift, metres; and each widened turn's

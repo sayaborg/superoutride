@@ -475,7 +475,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 35 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 36 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
 them:
 
@@ -595,7 +595,7 @@ Link's lane's centre:
   by its centre lane.
 - **Profile.** Each piece's height points run their tables at 293 km/h as the [profile](original-road-data.md#profile)
   says, the stage's cut at its end, and each piece is closed level at height 0 at its ends; the whole road's crossings
-  ([Crossings](original-road-data.md#profile), its cells across its asphalt) are kept 6 m apart.
+  ([Crossings](original-road-data.md#profile), its cells across its asphalt) are kept 3 m apart.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
   positions before the stage's end, and the fork's banner about 11 positions into the next stage. Each stands at the
@@ -646,7 +646,7 @@ resolution at every position, and lie within 0.11 m of the line their paths buil
 limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 288 units (7.336 m) beyond
 the outermost lanes on every road. The road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for
 the ROMs hold no material. Their
-heights reach −185 m and 266 m (the hills' rule, unchanged); 3 to 11 crossings each are kept 6 m apart. In each goal
+heights reach −185 m and 266 m (the hills' rule, unchanged); 3 to 11 crossings each are kept 3 m apart. In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
 crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,

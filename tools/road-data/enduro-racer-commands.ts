@@ -14,6 +14,7 @@ import {
 } from './enduro-racer-course.js';
 
 import {
+  crossingReport,
   dumpDirectory,
   fidelityReport,
   romDirectory,
@@ -169,14 +170,8 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
             ...Array.from({ length: Math.floor(built.path.length) }, (_, s) => Math.abs(built.profile.grade(s))),
           ),
         ),
-        crossings: built.crossings.map((c) => ({
-          passages: c.passages.map((p) => [round1(p.from), round1(p.to)]),
-          levels: c.levels,
-          flat: c.flat,
-          half: c.half,
-          moves: c.moves,
-          heights: c.heights.map(round1),
-        })),
+        crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
+        rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
         objects: built.placed.length,
         ground: round3(built.ground),
         bodies: built.placed.filter((o) => o.body !== null).length,

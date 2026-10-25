@@ -12,8 +12,9 @@ The road data tool keeps each original's ROM set, addresses and formats in its o
 `super-hang-on-*`, `turbo-outrun-*`, `enduro-racer-*`, `super-monaco-gp-*`) and what they share in modules of their own:
 a program's words and the halves it is interleaved from (`program-words`), the road tables in OUTRUN's format
 (`road-tables`: palette words, curves, widths and heights, scenery points, road paths and height tables, and the road
-widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile, the crossings' bumps and a Section's profile knots
-(`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another passage, and their crossings), a function
+widths they give), the hills, with OUTRUN's road position and stripes' period (`hills`), the profile and a Section's profile knots
+(`road-profile`), where a road passes over itself (`crossings`: its cells, those that overlap and what stands on another
+passage, and their crossings, parted by the least change), a function
 of the road position in quadratic pieces (`quadratic`: a road width or an offset), a heading table's plan
 (`heading-plan`: its runs and the turns between them), a closed point path's plan (`point-plan`: its runs' minimax circles and the biarcs between them), a
 closed height path's profile (`point-profile`), a rise table's profile (`rise-profile`) and a
@@ -419,20 +420,24 @@ A stage's profile turns its height tables' look on the original's screen into gr
 - **Crossings.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
-  what stands on another passage overlaps a cell starting at least 200 m away. Its passages are kept at least 6 m apart, crossing by
-  crossing in running order, then again while a bump placed later has brought one nearer (K's decision). Where a
-  crossing's passages are nearer, they take levels, of two passages the lower first (the earlier where level), of more
-  in running order, each the lowest no passage it overlaps holds; each moves by its level less their mean times a
-  spacing, grown from what 6 m lacks by 0.2 m until every overlapping pair is apart, so of two the higher is raised and
-  the lower lowered. A passage's bump is smooth at its middle, but of a crossing of more than two passages, which hold
-  their levels, flat over a passage that a smooth bump would hold at less than 10/11 of its rise; it rises over the
-  shortest half from 100 m by 20 m that moves this game's top by at most 1 row, within the road and short of the next
-  passage at another level. A passage whose middle lies less than 100 m from the road's start or end makes no bump and
-  stays level, and the crossing's other passages move by their levels less its level, so they take all of the 6 m; their
-  half is found as above, not cut by the held passage's distance to the road's end. Where the bumps grown by 40 m cannot
-  keep a crossing apart, all its bumps are flat. Passages nearer than 6 m by no more than a micrometre are apart.
-  The passages' heights include the
-  jumps' mounds and the humps.
+  what stands on another passage overlaps a cell starting at least 200 m away. Two overlapping passages are kept at
+  least 3 m apart (K, 2026-10-26) by the least change, on the heights the profile, the jumps' mounds and the humps make
+  (`partedCrossings`), whatever made them:
+  - _What moves._ Every height between the road's ends, whose heights stay. A passage moves as one, by its rise, so the
+    roads keep their form where they cross; between two passages along the road, or a passage and an end, the road
+    ramps from the one's rise to the other's by two vertical curves of one radius meeting halfway, level at both ends.
+  - _How a change is measured._ By its ramps' curvatures (the vertical acceleration each adds at a speed, over the speed
+    squared): the largest first, then the largest of the ramps left, and so on.
+  - _What it keeps._ The vertical curves' form: a ramp of rise r over L curves by 4r / L², the least of any ramp level
+    at both ends (its grade can be no more than its curvature times the distance to its nearer end, so its rise no more
+    than its curvature times L² / 4, equal only for these two curves). Its grade, 2r / L at its middle, is no steeper
+    than ±25 % (K's limit). The mounds' and humps' form, which the ramps add to.
+  - _The least._ Of two overlapping passages the higher over their pairs goes over (the later where level), and rises
+    by what 3 m lacks at their nearest pair more than the lower. These and the ramps bound the rises' differences, so
+    the least largest curvature is that of the cycle of ramps and orders needing most, what its orders need over its
+    ramps' squared lengths over 4 (Dinkelbach's iteration over Bellman and Ford's negative cycles); every least change
+    holds that cycle's ramps at it. Those fixed, the next cycle's are, and so on: the rises are one answer, and a ramp
+    no cycle needs stays level.
 - **Jumps and humps.** What the originals throw a vehicle with is a symmetric triangle across the whole road on top of
   the profile, its top at the original's position: the grade kinked up at its foot, down over its top and back at its
   end; where two overlap the higher is taken, the road kinked up again where their sides meet. No vehicle's data shapes
@@ -548,7 +553,7 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and SUPER
   MONACO GP lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
-- Heights: level until the hills stage, but for the crossings' bumps ([Profile](#profile)); record the original's height
+- Heights: level until the hills stage, but for the crossings' ramps ([Profile](#profile)); record the original's height
   or slope format.
 - Cross-section: lanes, lines, edge bands from the road ROM's nearest line or the surface sprites; colors and the
   stripes' period and phase (check the phase in the original, the bike or car held still while the position is set).

@@ -34,13 +34,12 @@ import {
   LOOK,
   profileOf,
   sectionProfile,
-  separatedCrossings,
   stageGrades,
   type Change,
   type Profile,
 } from './road-profile.js';
 import { tableRuns } from './hills.js';
-import { crossingsOf, roadCells } from './crossings.js';
+import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
 import {
@@ -427,7 +426,9 @@ export function roadProfile(
   const end = last.origins.at(-1)! + writtenLength(last.line, last.cuts.at(-1) ?? 0, last.road.span.length);
   // A road position's station: a piece may run on past its span's end into the next.
   const starts = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
+  // The road's last position is its end, as its last Section's written length puts it.
   const stationAt = (position: number) => {
+    if (position >= starts.at(-1)! + last.road.span.length) return end;
     const k = Math.max(0, starts.filter((p) => p <= position).length - 1);
     const l = laid[k]!;
     return stationOf(l, Math.min(position - starts[k]!, l.road.span.length));
@@ -471,13 +472,9 @@ export function roadProfile(
     POSITION_METRES,
   );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
-  const profile = profileOf(
-    separatedCrossings(changes, crossings, end)
-      .changes.filter((c) => c.from >= 0 && c.to <= end)
-      .map(bendOf),
-    cutStations,
-  );
-  return { end, profile, crossings };
+  const parted = partedCrossings(changes, crossings, end);
+  const profile = profileOf(parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), cutStations);
+  return { end, profile, crossings, partings: parted.partings, rampRadius: parted.radius };
 }
 
 /**
@@ -495,7 +492,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
-  const { end, profile, crossings } = roadProfile(laid, options);
+  const { end, profile, crossings, partings, rampRadius } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
   const positions = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
@@ -604,6 +601,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     end,
     profile,
     crossings,
+    partings,
+    rampRadius,
     objects: placed.length,
     placing: objects.report,
     fidelity: laid.map((l) => ({ span: l.road.id, ...l.plan.fidelity })),

@@ -9,10 +9,10 @@ import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
 import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
-import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
+import { bendOf, profileOf, sectionProfile } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { crossingsOf, roadCells } from './crossings.js';
+import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_UNITS } from './super-hang-on-boards.js';
 import type { CrossSection } from './super-hang-on-cross-section.js';
 import { evenly, headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
@@ -285,13 +285,13 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const half = inputs.cross.edgesOut * unit;
   const { pairs } = roadCells(path, { from: 0, to: end, step: metres, sides: () => [half, half] });
   const crossings = crossingsOf(pairs, metres);
-  // The hills, by the profile from their rise table, and the crossings kept apart on them.
+  // The hills, by the profile from their rise table, and the crossings parted on them.
   const hills = riseProfile(evenly(inputs.grades), inputs.gradeResolution, along);
-  const separated = separatedCrossings(hills.changes, crossings, end);
+  const parted = partedCrossings(hills.changes, crossings, end);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const plans = pieces.map((piece) => writtenPlan(path, piece));
   const origins = plans.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
-  const profile = profileOf(separated.changes.map(bendOf), origins.slice(1, -1));
+  const profile = profileOf(parted.changes.map(bendOf), origins.slice(1, -1));
 
   // The Sections, SAND reaching `ground` beyond the lanes.
   const startHeading = path.pose(0).heading;
@@ -348,17 +348,8 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
     profile,
     hills: { runs: hills.runs, departure: hills.departure },
     pairs,
-    crossings: crossings.map((crossing, k) => {
-      const moves = separated.separations.filter((m) => m.crossing === k);
-      return {
-        passages: crossing.passages,
-        levels: moves[0]?.levels ?? null,
-        flat: moves[0]?.flat ?? null,
-        half: moves[0]?.half ?? null,
-        moves: moves.length,
-        heights: crossing.passages.map((p) => profile.height((p.from + p.to) / 2)),
-      };
-    }),
+    crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),
+    rampRadius: parted.radius,
     objects: placed.length,
   };
 }

@@ -68,8 +68,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-13
-onward and EX-11's parting once K chooses its measure, with the sprites' SP-2, SP-4 and SP-5 beside them; then
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), the jumps'
+candidates made again, then EX-13 onward and K's grades when they come, with the sprites' SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
 [Stage BR](#stage-br--big-run-from-the-roms), [Stage CS](#stage-cs--cisco-heat-from-the-roms) and
@@ -113,6 +113,18 @@ K's decisions (2026-10-24):
   do not determine stay drafts.
 - **The sprites' extraction and its rules are worked out alongside the stage** (below).
 
+K's decisions (2026-10-26):
+
+- **Crossings are kept 3 m apart**, the least change's measure written in Original road data's Crossings.
+- **OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades are K's** to solve: they come in one PR replacing the draft
+  grades and `c_look`. EX-14 takes `road-profile`'s `UNIT` 576, `ORIGINAL_LEVEL_TOP` 151 and `ORIGINAL_ROWS` 224, and
+  OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` which write them again, after it.
+- **ENDURO RACER's jumps' candidates are made again**, the design speeds 80, 105 and 130 km/h kept: each mound by its
+  own D, the larger of the distance to its rocks' far end beyond it and the original bike's flight from it at the
+  design speed (its rule at 0x727A counted at that speed); the design speed is the speed before the mound, the top's
+  less what climbing its height costs (by energy), and the shape's formula is kept with v the top's speed. A mound
+  whose far rocks overturn R80 GS keeps its shape and is reported for K to decide.
+
 K's decisions (2026-10-25):
 
 - **The ground's materials stay each original's own.** The ROMs hold no material, so each is K's decision, written with
@@ -149,11 +161,9 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   heading table is, by their own runs: the [profile from a rise table](original-road-data.md#profile-from-a-rise-table)
   (EX-12). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
   shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
-- **Crossings.** Where the heights leave two passages nearer than 6 m, one fixed rule parts them by the least change;
-  on a canon's heights it is part of the canon. The least change depends on what it measures, so before it is built
-  EX-11 writes in Original road data which heights may move (which passage, over what range), how a change is
-  measured, and what it keeps (K's grade limit of ±25 % and the vertical curves' form), and shows that one change is
-  least.
+- **Crossings.** Where the heights leave two passages nearer than 3 m, one fixed rule parts them by the least change,
+  whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
+  part of the canon.
 - **Time made into position.** Each original's events in time are placed where they fall at its top speed: OUTRUN's
   objects (293 km/h); SUPER HANG-ON's objects, its ground's 32 steps and the next section's road colours' switch
   (0xF1); TURBO OUTRUN's objects (324 km/h), whose tables come one position a step with none missed at 216.3 km/h or
@@ -190,11 +200,9 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m, every original's
-  crossings found by its cells already. A change is not measured by this game's camera: `LOOK_ROWS` is measured on
-  `CAMERA_DEFINITION`'s screen and `TILT_RAMP` is the renderer's farthest depth today, a dependence SUPER HANG-ON's
-  canon crossings carry. The jumps' mounds stand on the heights the rule makes, which does not change their form
-  (5 of ENDURO RACER's 69 jumps lie at crossings).
+- The jumps' candidates made again by K's rule (2026-10-26, below).
+- K's grades: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades, which K is solving, in one PR when they come, after
+  the PR then open: they replace the draft grades and `c_look`, the crossings parted on them by their rule.
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The ROM readers: the 68000's words (by `program-words`), the colour tables, the tile layers and bit-plane pixels,
     the sprite ROMs' words, the road ROMs' lines and their checks.
@@ -313,7 +321,7 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   and `-jump-130` the other candidates (`--jump-speed <km/h>`); TURBO OUTRUN's carries 0.2 m and `turbo-outrun-hump-100`
   and `-hump-300` 0.1 m and 0.3 m (`--hump <metres>`). When K has decided: raised again at the value, the temporary
   courses and arguments deleted, and K's decision written once in Original road data's Jumps and humps and each chapter.
-- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m
+- **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 3 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.
 - **Values the ROMs hold** written into the tool (OUTRUN's roads-apart width 280 at 0xE308 and its top speed 293 km/h
