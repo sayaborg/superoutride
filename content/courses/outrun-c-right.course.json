@@ -7770,6 +7770,15 @@
         },
         {
           "kind": "strip",
+          "start": { "joint": "c10", "offset": -119.825791 },
+          "end": { "joint": "c10", "offset": -111.534255 },
+          "left": { "lane": "a", "side": "left", "offset": -0.967925 },
+          "right": { "lane": "f", "side": "right", "offset": 0.967925 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 2.839506 },
           "left": { "lane": "a", "side": "left", "offset": -0.967925 },
@@ -40865,6 +40874,15 @@
           ]
         },
         {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -21.477126 },
+          "end": { "joint": "end", "offset": -18.53175 },
+          "left": { "lane": "f", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "j", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
           "kind": "repeat",
           "every": 6.320988,
           "count": 19,
@@ -71172,6 +71190,15 @@
           ]
         },
         {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -25.123517 },
+          "end": { "joint": "end", "offset": -22.206771 },
+          "left": { "lane": "i", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "a", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
           "kind": "repeat",
           "every": 6.320988,
           "count": 18,
@@ -86812,6 +86839,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -25.123517 },
+          "end": { "joint": "end", "offset": -22.206771 },
+          "left": { "lane": "i", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "a", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
         },
         {
           "kind": "strip",
@@ -117336,6 +117372,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -20.791751 },
+          "end": { "joint": "end", "offset": -17.845165 },
+          "left": { "lane": "f", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "j", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
         },
         {
           "kind": "strip",

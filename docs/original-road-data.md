@@ -247,7 +247,9 @@ Two roads drawn together (`composite`, `two-roads`) show, at each point, the sur
 included) over road 0's (the left one's) lines and edges, over road 1's, over the ground. Each line and band shown is a
 Strip between two features' edges held to lanes, or to a road laid where it passes, each of its edges a Boundary
 (`compositeOf`, OUTRUN's road not taken), cut where the arrangement changes; the ground's color is everywhere, its half
-0 over its halves. Each original's chapter gives the arrangement at each road width and the material under the roads
+0 over its halves. The material under them is one rule: each road's surface is its asphalt, and so is the ground
+between two roads where it is no wider than 0.5 m (`OPEN`, `narrowGround`), the ground's beyond, so that the material
+changes metres away from where the lanes' rule does. Each original's chapter gives the arrangement at each road width
 ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-course)).
 
 ## A lateral changed straight between points

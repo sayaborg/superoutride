@@ -70,9 +70,14 @@ export class Quadratic {
   }
   /** The stretches where this function is at most `limit`, those that touch one stretch. */
   atMost(limit: number): { from: number; to: number }[] {
+    return this.within(-Infinity, limit);
+  }
+  /** The stretches where this function is above `low` and at most `high`, those that touch one stretch. */
+  within(low: number, high: number): { from: number; to: number }[] {
     const out: { from: number; to: number }[] = [];
-    for (const q of this.map((v) => v, [limit]).pieces) {
-      if (this.at((q.from + q.to) / 2) > limit) continue;
+    for (const q of this.map((v) => v, [low, high].filter(Number.isFinite)).pieces) {
+      const v = this.at((q.from + q.to) / 2);
+      if (!(v > low && v <= high)) continue;
       const last = out.at(-1);
       if (last && last.to === q.from) last.to = q.to;
       else out.push({ from: q.from, to: q.to });

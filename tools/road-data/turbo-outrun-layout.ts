@@ -35,11 +35,6 @@ export const JOIN = Object.freeze({ from: 1460, speed: 80, seam: 1458 });
  * to stop before the course's end, which the run no longer requires.
  */
 const GOAL_POSITIONS = 260;
-/**
- * The ground between the roads is SAND where it is wider than this, metres; narrower, as it opens, the asphalt's, so the
- * material changes metres away from where the lanes' rule does.
- */
-export const OPEN = 0.5;
 /** A stage on the course: where its position 0 lies on the course's positions, and the positions of its own it spans. */
 export interface CourseStage {
   readonly stage: TurboOutrunStage;
@@ -145,8 +140,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   const offset = width.map((w) => centreLaneAt(w) * UNIT_METRES, [LANE_RULE_WIDTHS[0]!]);
   // Where a lane's width changes slope: where the road width passes a width at which the lanes' rule changes.
   const laneBreaks = width.map((w) => w, LANE_RULE_WIDTHS).breaks;
-  // Where the ground between the roads opens wider than `OPEN`, and closes.
-  const openings = width.map((w) => w, [ROAD_HALF + OPEN / (2 * UNIT_METRES)]).breaks;
 
   // The heading table: each stage's road path at its positions on the course, carried on straight ahead past 1495 to
   // its end, then the course's end.
@@ -292,7 +285,6 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     original,
     offset,
     laneBreaks,
-    openings,
     pieces,
     station,
     /** P's pose at course position `g`. */

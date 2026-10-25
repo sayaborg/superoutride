@@ -474,7 +474,7 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 [OUTRUN's roads](#outruns-roads) to `content/courses/`; with `--check` it rebuilds them and fails where one differs from
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 
-The conversion, version 39 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+The conversion, version 40 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
 spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
 [grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
@@ -515,7 +515,8 @@ Two roads drawn together ([Two roads](original-road-data.md#two-roads)) show bet
 ±w), at w = 0 three lanes, at 72 four (the middle line 5.33 wide, the next 7.33), at 162 five (an edge band 0.67 wide of
 road 0 at 87.33), at 212 six equal ones (the outer lines one line 12 wide), between 228 and 250 an edge band 2(w − 228)
 wide, beyond 250 the ground 2(w − 250) wide. A road's centre lies 212 units inside its outer lane's outer edge, or its
-inner lane's inner edge. ASPHALT lies under each road from its centre ∓ 250 within the ground, SAND beneath all to the
+inner lane's inner edge. ASPHALT lies under each road from its centre ∓ 250 within the ground, and between the roads
+where the ground there is narrow ([Two roads](original-road-data.md#two-roads)), SAND beneath all to the
 [ground's width](original-road-data.md#the-ground-beside-the-road).
 
 The lanes driven (`drivenLanes`) are a, b, c | median | d, e, f; a and f are always one lane, 424/3 units (3.6 m). At

@@ -10,7 +10,7 @@ import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { OUTRUN_ROAD, ROAD_HALF, TOUCHING, UNIT_METRES } from './outrun-cross-section.js';
-import { compositeOf, type FeatureEdge } from './two-roads.js';
+import { compositeOf, narrowGround, type FeatureEdge } from './two-roads.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './hills.js';
 import { CoursePath, type Pose } from './course-path.js';
 import { headingPlan, planFidelity, VECTOR_RESOLUTION, type PlanElement } from './heading-plan.js';
@@ -19,6 +19,7 @@ import {
   FORK,
   forkSpan,
   stageSpan,
+  type DrawnRoad,
   type LaneRef,
   type Span,
   type GoalOptions,
@@ -822,6 +823,30 @@ function sectionDocument(
     const [left, right] = [ref(road.centre, -ROAD_HALF * UNIT_METRES), ref(road.centre, ROAD_HALF * UNIT_METRES)];
     strips.push(strip(stations(a), stations(b), left, right, surface[1]!, 'ASPHALT'));
     if (surface[0] !== surface[1]) strips.push(...halves(0, stations(a), stations(b), left, right, surface[0]!));
+  }
+  // Between two roads, their asphalt where the ground there is narrow (`narrowGround`): across both roads, from the
+  // left one's outer edge to the right one's, which never cross.
+  if (span.roads.length === 2) {
+    for (const q of narrowGround(span.width, ROAD_HALF, UNIT_METRES)) {
+      const [a, b] = [
+        Math.max(q.from, from, ...span.roads.map((r) => r.from)),
+        Math.min(q.to, to, ...span.roads.map((r) => r.to)),
+      ];
+      if (b <= a) continue;
+      const [left, right] = [...span.roads].sort(
+        (r, t) => lineOf(span, r.centre, (a + b) / 2) - lineOf(span, t.centre, (a + b) / 2),
+      ) as [DrawnRoad, DrawnRoad];
+      strips.push(
+        strip(
+          stations(a),
+          stations(b),
+          ref(left.centre, -ROAD_HALF * UNIT_METRES),
+          ref(right.centre, ROAD_HALF * UNIT_METRES),
+          null,
+          'ASPHALT',
+        ),
+      );
+    }
   }
   // The road not taken: its surface's color across it, its ASPHALT only within the ground, cut where its edges cross the
   // ground's edge (a Strip cannot erase material).

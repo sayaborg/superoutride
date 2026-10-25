@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 23, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 24, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -187,8 +187,8 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   asphalt, then its lane lines and edge bands as the roads' picture shows them, each in its pair's halves (road 1's are
   road 0's on every stage), by halves of OUTRUN's stripe period (6.320988 m) counted from GO along P. The next
   stage's colors begin at its start, a leg's first stage's at its GO.
-- **Materials.** ASPHALT under both roads (each centre ± 250 units); between them SAND where the ground there is wider
-  than 0.5 m; SAND beyond the outermost lanes to the car's
+- **Materials.** ASPHALT under both roads (each centre ± 250 units), and between them where the ground there is
+  narrow ([Two roads](original-road-data.md#two-roads)); SAND beyond the outermost lanes to the car's
   [lateral limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 286 units
   (7.285 m) beyond the outermost lanes, which the course format ends where the plan stops being one-to-one
   ([Architecture](architecture.md#plan-authority)). The limit is OUTRUN's rule: 0x16266, called each tick from 0x157A4,

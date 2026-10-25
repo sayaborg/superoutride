@@ -2212,6 +2212,15 @@
           "material": null
         },
         {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -21.477126 },
+          "end": { "joint": "end", "offset": -18.53175 },
+          "left": { "lane": "i", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "a", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
           "kind": "repeat",
           "every": 6.320988,
           "count": 19,
@@ -36586,6 +36595,15 @@
         },
         {
           "kind": "strip",
+          "start": { "joint": "end", "offset": -18.194898 },
+          "end": { "joint": "end", "offset": -15.336613 },
+          "left": { "lane": "f", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "j", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
+        },
+        {
+          "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "s0", "offset": 0.625841 },
           "left": { "lane": "f", "side": "right", "offset": -11.767925 },
@@ -63602,6 +63620,15 @@
               "material": null
             }
           ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "end", "offset": -25.123517 },
+          "end": { "joint": "end", "offset": -22.206771 },
+          "left": { "lane": "f", "side": "right", "offset": -11.767925 },
+          "right": { "lane": "j", "side": "left", "offset": 11.767925 },
+          "color": null,
+          "material": "ASPHALT"
         },
         {
           "kind": "repeat",

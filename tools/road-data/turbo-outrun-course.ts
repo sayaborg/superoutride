@@ -32,7 +32,8 @@ import {
   ROAD_HALF,
   TURBO_OUTRUN_ROAD,
 } from './turbo-outrun-cross-section.js';
-import { layTurboOutrun, OPEN, type Piece } from './turbo-outrun-layout.js';
+import { layTurboOutrun, type Piece } from './turbo-outrun-layout.js';
+import { narrowGround } from './two-roads.js';
 import {
   assembleTurboOutrunPrograms,
   assembleTurboOutrunSprites,
@@ -53,7 +54,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 23;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 24;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -398,7 +399,7 @@ function sectionDocument(
     );
   }
   strips.push(strip(0, size, boundary('outer-left'), boundary('outer-right'), null, 'SAND'));
-  // The asphalt: its material over both roads, and the ground's between them where it opens wider than `OPEN`; its
+  // The asphalt: its material under each road and between them where the ground there is narrow (`narrowGround`); its
   // color over both roads where they touch (w ≤ 250), each road's where the ground shows between them.
   const stretchesOf = (above: number) =>
     width
@@ -419,9 +420,12 @@ function sectionDocument(
     (centre) => [ref(centre, -ROAD_HALF * UNIT_METRES), ref(centre, ROAD_HALF * UNIT_METRES)] as const,
   );
   const [outerLeft, outerRight] = [roadSides[0]![0], roadSides[1]![1]];
-  strips.push(strip(0, size, outerLeft, outerRight, null, 'ASPHALT'));
-  for (const q of stretchesOf(ROAD_HALF + OPEN / (2 * UNIT_METRES)))
-    if (q.apart) strips.push(strip(q.a, q.b, roadSides[0]![1], roadSides[1]![0], null, 'SAND'));
+  for (const [left, right] of roadSides) strips.push(strip(0, size, left, right, null, 'ASPHALT'));
+  for (const q of narrowGround(width, ROAD_HALF, UNIT_METRES)) {
+    const [a, b] = [Math.max(q.from, from), Math.min(q.to, to)];
+    // Across both roads, whose outer edges never cross.
+    if (b > a) strips.push(strip(stationOf(a), stationOf(b), roadSides[0]![0], roadSides[1]![1], null, 'ASPHALT'));
+  }
   const asphalt = stretchesOf(ROAD_HALF);
   // On the dips' slopes the road's colors are brightened or darkened (`slopeColor`), its stripes cut where they end.
   const { slopes } = context.layout;

@@ -3,6 +3,20 @@
  * across, its lines and edge bands as its road ROM draws them, and the picture of two or more such roads where they meet.
  * Every amount is in road units, positive right.
  */
+import type { Quadratic } from './quadratic.js';
+
+/**
+ * The ground between two roads is their asphalt where it is no wider than this, metres, and the ground's beyond: the
+ * material changes metres away from where the lanes' rule does.
+ */
+export const OPEN = 0.5;
+
+/**
+ * Where two roads `half` units either side of their centres, centred `w` either side of their middle (`width`), leave
+ * ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where 0 < 2(w − half) × unit ≤ OPEN.
+ */
+export const narrowGround = (width: Quadratic, half: number, unit: number) =>
+  width.within(half, half + OPEN / (2 * unit));
 
 /** How one road's ROM line draws a point: its surface, a line, its edge band, or outside the road. */
 export type Paint = 'surface' | 'line' | 'edge' | 'outside';
