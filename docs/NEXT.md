@@ -365,6 +365,11 @@ Stage GR mends the five originals' courses, decides how OUTRUN's, TURBO OUTRUN's
 makes them, decides the originals' classes, and fixes defects; what Stages ER and MG left in
 [Courses of the originals](#courses-of-the-originals) is its.
 
+K's direction (2026-10-25): OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades are researched toward the least
+misplacement, over the whole course, of the road's strips as a whole, not of the road's top edge as `c_look` fits it
+today; SUPER HANG-ON's and SUPER MONACO GP's are made faithful to their ROMs (EX-10, EX-12). Until then Stage EX leaves
+`c_look` and the draft grades as they are.
+
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
 Stage RM makes what Stage PG left to later stages in [Courses of the originals](#courses-of-the-originals). BRANCH
