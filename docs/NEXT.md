@@ -193,7 +193,6 @@ Rules of the stage:
 PRs, in this order:
 
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
-  - The widths joined by one monotone cubic (OUTRUN's `joinedWidth` and TURBO OUTRUN's copy).
   - The stripes at one period, EX-7j2's count of halves in every original.
   - The Sections' cuts by one rule, their distance from a gate one length in metres; `turbo-outrun-layout.ts`'s own
     `domainCuts`, and SUPER MONACO GP's cuts by checkpoints and objects' counts, among them.

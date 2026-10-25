@@ -258,7 +258,7 @@ Hermite, a point's slope the mean of its sides', level where they differ in sign
 course's ends, and an interval's two slopes scaled together where it would overshoot (α² + β² ≤ 9). The curve is one
 over the whole course, unbroken at Sections and pieces, and every line made from the lateral (a road's centre, the
 lanes) is taken from it. The format lays a lateral straight between knots, so a course writes the curve's value at each
-of the original's positions. The road passes the original's points; between them, where a point's side is level, the
+of the original's positions (`writtenAt`). The road passes the original's points; between them, where a point's side is level, the
 curve is the smooth step and departs from the original's straight line by at most 9.6 % of the change (1.9 m where
 OUTRUN's roads part from 0 to 768). What is drawn follows the joined lateral: the roads, the lanes and the objects'
 laterals. What the original's program decides by the lateral's value (whether the roads are apart as an object appears)

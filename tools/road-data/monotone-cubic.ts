@@ -4,6 +4,7 @@
  * ends.
  */
 import { requireInput } from '../course/authoring-io.js';
+import { straightThrough } from './quadratic.js';
 
 /**
  * The monotone cubic through knots `[position, value]`, positions strictly increasing: each interval a cubic Hermite
@@ -59,3 +60,10 @@ export function monotoneCubic(knots: readonly (readonly [number, number])[]): (p
     );
   };
 }
+
+/**
+ * A join written at `positions` (increasing): `curve`'s value at each, `offset` on, straight between them, as a road
+ * width is written at its every position.
+ */
+export const writtenAt = (curve: (position: number) => number, positions: readonly number[], offset = 0) =>
+  straightThrough(positions.map((p) => [p, curve(offset + p)] as const));

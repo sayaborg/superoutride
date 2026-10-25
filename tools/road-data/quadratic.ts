@@ -84,3 +84,20 @@ function crossings(q: QuadraticPiece, v: number): number[] {
   }
   return roots.filter((t) => t > 1e-9 && t < len - 1e-9).map((t) => q.from + t);
 }
+
+/** The function straight between knots `[position, value]`, from the first's position to the last's. */
+export const straightThrough = (knots: readonly (readonly [number, number])[]) =>
+  new Quadratic(
+    knots.slice(1).map(([p, v], i) => {
+      const [p0, v0] = knots[i]!;
+      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
+    }),
+  );
+
+/** The function through knots `[position, value]` over `[0, end]`: straight between them, level beyond them. */
+export const levelBeyond = (knots: readonly (readonly [number, number])[], end: number) =>
+  straightThrough(
+    [[0, knots[0]![1]] as const, ...knots, [end, knots.at(-1)![1]] as const].filter(
+      ([p], i, all) => p >= 0 && p <= end && (i === 0 || p > all[i - 1]![0]),
+    ),
+  );

@@ -14,8 +14,8 @@ import {
   TOUCHING,
   UNIT_METRES,
 } from './outrun-cross-section.js';
-import { Quadratic, type QuadraticPiece } from './quadratic.js';
-import { monotoneCubic } from './monotone-cubic.js';
+import { levelBeyond, Quadratic, straightThrough, type QuadraticPiece } from './quadratic.js';
+import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import { pathHeadings, type HeadingTable } from './heading-plan.js';
 import { type Stage, type Stretch } from './outrun-road.js';
 import { roadWidths, type Path, type SceneryPoint, type WidthHeightPoint } from './road-tables.js';
@@ -188,26 +188,12 @@ export function joinedWidth(widths: readonly Quadratic[]): Quadratic[] {
     const at = [...Array.from({ length: Math.ceil(end) }, (_, p) => p), end];
     const own = start;
     start += end;
-    return through(at.filter((p, i) => i === 0 || p > at[i - 1]!).map((p) => [p, curve(own + p)] as const));
+    return writtenAt(
+      curve,
+      at.filter((p, i) => i === 0 || p > at[i - 1]!),
+      own,
+    );
   });
-}
-
-/** A function straight between knots `[position, value]`, from the first's position to the last's. */
-const through = (knots: readonly (readonly [number, number])[]) =>
-  new Quadratic(
-    knots.slice(1).map(([p, v], i) => {
-      const [p0, v0] = knots[i]!;
-      return { from: p0, to: p, a: v0, b: (v - v0) / (p - p0), c: 0 };
-    }),
-  );
-
-/** The width through knots `[position, value]` over `[0, end]`: straight between them, level beyond them. */
-function straight(knots: readonly (readonly [number, number])[], end: number): Quadratic {
-  return through(
-    [[0, knots[0]![1]] as const, ...knots, [end, knots.at(-1)![1]] as const].filter(
-      ([p], i, all) => p >= 0 && p <= end && (i === 0 || p > all[i - 1]![0]),
-    ),
-  );
 }
 
 /**
@@ -325,7 +311,7 @@ function takenOffset(
   const at = [...new Set([from, to, ...span.width.breaks, ...breaks])]
     .filter((p) => p >= from && p <= to)
     .sort((x, y) => x - y);
-  return through(
+  return straightThrough(
     at.map((p) => {
       const widths = span.lanes(p);
       return [p, (taken(p) + side * (TOUCHING - widths.get(outer)! - widths.get(centre)! / 2)) * UNIT_METRES] as const;
@@ -361,7 +347,7 @@ export function stageSpan(
     `/stages/${stage.number}`,
     `Stage ${stage.number} ends wider than six lanes`,
   );
-  const original = straight(knots, length);
+  const original = levelBeyond(knots, length);
   const width = options.width ?? original;
   return {
     length,
@@ -410,7 +396,7 @@ export function forkSpan(
   const length = FORK_END - start;
   const comesIn = at(FORK.closes);
   const apart = at(start + (FORK.apart - w0) / FORK.spread);
-  const original = straight(
+  const original = levelBeyond(
     [
       [0, w0],
       [apart, FORK.apart],
@@ -521,7 +507,7 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
   const returned = apart + (GOAL.apart - point.value) / rate;
   if (closes) knots.push([returned, point.value]);
   knots.push([length, knots.at(-1)![1]]);
-  const original = straight(knots, length);
+  const original = levelBeyond(knots, length);
   const width = given ?? original;
   const parted = partedLanes(w0, -1, parts);
   const lanes = (p: number) => (p < parts ? drivenAt(width.at(p)) : new Map([...parted.widths(p), ['m0', 0]]));
