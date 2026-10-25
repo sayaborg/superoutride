@@ -70,7 +70,7 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
     const zip = await oneZip(options.get('--zip'), romDirectory('super-monaco-gp'), '--zip');
     const built = superMonacoGpCourses(await romSet('smgp', [zip]));
     const courses = [];
-    for (const { course, document, plan, written, sections, objects, kerbs, inside } of built.courses) {
+    for (const { course, document, plan, written, hills, sections, objects, kerbs, inside } of built.courses) {
       const file = await saveCourse(course.id, document, check);
       const elements = written.flat();
       const arcs = elements.filter((e) => e.kind === 'arc');
@@ -83,6 +83,21 @@ export const SUPER_MONACO_GP_COMMANDS: RoadDataCommands = Object.freeze({
         tightest: round1(Math.min(...arcs.map((e) => e.radius!))),
         departure: round3(plan.departure * SUPER_MONACO_GP_PATH_UNIT),
         lapMetres: round3(elements.reduce((sum, e) => sum + e.length, 0)),
+        // The profile's runs, how far a point of the path lies from it, its heights' range and its steepest grade.
+        profile: (() => {
+          const lap = elements.reduce((sum, e) => sum + e.length, 0);
+          const samples = Array.from({ length: Math.ceil(lap) + 1 }, (_, i) => Math.min(lap, i));
+          const grades = samples.map((u) => hills.profile.grade(u));
+          const heights = samples.map((u) => hills.profile.height(u));
+          return {
+            runs: hills.runs.length,
+            departure: round3(hills.departure),
+            lowest: round1(Math.min(...heights)),
+            highest: round1(Math.max(...heights)),
+            steepest: round3(Math.max(...grades.map(Math.abs))),
+            closes: round3(hills.profile.height(lap)),
+          };
+        })(),
         sections: sections.map(({ id, steps, boards }) => ({ id, steps, boards })),
         // The boards placed, the kerbs drawn as stripes, and the boards left out on a curve's inside.
         boards: objects.length,

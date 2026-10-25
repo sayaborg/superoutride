@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 13, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 14, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -193,9 +193,11 @@ BRANCH course (K, 2026-10-21).
   (10655–10847), each a `cut` (K, 2026-10-21). At heading 0 the road vanishes at the layers' pixel 354 of 1536 (its left
   edge), the sky's column 354 × 1504 / 1536: a Section starting θ0 to the right of heading 0 has yaw origin −θ0 −
   (346.625 − 160) / 240 rad, within ±360° by the sky's period, 1504 / 240 rad.
-- **Profile.** Level until their hills are made (K, 2026-10-21;
-  [Stage EX](NEXT.md#stage-ex--the-originals-courses-exact-their-constants-few) makes them from the path's rises); the
-  courses do not cross themselves.
+- **Profile.** The road path's heights from the line round to it again, its rises summed at the plan's scale (a step
+  is 96 units long in three dimensions), by the [profile from a point path](original-road-data.md#profile-from-a-point-path)
+  at the path's resolution, one unit: the race's 30 runs, every point within 4 mm, its heights from −50.0 to +8.4 m,
+  its steepest grade 22.5 %; the qualifying's 11 runs, its heights within ±3.0 m, its steepest grade 3.6 %. Both close
+  as their paths do. The courses do not cross themselves.
 
 ## SUPER MONACO GP's objects
 

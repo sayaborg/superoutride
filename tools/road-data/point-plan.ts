@@ -87,7 +87,7 @@ function solve(a: readonly (readonly number[])[], b: readonly number[]): number[
  * least, by single exchange over m + 1 points whose errors alternate (points in order; the basis meets 0 at m − 1
  * points at most on them). With n ≤ m, the combination through every point.
  */
-function chebyshev(n: number, basis: (i: number) => number[], target: (i: number) => number): number[] {
+export function chebyshev(n: number, basis: (i: number) => number[], target: (i: number) => number): number[] {
   const m = basis(0).length;
   if (n <= m) {
     const rows = Array.from({ length: n }, (_, i) => basis(i));

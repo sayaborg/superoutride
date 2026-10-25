@@ -10,7 +10,8 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
 import { linearToRgb555, rgb555LinearChannel } from '../../src/image/image-filter.js';
 import type { RomSet } from './rom-set.js';
-import { profileOf, sectionProfile } from './road-profile.js';
+import { sectionProfile, type Profile } from './road-profile.js';
+import { pointProfile } from './point-profile.js';
 import { bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
@@ -43,7 +44,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 13;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 14;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -358,6 +359,17 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     const s = Math.max(0, sections.filter((section) => section.from <= q).length - 1);
     return origins[s]! + station(q) - station(sections[s]!.from);
   };
+  // The profile: the road path's heights from the line round to it again, its rises summed at the plan's scale, by the
+  // profile from a point path at the path's resolution, broken at the Sections' cuts.
+  const heights = [0];
+  for (let q = 1; q < N; q++) heights.push(heights[q - 1]! + road.dz[(LAP_LINE + q - 1) % N]! * PATH_UNIT);
+  const hills = pointProfile(
+    heights.map((_, q) => stationOf(q)),
+    heights,
+    origins.at(-1)!,
+    PATH_RESOLUTION * PATH_UNIT,
+    origins.slice(1, -1),
+  );
   /** P's direction at step q, clockwise from the original's heading 0 (the path's y). */
   const thetaAt = (q: number) => {
     const u = station(q) / PATH_UNIT;
@@ -500,6 +512,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
       gridPalette,
       objects: objects.filter(({ q }) => q >= section.from && q < section.to),
       kerbs,
+      profile: hills.profile,
       context,
     }),
   );
@@ -521,6 +534,7 @@ function superMonacoGpCourse(programs: SuperMonacoGpPrograms, course: SuperMonac
     },
     plan,
     written,
+    hills,
     sections: sections.map((section, s) => ({
       ...section,
       steps: [section.from, section.to].map((q) => (q + LAP_LINE) % N),
@@ -652,6 +666,7 @@ function sectionDocument(input: {
     readonly width: number;
     readonly palette: number;
   }[];
+  readonly profile: Profile;
   readonly context: CourseContext;
 }) {
   const { section, origin, size, stationOf, context, course, plan } = input;
@@ -899,7 +914,7 @@ function sectionDocument(input: {
   return {
     id: section.id,
     plan,
-    profile: sectionProfile(profileOf([]), origin, origin + size, true, true).map(({ s, y, curveLength }) => ({
+    profile: sectionProfile(input.profile, origin, origin + size, true, true).map(({ s, y, curveLength }) => ({
       at: { joint, offset: computedValue(s - origin) },
       y,
       curveLength,

@@ -68,7 +68,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-10
+Next PR: in [Stage EX](#stage-ex--the-originals-courses-exact-their-constants-few), EX-11
 onward, with the sprites' SP-2, SP-4 and SP-5 beside them; then
 [Stage GR](#stage-gr--the-originals-courses-mended) and [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside
 them [Stage NM](#stage-nm--a-namco-original-from-the-roms), later
@@ -141,9 +141,12 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   [plan from a point path](original-road-data.md#plan-from-a-point-path) (K, 2026-10-24): the points close exactly, so
   no correction closes a lap.
 - **The canon's grades.** SUPER MONACO GP's path is the original's 3D road, so its heights are its rises' sum at the
-  plan's scale and its grades the original's. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
-  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m). Both rise tables
-  are written as a heading table is, by their own runs. OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
+  plan's scale and its grades the original's, raised from its points as its plan is, by the
+  [profile from a point path](original-road-data.md#profile-from-a-point-path) (EX-10): so a lap closes, where its
+  rises written as a heading table is would need 3178 runs to lie within K's 1.5/4096 (a Section holds 1024 knots) and
+  miss the lap's height by 11.5 m at 1/96. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
+  projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m), written as a
+  heading table is, by their own runs. OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
   shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
 - **Crossings.** Where the heights leave two passages nearer than 6 m, one fixed rule parts them by the least change;
   on a canon's heights it is part of the canon. The least change depends on what it measures, so before it is built
@@ -186,7 +189,6 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- EX-10: the profile from a rise table, shared, and SUPER MONACO GP's hills by it.
 - EX-11: one crossings' rule for every original, the least change that parts two passages by 6 m. OUTRUN's own
   crossings (`overlap`, `roadCrossings`, its 2 positions and 60 m) and ENDURO RACER's `otherPassages` (another passage
   found by the metre) become it. A change is not measured by this game's camera: `LOOK_ROWS` is measured on

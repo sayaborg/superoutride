@@ -351,6 +351,23 @@ closes as the path does and lies within the resolution of every point.
   A lap is written as its elements are, unrounded, so that it closes as they do (the course format checks a circuit
   closes to under a micrometre).
 
+## Profile from a point path
+
+A closed path's heights at its points' stations, a lap's (SUPER MONACO GP's road path, its rises summed), become a
+profile round it (`pointProfile`, `point-profile`) by one constant, the path's resolution, as its plan is made from its
+points ([plan from a point path](#plan-from-a-point-path)): every piece lies where its points do, so the profile closes
+as the path does, in height and in grade, and lies within the resolution of every point.
+
+- **Runs.** From the first point, a run takes the next point while its minimax parabola, the parabola of the station
+  whose largest distance in height from its points is least, holds every point of it within the resolution (the
+  Chebyshev fit of the heights by 1, s and s²).
+- **Pieces.** A run is its parabola between the joins either side of it.
+- **Joins.** Two runs are joined from the first's parabola at a point to the next's at another by two parabolas meeting
+  halfway between them, the heights and grades meeting at both ends and between them: over the step between the runs,
+  and one more step on each side while the join holds every point it spans within the resolution, taking at most half
+  of either run.
+- **Lap.** The profile runs from the first point round to it again, its height there 0 and its grade there the lap's.
+
 ## Profile
 
 A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
