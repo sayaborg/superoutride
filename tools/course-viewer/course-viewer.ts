@@ -8,6 +8,8 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../../src/view/display-scale.js';
 import { backgroundYawX } from '../../src/view/tile-background.js';
 import { stationIndexAt } from '../../src/course/geometry/station-sequence.js';
+import { transformPlanarPoint } from '../../src/core/planar-transform.js';
+import { expandRgb555Pixels } from '../../src/image/rgb555.js';
 import { openPublishedStore } from '../workbench/published-store.js';
 import { createViewerGl, type GpuMesh, type ViewParameters } from './viewer-gl.js';
 import { attachCameraInput, focalPixels, screenRay, viewParameters, type OrbitCamera } from './viewer-camera.js';
@@ -458,20 +460,12 @@ function updateSky() {
   const background = environment.background;
   const image = background.asset.image;
   if (loaded.sky !== image) {
-    const row = new Uint16Array(image.width);
-    const rgba = new Uint8Array(image.width * image.height * 4);
-    for (let y = 0; y < image.height; y++) {
-      image.paintRow(row, 0, 0, y, image.width);
-      for (let x = 0; x < image.width; x++) {
-        const v = row[x]!,
-          at = 4 * (y * image.width + x);
-        rgba[at] = Math.round((((v >>> 10) & 31) * 255) / 31);
-        rgba[at + 1] = Math.round((((v >>> 5) & 31) * 255) / 31);
-        rgba[at + 2] = Math.round(((v & 31) * 255) / 31);
-        rgba[at + 3] = 255;
-      }
-    }
-    gpu.setSky({ width: image.width, height: image.height, rgba });
+    // The sky's pixels as the game presents them: RGB555 painted row by row, expanded to RGBA.
+    const pixels = new Uint16Array(image.width * image.height);
+    for (let y = 0; y < image.height; y++) image.paintRow(pixels, y * image.width, 0, y, image.width);
+    const rgba = new Uint32Array(pixels.length);
+    expandRgb555Pixels(pixels, rgba);
+    gpu.setSky({ width: image.width, height: image.height, rgba: new Uint8Array(rgba.buffer) });
     loaded.sky = image;
   }
   // The occurrence's rotation carries the sky's yaw origin to the world, as the game's route readers do.
@@ -531,12 +525,8 @@ function viewGame() {
     lateralSpeed: 0,
   };
   const game = updateCamera(createCameraRig(), { coordinates }, vehicle, CAMERA_DEFINITION, 'FACING');
-  const t = placed.worldFromSection;
-  const eye = [
-    t.cosine * game.x + t.sine * game.z + t.translation.x - loaded!.layout.origin.x,
-    game.y,
-    -t.sine * game.x + t.cosine * game.z + t.translation.z - loaded!.layout.origin.z,
-  ];
+  const world = transformPlanarPoint(placed.worldFromSection, game);
+  const eye = [world.x - loaded!.layout.origin.x, game.y, world.z - loaded!.layout.origin.z];
   setPerspective(true);
   camera.yaw = game.yaw + placed.rotation;
   camera.pitch = game.pitch;

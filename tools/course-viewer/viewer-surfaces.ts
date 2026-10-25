@@ -1,8 +1,10 @@
 import type { StripSlabTarget } from '../../src/course/strip-ground.js';
-import { stripEdgeAt, stripSlabAt } from '../../src/course/strip-slabs.js';
+import { stripEdgeAt } from '../../src/course/strip-slabs.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import type { SurfaceMaterial } from '../../src/course/surface-material.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
+import { transformPlanarPoint } from '../../src/core/planar-transform.js';
+import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 import { LineBuilder, MeshBuilder } from './viewer-gl.js';
 import { createPlanClearance, sampleClearance } from '../../src/course/plan-clearance.js';
 import { sectionStations, type CourseLayout, type PlacedSection } from './viewer-layout.js';
@@ -26,9 +28,9 @@ const frameSample = createPlanCoordinateSample();
 
 export function stationFrame(layout: CourseLayout, placed: PlacedSection, s: number, out: StationFrame): StationFrame {
   const native = placed.section.coordinates.toWorld(s, 0, frameSample);
-  const t = placed.worldFromSection;
-  out.x = t.cosine * native.x + t.sine * native.z + t.translation.x - layout.origin.x;
-  out.z = -t.sine * native.x + t.cosine * native.z + t.translation.z - layout.origin.z;
+  const world = transformPlanarPoint(placed.worldFromSection, native);
+  out.x = world.x - layout.origin.x;
+  out.z = world.z - layout.origin.z;
   const heading = native.heading + placed.rotation;
   out.nx = Math.cos(heading);
   out.nz = -Math.sin(heading);
@@ -41,13 +43,10 @@ export function framePoint(frame: StationFrame, l: number, up: number, out: numb
   out.push(frame.x + l * frame.nx, frame.y + up, frame.z + l * frame.nz);
 }
 
+/** An RGB555 color as the game presents it (`rgb555ToRgba`), its RGBA bytes. */
 export function rgb555Bytes(value: number): number[] {
-  return [
-    Math.round((((value >>> 10) & 31) * 255) / 31),
-    Math.round((((value >>> 5) & 31) * 255) / 31),
-    Math.round(((value & 31) * 255) / 31),
-    255,
-  ];
+  const { r, g, b, a } = unpackRgba(rgb555ToRgba(value));
+  return [r, g, b, a];
 }
 
 /** A distinct color for each material, by its place in the catalog. */
@@ -108,30 +107,23 @@ function materialSlabs(placed: PlacedSection, colors: ReadonlyMap<string, readon
 const lerp = (pair: readonly number[], t: number) =>
   pair[0] === pair[1] ? pair[0]! : pair[0]! + (pair[1]! - pair[0]!) * t;
 
-/** The course limits over `[a, b]` within one material slab: the outer edges of its covered material. */
+/**
+ * The course limits at `a` and `b`, within one material slab: the outer edges of its covered material
+ * (`materialOuterEdges`), continuous where slabs meet.
+ */
 export function courseLimits(placed: PlacedSection, a: number, b: number) {
-  const slabs = placed.section.material.slabs;
-  const slab = slabs[stripSlabAt(slabs, (a + b) / 2)]!;
-  const covered = slab.spans.filter((span) => span.value !== null);
-  const first = covered[0]!,
-    last = covered.at(-1)!;
-  return {
-    left: [stripEdgeAt(first, 'left', a), stripEdgeAt(first, 'left', b)],
-    right: [stripEdgeAt(last, 'right', a), stripEdgeAt(last, 'right', b)],
-  };
+  const at = placed.limits.at(a, { left: 0, right: 0 }),
+    to = placed.limits.at(b, { left: 0, right: 0 });
+  return { left: [at.left, to.left], right: [at.right, to.right] };
 }
 
 /** The farthest any drawn ground reaches from a Section's centreline. */
 function drawnReach(placed: PlacedSection, width: number): number {
   let reach = 0;
-  for (const slab of placed.section.material.slabs) {
-    const covered = slab.spans.filter((span) => span.value !== null);
-    for (const s of [slab.start, slab.end])
-      reach = Math.max(
-        reach,
-        Math.abs(stripEdgeAt(covered[0]!, 'left', s)),
-        Math.abs(stripEdgeAt(covered.at(-1)!, 'right', s)),
-      );
+  const edges = { left: 0, right: 0 };
+  for (const s of placed.limits.stations) {
+    placed.limits.at(s, edges);
+    reach = Math.max(reach, Math.abs(edges.left), Math.abs(edges.right));
   }
   return reach + width;
 }

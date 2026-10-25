@@ -89,11 +89,10 @@ export function sectionPoint(
   out: number[],
   at = out.length,
 ): void {
-  const native = placed.section.coordinates.toWorld(s, l, pointSample);
-  const t = placed.worldFromSection;
-  out[at] = t.cosine * native.x + t.sine * native.z + t.translation.x - layout.origin.x;
+  const world = transformPlanarPoint(placed.worldFromSection, placed.section.coordinates.toWorld(s, l, pointSample));
+  out[at] = world.x - layout.origin.x;
   out[at + 1] = placed.section.height.sample(s) + up;
-  out[at + 2] = -t.sine * native.x + t.cosine * native.z + t.translation.z - layout.origin.z;
+  out[at + 2] = world.z - layout.origin.z;
 }
 const pointSample = createPlanCoordinateSample();
 

@@ -1,6 +1,7 @@
 import {
   createSpritePalette,
   selectSpriteLevel,
+  spriteFolds,
   spriteRepeatPeriodMeters,
   SPRITE_SOURCE_TEXELS_PER_METER,
   type SpriteFrame,
@@ -11,6 +12,7 @@ import { courseElementLeaves, expansionWork, type CourseElementLeaf } from '../.
 import type { CourseDocument, SpriteDocument } from '../../src/course/course-document.js';
 import type { StripSlabTarget } from '../../src/course/strip-ground.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
+import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { BoardBuilder, LineBuilder } from './viewer-gl.js';
 import type { CourseLayout, PlacedSection } from './viewer-layout.js';
 import { courseLimits, rgb555Bytes } from './viewer-surfaces.js';
@@ -254,12 +256,8 @@ export function buildBoards(
         groundOffset: sprite.groundOffset,
         asset: image,
       });
-      const t = placed.worldFromSection;
-      const base = [
-        t.cosine * native.x + t.sine * native.z + t.translation.x - layout.origin.x,
-        native.y,
-        -t.sine * native.x + t.cosine * native.z + t.translation.z - layout.origin.z,
-      ];
+      const world = transformPlanarPoint(placed.worldFromSection, native);
+      const base = [world.x - layout.origin.x, native.y, world.z - layout.origin.z];
       const table = placeFrames(image, image.levels);
       const palette = paletteOf(image, sprite.instance.palette);
       const fold = level.anchorY + 0.5;
@@ -324,10 +322,10 @@ export function buildBoards(
           outlines.segment(corners[0]!, corners[1]!, OUTLINE);
           outlines.segment(corners[0]!, corners[2]!, OUTLINE);
           outlines.segment(corners[1]!, corners[3]!, OUTLINE);
-          outlines.segment(corners[2]!, corners[3]!, fold < level.height ? FOLD : OUTLINE);
+          outlines.segment(corners[2]!, corners[3]!, spriteFolds(image) ? FOLD : OUTLINE);
         }
         // The rows below it lie, folded toward −s.
-        if (fold < level.height) {
+        if (spriteFolds(image)) {
           const v0 = Math.max(0, fold);
           const corners = [
             point(copy.offset, u0, v0, true),
