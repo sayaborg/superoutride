@@ -475,9 +475,9 @@ beside the dump, the holds counted at `--kmh` (293 unless told), and prints each
 the committed document. CI holds no ROM, so the documents are committed; edit the conversion, not the documents.
 `npm run road-data -- outrun-look` takes each stage piece alone.
 
-The conversion, version 37 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
-spacing, and the [profile](original-road-data.md#profile)'s `c_look` matches the original's hills as its program draws
-them:
+The conversion, version 38 (`CONVERSION_VERSION`), fits nothing to footage. A lane is K's 3.6 m over the original's lane
+spacing, and the [profile](original-road-data.md#profile) is the original's hills read back from its screen by the
+[grades' rule](original-road-data.md#profile-from-the-originals-screen):
 
 - **Length.** A position is 65536 / (3.6 × 30 × 303) = 2.0027 m ([hills](original-road-data.md#hills)'s advance per
   tick). Position 0 is GO, the car's station (the original's road position is the car's); the road's entry is the
@@ -593,8 +593,8 @@ Link's lane's centre:
   its road comes near itself (`passagePairs`: within its lanes' least radius): then its passages lie in different
   Sections, cut at the last joint before the later passage, after the earlier, where the road is one (w ≤ 212), joined
   by its centre lane.
-- **Profile.** Each piece's height points run their tables at 293 km/h as the [profile](original-road-data.md#profile)
-  says, the stage's cut at its end, and each piece is closed level at height 0 at its ends; the whole road's crossings
+- **Profile.** The road's height points, in its order, run their tables at 293 km/h along the whole road, each table's
+  piece laid as the [profile](original-road-data.md#profile) says; the whole road's crossings
   ([Crossings](original-road-data.md#profile), its cells across its asphalt) are kept 3 m apart.
 - **Objects.** The scenery points of the whole road are [placed](#placing-scenery) along it by road position, each
   stretch's points within its stretch: a stage's destination signs (its point at 1878, count 2) stand at about 1924, 24
@@ -646,7 +646,8 @@ resolution at every position, and lie within 0.11 m of the line their paths buil
 limit](original-road-data.md#the-ground-beside-the-road), 500 units from its road's centre, 288 units (7.336 m) beyond
 the outermost lanes on every road. The road is `ASPHALT` and the ground `SAND`, K's decision (2026-10-25), for
 the ROMs hold no material. Their
-heights reach −185 m and 266 m (the hills' rule, unchanged); 3 to 11 crossings each are kept 3 m apart. In each goal
+heights run from −103.4 m to +301.5 m, the steepest grade 25 % (25.1 % on OUTRUN SHORT D, where a crossing's ramp
+lies on a piece); 3 to 11 crossings each are kept 3 m apart. In each goal
 stretch the GOAL gate (type 210: pillars of sprite 25, the banner 134 and 135) stands at about 321 to 327, before where
 the original's car stops (401) and drives under it; the stands (types 209, 208 and 204) and DESOLATION HILL's ending
 crowd (type 206) stand from about 325 to 435, and the second gate types 208, 206 and 204 hold (the banner at y 352,
@@ -666,24 +667,18 @@ Each stage has its own sky, `outrun-<stage>-sky` (`skyName`), horizon row 320, b
 
 ## COCONUT BEACH's profile
 
-By the [profile](original-road-data.md#profile), on COCONUT BEACH the road's top is 12 rows from the original's on
-average (in the original's rows). The tables' highest and lowest tops, and the least load at 293 km/h over each table
-(below 0 the car leaves the road):
+By the [grades' rule](original-road-data.md#profile-from-the-originals-screen), COCONUT BEACH's five tables are these
+pieces (the looks rows of the original's 224 over their hill frames, both ways; the level road's for comparison):
 
-| Table at | Kind | Original's tops | This game's tops | Least load |
-| -------- | ---- | --------------- | ---------------- | ---------- |
-| 1        | 0    | 112.5 to 191.6  | 120.5 to 170.8   | −1.3 g     |
-| 360      | 0    | 116.9 to 179.9  | 121.8 to 165.1   | −0.2 g     |
-| 1044     | 0    | 101.4 to 187.1  | 111.6 to 170.2   | −1.3 g     |
-| 1600     | 1    | 151 to 169.1    | 112.9 to 166.8   | −0.5 g     |
-| 1824     | 0    | 110.2 to 191.4  | 112.9 to 170.7   | −1.3 g     |
+| Table at | Table | Kind | Look | Level road's look | Rise    | Steepest |
+| -------- | ----- | ---- | ---- | ----------------- | ------- | -------- |
+| 1        | 211   | 0    | 7.1  | 11.9              | +20.7 m | 21.0 %   |
+| 360      | 134   | 0    | 5.4  | 8.9               | −34.5 m | 25.0 %   |
+| 1044     | 213   | 0    | 6.5  | 13.2              | +16.6 m | 24.6 %   |
+| 1600     | 32    | 1    | 3.6  | 4.5               | +9.3 m  | 6.4 %    |
+| 1824     | 198   | 0    | 6.0  | 11.0              | +19.2 m | 17.8 %   |
 
-Kind 0's crests ahead fall 15 to 21 rows short of the original's and their rises 5 to 12; no rule of one value per
-kind brings them within 3 rows, so they are built by the least squares match (K's decision); the kind 1 table's look
-is within 3 rows while it is held. The tables leave grades of −0.131, 0, +0.262, −0.37 and −0.131; the kind 1 table's,
-returned over the 96 positions to the next table, raises the top 38 rows above the original's as the camera nears it.
-The last table ends at the stage's end. The road lies from −72.4 m to 76 m, its steepest grade 38.5 %; the crossing's
-passages are 57.3 m apart without a bump.
+Their rises sum to +31.4 m over the stage, which the road carries on into the fork.
 
 ## Checks on `k1`
 

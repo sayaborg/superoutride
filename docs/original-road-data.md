@@ -403,8 +403,8 @@ not promise the height, which the minimax lines' departures leave to drift by up
 ## Profile from the original's screen
 
 An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
-length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26). The courses take it as NEXT's Stage EX
-lists.
+length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26). SUPER HANG-ON and SUPER MONACO GP take
+it as NEXT's Stage EX lists.
 
 - **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors, SUPER MONACO GP's point path) is what its screen read
   back gives: its heights times one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the
@@ -510,34 +510,27 @@ The rule's constants:
 
 ## Profile
 
-A stage's profile turns its height tables' look on the original's screen into grades this game's camera shows alike
-(`npm run road-data -- outrun-look` reports it for every stage):
+A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its crossings, jumps and dips
+on them (`npm run road-data -- outrun-look` reports OUTRUN's stages' road tops on both screens):
 
-- **Tables.** The height points run their tables as the [hills](#hills) do (`tableRuns`), holds counted at the
-  original's top speed, its chapter's, at the same road positions as before RD-10e: `c_look` was fitted with the camera
-  at the road position, and is kept until the hills are made again. A table still running at the stage's end ends there,
-  and the road beyond the stage is level but for the grades returned: in the original it runs on into the fork, where on
-  COCONUT BEACH its crest throws the car into the air at 200 km/h just before the fork's curve.
-- **Grades.** Each entry slid past the camera changes the grade by `c_look` × entry / 576 over its span, ending where
-  the camera passes it: kind 0's entries, and kind 3's while they slide in. A shape held on the nearest segment changes
-  it by `c_look` × entry / 576 for each 2.125 × step positions it is held at full share, half over its rise and its
-  return: kinds 1's and 2's first entry, kind 3's held entry; it stops where the grade reaches ±0.393 (`STEEPEST`), the
-  steepest a slid table reaches from level (0x3C's, 0x3B's, 0x2F's and 0x32's). Kind 4 changes no grade and the
-  horizon's base is kept (until footage shows kind 4, K's decision).
-- **`c_look`.** 0.131 for entries slid past and 0.55 for held shapes (`LOOK`), fitted on COCONUT BEACH by least
-  squares of the road's top as rows above each level road's top over the screen's height: the original's level top
-  151 of 224 rows, this game's 122.4 of 240. This game's top is the least row of the road from 2.5 m to 200 m ahead of
-  the product camera standing at rest: 6 m behind the player at 2 m above the road there, pitched with the road's grade
-  there. The slid value is fitted from 200 m before each kind 0 table to its end, then the held value about the kind 1
-  table, the grades left by the tables not returned for the fit. One value cannot serve both: as a crest sharpens, this
-  game's top falls by about the square root of its curvature where the original's falls in proportion, so a held
-  shape fitted with the slid value shows about 5 of the original's 18 rows.
-- **Grades left.** The grade a table leaves (where its entries do not sum to 0, and a held shape's) is returned to 0
-  over the stretch to the next table's start, the last's over the stretch to the road's end; where that stretch is
-  empty, it is carried to the next.
-- **Closed.** A grade still left at the road's end (a table running to it) is returned to 0 over its last 200 m; then
-  the road is tilted by one constant grade, taken over its first 200 m and left over its last, so that it ends level
-  at height 0 as it begins, where its ends join other roads.
+- **Pieces placed.** OUTRUN's and TURBO OUTRUN's height points stand where the original's main CPU puts them on each
+  span, in the road's order: a stage's before its end, a fork's before the fork's piece at its start, the goal
+  straight's. Each stretch the original runs on without a stop runs its tables by one `tableRuns`, OUTRUN's a road and
+  TURBO OUTRUN's a leg (the original stops the car at a leg's end and starts the next anew); a point reached while a
+  table runs is dropped, across a span's or a stage's end too (in the original a table runs on into the fork), and a
+  hold counts at the original's top speed (OUTRUN's 293 km/h, TURBO OUTRUN's 324). Each run lays its table's piece
+  whole, a held one its speed's, its stretch from this game's camera's place when the table starts, the camera's
+  distance (6 m) before the car's station, not cut at a span's or a stage's end (`tableGrades`). Kind 4's tables have
+  no piece; a run whose piece the pieces lack stops the conversion.
+- **ENDURO RACER's** run from position 0 cycle by cycle (256 positions): stage 3 (4096–6143) level; each hill's stretch,
+  from the last cycle start at or before its start in the hills' table for its piece's cycles, its piece; every other
+  cycle the cycle's piece. Each lies from the reading camera's place when the road position is its first, 4.19
+  positions behind the bike (6 + (c − 4.19) × 32/27 m, c its first position); from 10240, the stages' end, the road is
+  level (the goal's straight's original hills are not read). A hill's stretch that shares a cycle with another's stops
+  the conversion.
+- **The grade** is the pieces' summed, level outside them, the height carried along the road (`bendOf`, `profileOf`):
+  the road's start and end may differ in height (K, 2026-10-23). Where two pieces overlap (one past a leg's end over the
+  next leg's) their grades add, a choice, as the original never shows both; past the road's end a piece is cut.
 - **Crossings.** A road's cells are its cross-sections, to the edge bands, between a position and the next. Where a
   plan passes over itself (pairs of its cells starting at least 200 m apart that overlap), a passage is a run of the
   cells taking part, running on over gaps of up to 3 positions, and passages linked by overlaps make one crossing;
@@ -675,8 +668,8 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and SUPER
   MONACO GP lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
-- Heights: level until the hills stage, but for the crossings' ramps ([Profile](#profile)); record the original's height
-  or slope format.
+- Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its
+  screen read back piece by piece ([Profile](#profile)); record the original's height or slope format.
 - Cross-section: lanes, lines, edge bands from the road ROM's nearest line or the surface sprites; colors and the
   stripes' period and phase (check the phase in the original, the bike or car held still while the position is set).
 - Materials and limits from the original's band or zone tables where it has them; where a car cannot go, the course
@@ -704,8 +697,9 @@ The rules of the originals (what never enters the repository, decryption, other 
 - Measure the eye on a level road: the horizon row y_h and the road's lateral scale s (pixels a unit) at a row y give
   the eye H = (y − y_h) / s in lateral units, the same at every row for a pinhole projection. Report it raw and with
   rows 15/14 of a column, in metres at the adopted scale, against the player's vehicle, and the camera's distance and
-  field of view where the original's depth allows (its along-road depth is often not a perspective). Each research
-  note's Camera (eye height) section keeps its original's figures.
+  field of view where the original's depth allows (its along-road depth is often not a perspective). Measure and record
+  its focal length too, in screen heights, so its lens ratio, which the [grades' rule](#profile-from-the-originals-screen)
+  scales by. Each research note's Camera (eye height) section keeps its original's figures.
 
 ### 9. Sections, gates, limits of admission
 

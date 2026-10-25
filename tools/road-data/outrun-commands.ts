@@ -52,6 +52,7 @@ import {
   crossingReport,
   dumpDirectory,
   fidelityReport,
+  gradeReport,
   ORIGINALS_DIRECTORY,
   romDirectory,
   romSet,
@@ -279,7 +280,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
       const road = roads[k]!;
       const document = road.write(ground);
       const file = await saveCourse(route.id, document, check);
-      const stations = Array.from({ length: Math.floor(road.end) + 1 }, (_, s) => s);
       courses.push({
         course: file,
         sections: document.sections.length,
@@ -296,11 +296,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
             widened: spans.flatMap((f) => f.widened),
           };
         })(),
-        heights: [
-          round1(Math.min(...stations.map(road.profile.height))),
-          round1(Math.max(...stations.map(road.profile.height))),
-        ],
-        steepest: Math.round(Math.max(...stations.map((s) => Math.abs(road.profile.grade(s)))) * 1000) / 1000,
+        ...gradeReport(road.profile, road.screenProfile, road.end, TOP_KMH, road.overlaps),
         crossings: road.crossings.map((c, k) => crossingReport({ ...c, ...road.partings[k]! }, road.profile.height)),
         rampRadius: road.rampRadius === null ? null : Math.round(road.rampRadius),
       });

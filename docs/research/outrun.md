@@ -92,8 +92,8 @@ W(a) are the long and the word at a.
 - Kinds 1 and 2 rise over 2.125 × step, hold, and return over 2.125 × step; the hold's wait falls each tick by
   int(120 × positions advanced / step), so a slower car holds longer. COCONUT BEACH's table 32 (position 1600, kind 1)
   was the check against `k1`.
-- The conversion's grades are a fit of the screen shapes to this game's camera (`c_look`), kept until the hills are made
-  again with grade separation (the specification's Profile).
+- The conversion's grades are the screen's shapes read back through this game's camera (the specification's [profile
+  from the original's screen](../original-road-data.md#profile-from-the-originals-screen)).
 
 ## How it was checked
 

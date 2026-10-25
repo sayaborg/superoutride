@@ -14,6 +14,7 @@ import type { Json } from '../authoring/json-pointer.js';
 import { readCourseDocument } from '../../src/course/course-document.js';
 import { planFidelity, VECTOR_RESOLUTION } from './heading-plan.js';
 import type { Parting, Passage } from './crossings.js';
+import type { Profile } from './road-profile.js';
 
 /** A command's options, `--name value` or a flag. */
 export type RoadDataOptions = ReadonlyMap<string, string>;
@@ -45,6 +46,38 @@ export const crossingReport = (
   apart: round3(crossing.apart),
   heights: crossing.passages.map((p) => round1(height((p.from + p.to) / 2))),
 });
+/**
+ * A road's grades as the commands report them, sampled every metre to `end`: its heights' range and its end's, its
+ * steepest grade by its screen's `pieces` alone and with all else (`profile`: crossings, jumps, dips), the pieces'
+ * `overlaps`, and its flights at `kmh`, the stretches where the load on a crest falls below 0 (the car leaves the road):
+ * their count and the longest, metres.
+ */
+export function gradeReport(
+  profile: Profile,
+  pieces: Profile,
+  end: number,
+  kmh: number,
+  overlaps?: { readonly count: number; readonly metres: number },
+) {
+  const stations = Array.from({ length: Math.floor(end) + 1 }, (_, s) => s);
+  const steepest = (p: Profile) => round3(Math.max(...stations.map((s) => Math.abs(p.grade(s)))));
+  const v = kmh / 3.6;
+  const flights: number[] = [];
+  let last = -Infinity;
+  for (const b of profile.bends)
+    if (1 + (v * v * b.curvature) / 9.80665 < 0) {
+      if (b.from - last <= 1e-6) flights[flights.length - 1]! += b.to - b.from;
+      else flights.push(b.to - b.from);
+      last = b.to;
+    }
+  return {
+    heights: [round1(Math.min(...stations.map(profile.height))), round1(Math.max(...stations.map(profile.height)))],
+    endHeight: round1(profile.height(end)),
+    steepest: { pieces: steepest(pieces), course: steepest(profile) },
+    ...(overlaps ? { overlaps: { count: overlaps.count, metres: round1(overlaps.metres) } } : {}),
+    flights: { kmh, count: flights.length, longest: round1(Math.max(0, ...flights)) },
+  };
+}
 /**
  * A plan's fidelity to its table (`planFidelity`), as the commands report it: its heading's most departure, in the
  * table's resolution, and the count of positions beyond it; its position's most drift, metres; and each widened turn's

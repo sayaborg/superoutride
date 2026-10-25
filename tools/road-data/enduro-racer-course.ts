@@ -11,7 +11,8 @@ import { cameraDistance } from '../../src/view/camera.js';
 import type { RomSet } from './rom-set.js';
 import { paletteName } from './pixel-grid.js';
 import { bySlope, moundKinks, slopeColor, type Mound, type Slope } from './jump-mound.js';
-import { bendOf, profileOf, sectionProfile } from './road-profile.js';
+import { bendOf, profileOf, sectionProfile, type Change } from './road-profile.js';
+import { placedChanges, screenPieces } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { stageSky } from './enduro-racer-backgrounds.js';
@@ -37,6 +38,7 @@ import {
   readGroundColors,
   readRoadColors,
   readRoadPaths,
+  readHills,
   readStage3Background,
   readWaterCrossings,
   STAGE_POSITIONS,
@@ -51,7 +53,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 22;
+export const ENDURO_RACER_CONVERSION_VERSION = 23;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -144,6 +146,10 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
+/** ENDURO RACER's normal path's cycle, positions: its slope table is indexed by the position's low byte. */
+const CYCLE = 256;
+/** The level camera the grades' rule reads ENDURO RACER through stands this far behind the bike, positions. */
+const READING_CAMERA = 4.19;
 /**
  * A jump ([Original road data](../../docs/original-road-data.md#profile), Jumps and dips): K's rise, 1 m high and 3 m
  * either side of its top (K, 2026-10-26).
@@ -212,6 +218,7 @@ export function enduroRacerCourse(set: RomSet) {
     go: bikeAhead(programs),
     rivals: readGrid(programs).map((rival) => ({ position: rival.position, x: rival.x * unit })),
     jumps: jumps.map((jump) => jump.position),
+    hills: readHills(main).map((hill) => hill.start),
     limit: lateralLimit(programs) * unit,
     checks,
     finish,
@@ -262,6 +269,8 @@ interface CourseInputs {
   readonly go: number;
   /** The jumps' positions. */
   readonly jumps: readonly number[];
+  /** The hills' starts, the hills' table's (`readHills`). */
+  readonly hills: readonly number[];
   /** The rivals on the grid at GO: their positions and x, metres from P. */
   readonly rivals: readonly { readonly position: number; readonly x: number }[];
   /** The bike's lateral limit, metres either side of P: the ground and the course limits reach it. */
@@ -400,11 +409,31 @@ function layCourse(inputs: CourseInputs) {
   );
 
   // The crossings: passages at least 200 m apart whose roads, to the edge bands' outer edges, overlap, kept apart on the
-  // level road.
+  // screen's grades.
   const crossings = crossingsOf(cells.pairs, metres);
   const mounds = moundKinks(inputs.jumps.map((position) => ({ top: stationOf(position), ...JUMP })));
   const kinks = mounds.kinks;
-  const parted = partedCrossings([], crossings, end, kinks);
+  // The grades by the screen's pieces: from position 0 cycle by cycle to the stages' end, stage 3 level, each hill's
+  // stretch, from the last cycle start at or before its start, its piece and every other cycle the normal path's, each
+  // from the reading camera's place when the road position is its first; level beyond.
+  const { enduroRacer: screen } = screenPieces();
+  requireInput(screen.hills.length === inputs.hills.length, `/${COURSE_ID}`, "The pieces' hills are not the ROMs'");
+  const hillAt = new Map(inputs.hills.map((start, k) => [Math.floor(start / CYCLE) * CYCLE, k]));
+  const grades: Change[] = [];
+  for (let c = 0; c < last;) {
+    const k = hillAt.get(c);
+    const piece = k === undefined ? screen.cycle : screen.hills[k]!;
+    const cycles = k === undefined ? 1 : screen.hills[k]!.cycles;
+    const level = c >= 2 * STAGE_POSITIONS && c < 3 * STAGE_POSITIONS;
+    requireInput(
+      [...hillAt.keys()].every((h) => h === c || h < c || h >= c + cycles * CYCLE),
+      `/${COURSE_ID}`,
+      `A hill's stretch from ${c} shares a cycle with another's`,
+    );
+    if (!level) grades.push(...placedChanges(piece, along(c + inputs.go - READING_CAMERA), end));
+    c += cycles * CYCLE;
+  }
+  const parted = partedCrossings(grades, crossings, end, kinks);
   // Each Section's plan as written, and its start: the lengths written before it, so seams agree exactly.
   const written = pieces.map((piece) => writtenPlan(path, piece));
   const origins = written.reduce((o, plan) => [...o, o.at(-1)! + plan.reduce((sum, e) => sum + e.length, 0)], [0]);
@@ -470,6 +499,7 @@ function layCourse(inputs: CourseInputs) {
     },
     pieces,
     profile,
+    screenProfile: profileOf(grades.map(bendOf)),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     stationOf,
     placed,

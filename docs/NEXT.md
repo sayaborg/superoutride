@@ -115,9 +115,11 @@ K's decisions (2026-10-24):
 K's decisions (2026-10-26):
 
 - **Crossings are kept 3 m apart**, the least change's measure written in Original road data's Crossings.
-- **OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades are K's** to solve: they come in one PR replacing the draft
-  grades and `c_look`. EX-14 takes `road-profile`'s `UNIT` 576, `ORIGINAL_LEVEL_TOP` 151 and `ORIGINAL_ROWS` 224, and
-  OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` which write them again, after it.
+- **Every original's grades by one rule**, the road its screen shows read back through the camera that drew it at this
+  game's focal length within ±25 % ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)):
+  OUTRUN's, TURBO OUTRUN's and ENDURO RACER's by K's researcher's pieces (EX-G2), replacing the draft grades and
+  `c_look`. EX-14 takes `road-profile`'s `UNIT` 576, `ORIGINAL_LEVEL_TOP` 151 and `ORIGINAL_ROWS` 224, and OUTRUN's
+  `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` which write them again, after it.
 
 K's decisions (2026-10-25):
 
@@ -153,8 +155,9 @@ The stage's defaults, each chosen for the fewest constants and no rule made for 
   miss the lap's height by 11.5 m at 1/96. SUPER HANG-ON's vertical heading vectors are a profile its sub CPU
   projects, taken at the scale that puts its hills' eye at the original's eye (112 road units, 2.17 m), raised as a
   heading table is, by their own runs: the [profile from a rise table](original-road-data.md#profile-from-a-rise-table)
-  (EX-12). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables are
-  shapes on the screen that no 3D road makes; their grades stay drafts, Stage GR's.
+  (EX-12). OUTRUN's, TURBO OUTRUN's and ENDURO RACER's height tables and slope words are shapes on the screen; their
+  grades are the [grades' rule](original-road-data.md#profile-from-the-originals-screen)'s, the screen read back piece
+  by piece, and canon (EX-G2).
 - **Crossings.** Where the heights leave two passages nearer than 3 m, one fixed rule parts them by the least change,
   whatever made the heights ([Original road data](original-road-data.md#profile), Crossings); on a canon's heights it is
   part of the canon.
@@ -193,9 +196,6 @@ Rules of the stage:
 PRs, in this order:
 
 - K's grades by the [grades' rule](original-road-data.md#profile-from-the-originals-screen) (K, 2026-10-26):
-  - EX-G2: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades from the screen's pieces, placed where the originals run
-    them, replacing the draft grades, `c_look`, the grades left and the closing at height 0; the crossings parted on
-    them by their rule.
   - EX-G3: SUPER HANG-ON's and SUPER MONACO GP's heights times their factor, the lens ratio within the grade limit.
   - EX-G4: what EX-G2 and EX-G3 no longer use deleted (`road-profile`'s table grades, `c_look` and the closing,
     `outrun-look`, SUPER HANG-ON's eye scale).
@@ -340,14 +340,9 @@ and size (TD-5), so its tables do not vary, and `--check` and the eye catch a mi
 
 ## Stage GR — The originals' courses mended
 
-Stage GR mends the five originals' courses, decides how OUTRUN's, TURBO OUTRUN's and ENDURO RACER's hills are made and
-makes them, decides the originals' classes, and fixes defects; what Stages ER and MG left in
+Stage GR mends the five originals' courses, decides the originals' classes, and fixes defects; what Stages ER and MG
+left in
 [Courses of the originals](#courses-of-the-originals) is its.
-
-K's direction (2026-10-25): OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades are researched toward the least
-misplacement, over the whole course, of the road's strips as a whole, not of the road's top edge as `c_look` fits it
-today; SUPER HANG-ON's and SUPER MONACO GP's are made faithful to their ROMs (EX-10, EX-12). Until then Stage EX leaves
-`c_look` and the draft grades as they are.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -536,13 +531,13 @@ Left by the stages that raised them, beside what follows:
   ride-on cabinets' courses (their programs are encrypted), the ending's motion (its last frame alone stands), and the
   product's pictures drawn again. When classes return, each is the player alone on VFR750R from GO (slot 15), no
   traffic, margin 1.35.
-- TURBO OUTRUN: the hills made again (proper grade separation with them), the TURBO OUTRUN series itself (F40 and 959,
+- TURBO OUTRUN: the TURBO OUTRUN series itself (F40 and 959,
   their colors and sides, the rival and the clock's values), the original's time extensions, turbo, tune-ups and traffic
   tables, the objects that fly or break when hit made movable, the ending's picture as a screen picture, sounds and
   music, the other cabinets' courses (`toutrun2` among them), and the product's pictures drawn again. Until its class is
   made the GOAL gate's posts over lanes a and f are shown in drawings; whether a reference run hits them is checked
   then.
-- ENDURO RACER: the hills (the original's grade tables), the ENDURO RACER series itself (bikes, rivals,
+- ENDURO RACER: the ENDURO RACER series itself (bikes, rivals,
   colors, pace and time extensions), sounds and music, the motion of what moves, the ending's text, and the product's
   pictures drawn again.
 - SUPER MONACO GP: the SUPER MONACO GP series itself (cars, rivals, laps, rank limits, time and the overcast set),
@@ -552,7 +547,6 @@ Left by the stages that raised them, beside what follows:
 
 Left by Stages ER and MG to [Stage GR](#stage-gr--the-originals-courses-mended) (K, 2026-10-21):
 
-- The hills: ENDURO RACER's grade tables, and its crossings made again.
 - The bodies of ENDURO RACER's 183 objects on the road, once the drivers can avoid objects standing on the road.
 - The SUPER MONACO GP series and its overcast set.
 

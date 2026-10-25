@@ -84,8 +84,11 @@ export interface Profile {
   grade(s: number): number;
 }
 
-/** Stations nearer than this are one, a nanometre: two computations of one station differ by less. */
-const ONE = 1e-9;
+/**
+ * Stations nearer than this are one, a micrometre, as stations are written: two computations of one station (a piece's
+ * cell border and a passage's end at one road position) differ by less.
+ */
+const ONE = 1e-6;
 
 /**
  * The profile of `bends`, which may overlap: their curvatures add, and of `kinks`, the grade changing at each by its

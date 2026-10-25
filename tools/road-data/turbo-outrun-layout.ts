@@ -13,7 +13,8 @@ import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { passagePairs, writtenPlan } from './section-writing.js';
 import { CoursePath } from './course-path.js';
 import { tableRuns } from './hills.js';
-import { bendOf, closedGrades, LOOK, profileOf, stageGrades, type Change } from './road-profile.js';
+import { bendOf, profileOf } from './road-profile.js';
+import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { moundKinks, type Mound } from './jump-mound.js';
 import { UNIT_METRES } from './pixel-grid.js';
@@ -241,20 +242,31 @@ export function layTurboOutrun(inputs: LayoutInputs) {
   };
   const cuts = pieces.slice(1).map((p) => p.from);
 
-  // The profile: each stage's tables run at the speed and closed level over its stretch; the crossings kept apart.
-  const changes: Change[] = course.flatMap(({ stage, run, start, length }) => {
-    const origin = station(start);
-    const stationOf = (p: number) => station(start + p) - origin;
-    const tableRunsOf = tableRuns(
-      stage.widthsHeights.filter((p) => p.kind === 0 && p.position < run.end),
-      inputs.tables,
-      () => inputs.kmh,
-    );
-    const size = stationOf(length);
-    const own = closedGrades(stageGrades(tableRunsOf, LOOK, stationOf, stationOf(run.end), size), size);
-    return own.map((c) => ({ ...c, from: c.from + origin, to: c.to + origin }));
-  });
+  // The profile: each leg's tables run at the speed by their screen's pieces, as the original runs a leg on from its
+  // GO to its stop; the crossings kept apart.
   const end = station(total);
+  const legs: CourseStage[][] = [];
+  course.forEach((c, n) => {
+    if (n === 0 || course[n - 1]!.joined) legs.push([]);
+    legs.at(-1)!.push(c);
+  });
+  const grades = legs.map((leg) =>
+    tableGrades(
+      tableRuns(
+        leg.flatMap(({ stage, run, start }) =>
+          stage.widthsHeights
+            .filter((p) => p.kind === 0 && p.position < run.end)
+            .map((p) => ({ ...p, position: start + p.position })),
+        ),
+        inputs.tables,
+        () => inputs.kmh,
+      ),
+      inputs.kmh,
+      station,
+      end,
+    ),
+  );
+  const changes = grades.flatMap((g) => g.changes);
   const pairs = roadCells(line, {
     from: 0,
     to: metres(total),
@@ -293,6 +305,8 @@ export function layTurboOutrun(inputs: LayoutInputs) {
     /** P's pose at course position `g`. */
     pose: (g: number) => line.pose(metres(g)),
     profile,
+    screenProfile: profileOf(changes.map(bendOf)),
+    overlaps: overlaps(grades.flatMap((g) => g.stretches)),
     mounds: { runs: mounds.runs, joined: mounds.joined, longest: mounds.longest },
     slopes: mounds.slopes,
     crossings: crossings.map((crossing, k) => ({ passages: crossing.passages, ...parted.partings[k]! })),

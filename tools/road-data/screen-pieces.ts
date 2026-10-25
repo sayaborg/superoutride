@@ -4,8 +4,11 @@
  * from the stretch's start, the grade 0 at both ends and within `GRADE_LIMIT`.
  */
 import { readFileSync } from 'node:fs';
+import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
+import { cameraDistance } from '../../src/view/camera.js';
 import { requireInput } from '../course/authoring-io.js';
 import { GRADE_LIMIT } from './crossings.js';
+import type { TableRun } from './hills.js';
 import type { Change } from './road-profile.js';
 
 /** A piece: its stretch, metres, and the changes of grade over it, stations from the stretch's start. */
@@ -125,4 +128,60 @@ export function screenPieces(): { outrun: OutrunPieces; enduroRacer: EnduroRacer
     }),
   });
   return read;
+}
+
+/** Where a piece's stretch lies on a road, stations. */
+export interface Stretch {
+  readonly from: number;
+  readonly to: number;
+}
+
+/** `piece`'s changes, its stretch from station `start`, cut where the road `[0, end]` ends, their curvatures kept. */
+export function placedChanges(piece: Piece, start: number, end: number): Change[] {
+  return piece.changes.flatMap((c) => {
+    const [from, to] = [Math.max(0, c.from + start), Math.min(end, c.to + start)];
+    return to > from ? [{ from, to, change: (c.change * (to - from)) / (c.to - c.from) }] : [];
+  });
+}
+
+/**
+ * The grades of OUTRUN's or TURBO OUTRUN's table runs over a stretch the original runs on without a stop (a road, a
+ * leg): each run's piece whole, its table's and, held, at `kmh`, its stretch from this game's camera's place when the
+ * table starts, its distance before the car's station there (`station(position)`), on the road to `end`; their grades
+ * add where the pieces overlap. Kind 4's tables have none; a run whose piece the file lacks stops the conversion. With
+ * the stretches placed.
+ */
+export function tableGrades(
+  runs: readonly TableRun[],
+  kmh: number,
+  station: (position: number) => number,
+  end: number,
+): { changes: Change[]; stretches: Stretch[] } {
+  const { outrun } = screenPieces();
+  const camera = cameraDistance(CAMERA_DEFINITION);
+  const stretches: Stretch[] = [];
+  const changes = runs.flatMap((run) => {
+    if (run.table.kind === 4) return [];
+    const piece = outrun.piece(run.number, kmh);
+    if (!piece) throw new RangeError(`Height table ${run.number} has no piece at ${kmh} km/h`);
+    const start = station(run.start) - camera;
+    if (piece.stretch > 0) stretches.push({ from: start, to: start + piece.stretch });
+    return placedChanges(piece, start, end);
+  });
+  return { changes, stretches };
+}
+
+/** How many of `stretches` begin within one before them, and the metres they overlap. */
+export function overlaps(stretches: readonly Stretch[]): { count: number; metres: number } {
+  let count = 0,
+    metres = 0,
+    reach = -Infinity;
+  for (const s of [...stretches].sort((a, b) => a.from - b.from)) {
+    if (s.from < reach) {
+      count++;
+      metres += Math.min(reach, s.to) - s.from;
+    }
+    reach = Math.max(reach, s.to);
+  }
+  return { count, metres };
 }

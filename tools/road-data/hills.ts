@@ -59,6 +59,8 @@ const window = (entries: readonly number[], i: number, f: number, scale = 1) =>
 
 /** A table's run along a stage: from its point's position, its rise's end, its hold's end and its end, positions. */
 export interface TableRun {
+  /** The table's number, its point's value. */
+  readonly number: number;
   readonly table: HeightTable;
   readonly start: number;
   /** Kinds 1 to 3: where the rise ends and the hold ends; kind 0's slide and kind 4's move end at `rise`. */
@@ -92,10 +94,11 @@ export function tableRuns(
     if (!table) throw new RangeError(`Height table ${point.value} was not read`);
     const start = point.position,
       rise = start + riseOf(table);
-    if (table.kind === 0 || table.kind === 4) runs.push({ table, start, rise, holdEnd: rise, end: rise });
+    const number = point.value;
+    if (table.kind === 0 || table.kind === 4) runs.push({ number, table, start, rise, holdEnd: rise, end: rise });
     else {
       const holdEnd = rise + holdLength(table, kmh(rise));
-      runs.push({ table, start, rise, holdEnd, end: holdEnd + ENTRY * table.step });
+      runs.push({ number, table, start, rise, holdEnd, end: holdEnd + ENTRY * table.step });
     }
   }
   return runs;

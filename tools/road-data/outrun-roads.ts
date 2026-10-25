@@ -28,17 +28,9 @@ import {
   withEntry,
 } from './outrun-pieces.js';
 import type { Quadratic } from './quadratic.js';
-import {
-  bendOf,
-  closedGrades,
-  LOOK,
-  profileOf,
-  sectionProfile,
-  stageGrades,
-  type Change,
-  type Profile,
-} from './road-profile.js';
+import { bendOf, profileOf, sectionProfile, type Profile } from './road-profile.js';
 import { tableRuns } from './hills.js';
+import { overlaps, tableGrades } from './screen-pieces.js';
 import { crossingsOf, partedCrossings, roadCells } from './crossings.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER as TEXELS } from '../../src/image/sprite.js';
@@ -415,8 +407,9 @@ export function layRoad(spans: readonly RoadSpan[]): Laid[] {
 }
 
 /**
- * A laid road's profile, by road station: each piece's tables run and their grades returned, the piece closed level at
- * 0 at its ends; the road's crossings kept apart; bends broken at its Sections' cuts. With its end and its crossings.
+ * A laid road's profile, by road station: its height points' tables run along the whole road, each by its screen's
+ * piece (`tableGrades`); the road's crossings kept apart; bends broken at its Sections' cuts. With its end, the pieces'
+ * own profile and overlaps, and its crossings.
  */
 export function roadProfile(
   laid: readonly Laid[],
@@ -433,17 +426,14 @@ export function roadProfile(
     const l = laid[k]!;
     return stationOf(l, Math.min(position - starts[k]!, l.road.span.length));
   };
-  const changes: Change[] = laid.flatMap((l, k) =>
-    l.road.span.heights.flatMap((piece) => {
-      const from = starts[k]! + piece.from;
-      const origin = stationAt(from);
-      const stationOf = (p: number) => stationAt(from + p) - origin;
-      const runs = tableRuns(piece.points, options.tables, () => options.kmh);
-      const length = stationAt(starts[k]! + piece.to) - origin;
-      const own = closedGrades(stageGrades(runs, LOOK, stationOf, stationOf(piece.cut - piece.from), length), length);
-      return own.map((c) => ({ ...c, from: c.from + origin, to: c.to + origin }));
-    }),
+  // The road's height points in its order, by road position: run by one `tableRuns`, as the original runs on.
+  const points = laid.flatMap((l, k) =>
+    l.road.span.heights.flatMap((piece) =>
+      piece.points.map((p) => ({ ...p, position: starts[k]! + piece.from + p.position })),
+    ),
   );
+  const runs = tableRuns(points, options.tables, () => options.kmh);
+  const grades = tableGrades(runs, options.kmh, stationAt, end);
   // The crossings: the road's cells a position each, its asphalt across, by the metres along P from its start.
   const spanAt = (u: number) => {
     const position = u / POSITION_METRES;
@@ -472,16 +462,24 @@ export function roadProfile(
     POSITION_METRES,
   );
   const cutStations = laid.flatMap((l) => l.origins).slice(1);
-  const parted = partedCrossings(changes, crossings, end);
+  const parted = partedCrossings(grades.changes, crossings, end);
   const profile = profileOf(parted.changes.filter((c) => c.from >= 0 && c.to <= end).map(bendOf), cutStations);
-  return { end, profile, crossings, partings: parted.partings, rampRadius: parted.radius };
+  return {
+    end,
+    profile,
+    screenProfile: profileOf(grades.changes.map(bendOf)),
+    overlaps: overlaps(grades.stretches),
+    crossings,
+    partings: parted.partings,
+    rampRadius: parted.radius,
+  };
 }
 
 /**
  * One road as a course document, its Positions still measured from each Section's first joint, and what it reports:
  * spans in order, the first the entry, each joined to the next by its `leaves` lane. The first span's start is the
  * grid's; a stage reached through a fork has its checkpoint where its banner passes the car; the last stage ends in its
- * finish. Its height tables run per piece, each closed level at 0; its crossings are kept 6 m apart; where
+ * finish. Its grades are its height tables' pieces; its crossings are kept apart; where
  * a span's coordinate domain passes over itself, a cut where the road is one parts its passages.
  */
 export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
@@ -492,7 +490,7 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
   const entered =
     first!.go === undefined ? withEntry(first!.span, go) : sliceSpan(first!.span, first!.go - go, first!.span.length);
   const laid = layRoad([{ ...first!, span: entered }, ...spans.slice(1)]);
-  const { end, profile, crossings, partings, rampRadius } = roadProfile(laid, options);
+  const { end, profile, screenProfile, overlaps, crossings, partings, rampRadius } = roadProfile(laid, options);
 
   // The objects along the whole road, by road position.
   const positions = laid.map((_, k) => laid.slice(0, k).reduce((sum, m) => sum + m.road.span.length, 0));
@@ -600,6 +598,8 @@ export function outrunRoad(spans: readonly RoadSpan[], options: RoadOptions) {
     laid,
     end,
     profile,
+    screenProfile,
+    overlaps,
     crossings,
     partings,
     rampRadius,

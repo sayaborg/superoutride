@@ -139,7 +139,7 @@ values the tool holds.
 ## TURBO OUTRUN's course
 
 `npm run road-data -- turbo-outrun-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`turbo-outrun` (TURBO OUTRUN), conversion version 21, and its skies, or with `--check` fails where one differs. Its
+`turbo-outrun` (TURBO OUTRUN), conversion version 22, and its skies, or with `--check` fails where one differs. Its
 amounts are the original's at the top speed, 324 km/h, with its 108 objects
 ([Placing TURBO OUTRUN's scenery](#placing-turbo-outruns-scenery)); its objects stand as
 [TURBO OUTRUN's objects](#turbo-outruns-objects) says.
@@ -214,9 +214,10 @@ amounts are the original's at the top speed, 324 km/h, with its 108 objects
   background comes in (T + 11, 1424.585); a leg's first stage's rising at its GO. At heading 0 the
   original's back layer's pixel 1376 of 1536 is at the screen's middle, here 1376 × 1504 / 1536 of the sky's 1504: a
   Section's yaw origin is 75.6° plus P's turn from the course's start to its start.
-- **Profile.** Each stage's height points run at 324 km/h by OUTRUN's rule ([Profile](original-road-data.md#profile)),
-  the stage closed level at height 0 over its stretch; the dips; the nine crossings, each of two passages, kept apart
-  with the dips; bends broken at the Sections' cuts.
+- **Profile.** Each leg's height points, its stages' in turn, run their tables at 324 km/h along the leg, each table's
+  piece laid as the [profile](original-road-data.md#profile) says; the dips; the nine crossings, each of two passages,
+  kept apart with the dips; bends broken at the Sections' cuts. The road runs from −30.8 to +396.4 m and ends at
+  +390.2 m, its pieces' steepest grade 25 % (30 % with the dips); no two pieces overlap.
 - **Dips.** Collision class 2 throws the car (its handler at 0x742A, in the decrypted program alone): its boards
   (0x27034), 124 in 96 rows of one to three at a road position, are K's dip across the road at each row's position
   ([Jumps and dips](original-road-data.md#profile)), not objects; rows within 4 m join (29 runs of 59 rows). The boards

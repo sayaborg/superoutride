@@ -16,6 +16,7 @@ import {
   crossingReport,
   dumpDirectory,
   fidelityReport,
+  gradeReport,
   romDirectory,
   romSet,
   round1,
@@ -23,6 +24,9 @@ import {
   saveCourse,
   type RoadDataCommands,
 } from './road-data-commands.js';
+
+/** The original's top speed, km/h: its display shows at most 199 ([research notes](../../docs/research/enduro-racer.md)). */
+const TOP_KMH = 199;
 
 /** Where K's two ENDURO RACER ROM zips lie: never committed. */
 const ENDURO_RACER_ZIPS = Object.freeze({
@@ -152,12 +156,7 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
         yawOrigin: round3(built.yawOrigin),
         // The jumps' shape, and how they join.
         jumps: Object.fromEntries(Object.entries(built.jumps).map(([k, v]) => [k, round3(v)])),
-        // The profile's steepest grade, sampled every metre.
-        steepest: round3(
-          Math.max(
-            ...Array.from({ length: Math.floor(built.path.length) }, (_, s) => Math.abs(built.profile.grade(s))),
-          ),
-        ),
+        ...gradeReport(built.profile, built.screenProfile, built.path.length, TOP_KMH),
         crossings: built.crossings.map((c) => crossingReport(c, built.profile.height)),
         rampRadius: built.rampRadius === null ? null : Math.round(built.rampRadius),
         objects: built.placed.length,
