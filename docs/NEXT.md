@@ -181,7 +181,8 @@ Rules of the stage:
 
 PRs, in this order:
 
-- The scale's DEV courses (the constants' table below); if undecided when the stage closes, the scale moves to Stage GR.
+- The scale's DEV courses (the constants' table below): SUPER MONACO GP's race at 3.6 m remains, its pictures about 90
+  MB more, on K's word; if undecided when the stage closes, the scale moves to Stage GR.
 - CAM-1: a course document writes a sky change at the original's position, and the renderer changes the sky when the
   point the camera follows (the player's base point; a still picture's and the workbench's too) reaches it; the rule
   written once in [Architecture](architecture.md), the chapters' and Original road data's copies deleted. OUTRUN's,
@@ -334,9 +335,11 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
 - **The scale**: temporary DEV courses for SUPER HANG-ON's AFRICA (the original's bike at its real size, 3.883 m a
   lane, and one lane width for all, 3.6 m), SUPER MONACO GP's race and ENDURO RACER (3.6 m), with pictures of the same
-  places; OUTRUN's and TURBO OUTRUN's are not made. One temporary road data argument overrides an original's lateral
-  unit (reproducible by `--check`); the courses are shown in DEV only, named by their candidate, with a table of the
-  same vehicle's reference plan times and pictures at the start, a sharp curve and a wide road. When K has decided:
+  places; OUTRUN's and TURBO OUTRUN's are not made. The road data commands' temporary `--lane <metres>` overrides an
+  original's lane, and so its lateral unit (reproducible with `--check`); the courses, in no series and so DEV's alone,
+  carry the candidate in their ids, names and pictures (`super-hang-on-africa-lane-3883`, `-lane-3600`,
+  `enduro-racer-lane-3600`), with pictures at the start, a sharp curve and a long straight; the reference times wait
+  until the courses are finished (K). When K has decided:
   raised again at the value, measured again, the temporary courses and argument deleted, and how it was decided
   written once in each chapter and Original road data.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 6 m

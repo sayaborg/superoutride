@@ -24,7 +24,7 @@ import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
 import { paletteName } from './pixel-grid.js';
-import { raisedSplit } from './section-writing.js';
+import { raisedSplit, scaleTag } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
 export const SUPER_HANG_ON_CONVERSION_VERSION = 11;
@@ -102,8 +102,19 @@ export function positionMetres(main: Uint8Array): number {
   return ((multiplier! / divisor!) * 65536) / (3.6 * ticks * advance);
 }
 
-/** The four courses' documents and reports, the pictures they show and their skies. */
-export function superHangOnCourses(set: RomSet) {
+/**
+ * A candidate of the scale (NEXT's Stage EX), raised as a temporary DEV course until K decides: a lane's width in metres
+ * for the courses named, whose ids and pictures carry it.
+ */
+export interface ScaleCandidate {
+  readonly lane: number;
+  readonly courses: readonly string[];
+}
+
+/** The four courses' documents and reports, the pictures they show and their skies; a candidate's courses alone. */
+export function superHangOnCourses(set: RomSet, candidate?: ScaleCandidate) {
+  const lane = candidate?.lane ?? LANE;
+  const tag = scaleTag(candidate?.lane);
   const programs = assembleSuperHangOnPrograms(set);
   const words = assembleSuperHangOnSprites(set);
   const planes = assembleSuperHangOnTiles(set);
@@ -113,7 +124,7 @@ export function superHangOnCourses(set: RomSet) {
   const rules = sceneryRules(main);
   const amounts = programAmounts(main);
   const cross = roadCrossSection(superHangOnRoadRom(set));
-  const unit = LANE / cross.linesIn;
+  const unit = lane / cross.linesIn;
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
@@ -129,9 +140,14 @@ export function superHangOnCourses(set: RomSet) {
     uses.push({ list, mirrored, palette, raised });
     if (!widths.has(list))
       widths.set(list, chosenPicture(main, words, list, unit).width / SPRITE_SOURCE_TEXELS_PER_METER);
-    return { image: pictureName(main, { list, mirrored }), palette: paletteName(palette), width: widths.get(list)! };
+    return {
+      image: pictureName(main, { list, mirrored }) + tag,
+      palette: paletteName(palette),
+      width: widths.get(list)!,
+    };
   };
-  const built = readCourses(main).map((course, c) => {
+  const built = readCourses(main).flatMap((course, c) => {
+    if (candidate && !candidate.courses.includes(course.name)) return [];
     const sections = course.sections.map((n) => readSection(programs, n, positions.length));
     // The heading table: the sections' road paths, then the goal's, straight ahead, made `GOAL_POSITIONS` long.
     const goalPath = [...goal.path.x.keys()].map((i) => [goal.path.x[i]!, goal.path.y[i]!] as const);
@@ -148,8 +164,8 @@ export function superHangOnCourses(set: RomSet) {
     );
     const crowd = goal.scenery[c]!.flatMap((point) => readSceneryType(main, point.type).items);
     const road = superHangOnCourse({
-      id: courseId(course.name),
-      name: course.name,
+      id: courseId(course.name) + tag,
+      name: candidate ? `${course.name} LANE ${candidate.lane}` : course.name,
       slug: courseSlug(course.name),
       sections,
       headings,
@@ -176,20 +192,21 @@ export function superHangOnCourses(set: RomSet) {
       sky: (order) => skyName(course.name, order),
       yawOrigin,
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
+      lane,
     });
     const skies = sections.map((section, order) => {
       const name = skyName(course.name, order);
       return { name, document: bakeSky(name, sectionBands(main, planes, c, order, section.sky.rgb555)) };
     });
-    return { course, dropped, road, skies };
+    return [{ course, dropped, road, skies }];
   });
-  const pictures = superHangOnPictures(main, words, uses, unit);
+  const pictures = superHangOnPictures(main, words, uses, unit, tag);
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
   const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
   // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
-  const ground = Math.round((word(main, high! * 0x10000 + low!) * unit - LANE) * 1e6) / 1e6;
+  const ground = Math.round((word(main, high! * 0x10000 + low!) * unit - lane) * 1e6) / 1e6;
   const raised = built.map((b) => {
     const document = b.road.write(ground);
     return {

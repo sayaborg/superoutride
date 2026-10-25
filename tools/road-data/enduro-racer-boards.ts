@@ -84,7 +84,8 @@ function moundSource(main: Uint8Array, words: Uint32Array, use: MoundUse): Sourc
 }
 
 /**
- * The boards the uses need, at `unit` metres a lateral unit, with each one's colored width in metres: one a name,
+ * The boards the uses need, at `unit` metres a lateral unit, with each one's colored width in metres: one a name (the
+ * uses' and mounds', `tag` after a use's),
  * carrying every palette it is shown in (the lowest its default), its pixels (a size set's drawn rows, a mirrored
  * picture the unmirrored one's mirrored) by chosen lines onto its texel grid, a pixel `PIXEL_UNITS` across and
  * `PIXEL_ASPECT` times that down at 40 texels/m, chosen once with pixel 10 among the colors: the board its other
@@ -96,6 +97,7 @@ export function enduroRacerBoards(
   uses: readonly PictureUse[],
   mounds: readonly MoundUse[],
   unit: number,
+  tag = '',
 ) {
   const sources = new Map<string, { source: Source; palettes: Set<number>; ground: boolean; raised: boolean }>();
   const add = (name: string, source: () => Source, palette: number, raised: boolean) => {
@@ -106,7 +108,7 @@ export function enduroRacerBoards(
   };
   for (const use of uses)
     add(
-      pictureName(use),
+      pictureName(use) + tag,
       () => {
         const { width, height, pixels } = sizeSetPixels(main, words, use.sizes);
         return { width, height, pixels, middle: width / 2, footed: true };
@@ -120,7 +122,7 @@ export function enduroRacerBoards(
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .flatMap(([name, { source, palettes, ground, raised }]) => {
       // A mirrored picture is the unmirrored one's lines mirrored.
-      const mirrored = name.endsWith('-mirrored');
+      const mirrored = name.slice(0, name.length - tag.length).endsWith('-mirrored');
       const grid = chosenLines(source.pixels, source.width, across, across * PIXEL_ASPECT);
       const chosen = mirrored ? mirror(Uint8Array.from(grid.indices), grid.width) : grid.indices;
       const indices = Array.from(chosen, (v) => (v === SHADOW ? 0 : v));

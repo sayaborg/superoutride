@@ -2,6 +2,7 @@
  * ENDURO RACER's road data commands ([Development](../../docs/development.md#road-data-commands)): each prints one JSON
  * result, or its diagnostics and exits 1.
  */
+import { scaleTag } from './section-writing.js';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { atomicWrite, requireInput } from '../course/authoring-io.js';
@@ -99,8 +100,11 @@ export const ENDURO_RACER_COMMANDS: RoadDataCommands = Object.freeze({
     // ENDURO RACER's course from its two ROM zips, written to content, or with `--check` compared.
     const check = options.has('--check');
     const { zips, set } = await enduroRacerSet(options);
-    const built = enduroRacerCourse(set);
-    const file = await saveCourse(ENDURO_RACER_COURSE_ID, built.document, check);
+    // `--lane`, temporary until K decides the scale: the course at that lane's width, its id and pictures tagged.
+    const lane = options.get('--lane');
+    const candidate = lane === undefined ? undefined : Number(lane);
+    const built = enduroRacerCourse(set, candidate);
+    const file = await saveCourse(ENDURO_RACER_COURSE_ID + scaleTag(candidate), built.document, check);
     for (const { image } of built.pictures) {
       const picture = `content/${image.path}`;
       if (check) {

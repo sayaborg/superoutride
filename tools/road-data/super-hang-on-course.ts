@@ -106,6 +106,8 @@ export interface SuperHangOnCourseInputs {
   readonly yawOrigin: number;
   /** The camera's distance behind the player: GO lies this far into the entry. */
   readonly cameraDistance: number;
+  /** A lane's width, metres: `LANE`, or a candidate of the scale's temporary DEV courses. */
+  readonly lane: number;
 }
 
 /** An RGB555 color's channels, five bits each. */
@@ -154,10 +156,10 @@ interface Placed {
 export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
   const { metres, length, sections } = inputs;
   const count = sections.length;
-  const unit = LANE / inputs.cross.linesIn;
+  const unit = inputs.lane / inputs.cross.linesIn;
   const entry = inputs.cameraDistance;
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
-  const reach = leastLaneRadius(LANE);
+  const reach = leastLaneRadius(inputs.lane);
   /** P's metres at course position `q`: section k's position p is `length × k + p`, the goal's after the last. */
   const along = (q: number) => entry + q * metres;
 
@@ -398,8 +400,8 @@ function sectionDocument(
 
   // The lanes: a and b, a lane each either side of P; the centre lane a, its centre half a lane left of P.
   const lanes = [
-    { kind: 'lane', id: 'a', width: LANE },
-    { kind: 'lane', id: 'b', width: LANE },
+    { kind: 'lane', id: 'a', width: inputs.lane },
+    { kind: 'lane', id: 'b', width: inputs.lane },
   ];
   const lateral = (fromP: number) => round(fromP);
   const xs = inputs.cross;
@@ -540,15 +542,15 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: round(-LANE / 2),
+    centerLateral: round(-inputs.lane / 2),
     boundaries: [
       {
         id: 'outer-left',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-LANE - context.ground) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(-inputs.lane - context.ground) })),
       },
       {
         id: 'outer-right',
-        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(LANE + context.ground) })),
+        knots: [origin, origin + size].map((s) => ({ at: at(s), lateral: lateral(inputs.lane + context.ground) })),
       },
     ],
     strips,

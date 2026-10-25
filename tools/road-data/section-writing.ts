@@ -23,6 +23,12 @@ export const JOINT_SNAP = 2e-6;
 
 const round = (value: number, step = 1e-6) => Number((Math.round(value / step) * step).toFixed(6));
 
+/**
+ * A temporary DEV course's tag on its id and its pictures' names: the scale's candidate lane in millimetres (NEXT's
+ * Stage EX, until K decides the scale); none for the courses as they are.
+ */
+export const scaleTag = (lane?: number) => (lane === undefined ? '' : `-lane-${Math.round(lane * 1000)}`);
+
 /** Knots without repeats of a position, nor knots where the value neither starts nor stops changing. */
 export function simplified(knots: readonly [number, number][]): [number, number][] {
   const out: [number, number][] = [];

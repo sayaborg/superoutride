@@ -47,16 +47,16 @@ export interface ObjectSpot {
 /**
  * The objects at `unit` metres a lateral unit, and the pictures and jumps' boards they show: the scenery table's items
  * (a scaled item of types 0x48–0x4E its x from the scaled types' x, its height its own), the start's templates at their
- * position, and each jump as one board at P.
+ * position, and each jump as one board at P; their pictures' names carry `tag`.
  */
-export function enduroRacerObjects(main: Uint8Array, unit: number) {
+export function enduroRacerObjects(main: Uint8Array, unit: number, tag = '') {
   const spots: ObjectSpot[] = [];
   const uses: PictureUse[] = [];
   const mounds: MoundUse[] = [];
   const lift = (pixels: number) => pixels * PIXEL_UNITS * PIXEL_ASPECT * unit;
   const show = (use: PictureUse) => {
     uses.push(use);
-    return pictureName(use);
+    return pictureName(use) + tag;
   };
   const scaledX = readScaledX(main);
   for (const item of readScenery(main)) {
@@ -102,7 +102,7 @@ export function enduroRacerObjects(main: Uint8Array, unit: number) {
   for (const jump of readJumps(main).jumps) {
     const kind = readJumpKind(main, jump.kind);
     const mound = {
-      name: moundName(jump.kind),
+      name: moundName(jump.kind) + tag,
       sizes: kind.sizes,
       left: 2 * jump.left,
       right: 2 * jump.right,

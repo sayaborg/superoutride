@@ -24,7 +24,7 @@ import {
 } from './heading-plan.js';
 import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath, type PathElement } from './course-path.js';
-import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, scaleTag, writtenPlan, type WrittenElement } from './section-writing.js';
 import { type Colors } from './road-tables.js';
 import {
   assembleEnduroRacerPrograms,
@@ -147,13 +147,18 @@ interface Piece {
 
 const pair = (colors: Colors, k: number) => [colors.rgb555[k]!, colors.rgb555[k + 1]!] as const;
 
-/** The course's document and report, from the ROM set. */
-export function enduroRacerCourse(set: RomSet) {
+/**
+ * The course's document and report, from the ROM set; with `lane`, a candidate of the scale (NEXT's Stage EX), raised as
+ * a temporary DEV course until K decides, its id, name and pictures carrying it.
+ */
+export function enduroRacerCourse(set: RomSet, candidate?: number) {
+  const lane = candidate ?? LANE;
+  const tag = scaleTag(candidate);
   const programs = assembleEnduroRacerPrograms(set);
   const { main, sub } = programs;
   const metres = POSITION_METRES;
   const cross = roadCrossSection(enduroRacerRoadRom(set));
-  const unit = LANE / cross.surface;
+  const unit = lane / cross.surface;
   // The heading table: the stages' road paths in running order, then the goal's straight ahead, as every path ends.
   const paths = readRoadPaths(sub);
   const goal = Array.from({ length: GOAL_POSITIONS }, () => [paths.at(-1)!.x.at(-1)!, paths.at(-1)!.y.at(-1)!]);
@@ -186,8 +191,8 @@ export function enduroRacerCourse(set: RomSet) {
     };
   });
   const words = assembleEnduroRacerSprites(set);
-  const objects = enduroRacerObjects(main, unit);
-  const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit);
+  const objects = enduroRacerObjects(main, unit, tag);
+  const pictures = enduroRacerBoards(main, words, objects.uses, objects.mounds, unit, tag);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
   // A picture shown both on the ground and raised off it shows its `-raised` image raised.
@@ -199,6 +204,8 @@ export function enduroRacerCourse(set: RomSet) {
     headings,
     metres,
     unit,
+    lane,
+    candidate,
     cross,
     entry: camera - bikeAhead(programs) * metres,
     camera,
@@ -242,6 +249,9 @@ interface CourseInputs {
   readonly headings: readonly number[];
   readonly metres: number;
   readonly unit: number;
+  /** A lane's width, metres: `LANE`, or `candidate`'s, the scale's temporary DEV course's. */
+  readonly lane: number;
+  readonly candidate: number | undefined;
   readonly cross: CrossSection;
   /** P's metres before position 0; the camera's distance behind the bike; GO, the bike's position at the start. */
   readonly entry: number;
@@ -289,7 +299,7 @@ function layCourse(inputs: CourseInputs) {
   const gateMetres = [START_GATE, ...inputs.checks, inputs.finish].map(along);
   // The road's lanes, a lane either side of P, keep the least radius the format lets them keep (`leastLaneRadius`).
   const edges = cross.edges * unit;
-  const reach = leastLaneRadius(LANE);
+  const reach = leastLaneRadius(inputs.lane);
 
   /**
    * P laid from plan elements `planned` (a straight to position 0, then the plan, straights one after another one), and
@@ -431,7 +441,7 @@ function layCourse(inputs: CourseInputs) {
     document: {
       format: 'superoutride.course',
       version: COURSE_DOCUMENT_VERSION,
-      name: COURSE_NAME,
+      name: inputs.candidate === undefined ? COURSE_NAME : `${COURSE_NAME} LANE ${inputs.lane}`,
       entry: pieces[0]!.id,
       maxLaps: 1,
       bearing: 0,
@@ -454,7 +464,7 @@ function layCourse(inputs: CourseInputs) {
     profile,
     stationOf,
     placed,
-    ground: inputs.limit - LANE,
+    ground: inputs.limit - inputs.lane,
     dropped,
     passedThrough,
     crossings: crossings.map((crossing, k) => {
@@ -550,8 +560,8 @@ function sectionDocument(
 
   // The lanes: a and b, a lane each either side of P; the centre lane a.
   const lanes = [
-    { kind: 'lane', id: 'a', width: LANE },
-    { kind: 'lane', id: 'b', width: LANE },
+    { kind: 'lane', id: 'a', width: inputs.lane },
+    { kind: 'lane', id: 'b', width: inputs.lane },
   ];
   const lateral = (fromP: number) => round(fromP);
   const [surface, inner, middle, edges] = [
@@ -674,7 +684,7 @@ function sectionDocument(
     ),
     lanes,
     centerLane: 'a',
-    centerLateral: round(-LANE / 2),
+    centerLateral: round(-inputs.lane / 2),
     boundaries: [
       {
         id: 'outer-left',
