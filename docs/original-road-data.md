@@ -271,20 +271,24 @@ and road materials are K's decision (2026-10-25), each its own, named with its r
 
 ## The grid
 
-A start gate's grids, a car grid and a bike grid, each hold as many slots as a run's competitors, in three parts (K,
-2026-10-25; `ruleGrid`):
+Every original's course has a car grid (`grid`) and a bike grid (`bikeGrid`), the bike grid holding bikes alone, each
+as many slots as a run's competitors (K, 2026-10-25; `ruleGrid`, which every original's conversion uses):
 
 1. **The player's slot**, the last, at GO where the original's own vehicle stands there (its x as its program sets it):
-   OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's P.
-2. **The original's slots**: each rival the original places at GO, where it places it, on the grid of its vehicle
-   kind: ENDURO RACER's four bikes abreast with the player's, TURBO OUTRUN's 959 beside the player's car. A position
-   behind the player's, or one at which this game's bodies would overlap or leave the course limits, is K's to decide
-   before it is placed. SUPER MONACO GP's grid is its 24 slots as the original places them, a run taking the first 16.
-3. **The rest**, forward of the frontmost of these, 12 m apart for cars and 3 m for bikes, at the centres of the
-   original vehicle's lane and its left neighbour, or of the two lanes it stands between (a and b in every original):
-   counted on from the player's slot, the original's among them, the first at the left lane's centre, the second at
-   the right's, alternating. A grid of a kind the original places no vehicle of is the player's slot and this part
-   alone.
+   OUTRUN's and TURBO OUTRUN's lane b's centre, SUPER HANG-ON's and ENDURO RACER's P. SUPER MONACO GP's car grid is
+   its 24 slots as the original places them, a run taking the first 16; its bike grid's player's slot is the car
+   grid's 16th.
+2. **The original's slots**: the rivals of the grid's kind the original places at GO, where it places them: TURBO
+   OUTRUN's 959 beside the player's car, ENDURO RACER's four bikes abreast with the player's, SUPER HANG-ON's seven
+   bikes. Where a body of the kind's largest in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 × 0.85 m) at
+   any of them would overlap another's or the player's, or leave the course limits, the grid is the player's slot and
+   the general form alone; no one slot is moved.
+3. **The rest**, forward of the frontmost slot, in the kind's general form, on the original vehicle's lane and its
+   left neighbour, or the two lanes it stands between (a and b in every original):
+   - cars one a row, 12 m apart, counted on from the player's slot, the original's among them, the first at the left
+     lane's centre, the second at the right's, alternating;
+   - bikes four a row, two in each lane a quarter of its width either side of its centre, left to right, the rows 3 m
+     apart.
 
 ## Plan
 

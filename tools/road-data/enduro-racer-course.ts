@@ -44,13 +44,13 @@ import {
 } from './enduro-racer-road.js';
 import { readScenery } from './enduro-racer-scenery.js';
 import { bikeAhead, lateralLimit, readGrid } from './enduro-racer-dump.js';
-import { GRID_SPACING, ruleGrid, type GridPlace } from './grid-rule.js';
+import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { roadCrossSection, type CrossSection } from './enduro-racer-cross-section.js';
 import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 13;
+export const ENDURO_RACER_CONVERSION_VERSION = 14;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -426,7 +426,11 @@ function layCourse(inputs: CourseInputs) {
       checkpoints: inputs.checks.map((q, k) => ({ id: `${COURSE_ID}-CP${k + 1}`, s: stationOf(q) })),
       finish: { id: `${COURSE_ID}-GOAL`, s: stationOf(inputs.finish) },
       grid: stationOf(inputs.go),
-      rivals: inputs.rivals.map((rival) => ({ s: stationOf(rival.position), lateral: round(rival.x) })),
+      rivals: inputs.rivals.map((rival) => ({
+        ahead: stationOf(rival.position) - stationOf(inputs.go),
+        right: rival.x,
+      })),
+      lane: inputs.lane,
       profile,
       skyChanges: inputs.skyChanges.map((q) => stationOf(q)),
       startHeading,
@@ -544,7 +548,8 @@ function sectionDocument(
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
     readonly grid: number;
-    readonly rivals: readonly GridPlace[];
+    readonly rivals: readonly OriginalPlace[];
+    readonly lane: number;
     readonly profile: ReturnType<typeof profileOf>;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
@@ -647,16 +652,20 @@ function sectionDocument(
   // The gates.
   const gates: unknown[] = [];
   const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
-  // The player's slot at GO on P, where the original's bike stands; the bikes' grid with the original's rivals abreast.
+  // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit either side; the bikes'
+  // grid with the original's rivals abreast.
   if (context.first) {
     const player = { s: context.grid, lateral: 0 };
-    const grid = (originals: readonly GridPlace[], spacing: number) =>
-      ruleGrid(player, originals, spacing, ['a', 'b']).map((slot) => ({ at: at(slot.s), lateral: slot.lateral }));
-    gates.push({
-      kind: 'start',
-      grid: grid([], GRID_SPACING.car),
-      bikeGrid: grid(context.rivals, GRID_SPACING.bike),
-    });
+    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
+      ruleGrid({
+        kind,
+        player,
+        originals,
+        lanes: ['a', 'b'],
+        laneWidth: context.lane,
+        limits: [context.limit, context.limit],
+      }).map((slot) => ({ at: at(slot.s), lateral: slot.lateral }));
+    gates.push({ kind: 'start', grid: grid('car', []), bikeGrid: grid('bike', context.rivals) });
   }
   for (const c of context.checkpoints) if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.s) });
   if (inside(context.finish.s)) gates.push({ kind: 'finish', id: context.finish.id, at: at(context.finish.s) });

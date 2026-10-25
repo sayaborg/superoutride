@@ -52,7 +52,7 @@ import {
   simplified,
   writtenPlan,
 } from './section-writing.js';
-import { GRID_SPACING, ruleGrid } from './grid-rule.js';
+import { ruleGrid, type GridKind } from './grid-rule.js';
 import type { Stage, Stretch } from './outrun-road.js';
 import type { HeightTable, Path } from './road-tables.js';
 import type { ObjectPlacement } from './outrun-scenery.js';
@@ -996,13 +996,19 @@ function sectionDocument(
   const gates: unknown[] = [];
   // The player's slot at GO, the camera's distance on from the road's entry, at the centre lane's centre, where the
   // original's car stands (the width's first change carries its x from 0 to the left road's centre, 0xC286), as on
-  // COCONUT BEACH's left road (b), whichever road; the rule's lanes that one and the one left of it.
+  // COCONUT BEACH's left road (b), whichever road; the rule's lanes that one and the one left of it, the car's lateral
+  // limit its three lanes' half and the ground beyond about it. The original places no rival.
   if (section.first) {
     const lanes = [span.order[span.order.indexOf(span.centreLane) - 1]!, span.centreLane] as const;
+    const laneWidth = span.lanes(from).get(span.centreLane)! * UNIT_METRES;
+    const reach = (3 * laneWidth) / 2 + section.ground;
     const player = { s: section.options.cameraDistance, lateral: laneCentre(span.centreLane) };
-    const grid = (spacing: number) =>
-      ruleGrid(player, [], spacing, lanes).map((slot) => ({ at: atStation(round(slot.s)), lateral: slot.lateral }));
-    gates.push({ kind: 'start', grid: grid(GRID_SPACING.car), bikeGrid: grid(GRID_SPACING.bike) });
+    const grid = (kind: GridKind) =>
+      ruleGrid({ kind, player, originals: [], lanes, laneWidth, limits: [reach, reach] }).map((slot) => ({
+        at: atStation(round(slot.s)),
+        lateral: slot.lateral,
+      }));
+    gates.push({ kind: 'start', grid: grid('car'), bikeGrid: grid('bike') });
   }
   for (const c of section.checkpoints) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.p) });
   if (section.finish) gates.push({ kind: 'finish', id: section.finish.id, at: at(section.finish.p) });

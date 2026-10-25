@@ -13,7 +13,7 @@ import { sectionProfile } from './road-profile.js';
 import { POSITION_METRES, STRIPE_PERIOD } from './offset-plan.js';
 import { paletteName, UNIT_METRES } from './pixel-grid.js';
 import { word } from './program-words.js';
-import { GRID_SPACING, ruleGrid, type GridPlace } from './grid-rule.js';
+import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { readHeightTable } from './road-tables.js';
 import { composite, type FeatureEdge } from './two-roads.js';
 import {
@@ -44,7 +44,7 @@ import { TURBO_OUTRUN_NAMES } from './turbo-outrun-names.js';
 import type { RomSet } from './rom-set.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const TURBO_OUTRUN_CONVERSION_VERSION = 16;
+export const TURBO_OUTRUN_CONVERSION_VERSION = 17;
 
 /**
  * The car's lateral limit, the word the program adds at 0x16274 (`add.w $1ddf6.l, d0`). The instruction is encrypted
@@ -469,17 +469,22 @@ function sectionDocument(
 
   // The gates: the grid at the start, each stage's checkpoint and the finish where their posts pass the car.
   const gates: unknown[] = [];
-  // The player's slot at GO at lane b's centre, the left road's, where the original's car stands; the cars' grid with the
-  // original's 959 beside it.
+  // The player's slot at GO at lane b's centre, the left road's, where the original's car stands, the car's lateral limit
+  // about it; the cars' grid with the original's 959 beside it.
   if (context.first) {
     const player = { s: go - origin, lateral: laneCentre('b') };
-    const grid = (originals: readonly GridPlace[], spacing: number) =>
-      ruleGrid(player, originals, spacing, ['a', 'b']).map((slot) => ({
+    const laneWidth = lanes(context.layout.go).get('b')! * UNIT_METRES;
+    const reach = context.beyond + CENTRE_INSIDE * UNIT_METRES;
+    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
+      ruleGrid({ kind, player, originals, lanes: ['a', 'b'], laneWidth, limits: [reach, reach] }).map((slot) => ({
         at: atStation(slot.s),
         lateral: slot.lateral,
       }));
-    const rival = { s: player.s, lateral: { ...laneCentre('b'), offset: round(RIVAL_X * UNIT_METRES) } };
-    gates.push({ kind: 'start', grid: grid([rival], GRID_SPACING.car), bikeGrid: grid([], GRID_SPACING.bike) });
+    gates.push({
+      kind: 'start',
+      grid: grid('car', [{ ahead: 0, right: RIVAL_X * UNIT_METRES }]),
+      bikeGrid: grid('bike', []),
+    });
   }
   const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
   for (const c of context.checkpoints)

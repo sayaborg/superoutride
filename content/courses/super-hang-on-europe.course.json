@@ -8363,133 +8363,133 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": -51.247682 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -63.247682 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -75.247682 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -87.247682 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -99.247682 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": -111.247682 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 114 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 102 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 90 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 78 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 66 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 54 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 42 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "s0", "offset": 30 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 18 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "s0", "offset": 6 },
+              "at": { "joint": "s0", "offset": 18 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 6 },
+              "lateral": 0
             }
           ],
           "bikeGrid": [
             {
-              "at": { "joint": "s0", "offset": 51 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 48 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 45 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 42 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 39 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 36 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 33 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 30 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 27 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 24 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "s0", "offset": 21 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "s0", "offset": 18 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
             },
             {
               "at": { "joint": "s0", "offset": 18 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 18 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
               "at": { "joint": "s0", "offset": 15 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 15 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 15 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 15 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
               "at": { "joint": "s0", "offset": 12 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 12 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 12 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 12 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
               "at": { "joint": "s0", "offset": 9 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 9 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 9 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
+            },
+            {
+              "at": { "joint": "s0", "offset": 9 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
               "at": { "joint": "s0", "offset": 6 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": 0
             }
           ]
         },

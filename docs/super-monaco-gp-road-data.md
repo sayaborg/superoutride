@@ -111,7 +111,7 @@ rule, the clock, the hits' lines, the ground's height) are not tables: the cours
 
 `npm run road-data -- super-monaco-gp-course` ([Development](development.md#road-data-commands)) writes the two
 CIRCUIT courses, `super-monaco-gp` (SUPER MONACO GP, the race's form) and `super-monaco-gp-qualifying` (MONACO
-QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 12, their skies and their
+QUALIFYING, the qualifying's, K's name of 2026-10-23), conversion version 13, their skies and their
 [objects](#super-monaco-gps-objects)' images, or with `--check` fails where one differs; it reports a step's metres and
 each course's runs, elements, tightest arc, departure and lap, its Sections with their boards, the boards placed and
 those left out, and the images' count and master texels. Both have `maxLaps` 30 and
@@ -175,8 +175,9 @@ BRANCH course (K, 2026-10-21).
   lane a, the last to the first.
 - **Gates.** The grid's 24 slots, from the front, slot s at step 576 − 12s (lap step 288 − 12s), lane a for even s and
   b for odd: the original's slots 12(23 − s), 12 steps apart, moved on past the line as the original's line moves
-  them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line.
-  `bikeGrid` is null. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
+  them, 300 steps. A run starts from the first 16, the rearmost of them 108 steps (40.2 m) past the line. The bike
+  grid by [the grid's rule](original-road-data.md#the-grid), its player's slot the car grid's 16th, the barriers its
+  limits. The checkpoints `<course>-CP1` (and the race's `-CP2`) end the sectors at 4697 (and 9538); the
   finish `<course>-FINISH` ends the lap.
 - **Skies.** `smgp-sky` is baked ([Sky baking](original-road-data.md#sky-baking)) from the fine set's background
   ([SUPER MONACO GP's background](#super-monaco-gps-background)): the back layer pages 4–6 side by side (1536 pixels),

@@ -186,7 +186,7 @@ objects (166 found no free object), ASIA 1609 (356), AMERICA 2249 (333) and EURO
 
 `npm run road-data -- super-hang-on-course` ([Development](development.md#road-data-commands)) writes the four LINEAR
 courses, `super-hang-on-africa` (AFRICA), `super-hang-on-asia` (ASIA), `super-hang-on-america` (AMERICA) and
-`super-hang-on-europe` (EUROPE), conversion version 12, the pictures their objects show and their skies, or with
+`super-hang-on-europe` (EUROPE), conversion version 13, the pictures their objects show and their skies, or with
 `--check` fails where one differs; it reports the metres a position and a unit (`metresAPosition`, `metresAUnit`) and
 each course's Sections, length, objects, runs, elements, its plan's distance from its table's line (`fromPath`) and
 crossings:
@@ -227,9 +227,14 @@ crossings:
   ticks at the top speed); GOAL, five parts, at goal position 38.31. A part stands x × 224/191 units right of P, its
   picture lifted lift × 224/192 units. The checkpoints `<course>-CP<n>` are at the CHECK gates and the finish
   `<course>-GOAL` at GOAL.
-- **Grids.** The start gate's 16 slots, 12 m apart for cars and 3 m for bikes, the last at GO in lane a, alternate
-  lanes, until [the grid's rule](original-road-data.md#the-grid) places them: K reads the original's rivals' depth
-  first (NEXT). The original's bike stands at GO on P (a game's start clears its x, 0x85B0).
+- **Grids.** By [the grid's rule](original-road-data.md#the-grid), on lanes a and b: the player's at GO on P, where
+  the original's bike stands (a game's start clears its x, 0x85B0); the bike grid's next the original's seven rivals
+  (`readGrid`), each where the scenery the original draws on its line stands (K, 2026-10-25; `rivalAhead`): its depth
+  reads its line in 0xCE40 (0x7990), the scenery's depth on that line is the middle between the last of 0xD240's depths
+  drawn above it and the first below, and stands as far ahead as a gate part at that depth. AFRICA and ASIA keep them;
+  on AMERICA and EUROPE bodies would overlap (the rival straight ahead, x −6, 2.07 m and 1.72 m ahead of the player's,
+  within a bike's length, and on AMERICA two pairs 0.18 m apart across, 1.73 m along), so their bike grids are the
+  general form alone.
 - **The goal's crowd and the ending.** The goal's scenery points' items stand at goal position 55.7, and the ending's
   figures, as its last frame shows them (K's reading of the original's run: their frames, palettes, x and height
   above the road), at 56.0, where the original's bike stops.

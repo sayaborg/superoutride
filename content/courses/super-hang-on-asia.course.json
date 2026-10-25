@@ -2553,133 +2553,133 @@
           "grid": [
             {
               "at": { "joint": "c1", "offset": 180 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 168 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 156 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 144 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 132 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 120 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 108 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 96 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 84 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 72 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 60 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 48 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 36 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "lateral": { "lane": "a", "side": "center", "offset": 0 }
             },
             {
               "at": { "joint": "c1", "offset": 24 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
-            },
-            {
-              "at": { "joint": "c1", "offset": 12 },
               "lateral": { "lane": "b", "side": "center", "offset": 0 }
             },
             {
-              "at": { "joint": "c1", "offset": 0 },
+              "at": { "joint": "c1", "offset": 12 },
               "lateral": { "lane": "a", "side": "center", "offset": 0 }
+            },
+            {
+              "at": { "joint": "c1", "offset": 0 },
+              "lateral": 0
             }
           ],
           "bikeGrid": [
             {
-              "at": { "joint": "c1", "offset": 45 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 8.583333 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 42 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 8.583333 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 39 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 8.583333 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 36 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 8.583333 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 33 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 5.583333 },
+              "lateral": { "lane": "b", "side": "center", "offset": 1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 30 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 5.583333 },
+              "lateral": { "lane": "b", "side": "center", "offset": -1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 27 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 5.583333 },
+              "lateral": { "lane": "a", "side": "center", "offset": 1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 24 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 5.583333 },
+              "lateral": { "lane": "a", "side": "center", "offset": -1.075 }
             },
             {
-              "at": { "joint": "c1", "offset": 21 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 2.583333 },
+              "lateral": -3.358536
             },
             {
-              "at": { "joint": "c1", "offset": 18 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 2.583333 },
+              "lateral": -0.10834
             },
             {
-              "at": { "joint": "c1", "offset": 15 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 2.583333 },
+              "lateral": 3.141857
             },
             {
-              "at": { "joint": "c1", "offset": 12 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 0.861111 },
+              "lateral": -1.191739
             },
             {
-              "at": { "joint": "c1", "offset": 9 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 0.861111 },
+              "lateral": 0.975059
             },
             {
-              "at": { "joint": "c1", "offset": 6 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 0.344444 },
+              "lateral": -2.275138
             },
             {
-              "at": { "joint": "c1", "offset": 3 },
-              "lateral": { "lane": "b", "side": "center", "offset": 0 }
+              "at": { "joint": "c1", "offset": 0.344444 },
+              "lateral": 2.058458
             },
             {
               "at": { "joint": "c1", "offset": 0 },
-              "lateral": { "lane": "a", "side": "center", "offset": 0 }
+              "lateral": 0
             }
           ]
         },

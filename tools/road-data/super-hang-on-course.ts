@@ -7,7 +7,8 @@
 import { requireInput } from '../course/authoring-io.js';
 import { computedValue } from '../authoring/course-joints.js';
 import { COURSE_DOCUMENT_VERSION } from '../../src/course/course-document.js';
-import { domainCuts, laneCentre, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { domainCuts, repeated, writtenPlan, type WrittenElement } from './section-writing.js';
+import { ruleGrid, type GridKind, type OriginalPlace } from './grid-rule.js';
 import { bendOf, profileOf, sectionProfile, separatedCrossings } from './road-profile.js';
 import { PIXEL_ASPECT } from './pixel-grid.js';
 import { CoursePath, type PathElement } from './course-path.js';
@@ -29,10 +30,6 @@ export const LANE = 4.3;
 /** Passages at least this far apart along the road may cross, metres; a passage runs on over gaps of up to `PASSAGE_GAP` positions. */
 const PASSAGES_APART = 200;
 const PASSAGE_GAP = 3;
-/** The grids: their slots, the last at GO in lane a, cars this far apart, bikes this. */
-const GRID_SLOTS = 16;
-const CAR_SPACING = 12;
-const BIKE_SPACING = 3;
 /** The skies' horizon row, the generic skies'. */
 const SKY_HORIZON = 320;
 /** The gates' x is drawn at x × line / 191 and their lift at lift × line / 192: units are × 224/191 and 224/192. */
@@ -108,6 +105,8 @@ export interface SuperHangOnCourseInputs {
   readonly cameraDistance: number;
   /** A lane's width, metres: `LANE`, or a candidate of the scale's temporary DEV courses. */
   readonly lane: number;
+  /** The rivals the original places at GO: their positions ahead of the bike and x, metres right of P. */
+  readonly rivals: readonly { readonly position: number; readonly x: number }[];
 }
 
 /** An RGB555 color's channels, five bits each. */
@@ -321,6 +320,7 @@ export function superHangOnCourse(inputs: SuperHangOnCourseInputs) {
         checkpoints: checks.map((q, k) => ({ id: `${inputs.slug}-CP${k + 1}`, s: stationOf(q) })),
         finish: { id: `${inputs.slug}-GOAL`, s: stationOf(finish) },
         grid: stationOf(0),
+        rivals: inputs.rivals.map((rival) => ({ ahead: stationOf(rival.position) - stationOf(0), right: rival.x })),
         profile,
         skyChanges: sections.slice(0, -1).map((_, k) => stationOf(length * k + inputs.transition)),
         startHeading,
@@ -382,6 +382,7 @@ function sectionDocument(
     readonly checkpoints: readonly { readonly id: string; readonly s: number }[];
     readonly finish: { readonly id: string; readonly s: number };
     readonly grid: number;
+    readonly rivals: readonly OriginalPlace[];
     readonly profile: ReturnType<typeof profileOf>;
     readonly skyChanges: readonly number[];
     readonly startHeading: number;
@@ -496,18 +497,17 @@ function sectionDocument(
   // The gates.
   const gates: unknown[] = [];
   const inside = (s: number) => s > origin + 1e-6 && s <= origin + size + 1e-6;
-  if (context.first)
-    gates.push({
-      kind: 'start',
-      grid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
-        at: at(context.grid + (GRID_SLOTS - 1 - i) * CAR_SPACING),
-        lateral: laneCentre((GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a'),
-      })),
-      bikeGrid: Array.from({ length: GRID_SLOTS }, (_, i) => ({
-        at: at(context.grid + (GRID_SLOTS - 1 - i) * BIKE_SPACING),
-        lateral: laneCentre((GRID_SLOTS - 1 - i) % 2 ? 'b' : 'a'),
-      })),
-    });
+  // The player's slot at GO on P, where the original's bike stands, the bike's lateral limit (its lane and the ground
+  // beyond) either side; the bikes' grid with the original's seven rivals.
+  if (context.first) {
+    const player = { s: context.grid, lateral: 0 };
+    const limit = inputs.lane + context.ground;
+    const grid = (kind: GridKind, originals: readonly OriginalPlace[]) =>
+      ruleGrid({ kind, player, originals, lanes: ['a', 'b'], laneWidth: inputs.lane, limits: [limit, limit] }).map(
+        (slot) => ({ at: at(slot.s), lateral: slot.lateral }),
+      );
+    gates.push({ kind: 'start', grid: grid('car', []), bikeGrid: grid('bike', context.rivals) });
+  }
   for (const c of context.checkpoints) if (inside(c.s)) gates.push({ kind: 'checkpoint', id: c.id, at: at(c.s) });
   if (inside(context.finish.s)) gates.push({ kind: 'finish', id: context.finish.id, at: at(context.finish.s) });
 

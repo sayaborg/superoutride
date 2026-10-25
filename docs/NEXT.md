@@ -185,11 +185,6 @@ PRs, in this order:
 
 - The scale's decision, by K's driving of the DEV courses (the constants' table below); if undecided when the stage
   closes, it moves to Stage GR.
-- SUPER HANG-ON's grids by [the grid's rule](original-road-data.md#the-grid), once K reads its rivals' depth (0x86C0's
-  seven a course, x certain, road units from P): by the rivals' own depth-to-line table, 0xCE40, the nearest 0.7 m
-  and the farthest 8.4 m ahead of the bike; or at the scenery's depth where they draw on the same line, 0xD240, three
-  times nearer, the rival straight ahead (x −6) 3.0, 2.6, 2.1 and 1.7 m ahead on courses 0 to 3, the last over a
-  bike's length. Its reference runs are measured again.
 - EX-9: the old plan's parts deleted, with what they alone use: the offset plan and what of `offset-plan.ts` lives on
   (`POSITION_METRES`, `STRIPE_PERIOD`, `Quadratic`) moved to its owner; the fitted path plan and its folds, and
   `path-plan.ts`, which nothing uses; the plane at offset 0, once `course-path.ts` and SUPER MONACO GP no longer use

@@ -33,6 +33,27 @@ export function sceneryRules(main: Uint8Array) {
   };
 }
 
+/** The screen lines by a depth's top 9 bits: a rival's (read at 0x7990) and the scenery's. */
+const RIVAL_LINES = 0xce40;
+const SCENERY_LINES = 0xd240;
+const DEPTHS = 512;
+
+/**
+ * How far ahead of the bike at GO a rival the program places at depth `depth` stands, positions: where the scenery
+ * the original draws on the rival's line stands (K, 2026-10-25). The rival's line is its depth's word in 0xCE40 shifted
+ * right 4 (0x7990); the scenery's depth on that line is the middle between the last of 0xD240's depths drawn above it
+ * and the first drawn below, and stands `(passes − depth) × 2 × advance / 65536` ahead, as a gate part does.
+ */
+export function rivalAhead(main: Uint8Array, rules: ReturnType<typeof sceneryRules>, depth: number): number {
+  const line = word(main, RIVAL_LINES + 2 * (depth >> 4)) >> 4;
+  const lines = Array.from({ length: DEPTHS }, (_, i) => word(main, SCENERY_LINES + 2 * i) >> 4);
+  // The lines grow with the depth.
+  const above = lines.filter((l) => l < line).length - 1;
+  const below = DEPTHS - lines.filter((l) => l > line).length;
+  const middle = (16 * (above + below)) / 2 + 8;
+  return ((rules.passes - middle) * 2 * rules.advance) / 65536;
+}
+
 /** An object placed: its section (its place in the course, the goal after the last), its position there, its item. */
 export interface ScenerySpot {
   readonly section: number;

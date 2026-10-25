@@ -16,6 +16,8 @@ import { leastLaneRadius } from '../../src/course/plan-clearance.js';
 import { CoursePath } from './course-path.js';
 import { pointPlan, onElement } from './point-plan.js';
 import { laneCentre, writtenPlan, type WrittenElement } from './section-writing.js';
+import { ruleGrid, type GridPlace } from './grid-rule.js';
+import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import {
   assembleSuperMonacoGpPrograms,
   assembleSuperMonacoGpSprites,
@@ -41,7 +43,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { readRoadLayerColors, superMonacoGpSkyBands, uniformSkyBands } from './super-monaco-gp-backgrounds.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_MONACO_GP_CONVERSION_VERSION = 12;
+export const SUPER_MONACO_GP_CONVERSION_VERSION = 13;
 
 /**
  * A step, metres: 96 units along the road, a unit 0.0349 / 9 m, as the clock (0.0349 s a tick) and the displayed km/h
@@ -839,16 +841,27 @@ function sectionDocument(input: {
   }
 
   // The gates: the start's grid in the first Section, the checkpoints at the sectors' ends, the finish at the lap's.
+  // The cars' grid is the original's; the bikes' the rule's, its player's slot the cars' last that a run uses, the
+  // barriers the limits.
   const gates: unknown[] = [];
-  if (input.index === 0)
-    gates.push({
-      kind: 'start',
-      grid: Array.from({ length: GRID.slots }, (_, slot) => ({
-        at: at(stationOf(input.lap(GRID.first - GRID.spacing * slot))),
-        lateral: laneCentre(slot % 2 ? 'b' : 'a'),
-      })),
-      bikeGrid: null,
+  if (input.index === 0) {
+    const slots = Array.from({ length: GRID.slots }, (_, slot) => ({
+      s: stationOf(input.lap(GRID.first - GRID.spacing * slot)),
+      lateral: laneCentre(slot % 2 ? 'b' : 'a'),
+      l: slot % 2 ? OFFSET : -OFFSET,
+    }));
+    const player = slots[RUN_RULE_LIMITS.competitors - 1]!;
+    const bikeGrid = ruleGrid({
+      kind: 'bike',
+      player,
+      originals: [],
+      lanes: ['a', 'b'],
+      laneWidth: LANE,
+      limits: [BARRIER * UNIT + player.l, BARRIER * UNIT - player.l],
     });
+    const written = (slot: GridPlace) => ({ at: at(slot.s), lateral: slot.lateral });
+    gates.push({ kind: 'start', grid: slots.map(written), bikeGrid: bikeGrid.map(written) });
+  }
   if (input.last) gates.push({ kind: 'finish', id: `${course.id}-FINISH`, at: end });
   else {
     const k = course.checkpoints.findIndex((c) => input.lap(c) === section.to);

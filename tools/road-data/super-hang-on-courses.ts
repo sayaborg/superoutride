@@ -17,8 +17,8 @@ import { sectionBands } from './super-hang-on-backgrounds.js';
 import { BACK_WIDTH, bakeSky, SKY_WIDTH } from './sky-baking.js';
 import { readCourses, readGoal, readSceneryType, readSection, sectionPositions } from './super-hang-on-road.js';
 import { pathHeadings } from './heading-plan.js';
-import { courseScenery, sceneryRules } from './super-hang-on-scenery.js';
-import { hitWidth, readGateParts, spriteList } from './super-hang-on-sprites.js';
+import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
+import { hitWidth, readGateParts, readGrid, spriteList } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
 import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
@@ -27,7 +27,7 @@ import { paletteName } from './pixel-grid.js';
 import { raisedSplit, scaleTag } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 12;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 13;
 
 /**
  * The goal's straight in positions, 60 more than the original's 200: chosen when every vehicle had to stop before the
@@ -193,6 +193,7 @@ export function superHangOnCourses(set: RomSet, candidate?: ScaleCandidate) {
       yawOrigin,
       cameraDistance: cameraDistance(CAMERA_DEFINITION),
       lane,
+      rivals: readGrid(main, c).map((rival) => ({ position: rivalAhead(main, rules, rival.depth), x: rival.x * unit })),
     });
     const skies = sections.map((section, order) => {
       const name = skyName(course.name, order);
