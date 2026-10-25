@@ -374,7 +374,7 @@ function spanCuts(road: RoadSpan, line: CoursePath, need: (u: number, side: 'lef
 }
 
 /** Each span laid on P, and in the world after the one before, its Link's lane continuing as its centre lane. */
-export function layRoad(spans: readonly RoadSpan[]): Laid[] {
+function layRoad(spans: readonly RoadSpan[]): Laid[] {
   const laid: Laid[] = [];
   let station = 0;
   for (const road of spans) {
@@ -411,7 +411,7 @@ export function layRoad(spans: readonly RoadSpan[]): Laid[] {
  * piece (`tableGrades`); the road's crossings kept apart; bends broken at its Sections' cuts. With its end, the pieces'
  * own profile and overlaps, and its crossings.
  */
-export function roadProfile(
+function roadProfile(
   laid: readonly Laid[],
   options: { readonly tables: ReadonlyMap<number, HeightTable>; readonly kmh: number },
 ) {

@@ -456,7 +456,7 @@ The rule's constants:
   cycle with another's. Stage 3 (4096–6143) is level.
 
 - **Cameras.** The road read is seen by the reading camera on rows:
-  - _This game's_ (OUTRUN, TURBO OUTRUN), as `roadTopRow`: the player where the original's car is, the camera 6 m behind
+  - _This game's_ (OUTRUN, TURBO OUTRUN), the product camera at rest (`CAMERA_DEFINITION`): the player where the original's car is, the camera 6 m behind
     it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row
     120 − 240 sin θ − (240 / D)(h − y_c) cos θ of its 240, y_c = h₀ + (2 + 6 sin θ) / cos θ with h₀ the height under
     it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
@@ -510,7 +510,7 @@ The rule's constants:
 ## Profile
 
 A road's profile is its grades by the [grades' rule](#profile-from-the-originals-screen), its crossings, jumps and dips
-on them (`npm run road-data -- outrun-look` reports OUTRUN's stages' road tops on both screens):
+on them:
 
 - **Pieces placed.** OUTRUN's and TURBO OUTRUN's height points stand where the original's main CPU puts them on each
   span, in the road's order: a stage's before its end, a fork's before the fork's piece at its start, the goal

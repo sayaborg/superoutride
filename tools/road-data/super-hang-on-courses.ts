@@ -29,10 +29,10 @@ import { lensFactor } from './screen-pieces.js';
 import { courseScenery, rivalAhead, sceneryRules } from './super-hang-on-scenery.js';
 import { hitWidth, readGateParts, readGrid, spriteList } from './super-hang-on-sprites.js';
 import { bannerPalettes } from './super-hang-on-dump.js';
-import { roadCrossSection, UNITS_A_LINE } from './super-hang-on-cross-section.js';
+import { roadCrossSection } from './super-hang-on-cross-section.js';
 import { pictureName, chosenPicture, superHangOnPictures, type PictureUse } from './super-hang-on-boards.js';
 import { LANE, superHangOnCourse, type EndingFigure } from './super-hang-on-course.js';
-import { paletteName, PIXEL_ASPECT } from './pixel-grid.js';
+import { paletteName } from './pixel-grid.js';
 import { raisedSplit } from './section-writing.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
@@ -112,45 +112,6 @@ export function positionMetres(main: Uint8Array): number {
 }
 
 /**
- * The hills' scale: the grade a height table's vector (x up, y along) gives is `scale × x / y`, its vertical amounts
- * taken at the scale that puts the hills' eye at the road's
- * ([SUPER HANG-ON road data](../../docs/super-hang-on-road-data.md#super-hang-ons-profile)). The sub CPU sums a table's
- * vectors two a step ahead of the camera (`moveq #$20, d6` at 0x16BA: 33 steps), each sum (X up, Y along) shifted down
- * 5 bits (the `asr.l #$5`s at 0x1752) and turned by the camera's pitch at 2^14 (the `moveq #$E, d1` at 0x1682), and
- * raises a step's lines by 2^14 X / 32 over its depth Y / 32 + 0x300 (the `addi.w #$300` at 0x1774), shifted down 4
- * bits (0x14AC) into a line's height, 8 a row (0x14A2), which is shifted down 4 bits again to a scanline (0x154C). The
- * nearest step's far edge, the 192 rows (0x14A6) less those the table at 0x19A6 gives it, lies as far below the
- * vanishing line as an eye E above a level road there sees it, lines rising 2X / depth scanlines: E = scanlines ×
- * depth / 2 (38400). The road's eye is 112 units, half the 224 a feature's units are drawn over, up by `PIXEL_ASPECT`;
- * a level vector, a table's first, is a position long (4096).
- */
-function hillScale(sub: Uint8Array, metres: number, unit: number): number {
-  const [steps] = instruction(sub, 0x16ba, [null], "the hills' steps");
-  const [shift] = instruction(sub, 0x1752, [null, null], "the hills' sums' shift");
-  const [pitch] = instruction(sub, 0x1682, [null], "the hills' pitch's unit");
-  const [depth] = instruction(sub, 0x1774, [0x0641, null], "the hills' depth's offset");
-  const [, rowsTable] = instruction(sub, 0x16b4, [0x45f9, null, null], "the hills' rows");
-  const [lineShift] = instruction(sub, 0x14ac, [null], "the lines' heights' shift");
-  const [perRow] = instruction(sub, 0x14a2, [0x3a3c, null], "the lines' height a row");
-  const [last] = instruction(sub, 0x14a6, [0x3e3c, null], "the road's rows");
-  const [drawShift] = instruction(sub, 0x154c, [null], "the lines' scanline shift");
-  const asr = (op: number, size: number) => {
-    if ((op & 0xf1f8) !== (0xe000 | size)) throw new RangeError("The sub CPU's hills are not projected as read");
-    return (op >> 9) & 7 || 8;
-  };
-  if (steps! >> 8 !== 0x7c || pitch! >> 8 !== 0x72)
-    throw new RangeError("The sub CPU's hills are not projected as read");
-  const level = readHeightTable(sub, 1).vectors[0]![1];
-  const near = (2 * level) >> asr(shift!, 0x80);
-  const covered = word(sub, rowsTable! + 2 * (steps! & 0xff));
-  const scanlines = ((last! + 1 - covered) * perRow!) >> asr(drawShift!, 0x40);
-  const eye =
-    (scanlines * (near + depth!) * 2 ** (asr(shift!, 0x80) + asr(lineShift!, 0x40) + asr(drawShift!, 0x40))) /
-    2 ** (pitch! & 0xff);
-  return ((UNITS_A_LINE / 2) * unit * PIXEL_ASPECT) / eye / (metres / level);
-}
-
-/**
  * The hills' focal length, scanlines: the sub CPU turns a step by the camera's pitch at 2^14 (the `moveq #$E, d1` at
  * 0x1682) and raises its lines by that over its depth, shifted down 4 bits into a line's height (0x14AC) and 4 bits again
  * to a scanline (0x154C): 2^(14 − 4 − 4) = 64.
@@ -208,7 +169,6 @@ export function superHangOnCourses(set: RomSet) {
   const amounts = programAmounts(main);
   const cross = roadCrossSection(superHangOnRoadRom(set));
   const unit = LANE / cross.linesIn;
-  const eyeScale = hillScale(programs.sub, metres, unit);
   const goal = readGoal(programs);
   const gates = readGateParts(main);
   const banners = bannerPalettes(main);
@@ -321,5 +281,5 @@ export function superHangOnCourses(set: RomSet) {
       },
     };
   });
-  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground, factor, eyeScale };
+  return { built: raised, pictures, metres, cross, unit, rules, amounts, ground, factor };
 }

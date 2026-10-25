@@ -10,24 +10,13 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { romRecords } from './rom-set.js';
 import { boardShapes, sceneryBoards, type BoardUse } from './outrun-boards.js';
 import { OBJECT_ROUTINES, sceneryRoutine, startObjects } from './outrun-sprites.js';
-import { hillsAlong, tableRuns } from './hills.js';
-import { fitLook, gameLook, leastLoad, LOOK, ORIGINAL_LEVEL_TOP, roadTopRow } from './road-profile.js';
-import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
+import { hillsAlong } from './hills.js';
+import { cameraDistance } from '../../src/view/camera.js';
 import { CONVERSION_VERSION } from './outrun-course.js';
 import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
-import {
-  layRoad,
-  OUTRUN_ROUTES,
-  outrunRoad,
-  roadProfile,
-  routeName,
-  routeSpans,
-  stationOf as roadStation,
-} from './outrun-roads.js';
-import { stageSpan } from './outrun-pieces.js';
+import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
 import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
 import { instruction, word } from './program-words.js';
-import { POSITION_METRES } from './hills.js';
 import { roadObjects } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
@@ -324,74 +313,6 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
         skies: OUTRUN_STAGES.flat().map(skyName),
       }),
     );
-  },
-  'outrun-look': async (options) => {
-    // For every stage, as its stage piece alone (with its fork's six lanes, or its goal): `c_look` refitted on it, its
-    // profile's extremes and crossings, and each table's road top on both screens and least load at the top speed.
-    const { programs } = await readPrograms(options.get('--zip'));
-    const length = stageLength(programs.main);
-    const fork = readForkStretch(programs);
-    const goals = readGoalStretches(programs);
-    const reports = [];
-    for (const [row, numbers] of OUTRUN_STAGES.entries())
-      for (const [column, number] of numbers.entries()) {
-        const stage = readStage(programs, number);
-        const names = [
-          ...new Set(
-            [stage, fork, ...goals.stretches].flatMap((s) =>
-              s.widthsHeights.filter((p) => p.kind === 0).map((p) => p.value),
-            ),
-          ),
-        ];
-        const tables = new Map(names.map((n) => [n, readHeightTable(programs.sub, n)]));
-        const goal = row === OUTRUN_STAGES.length - 1 ? goalNumber(programs.main, row, column) : null;
-        const span = stageSpan(stage, {
-          first: row === 0,
-          fork: goal === null ? fork : null,
-          ...(goal === null ? {} : { goal: { stretch: goals.stretches[goal]!, path: goals.path, number: goal } }),
-        });
-        const laid = layRoad([{ span, id: 'stage', leaves: span.centreLane, starts: true }]);
-        const { end, profile, crossings, partings } = roadProfile(laid, { tables, kmh: TOP_KMH });
-        const stationOf = (p: number) => roadStation(laid[0]!, p);
-        const course = { stage: number };
-        const positions = Array.from({ length }, (_, p) => p);
-        const points = stage.widthsHeights.filter((p) => p.position < length);
-        const original = hillsAlong(points, tables, positions, () => TOP_KMH);
-        const stations = Array.from({ length: Math.floor(end) + 1 }, (_, s) => s);
-        const runs = tableRuns(points, tables, () => TOP_KMH);
-        const ahead = Math.ceil(RENDER_FAR_DEPTH_METERS / POSITION_METRES);
-        // Rows on the original's screen: this game's top as the original's row of the same look.
-        const game = positions.map((p) => ORIGINAL_LEVEL_TOP - gameLook(roadTopRow(profile, stationOf(p), end)) * 224);
-        reports.push({
-          stage: `0x${course.stage.toString(16)}`,
-          look: LOOK,
-          refitted: fitLook(runs, (p) => original[p]!, positions, stationOf, end),
-          rmsRows: round1(Math.sqrt(positions.reduce((sum, p) => sum + (game[p]! - original[p]!) ** 2, 0) / length)),
-          heights: [
-            round1(Math.min(...stations.map(profile.height))),
-            round1(Math.max(...stations.map(profile.height))),
-          ],
-          steepest: Math.round(Math.max(...stations.map((s) => Math.abs(profile.grade(s)))) * 1000) / 1000,
-          crossings: crossings.map((c, k) => crossingReport({ ...c, ...partings[k]! }, profile.height)),
-          tables: runs.map((run) => {
-            const from = Math.max(0, Math.floor(run.start - ahead)),
-              to = Math.min(length, Math.ceil(run.end));
-            const span = positions.slice(from, to);
-            const extremes = (rows: readonly number[]) => [
-              round1(Math.min(...span.map((p) => rows[p]!))),
-              round1(Math.max(...span.map((p) => rows[p]!))),
-            ];
-            return {
-              position: run.start,
-              kind: run.table.kind,
-              original: extremes(Array.from(original)),
-              game: extremes(game),
-              load: Math.round(leastLoad(profile, stationOf(run.start), stationOf(run.end), TOP_KMH) * 100) / 100,
-            };
-          }),
-        });
-      }
-    console.log(JSON.stringify({ ok: true, kmh: TOP_KMH, stages: reports }));
   },
   'outrun-sounds': async (options) => {
     // The original's voices and effects as the local originals of this game's recordings, AAC-LC at 44.1 kHz.

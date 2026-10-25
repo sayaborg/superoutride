@@ -10,7 +10,7 @@ const LINES = 512;
 const BOTTOM_ROW = 223;
 export const LEVEL_HORIZON = 0x240;
 /** A table's entry spans 2.125 × step positions (times its factor for kind 0). */
-export const ENTRY = 2.125;
+const ENTRY = 2.125;
 /** A hold's wait counts down by the whole part of this × positions advanced ÷ step each tick. */
 const WAIT_RATE = 120;
 /** Ticks a second, and the road position each km/h advances a tick (0x12F, 16.16). */
@@ -45,7 +45,7 @@ export function roadTop(base: number, increments: readonly number[], f: number):
 }
 
 /** The positions each entry of a kind 0 or 3 table spans: 2.125 × step × the factor its sign selects. */
-export function entrySpans(table: HeightTable): number[] {
+function entrySpans(table: HeightTable): number[] {
   if (table.kind !== 0 && table.kind !== 3) return [];
   return table.entries.map((e) => {
     const factor = table.kind === 3 || e === 0 ? 1 : e > 0 ? table.ascent : table.descent;

@@ -118,8 +118,8 @@ K's decisions (2026-10-26):
 - **Every original's grades by one rule**, the road its screen shows read back through the camera that drew it at this
   game's focal length within ±25 % ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)):
   OUTRUN's, TURBO OUTRUN's and ENDURO RACER's by K's researcher's pieces (EX-G2), replacing the draft grades and
-  `c_look`. EX-14 takes `road-profile`'s `UNIT` 576, `ORIGINAL_LEVEL_TOP` 151 and `ORIGINAL_ROWS` 224, and OUTRUN's
-  `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` which write them again, after it.
+  `c_look`. OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP`, which write the level road's top 151 again, are EX-14's,
+  read from `hills`' values.
 
 K's decisions (2026-10-25):
 
@@ -192,9 +192,6 @@ Rules of the stage:
 
 PRs, in this order:
 
-- K's grades by the [grades' rule](original-road-data.md#profile-from-the-originals-screen) (K, 2026-10-26):
-  - EX-G4: what EX-G2 and EX-G3 no longer use deleted (`road-profile`'s table grades, `c_look` and the closing,
-    `outrun-look`, SUPER HANG-ON's eye scale).
 - EX-13: one way of writing Sections for every original, each of today's copies made one shared part:
   - The widths joined by one monotone cubic (OUTRUN's `joinedWidth` and TURBO OUTRUN's copy).
   - The stripes at one period, EX-7j2's count of halves in every original.
@@ -209,9 +206,9 @@ PRs, in this order:
 - EX-14: the shared constants and fixed rules in one module and in Original road data's table. OUTRUN's program values
   that shared parts write as numbers are read from each original's ROM and passed in: 0x12F (`STEP_PER_KMH`,
   `POSITION_PER_KMH`, `STRIPE_PERIOD`'s 303, `WIDTH_RATE`'s 16/303 and its copy), `TICKS` 30, `PHASE_STEPS` 3,
-  `MOST_ADVANCE` 15 and `LINES` 512, and `road-profile`'s `UNIT` 576 (0x240), `ORIGINAL_LEVEL_TOP` 151 and
-  `ORIGINAL_ROWS` 224, which OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's `FAR_UP` write again. `PIXEL_ASPECT`'s copies
-  (15/14) go, and each value with neither name nor reason is given both.
+  `MOST_ADVANCE` 15 and `LINES` 512, and the level road's top 151, which OUTRUN's `CLOUDS_UP` and TURBO OUTRUN's
+  `FAR_UP` write, from `hills`' values. `PIXEL_ASPECT`'s copies (15/14) go, and each value with neither name nor reason
+  is given both.
 - EX-15 to EX-24: each original in turn (SUPER HANG-ON, ENDURO RACER, TURBO OUTRUN, OUTRUN, SUPER MONACO GP), two PRs
   each: what its ROMs hold read from them instead of written into the tool, then its constants and fixed rules in one
   module and in its chapter's table, its special cases made general rules or deleted. SUPER MONACO GP's band limits,

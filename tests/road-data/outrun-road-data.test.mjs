@@ -7,14 +7,7 @@ import { RomSet } from '../../tools/road-data/rom-set.ts';
 import { interleave } from '../../tools/road-data/program-words.ts';
 import { readSceneryType, readStage, stageLength } from '../../tools/road-data/outrun-road.ts';
 import { paletteRgb555, pathOffset, pathTurn, readHeightTable, roadWidths } from '../../tools/road-data/road-tables.ts';
-import {
-  bendOf,
-  closedGrades,
-  gradeRamps,
-  profileOf,
-  stageGrades,
-  STEEPEST,
-} from '../../tools/road-data/road-profile.ts';
+import { bendOf, profileOf } from '../../tools/road-data/road-profile.ts';
 import { crossingsOf, partedCrossings } from '../../tools/road-data/crossings.ts';
 import { anchorPoint, outline, spritePixels, spriteWords } from '../../tools/road-data/sprite-pixels.ts';
 import { centreLaneAt, drivenLanes, OUTRUN_ROAD } from '../../tools/road-data/outrun-cross-section.ts';
@@ -426,60 +419,6 @@ test('a last stage and its goal become a course: lanes, plan as its path, finish
   assert.ok(Math.abs(stationOf(road.laid[0], go) - 6) < 1e-9);
   assert.ok(Math.abs(finish.at.offset - stationOf(road.laid[0], 1948 + go)) < 1e-6);
   assert.ok(Math.abs(road.profile.height(road.end)) < 1e-9);
-});
-
-test("a stage's grades: a table's leftover returned before the next, a held shape stopped at the steepest, the road closed", () => {
-  const look = { 0: 0.1, 1: 0.5 };
-  // Kind 0 at 0: six level entries of 2.125 positions, then 576 over 2.125, leaving the grade at 0.1.
-  const slid = { kind: 0, step: 1, descent: 1, ascent: 1, entries: [0, 0, 0, 0, 0, 0, 576, 0, 0, 0, 0, 0, 0, 0] };
-  // Kind 1 at 40: −576 held, changing the grade by −1 over its rise, hold and return at full look.
-  const held = { kind: 1, step: 20, wait: 255, entries: [-576, -576] };
-  const runs = [
-    { table: slid, start: 0, rise: 0, holdEnd: 0, end: 17 },
-    { table: held, start: 40, rise: 82.5, holdEnd: 125, end: 167.5 },
-  ];
-  const changes = stageGrades(runs, look, (p) => p, 300, 300);
-  const profile = profileOf(changes.map(bendOf));
-  assert.ok(Math.abs(profile.grade(17) - 0.1) < 1e-12);
-  // The grade it leaves is returned by the next table's start.
-  assert.ok(Math.abs(profile.grade(40)) < 1e-12);
-  // The held shape bends the road at its rate until the grade is the steepest, then holds it to its end.
-  const rate = (-0.5 / 42.5) * 0.5;
-  assert.ok(Math.abs(profile.grade(60) - rate * 20) < 1e-12);
-  assert.ok(Math.abs(profile.grade(167.5) + STEEPEST) < 1e-12);
-  // Then returned by the road's end, which the tilt brings to height 0.
-  assert.ok(Math.abs(profile.grade(300)) < 1e-12);
-  const closed = profileOf(closedGrades(changes, 300).map(bendOf));
-  assert.ok(Math.abs(closed.height(300)) < 1e-9 && Math.abs(closed.grade(300)) < 1e-12);
-  // A grade still left at the end, a table running to it, is returned there too.
-  const left = profileOf(closedGrades([{ from: 100, to: 150, change: 0.05 }], 600).map(bendOf));
-  assert.ok(Math.abs(left.height(600)) < 1e-9 && Math.abs(left.grade(600)) < 1e-12);
-});
-
-test("a table's grades: kind 0's entries where the camera passes them, kind 1's shape held on the nearest segment", () => {
-  const slid = gradeRamps({
-    table: { kind: 0, step: 2, descent: 1, ascent: 2, entries: [0, 0, 0, 0, 0, 0, 288, -576, 0, 0, 0, 0, 0, 0] },
-    start: 10,
-    rise: 10 + 8 * 4.25 + 2 * 8.5,
-    holdEnd: 0,
-    end: 0,
-  });
-  // Six level entries of 4.25 positions, then 288 over 2 × 4.25 (its ascent) and −576 over 4.25 (its descent).
-  assert.deepEqual(slid, [
-    { from: 35.5, to: 44, change: 0.5, held: false },
-    { from: 44, to: 48.25, change: -1, held: false },
-  ]);
-  // Kind 1: −192 held at full share over the hold, half over the rise and return, per 2.125 × step positions.
-  const held = gradeRamps({
-    table: { kind: 1, step: 20, wait: 255, entries: [-192, -192] },
-    start: 0,
-    rise: 42.5,
-    holdEnd: 85,
-    end: 127.5,
-  });
-  const total = held.reduce((sum, r) => sum + r.change, 0);
-  assert.ok(Math.abs(total - (-192 / 576) * 2) < 1e-12);
-  assert.ok(held.every((r) => r.held));
 });
 
 test('crossings parted 3 m by the least change: passages moved as one, ramps of one radius between them', () => {

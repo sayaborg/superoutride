@@ -106,7 +106,6 @@ export const SUPER_HANG_ON_COMMANDS: RoadDataCommands = Object.freeze({
         metresAPosition: built.metres,
         metresAUnit: built.unit,
         factor: built.factor,
-        eyeScale: built.eyeScale,
         ground: built.ground,
         courses,
         pictures: built.pictures.length,

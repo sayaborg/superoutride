@@ -108,11 +108,9 @@ export interface Span {
   readonly leaving?: LeavingRoad;
   /** Where the piece is cut into Sections whatever its road's passages (a fork's 362). */
   readonly sections?: readonly number[];
-  /** Each piece's height points, from its start, which its profile runs and closes over `[from, to]`. */
+  /** Each piece's height points, from its start `from`, which the road's profile runs in its order. */
   readonly heights: readonly {
     readonly from: number;
-    readonly to: number;
-    readonly cut: number;
     readonly points: readonly WidthHeightPoint[];
   }[];
   readonly scenery: readonly SceneryPoint[];
@@ -380,14 +378,7 @@ export function stageSpan(
       { from: 0, to: length, centre: { lane: 'a', side: 'left', units: TOUCHING } },
       { from: 0, to: length, centre: { lane: 'f', side: 'right', units: -TOUCHING } },
     ],
-    heights: [
-      {
-        from: 0,
-        to: length,
-        cut: STAGE_LENGTH,
-        points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH),
-      },
-    ],
+    heights: [{ from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH) }],
     scenery: stage.scenery.filter((p) => p.position < STAGE_LENGTH),
     stages: [{ from: 0, stage, arrival: 'cut' }],
     resets: [STAGE_LENGTH],
@@ -482,8 +473,6 @@ export function forkSpan(
     heights: [
       {
         from: 0,
-        to: length,
-        cut: length,
         points: fork.widthsHeights
           .filter((p) => p.kind === 0)
           .map((p) => ({ ...p, position: Math.max(0, at(p.position)) })),
@@ -556,13 +545,8 @@ function goalSpan(stage: Stage, goal: GoalOptions, first: boolean, centre: 'b' |
     ],
     leaving: { from: parts, to: apart, side: 1 },
     heights: [
-      {
-        from: 0,
-        to: STAGE_LENGTH,
-        cut: STAGE_LENGTH,
-        points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH),
-      },
-      { from: STAGE_LENGTH, to: length, cut: length, points: heights },
+      { from: 0, points: stage.widthsHeights.filter((p) => p.kind === 0 && p.position < STAGE_LENGTH) },
+      { from: STAGE_LENGTH, points: heights },
     ],
     scenery: [...stage.scenery.filter((p) => p.position < STAGE_LENGTH), ...shifted(goal.stretch.scenery, offsetAt)],
     stages: [{ from: 0, stage, arrival: 'cut' }],
@@ -589,7 +573,7 @@ function slicedTable({ positions, headings }: HeadingTable, from: number, to: nu
 
 /**
  * `span` over its positions `[from, to]`, from 0: its path, widths and offset cut there, everything else moved back by
- * `from`; a piece's heights kept where the piece begins within it, running on past its end where the piece does.
+ * `from`; a piece's heights kept where the piece begins within it.
  */
 export function sliceSpan(span: Span, from: number, to: number): Span {
   const cut = (q: Quadratic) =>
@@ -623,9 +607,7 @@ export function sliceSpan(span: Span, from: number, to: number): Span {
         ? { ...leaving, from: leaving.from - from, to: Math.min(leaving.to, to) - from }
         : undefined,
     sections: span.sections?.filter((p) => p > from && p < to).map((p) => p - from),
-    heights: span.heights
-      .filter((h) => h.from >= from && h.from < to)
-      .map((h) => ({ ...h, from: h.from - from, to: h.to - from, cut: h.cut - from })),
+    heights: span.heights.filter((h) => h.from >= from && h.from < to).map((h) => ({ ...h, from: h.from - from })),
     scenery: span.scenery
       .filter((p) => p.position >= from && p.position < to)
       .map((p) => ({ ...p, position: p.position - from })),
@@ -673,7 +655,7 @@ export function withEntry(span: Span, entry: number): Span {
       ? { leaving: { ...span.leaving, from: span.leaving.from + entry, to: span.leaving.to + entry } }
       : {}),
     ...(span.sections ? { sections: span.sections.map((p) => p + entry) } : {}),
-    heights: span.heights.map((h) => ({ ...h, from: h.from + entry, to: h.to + entry, cut: h.cut + entry })),
+    heights: span.heights.map((h) => ({ ...h, from: h.from + entry })),
     scenery: span.scenery.map((p) => ({ ...p, position: p.position + entry })),
     stages: span.stages.map((st) => ({ ...st, from: on(st.from) })),
     resets: span.resets.map((p) => p + entry),
