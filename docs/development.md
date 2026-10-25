@@ -181,9 +181,10 @@ workbench differ only in how they start workers and write files.
 Run `npm run build`, then serve the repository root with `python3 -m http.server 8000`.
 Open the generated pages, not the source HTML templates:
 
-| Tool      | Local URL                              |
-| --------- | -------------------------------------- |
-| Workbench | `http://localhost:8000/workbench.html` |
+| Tool          | Local URL                                  |
+| ------------- | ------------------------------------------ |
+| Workbench     | `http://localhost:8000/workbench.html`     |
+| Course viewer | `http://localhost:8000/course-viewer.html` |
 
 On Pages these same `tools/...` paths live beneath `build/<commit>/`, where `<commit>` is the
 published `version.txt` value. Each tool, its shared chunks, worklets, stylesheet and sample assets
@@ -364,6 +365,75 @@ npm run sprite -- import tree
 
 `import` makes the master of `content/sprite-sources/<name>.png` and its recipe and writes it, with every level of its
 LOD, as `content/images/<name>.json` (replacing one of that name).
+
+### Course viewer
+
+The course viewer shows a course in true perspective, from any angle, so its structure (a band repeating sideways, a
+picture folding at its anchor, a road coming near itself) can be judged; it edits nothing and is apart from the
+workbench. It has one address, `course-viewer.html` at the site root, which opens the course viewer of the build
+`version.txt` names, `build/<commit>/tools/course-viewer/course-viewer.html` (without `version.txt`,
+`dist/tools/course-viewer/course-viewer.html`). It offers every course the build's manifest delivers and loads only the
+chosen one, through the game's delivery (`loadDeliveredCourse`); how a course's elements are written (a repeat's
+original and copies) it reads from the authored document the build publishes for the workbench, and it adds nothing to
+the delivery. It lays the course out as the course map does (`firstExitRoute`: from the entry, one lap of a circuit,
+each fork's first exit, each occurrence placed by its transform to the world).
+
+Every position, height and direction comes from the functions physics and the game read: the plan (`toWorld`), the
+profile, the occurrences' transforms, the resolved Strips (`readSlab`), the sprites' placement and their repeats'
+expansion, a band's period, the camera definition and the compiler's clearance (`sampleClearance`). The viewer adds
+its camera and the rules below. It draws with the GPU's perspective (or parallel) projection and a depth buffer, at
+true scale in metres, unlit, in the game's colors: ground and walls in the resolved Strips' colors, without the
+preblend; pictures by nearest texel, each at the level of its picture (LOD) the game's nearest-octave rule
+(`selectSpriteLevel`) picks for its scale at its base point, with palette index 0 cut away. Depth is written on a
+logarithmic scale of the distance, so one buffer holds the whole course and the ground at one's feet; what lies on the
+ground draws with a bias toward the eye that grows with its depth slope, so it never flickers against the ground.
+Curves and the profile's curves are drawn as straight pieces within 1 cm.
+
+A picture in the game is one base point and one flat picture on the screen; its rows below the anchor lie on the
+ground only in how they overlap, neither shortened by perspective nor bent by a curve. The viewer places each picture as
+one flat board that does not bend:
+
+- **Base point.** Every picture stands at its base point: `toWorld(s, l)` carried by its occurrence's transform, at
+  `Y(s) + groundOffset`. A master texel is 1/40 m across and down alike.
+- **Which rows stand.** The picture's own data decide which rows stand and which lie, as the game reads them: the rows
+  on and above its anchor stand and the rows below it lie. The viewer decides nothing.
+- **The lying plane** is the road's plane at the anchor's station: tilted to the profile's grade there, level across.
+  It is not bent to the ground. A lying picture's top faces +s, its bottom −s.
+- **Standing rows** stand upright from the base point in the cross section at its station (the plane of its right
+  normal and the vertical), facing the coming cars (−s). Seen from behind, a board shows its mirror image, darker.
+- **Rows below the anchor** fold at the anchor toward −s and lie flat on the lying plane.
+- **A board reaching below the ground** (a negative `groundOffset`) is not treated apart: it passes through the ground,
+  which hides what lies under it, and transparent ground shows it.
+- **Shadows.** A shadow's anchor lies on the road beneath the base point, its frame flat on the lying plane, and the
+  ground within its outline is drawn at half brightness, as the game draws it, once however many shadows overlap. Only
+  what casts a shadow in the game casts one: the movable objects.
+- **Boards repeating sideways** (`extend`) repeat within their plane toward the side the game repeats them, every
+  `W / 40` m, and stop at the edge of the ground drawn at their station (the outer edge of its opaque colors, or the
+  display width where that cuts it). The picture itself is always drawn; each repetition folds as above.
+- **Ground.** The resolved Strips are drawn as they are, as cross sections along s; transparent ones are not drawn.
+  The ground within the course limits is always drawn, and beyond them out to the display width, which the page sets.
+  Where ground from two parts of the course lies at one place and one height, the ground nearer its own course limit
+  shows.
+- **One-to-one.** The compiler's clearance (where a Section's plan stops being one-to-one) is shown as a line, and the
+  colored ground beyond it can be marked. The viewer finds no overlap of its own.
+- **Sky.** The sky lies on a sphere at infinity, by the game's mapping: a direction of yaw ψ shows image x
+  `f · (ψ − yawOrigin) + centerX` (`backgroundYawX`), repeating at the image's width, and of elevation e image row
+  `horizonY − f · tan e`, edge rows repeating, at the camera definition's focal length `f`. The sky is the one of the
+  environment at the point of interest, as the game's is the one at the point its camera follows.
+
+Layers turn on and off one by one: the ground (colors or materials, beyond the limits, the clearance line, the ground
+beyond it), the visible walls, the boards (standing rows, lying rows, shadows, boards repeating sideways, movable
+objects, base points, and outlines and folds, which show each repetition), the sky, and the boards colored by how they
+are written (a repeat's original or copy, one element by reference or by number). At first only what the game shows is
+on: the ground, the visible walls, the boards, the shadows and the sky.
+
+The view turns about its point of interest, comes nearer and moves sideways: one finger turns and two pinch and move on
+a touch screen, the mouse's first button turns, its other buttons (or Shift) move and its wheel comes nearer. A slider
+moves the point of interest along the Route. Three views are offered: from above, from the side, and the game's camera
+(the camera definition's place and field of view behind a car standing on the centreline at that station, facing along
+the road); and the projection is perspective or parallel. A tap on a board shows its data (kind, position, height,
+image and palette, its placement and repeat, its Section) and can make it the point of interest. The view is fitted to
+the game's 320 by 240 frame at its focal length; touch selects no text and opens no menu.
 
 ### Pictures command
 
@@ -597,7 +667,7 @@ build; it cannot contain its own digest. Browser course selection reads the cour
 Only the delivery layout owns output naming. Browsers, Node consumers, startup smoke and public-site
 verification read indexed content through the shared reader, never by reconstructing output paths.
 Authoring inputs under `content/` still use explicit source filenames and image directories.
-The browser-tools build writes only `dist/tools`: the bundled workbench and the license of the PNG codec it bundles. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
+The browser-tools build writes only `dist/tools`: the bundled workbench and course viewer, and the license of the PNG codec the workbench bundles. The content build writes `dist/delivery` with the authoring core ([Architecture](architecture.md#layer-boundaries)):
 `compileContent` reads `content/` through the Node content store and compiles every delivered file from authored
 documents in one pass, in dependency order: the vehicle sprite library (compiled LOD and admitted), text tiles,
 surface materials, surface sounds (resolved against those materials), audio settings, recordings and the

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Course viewer — SUPER OUTRIDE</title>
+    <link rel="stylesheet" href="course-viewer.css" />
+  </head>
+  <body>
+    <canvas id="view" aria-label="Course view"></canvas>
+    <header id="bar">
+      <select id="course" aria-label="Course"></select>
+      <button id="layers-button" type="button" aria-expanded="false" aria-controls="layers">Layers</button>
+      <span class="group" role="group" aria-label="View">
+        <button id="view-top" type="button">Top</button>
+        <button id="view-side" type="button">Side</button>
+        <button id="view-game" type="button">Game camera</button>
+        <button id="projection" type="button" aria-pressed="true">Perspective</button>
+      </span>
+      <span id="status" role="status">Opening the build…</span>
+    </header>
+    <section id="layers" hidden aria-label="Layers"></section>
+    <section id="info" hidden aria-label="Selected object">
+      <dl id="info-list"></dl>
+      <div class="actions">
+        <button id="info-focus" type="button">Look here</button>
+        <button id="info-close" type="button">Close</button>
+      </div>
+    </section>
+    <footer id="station">
+      <label for="s">s</label>
+      <input id="s" type="range" min="0" max="1" step="0.1" value="0" />
+      <output id="s-value" for="s"></output>
+    </footer>
+    <script type="module" src="./course-viewer.js"></script>
+  </body>
+</html>
