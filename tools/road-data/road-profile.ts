@@ -361,7 +361,11 @@ export function sectionProfile(profile: Profile, from: number, to: number, joins
     knots[1] = { ...knots[1]!, s, y: knots[0]!.y + g0 * (s - from) };
     return knots;
   }
-  if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * (knots[1]!.s - from);
-  if (n > 2 && joinsAfter) knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (to - knots[n - 2]!.s);
+  // On the tangents as the stations are written, offsets from `from` to the step of computed values, so that the grades
+  // hold however near the knot lies.
+  const offset = (s: number) => computedValue(s - from);
+  if (n > 2 && joinsBefore) knots[1]!.y = knots[0]!.y + profile.grade(from) * offset(knots[1]!.s);
+  if (n > 2 && joinsAfter)
+    knots[n - 2]!.y = knots[n - 1]!.y - profile.grade(to) * (offset(to) - offset(knots[n - 2]!.s));
   return knots;
 }

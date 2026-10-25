@@ -575,7 +575,7 @@ A stage's profile turns its height tables' look on the original's screen into gr
 - **Knots.** Each stretch of constant curvature is a PVI at the intersection of the tangents at its ends, its station to
   1e-9 m (finer than a station's µm, so that both tangents' grades hold), its curve 2 µm shorter at each end so curves
   that meet stay apart; a mound's kink is a knot of no curve, the stretches broken there; stretches break at the
-  Sections' cuts, and a knot next to a cut lies on the cut's tangent, so joined Sections' heights and grades agree; a
+  Sections' cuts, and a knot next to a cut lies on the cut's tangent at its station as written, so joined Sections' heights and grades agree; a
   Section joined at both ends whose one stretch spans it has its knot where the tangents at its two cuts meet, so both
   grades hold.
 
