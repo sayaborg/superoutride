@@ -51,7 +51,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 21;
+export const ENDURO_RACER_CONVERSION_VERSION = 22;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -63,10 +63,10 @@ const TICKS = 60;
  */
 export const POSITION_METRES = 65536 / (256 * 3.6 * TICKS);
 /**
- * A lane, metres, over the road's surface's half: K's 3.5 m, SUPER HANG-ON's rule (the original's upright rear frame of
- * the bike as tall as VFR750R's upright rear picture) rounded. It is the one measure of ENDURO RACER's sizes across.
+ * A lane, metres, over the road's surface's half: K's 3.8 m (2026-10-26). It is the one measure of ENDURO RACER's sizes
+ * across.
  */
-export const LANE = 3.5;
+export const LANE = 3.8;
 /**
  * The ground's material by stage, left and right of P: stage 1's grass, stage 3's water and stage 5's sea (left of P)
  * `WATER`, stages 2's and 4's ground and stage 5's white sand `SAND`.

@@ -192,7 +192,7 @@ Rules of the stage:
 
 PRs, in this order:
 
-- The scale by K's values (K, 2026-10-26, the constants' table below).
+- SUPER MONACO GP's scale by K's value (K, 2026-10-26, the constants' table below).
 - K's grades, EX-G1 to EX-G4: OUTRUN's, TURBO OUTRUN's and ENDURO RACER's grades and SUPER HANG-ON's and SUPER MONACO
   GP's scales by the screen's pieces, replacing the draft grades and `c_look`, the crossings parted on them by their
   rule.
@@ -297,12 +297,10 @@ EX-7d's table (in its PR) lists every chosen value but the scale. K's decisions 
   ENDURO RACER's read from their ROMs by EX-15 to EX-24), and no course is made for the vehicles: a vehicle that has not
   stopped where the road ends is allowed (the DRIFT TUNED cars), and one that leaves the domain at the road's end
   recovers at rest, as one a fixed object blocks (K, 2026-10-24). The tool's lengths are EX-14's and EX-15 to EX-24's.
-- **The scale** (K, 2026-10-26): OUTRUN's and TURBO OUTRUN's lane 3.6 m and SUPER HANG-ON's 4.3 m, as they are;
-  ENDURO RACER's lane 3.8 m (from 3.5 m); SUPER MONACO GP's barriers 11 m apart (from 10 m), its widths, objects'
-  laterals and pictures a tenth larger, its lane about 3.43 m, its lengths along the road and its hills' heights as
-  they are. The lengths along every original's road are its original's speed's and stay. Its PR raises ENDURO RACER and
-  SUPER MONACO GP again (courses, pictures and racing lines), stopping first should SUPER MONACO GP's pictures pass the
-  course format's image bound, and writes how it was decided once in each chapter and Original road data as K's.
+- **SUPER MONACO GP's scale** (K, 2026-10-26): its barriers 11 m apart (from 10 m), its widths, objects' laterals and
+  pictures a tenth larger, its lane about 3.43 m, its lengths along the road and its hills' heights as they are. Its
+  PR raises it again (course, pictures and racing lines), stopping first should its pictures pass the course format's
+  image bound, and writes the value once in its chapter and Original road data as K's.
 - **The rules' numbers** kept as shared constants with their reasons, each written once (EX-14): the crossings' 3 m
   (K), passages 200 m apart, a passage running on over 3 positions, a cut clear of a gate (2 m; TURBO OUTRUN's two
   positions until EX-13 makes it one length), the grids' 12 m and 3 m.

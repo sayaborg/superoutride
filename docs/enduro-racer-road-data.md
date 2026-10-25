@@ -135,27 +135,24 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 21, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 22, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
 
-- **Scale.** A position is 1.185185 m. A lane is K's 3.5 m (`LANE`): SUPER HANG-ON's rule (the original's upright rear
-  frame of the bike, its rows 0–81, 82 × 128/125 × 15/14 units, as tall as VFR750R's upright rear picture, 1.65 m)
-  gives 3.49 m, rounded as SUPER HANG-ON's 4.34 m was. The original's world keeps no one scale across and along the
-  road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects at 4.2456 × x / (d + 4.19), two different
-  eyes), so its objects' far ratio (a road of 7.48 m) and its road's look (about 9.8 m) were the alternatives; K kept
-  the 3.5 m lane (2026-10-21).
+- **Scale.** A position is 1.185185 m. A lane is K's 3.8 m (`LANE`, K, 2026-10-26), decided by driving. The original's world keeps
+  no one scale across and along the road (its road is drawn at 256 × X / (Y + 8.125) pixels and its objects at
+  4.2456 × x / (d + 4.19), two different eyes), so no rule of its own gives the lane.
 - **Cross-section.** The road ROM's line L is the road's left half, its right end the road's centre: 0 the surface, 1,
   2 and 1 the edge bands outward, 3 the ground; lines 0 and past 128 draw no road. The sub CPU draws depth number d3 on
   line 0.991 (d3 + 3) − 3, where an object's unit is (d3 + 3) / 128 pixels (as the research notes read the sub
   CPU), so an edge's units are 0.991 × 128 times its pixels' slope against the line, fitted over lines 20 to 128: the
-  surface's half 190.27 units (a lane, 3.5 m, so a unit is 0.0183947 m), the edge bands to 234.81 units (4.319 m),
+  surface's half 190.27 units (a lane, 3.8 m, so a unit is 0.0199714 m), the edge bands to 234.81 units (4.689 m),
   their narrow, middle and narrow bands 22 %, 56 % and 22 % of them.
 - **Plan.** The course's heading table is the stages' road paths' headings in running order, stage s's position p at
   2048s + p, then the goal's 450 positions straight ahead, at (0, 4096), with which every path ends and begins. It
   becomes P by the [plan from a heading table](original-road-data.md#plan-from-a-heading-table), no turn tighter than
-  its lanes keep (a lane either side, 7.51 m; none is): 132 runs and 256 elements, its headings within the resolution at
+  its lanes keep (a lane either side, 8.15 m; none is): 132 runs and 256 elements, its headings within the resolution at
   every position; laid from its start, it lies at most 0.05 m from its table's line, each position a step along its
   ends' mean heading. The tightest arc is 21.9 m, a turn in stage 3. P is a straight of 6 m less the bike's 0.75
   positions before position 0, then the plan.
@@ -163,8 +160,8 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
 - **The goal's straight.** Past position 10240 P runs straight on for 450 positions, to 10689: past the finish (10254,
   station 12158.0) 515.6 m remain, past the last scenery (10342), a length chosen when every vehicle had to stop before
   the course's end, which the run no longer requires (EX-17 reads the original's).
-- **Lanes.** a and b, 3.5 m each, either side of P; the centre lane a, its centre half a lane left of P
-  (`centerLateral` −1.75).
+- **Lanes.** a and b, 3.8 m each, either side of P; the centre lane a, its centre half a lane left of P
+  (`centerLateral` −1.9).
 - **Strips.** Each stage's colors from its start: its ground everywhere (stage 5's sea left of P and its white sand
   right), its surface to the edge bands' outer edges, and its edge bands' narrow and middle bands over it, each in band
   B and band A by turns every 2 positions: band B over positions [0, 2) + 4k and band A over [2, 4) + 4k, the borders
@@ -180,7 +177,7 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   crossings (5236–5286, 5456–5526 and 5596–5656) the surface and edge bands take the ground's color. The ground's
   rows where the stripes change are not drawn.
 - **Materials.** The surface and edge bands are `DIRT`, over the water crossings `WATER`. The ground reaches the
-  bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (9.418 m) from P, 5.918 m beyond
+  bike's [lateral limit](original-road-data.md#the-ground-beside-the-road), 512 units (10.225 m) from P, 6.425 m beyond
   the lanes: `GRASS`
   on stage 1, `WATER` on stage 3 (its water) and left of P on stage 5 and the goal (the sea), `SAND` on stages 2 and 4
   and right of P on stage 5 (its white sand); the water's material lies only within the course limit. Every one is K's
@@ -217,8 +214,8 @@ the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER
   least 200 m apart whose roads, to the edge bands' outer edges, overlap, parted with the mounds. 30 crossings, 62
   passages, two of them clumps of three (stations 801–837, 1840–1856 and 3274–3309; 9955–9980, 10740–10773 and
   11954–11978); the loops at stages 2 to 5's starts and stages 1 and 2's parallel stretch (stations 1930–1986 and
-  2720–2774) among them. The crossings' heights run from −6.3 to +5.6 m, the ramps' least radius 52 m; the steepest
-  grade, on a jump's slope, is 43.1 %.
+  2720–2774) among them. The crossings' heights run from −6.2 to +5.7 m, the ramps' least radius 43 m; the steepest
+  grade, on a jump's slope, is 43.9 %.
 
 ## ENDURO RACER's objects
 
@@ -234,16 +231,16 @@ hit narrows and the objects left out:
   palette.
 - **Bodies.** An object with the hit mark (its type's flags' 0x08, a start template's own) has a body, off the road
   too, but on the road (below): the original's bike hits within 0x5A units of the object's x either side, so a body is 2 × 0x5A
-  units (3.31 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside), whichever is narrower. The
+  units (3.595 m) wide or the object's colored pixels wide (pixel 10, the shadow, aside), whichever is narrower. The
   wide tree (0x13), the farmhouse (0x40), the mud house (0x3B), the fallen tree (0x38) and the ruin (0x39) are narrowed
-  to 3.31 m.
+  to 3.595 m.
 - **On the road.** The original marks an item within 30 of the road's centre (in 8 units) as on the road, but for types
   0x48–0x4E, and only those can hit its bike, which it keeps on the road. Those with the hit mark (rocks, rock pillars,
-  dead trees and jeeps: 199, 183 of them standing) are passed through here: with bodies, every vehicle's driver stopped
-  behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 53, 0, 24 and 53 a stage).
+  dead trees and jeeps: 199, 184 of them standing) are passed through here: with bodies, every vehicle's driver stopped
+  behind stage 1's rocks at position 530, as the drivers do not steer around objects (53, 54, 0, 24 and 53 a stage).
 - **Other passages.** An object whose base point, or body across the road, stands on another passage's road (to its
   edge bands' outer edges, [Crossings](original-road-data.md#profile)) is left out (K, 2026-10-21): the original never
-  shows the two together. 138 are, 17 of them on their own road.
+  shows the two together. 153 are.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
   lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other
