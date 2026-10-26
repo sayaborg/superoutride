@@ -25,12 +25,6 @@ import { monotoneCubic, writtenAt } from './monotone-cubic.js';
 import type { StageRun } from './turbo-outrun-scenery.js';
 
 /**
- * A leg's last stage joins the next leg's start, which the original reaches through another screen: from 1460, where its
- * road is one of three lanes, its width widens to the next start's at the width points' fastest rate (speed 80); its
- * Section ends at 1458, where that corner's rounding begins.
- */
-export const JOIN = Object.freeze({ from: 1460, speed: 80, seam: 1458 });
-/**
  * A leg's course ends 260 positions past its finish, a straight on from its last stage's road: chosen when every vehicle
  * had to stop before the course's end, which the run no longer requires.
  */

@@ -261,9 +261,6 @@ and 13 (patches) set the road's surface effect for 12 frames while the car is on
 and changes no driving ([Effect](outrun-road-data.md#strips-and-patches)). The other originals' are read when one is
 made.
 
-TURBO OUTRUN's courses are a leg each since A (K, 2026-10-26); the next PR deletes what only the joins between legs
-used (`JOIN` and its notes).
-
 The sprites' PRs, beside the stage's (the auditor's third round, parts 2, 5 and 6), in this order:
 
 - SP-2 (`tools/`): TURBO OUTRUN's pictures by the sprites' rules and K's table (`sprite-rules`, the other originals'
