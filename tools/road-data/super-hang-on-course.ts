@@ -43,9 +43,6 @@ const SKY_HORIZON = 320;
 const GATE_X = 224 / 191;
 const GATE_LIFT = 224 / 192;
 
-/** Stations nearer than this are one: ten times the micrometre stations are written to. */
-const EPSILON = 1e-5;
-
 /** A figure of the ending, as its last frame stands: its frame, palette, x and height in road units. */
 export interface EndingFigure {
   readonly list: number;
@@ -426,7 +423,7 @@ function sectionDocument(
     ('rgb555' in pair ? pair.rgb555 : pair) as readonly [number, number];
   const own = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
-    .filter((t) => t.to - t.from > EPSILON);
+    .filter((t) => stations.apart(t.from - origin, t.to - origin));
   // The ground everywhere, then the sand's material between the boundaries.
   for (const t of own) {
     const [c0, c1] = two(t.ground);

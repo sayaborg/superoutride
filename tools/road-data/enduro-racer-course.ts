@@ -675,13 +675,9 @@ function sectionDocument(
       strips.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
     }
   };
-  // The stretches within the Section, an end within `EPSILON` of one of the Section's ends taken as that end: the
-  // Section's start is the sum of its plan's lengths as written, which parts from the stations by micrometres.
-  const snap = (s: number) =>
-    Math.abs(s - origin) < EPSILON ? origin : Math.abs(s - origin - size) < EPSILON ? origin + size : s;
   const own = context.stretches
-    .map((t) => ({ ...t, from: snap(Math.max(t.from, origin)), to: snap(Math.min(t.to, origin + size)) }))
-    .filter((t) => t.to - t.from > EPSILON);
+    .map((t) => ({ ...t, from: Math.max(t.from, origin), to: Math.min(t.to, origin + size) }))
+    .filter((t) => stations.apart(t.from - origin, t.to - origin));
   // The ground: its right color everywhere and its left one left of P, its material out to the boundaries.
   for (const t of own) {
     strips.push(strip(t.from, t.to, null, null, t.ground.right, null));

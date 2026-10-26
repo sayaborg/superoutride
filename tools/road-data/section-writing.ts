@@ -294,7 +294,8 @@ export function writtenPlan(
  * A Section's stations as written, from its plan as written (`elements`): its length, its first joint, and a station's
  * Position from that joint, to the micrometre, a station within `WRITTEN_SLACK` of a joint the joint's (a position
  * reckoned apart from the plan's elements can round to the micrometre beside it), within `END_SNAP` of the end the end,
- * and never before the start.
+ * and never before the start; and whether two stations are `apart` as written, as a stretch's ends must be for it to be
+ * written.
  */
 export function sectionStations(elements: readonly WrittenElement[]) {
   const size = elements.reduce((sum, e) => sum + e.length, 0);
@@ -305,5 +306,6 @@ export function sectionStations(elements: readonly WrittenElement[]) {
     const written = joints.find((j) => Math.abs(j - offset) <= WRITTEN_SLACK) ?? offset;
     return { joint, offset: written > size - END_SNAP ? size : Math.max(0, written) };
   };
-  return { size, joint, at };
+  const apart = (a: number, b: number) => at(b).offset > at(a).offset;
+  return { size, joint, at, apart };
 }

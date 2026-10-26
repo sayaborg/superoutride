@@ -169,8 +169,6 @@ const UPRIGHT = 0x08;
 /** An object on a curve's inside stands only within this of the curve's centre's distance (metres). */
 const INSIDE_MARGIN = 2;
 
-const EPSILON = 1e-5;
-
 /** A course of the original: its form's number, id, name, checkpoints' steps and Sections' names. */
 const COURSES = Object.freeze([
   { course: 1, id: 'super-monaco-gp', name: 'SUPER MONACO GP', checkpoints: [4697, 9538] },
@@ -708,8 +706,7 @@ function sectionDocument(input: {
   type Edge = number | { boundary: string; offset: number } | null;
   const strip = (a: number, b: number, left: Edge, right: Edge, color: number | null, material: string | null) => {
     const [start, stop] = [at(a), at(b)];
-    if (stop.offset - start.offset > EPSILON)
-      strips.push({ kind: 'strip', start, end: stop, left, right, color, material });
+    if (stop.offset > start.offset) strips.push({ kind: 'strip', start, end: stop, left, right, color, material });
   };
   const span = (from: number, to: number) => {
     const [a, b] = [Math.max(from, section.from), Math.min(to, section.to)];
@@ -829,7 +826,7 @@ function sectionDocument(input: {
         [s, s + half],
       ].flatMap(([a, b], k) => {
         const [from, to] = [Math.max(a!, origin), Math.min(b!, origin + size)];
-        return to - from > EPSILON
+        return stations.apart(from - origin, to - origin)
           ? [{ kind: 'strip', start: at(from), end: at(to), left, right, color: colors[k]!, material: null }]
           : [];
       });

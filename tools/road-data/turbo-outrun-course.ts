@@ -340,7 +340,7 @@ function sectionDocument(
 
   // The plan: P's elements over [from, to], as written; the Section's length theirs, as the next one's start is.
   const elements = writtenPlan(line, { from: from * metres, to: to * metres });
-  const { size, joint, at: atStation } = sectionStations(elements);
+  const { size, joint, at: atStation, apart } = sectionStations(elements);
   const at = (g: number) => atStation(local(g));
   const stationOf = (g: number) => micrometre(local(g));
 
@@ -403,7 +403,7 @@ function sectionDocument(
   ) => ([0, 1] as const).flatMap((h) => (two[h] === under[h] ? [] : halves(h, a, b, left, right, two[h]!)));
   const owned = context.stretches
     .map((t) => ({ ...t, from: Math.max(t.from - origin, 0), to: Math.min(t.to - origin, size) }))
-    .filter((t) => t.to - t.from > 1e-6);
+    .filter((t) => apart(t.from, t.to));
   const strips: unknown[] = [];
   for (const t of owned) {
     const ground = t.stage.ground.words.rgb555;
@@ -447,7 +447,7 @@ function sectionDocument(
   for (const t of owned) {
     for (const q of asphalt) {
       const [sa, sb] = [Math.max(q.a, t.from), Math.min(q.b, t.to)];
-      if (sb - sa <= 1e-6) continue;
+      if (!apart(sa, sb)) continue;
       for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin)) {
         const surface = toned(t.stage.colors.surface.rgb555, facing);
         for (const [left, right] of q.apart ? roadSides : [[outerLeft, outerRight] as const]) {
@@ -485,7 +485,7 @@ function sectionDocument(
       if (a === null || b === null || b - a < 1e-3) continue;
       for (const t of owned) {
         const [sa, sb] = [Math.max(stationOf(a), t.from), Math.min(stationOf(b), t.to)];
-        if (sb - sa <= 1e-6) continue;
+        if (!apart(sa, sb)) continue;
         const { laneLines: lines, edges, surface } = t.stage.colors;
         const two = interval.paint === 'line' ? lines.rgb555 : edges.rgb555;
         for (const { from: pa, to: pb, facing } of bySlope(sa, sb, slopes, origin))

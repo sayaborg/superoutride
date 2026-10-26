@@ -17,6 +17,7 @@ import { OUTRUN_NAMES, skyName, slug } from './outrun-names.js';
 import { OUTRUN_ROUTES, outrunRoad, routeName, routeSpans } from './outrun-roads.js';
 import { checkRoadRom, LANE, UNIT_METRES } from './outrun-cross-section.js';
 import { instruction, word } from './program-words.js';
+import { micrometre } from './section-writing.js';
 import { roadObjects, type ObjectPlacement } from './outrun-scenery.js';
 import { stageSky } from './outrun-backgrounds.js';
 import { bakeSky, SKY_HORIZON } from './sky-baking.js';
@@ -275,7 +276,7 @@ export const OUTRUN_COMMANDS: RoadDataCommands = Object.freeze({
     // SAND reaches the car's lateral limit: 0xC2B0 holds its x (0x260050) within the word it adds at 0xC2CA (0xE2F4)
     // of its road's centre, that far beyond the road's three lanes about it.
     const [high, low] = instruction(programs.main, 0xc2ca, [0xd079, null, null], "the car's lateral limit");
-    const ground = Math.round((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES * 1e6) / 1e6;
+    const ground = micrometre((word(programs.main, high! * 0x10000 + low!) - (3 * LANE) / 2) * UNIT_METRES);
     const courses = [];
     for (const [k, route] of OUTRUN_ROUTES.entries()) {
       const road = roads[k]!;

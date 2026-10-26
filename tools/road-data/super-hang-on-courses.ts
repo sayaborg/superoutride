@@ -6,6 +6,7 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../src/image/sprite.js';
 import { cameraDistance } from '../../src/view/camera.js';
 import { instruction, long, word } from './program-words.js';
+import { micrometre } from './section-writing.js';
 import type { RomSet } from './rom-set.js';
 import {
   assembleSuperHangOnPrograms,
@@ -271,7 +272,7 @@ export function superHangOnCourses(set: RomSet) {
   // SAND reaches the bike's lateral limit, from P: 0x812C, after steering and the slide, holds its x (0x260022) within
   // the word it reads at 0x8850 either side.
   const [high, low] = instruction(main, 0x812c, [0x3239, null, null], "the bike's lateral limit");
-  const ground = Math.round((word(main, high! * 0x10000 + low!) * unit - LANE) * 1e6) / 1e6;
+  const ground = micrometre(word(main, high! * 0x10000 + low!) * unit - LANE);
   const written = built.map((b) => ({ ...b, road: { ...b.road, document: b.road.write(ground) } }));
   return { built: written, pictures, metres, cross, unit, rules, amounts, ground, factor };
 }

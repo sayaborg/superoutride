@@ -308,8 +308,7 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   ROMs.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
 - Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
-  and the goal positions, the sky's horizon, the rounding helper and its epsilon in 6, the yaw formula and the grid
-  builder): EX-13 and EX-14.
+  and the goal positions, the sky's horizon, the yaw formula and the grid builder): EX-13 and EX-14.
 - Values read or kept that no rule uses (SUPER HANG-ON's race end and rivals' grid, TURBO OUTRUN's advance and several
   of its tables, SUPER MONACO GP's band entries' t2, and six SUPER MONACO GP constants with no effect): each original's
   two PRs, EX-15 to EX-24.
@@ -317,9 +316,7 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
   have no source written: EX-23 and EX-24, which name these with their reasons in the chapter's table.
 - The plan's tolerances and thresholds (about 25), and seven constants that OUTRUN's and TURBO OUTRUN's modules both
   hold: those EX-4 to EX-8 did not remove, EX-9.
-- The roundings' epsilons (`EPSILON`, 1e-5, in SUPER HANG-ON's, ENDURO RACER's and SUPER MONACO GP's writers, and
-  `JOINT_SNAP`, 2e-6): EX-13 and EX-14. Since EX-5b and EX-7 put a Section's stations on one ruler, those no longer
-  needed are deleted rather than made one.
+- ENDURO RACER's band writer's `EPSILON` (1e-5): EX-13, with its stripes made the one stripe writer's.
 - No PR reviewed the constants' values, only their names (EX-1 counted 119 chosen): EX-7d's table did, but for the
   scale.
 
