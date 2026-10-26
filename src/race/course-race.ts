@@ -177,7 +177,8 @@ export function createCourseRace(options: {
   ) => {
     // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of the lane nearest it.
     const recoveryIntent = driving?.intent ?? null;
-    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent, body.vehicle.course.l);
+    const width = actor.model.compiledVehicle.footprint;
+    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent, body.vehicle.course.l, width);
     const body = createPresentVehicle(id, actor, driving, defaultSteering(actor.model), (self, s) =>
       vacantPlace(self, s, recoveryLane),
     );
@@ -263,7 +264,10 @@ export function createCourseRace(options: {
     const exit = (occurrence: RouteOccurrence) =>
       rivalExit(options.setup.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
     // An ahead entry's lane is read where it appears; until then nothing reads it.
-    const intent: LaneIntent = entry.slot ? { lane: LINE, at: 0, exit } : { lane: entry.ahead!.lane, at: 0, exit };
+    const width = modelOf(entry.vehicle).compiledVehicle.footprint;
+    const intent: LaneIntent = entry.slot
+      ? { lane: LINE, at: 0, exit }
+      : { lane: entry.ahead!.lane, at: 0, exit, width };
     // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
     const offset = entry.slot ? takeLine(intent, entry.slot.at.s, entry.slot.l) : lineOffset();
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.

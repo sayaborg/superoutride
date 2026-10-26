@@ -77,6 +77,7 @@ export function pathOffsetAt(offset: Pick<PathOffset, 'from' | 'to' | 'at' | 'le
 export interface LaneIntent extends DriverIntent {
   lane: number;
   at: number;
+  width?: number;
 }
 
 /**
@@ -88,23 +89,25 @@ export interface LaneIntent extends DriverIntent {
 export function createLaneFollowing(
   forks: {
     targetL(s: number, intent: DriverIntent): number;
-    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit']): readonly number[];
+    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit'], vehicle?: number): readonly number[];
   },
   window: Pick<DrivingDomain, 'end'>,
 ) {
   const { followSeconds } = PLANNED_DRIVER;
-  const probe: { lane: number; at: number; exit: DriverIntent['exit']; offset: DriverIntent['offset'] } = {
-    lane: 0,
-    at: 0,
-    exit: () => 0,
-    offset: undefined,
-  };
+  const probe: {
+    lane: number;
+    at: number;
+    exit: DriverIntent['exit'];
+    offset: DriverIntent['offset'];
+    width: DriverIntent['width'];
+  } = { lane: 0, at: 0, exit: () => 0, offset: undefined, width: undefined };
   // The centre of `lane` of the driver's intent at station s.
   const centre = (intent: DriverIntent, lane: number, s: number) => {
     probe.lane = lane;
     probe.at = intent.at;
     probe.exit = intent.exit;
     probe.offset = lane === intent.lane ? intent.offset : undefined;
+    probe.width = intent.width;
     return forks.targetL(s, probe);
   };
   // Whether `other` occupies `lane` for the driver `self`, at other's station.
@@ -165,7 +168,7 @@ export function createLaneFollowing(
   const escape = (self: VehicleSighting, intent: DriverIntent, lane: number, other: VehicleSighting) => {
     const halfWidths = (self.width + other.width) / 2;
     let least = Infinity;
-    for (const candidate of forks.adjacentLanes(self.s, lane, intent.exit)) {
+    for (const candidate of forks.adjacentLanes(self.s, lane, intent.exit, intent.width)) {
       trace(rest, self, intent, candidate, true);
       // The first distance after which the path stays clear.
       let clearFrom = -1;

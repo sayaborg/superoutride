@@ -21,6 +21,7 @@ import { loadPuffs } from '../../src/content/puff-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
+import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { readFileSync } from 'node:fs';
@@ -206,6 +207,13 @@ function pavementBounds(scene, vehicle) {
     left: Math.min(...roads.map((r) => r.left)) - occurrence.lateralOrigin,
     right: Math.max(...roads.map((r) => r.right)) - occurrence.lateralOrigin,
   };
+}
+
+// The width of lane `lane` (an index into its Section's lanes) at route station s.
+function laneWidth(scene, s, lane) {
+  const occurrence = scene.runtime.route.at(s);
+  const lanes = occurrence.section.lanes.elements.flatMap((element) => (element.kind === 'lane' ? [element.lane] : []));
+  return courseBoundaryAt(lanes[lane].width, routeSectionS(occurrence, s));
 }
 
 /**
@@ -402,8 +410,15 @@ export async function runScenario({ course }, scenario) {
     const presentTraffic = new Set(race.traffic.map((t) => t.id));
     for (const t of race.traffic) {
       finiteState(t.vehicle, t.id);
-      if (!trafficIds.has(t.id))
+      if (!trafficIds.has(t.id)) {
         traffic.appeared.push({ id: t.id, tick, s: t.vehicle.course.s, playerS: vehicle.course.s });
+        // Traffic appears in a lane there for it: one no narrower than its vehicle.
+        const { lane, at } = t.driving.intent;
+        assert.ok(
+          laneWidth(scene, at, lane) >= t.model.compiledVehicle.footprint,
+          `${t.id} appeared in a lane narrower than its vehicle`,
+        );
+      }
       digest.update(JSON.stringify([t.id, t.vehicle, t.step.state]));
     }
     for (const id of trafficIds) if (!presentTraffic.has(id)) traffic.departed++;

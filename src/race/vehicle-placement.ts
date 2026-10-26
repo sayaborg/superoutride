@@ -86,7 +86,8 @@ export function createVehiclePlacement(options: {
       if (contactResponseStopped(body.actor.contactResponse)) return;
       const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
       if (!target) return;
-      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l), target.l);
+      const width = body.model.compiledVehicle.footprint;
+      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l, width), target.l);
       if (!place) return;
       recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
         state: body.step.state,

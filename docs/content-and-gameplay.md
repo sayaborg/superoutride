@@ -791,8 +791,9 @@ Checkpoint credit remains per actor.
 A driver's intent has two separate values: its lane, a lane of the Section's lanes (its index left to right, medians
 not counted) at a route station, and its target exit, an exit index at each fork occurrence; any exit, a middle one
 included, can be intended, and the grid side implies none. Across a seam a lane continues as the lanes do: the Link's
-named lane as the next Section's centre lane, and the lanes beside it in order. A lane ends where its width reaches
-zero; at a fork, a lane not in the road of the Link the intent follows (the intended exit's, or the selected exit's
+named lane as the next Section's centre lane, and the lanes beside it in order. A lane is there for a driver where it is
+no narrower than the driver's vehicle (one of zero width for none; a driver with no vehicle, every lane wider than
+zero), and ends for it where it narrows below that; at a fork, a lane not in the road of the Link the intent follows (the intended exit's, or the selected exit's
 once the occurrence is decided) ends at the lock line, or at closure once the fork is decided, so heading for an exit
 is merging; and a lane ends at a seam it does not continue across. Its driver merges toward the lane beside it that
 continues (below), crossing a median only then. The race carries each driver's lane to its station every step. The
@@ -1444,11 +1445,11 @@ allows. Nothing blocks a move. The constants are `PATH_OFFSET` in `src/race/lane
 lane changes for passing; traffic keeps its lanes and the lane rules below.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
-driver's lookahead by the rule above (its width reaching zero, a fork line it must leave its road by, or a seam it does
+driver's lookahead by the rule above (its width falling below its vehicle's, a fork line it must leave its road by, or a seam it does
 not continue across), or at a standing object in it (one that occupies the lane) nearer than that, whichever comes
-first. At such an end the lane to merge toward is the lane beside it that continues: the one wider than zero there
+first. At such an end the lane to merge toward is the lane beside it that continues: the one there for its vehicle
 where a width ends, the one toward the followed road at a fork or seam; at a standing object it is the adjacent lane of
-its road that does not end within the lookahead, the left one when both qualify, and none when neither does. The driver moves toward it
+its road there for its vehicle that does not end within the lookahead, the left one when both qualify, and none when neither does. The driver moves toward it
 one lane at a time. Each
 step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
 above) and every driven vehicle behind in it can follow the driver, the plan constraint above with the driver as the
@@ -1514,8 +1515,8 @@ them), progress, events, record or pace, and the HUD does not count them. Each i
 mechanics, recovery and the same driver as rivals, except that its driver never changes lanes to pass: behind a slower
 vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it. Heading for a
 fork's exit is merging. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
-the offset in [0, spacing), and each position's vehicle, color and lane (a lane of the road it drives at that
-station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
+the offset in [0, spacing), and each position's vehicle, color and lane (a lane there for its vehicle of the road it
+drives at that station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
 vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a
 closed road recovers like any vehicle.
 
@@ -1525,8 +1526,8 @@ the player's route position. In each step in which the line reaches a position, 
 traffic vehicle appears there, at its lane's centre and its driver's planned speed behind the vehicle ahead in that
 lane, the same appearance as a later stage's entry. Positions at or before the line when the run starts never appear. A position passes unused,
 never to appear later, when `min(16, 32 − competitors)` traffic vehicles are present (`RUN_RULE_LIMITS.traffic`
-and `.vehicles`), when the resident Route does not reach it yet, when its road there has one lane (traffic
-appears only on roads of two or more lanes), when its place overlaps another vehicle's footprint
+and `.vehicles`), when the resident Route does not reach it yet, when its road there has one lane there for it (traffic
+appears only on roads of two or more lanes there for it), when its place overlaps another vehicle's footprint
 ([Body contact](#body-contact)), or when a vehicle behind in its lane whose driver never changes lanes to pass, another traffic
 vehicle in practice, could not stop for it (the appearance rule above). A traffic vehicle leaves, for good, once out of view by the same rule as competitors.
 Traffic exists only where the player can see it: it appears at the farthest visible distance ahead of the player
@@ -1693,7 +1694,7 @@ recovery placement (its target lateral from the fork field's `recoveryL`, behind
 way, see [Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
 competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
 recovers to the centre of the lane nearest it of the roads it may drive: at a decided fork, the selected Link's road
-where that road is, else every lane there. Wrong-route recovery goes to the nearest lane centre of the selected road at
+where that road is, else every lane there for its vehicle (every lane wider than zero where none is). Wrong-route recovery goes to the nearest lane centre of the selected road at
 the observed station (`legalTarget`).
 Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l
 lies within the coordinate domain (`lateralAt`) and its surface has a material. Targets are race-made, so a

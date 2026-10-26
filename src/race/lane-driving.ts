@@ -207,6 +207,7 @@ export function createLaneDriving(options: {
         probe.lane = lane;
         probe.at = intent.at;
         probe.exit = intent.exit;
+        probe.width = intent.width;
         return forks.laneEnd(s, ahead, probe);
       };
       const objectEnd = (lane: number, seam: { readonly s: number } | null) =>
@@ -221,7 +222,7 @@ export function createLaneDriving(options: {
         if (object === null) return seam && { s: seam.s, merge: seam.merge, seam: true };
         // A lane a standing object ends is left toward an adjacent lane of its road that does not end, the left one first.
         let merge: number | null = null;
-        for (const candidate of forks.adjacentLanes(s, lane, intent.exit))
+        for (const candidate of forks.adjacentLanes(s, lane, intent.exit, intent.width))
           if (merge === null && !ends(candidate)) merge = candidate;
         return { s: object, merge, seam: false };
       };
