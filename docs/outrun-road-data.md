@@ -703,10 +703,12 @@ and are not committed.
   | 1        | 0    | 112.5, 191.6 | 107, 199 |
   | 360      | 0    | 116.9, 179.9 | 120, 181 |
   | 1044     | 0    | 101.4, 187.1 | 100, 187 |
-  | 1600     | 1    | 169.1        | 163      |
+  | 1600     | 1    | 172.1        | 163      |
 
   Four of the seven extremes are within 3 rows. `k1` ends before table 1824. The rule's tops were measured again by
-  the tool as it stands (2026-10-25) and are unchanged. `k1`'s were read once from its footage, which is not at hand
+  the tool as it stands (2026-10-26): kind 1's, every segment taking its entry since its window is the original's, is
+  172.1, as the original's procedure run on that table alone gives, 9 rows from `k1`'s; the others are
+  unchanged. `k1`'s were read once from its footage, which is not at hand
   to read again; an earlier reading of the kind 1 table's hold, the rows its top took while held (166 to 173), measured
   another thing than this extreme.
 

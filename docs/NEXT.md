@@ -285,7 +285,6 @@ EX-1's and EX-2's audit left these to the stage, each with the PR that owns it.
 - TURBO OUTRUN reads its own advance but uses OUTRUN's (the same value today): EX-19.
 - TURBO OUTRUN's objects are placed at its top speed, not at 216.3 km/h: EX-14, by the rule of time made into position
   above.
-- The hills' kind 2 has no effect (its `holdLength` is 0), and `STEEPEST` is a literal: EX-14.
 - Values each written in several places (the distance between passages in 4, the passage gap in 3, the grid's spacing
   and the goal positions, the sky's horizon, the rounding helper and its epsilon in 6, the yaw formula and the grid
   builder): EX-13 and EX-14.
