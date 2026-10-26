@@ -61,7 +61,7 @@ import { enduroRacerBoards } from './enduro-racer-boards.js';
 import { enduroRacerObjects, type ObjectSpot } from './enduro-racer-objects.js';
 
 /** The conversion's version, recorded in the specification beside the course it wrote. */
-export const ENDURO_RACER_CONVERSION_VERSION = 24;
+export const ENDURO_RACER_CONVERSION_VERSION = 25;
 export const COURSE_ID = 'enduro-racer';
 const COURSE_NAME = 'ENDURO RACER';
 
@@ -209,11 +209,6 @@ export function enduroRacerCourse(set: RomSet) {
   const pictures = enduroRacerBoards(main, words, objects.uses, unit);
   const colored = new Map(pictures.map((p) => [p.name, p.colored]));
   const width = new Map(pictures.map((p) => [p.name, p.width]));
-  // A picture shown both on the ground and raised off it shows its `-raised` image raised.
-  const split = new Set(pictures.filter((p) => p.split).map((p) => p.name));
-  const spots = objects.spots.map((spot) =>
-    spot.height !== 0 && split.has(spot.image) ? { ...spot, image: `${spot.image}-raised` } : spot,
-  );
   const built = layCourse({
     headings,
     metres,
@@ -233,7 +228,7 @@ export function enduroRacerCourse(set: RomSet) {
     skyChanges,
     stages,
     yawOrigin,
-    spots,
+    spots: objects.spots,
     colored: (image) => colored.get(image)!,
     width: (image) => width.get(image)!,
   });

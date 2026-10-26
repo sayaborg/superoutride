@@ -142,10 +142,23 @@ function chosenAxis(n: number, r: number, differs: (a: number, b: number) => num
 
 /**
  * `pixels` (`width` wide, row-major palette indices, 0 transparent) on the texel grid by chosen lines, `across` and
- * `down` texels a pixel: each axis planned from the picture (`chosenAxis`), transparency counted as an index, and each
- * texel the pixel of its chosen row and column. A picture whose every column is its mirror's stays symmetric.
+ * `down` texels a pixel: each texel the pixel of its chosen row and column (`chosenGrid`).
  */
 export function chosenLines(pixels: Uint8Array, width: number, across: number, down: number) {
+  const { columns, rows } = chosenGrid(pixels, width, across, down);
+  return {
+    width: columns.length,
+    height: rows.length,
+    indices: rows.flatMap((y) => columns.map((x) => pixels[y * width + x]!)),
+  };
+}
+
+/**
+ * The source columns and rows of `pixels`' texels at `across` and `down` texels a pixel: each axis planned from the
+ * picture (`chosenAxis`), transparency counted as an index. A picture whose every column is its mirror's stays
+ * symmetric.
+ */
+export function chosenGrid(pixels: Uint8Array, width: number, across: number, down: number) {
   const height = pixels.length / width;
   const at = (x: number, y: number) => pixels[y * width + x]!;
   const columnsDiffer = (a: number, b: number) => {
@@ -160,12 +173,9 @@ export function chosenLines(pixels: Uint8Array, width: number, across: number, d
   };
   let symmetric = true;
   for (let x = 0; x < width && symmetric; x++) symmetric = columnsDiffer(x, width - 1 - x) === 0;
-  const columns = chosenAxis(width, across, columnsDiffer, symmetric);
-  const rows = chosenAxis(height, down, rowsDiffer, false);
   return {
-    width: columns.length,
-    height: rows.length,
-    indices: rows.flatMap((y) => columns.map((x) => at(x, y))),
+    columns: chosenAxis(width, across, columnsDiffer, symmetric),
+    rows: chosenAxis(height, down, rowsDiffer, false),
   };
 }
 

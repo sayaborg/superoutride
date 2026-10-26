@@ -70,8 +70,9 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   [Sprites and Painter](architecture.md#sprites-and-painter)'s. The conversions place them so:
   - A background's picture is one board. An anchor is at the bottom edge and at height 0 by default; a picture at
     height 0 anchored elsewhere folds there: above, it stands up from the ground; below, it lies on the nearer ground.
-  - A standing thing stands on its bottom edge, what floats at its height. A picture drawn with a shadow at its foot
-    stands at its foot, the shadow below it lying ([Foot shadows](#foot-shadows)). What lies on the ground (sea, waves,
+  - A standing thing stands on its base, what floats at its height ([Pictures from the extract](#pictures-from-the-extract));
+    in the originals not yet converted so, a picture drawn with a shadow at its foot stands at its foot, the shadow
+    below it lying ([Foot shadows](#foot-shadows)). What lies on the ground (sea, waves,
     drifts of sand, patches, puddles, pebbles) is a board of the original's picture at the original's anchor, with no
     body ([Lying boards](#lying-boards)).
   - A board whose foot is below the ground (a negative height) keeps it: the nearer drawn ground hides its part below
@@ -119,9 +120,35 @@ Base points, bodies' widths and LOD levels are each original's own rules ([Board
 HANG-ON's courses](super-hang-on-road-data.md#super-hang-ons-courses)); a separate shadow picture is put on the grid the
 same way.
 
+## Pictures from the extract
+
+The extract is a picture as its ROM holds it (its pixels, pen 10 among them, its palettes, sizes and mirroring, its
+anchor and height) with each use's flags from the original: whether it is drawn with shadows allowed, a separate
+shadow picture, whether it lies. It is made from the ROMs again by every conversion and never committed. One set of
+rules (`sprite-rules`) makes it a course image, the originals differing only by their flags and K's table:
+
+- **Shadow pen.** In a use drawn with shadows allowed pen 10 is shadow, taken from the picture into its shadow frame;
+  in any other use, or where K's table says so, it is a color.
+- **The ground's shadow.** Its seeds are the shadow pixels with only shadow or transparency below them in their
+  column, and it is what is reached from them through shadow pixels' eight neighbours. K's `paintedShadow` makes the
+  pixels of its indices from its row down shadow pixels too, taken from the picture where reached; those not reached
+  stay (a rock's black cracks).
+- **Fill A.** In a row of the ground's shadow, the picture's pixels between its leftmost and rightmost pixels are
+  shadow too and stay in the picture.
+- **Base.** A picture stands on its base point, on the bottom edge of its lowest row holding a pixel once its shadow is
+  taken, or of K's `base` row, the ground painted below that lying on the nearer ground. Its course image keeps its
+  rows to the lower of those, its shadow frame the whole grid, both anchored at the base point. On the ground the
+  base is at the original's point, the picture drawn lower than the original by its shadow's rows (K, 2026-10-22);
+  raised, at the original's height, its shadow drawn at the picture.
+- **K's table** (`sprite-table.json`) holds K's judgement of a look where the rules cannot tell (K, 2026-10-24):
+  `penIsColour`, `paintedShadow`, `base` or `lies`, one a picture of the extract with its reason, in the extract's
+  rows.
+
+ENDURO RACER's pictures are made so; the other originals' are by [Foot shadows](#foot-shadows) until they are.
+
 ## Foot shadows
 
-The sprite hardware of OUTRUN, SUPER HANG-ON, TURBO OUTRUN and ENDURO RACER draws pixel 10 of a sprite drawn with
+The sprite hardware of OUTRUN, SUPER HANG-ON and TURBO OUTRUN draws pixel 10 of a sprite drawn with
 shadows allowed as a shadow: it darkens what lies behind it, its palette color unused. Many pictures (trees, rocks,
 signs, people, lamps, fences) carry rows of it below their foot, their shadow on the ground. Such a picture standing on
 the ground stands at its foot (`footAnchorY`, K, 2026-10-22): its anchor is the bottom edge of its lowest row holding a
@@ -142,9 +169,6 @@ shown so by its `-raised` image on its bottom edge (`raisedSplit`).
 - **TURBO OUTRUN.** A kind's flags' bit 2 marks its pixel 10 as shading. A picture stands at its foot where a kind
   showing it on the ground shades: 0x275A2 is shown by kinds that do (375 times) and kinds that do not (76), whose pixel
   10 is then a color drawn on the nearer ground.
-- **ENDURO RACER.** Pixel 10 is the board's shadow picture ([ENDURO RACER's
-  objects](enduro-racer-road-data.md#enduro-racers-objects)); a board with transparent rows below its other pixels
-  stands at its foot, its shadow picture anchored as it is.
 
 The anchors raised, texels above the bottom edge (a mirrored and a shadowed board as the plain one):
 
@@ -153,11 +177,9 @@ The anchors raised, texels above the bottom edge (a mirrored and a shadowed boar
 | OUTRUN        | 9: 041; 7: 015, 032, 034, 088, 089; 5: 029, 090, 110, 129; 2: 030, 036, 037, 038, 052, 091, 093, 097, 130, 132, 147; 1: 028, 144                                                                                                      |
 | SUPER HANG-ON | 6: 089; 5: 048, 071, 072; 4: 056, 067, 068, 069, 087; 3: 000, 037, 047, 055, 063, 070, 074, 080; 2: 002, 004, 058, 062, 076, 079; 1: 009, 039, 040, 043, 044, 045, 046, 051, 053, 065, 073, 078, 081, 082, 083, 084, 085, frame 13734 |
 | TURBO OUTRUN  | 9: 26E18; 5: 277DC; 2: 26A62, 26A94, 26BF2, 26C56, 26D50, 26E4A, 26EE0, 275A2, 27778; 1: 26E4A at 1 unit a pixel                                                                                                                      |
-| ENDURO RACER  | 3: 10AD2; 2: 10550; 1: 103CA, 10582, 109D8, 111F8, 1141E                                                                                                                                                                              |
 
 Shown raised too, by their `-raised` image: OUTRUN's 052 (and mirrored), 129 and 132; TURBO OUTRUN's 26A62 (and
-mirrored) and 26E4A at 1 unit a pixel. SUPER HANG-ON's and ENDURO RACER's pictures at their foot are shown only on the
-ground.
+mirrored) and 26E4A at 1 unit a pixel. SUPER HANG-ON's pictures at their foot are shown only on the ground.
 
 ## Sky baking
 

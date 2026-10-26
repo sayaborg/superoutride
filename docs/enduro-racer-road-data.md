@@ -179,7 +179,7 @@ the tile palettes.
 ## ENDURO RACER's course
 
 `npm run road-data -- enduro-racer-course` ([Development](development.md#road-data-commands)) writes the LINEAR course
-`enduro-racer` (ENDURO RACER), conversion version 24, the pictures its objects show and its skies, or with `--check`
+`enduro-racer` (ENDURO RACER), conversion version 25, the pictures its objects show and its skies, or with `--check`
 fails where one differs; it reports the metres a position and a unit, the cross-section, its runs, elements, plan's
 distance from its table's line (`fromPath`) and turn, the tightest arc, the checkpoints, the finish, the road past it,
 the yaw origin, the steepest grade, the crossings and its objects ([ENDURO RACER's objects](#enduro-racers-objects)):
@@ -288,8 +288,10 @@ hit narrows and the objects left out:
   shows the two together. 153 are.
 - **Pictures.** `enduror-<size set, five hex digits>` (and `-mirrored`): the unscaled size's drawn
   rows (0 to height − 2) on the texel grid by [chosen lines](original-road-data.md#chosen-lines), a pixel 128/125
-  lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors; the board takes the other
-  pixels and its shadow pixel 10, so neither is a texel off the other. A board's base point is the middle of its words'
-  width on its bottom edge (the program puts a size's bottom edge a row below its last drawn row, 0.8 texel lower) or at
-  its foot ([Foot shadows](original-road-data.md#foot-shadows)), in every palette it is shown in, the lowest its
-  default; its pixels 0 and 15 are transparent. The pictures are published, provisionally.
+  lateral units across and 15/14 times that down, chosen once with pixel 10 among the colors, by [the sprites'
+  rules](original-road-data.md#pictures-from-the-extract), every use drawn with shadows allowed: the board takes the
+  picture and its shadow frame pixel 10 and the ground's shadow, so neither is a texel off the other. A board's base
+  point is the middle of its words' width on its base's bottom edge (the program puts a size's bottom edge a row below
+  its last drawn row, 0.8 texel lower), in every palette it is shown in, the lowest its default; its pixels 0 and 15
+  are transparent. K's table paints 0x11144's shadow in pixel 14 and stands 0x1099C, 0x10AD2, 0x10F78, 0x11176,
+  0x115B8 and 0x11676 on the row above the ground painted at their foot. The pictures are published, provisionally.
